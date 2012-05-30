@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.ci.client;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.codehaus.plexus.util.IOUtil;
+
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -15,6 +21,34 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class DataStore
 {
+    private static final JsonFactory JSON = new JsonFactory();
+
+    public static void save( final OutputStream os, final ArrayNode table )
+        throws IOException
+    {
+        try
+        {
+            JSON.createJsonGenerator( os ).writeTree( table );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+    }
+
+    public static ArrayNode load( final InputStream is )
+        throws IOException
+    {
+        try
+        {
+            return JSON.createJsonParser( is ).readValueAsTree();
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+    }
+
     public static ArrayNode augment( final ArrayNode primaryTable, final ArrayNode secondaryTable )
     {
         final ArrayNode table = primaryTable.arrayNode();
@@ -27,17 +61,17 @@ public final class DataStore
                 {
                     // once a secondary row is applied, remove it since it won't match any other rows
                     table.add( augment( (ObjectNode) primary, (ObjectNode) secondaryTable.get( i ) ) );
-                    matched = secondaryTable.remove( i );
+                    matched = secondaryTable.remove( i-- );
                     break;
                 }
                 catch ( final JsonMappingException e )
                 {
-                    // incompatible rows, try next row from secondary table
+                    // incompatible data, try next row from secondary table
                 }
             }
             if ( matched == null )
             {
-                table.add( primary );
+                table.add( primary ); // row was not augmented
             }
         }
         return table;
@@ -54,14 +88,14 @@ public final class DataStore
             final JsonNode secondaryValue = field.getValue();
             if ( primaryValue == null )
             {
-                mutate( result, primary ).put( name, secondaryValue );
+                mutate( result, primary ).put( name, secondaryValue ); // pure augmented data
             }
             else if ( primaryValue.isObject() && secondaryValue.isObject() )
             {
                 final ObjectNode value = augment( (ObjectNode) primaryValue, (ObjectNode) secondaryValue );
                 if ( primaryValue != value )
                 {
-                    mutate( result, primary ).put( name, value );
+                    mutate( result, primary ).put( name, value ); // patch in augmented result
                 }
             }
             else if ( !primaryValue.equals( secondaryValue ) )
@@ -76,6 +110,7 @@ public final class DataStore
     {
         if ( result[0] == original )
         {
+            // perform shallow copy so we can patch in any augmented fields
             result[0] = (ObjectNode) original.objectNode().putAll( original );
         }
         return result[0];

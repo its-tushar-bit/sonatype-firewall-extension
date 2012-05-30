@@ -5,48 +5,41 @@
  */
 package com.sonatype.insight.ci.client;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.codehaus.plexus.util.IOUtil;
-
+import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class DataStore
 {
-    private static final JsonFactory JSON = new JsonFactory();
+    private static final JsonFactory JSON = new MappingJsonFactory();
 
-    public static void save( final OutputStream os, final ArrayNode table )
+    public static ArrayNode parseTable( final byte[] buf )
         throws IOException
     {
-        try
-        {
-            JSON.createJsonGenerator( os ).writeTree( table );
-        }
-        finally
-        {
-            IOUtil.close( os );
-        }
+        return (ArrayNode) ( (ObjectNode) JSON.createJsonParser( buf ).readValueAsTree() ).get( "aaData" );
     }
 
-    public static ArrayNode load( final InputStream is )
+    public static ArrayNode loadTable( final File file )
         throws IOException
     {
-        try
-        {
-            return JSON.createJsonParser( is ).readValueAsTree();
-        }
-        finally
-        {
-            IOUtil.close( is );
-        }
+        return (ArrayNode) ( (ObjectNode) JSON.createJsonParser( file ).readValueAsTree() ).get( "aaData" );
+    }
+
+    public static void saveTable( final File file, final ArrayNode table )
+        throws IOException
+    {
+        final ObjectNode root = table.objectNode();
+        root.put( "aaData", table );
+        JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( root );
     }
 
     public static ArrayNode augment( final ArrayNode primaryTable, final ArrayNode secondaryTable )

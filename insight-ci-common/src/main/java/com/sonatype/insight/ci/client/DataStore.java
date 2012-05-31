@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.ci.client;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
+
+import org.codehaus.plexus.util.IOUtil;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -26,6 +29,23 @@ public final class DataStore
         throws IOException
     {
         return (ArrayNode) ( (ObjectNode) JSON.createJsonParser( buf ).readValueAsTree() ).get( "aaData" );
+    }
+
+    public static byte[] streamTable( final ArrayNode table )
+        throws IOException
+    {
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try
+        {
+            final ObjectNode root = table.objectNode();
+            root.put( "aaData", table );
+            JSON.createJsonGenerator( os, JsonEncoding.UTF8 ).writeTree( root );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+        return os.toByteArray();
     }
 
     public static ArrayNode loadTable( final File file )

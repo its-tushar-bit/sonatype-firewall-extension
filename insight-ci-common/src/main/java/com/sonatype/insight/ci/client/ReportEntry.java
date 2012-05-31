@@ -30,10 +30,9 @@ public final class ReportEntry
     public static ReportEntry extract( final File report, final String path )
         throws IOException
     {
-        ZipFile archive = null;
+        final ZipFile archive = new ZipFile( report );
         try
         {
-            archive = new ZipFile( report );
             final ZipEntry entry = archive.getEntry( normalizePath( path ) );
             if ( entry != null )
             {
@@ -43,10 +42,7 @@ public final class ReportEntry
         }
         finally
         {
-            if ( archive != null )
-            {
-                archive.close(); // closes all InputStreams retrieved from this archive
-            }
+            archive.close(); // closes all InputStreams retrieved from this archive
         }
         return null;
     }

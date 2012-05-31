@@ -13,24 +13,24 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory();
 
-    public static TreeNode parseData( final byte[] buf )
+    public static ContainerNode<?> parseData( final byte[] buf )
         throws IOException
     {
         return JSON.createJsonParser( buf ).readValueAsTree();
     }
 
-    public static byte[] streamData( final TreeNode data )
+    public static byte[] streamData( final ContainerNode<?> data )
         throws IOException
     {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -38,39 +38,50 @@ public final class DataStore
         return os.toByteArray();
     }
 
-    public static TreeNode loadData( final File file )
+    public static ArrayNode loadAugmentedRows( final File file )
         throws IOException
     {
-        return JSON.createJsonParser( file ).readValueAsTree();
+        final ArrayNode auditedEntries = JSON.createJsonParser( file ).readValueAsTree();
+        final ArrayNode augmentedRows = auditedEntries.arrayNode();
+        for ( final JsonNode entry : auditedEntries )
+        {
+            augmentedRows.addAll( (ArrayNode) entry.get( "rows" ) );
+        }
+        return augmentedRows;
     }
 
-    public static void saveData( final File file, final TreeNode data )
+    public static void saveAugmentedRows( final File file, final ContainerNode<?> rows )
         throws IOException
     {
-        TreeNode root = data;
+        final ArrayNode auditedEntries;
         if ( file.exists() )
         {
-            root = table( data ).addAll( table( loadData( file ) ) );
+            auditedEntries = JSON.createJsonParser( file ).readValueAsTree();
         }
-        JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( root );
+        else
+        {
+            auditedEntries = rows.arrayNode();
+        }
+
+        final ObjectNode entry = auditedEntries.insertObject( 0 );
+        entry.put( "time", System.currentTimeMillis() );
+        entry.put( "rows", rows );
+
+        JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( auditedEntries );
     }
 
-    public static TreeNode augmentData( final TreeNode primaryData, final TreeNode secondaryData )
+    public static ContainerNode<?> augmentTable( final ContainerNode<?> table, final ArrayNode augmentedRows )
     {
-        final ArrayNode primaryTable = table( primaryData );
-        final ArrayNode secondaryTable = table( secondaryData );
-        final ArrayNode table = primaryTable.arrayNode();
-
-        for ( final JsonNode primary : primaryTable )
+        final ArrayNode rows = (ArrayNode) table.get( "aaData" );
+        for ( int x = 0; x < rows.size(); x++ )
         {
-            JsonNode matched = null;
-            for ( int i = 0; i < secondaryTable.size(); i++ )
+            for ( int y = 0; y < augmentedRows.size(); y++ )
             {
                 try
                 {
-                    // once a secondary row is applied, remove it since it won't match any other rows
-                    table.add( augment( (ObjectNode) primary, (ObjectNode) secondaryTable.get( i ) ) );
-                    matched = secondaryTable.remove( i-- );
+                    // once an augmented row had been applied, remove it since it won't match any other rows
+                    rows.set( x, augment( (ObjectNode) rows.get( x ), (ObjectNode) augmentedRows.get( y ) ) );
+                    augmentedRows.remove( y-- );
                     break;
                 }
                 catch ( final JsonMappingException e )
@@ -78,19 +89,7 @@ public final class DataStore
                     // incompatible data, try next row from secondary table
                 }
             }
-            if ( matched == null )
-            {
-                table.add( primary ); // row was not augmented
-            }
         }
-
-        if ( primaryData instanceof ObjectNode )
-        {
-            final ObjectNode data = primaryTable.objectNode();
-            data.put( "aaData", table );
-            return data;
-        }
-
         return table;
     }
 
@@ -121,11 +120,6 @@ public final class DataStore
             }
         }
         return result[0];
-    }
-
-    private static ArrayNode table( final TreeNode table )
-    {
-        return (ArrayNode) ( table instanceof ObjectNode ? ( (ObjectNode) table ).get( "aaData" ) : table );
     }
 
     private static ObjectNode mutate( final ObjectNode[] result, final ObjectNode original )

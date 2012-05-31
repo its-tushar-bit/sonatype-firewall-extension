@@ -8,7 +8,9 @@ package com.sonatype.insight.ci.client;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -24,68 +26,60 @@ public final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory();
 
-    public static ContainerNode<?> parseData( final byte[] buf )
+    public synchronized static void logData( final File file, final String user, final String ip, final byte[] buf )
         throws IOException
     {
-        return JSON.createJsonParser( buf ).readValueAsTree();
-    }
+        final ContainerNode<?> data = parseData( buf );
 
-    public static byte[] streamData( final ContainerNode<?> data )
-        throws IOException
-    {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        JSON.createJsonGenerator( os, JsonEncoding.UTF8 ).writeTree( data );
-        return os.toByteArray();
-    }
-
-    public static ArrayNode loadAugmentedRows( final File file )
-        throws IOException
-    {
-        final ArrayNode auditedEntries = JSON.createJsonParser( file ).readValueAsTree();
-        final ArrayNode augmentedRows = auditedEntries.arrayNode();
-        for ( final JsonNode entry : auditedEntries )
-        {
-            augmentedRows.addAll( (ArrayNode) entry.get( "rows" ) );
-        }
-        return augmentedRows;
-    }
-
-    public static void saveAugmentedRows( final File file, final String user, final String ip,
-                                          final ContainerNode<?> rows )
-        throws IOException
-    {
-        final ArrayNode auditedEntries;
+        final ArrayNode dataLog;
         if ( file.exists() )
         {
-            auditedEntries = JSON.createJsonParser( file ).readValueAsTree();
+            dataLog = (ArrayNode) loadData( file );
         }
         else
         {
-            auditedEntries = rows.arrayNode();
+            dataLog = data.arrayNode();
         }
 
-        final ObjectNode entry = auditedEntries.insertObject( 0 );
-        entry.put( "time", System.currentTimeMillis() );
+        // newest entries appear at the top of the data log
+        final ObjectNode dataEntry = dataLog.insertObject( 0 );
+        dataEntry.put( "time", System.currentTimeMillis() );
 
-        entry.put( "user", user );
-        entry.put( "ip", ip );
-        entry.put( "rows", rows );
+        dataEntry.put( "user", user );
+        dataEntry.put( "ip", ip );
+        dataEntry.put( "data", data );
 
-        JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( auditedEntries );
+        saveData( file, dataLog );
     }
 
-    public static ContainerNode<?> augmentTable( final ContainerNode<?> table, final ArrayNode augmentedRows )
+    public synchronized static byte[] augmentTable( final byte[] buf, final File file )
+        throws IOException
     {
+        final ObjectNode table = (ObjectNode) parseData( buf );
+        final ArrayNode dataLog = (ArrayNode) loadData( file );
+
+        // first aggregate all the changes found in the data log
+        final List<JsonNode> changes = new ArrayList<JsonNode>();
+        for ( int x = 0; x < dataLog.size(); x++ )
+        {
+            final ArrayNode data = (ArrayNode) dataLog.get( x ).get( "data" );
+            for ( int y = 0; y < data.size(); y++ )
+            {
+                changes.add( data.get( y ) );
+            }
+        }
+
+        // check each row in turn against the candidate changes
         final ArrayNode rows = (ArrayNode) table.get( "aaData" );
         for ( int x = 0; x < rows.size(); x++ )
         {
-            for ( int y = 0; y < augmentedRows.size(); y++ )
+            for ( int y = 0; y < changes.size(); y++ )
             {
                 try
                 {
-                    // once an augmented row had been applied, remove it since it won't match any other rows
-                    rows.set( x, augment( (ObjectNode) rows.get( x ), (ObjectNode) augmentedRows.get( y ) ) );
-                    augmentedRows.remove( y-- );
+                    // once change has been applied, remove it since it shouldn't match any other rows
+                    rows.set( x, augment( (ObjectNode) rows.get( x ), (ObjectNode) changes.get( y ) ) );
+                    changes.remove( y-- );
                     break;
                 }
                 catch ( final JsonMappingException e )
@@ -94,10 +88,61 @@ public final class DataStore
                 }
             }
         }
-        return table;
+
+        // remove stale changes from the active data log
+        boolean staleData = false;
+        for ( int x = 0; x < dataLog.size(); x++ )
+        {
+            final ArrayNode data = (ArrayNode) dataLog.get( x ).get( "data" );
+            for ( int y = 0; y < data.size(); y++ )
+            {
+                if ( changes.remove( data.get( y ) ) )
+                {
+                    data.remove( y-- );
+                    staleData = true;
+                }
+            }
+            if ( data.size() == 0 )
+            {
+                dataLog.remove( x-- );
+                staleData = true;
+            }
+        }
+        if ( staleData )
+        {
+            saveData( file, dataLog );
+        }
+
+        return streamData( table );
     }
 
-    public static ObjectNode augment( final ObjectNode primary, final ObjectNode secondary )
+    private static ContainerNode<?> loadData( final File file )
+        throws IOException
+    {
+        return JSON.createJsonParser( file ).readValueAsTree();
+    }
+
+    private static void saveData( final File file, final ContainerNode<?> data )
+        throws IOException
+    {
+        JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( data );
+    }
+
+    private static ContainerNode<?> parseData( final byte[] buf )
+        throws IOException
+    {
+        return JSON.createJsonParser( buf ).readValueAsTree();
+    }
+
+    private static byte[] streamData( final ContainerNode<?> data )
+        throws IOException
+    {
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        JSON.createJsonGenerator( os, JsonEncoding.UTF8 ).writeTree( data );
+        return os.toByteArray();
+    }
+
+    private static ObjectNode augment( final ObjectNode primary, final ObjectNode secondary )
         throws JsonMappingException
     {
         final ObjectNode[] result = { primary };

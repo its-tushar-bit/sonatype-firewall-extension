@@ -50,7 +50,8 @@ public final class DataStore
         return augmentedRows;
     }
 
-    public static void saveAugmentedRows( final File file, final ContainerNode<?> rows )
+    public static void saveAugmentedRows( final File file, final String user, final String ip,
+                                          final ContainerNode<?> rows )
         throws IOException
     {
         final ArrayNode auditedEntries;
@@ -65,6 +66,9 @@ public final class DataStore
 
         final ObjectNode entry = auditedEntries.insertObject( 0 );
         entry.put( "time", System.currentTimeMillis() );
+
+        entry.put( "user", user );
+        entry.put( "ip", ip );
         entry.put( "rows", rows );
 
         JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( auditedEntries );

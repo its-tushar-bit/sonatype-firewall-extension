@@ -29,7 +29,7 @@ public final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
-    public synchronized static void logData( final File file, final String user, final String ip, final byte[] buf )
+    public static void logData( final File file, final String user, final String ip, final byte[] buf )
         throws IOException
     {
         final ContainerNode<?> data = parseData( buf );
@@ -55,7 +55,7 @@ public final class DataStore
         saveData( file, dataLog );
     }
 
-    public synchronized static byte[] augmentTable( final byte[] buf, final File file )
+    public static byte[] augmentTable( final byte[] buf, final File file )
         throws IOException
     {
         final ObjectNode table = (ObjectNode) parseData( buf );

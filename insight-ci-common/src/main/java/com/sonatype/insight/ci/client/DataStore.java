@@ -15,6 +15,9 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonFactory.Feature;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
@@ -24,7 +27,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class DataStore
 {
-    private static final JsonFactory JSON = new MappingJsonFactory();
+    private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
     public synchronized static void logData( final File file, final String user, final String ip, final byte[] buf )
         throws IOException
@@ -119,26 +122,58 @@ public final class DataStore
     private static ContainerNode<?> loadData( final File file )
         throws IOException
     {
-        return JSON.createJsonParser( file ).readValueAsTree();
+        final JsonParser parser = JSON.createJsonParser( file );
+        try
+        {
+            return parser.readValueAsTree();
+        }
+        finally
+        {
+            parser.close();
+        }
     }
 
     private static void saveData( final File file, final ContainerNode<?> data )
         throws IOException
     {
-        JSON.createJsonGenerator( file, JsonEncoding.UTF8 ).writeTree( data );
+        final JsonGenerator generator = JSON.createJsonGenerator( file, JsonEncoding.UTF8 );
+        try
+        {
+            generator.writeTree( data );
+        }
+        finally
+        {
+            generator.close();
+        }
     }
 
     private static ContainerNode<?> parseData( final byte[] buf )
         throws IOException
     {
-        return JSON.createJsonParser( buf ).readValueAsTree();
+        final JsonParser parser = JSON.createJsonParser( buf );
+        try
+        {
+            return parser.readValueAsTree();
+        }
+        finally
+        {
+            parser.close();
+        }
     }
 
     private static byte[] streamData( final ContainerNode<?> data )
         throws IOException
     {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        JSON.createJsonGenerator( os, JsonEncoding.UTF8 ).writeTree( data );
+        final JsonGenerator generator = JSON.createJsonGenerator( os, JsonEncoding.UTF8 );
+        try
+        {
+            generator.writeTree( data );
+        }
+        finally
+        {
+            generator.close();
+        }
         return os.toByteArray();
     }
 

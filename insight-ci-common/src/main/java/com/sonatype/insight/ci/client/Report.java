@@ -29,8 +29,8 @@ public final class Report
     public static ReportEntry getEntry( final File reportFile, final String name )
         throws IOException
     {
-        final File auditFile = new File( reportFile.getParentFile(), "audit" + File.separatorChar + name );
-        final File cacheFile = new File( reportFile.getParentFile(), "cache" + File.separatorChar + name );
+        final File auditFile = getAuditFile( reportFile, name );
+        final File cacheFile = getCacheFile( reportFile, name );
 
         final long timeLastCached = cacheFile.lastModified();
         if ( timeLastCached > Math.max( auditFile.lastModified(), reportFile.lastModified() ) )
@@ -46,6 +46,11 @@ public final class Report
             }
         }
 
+        if ( "data.json".equals( name ) )
+        {
+            return recalculate( reportFile, "data.json" );
+        }
+
         final ReportEntry entry = extractEntry( reportFile, name );
         if ( entry != null && auditFile.exists() )
         {
@@ -59,7 +64,7 @@ public final class Report
                                      final String user, final String ip )
         throws IOException
     {
-        final File auditFile = new File( reportFile.getParentFile(), "audit" + File.separatorChar + name );
+        final File auditFile = getAuditFile( reportFile, name );
         try
         {
             logData( auditFile, user, ip, parseData( IOUtil.toByteArray( data ) ) );
@@ -68,16 +73,13 @@ public final class Report
         {
             IOUtil.close( data );
         }
-        summarize( reportFile, "data.json" );
+        FileUtils.cleanDirectory( getCacheDir( reportFile ) );
     }
 
     public static void migrateChanges( final File oldReportFile, final File newReportFile )
         throws IOException
     {
-        final File oldAuditDir = new File( oldReportFile.getParentFile(), "audit" );
-        final File newAuditDir = new File( newReportFile.getParentFile(), "audit" );
-
-        FileUtils.copyDirectory( oldAuditDir, newAuditDir );
+        FileUtils.copyDirectory( getAuditDir( oldReportFile ), getAuditDir( newReportFile ) );
     }
 
     public static String toEntryName( final String path )
@@ -112,17 +114,26 @@ public final class Report
         return buf != null ? buf.toString() : path;
     }
 
-    private static ReportEntry summarize( final File reportFile, final String name )
+    private static ReportEntry recalculate( final File reportFile, final String name )
         throws IOException
     {
-        // final ObjectNode security = parseData( getEntry( reportFile, "security.json" ).buf );
-        // final ObjectNode licenses = parseData( getEntry( reportFile, "licenses.json" ).buf );
-        // final ObjectNode deps = parseData( getEntry( reportFile, "dependencies.json" ).buf );
-        final ObjectNode data = parseData( getEntry( reportFile, name ).buf );
+        final ObjectNode security = parseData( getEntry( reportFile, "security.json" ).buf );
+        final ObjectNode licenses = parseData( getEntry( reportFile, "licenses.json" ).buf );
+        final ObjectNode deps = parseData( getEntry( reportFile, "dependencies.json" ).buf );
+
+        //
+        //
+        //
+        // ...replace with data recalculation...
+        final ObjectNode data = parseData( extractEntry( reportFile, name ).buf );
+        // ...replace with data recalculation...
+        //
+        //
+        //
 
         final byte[] buf = streamData( data );
 
-        final File cacheFile = new File( reportFile.getParentFile(), "cache" + File.separatorChar + name );
+        final File cacheFile = getCacheFile( reportFile, name );
         cacheFile.getAbsoluteFile().getParentFile().mkdirs();
         final OutputStream os = new FileOutputStream( cacheFile );
         try
@@ -171,5 +182,25 @@ public final class Report
             archive.close(); // closes all InputStreams retrieved from this archive
         }
         return null;
+    }
+
+    private static File getAuditDir( final File reportFile )
+    {
+        return new File( reportFile.getParentFile(), "audit" );
+    }
+
+    private static File getCacheDir( final File reportFile )
+    {
+        return new File( reportFile.getParentFile(), "cache" );
+    }
+
+    private static File getAuditFile( final File reportFile, final String name )
+    {
+        return new File( getAuditDir( reportFile ), name );
+    }
+
+    private static File getCacheFile( final File reportFile, final String name )
+    {
+        return new File( getCacheDir( reportFile ), name );
     }
 }

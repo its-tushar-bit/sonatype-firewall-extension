@@ -72,6 +72,38 @@ public final class Report
         FileUtils.copyDirectory( oldAuditDir, newAuditDir );
     }
 
+    public static String toEntryName( final String path )
+    {
+        if ( null == path || path.length() == 0 )
+        {
+            return "index.html";
+        }
+        boolean seenSlash = true;
+        StringBuilder buf = null;
+        for ( int i = 0, len = path.length(); i < len; i++ )
+        {
+            final char c = path.charAt( i );
+            final boolean isSlash = '/' == c;
+            if ( seenSlash && isSlash )
+            {
+                if ( buf == null )
+                {
+                    buf = new StringBuilder( path.subSequence( 0, i ) );
+                }
+            }
+            else if ( buf != null )
+            {
+                buf.append( c );
+            }
+            seenSlash = isSlash;
+        }
+        if ( seenSlash && buf != null )
+        {
+            buf.append( "index.html" );
+        }
+        return buf != null ? buf.toString() : path;
+    }
+
     private static ReportEntry applyChanges( final ReportEntry entry, final File auditFile, final File cacheFile )
         throws IOException
     {
@@ -107,37 +139,5 @@ public final class Report
             archive.close(); // closes all InputStreams retrieved from this archive
         }
         return null;
-    }
-
-    public static String toEntryName( final String path )
-    {
-        if ( null == path || path.length() == 0 )
-        {
-            return "index.html";
-        }
-        boolean seenSlash = true;
-        StringBuilder buf = null;
-        for ( int i = 0, len = path.length(); i < len; i++ )
-        {
-            final char c = path.charAt( i );
-            final boolean isSlash = '/' == c;
-            if ( seenSlash && isSlash )
-            {
-                if ( buf == null )
-                {
-                    buf = new StringBuilder( path.subSequence( 0, i ) );
-                }
-            }
-            else if ( buf != null )
-            {
-                buf.append( c );
-            }
-            seenSlash = isSlash;
-        }
-        if ( seenSlash && buf != null )
-        {
-            buf.append( "index.html" );
-        }
-        return buf != null ? buf.toString() : path;
     }
 }

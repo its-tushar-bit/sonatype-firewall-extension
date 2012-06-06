@@ -14,22 +14,21 @@ import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
 public final class Report
 {
-    public static ReportEntry getEntry( final File report, final String path )
+    public static ReportEntry getEntry( final File reportFile, final String name )
         throws IOException
     {
-        final String name = normalizePath( path );
+        final File auditFile = new File( reportFile.getParentFile(), "audit" + File.separatorChar + name );
+        final File cacheFile = new File( reportFile.getParentFile(), "cache" + File.separatorChar + name );
 
-        final File audit = new File( report.getParentFile(), "audit" + File.separatorChar + name );
-        final File cache = new File( report.getParentFile(), "cache" + File.separatorChar + name );
-
-        final long timeLastCached = cache.lastModified();
-        if ( timeLastCached > Math.max( audit.lastModified(), report.lastModified() ) )
+        final long timeLastCached = cacheFile.lastModified();
+        if ( timeLastCached > Math.max( auditFile.lastModified(), reportFile.lastModified() ) )
         {
-            final InputStream is = new FileInputStream( cache );
+            final InputStream is = new FileInputStream( cacheFile );
             try
             {
                 return new ReportEntry( name, timeLastCached, IOUtil.toByteArray( is ) );
@@ -40,21 +39,45 @@ public final class Report
             }
         }
 
-        ReportEntry entry = extract( report, name );
-        if ( entry != null && audit.exists() )
+        ReportEntry entry = extractEntry( reportFile, name );
+        if ( entry != null && auditFile.exists() )
         {
-            entry = augment( entry, audit, cache );
+            entry = applyChanges( entry, auditFile, cacheFile );
         }
 
         return entry;
     }
 
-    private static ReportEntry augment( final ReportEntry entry, final File audit, final File cache )
+    public static void augmentEntry( final File reportFile, final String name, final InputStream data,
+                                     final String user, final String ip )
         throws IOException
     {
-        cache.getAbsoluteFile().getParentFile().mkdirs();
-        final byte[] buf = DataStore.augmentTable( entry.buf, audit );
-        final OutputStream os = new FileOutputStream( cache );
+        final File auditFile = new File( reportFile.getParentFile(), "audit" + File.separatorChar + name );
+        try
+        {
+            DataStore.logData( auditFile, user, ip, IOUtil.toByteArray( data ) );
+        }
+        finally
+        {
+            IOUtil.close( data );
+        }
+    }
+
+    public static void migrateChanges( final File oldReportFile, final File newReportFile )
+        throws IOException
+    {
+        final File oldAuditDir = new File( oldReportFile.getParentFile(), "audit" );
+        final File newAuditDir = new File( newReportFile.getParentFile(), "audit" );
+
+        FileUtils.copyDirectory( oldAuditDir, newAuditDir );
+    }
+
+    private static ReportEntry applyChanges( final ReportEntry entry, final File auditFile, final File cacheFile )
+        throws IOException
+    {
+        cacheFile.getAbsoluteFile().getParentFile().mkdirs();
+        final byte[] buf = DataStore.augmentTable( entry.buf, auditFile );
+        final OutputStream os = new FileOutputStream( cacheFile );
         try
         {
             IOUtil.copy( buf, os );
@@ -66,10 +89,10 @@ public final class Report
         return new ReportEntry( entry.name, System.currentTimeMillis(), buf );
     }
 
-    private static ReportEntry extract( final File report, final String name )
+    private static ReportEntry extractEntry( final File reportFile, final String name )
         throws IOException
     {
-        final ZipFile archive = new ZipFile( report );
+        final ZipFile archive = new ZipFile( reportFile );
         try
         {
             final ZipEntry entry = archive.getEntry( name );
@@ -86,7 +109,7 @@ public final class Report
         return null;
     }
 
-    private static String normalizePath( final String path )
+    public static String toEntryName( final String path )
     {
         if ( null == path || path.length() == 0 )
         {

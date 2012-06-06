@@ -25,11 +25,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public final class DataStore
+final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
-    public static void logData( final File file, final String user, final String ip, final byte[] buf )
+    static void logData( final File file, final String user, final String ip, final byte[] buf )
         throws IOException
     {
         final ContainerNode<?> data = parseData( buf );
@@ -55,7 +55,7 @@ public final class DataStore
         saveData( file, dataLog );
     }
 
-    public static byte[] augmentTable( final byte[] buf, final File file )
+    static byte[] augmentTable( final byte[] buf, final File file )
         throws IOException
     {
         final ObjectNode table = (ObjectNode) parseData( buf );

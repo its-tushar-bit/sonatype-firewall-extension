@@ -136,6 +136,7 @@ public final class DataStore
     private static void saveData( final File file, final ContainerNode<?> data )
         throws IOException
     {
+        file.getAbsoluteFile().getParentFile().mkdirs();
         final JsonGenerator generator = JSON.createJsonGenerator( file, JsonEncoding.UTF8 );
         try
         {

@@ -29,11 +29,9 @@ final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
-    static void logData( final File file, final String user, final String ip, final byte[] buf )
+    static void logData( final File file, final String user, final String ip, final ContainerNode<?> data )
         throws IOException
     {
-        final ContainerNode<?> data = parseData( buf );
-
         final ArrayNode dataLog;
         if ( file.exists() )
         {
@@ -55,10 +53,9 @@ final class DataStore
         saveData( file, dataLog );
     }
 
-    static byte[] augmentTable( final byte[] buf, final File file )
+    static <T extends ContainerNode<?>> T augmentTable( final T table, final File file )
         throws IOException
     {
-        final ObjectNode table = (ObjectNode) parseData( buf );
         final ArrayNode dataLog = (ArrayNode) loadData( file );
 
         // first aggregate all the changes found in the data log
@@ -73,7 +70,7 @@ final class DataStore
         }
 
         // check each row in turn against the candidate changes
-        final ArrayNode rows = (ArrayNode) table.get( "aaData" );
+        final ArrayNode rows = (ArrayNode) ( table instanceof ArrayNode ? table : table.get( "aaData" ) );
         for ( int x = 0; x < rows.size(); x++ )
         {
             for ( int y = 0; y < changes.size(); y++ )
@@ -116,10 +113,10 @@ final class DataStore
             saveData( file, dataLog );
         }
 
-        return streamData( table );
+        return table;
     }
 
-    private static ContainerNode<?> loadData( final File file )
+    static <T extends ContainerNode<?>> T loadData( final File file )
         throws IOException
     {
         final JsonParser parser = JSON.createJsonParser( file );
@@ -133,7 +130,7 @@ final class DataStore
         }
     }
 
-    private static void saveData( final File file, final ContainerNode<?> data )
+    static void saveData( final File file, final ContainerNode<?> data )
         throws IOException
     {
         file.getAbsoluteFile().getParentFile().mkdirs();
@@ -148,7 +145,7 @@ final class DataStore
         }
     }
 
-    private static ContainerNode<?> parseData( final byte[] buf )
+    static <T extends ContainerNode<?>> T parseData( final byte[] buf )
         throws IOException
     {
         final JsonParser parser = JSON.createJsonParser( buf );
@@ -162,7 +159,7 @@ final class DataStore
         }
     }
 
-    private static byte[] streamData( final ContainerNode<?> data )
+    static byte[] streamData( final ContainerNode<?> data )
         throws IOException
     {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();

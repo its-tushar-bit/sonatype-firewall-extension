@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.ci.client;
 
+import static com.sonatype.insight.ci.client.DataStore.augmentTable;
+import static com.sonatype.insight.ci.client.DataStore.logData;
+import static com.sonatype.insight.ci.client.DataStore.parseData;
+import static com.sonatype.insight.ci.client.DataStore.streamData;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +21,8 @@ import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class Report
 {
@@ -39,10 +46,10 @@ public final class Report
             }
         }
 
-        ReportEntry entry = extractEntry( reportFile, name );
+        final ReportEntry entry = extractEntry( reportFile, name );
         if ( entry != null && auditFile.exists() )
         {
-            entry = applyChanges( entry, auditFile, cacheFile );
+            return applyChanges( entry, auditFile, cacheFile );
         }
 
         return entry;
@@ -55,12 +62,13 @@ public final class Report
         final File auditFile = new File( reportFile.getParentFile(), "audit" + File.separatorChar + name );
         try
         {
-            DataStore.logData( auditFile, user, ip, IOUtil.toByteArray( data ) );
+            logData( auditFile, user, ip, parseData( IOUtil.toByteArray( data ) ) );
         }
         finally
         {
             IOUtil.close( data );
         }
+        summarize( reportFile, "data.json" );
     }
 
     public static void migrateChanges( final File oldReportFile, final File newReportFile )
@@ -104,11 +112,35 @@ public final class Report
         return buf != null ? buf.toString() : path;
     }
 
+    private static ReportEntry summarize( final File reportFile, final String name )
+        throws IOException
+    {
+        // final ObjectNode security = parseData( getEntry( reportFile, "security.json" ).buf );
+        // final ObjectNode licenses = parseData( getEntry( reportFile, "licenses.json" ).buf );
+        // final ObjectNode deps = parseData( getEntry( reportFile, "dependencies.json" ).buf );
+        final ObjectNode data = parseData( getEntry( reportFile, name ).buf );
+
+        final byte[] buf = streamData( data );
+
+        final File cacheFile = new File( reportFile.getParentFile(), "cache" + File.separatorChar + name );
+        cacheFile.getAbsoluteFile().getParentFile().mkdirs();
+        final OutputStream os = new FileOutputStream( cacheFile );
+        try
+        {
+            IOUtil.copy( buf, os );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+        return new ReportEntry( name, System.currentTimeMillis(), buf );
+    }
+
     private static ReportEntry applyChanges( final ReportEntry entry, final File auditFile, final File cacheFile )
         throws IOException
     {
         cacheFile.getAbsoluteFile().getParentFile().mkdirs();
-        final byte[] buf = DataStore.augmentTable( entry.buf, auditFile );
+        final byte[] buf = streamData( augmentTable( parseData( entry.buf ), auditFile ) );
         final OutputStream os = new FileOutputStream( cacheFile );
         try
         {

@@ -105,7 +105,7 @@ public final class Report
                 parser.close();
             }
         }
-        return new int[] { -1, -1 };
+        return new int[] { -1, -1, -1 };
     }
 
     public static void migrateChanges( final File oldReportFile, final File newReportFile )
@@ -169,6 +169,7 @@ public final class Report
 
         int securityAlerts = 0;
         int licenseAlerts = 0;
+        int buildAlerts = 0;
 
         final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
         final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
@@ -177,7 +178,7 @@ public final class Report
         for ( final JsonNode row : security )
         {
             final String status = row.path( "status" ).asText();
-            if ( "".equals( status ) || "New".equals( status ) || "Confirmed".equals( status ) )
+            if ( !"Not Applicable".equals( status ) )
             {
                 final double severity = row.path( "score" ).asDouble();
                 final int threatIndex = 10 - (int) Math.floor( severity );
@@ -191,6 +192,10 @@ public final class Report
                 }
 
                 securityAlerts++;
+                if ( !"Acknowledged".equals( status ) )
+                {
+                    buildAlerts++;
+                }
 
                 final int counter = severity < 4 ? 2 : severity < 8 ? 1 : 0;
                 for ( final JsonNode level : gavDepths.path( gav ) )
@@ -284,8 +289,10 @@ public final class Report
             IOUtil.close( os );
         }
 
-        final StringBuilder badges = new StringBuilder();
-        badges.append( '[' ).append( securityAlerts ).append( ',' ).append( licenseAlerts ).append( ']' );
+        final StringBuilder badges = new StringBuilder( "[" );
+        badges.append( securityAlerts ).append( ',' );
+        badges.append( licenseAlerts ).append( ',' );
+        badges.append( buildAlerts ).append( ']' );
 
         final byte[] badgesBuf = badges.toString().getBytes( "UTF-8" );
         final File badgesFile = getCacheFile( reportFile, "badges.json" );

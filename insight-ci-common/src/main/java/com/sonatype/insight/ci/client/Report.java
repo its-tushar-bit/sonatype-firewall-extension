@@ -26,10 +26,16 @@ import java.util.zip.ZipFile;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonFactory.Feature;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 
 public final class Report
 {
+    private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
+
     public static ReportEntry getEntry( final File reportFile, final String name )
         throws IOException
     {
@@ -50,9 +56,9 @@ public final class Report
             }
         }
 
-        if ( "data.json".equals( name ) )
+        if ( "data.json".equals( name ) || "badges.json".equals( name ) )
         {
-            return recalculate( reportFile, "data.json" );
+            return recalculate( reportFile, name );
         }
 
         final ReportEntry entry = extractEntry( reportFile, name );
@@ -81,6 +87,25 @@ public final class Report
         final File cacheDir = getCacheDir( reportFile );
         cacheDir.getAbsoluteFile().mkdirs();
         FileUtils.cleanDirectory( cacheDir );
+    }
+
+    public static int[] getBadges( final File reportFile )
+        throws IOException
+    {
+        final ReportEntry entry = Report.getEntry( reportFile, "badges.json" );
+        if ( entry != null )
+        {
+            final JsonParser parser = JSON.createJsonParser( entry.buf );
+            try
+            {
+                return parser.readValueAs( int[].class );
+            }
+            finally
+            {
+                parser.close();
+            }
+        }
+        return new int[] { -1, -1 };
     }
 
     public static void migrateChanges( final File oldReportFile, final File newReportFile )
@@ -142,6 +167,9 @@ public final class Report
         int nonStandardLicenseCount = 0;
         int notProvidedLicenseCount = 0;
 
+        int securityAlerts = 0;
+        int licenseAlerts = 0;
+
         final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
         final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
 
@@ -161,6 +189,8 @@ public final class Report
                 {
                     insecureArtifactCount++;
                 }
+
+                securityAlerts++;
 
                 final int counter = severity < 4 ? 2 : severity < 8 ? 1 : 0;
                 for ( final JsonNode level : gavDepths.path( gav ) )
@@ -212,6 +242,8 @@ public final class Report
 
             if ( counter >= 0 )
             {
+                licenseAlerts++;
+
                 for ( final JsonNode level : gavDepths.path( gav( row ) ) )
                 {
                     final int index = level.asInt() - 1;
@@ -236,20 +268,40 @@ public final class Report
         data.append( ",\"licensePunchCard\":" ).append( Arrays.deepToString( licensePunchCard.toArray() ) );
         data.append( '}' );
 
-        final byte[] buf = data.toString().getBytes( "UTF-8" );
+        OutputStream os;
 
-        final File cacheFile = getCacheFile( reportFile, name );
-        cacheFile.getAbsoluteFile().getParentFile().mkdirs();
-        final OutputStream os = new FileOutputStream( cacheFile );
+        final byte[] dataBuf = data.toString().getBytes( "UTF-8" );
+        final File dataFile = getCacheFile( reportFile, "data.json" );
+        dataFile.getAbsoluteFile().getParentFile().mkdirs();
+
+        os = new FileOutputStream( dataFile );
         try
         {
-            IOUtil.copy( buf, os );
+            IOUtil.copy( dataBuf, os );
         }
         finally
         {
             IOUtil.close( os );
         }
-        return new ReportEntry( name, System.currentTimeMillis(), buf );
+
+        final StringBuilder badges = new StringBuilder();
+        badges.append( '[' ).append( securityAlerts ).append( ',' ).append( licenseAlerts ).append( ']' );
+
+        final byte[] badgesBuf = badges.toString().getBytes( "UTF-8" );
+        final File badgesFile = getCacheFile( reportFile, "badges.json" );
+        badgesFile.getAbsoluteFile().getParentFile().mkdirs();
+
+        os = new FileOutputStream( badgesFile );
+        try
+        {
+            IOUtil.copy( badgesBuf, os );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+
+        return new ReportEntry( name, System.currentTimeMillis(), "data.json".equals( name ) ? dataBuf : badgesBuf );
     }
 
     private static ReportEntry applyChanges( final ReportEntry entry, final File auditFile, final File cacheFile )

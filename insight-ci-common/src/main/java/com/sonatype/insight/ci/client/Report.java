@@ -16,13 +16,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public final class Report
 {
@@ -73,7 +77,10 @@ public final class Report
         {
             IOUtil.close( data );
         }
-        FileUtils.cleanDirectory( getCacheDir( reportFile ) );
+
+        final File cacheDir = getCacheDir( reportFile );
+        cacheDir.getAbsoluteFile().mkdirs();
+        FileUtils.cleanDirectory( cacheDir );
     }
 
     public static void migrateChanges( final File oldReportFile, final File newReportFile )
@@ -117,21 +124,119 @@ public final class Report
     private static ReportEntry recalculate( final File reportFile, final String name )
         throws IOException
     {
-        final ObjectNode security = parseData( getEntry( reportFile, "security.json" ).buf );
-        final ObjectNode licenses = parseData( getEntry( reportFile, "licenses.json" ).buf );
-        final ObjectNode deps = parseData( getEntry( reportFile, "dependencies.json" ).buf );
+        final JsonNode gavDepths = parseData( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
 
-        //
-        //
-        //
-        // ...replace with data recalculation...
-        final ObjectNode data = parseData( extractEntry( reportFile, name ).buf );
-        // ...replace with data recalculation...
-        //
-        //
-        //
+        final JsonNode security = parseData( getEntry( reportFile, "security.json" ).buf ).get( "aaData" );
+        final JsonNode licenses = parseData( getEntry( reportFile, "licenses.json" ).buf ).get( "aaData" );
 
-        final byte[] buf = streamData( data );
+        /*
+         * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
+         */
+
+        final int[] securityCounts = new int[10];
+
+        int insecureArtifactCount = 0;
+        int copyleftLicenseCount = 0;
+        int weakcopyleftLicenseCount = 0;
+        int liberalLicenseCount = 0;
+        int nonStandardLicenseCount = 0;
+        int notProvidedLicenseCount = 0;
+
+        final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
+        final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
+
+        final Set<String> gavs = new HashSet<String>();
+        for ( final JsonNode row : security )
+        {
+            final String status = row.path( "status" ).asText();
+            if ( "".equals( status ) || "New".equals( status ) || "Confirmed".equals( status ) )
+            {
+                final double severity = row.path( "score" ).asDouble();
+                final int threatIndex = 10 - (int) Math.floor( severity );
+
+                securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
+
+                final String gav = gav( row );
+                if ( gavs.add( gav ) )
+                {
+                    insecureArtifactCount++;
+                }
+
+                final int counter = severity < 4 ? 2 : severity < 8 ? 1 : 0;
+                for ( final JsonNode level : gavDepths.path( gav ) )
+                {
+                    final int index = level.asInt() - 1;
+                    while ( index >= securityPunchCard.size() )
+                    {
+                        securityPunchCard.add( new int[3] );
+                    }
+                    securityPunchCard.get( index )[counter]++;
+                }
+            }
+        }
+
+        for ( final JsonNode row : licenses )
+        {
+            String threat = row.path( "overriddenLicenseThreat" ).asText();
+            if ( "".equals( threat ) )
+            {
+                threat = row.path( "effectiveLicenseThreat" ).asText();
+            }
+
+            final int counter;
+            if ( "COPYLEFT".equals( threat ) )
+            {
+                copyleftLicenseCount++;
+                counter = 0;
+            }
+            else if ( "WEAKCOPYLEFT".equals( threat ) )
+            {
+                weakcopyleftLicenseCount++;
+                counter = 2;
+            }
+            else if ( "LIBERAL".equals( threat ) )
+            {
+                liberalLicenseCount++;
+                counter = -1;
+            }
+            else if ( "NON-STANDARD".equals( threat ) )
+            {
+                nonStandardLicenseCount++;
+                counter = 1;
+            }
+            else
+            {
+                notProvidedLicenseCount++;
+                counter = 1;
+            }
+
+            if ( counter >= 0 )
+            {
+                for ( final JsonNode level : gavDepths.path( gav( row ) ) )
+                {
+                    final int index = level.asInt() - 1;
+                    while ( index >= licensePunchCard.size() )
+                    {
+                        licensePunchCard.add( new int[3] );
+                    }
+                    licensePunchCard.get( index )[counter]++;
+                }
+            }
+        }
+
+        final StringBuilder data = new StringBuilder();
+        data.append( "{\"securityCounts\":" ).append( Arrays.toString( securityCounts ) );
+        data.append( ",\"insecureArtifactCount\":" ).append( insecureArtifactCount );
+        data.append( ",\"copyleftLicenseCount\":" ).append( copyleftLicenseCount );
+        data.append( ",\"weakcopyleftLicenseCount\":" ).append( weakcopyleftLicenseCount );
+        data.append( ",\"liberalLicenseCount\":" ).append( liberalLicenseCount );
+        data.append( ",\"nonStandardLicenseCount\":" ).append( nonStandardLicenseCount );
+        data.append( ",\"notProvidedLicenseCount\":" ).append( notProvidedLicenseCount );
+        data.append( ",\"securityPunchCard\":" ).append( Arrays.deepToString( securityPunchCard.toArray() ) );
+        data.append( ",\"licensePunchCard\":" ).append( Arrays.deepToString( licensePunchCard.toArray() ) );
+        data.append( '}' );
+
+        final byte[] buf = data.toString().getBytes( "UTF-8" );
 
         final File cacheFile = getCacheFile( reportFile, name );
         cacheFile.getAbsoluteFile().getParentFile().mkdirs();
@@ -182,6 +287,15 @@ public final class Report
             archive.close(); // closes all InputStreams retrieved from this archive
         }
         return null;
+    }
+
+    private static String gav( final JsonNode row )
+    {
+        final StringBuilder buf = new StringBuilder();
+        buf.append( row.get( "groupId" ).asText() ).append( ':' );
+        buf.append( row.get( "artifactId" ).asText() ).append( ':' );
+        buf.append( row.get( "version" ).asText() );
+        return buf.toString();
     }
 
     private static File getAuditDir( final File reportFile )

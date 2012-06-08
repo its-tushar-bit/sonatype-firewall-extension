@@ -212,55 +212,51 @@ public final class Report
 
         for ( final JsonNode row : licenses )
         {
-            final String status = row.path( "status" ).asText();
-            if ( !"Not Applicable".equals( status ) )
+            String threat = row.path( "overriddenLicenseThreat" ).asText();
+            if ( "".equals( threat ) )
             {
-                String threat = row.path( "overriddenLicenseThreat" ).asText();
-                if ( "".equals( threat ) )
-                {
-                    threat = row.path( "effectiveLicenseThreat" ).asText();
-                }
+                threat = row.path( "effectiveLicenseThreat" ).asText();
+            }
 
-                final int counter;
-                if ( "COPYLEFT".equals( threat ) )
-                {
-                    copyleftLicenseCount++;
-                    counter = 0;
-                }
-                else if ( "WEAKCOPYLEFT".equals( threat ) )
-                {
-                    weakcopyleftLicenseCount++;
-                    counter = 2;
-                }
-                else if ( "LIBERAL".equals( threat ) )
-                {
-                    liberalLicenseCount++;
-                    counter = -1;
-                }
-                else if ( "NON-STANDARD".equals( threat ) )
-                {
-                    nonStandardLicenseCount++;
-                    counter = 1;
-                }
-                else
-                {
-                    notProvidedLicenseCount++;
-                    counter = 1;
-                }
+            final int counter;
+            if ( "COPYLEFT".equals( threat ) )
+            {
+                copyleftLicenseCount++;
+                counter = 0;
+            }
+            else if ( "WEAKCOPYLEFT".equals( threat ) )
+            {
+                weakcopyleftLicenseCount++;
+                counter = 2;
+            }
+            else if ( "LIBERAL".equals( threat ) )
+            {
+                liberalLicenseCount++;
+                counter = -1;
+            }
+            else if ( "NON-STANDARD".equals( threat ) )
+            {
+                nonStandardLicenseCount++;
+                counter = 1;
+            }
+            else
+            {
+                notProvidedLicenseCount++;
+                counter = 1;
+            }
 
-                if ( counter >= 0 )
-                {
-                    licenseAlerts++;
+            if ( counter >= 0 )
+            {
+                licenseAlerts++;
 
-                    for ( final JsonNode level : gavDepths.path( gav( row ) ) )
+                for ( final JsonNode level : gavDepths.path( gav( row ) ) )
+                {
+                    final int index = level.asInt() - 1;
+                    while ( index >= licensePunchCard.size() )
                     {
-                        final int index = level.asInt() - 1;
-                        while ( index >= licensePunchCard.size() )
-                        {
-                            licensePunchCard.add( new int[3] );
-                        }
-                        licensePunchCard.get( index )[counter]++;
+                        licensePunchCard.add( new int[3] );
                     }
+                    licensePunchCard.get( index )[counter]++;
                 }
             }
         }

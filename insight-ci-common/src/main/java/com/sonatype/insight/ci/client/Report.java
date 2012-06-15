@@ -82,18 +82,29 @@ public final class Report
         return entry;
     }
 
-    public static SyndFeed getAuditFeed( final File reportFile, final String name )
+    public static SyndFeed getAuditFeed( final File reportFile )
         throws IOException
     {
         final SyndFeedImpl feed = new SyndFeedImpl();
+
         feed.setFeedType( "rss_2.0" );
-
-        final String kind = StringUtils.chompLast( StringUtils.chompLast( name, ".json" ), "s" );
-
         feed.setAuthor( "Insight CI" );
         feed.setPublishedDate( new Date() );
-        feed.setTitle( StringUtils.capitalizeFirstLetter( kind ) + " Audit" );
-        feed.setDescription( "" );
+        feed.setDescription( "Insight Audit Log" );
+        feed.setTitle( "Insight" );
+
+        final List<SyndEntry> entries = new ArrayList<SyndEntry>();
+        entries.addAll( getAuditEntries( reportFile, "security.json" ) );
+        entries.addAll( getAuditEntries( reportFile, "licenses.json" ) );
+        feed.setEntries( entries );
+
+        return feed;
+    }
+
+    public static List<SyndEntry> getAuditEntries( final File reportFile, final String name )
+        throws IOException
+    {
+        final String kind = StringUtils.chompLast( StringUtils.chompLast( name, ".json" ), "s" );
 
         final ArrayNode dataLog = loadData( getAuditFile( reportFile, name ) );
         final List<SyndEntry> entries = new ArrayList<SyndEntry>( dataLog.size() );
@@ -125,9 +136,8 @@ public final class Report
                 entries.add( entry );
             }
         }
-        feed.setEntries( entries );
 
-        return feed;
+        return entries;
     }
 
     public static void augmentEntry( final File reportFile, final String name, final InputStream data,

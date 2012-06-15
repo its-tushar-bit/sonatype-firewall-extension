@@ -6,6 +6,7 @@
 package com.sonatype.insight.ci.client;
 
 import static com.sonatype.insight.ci.client.DataStore.augmentTable;
+import static com.sonatype.insight.ci.client.DataStore.loadData;
 import static com.sonatype.insight.ci.client.DataStore.logData;
 import static com.sonatype.insight.ci.client.DataStore.parseData;
 import static com.sonatype.insight.ci.client.DataStore.streamData;
@@ -18,19 +19,30 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sun.syndication.feed.synd.SyndContent;
+import com.sun.syndication.feed.synd.SyndContentImpl;
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndEntryImpl;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndFeedImpl;
 
 public final class Report
 {
@@ -68,6 +80,54 @@ public final class Report
         }
 
         return entry;
+    }
+
+    public static SyndFeed getAuditFeed( final File reportFile, final String name )
+        throws IOException
+    {
+        final SyndFeedImpl feed = new SyndFeedImpl();
+        feed.setFeedType( "rss_2.0" );
+
+        final String kind = StringUtils.chompLast( StringUtils.chompLast( name, ".json" ), "s" );
+
+        feed.setAuthor( "Insight CI" );
+        feed.setPublishedDate( new Date() );
+        feed.setTitle( StringUtils.capitalizeFirstLetter( kind ) + " Audit" );
+        feed.setDescription( "" );
+
+        final ArrayNode dataLog = loadData( getAuditFile( reportFile, name ) );
+        final List<SyndEntry> entries = new ArrayList<SyndEntry>( dataLog.size() );
+        for ( final JsonNode event : dataLog )
+        {
+            final JsonNode data = event.get( "data" );
+            if ( data.size() > 0 )
+            {
+                final SyndEntryImpl entry = new SyndEntryImpl();
+
+                entry.setPublishedDate( new Date( event.get( "time" ).asLong() ) );
+
+                final String user = event.get( "user" ).asText();
+                final String ip = event.get( "ip" ).asText();
+
+                final List<String> summary = summarize( user, ip, data, kind );
+
+                entry.setTitle( summary.get( 0 ) );
+                final StringBuilder buf = new StringBuilder();
+                for ( int i = 1; i < summary.size(); i++ )
+                {
+                    buf.append( summary.get( i ) ).append( "<br>" );
+                }
+
+                final SyndContent description = new SyndContentImpl();
+                description.setValue( buf.toString() );
+                entry.setDescription( description );
+
+                entries.add( entry );
+            }
+        }
+        feed.setEntries( entries );
+
+        return feed;
     }
 
     public static void augmentEntry( final File reportFile, final String name, final InputStream data,
@@ -355,6 +415,46 @@ public final class Report
         buf.append( row.get( "artifactId" ).asText() ).append( ':' );
         buf.append( row.get( "version" ).asText() );
         return buf.toString();
+    }
+
+    private static List<String> summarize( final String user, final String ip, final JsonNode data, final String kind )
+    {
+        final JsonNode status = data.get( 0 ).get( "status" );
+        final JsonNode overriden = data.get( 0 ).get( "overriddenLicenses" );
+        final JsonNode comment = data.get( 0 ).get( "comment" );
+
+        final StringBuilder title = new StringBuilder( user ).append( '@' ).append( ip ).append( ' ' );
+        if ( status != null )
+        {
+            String label = status.asText().toLowerCase( Locale.ENGLISH );
+            label = label.replace( "open", "re-opened" );
+            label = label.replace( "not applicable", "ignored" );
+            label = label.replace( "overridden", "overrode" );
+            title.append( label ).append( ' ' );
+        }
+
+        final int rows = data.size();
+        title.append( rows ).append( ' ' ).append( kind ).append( rows != 1 ? " alerts" : " alert" );
+
+        if ( overriden != null && overriden.size() > 0 )
+        {
+            title.append( " as " ).append( overriden.get( 0 ).asText() );
+        }
+
+        final List<String> summary = new ArrayList<String>();
+
+        summary.add( title.toString() );
+        if ( comment != null && StringUtils.isNotBlank( comment.asText() ) )
+        {
+            summary.add( comment.asText() );
+            summary.add( "" );
+        }
+        for ( int i = 0; i < rows; i++ )
+        {
+            summary.add( gav( data.get( i ) ) );
+        }
+
+        return summary;
     }
 
     private static File getAuditDir( final File reportFile )

@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -88,10 +87,11 @@ public final class Report
         final SyndFeedImpl feed = new SyndFeedImpl();
 
         feed.setFeedType( "rss_2.0" );
-        feed.setAuthor( "Insight CI" );
         feed.setPublishedDate( new Date() );
-        feed.setDescription( "Insight Audit Log" );
+        feed.setAuthor( "Insight CI" );
         feed.setTitle( "Insight" );
+
+        feed.setDescription( "Insight Audit Log" );
 
         final List<SyndEntry> entries = new ArrayList<SyndEntry>();
         entries.addAll( getAuditEntries( reportFile, "security.json" ) );
@@ -116,11 +116,11 @@ public final class Report
                 final SyndEntryImpl entry = new SyndEntryImpl();
 
                 entry.setPublishedDate( new Date( event.get( "time" ).asLong() ) );
-
                 final String user = event.get( "user" ).asText();
                 final String ip = event.get( "ip" ).asText();
+                entry.setAuthor( user + ":" + ip );
 
-                final List<String> summary = summarize( user, ip, data, kind );
+                final List<String> summary = summarize( data, kind );
 
                 entry.setTitle( summary.get( 0 ) );
                 final StringBuilder buf = new StringBuilder();
@@ -427,19 +427,19 @@ public final class Report
         return buf.toString();
     }
 
-    private static List<String> summarize( final String user, final String ip, final JsonNode data, final String kind )
+    private static List<String> summarize( final JsonNode data, final String kind )
     {
         final JsonNode status = data.get( 0 ).get( "status" );
         final JsonNode overriden = data.get( 0 ).get( "overriddenLicenses" );
         final JsonNode comment = data.get( 0 ).get( "comment" );
 
-        final StringBuilder title = new StringBuilder( user ).append( '@' ).append( ip ).append( ' ' );
+        final StringBuilder title = new StringBuilder();
         if ( status != null )
         {
-            String label = status.asText().toLowerCase( Locale.ENGLISH );
-            label = label.replace( "open", "re-opened" );
-            label = label.replace( "not applicable", "ignored" );
-            label = label.replace( "overridden", "overrode" );
+            String label = status.asText();
+            label = label.replace( "Open", "Re-opened" );
+            label = label.replace( "Not Applicable", "Ignored" );
+            label = label.replace( "Overridden", "Overrode" );
             title.append( label ).append( ' ' );
         }
 

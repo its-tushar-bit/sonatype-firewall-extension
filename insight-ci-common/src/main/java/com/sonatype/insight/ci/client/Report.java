@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -47,6 +48,8 @@ public final class Report
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
+    public static final String FREEMIUM = "freemium";
+
     public static ReportEntry getEntry( final File reportFile, final String name )
         throws IOException
     {
@@ -67,7 +70,7 @@ public final class Report
             }
         }
 
-        if ( "data.json".equals( name ) || "badges.json".equals( name ) )
+        if ( ( "data.json".equals( name ) || "badges.json".equals( name ) ) && !Report.isFreemium( reportFile ) )
         {
             return recalculate( reportFile, name );
         }
@@ -214,6 +217,49 @@ public final class Report
             buf.append( "index.html" );
         }
         return buf != null ? buf.toString() : path;
+    }
+
+    public static boolean isFreemium( final File reportFile )
+        throws IOException
+    {
+        final File data = getDataFile( reportFile, "report.properties" );
+        if ( !data.exists() )
+        {
+            return false; // Backwards compatible with existing scans
+        }
+        InputStream in = null;
+        try
+        {
+            in = new FileInputStream( data );
+            Properties prop = new Properties();
+            prop.load( in );
+
+            return prop.containsKey( FREEMIUM ) && Boolean.TRUE.equals( prop.getProperty( FREEMIUM ) );
+        }
+        finally
+        {
+            IOUtil.close( in );
+        }
+    }
+
+    public static void setProperties( final File reportFile, Properties properties )
+        throws IOException
+    {
+        final File data = getDataFile( reportFile, "report.properties" );
+        if ( !data.getParentFile().mkdirs() )
+        {
+            throw new IOException( "Failed to create report directory." );
+        }
+        OutputStream out = null;
+        try
+        {
+            out = new FileOutputStream( data );
+            properties.store( out, null );
+        }
+        finally
+        {
+            IOUtil.close( out );
+        }
     }
 
     private static ReportEntry recalculate( final File reportFile, final String name )
@@ -477,6 +523,11 @@ public final class Report
         return new File( reportFile.getParentFile(), "cache" );
     }
 
+    private static File getDataDir( final File reportFile )
+    {
+        return new File( reportFile.getParentFile(), "data" );
+    }
+
     private static File getAuditFile( final File reportFile, final String name )
     {
         return new File( getAuditDir( reportFile ), name );
@@ -485,5 +536,10 @@ public final class Report
     private static File getCacheFile( final File reportFile, final String name )
     {
         return new File( getCacheDir( reportFile ), name );
+    }
+
+    private static File getDataFile( final File reportFile, final String name )
+    {
+        return new File( getDataDir( reportFile ), name );
     }
 }

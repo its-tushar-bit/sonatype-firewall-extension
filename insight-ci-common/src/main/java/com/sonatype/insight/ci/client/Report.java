@@ -233,7 +233,7 @@ public final class Report
             in = new FileInputStream( data );
             Properties prop = new Properties();
             prop.load( in );
-            return prop.containsKey( FREEMIUM ) && Boolean.TRUE.equals( Boolean.valueOf(prop.getProperty( FREEMIUM )) );
+            return Boolean.parseBoolean( prop.getProperty( FREEMIUM ) );
         }
         finally
         {

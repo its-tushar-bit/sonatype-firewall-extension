@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -104,9 +105,15 @@ public final class Report
     public static List<SyndEntry> getAuditEntries( final File reportFile, final String name )
         throws IOException
     {
+        final File auditFile = getAuditFile( reportFile, name );
+        if ( !auditFile.canRead() )
+        {
+            return Collections.emptyList();
+        }
+
         final String kind = StringUtils.chompLast( StringUtils.chompLast( name, ".json" ), "s" );
 
-        final ArrayNode dataLog = loadData( getAuditFile( reportFile, name ) );
+        final ArrayNode dataLog = loadData( auditFile );
         final List<SyndEntry> entries = new ArrayList<SyndEntry>( dataLog.size() );
         for ( final JsonNode event : dataLog )
         {

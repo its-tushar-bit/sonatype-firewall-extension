@@ -48,14 +48,13 @@ public final class Report
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
-    public static ReportEntry getEntry( final File reportFile, final String name )
+    public static ReportEntry getEntry( final File reportFile, final String name, final File auditDir )
         throws IOException
     {
-        final File auditFile = getAuditFile( reportFile, name );
         final File cacheFile = getCacheFile( reportFile, name );
-
         final long timeLastCached = cacheFile.lastModified();
-        if ( timeLastCached > Math.max( auditFile.lastModified(), reportFile.lastModified() ) )
+
+        if ( timeLastCached > Math.max( auditDir.lastModified(), reportFile.lastModified() ) )
         {
             final InputStream is = new FileInputStream( cacheFile );
             try
@@ -70,9 +69,10 @@ public final class Report
 
         if ( ( "data.json".equals( name ) || "badges.json".equals( name ) ) && !isSample( reportFile ) )
         {
-            return recalculate( reportFile, name );
+            return recalculate( reportFile, name, auditDir );
         }
 
+        final File auditFile = new File( auditDir, name );
         final ReportEntry entry = extractEntry( reportFile, name );
         if ( entry != null && auditFile.exists() )
         {
@@ -82,7 +82,7 @@ public final class Report
         return entry;
     }
 
-    public static SyndFeed getAuditFeed( final File reportFile )
+    public static SyndFeed getAuditFeed( final File auditDir )
         throws IOException
     {
         final SyndFeedImpl feed = new SyndFeedImpl();
@@ -95,17 +95,17 @@ public final class Report
         feed.setDescription( "Insight Audit Log" );
 
         final List<SyndEntry> entries = new ArrayList<SyndEntry>();
-        entries.addAll( getAuditEntries( reportFile, "security.json" ) );
-        entries.addAll( getAuditEntries( reportFile, "licenses.json" ) );
+        entries.addAll( getAuditEntries( auditDir, "security.json" ) );
+        entries.addAll( getAuditEntries( auditDir, "licenses.json" ) );
         feed.setEntries( entries );
 
         return feed;
     }
 
-    public static List<SyndEntry> getAuditEntries( final File reportFile, final String name )
+    public static List<SyndEntry> getAuditEntries( final File auditDir, final String name )
         throws IOException
     {
-        final File auditFile = getAuditFile( reportFile, name );
+        final File auditFile = new File( auditDir, name );
         if ( !auditFile.canRead() )
         {
             return Collections.emptyList();
@@ -147,11 +147,11 @@ public final class Report
         return entries;
     }
 
-    public static void augmentEntry( final File reportFile, final String name, final InputStream data,
-                                     final String user, final String ip )
+    public static void augmentEntry( final File auditDir, final String name, final InputStream data, final String user,
+                                     final String ip )
         throws IOException
     {
-        final File auditFile = getAuditFile( reportFile, name );
+        final File auditFile = new File( auditDir, name );
         try
         {
             logData( auditFile, user, ip, parseData( IOUtil.toByteArray( data ) ) );
@@ -160,16 +160,13 @@ public final class Report
         {
             IOUtil.close( data );
         }
-
-        final File cacheDir = getCacheDir( reportFile );
-        cacheDir.getAbsoluteFile().mkdirs();
-        FileUtils.cleanDirectory( cacheDir );
+        auditDir.setLastModified( System.currentTimeMillis() );
     }
 
-    public static int[] getBadges( final File reportFile )
+    public static int[] getBadges( final File reportFile, final File auditDir )
         throws IOException
     {
-        final ReportEntry entry = Report.getEntry( reportFile, "badges.json" );
+        final ReportEntry entry = Report.getEntry( reportFile, "badges.json", auditDir );
         if ( entry != null )
         {
             final JsonParser parser = JSON.createJsonParser( entry.buf );
@@ -185,10 +182,10 @@ public final class Report
         return new int[] { -1, -1, -1 };
     }
 
-    public static void migrateChanges( final File oldReportFile, final File newReportFile )
+    public static void migrateChanges( final File oldAuditDir, final File newAuditDir )
         throws IOException
     {
-        FileUtils.copyDirectory( getAuditDir( oldReportFile ), getAuditDir( newReportFile ) );
+        FileUtils.copyDirectory( oldAuditDir, newAuditDir );
     }
 
     public static String toEntryName( final String path )
@@ -223,13 +220,13 @@ public final class Report
         return buf != null ? buf.toString() : path;
     }
 
-    private static ReportEntry recalculate( final File reportFile, final String name )
+    private static ReportEntry recalculate( final File reportFile, final String name, final File auditDir )
         throws IOException
     {
         final JsonNode gavDepths = parseData( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
 
-        final JsonNode security = parseData( getEntry( reportFile, "security.json" ).buf ).get( "aaData" );
-        final JsonNode licenses = parseData( getEntry( reportFile, "licenses.json" ).buf ).get( "aaData" );
+        final JsonNode security = parseData( getEntry( reportFile, "security.json", auditDir ).buf ).get( "aaData" );
+        final JsonNode licenses = parseData( getEntry( reportFile, "licenses.json", auditDir ).buf ).get( "aaData" );
 
         /*
          * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
@@ -488,19 +485,9 @@ public final class Report
         }
     }
 
-    private static File getAuditDir( final File reportFile )
-    {
-        return new File( reportFile.getParentFile(), "audit" );
-    }
-
     private static File getCacheDir( final File reportFile )
     {
-        return new File( reportFile.getParentFile(), "cache" );
-    }
-
-    private static File getAuditFile( final File reportFile, final String name )
-    {
-        return new File( getAuditDir( reportFile ), name );
+        return new File( reportFile.getParentFile(), "report.cache" );
     }
 
     private static File getCacheFile( final File reportFile, final String name )

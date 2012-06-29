@@ -89,30 +89,6 @@ final class DataStore
             }
         }
 
-        // remove stale changes from the active data log
-        boolean staleData = false;
-        for ( int x = 0; x < dataLog.size(); x++ )
-        {
-            final ArrayNode data = (ArrayNode) dataLog.get( x ).get( "data" );
-            for ( int y = 0; y < data.size(); y++ )
-            {
-                if ( changes.remove( data.get( y ) ) )
-                {
-                    data.remove( y-- );
-                    staleData = true;
-                }
-            }
-            if ( data.size() == 0 )
-            {
-                dataLog.remove( x-- );
-                staleData = true;
-            }
-        }
-        if ( staleData )
-        {
-            saveData( file, dataLog );
-        }
-
         return table;
     }
 

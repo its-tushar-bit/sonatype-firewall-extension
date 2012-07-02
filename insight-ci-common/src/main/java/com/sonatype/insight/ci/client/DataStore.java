@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -29,28 +34,40 @@ final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
+    private static final ConcurrentMap<File, ReadWriteLock> LOCK_TABLE = new ConcurrentHashMap<File, ReadWriteLock>();
+
     static void logData( final File file, final String user, final String ip, final ContainerNode<?> data )
         throws IOException
     {
-        final ArrayNode dataLog;
-        if ( file.exists() )
+        final Lock lock = lockFor( file ).writeLock();
+        try
         {
-            dataLog = (ArrayNode) loadData( file );
+            lock.lock();
+
+            final ArrayNode dataLog;
+            if ( file.exists() )
+            {
+                dataLog = (ArrayNode) loadData( file );
+            }
+            else
+            {
+                dataLog = data.arrayNode();
+            }
+
+            // newest entries appear at the top of the data log
+            final ObjectNode dataEntry = dataLog.insertObject( 0 );
+            dataEntry.put( "time", System.currentTimeMillis() );
+
+            dataEntry.put( "user", user );
+            dataEntry.put( "ip", ip );
+            dataEntry.put( "data", data );
+
+            saveData( file, dataLog );
         }
-        else
+        finally
         {
-            dataLog = data.arrayNode();
+            lock.unlock();
         }
-
-        // newest entries appear at the top of the data log
-        final ObjectNode dataEntry = dataLog.insertObject( 0 );
-        dataEntry.put( "time", System.currentTimeMillis() );
-
-        dataEntry.put( "user", user );
-        dataEntry.put( "ip", ip );
-        dataEntry.put( "data", data );
-
-        saveData( file, dataLog );
     }
 
     static <T extends ContainerNode<?>> T augmentTable( final T table, final File file )
@@ -95,29 +112,49 @@ final class DataStore
     static <T extends ContainerNode<?>> T loadData( final File file )
         throws IOException
     {
-        final JsonParser parser = JSON.createJsonParser( file );
+        final Lock lock = lockFor( file ).readLock();
         try
         {
-            return parser.readValueAsTree();
+            lock.lock();
+
+            final JsonParser parser = JSON.createJsonParser( file );
+            try
+            {
+                return parser.readValueAsTree();
+            }
+            finally
+            {
+                parser.close();
+            }
         }
         finally
         {
-            parser.close();
+            lock.unlock();
         }
     }
 
     static void saveData( final File file, final ContainerNode<?> data )
         throws IOException
     {
-        file.getAbsoluteFile().getParentFile().mkdirs();
-        final JsonGenerator generator = JSON.createJsonGenerator( file, JsonEncoding.UTF8 );
+        final Lock lock = lockFor( file ).writeLock();
         try
         {
-            generator.writeTree( data );
+            lock.lock();
+
+            file.getAbsoluteFile().getParentFile().mkdirs();
+            final JsonGenerator generator = JSON.createJsonGenerator( file, JsonEncoding.UTF8 );
+            try
+            {
+                generator.writeTree( data );
+            }
+            finally
+            {
+                generator.close();
+            }
         }
         finally
         {
-            generator.close();
+            lock.unlock();
         }
     }
 
@@ -149,6 +186,21 @@ final class DataStore
             generator.close();
         }
         return os.toByteArray();
+    }
+
+    private static ReadWriteLock lockFor( final File file )
+    {
+        ReadWriteLock lock = LOCK_TABLE.get( file );
+        if ( lock == null )
+        {
+            final ReadWriteLock newLock = new ReentrantReadWriteLock();
+            lock = LOCK_TABLE.putIfAbsent( file, newLock );
+            if ( lock == null )
+            {
+                lock = newLock;
+            }
+        }
+        return lock;
     }
 
     private static ObjectNode augment( final ObjectNode primary, final ObjectNode secondary )

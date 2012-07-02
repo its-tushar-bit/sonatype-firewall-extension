@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -56,15 +55,7 @@ public final class Report
 
         if ( timeLastCached > Math.max( auditDir.lastModified(), reportFile.lastModified() ) )
         {
-            final InputStream is = new FileInputStream( cacheFile );
-            try
-            {
-                return new ReportEntry( name, timeLastCached, IOUtil.toByteArray( is ) );
-            }
-            finally
-            {
-                IOUtil.close( is );
-            }
+            return new ReportEntry( name, timeLastCached, fetch( cacheFile ) );
         }
 
         if ( ( "data.json".equals( name ) || "badges.json".equals( name ) ) && !isSample( reportFile ) )
@@ -76,7 +67,11 @@ public final class Report
         final ReportEntry entry = extractEntry( reportFile, name );
         if ( entry != null && auditFile.exists() )
         {
-            return applyChanges( entry, auditFile, cacheFile );
+            final byte[] buf = streamData( augmentTable( parseData( entry.buf ), auditFile ) );
+
+            cache( cacheFile, buf );
+
+            return new ReportEntry( entry.name, System.currentTimeMillis(), buf );
         }
 
         return entry;
@@ -180,12 +175,6 @@ public final class Report
             }
         }
         return new int[] { -1, -1, -1 };
-    }
-
-    public static void migrateChanges( final File oldAuditDir, final File newAuditDir )
-        throws IOException
-    {
-        FileUtils.copyDirectory( oldAuditDir, newAuditDir );
     }
 
     public static String toEntryName( final String path )
@@ -347,21 +336,10 @@ public final class Report
         data.append( ",\"licensePunchCard\":" ).append( Arrays.deepToString( licensePunchCard.toArray() ) );
         data.append( '}' );
 
-        OutputStream os;
-
         final byte[] dataBuf = data.toString().getBytes( "UTF-8" );
         final File dataFile = getCacheFile( reportFile, "data.json" );
-        dataFile.getAbsoluteFile().getParentFile().mkdirs();
 
-        os = new FileOutputStream( dataFile );
-        try
-        {
-            IOUtil.copy( dataBuf, os );
-        }
-        finally
-        {
-            IOUtil.close( os );
-        }
+        cache( dataFile, dataBuf );
 
         final StringBuilder badges = new StringBuilder( "[" );
         badges.append( securityAlerts ).append( ',' );
@@ -370,36 +348,10 @@ public final class Report
 
         final byte[] badgesBuf = badges.toString().getBytes( "UTF-8" );
         final File badgesFile = getCacheFile( reportFile, "badges.json" );
-        badgesFile.getAbsoluteFile().getParentFile().mkdirs();
 
-        os = new FileOutputStream( badgesFile );
-        try
-        {
-            IOUtil.copy( badgesBuf, os );
-        }
-        finally
-        {
-            IOUtil.close( os );
-        }
+        cache( badgesFile, badgesBuf );
 
         return new ReportEntry( name, System.currentTimeMillis(), "data.json".equals( name ) ? dataBuf : badgesBuf );
-    }
-
-    private static ReportEntry applyChanges( final ReportEntry entry, final File auditFile, final File cacheFile )
-        throws IOException
-    {
-        cacheFile.getAbsoluteFile().getParentFile().mkdirs();
-        final byte[] buf = streamData( augmentTable( parseData( entry.buf ), auditFile ) );
-        final OutputStream os = new FileOutputStream( cacheFile );
-        try
-        {
-            IOUtil.copy( buf, os );
-        }
-        finally
-        {
-            IOUtil.close( os );
-        }
-        return new ReportEntry( entry.name, System.currentTimeMillis(), buf );
     }
 
     private static ReportEntry extractEntry( final File reportFile, final String name )
@@ -493,5 +445,34 @@ public final class Report
     private static File getCacheFile( final File reportFile, final String name )
     {
         return new File( getCacheDir( reportFile ), name );
+    }
+
+    private static void cache( final File cacheFile, final byte[] buf )
+        throws IOException
+    {
+        cacheFile.getAbsoluteFile().getParentFile().mkdirs();
+        final OutputStream os = new FileOutputStream( cacheFile );
+        try
+        {
+            IOUtil.copy( buf, os );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+    }
+
+    private static byte[] fetch( final File cacheFile )
+        throws IOException
+    {
+        final InputStream is = new FileInputStream( cacheFile );
+        try
+        {
+            return IOUtil.toByteArray( is );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
     }
 }

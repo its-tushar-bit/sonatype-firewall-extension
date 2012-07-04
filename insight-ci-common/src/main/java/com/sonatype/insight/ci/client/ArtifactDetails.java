@@ -5,20 +5,22 @@
  */
 package com.sonatype.insight.ci.client;
 
+import java.util.Map;
+
 import com.sonatype.insight.scan.upload.ReportDataResult;
 
 public final class ArtifactDetails
 {
     public final int statusCode;
 
-    public final String contentType;
+    public final Map<String, String> headers;
 
     public final byte[] data;
 
     ArtifactDetails( final ReportDataResult result )
     {
         statusCode = result.getStatusCode();
-        contentType = result.getContentType();
+        headers = result.getHeaders();
         data = result.getData();
     }
 }

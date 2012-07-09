@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
@@ -182,7 +183,7 @@ public final class Report
         for ( final JsonNode row : licenses )
         {
             String threat = row.path( "overriddenLicenseThreat" ).asText();
-            if ( "".equals( threat ) )
+            if ( StringUtils.isBlank( threat ) || "null".equals( threat ) )
             {
                 threat = row.path( "effectiveLicenseThreat" ).asText();
             }

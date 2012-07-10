@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.ci.client;
 
+import static com.sonatype.insight.ci.client.DataStore.augmentTable;
 import static com.sonatype.insight.ci.client.DataStore.loadData;
 import static com.sonatype.insight.ci.client.DataStore.logData;
 import static com.sonatype.insight.ci.client.DataStore.parseData;
@@ -21,6 +22,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,6 +35,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndContentImpl;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -39,6 +46,8 @@ import com.sun.syndication.feed.synd.SyndFeedImpl;
 public final class Auditing
 {
     private static final String XFF_HEADER = "X-Forwarded-For";
+
+    private static final ConcurrentMap<String, AuditLock> LOCK_TABLE = new ConcurrentHashMap<String, AuditLock>();
 
     public static String findUser( final HttpServletRequest request )
     {
@@ -65,24 +74,86 @@ public final class Auditing
     public static SyndFeed getAuditFeed( final File auditDir )
         throws IOException
     {
-        final SyndFeedImpl feed = new SyndFeedImpl();
+        final AuditLock lock = lockFor( auditDir );
+        try
+        {
+            lock.sharedLock();
 
-        feed.setFeedType( "rss_2.0" );
-        feed.setPublishedDate( new Date() );
-        feed.setAuthor( "Insight CI" );
-        feed.setTitle( "Insight" );
+            final SyndFeedImpl feed = new SyndFeedImpl();
 
-        feed.setDescription( "Insight Audit Log" );
+            feed.setFeedType( "rss_2.0" );
+            feed.setPublishedDate( new Date() );
+            feed.setAuthor( "Insight CI" );
+            feed.setTitle( "Insight" );
 
-        final List<SyndEntry> entries = new ArrayList<SyndEntry>();
-        entries.addAll( getAuditEntries( auditDir, "security.json" ) );
-        entries.addAll( getAuditEntries( auditDir, "licenses.json" ) );
-        feed.setEntries( entries );
+            feed.setDescription( "Insight Audit Log" );
 
-        return feed;
+            final List<SyndEntry> entries = new ArrayList<SyndEntry>();
+            entries.addAll( getAuditEntries( auditDir, "security.json" ) );
+            entries.addAll( getAuditEntries( auditDir, "licenses.json" ) );
+            feed.setEntries( entries );
+
+            return feed;
+        }
+        finally
+        {
+            lock.sharedUnlock();
+        }
     }
 
-    public static List<SyndEntry> getAuditEntries( final File auditDir, final String name )
+    public static int getModificationCount( final File auditDir )
+    {
+        return lockFor( auditDir ).modCount();
+    }
+
+    public static void saveAugmentedData( final File auditDir, final String name, final InputStream data,
+                                          final String user, final String ip )
+        throws IOException
+    {
+        final AuditLock lock = lockFor( auditDir );
+        try
+        {
+            lock.exclusiveLock();
+
+            final File auditFile = new File( auditDir, name );
+            try
+            {
+                logData( auditFile, user, ip, parseData( IOUtil.toByteArray( data ) ) );
+            }
+            finally
+            {
+                IOUtil.close( data );
+            }
+        }
+        finally
+        {
+            lock.exclusiveUnlock();
+        }
+    }
+
+    public static ContainerNode<?> applyAugmentedData( final ContainerNode<?> table, final File auditDir,
+                                                       final String name )
+        throws IOException
+    {
+        final File auditFile = new File( auditDir, name );
+        if ( !auditFile.canRead() )
+        {
+            return table;
+        }
+        final AuditLock lock = lockFor( auditDir );
+        try
+        {
+            lock.sharedLock();
+
+            return augmentTable( table, auditFile );
+        }
+        finally
+        {
+            lock.sharedUnlock();
+        }
+    }
+
+    private static List<SyndEntry> getAuditEntries( final File auditDir, final String name )
         throws IOException
     {
         final File auditFile = new File( auditDir, name );
@@ -127,22 +198,6 @@ public final class Auditing
         return entries;
     }
 
-    public static void saveAugmentedData( final File auditDir, final String name, final InputStream data,
-                                          final String user, final String ip )
-        throws IOException
-    {
-        final File auditFile = new File( auditDir, name );
-        try
-        {
-            logData( auditFile, user, ip, parseData( IOUtil.toByteArray( data ) ) );
-        }
-        finally
-        {
-            IOUtil.close( data );
-        }
-        auditDir.setLastModified( System.currentTimeMillis() );
-    }
-
     private static List<String> summarize( final JsonNode data, final String kind )
     {
         final JsonNode status = data.get( 0 ).get( "status" );
@@ -183,6 +238,21 @@ public final class Auditing
         return summary;
     }
 
+    private static AuditLock lockFor( final File auditDir )
+    {
+        AuditLock lock = LOCK_TABLE.get( auditDir.getName() );
+        if ( lock == null )
+        {
+            final AuditLock newLock = new AuditLock( auditDir.exists() ? 1 : 0 );
+            lock = LOCK_TABLE.putIfAbsent( auditDir.getName(), newLock );
+            if ( lock == null )
+            {
+                lock = newLock;
+            }
+        }
+        return lock;
+    }
+
     private static String resolveIp( final String... ips )
     {
         String ip4 = null;
@@ -221,5 +291,49 @@ public final class Auditing
         }
 
         return ips.length > 0 ? ips[0] : null;
+    }
+
+    private static final class AuditLock
+    {
+        private final ReadWriteLock impl = new ReentrantReadWriteLock();
+
+        private final AtomicInteger modCount;
+
+        AuditLock( final int initialCount )
+        {
+            modCount = new AtomicInteger( initialCount );
+        }
+
+        void sharedLock()
+        {
+            impl.readLock().lock();
+        }
+
+        void sharedUnlock()
+        {
+            impl.readLock().unlock();
+        }
+
+        void exclusiveLock()
+        {
+            impl.writeLock().lock();
+        }
+
+        void exclusiveUnlock()
+        {
+            try
+            {
+                modCount.incrementAndGet();
+            }
+            finally
+            {
+                impl.writeLock().unlock();
+            }
+        }
+
+        int modCount()
+        {
+            return modCount.get();
+        }
     }
 }

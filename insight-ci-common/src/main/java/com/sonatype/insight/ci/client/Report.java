@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.ci.client;
 
-import static com.sonatype.insight.ci.client.DataStore.augmentTable;
 import static com.sonatype.insight.ci.client.DataStore.parseData;
 import static com.sonatype.insight.ci.client.DataStore.streamData;
 
@@ -25,63 +24,20 @@ import java.util.zip.ZipFile;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonFactory.Feature;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 
 public final class Report
 {
-    private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
-
-    public static ReportEntry getEntry( final File reportFile, final String name, final File auditDir )
+    public static ReportEntry getEntry( final File reportFile, final String name )
         throws IOException
     {
         final File cacheFile = getCacheFile( reportFile, name );
-        final long timeLastCached = cacheFile.lastModified();
-
-        if ( timeLastCached > Math.max( auditDir.lastModified(), reportFile.lastModified() ) )
+        if ( cacheFile.canRead() )
         {
-            return new ReportEntry( name, timeLastCached, fetch( cacheFile ) );
+            return new ReportEntry( name, cacheFile.lastModified(), fetch( cacheFile ) );
         }
-
-        if ( ( "data.json".equals( name ) || "badges.json".equals( name ) ) && !isSample( reportFile ) )
-        {
-            return recalculate( reportFile, name, auditDir );
-        }
-
-        final File auditFile = new File( auditDir, name );
-        final ReportEntry entry = extractEntry( reportFile, name );
-        if ( entry != null && auditFile.exists() )
-        {
-            final byte[] buf = streamData( augmentTable( parseData( entry.buf ), auditFile ) );
-
-            cache( cacheFile, buf );
-
-            return new ReportEntry( entry.name, System.currentTimeMillis(), buf );
-        }
-
-        return entry;
-    }
-
-    public static int[] getBadges( final File reportFile, final File auditDir )
-        throws IOException
-    {
-        final ReportEntry entry = Report.getEntry( reportFile, "badges.json", auditDir );
-        if ( entry != null )
-        {
-            final JsonParser parser = JSON.createJsonParser( entry.buf );
-            try
-            {
-                return parser.readValueAs( int[].class );
-            }
-            finally
-            {
-                parser.close();
-            }
-        }
-        return new int[] { -1, -1, -1 };
+        return extractEntry( reportFile, name );
     }
 
     public static String toEntryName( final String path )
@@ -116,13 +72,18 @@ public final class Report
         return buf != null ? buf.toString() : path;
     }
 
-    private static ReportEntry recalculate( final File reportFile, final String name, final File auditDir )
+    public static int[] applyChanges( final File reportFile, final File auditDir )
         throws IOException
     {
-        final JsonNode gavDepths = parseData( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
+        final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
+        final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
-        final JsonNode security = parseData( getEntry( reportFile, "security.json", auditDir ).buf ).get( "aaData" );
-        final JsonNode licenses = parseData( getEntry( reportFile, "licenses.json", auditDir ).buf ).get( "aaData" );
+        if ( isSample( reportFile ) )
+        {
+            return null; // don't update the badges or summary data
+        }
+
+        final JsonNode gavDepths = parseData( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
 
         /*
          * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
@@ -145,7 +106,7 @@ public final class Report
         final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
 
         final Set<String> gavs = new HashSet<String>();
-        for ( final JsonNode row : security )
+        for ( final JsonNode row : security.get( "aaData" ) )
         {
             final String status = row.path( "status" ).asText();
             if ( !"Not Applicable".equals( status ) )
@@ -180,7 +141,7 @@ public final class Report
             }
         }
 
-        for ( final JsonNode row : licenses )
+        for ( final JsonNode row : licenses.get( "aaData" ) )
         {
             String threat = row.path( "overriddenLicenseThreat" ).asText();
             if ( StringUtils.isBlank( threat ) || "null".equals( threat ) )
@@ -243,22 +204,27 @@ public final class Report
         data.append( ",\"licensePunchCard\":" ).append( Arrays.deepToString( licensePunchCard.toArray() ) );
         data.append( '}' );
 
-        final byte[] dataBuf = data.toString().getBytes( "UTF-8" );
-        final File dataFile = getCacheFile( reportFile, "data.json" );
-
-        cache( dataFile, dataBuf );
+        cache( getCacheFile( reportFile, "data.json" ), data.toString().getBytes( "UTF-8" ) );
 
         final StringBuilder badges = new StringBuilder( "[" );
         badges.append( securityAlerts ).append( ',' );
         badges.append( licenseAlerts ).append( ',' );
         badges.append( buildAlerts ).append( ']' );
 
-        final byte[] badgesBuf = badges.toString().getBytes( "UTF-8" );
-        final File badgesFile = getCacheFile( reportFile, "badges.json" );
+        cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
 
-        cache( badgesFile, badgesBuf );
+        return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+    }
 
-        return new ReportEntry( name, System.currentTimeMillis(), "data.json".equals( name ) ? dataBuf : badgesBuf );
+    private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )
+        throws IOException
+    {
+        ContainerNode<?> table = parseData( extractEntry( reportFile, name ).buf );
+
+        table = Auditing.applyAugmentedData( table, auditDir, name );
+        cache( getCacheFile( reportFile, name ), streamData( table ) );
+
+        return table;
     }
 
     private static ReportEntry extractEntry( final File reportFile, final String name )

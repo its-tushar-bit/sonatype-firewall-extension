@@ -75,10 +75,10 @@ public final class Auditing
         throws IOException
     {
         final AuditLock lock = lockFor( auditDir );
+
+        lock.sharedLock();
         try
         {
-            lock.sharedLock();
-
             final SyndFeedImpl feed = new SyndFeedImpl();
 
             feed.setFeedType( "rss_2.0" );
@@ -111,10 +111,10 @@ public final class Auditing
         throws IOException
     {
         final AuditLock lock = lockFor( auditDir );
+
+        lock.exclusiveLock();
         try
         {
-            lock.exclusiveLock();
-
             final File auditFile = new File( auditDir, name );
             try
             {
@@ -140,11 +140,12 @@ public final class Auditing
         {
             return table;
         }
+
         final AuditLock lock = lockFor( auditDir );
+
+        lock.sharedLock();
         try
         {
-            lock.sharedLock();
-
             return augmentTable( table, auditFile );
         }
         finally

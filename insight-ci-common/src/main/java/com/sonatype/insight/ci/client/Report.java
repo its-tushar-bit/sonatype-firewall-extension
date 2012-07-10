@@ -80,7 +80,7 @@ public final class Report
 
         if ( isSample( reportFile ) )
         {
-            return null; // don't update the badges or summary data
+            return parseData( extractEntry( reportFile, "badges.json" ).buf, int[].class );
         }
 
         final JsonNode gavDepths = parseData( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );

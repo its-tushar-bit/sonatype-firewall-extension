@@ -106,6 +106,20 @@ final class DataStore
         }
     }
 
+    static <T> T loadData( final File file, final Class<? extends T> type )
+        throws IOException
+    {
+        final JsonParser parser = JSON.createJsonParser( file );
+        try
+        {
+            return parser.readValueAs( type );
+        }
+        finally
+        {
+            parser.close();
+        }
+    }
+
     static void saveData( final File file, final ContainerNode<?> data )
         throws IOException
     {
@@ -128,6 +142,20 @@ final class DataStore
         try
         {
             return parser.readValueAsTree();
+        }
+        finally
+        {
+            parser.close();
+        }
+    }
+
+    static <T> T parseData( final byte[] buf, final Class<? extends T> type )
+        throws IOException
+    {
+        final JsonParser parser = JSON.createJsonParser( buf );
+        try
+        {
+            return parser.readValueAs( type );
         }
         finally
         {

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -233,7 +234,20 @@ public final class Auditing
         }
         for ( int i = 0; i < rows; i++ )
         {
-            summary.add( Report.gav( data.get( i ) ) );
+            final JsonNode artifact = data.get( i );
+            final StringBuilder text = new StringBuilder( Report.gav( artifact ) );
+            if ( artifact.has( "reference" ) )
+            {
+                text.append( " (" );
+                final String reference = artifact.get( "reference" ).asText();
+                final String source = artifact.get( "source" ).asText();
+                if ( !reference.toUpperCase( Locale.ENGLISH ).startsWith( source.toUpperCase( Locale.ENGLISH ) ) )
+                {
+                    text.append( source ).append( '-' );
+                }
+                text.append( reference ).append( ')' );
+            }
+            summary.add( text.toString() );
         }
 
         return summary;

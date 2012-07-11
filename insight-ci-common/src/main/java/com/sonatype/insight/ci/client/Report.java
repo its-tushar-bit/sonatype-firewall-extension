@@ -143,6 +143,7 @@ public final class Report
 
         for ( final JsonNode row : licenses.get( "aaData" ) )
         {
+            // NOTE: asText() turns null into the string "null", cf. https://github.com/FasterXML/jackson-databind/issues/25
             String threat = row.path( "overriddenLicenseThreat" ).asText();
             if ( StringUtils.isBlank( threat ) || "null".equals( threat ) )
             {
@@ -170,10 +171,14 @@ public final class Report
                 nonStandardLicenseCount++;
                 counter = 1;
             }
-            else
+            else if ( "NOT-PROVIDED".equals( threat ) )
             {
                 notProvidedLicenseCount++;
                 counter = 1;
+            }
+            else
+            {
+                counter = -1;
             }
 
             if ( counter >= 0 )

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.ci.client;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.sonatype.insight.scan.upload.ReportDataResult;
@@ -13,14 +14,21 @@ public final class ArtifactDetails
 {
     public final int statusCode;
 
-    public final Map<String, String> headers;
+    public final Map<String, Object> headers;
 
     public final byte[] data;
 
     ArtifactDetails( final ReportDataResult result )
     {
         statusCode = result.getStatusCode();
-        headers = result.getHeaders();
+        headers = new LinkedHashMap<String, Object>( result.getHeaders() );
         data = result.getData();
+    }
+
+    ArtifactDetails( final int statusCode, final byte[] data )
+    {
+        this.statusCode = statusCode;
+        headers = new LinkedHashMap<String, Object>();
+        this.data = data;
     }
 }

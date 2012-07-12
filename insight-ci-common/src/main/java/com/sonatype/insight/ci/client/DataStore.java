@@ -127,7 +127,7 @@ final class DataStore
         final JsonGenerator generator = JSON.createJsonGenerator( file, JsonEncoding.UTF8 );
         try
         {
-            generator.writeTree( data );
+            generator.useDefaultPrettyPrinter().writeTree( data );
         }
         finally
         {
@@ -170,7 +170,7 @@ final class DataStore
         final JsonGenerator generator = JSON.createJsonGenerator( os, JsonEncoding.UTF8 );
         try
         {
-            generator.writeTree( data );
+            generator.useDefaultPrettyPrinter().writeTree( data );
         }
         finally
         {

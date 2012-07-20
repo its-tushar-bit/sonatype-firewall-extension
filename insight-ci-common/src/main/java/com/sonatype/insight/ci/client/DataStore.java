@@ -29,7 +29,8 @@ final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
-    static void logData( final File file, final String user, final String ip, final ContainerNode<?> data )
+    static void logData( final File file, final String user, final String ip, final String where,
+                         final ContainerNode<?> data )
         throws IOException
     {
         final ArrayNode dataLog;
@@ -48,6 +49,7 @@ final class DataStore
 
         dataEntry.put( "user", user );
         dataEntry.put( "ip", ip );
+        dataEntry.put( "where", where );
         dataEntry.put( "data", data );
 
         saveData( file, dataLog );

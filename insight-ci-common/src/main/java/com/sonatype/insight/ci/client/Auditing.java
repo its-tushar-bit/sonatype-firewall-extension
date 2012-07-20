@@ -108,7 +108,7 @@ public final class Auditing
     }
 
     public static void saveAugmentedData( final File auditDir, final String name, final InputStream data,
-                                          final String user, final String ip )
+                                          final String user, final String ip, final String where )
         throws IOException
     {
         final AuditLock lock = lockFor( auditDir );
@@ -119,7 +119,7 @@ public final class Auditing
             final File auditFile = new File( auditDir, name );
             try
             {
-                logData( auditFile, user, ip, parseData( IOUtil.toByteArray( data ) ) );
+                logData( auditFile, user, ip, where, parseData( IOUtil.toByteArray( data ) ) );
             }
             finally
             {
@@ -182,7 +182,13 @@ public final class Auditing
 
                 final List<String> summary = summarize( data, kind );
 
-                entry.setTitle( summary.get( 0 ) );
+                String title = summary.get( 0 );
+                if ( event.has( "where" ) )
+                {
+                    title += " in build " + event.get( "where" ).asText();
+                }
+                entry.setTitle( title );
+
                 final StringBuilder buf = new StringBuilder();
                 for ( int i = 1; i < summary.size(); i++ )
                 {

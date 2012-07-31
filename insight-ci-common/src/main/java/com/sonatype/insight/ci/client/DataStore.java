@@ -36,7 +36,7 @@ final class DataStore
         final ArrayNode dataLog;
         if ( file.exists() )
         {
-            dataLog = (ArrayNode) loadData( file );
+            dataLog = loadData( file );
         }
         else
         {
@@ -58,7 +58,7 @@ final class DataStore
     static <T extends ContainerNode<?>> T augmentTable( final T table, final File file )
         throws IOException
     {
-        final ArrayNode dataLog = (ArrayNode) loadData( file );
+        final ArrayNode dataLog = loadData( file );
 
         // first aggregate all the changes found in the data log
         final List<JsonNode> changes = new ArrayList<JsonNode>();
@@ -267,5 +267,30 @@ final class DataStore
             }
         }
         return null;
+    }
+
+    static ArrayNode filterDataLog( final File file, final ObjectNode key )
+        throws IOException
+    {
+        final ArrayNode dataLog = loadData( file );
+        final ArrayNode filteredLog = dataLog.arrayNode();
+        for ( int x = 0; x < dataLog.size(); x++ )
+        {
+            final ObjectNode entry = (ObjectNode) dataLog.get( x );
+            final ArrayNode data = (ArrayNode) entry.remove( "data" );
+            for ( int y = 0; y < data.size(); y++ )
+            {
+                try
+                {
+                    filteredLog.add( augment( key, (ObjectNode) data.get( y ) ).putAll( entry ) );
+                }
+                catch ( final JsonMappingException e )
+                {
+                    // incompatible data, try next entry from audit log
+                }
+            }
+        }
+
+        return filteredLog;
     }
 }

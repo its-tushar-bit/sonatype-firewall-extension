@@ -6,11 +6,14 @@
 package com.sonatype.insight.ci.client;
 
 import static com.sonatype.insight.ci.client.DataStore.augmentTable;
+import static com.sonatype.insight.ci.client.DataStore.filterDataLog;
 import static com.sonatype.insight.ci.client.DataStore.loadData;
 import static com.sonatype.insight.ci.client.DataStore.logData;
 import static com.sonatype.insight.ci.client.DataStore.parseData;
+import static com.sonatype.insight.ci.client.DataStore.streamData;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Inet4Address;
@@ -37,6 +40,7 @@ import org.codehaus.plexus.util.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndContentImpl;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -49,6 +53,14 @@ public final class Auditing
     private static final String XFF_HEADER = "X-Forwarded-For";
 
     private static final ConcurrentMap<String, AuditLock> LOCK_TABLE = new ConcurrentHashMap<String, AuditLock>();
+
+    private static final FilenameFilter JSON_FILES = new FilenameFilter()
+    {
+        public boolean accept( final File dir, final String name )
+        {
+            return name.endsWith( ".json" );
+        }
+    };
 
     public static String findUser( final HttpServletRequest request )
     {
@@ -75,31 +87,65 @@ public final class Auditing
     public static SyndFeed getAuditFeed( final File auditDir )
         throws IOException
     {
+        final SyndFeedImpl feed = new SyndFeedImpl();
+
+        feed.setFeedType( "rss_2.0" );
+        feed.setPublishedDate( new Date() );
+        feed.setAuthor( "Insight CI" );
+        feed.setTitle( "Insight" );
+
+        feed.setDescription( "Insight Audit Log" );
+
         final AuditLock lock = lockFor( auditDir );
 
         lock.sharedLock();
         try
         {
-            final SyndFeedImpl feed = new SyndFeedImpl();
-
-            feed.setFeedType( "rss_2.0" );
-            feed.setPublishedDate( new Date() );
-            feed.setAuthor( "Insight CI" );
-            feed.setTitle( "Insight" );
-
-            feed.setDescription( "Insight Audit Log" );
-
             final List<SyndEntry> entries = new ArrayList<SyndEntry>();
-            entries.addAll( getAuditEntries( auditDir, "security.json" ) );
-            entries.addAll( getAuditEntries( auditDir, "licenses.json" ) );
+            final String[] auditNames = auditDir.list( JSON_FILES );
+            if ( auditNames != null )
+            {
+                for ( final String name : auditNames )
+                {
+                    entries.addAll( getAuditEntries( auditDir, name ) );
+                }
+            }
             feed.setEntries( entries );
-
-            return feed;
         }
         finally
         {
             lock.sharedUnlock();
         }
+
+        return feed;
+    }
+
+    public static byte[] filterAuditLog( final File auditDir, final byte[] key )
+        throws IOException
+    {
+        final ObjectNode keyData = parseData( key );
+        final ObjectNode log = keyData.objectNode();
+
+        final AuditLock lock = lockFor( auditDir );
+
+        lock.sharedLock();
+        try
+        {
+            final String[] auditNames = auditDir.list( JSON_FILES );
+            if ( auditNames != null )
+            {
+                for ( final String name : auditNames )
+                {
+                    log.withArray( "aaData" ).addAll( filterAuditEntries( auditDir, name, keyData ) );
+                }
+            }
+        }
+        finally
+        {
+            lock.sharedUnlock();
+        }
+
+        return log.withArray( "aaData" ).size() > 0 ? streamData( log ) : null;
     }
 
     public static int getModificationCount( final File auditDir )
@@ -153,6 +199,28 @@ public final class Auditing
         {
             lock.sharedUnlock();
         }
+    }
+
+    private static ArrayNode filterAuditEntries( final File auditDir, final String name, final ObjectNode keyData )
+        throws IOException
+    {
+        final ArrayNode entries = keyData.arrayNode();
+        final File auditFile = new File( auditDir, name );
+        if ( !auditFile.canRead() )
+        {
+            return entries;
+        }
+
+        for ( final JsonNode event : filterDataLog( auditFile, keyData ) )
+        {
+            final ObjectNode entry = entries.addObject();
+            entry.put( "time", event.get( "time" ) );
+            entry.put( "user", event.get( "user" ) );
+            entry.put( "event", "TODO" );
+            entry.put( "details", "TODO" );
+        }
+
+        return entries;
     }
 
     private static List<SyndEntry> getAuditEntries( final File auditDir, final String name )

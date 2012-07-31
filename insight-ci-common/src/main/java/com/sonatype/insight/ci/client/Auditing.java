@@ -131,12 +131,15 @@ public final class Auditing
         lock.sharedLock();
         try
         {
-            final String[] auditNames = auditDir.list( JSON_FILES );
-            if ( auditNames != null )
+            final File[] auditFiles = auditDir.listFiles( JSON_FILES );
+            if ( auditFiles != null )
             {
-                for ( final String name : auditNames )
+                for ( final File file : auditFiles )
                 {
-                    log.withArray( "aaData" ).addAll( filterAuditEntries( auditDir, name, keyData ) );
+                    if ( file.canRead() )
+                    {
+                        log.withArray( "aaData" ).addAll( filterDataLog( file, keyData ) );
+                    }
                 }
             }
         }
@@ -199,28 +202,6 @@ public final class Auditing
         {
             lock.sharedUnlock();
         }
-    }
-
-    private static ArrayNode filterAuditEntries( final File auditDir, final String name, final ObjectNode keyData )
-        throws IOException
-    {
-        final ArrayNode entries = keyData.arrayNode();
-        final File auditFile = new File( auditDir, name );
-        if ( !auditFile.canRead() )
-        {
-            return entries;
-        }
-
-        for ( final JsonNode event : filterDataLog( auditFile, keyData ) )
-        {
-            final ObjectNode entry = entries.addObject();
-            entry.put( "time", event.get( "time" ) );
-            entry.put( "user", event.get( "user" ) );
-            entry.put( "event", "TODO" );
-            entry.put( "details", "TODO" );
-        }
-
-        return entries;
     }
 
     private static List<SyndEntry> getAuditEntries( final File auditDir, final String name )

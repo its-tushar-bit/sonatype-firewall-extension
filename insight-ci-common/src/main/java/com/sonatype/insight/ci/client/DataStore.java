@@ -278,6 +278,7 @@ final class DataStore
         {
             final ObjectNode entry = (ObjectNode) dataLog.get( x );
             final ArrayNode data = (ArrayNode) entry.remove( "data" );
+            entry.put( "filename", file.getName() );
             for ( int y = 0; y < data.size(); y++ )
             {
                 try

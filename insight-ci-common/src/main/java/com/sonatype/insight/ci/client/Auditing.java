@@ -70,7 +70,7 @@ public final class Auditing
         return ip != null ? ip : request.getRemoteAddr();
     }
 
-    public static byte[] filterAuditLog( final File auditDir, final byte[] key )
+    public static byte[] filterAuditLog( final File auditDir, final byte[] key, final String... names )
         throws IOException
     {
         final ObjectNode keyData = parseData( key );
@@ -81,7 +81,19 @@ public final class Auditing
         lock.sharedLock();
         try
         {
-            final File[] auditFiles = auditDir.listFiles( JSON_FILES );
+            final File[] auditFiles;
+            if ( names.length > 0 && names[0].length() > 0 )
+            {
+                auditFiles = new File[names.length];
+                for ( int i = 0; i < auditFiles.length; i++ )
+                {
+                    auditFiles[i] = new File( auditDir, names[i] );
+                }
+            }
+            else
+            {
+                auditFiles = auditDir.listFiles( JSON_FILES );
+            }
             if ( auditFiles != null )
             {
                 for ( final File file : auditFiles )

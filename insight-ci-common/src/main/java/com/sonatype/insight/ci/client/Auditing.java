@@ -40,6 +40,8 @@ public final class Auditing
 
     private static final ConcurrentMap<String, AuditLock> LOCK_TABLE = new ConcurrentHashMap<String, AuditLock>();
 
+    private static final String[] NO_FILE_NAMES = {};
+
     private static final FilenameFilter JSON_FILES = new FilenameFilter()
     {
         public boolean accept( final File dir, final String name )
@@ -81,27 +83,17 @@ public final class Auditing
         lock.sharedLock();
         try
         {
-            final File[] auditFiles;
-            if ( names.length > 0 && names[0].length() > 0 )
+            String[] fileNames = names;
+            if ( names.length == 0 || names[0].length() == 0 )
             {
-                auditFiles = new File[names.length];
-                for ( int i = 0; i < auditFiles.length; i++ )
-                {
-                    auditFiles[i] = new File( auditDir, names[i] );
-                }
+                fileNames = listAugmentedData( auditDir );
             }
-            else
+            for ( final String name : fileNames )
             {
-                auditFiles = auditDir.listFiles( JSON_FILES );
-            }
-            if ( auditFiles != null )
-            {
-                for ( final File file : auditFiles )
+                final File file = new File( auditDir, name );
+                if ( file.canRead() )
                 {
-                    if ( file.canRead() )
-                    {
-                        log.withArray( "aaData" ).addAll( filterDataLog( file, keyData ) );
-                    }
+                    log.withArray( "aaData" ).addAll( filterDataLog( file, keyData ) );
                 }
             }
         }
@@ -113,9 +105,20 @@ public final class Auditing
         return log.withArray( "aaData" ).size() > 0 ? streamData( log ) : null;
     }
 
+    public static boolean isData( final String name )
+    {
+        return JSON_FILES.accept( null, name );
+    }
+
     public static int getModificationCount( final File auditDir )
     {
         return lockFor( auditDir ).modCount();
+    }
+
+    public static String[] listAugmentedData( final File auditDir )
+    {
+        final String[] names = auditDir.list( JSON_FILES );
+        return names != null ? names : NO_FILE_NAMES;
     }
 
     public static void saveAugmentedData( final File auditDir, final String name, final InputStream data,

@@ -78,6 +78,14 @@ public final class Report
         final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
+        for ( final String name : Auditing.listAugmentedData( auditDir ) )
+        {
+            if ( !"security.json".equals( name ) && !"licenses.json".equals( name ) )
+            {
+                applyChanges( reportFile, name, auditDir );
+            }
+        }
+
         if ( isSample( reportFile ) )
         {
             return parseData( extractEntry( reportFile, "badges.json" ).buf, int[].class );

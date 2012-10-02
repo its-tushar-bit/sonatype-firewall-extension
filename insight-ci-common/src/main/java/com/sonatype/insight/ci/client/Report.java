@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -25,7 +25,9 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class Report
 {
@@ -205,19 +207,18 @@ public final class Report
             }
         }
 
-        final StringBuilder data = new StringBuilder();
-        data.append( "{\"securityCounts\":" ).append( Arrays.toString( securityCounts ) );
-        data.append( ",\"insecureArtifactCount\":" ).append( insecureArtifactCount );
-        data.append( ",\"copyleftLicenseCount\":" ).append( copyleftLicenseCount );
-        data.append( ",\"weakcopyleftLicenseCount\":" ).append( weakcopyleftLicenseCount );
-        data.append( ",\"liberalLicenseCount\":" ).append( liberalLicenseCount );
-        data.append( ",\"nonStandardLicenseCount\":" ).append( nonStandardLicenseCount );
-        data.append( ",\"notProvidedLicenseCount\":" ).append( notProvidedLicenseCount );
-        data.append( ",\"securityPunchCard\":" ).append( Arrays.deepToString( securityPunchCard.toArray() ) );
-        data.append( ",\"licensePunchCard\":" ).append( Arrays.deepToString( licensePunchCard.toArray() ) );
-        data.append( '}' );
+        final ObjectNode data = parseData( extractEntry( reportFile, "data.json" ).buf );
+        fill( data.putArray( "securityCounts" ), securityCounts );
+        data.put( "insecureArtifactCount", insecureArtifactCount );
+        data.put( "copyleftLicenseCount", copyleftLicenseCount );
+        data.put( "weakcopyleftLicenseCount", weakcopyleftLicenseCount );
+        data.put( "liberalLicenseCount", liberalLicenseCount );
+        data.put( "nonStandardLicenseCount", nonStandardLicenseCount );
+        data.put( "notProvidedLicenseCount", notProvidedLicenseCount );
+        fill( data.putArray( "securityPunchCard" ), securityPunchCard );
+        fill( data.putArray( "licensePunchCard" ), licensePunchCard );
 
-        cache( getCacheFile( reportFile, "data.json" ), data.toString().getBytes( "UTF-8" ) );
+        cache( getCacheFile( reportFile, "data.json" ), streamData( data ) );
 
         final StringBuilder badges = new StringBuilder( "[" );
         badges.append( securityAlerts ).append( ',' );
@@ -319,6 +320,22 @@ public final class Report
         finally
         {
             IOUtil.close( is );
+        }
+    }
+
+    private static void fill( final ArrayNode node, final int[] data )
+    {
+        for ( int d : data )
+        {
+            node.add( d );
+        }
+    }
+
+    private static void fill( final ArrayNode node, final List<int[]> datas )
+    {
+        for ( int[] data : datas )
+        {
+            fill( node.addArray(), data );
         }
     }
 }

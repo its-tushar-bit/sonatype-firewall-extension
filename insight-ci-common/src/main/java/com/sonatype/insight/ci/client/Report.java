@@ -21,8 +21,11 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -228,6 +231,14 @@ public final class Report
         cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
 
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+    }
+
+    public static void print( final Logger log, final File reportFile, final String projectName, final int buildNumber,
+                              final boolean refresh, final HttpServletResponse rsp )
+        throws IOException
+    {
+        Pdf.generate( log, reportFile, getCacheDir( reportFile ), isSample( reportFile ), projectName, buildNumber,
+                      refresh, rsp );
     }
 
     private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )

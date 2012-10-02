@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -71,11 +73,13 @@ final class Pdf
         try
         {
             long now = System.currentTimeMillis();
+            String timestamp = new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( new Date() );
+            String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
             rsp.setDateHeader( "Last-Modified", now );
             rsp.setDateHeader( "Expires", now );
             rsp.setContentLength( (int) pdfFile.length() );
             rsp.setContentType( "application/pdf" );
-            rsp.setHeader( "Content-Disposition", "attachment; filename=" + projectName + "-" + buildNumber + ".pdf" );
+            rsp.setHeader( "Content-Disposition", "attachment; filename=" + filename );
             IOUtil.copy( fis, rsp.getOutputStream() );
         }
         finally

@@ -25,6 +25,7 @@ import org.eclipse.birt.core.exception.BirtException;
 import org.eclipse.birt.core.framework.Platform;
 import org.eclipse.birt.core.framework.PlatformConfig;
 import org.eclipse.birt.report.engine.api.EngineConfig;
+import org.eclipse.birt.report.engine.api.IPDFRenderOption;
 import org.eclipse.birt.report.engine.api.IRenderOption;
 import org.eclipse.birt.report.engine.api.IReportEngine;
 import org.eclipse.birt.report.engine.api.IReportEngineFactory;
@@ -177,6 +178,8 @@ final class Pdf
                 IRenderOption options = new RenderOption();
                 options.setOutputFormat( "PDF" );
                 options.setOutputFileName( pdfFile.getAbsolutePath() );
+                options.setOption( IPDFRenderOption.PDF_TEXT_WRAPPING, Boolean.TRUE );
+                options.setOption( IPDFRenderOption.PDF_HYPHENATION, Boolean.TRUE );
 
                 task.setRenderOption( options );
                 task.setLocale( Locale.ENGLISH );

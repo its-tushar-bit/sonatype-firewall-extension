@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -211,15 +212,17 @@ public final class Report
         }
 
         final ObjectNode data = parseData( extractEntry( reportFile, "data.json" ).buf );
-        fill( data.putArray( "securityCounts" ), securityCounts );
+        fillInts( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
         data.put( "copyleftLicenseCount", copyleftLicenseCount );
         data.put( "weakcopyleftLicenseCount", weakcopyleftLicenseCount );
         data.put( "liberalLicenseCount", liberalLicenseCount );
         data.put( "nonStandardLicenseCount", nonStandardLicenseCount );
         data.put( "notProvidedLicenseCount", notProvidedLicenseCount );
-        fill( data.putArray( "securityPunchCard" ), securityPunchCard );
-        fill( data.putArray( "licensePunchCard" ), licensePunchCard );
+        fillInts( data.putArray( "securityPunchCard" ), securityPunchCard );
+        fillInts( data.putArray( "licensePunchCard" ), licensePunchCard );      
+        fillStrings( data.putArray( "originalKeyFindings" ), getKeyFindings( data, security, true ) );
+        fillStrings( data.putArray( "keyFindings" ), getKeyFindings( data, security, false ) );
 
         cache( getCacheFile( reportFile, "data.json" ), streamData( data ) );
 
@@ -231,6 +234,94 @@ public final class Report
         cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
 
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+    }
+    
+    private static List<String[]> getKeyFindings( ObjectNode data, ContainerNode<?> security, boolean forceAll )
+    {
+        ArrayList<String[]> targetFindings = new ArrayList<String[]>();
+        
+        Set<String> textSet = new HashSet<String>();
+        
+        JsonNode sourceFindings = data.get( "originalKeyFindings" );
+        
+        if ( sourceFindings.size() < 1 )
+        {
+            sourceFindings = data.get( "keyFindings" );
+        }
+        
+        //parse keyfindings to remove duplicates and any that are included because of Not Applicable SVs
+        for ( final JsonNode sourceFinding : sourceFindings )
+        {
+            Iterator<JsonNode> iter = sourceFinding.elements();
+            
+            String text = iter.next().asText();
+            
+            if ( forceAll || !textSet.contains( text ) )
+            {
+                String source = asText( iter.next() );
+                String refid = asText( iter.next() );
+                String groupId = asText( iter.next() );
+                String artifactId = asText( iter.next() );
+                String version = asText( iter.next() );
+                
+                System.out.println( "1: source:" + source + " refid:" + refid + " groupId:" + groupId + " artifactId:" + artifactId + " version:" + version );
+                
+                boolean add = false;
+                
+                //if this is forced add each item, or if null, we are dealing with freemium
+                if ( forceAll || refid == null )
+                {
+                    add = true;
+                }
+                else
+                {
+                    for ( final JsonNode row : security.get( "aaData" ) )
+                    {
+                        System.out.println( "2: source:" + row.get( "source" ).asText() + " refid:" + row.get( "reference" ).asText() + " groupId:" + row.get( "groupId" ).asText() + " artifactId:" + row.get( "artifactId" ).asText() + " version:" + row.get( "version" ).asText() );
+                        if ( row.get( "source" ).asText().equals( source ) && row.get( "reference" ).asText().equals( refid )
+                            && row.get( "groupId" ).asText().equals( groupId ) && row.get( "artifactId" ).asText().equals( artifactId )
+                            && row.get( "version" ).asText().equals( version ) && !"Not Applicable".equals( row.get( "status" ).asText() ) )
+                        {
+                            add = true;
+                            break;
+                        }
+                    }    
+                }
+                
+                if ( add )
+                {
+                    String[] finding = new String[6];
+                    finding[0] = text;
+                    finding[1] = source;
+                    finding[2] = refid;
+                    finding[3] = groupId;
+                    finding[4] = artifactId;
+                    finding[5] = version;
+                    
+                    targetFindings.add( finding );
+                    textSet.add( text );
+                }
+            }
+            
+            if ( targetFindings.size() >= 3 )
+            {
+                break;
+            }
+        }
+        
+        return targetFindings;
+    }
+    
+    private static String asText( JsonNode node )
+    {
+        String text = node.asText();
+        
+        if ( "null".equals( text ) )
+        {
+            return null;
+        }
+        
+        return text;
     }
 
     public static void print( final Logger log, final File reportFile, final String projectName, final int buildNumber,
@@ -334,7 +425,7 @@ public final class Report
         }
     }
 
-    private static void fill( final ArrayNode node, final int[] data )
+    private static void fillInts( final ArrayNode node, final int[] data )
     {
         for ( int d : data )
         {
@@ -342,11 +433,27 @@ public final class Report
         }
     }
 
-    private static void fill( final ArrayNode node, final List<int[]> datas )
+    private static void fillInts( final ArrayNode node, final List<int[]> datas )
     {
         for ( int[] data : datas )
         {
-            fill( node.addArray(), data );
+            fillInts( node.addArray(), data );
+        }
+    }
+    
+    private static void fillStrings( final ArrayNode node, final String[] data )
+    {
+        for ( String d : data )
+        {
+            node.add( d );
+        }
+    }
+    
+    private static void fillStrings( final ArrayNode node, final List<String[]> datas )
+    {
+        for ( String[] data : datas )
+        {
+            fillStrings( node.addArray(), data );
         }
     }
 }

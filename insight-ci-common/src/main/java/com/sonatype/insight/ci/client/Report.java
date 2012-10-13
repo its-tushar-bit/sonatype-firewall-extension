@@ -264,8 +264,6 @@ public final class Report
                 String artifactId = asText( iter.next() );
                 String version = asText( iter.next() );
                 
-                System.out.println( "1: source:" + source + " refid:" + refid + " groupId:" + groupId + " artifactId:" + artifactId + " version:" + version );
-                
                 boolean add = false;
                 
                 //if this is forced add each item, or if null, we are dealing with freemium
@@ -277,7 +275,6 @@ public final class Report
                 {
                     for ( final JsonNode row : security.get( "aaData" ) )
                     {
-                        System.out.println( "2: source:" + row.get( "source" ).asText() + " refid:" + row.get( "reference" ).asText() + " groupId:" + row.get( "groupId" ).asText() + " artifactId:" + row.get( "artifactId" ).asText() + " version:" + row.get( "version" ).asText() );
                         if ( row.get( "source" ).asText().equals( source ) && row.get( "reference" ).asText().equals( refid )
                             && row.get( "groupId" ).asText().equals( groupId ) && row.get( "artifactId" ).asText().equals( artifactId )
                             && row.get( "version" ).asText().equals( version ) && !"Not Applicable".equals( row.get( "status" ).asText() ) )

@@ -41,14 +41,28 @@ final class Pdf
 
     private static IReportEngine reportEngine;
 
+    private static File getPdfFile( final File reportFile )
+    {
+        return new File( reportFile.getParentFile(), "report.pdf" );
+    }
+
+    public static void delete( final Logger log, final File reportFile )
+    {
+        final File pdfFile = getPdfFile( reportFile );
+        log.debug( "Deleting report PDF {}", pdfFile );
+        if ( !pdfFile.delete() && pdfFile.exists() )
+        {
+            log.warn( "Could not delete obsolete report PDF {}", pdfFile );
+        }
+    }
+
     public static void generate( final Logger log, final File reportFile, final File cacheDir, final boolean sample,
-                                 final String projectName, final int buildNumber, final boolean refresh,
-                                 final HttpServletResponse rsp )
+                                 final String projectName, final int buildNumber, final HttpServletResponse rsp )
         throws IOException
     {
-        final File pdfFile = new File( reportFile.getParentFile(), "report.pdf" );
+        final File pdfFile = getPdfFile( reportFile );
 
-        if ( refresh || !pdfFile.isFile() )
+        if ( !pdfFile.isFile() )
         {
             ClassLoader tccl = Thread.currentThread().getContextClassLoader();
             final File templateDir = setupTemplateDir( reportFile, cacheDir, projectName, buildNumber );

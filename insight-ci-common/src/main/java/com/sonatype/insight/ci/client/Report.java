@@ -321,12 +321,16 @@ public final class Report
         return text;
     }
 
-    public static void print( final Logger log, final File reportFile, final String projectName, final int buildNumber,
-                              final boolean refresh, final HttpServletResponse rsp )
+    public static void printPdf( final Logger log, final File reportFile, final String projectName,
+                                 final int buildNumber, final HttpServletResponse rsp )
         throws IOException
     {
-        Pdf.generate( log, reportFile, getCacheDir( reportFile ), isSample( reportFile ), projectName, buildNumber,
-                      refresh, rsp );
+        Pdf.generate( log, reportFile, getCacheDir( reportFile ), isSample( reportFile ), projectName, buildNumber, rsp );
+    }
+
+    public static void deletePdf( final Logger log, final File reportFile )
+    {
+        Pdf.delete( log, reportFile );
     }
 
     private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )

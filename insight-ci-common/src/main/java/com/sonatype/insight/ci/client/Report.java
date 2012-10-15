@@ -220,9 +220,8 @@ public final class Report
         data.put( "nonStandardLicenseCount", nonStandardLicenseCount );
         data.put( "notProvidedLicenseCount", notProvidedLicenseCount );
         fillInts( data.putArray( "securityPunchCard" ), securityPunchCard );
-        fillInts( data.putArray( "licensePunchCard" ), licensePunchCard );      
-        fillStrings( data.putArray( "originalKeyFindings" ), getKeyFindings( data, security, true ) );
-        fillStrings( data.putArray( "keyFindings" ), getKeyFindings( data, security, false ) );
+        fillInts( data.putArray( "licensePunchCard" ), licensePunchCard );
+        filterKeyFindings( data, security );
 
         cache( getCacheFile( reportFile, "data.json" ), streamData( data ) );
 
@@ -236,19 +235,18 @@ public final class Report
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
     }
     
-    private static List<String[]> getKeyFindings( ObjectNode data, ContainerNode<?> security, boolean forceAll )
+    private static void filterKeyFindings( ObjectNode data, ContainerNode<?> security )
     {
         ArrayList<String[]> targetFindings = new ArrayList<String[]>();
         
         Set<String> textSet = new HashSet<String>();
-        
-        JsonNode sourceFindings = data.get( "originalKeyFindings" );
-        
-        if ( sourceFindings.size() < 1 )
+
+        ArrayNode sourceFindings = (ArrayNode) data.get( "keyFindings" );
+        if ( sourceFindings == null )
         {
-            sourceFindings = data.get( "keyFindings" );
+            sourceFindings = data.putArray( "keyFindings" );
         }
-        
+
         //parse keyfindings to remove duplicates and any that are included because of Not Applicable SVs
         for ( final JsonNode sourceFinding : sourceFindings )
         {
@@ -256,7 +254,7 @@ public final class Report
             
             String text = iter.next().asText();
             
-            if ( forceAll || !textSet.contains( text ) )
+            if ( !textSet.contains( text ) )
             {
                 String source = asText( iter.next() );
                 String refid = asText( iter.next() );
@@ -267,7 +265,7 @@ public final class Report
                 boolean add = false;
                 
                 //if this is forced add each item, or if null, we are dealing with freemium
-                if ( forceAll || refid == null )
+                if ( refid == null )
                 {
                     add = true;
                 }
@@ -275,9 +273,9 @@ public final class Report
                 {
                     for ( final JsonNode row : security.get( "aaData" ) )
                     {
-                        if ( row.get( "source" ).asText().equals( source ) && row.get( "reference" ).asText().equals( refid )
-                            && row.get( "groupId" ).asText().equals( groupId ) && row.get( "artifactId" ).asText().equals( artifactId )
-                            && row.get( "version" ).asText().equals( version ) && !"Not Applicable".equals( row.get( "status" ).asText() ) )
+                        if ( row.path( "source" ).asText().equals( source ) && row.path( "reference" ).asText().equals( refid )
+                            && row.path( "groupId" ).asText().equals( groupId ) && row.path( "artifactId" ).asText().equals( artifactId )
+                            && row.path( "version" ).asText().equals( version ) && !"Not Applicable".equals( row.path( "status" ).asText() ) )
                         {
                             add = true;
                             break;
@@ -305,8 +303,9 @@ public final class Report
                 break;
             }
         }
-        
-        return targetFindings;
+
+        sourceFindings.removeAll();
+        fillStrings( sourceFindings, targetFindings );
     }
     
     private static String asText( JsonNode node )

@@ -212,15 +212,15 @@ public final class Report
         }
 
         final ObjectNode data = parseData( extractEntry( reportFile, "data.json" ).buf );
-        fillInts( data.putArray( "securityCounts" ), securityCounts );
+        fill( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
         data.put( "copyleftLicenseCount", copyleftLicenseCount );
         data.put( "weakcopyleftLicenseCount", weakcopyleftLicenseCount );
         data.put( "liberalLicenseCount", liberalLicenseCount );
         data.put( "nonStandardLicenseCount", nonStandardLicenseCount );
         data.put( "notProvidedLicenseCount", notProvidedLicenseCount );
-        fillInts( data.putArray( "securityPunchCard" ), securityPunchCard );
-        fillInts( data.putArray( "licensePunchCard" ), licensePunchCard );
+        fill( data.putArray( "securityPunchCard" ), securityPunchCard );
+        fill( data.putArray( "licensePunchCard" ), licensePunchCard );
         filterKeyFindings( data, security );
 
         cache( getCacheFile( reportFile, "data.json" ), streamData( data ) );
@@ -237,8 +237,6 @@ public final class Report
     
     private static void filterKeyFindings( ObjectNode data, ContainerNode<?> security )
     {
-        ArrayList<String[]> targetFindings = new ArrayList<String[]>();
-        
         Set<String> textSet = new HashSet<String>();
 
         ArrayNode sourceFindings = (ArrayNode) data.get( "keyFindings" );
@@ -246,66 +244,81 @@ public final class Report
         {
             sourceFindings = data.putArray( "keyFindings" );
         }
-
-        //parse keyfindings to remove duplicates and any that are included because of Not Applicable SVs
-        for ( final JsonNode sourceFinding : sourceFindings )
+        
+        Iterator<JsonNode> sourceIter = sourceFindings.elements();
+        
+        //simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as 'Not Applicable'
+        while ( sourceIter.hasNext() )
         {
-            Iterator<JsonNode> iter = sourceFinding.elements();
-            
-            String text = iter.next().asText();
-            
-            if ( !textSet.contains( text ) )
+            JsonNode sourceFinding = sourceIter.next();
+  
+            String text = asText( sourceFinding.get( "text" ) );
+
+            //if we already have this keyFinding to be shown, no need to show others
+            if ( textSet.contains( text ) )
             {
-                String source = asText( iter.next() );
-                String refid = asText( iter.next() );
-                String groupId = asText( iter.next() );
-                String artifactId = asText( iter.next() );
-                String version = asText( iter.next() );
-                
-                boolean add = false;
-                
-                //if this is forced add each item, or if null, we are dealing with freemium
-                if ( refid == null )
+                sourceIter.remove();
+            }
+            else
+            {
+                JsonNode svNode = sourceFinding.get( "sv" );
+
+                //if svNode is null we are dealing with a freemium report, so simply add the key finding text
+                if ( svNode == null )
                 {
-                    add = true;
+                    textSet.add( text );   
                 }
                 else
                 {
+                    boolean foundMatch = false;
+                    
+                    //need to compare against each row in the security data to find a match, and decide if the match is applicable
                     for ( final JsonNode row : security.get( "aaData" ) )
                     {
-                        if ( row.path( "source" ).asText().equals( source ) && row.path( "reference" ).asText().equals( refid )
-                            && row.path( "groupId" ).asText().equals( groupId ) && row.path( "artifactId" ).asText().equals( artifactId )
-                            && row.path( "version" ).asText().equals( version ) && !"Not Applicable".equals( row.path( "status" ).asText() ) )
+                        Iterator<String> iter = svNode.fieldNames();
+
+                        boolean recordMatch = true;
+
+                        //simple agnostic means to check the coordinates
+                        while ( iter.hasNext() )
                         {
-                            add = true;
+                            String key = iter.next();
+
+                            String sourceVal = asText( svNode.get( key ) );
+                            String targetVal = asText( row.get( key ) );
+
+                            if ( !( sourceVal == null && targetVal == null || sourceVal != null
+                                && sourceVal.equals( targetVal ) ) )
+                            {
+                                recordMatch = false;
+                                break;
+                            }
+                        }
+                        
+                        foundMatch = recordMatch;
+
+                        //if we found a match, check the status, if not applicable, junk it
+                        if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
+                        {
+                            sourceIter.remove();
                             break;
                         }
-                    }    
-                }
-                
-                if ( add )
-                {
-                    String[] finding = new String[6];
-                    finding[0] = text;
-                    finding[1] = source;
-                    finding[2] = refid;
-                    finding[3] = groupId;
-                    finding[4] = artifactId;
-                    finding[5] = version;
+                        else if ( recordMatch )
+                        {
+                            textSet.add( text );
+                            break;
+                        }
+                    }
                     
-                    targetFindings.add( finding );
-                    textSet.add( text );
+                    //This is a case that shouldn't be hit besides in dev, if no match 
+                    //found in the security table, dump it
+                    if ( !foundMatch )
+                    {
+                        sourceIter.remove();
+                    }
                 }
-            }
-            
-            if ( targetFindings.size() >= 3 )
-            {
-                break;
             }
         }
-
-        sourceFindings.removeAll();
-        fillStrings( sourceFindings, targetFindings );
     }
     
     private static String asText( JsonNode node )
@@ -425,7 +438,7 @@ public final class Report
         }
     }
 
-    private static void fillInts( final ArrayNode node, final int[] data )
+    private static void fill( final ArrayNode node, final int[] data )
     {
         for ( int d : data )
         {
@@ -433,27 +446,11 @@ public final class Report
         }
     }
 
-    private static void fillInts( final ArrayNode node, final List<int[]> datas )
+    private static void fill( final ArrayNode node, final List<int[]> datas )
     {
         for ( int[] data : datas )
         {
-            fillInts( node.addArray(), data );
-        }
-    }
-    
-    private static void fillStrings( final ArrayNode node, final String[] data )
-    {
-        for ( String d : data )
-        {
-            node.add( d );
-        }
-    }
-    
-    private static void fillStrings( final ArrayNode node, final List<String[]> datas )
-    {
-        for ( String[] data : datas )
-        {
-            fillStrings( node.addArray(), data );
+            fill( node.addArray(), data );
         }
     }
 }

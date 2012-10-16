@@ -157,9 +157,8 @@ public final class Report
 
         for ( final JsonNode row : licenses.get( "aaData" ) )
         {
-            // NOTE: asText() turns null into the string "null", cf. https://github.com/FasterXML/jackson-databind/issues/25
-            String threat = row.path( "overriddenLicenseThreat" ).asText();
-            if ( StringUtils.isBlank( threat ) || "null".equals( threat ) )
+            String threat = asText( row.path( "overriddenLicenseThreat" ) );
+            if ( StringUtils.isBlank( threat ) )
             {
                 threat = row.path( "effectiveLicenseThreat" ).asText();
             }
@@ -320,16 +319,24 @@ public final class Report
             }
         }
     }
-    
+
     private static String asText( JsonNode node )
     {
-        String text = node.asText();
-        
-        if ( "null".equals( text ) )
+        String text;
+        if ( node != null )
         {
-            return null;
+            text = node.asText();
+            // NOTE: asText() turns null into the string "null", cf.
+            // https://github.com/FasterXML/jackson-databind/issues/25
+            if ( "null".equals( text ) )
+            {
+                text = null;
+            }
         }
-        
+        else
+        {
+            text = null;
+        }
         return text;
     }
 

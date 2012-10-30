@@ -35,6 +35,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class Report
 {
+
+    private static enum ReportType
+    {
+        FULL, SAMPLE, ERROR
+    };
+
     public static ReportEntry getEntry( final File reportFile, final String name )
         throws IOException
     {
@@ -81,6 +87,13 @@ public final class Report
     public static int[] applyChanges( final File reportFile, final File auditDir )
         throws IOException
     {
+        final ReportType reportType = getType( reportFile );
+
+        if ( ReportType.ERROR.equals( reportType ) )
+        {
+            return new int[] { -1, -1 };
+        }
+
         final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
@@ -92,7 +105,7 @@ public final class Report
             }
         }
 
-        if ( isSample( reportFile ) )
+        if ( ReportType.SAMPLE.equals( reportType ) )
         {
             return parseData( extractEntry( reportFile, "badges.json" ).buf, int[].class );
         }
@@ -344,7 +357,8 @@ public final class Report
                                  final int buildNumber, final HttpServletResponse rsp )
         throws IOException
     {
-        Pdf.generate( log, reportFile, getCacheDir( reportFile ), isSample( reportFile ), projectName, buildNumber, rsp );
+        Pdf.generate( log, reportFile, getCacheDir( reportFile ), ReportType.SAMPLE.equals( getType( reportFile ) ),
+                      projectName, buildNumber, rsp );
     }
 
     public static void deletePdf( final Logger log, final File reportFile )
@@ -392,13 +406,22 @@ public final class Report
         return buf.toString();
     }
 
-    private static boolean isSample( final File reportFile )
+    private static ReportType getType( final File reportFile )
         throws IOException
     {
         final ZipFile archive = new ZipFile( reportFile );
         try
         {
-            return archive.getEntry( "sample.txt" ) != null;
+            if ( archive.getEntry( "sample.txt" ) != null )
+            {
+                return ReportType.SAMPLE;
+            }
+            if ( archive.getEntry( "security.json" ) == null && archive.getEntry( "licenses.json" ) == null
+                && archive.getEntry( "badges.json" ) == null )
+            {
+                return ReportType.ERROR;
+            }
+            return ReportType.FULL;
         }
         finally
         {

@@ -246,58 +246,60 @@ public final class Report
 
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
     }
-    
-    private static void filterKeyFindings( ObjectNode data, ContainerNode<?> security )
+
+    private static void filterKeyFindings( final ObjectNode data, final ContainerNode<?> security )
     {
-        Set<String> textSet = new HashSet<String>();
+        final Set<String> textSet = new HashSet<String>();
 
         ArrayNode sourceFindings = (ArrayNode) data.get( "keyFindings" );
         if ( sourceFindings == null )
         {
             sourceFindings = data.putArray( "keyFindings" );
         }
-        
-        Iterator<JsonNode> sourceIter = sourceFindings.elements();
-        
-        //simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as 'Not Applicable'
+
+        final Iterator<JsonNode> sourceIter = sourceFindings.elements();
+
+        // simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as
+        // 'Not Applicable'
         while ( sourceIter.hasNext() )
         {
-            JsonNode sourceFinding = sourceIter.next();
-  
-            String text = asText( sourceFinding.get( "text" ) );
+            final JsonNode sourceFinding = sourceIter.next();
 
-            //if we already have this keyFinding to be shown, no need to show others
+            final String text = asText( sourceFinding.get( "text" ) );
+
+            // if we already have this keyFinding to be shown, no need to show others
             if ( textSet.contains( text ) )
             {
                 sourceIter.remove();
             }
             else
             {
-                JsonNode svNode = sourceFinding.get( "sv" );
+                final JsonNode svNode = sourceFinding.get( "sv" );
 
-                //if svNode is null we are dealing with a freemium report, so simply add the key finding text
+                // if svNode is null we are dealing with a freemium report, so simply add the key finding text
                 if ( svNode == null )
                 {
-                    textSet.add( text );   
+                    textSet.add( text );
                 }
                 else
                 {
                     boolean foundMatch = false;
-                    
-                    //need to compare against each row in the security data to find a match, and decide if the match is applicable
+
+                    // need to compare against each row in the security data to find a match, and decide if the match is
+                    // applicable
                     for ( final JsonNode row : security.get( "aaData" ) )
                     {
-                        Iterator<String> iter = svNode.fieldNames();
+                        final Iterator<String> iter = svNode.fieldNames();
 
                         boolean recordMatch = true;
 
-                        //simple agnostic means to check the coordinates
+                        // simple agnostic means to check the coordinates
                         while ( iter.hasNext() )
                         {
-                            String key = iter.next();
+                            final String key = iter.next();
 
-                            String sourceVal = asText( svNode.get( key ) );
-                            String targetVal = asText( row.get( key ) );
+                            final String sourceVal = asText( svNode.get( key ) );
+                            final String targetVal = asText( row.get( key ) );
 
                             if ( !( sourceVal == null && targetVal == null || sourceVal != null
                                 && sourceVal.equals( targetVal ) ) )
@@ -306,10 +308,10 @@ public final class Report
                                 break;
                             }
                         }
-                        
+
                         foundMatch = recordMatch;
 
-                        //if we found a match, check the status, if not applicable, junk it
+                        // if we found a match, check the status, if not applicable, junk it
                         if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
                         {
                             sourceIter.remove();
@@ -321,9 +323,9 @@ public final class Report
                             break;
                         }
                     }
-                    
-                    //This is a case that shouldn't be hit besides in dev, if no match 
-                    //found in the security table, dump it
+
+                    // This is a case that shouldn't be hit besides in dev, if no match
+                    // found in the security table, dump it
                     if ( !foundMatch )
                     {
                         sourceIter.remove();
@@ -333,7 +335,7 @@ public final class Report
         }
     }
 
-    private static String asText( JsonNode node )
+    private static String asText( final JsonNode node )
     {
         String text;
         if ( node != null )
@@ -470,7 +472,7 @@ public final class Report
 
     private static void fill( final ArrayNode node, final int[] data )
     {
-        for ( int d : data )
+        for ( final int d : data )
         {
             node.add( d );
         }
@@ -478,7 +480,7 @@ public final class Report
 
     private static void fill( final ArrayNode node, final List<int[]> datas )
     {
-        for ( int[] data : datas )
+        for ( final int[] data : datas )
         {
             fill( node.addArray(), data );
         }

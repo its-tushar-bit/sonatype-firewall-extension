@@ -64,7 +64,7 @@ final class Pdf
 
         if ( !pdfFile.isFile() )
         {
-            ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+            final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
             final File templateDir = setupTemplateDir( reportFile, cacheDir, projectName, buildNumber );
             try
             {
@@ -87,9 +87,9 @@ final class Pdf
         final FileInputStream fis = new FileInputStream( pdfFile );
         try
         {
-            long now = System.currentTimeMillis();
-            String timestamp = new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( new Date() );
-            String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
+            final long now = System.currentTimeMillis();
+            final String timestamp = new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( new Date() );
+            final String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
             rsp.setDateHeader( "Last-Modified", now );
             rsp.setDateHeader( "Expires", now );
             rsp.setContentLength( (int) pdfFile.length() );
@@ -131,7 +131,7 @@ final class Pdf
                     else
                     {
                         extractedFile.getParentFile().mkdirs();
-                        FileOutputStream fos = new FileOutputStream( extractedFile );
+                        final FileOutputStream fos = new FileOutputStream( extractedFile );
                         try
                         {
                             IOUtil.copy( archive.getInputStream( entry ), fos );
@@ -143,7 +143,7 @@ final class Pdf
                     }
                     if ( "summary.json".equals( name ) )
                     {
-                        ObjectNode summary = DataStore.loadData( extractedFile );
+                        final ObjectNode summary = DataStore.loadData( extractedFile );
                         summary.put( "projectName", projectName );
                         summary.put( "buildNumber", Integer.toString( buildNumber ) );
                         DataStore.saveData( extractedFile, summary );
@@ -159,13 +159,13 @@ final class Pdf
         return templateDir;
     }
 
-    private static boolean isPdfResource( String pathname )
+    private static boolean isPdfResource( final String pathname )
     {
         if ( pathname.startsWith( "public/" ) )
         {
             return true;
         }
-        String ext = FileUtils.getExtension( pathname );
+        final String ext = FileUtils.getExtension( pathname );
         if ( "json".equals( ext ) || ext.startsWith( "rpt" ) )
         {
             return true;
@@ -184,12 +184,12 @@ final class Pdf
         try
         {
             final File designFile = new File( templateDir, "detail.rptdesign" );
-            IReportRunnable runnable = reportEngine.openReportDesign( designFile.getAbsolutePath() );
+            final IReportRunnable runnable = reportEngine.openReportDesign( designFile.getAbsolutePath() );
 
-            IRunAndRenderTask task = reportEngine.createRunAndRenderTask( runnable );
+            final IRunAndRenderTask task = reportEngine.createRunAndRenderTask( runnable );
             try
             {
-                IRenderOption options = new RenderOption();
+                final IRenderOption options = new RenderOption();
                 options.setOutputFormat( "PDF" );
                 options.setOutputFileName( pdfFile.getAbsolutePath() );
                 options.setOption( IPDFRenderOption.PDF_TEXT_WRAPPING, Boolean.TRUE );
@@ -204,11 +204,11 @@ final class Pdf
                 task.run();
 
                 @SuppressWarnings( "unchecked" )
-                List<Throwable> errors = task.getErrors();
+                final List<Throwable> errors = task.getErrors();
                 if ( errors != null && !errors.isEmpty() )
                 {
                     log.error( "Got {} errors while generating report {}", errors.size(), pdfFile );
-                    for ( Throwable error : errors )
+                    for ( final Throwable error : errors )
                     {
                         log.error( error.getMessage(), error );
                     }
@@ -224,7 +224,7 @@ final class Pdf
                 task.close();
             }
         }
-        catch ( BirtException e )
+        catch ( final BirtException e )
         {
             throw new IOException( e.getMessage(), e );
         }
@@ -243,16 +243,16 @@ final class Pdf
             log.debug( "Initializing BIRT engine" );
             try
             {
-                PlatformConfig platformConfig = new PlatformConfig();
+                final PlatformConfig platformConfig = new PlatformConfig();
                 Platform.startup( platformConfig );
 
-                IReportEngineFactory reportEngineFactory =
+                final IReportEngineFactory reportEngineFactory =
                     (IReportEngineFactory) Platform.createFactoryObject( IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY );
 
-                EngineConfig engineConfig = new EngineConfig();
+                final EngineConfig engineConfig = new EngineConfig();
                 reportEngine = reportEngineFactory.createReportEngine( engineConfig );
             }
-            catch ( BirtException e )
+            catch ( final BirtException e )
             {
                 throw new IOException( e.getMessage(), e );
             }

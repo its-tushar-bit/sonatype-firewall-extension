@@ -22,7 +22,7 @@ public class BundleVersionUtil
 
     private static String UNKNOWN_VERSION = "UNKNOWN";
 
-    public static String getBundleVersion( String bundleName )
+    public static String getBundleVersion( final String bundleName )
     {
         return UNKNOWN_VERSION;
     }

@@ -13,8 +13,8 @@
     <version>0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>insight-brain-server</artifactId>
-  <name>Insight Brain Server</name>
+  <artifactId>insight-brain-service</artifactId>
+  <name>Insight Brain Service</name>
 
   <dependencies>
     <dependency>
@@ -281,7 +281,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.sonatype.insight.brain.service.InsightService</mainClass>
+                  <mainClass>com.sonatype.insight.brain.service.InsightBrainService</mainClass>
                   <manifestEntries>
                     <!-- Required by BIRT to discover the extensions we have shaded in -->
                     <Bundle-SymbolicName>${project.groupId}.common</Bundle-SymbolicName>

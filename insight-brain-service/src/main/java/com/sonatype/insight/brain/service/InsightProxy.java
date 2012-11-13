@@ -10,9 +10,9 @@ import com.sonatype.insight.scan.upload.HttpClientUtils;
 public class InsightProxy
     extends AbstractInjectable<InsightProxy>
 {
-    private final InsightConfiguration insightConfig;
+    private final InsightConfig insightConfig;
 
-    public InsightProxy( final InsightConfiguration insightConfig )
+    public InsightProxy( final InsightConfig insightConfig )
     {
         this.insightConfig = insightConfig;
     }

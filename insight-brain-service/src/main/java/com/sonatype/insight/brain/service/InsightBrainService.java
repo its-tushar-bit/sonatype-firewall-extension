@@ -11,17 +11,17 @@ import com.sonatype.insight.brain.report.ReportResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Environment;
 
-public class InsightService
-    extends Service<InsightConfiguration>
+public class InsightBrainService
+    extends Service<InsightConfig>
 {
     public static void main( final String[] args )
         throws Exception
     {
-        new InsightService().run( args );
+        new InsightBrainService().run( args );
     }
 
     @Override
-    protected void initialize( final InsightConfiguration config, final Environment env )
+    protected void initialize( final InsightConfig config, final Environment env )
         throws Exception
     {
         env.addProvider( new InsightWork( config ) );

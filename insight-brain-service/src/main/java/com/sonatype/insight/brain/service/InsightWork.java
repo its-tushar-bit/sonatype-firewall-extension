@@ -10,9 +10,9 @@ import java.io.File;
 public class InsightWork
     extends AbstractInjectable<InsightWork>
 {
-    private final InsightConfiguration insightConfig;
+    private final InsightConfig insightConfig;
 
-    public InsightWork( final InsightConfiguration insightConfig )
+    public InsightWork( final InsightConfig insightConfig )
     {
         this.insightConfig = insightConfig;
     }

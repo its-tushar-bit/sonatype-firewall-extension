@@ -11,7 +11,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.yammer.dropwizard.config.Configuration;
 
-public class InsightConfiguration
+public class InsightConfig
     extends Configuration
 {
     @JsonProperty

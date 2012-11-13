@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
@@ -17,7 +18,9 @@ import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
@@ -58,7 +61,7 @@ final class Pdf
     }
 
     public static void generate( final Logger log, final File reportFile, final File cacheDir, final boolean sample,
-                                 final String projectName, final int buildNumber, final HttpServletResponse rsp )
+                                 final String projectName, final int buildNumber, final ResponseBuilder response )
         throws IOException
     {
         final File pdfFile = getPdfFile( reportFile );
@@ -85,23 +88,33 @@ final class Pdf
             }
         }
 
-        final FileInputStream fis = new FileInputStream( pdfFile );
-        try
+        final Date now = new Date();
+
+        response.lastModified( now );
+        response.expires( now );
+        response.header( HttpHeaders.CONTENT_LENGTH, pdfFile.length() );
+        response.type( "application/pdf" );
+
+        final String timestamp = new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( now );
+        final String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
+        response.header( "Content-Disposition", "attachment; filename=" + filename );
+
+        response.entity( new StreamingOutput()
         {
-            final long now = System.currentTimeMillis();
-            final String timestamp = new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( new Date() );
-            final String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
-            rsp.setDateHeader( "Last-Modified", now );
-            rsp.setDateHeader( "Expires", now );
-            rsp.setContentLength( (int) pdfFile.length() );
-            rsp.setContentType( "application/pdf" );
-            rsp.setHeader( "Content-Disposition", "attachment; filename=" + filename );
-            IOUtil.copy( fis, rsp.getOutputStream() );
-        }
-        finally
-        {
-            fis.close();
-        }
+            public void write( final OutputStream os )
+                throws IOException
+            {
+                final FileInputStream fis = new FileInputStream( pdfFile );
+                try
+                {
+                    IOUtil.copy( fis, os );
+                }
+                finally
+                {
+                    fis.close();
+                }
+            }
+        } );
     }
 
     private static File setupTemplateDir( final File reportFile, final File cacheDir, final String projectName,

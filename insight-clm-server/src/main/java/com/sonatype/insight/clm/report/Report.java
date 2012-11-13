@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -356,11 +356,11 @@ public final class Report
     }
 
     public static void printPdf( final Logger log, final File reportFile, final String projectName,
-                                 final int buildNumber, final HttpServletResponse rsp )
+                                 final int buildNumber, final ResponseBuilder response )
         throws IOException
     {
         Pdf.generate( log, reportFile, getCacheDir( reportFile ), ReportType.SAMPLE.equals( getType( reportFile ) ),
-                      projectName, buildNumber, rsp );
+                      projectName, buildNumber, response );
     }
 
     public static void deletePdf( final Logger log, final File reportFile )

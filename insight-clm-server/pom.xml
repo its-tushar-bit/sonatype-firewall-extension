@@ -237,6 +237,17 @@
                 <exclude>META-INF/*.RSA</exclude>
               </excludes>
             </filter>
+            <filter>
+              <artifact>*:org.eclipse.birt.runtime</artifact>
+              <includes>
+                <include>*.xml</include>
+                <include>org/eclipse/**</include>
+                <include>javax/**</include>
+              </includes>
+              <excludes>
+                <exclude>org/eclipse/birt/report/engine/internal/util/BundleVersionUtil*</exclude>
+              </excludes>
+            </filter>
           </filters>
         </configuration>
         <executions>
@@ -250,6 +261,10 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.sonatype.insight.clm.service.InsightService</mainClass>
+                  <manifestEntries>
+                    <!-- Required by BIRT to discover the extensions we have shaded in -->
+                    <Bundle-SymbolicName>${project.groupId}.common</Bundle-SymbolicName>
+                  </manifestEntries>
                 </transformer>
               </transformers>
             </configuration>

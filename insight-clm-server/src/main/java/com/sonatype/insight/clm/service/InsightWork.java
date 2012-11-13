@@ -16,4 +16,14 @@ public class InsightWork
     {
         return new File( insightConfig.getSonatypeWork(), "audit" + File.separatorChar + appId );
     }
+
+    public File getReportDir( final String scanId )
+    {
+        return new File( insightConfig.getSonatypeWork(), "report" + File.separatorChar + scanId );
+    }
+
+    public File getReportFile( final String scanId )
+    {
+        return new File( getReportDir( scanId ), "report.zip" );
+    }
 }

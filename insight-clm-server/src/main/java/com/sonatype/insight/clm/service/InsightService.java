@@ -2,6 +2,7 @@ package com.sonatype.insight.clm.service;
 
 import com.sonatype.insight.clm.data.DataResource;
 import com.sonatype.insight.clm.legacy.BCResource;
+import com.sonatype.insight.clm.report.ReportResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Environment;
 
@@ -22,6 +23,7 @@ public class InsightService
         env.addProvider( new InsightProxy( config ) );
 
         env.addResource( DataResource.class );
+        env.addResource( ReportResource.class );
         env.addResource( BCResource.class );
     }
 }

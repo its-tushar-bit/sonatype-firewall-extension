@@ -69,7 +69,7 @@ public class BCResource
 
         final File scanFile = File.createTempFile( "insight-clm", "xml" ); // FIXME
 
-        FileOutputStream os = new FileOutputStream( scanFile );
+        final FileOutputStream os = new FileOutputStream( scanFile );
         try
         {
             IOUtil.copy( data, os );

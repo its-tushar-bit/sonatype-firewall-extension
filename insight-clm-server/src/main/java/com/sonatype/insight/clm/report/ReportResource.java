@@ -26,10 +26,21 @@ import com.sonatype.insight.scan.upload.ReportDataRequest;
 import com.sonatype.insight.scan.upload.ReportDataResult;
 import com.sonatype.insight.scan.upload.ReportDownloader;
 
+import eu.medsea.mimeutil.MimeType;
+import eu.medsea.mimeutil.MimeUtil2;
+import eu.medsea.mimeutil.detector.ExtensionMimeDetector;
+
 @Path( "/rest/report/{appId}/{scanId}" )
 public class ReportResource
 {
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
+
+    private static final MimeUtil2 mimeUtil = new MimeUtil2();
+
+    static
+    {
+        mimeUtil.registerMimeDetector( ExtensionMimeDetector.class.getName() );
+    }
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 
@@ -58,7 +69,12 @@ public class ReportResource
         {
             log.warn( "Embedding error", e );
         }
-        return entry != null ? Response.ok( entry.buf ).build() : Response.status( Status.NOT_FOUND ).build();
+        if ( entry != null )
+        {
+            final MimeType mimeType = MimeUtil2.getMostSpecificMimeType( mimeUtil.getMimeTypes( name ) );
+            return Response.ok( entry.buf ).type( mimeType.toString() ).build();
+        }
+        return Response.status( Status.NOT_FOUND ).build();
     }
 
     @GET

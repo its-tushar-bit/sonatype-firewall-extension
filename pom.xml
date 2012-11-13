@@ -14,30 +14,30 @@
     <relativePath />
   </parent>
 
-  <groupId>com.sonatype.insight.clm</groupId>
-  <artifactId>insight-clm</artifactId>
+  <groupId>com.sonatype.insight.brain</groupId>
+  <artifactId>insight-brain</artifactId>
   <version>2.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Insight CLM Parent POM</name>
+  <name>Insight Brain Parent POM</name>
 
   <properties>
     <insight-scanner.version>1.22-SNAPSHOT</insight-scanner.version>
   </properties>
 
   <scm>
-    <connection>scm:git:git@github.com/sonatype/insight-clm.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/sonatype/insight-clm.git</developerConnection>
-    <url>http://github.com/sonatype/insight-clm</url>
+    <connection>scm:git:git@github.com/sonatype/insight-brain.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/sonatype/insight-brain.git</developerConnection>
+    <url>http://github.com/sonatype/insight-brain</url>
   </scm>
 
   <ciManagement>
     <system>hudson</system>
-    <url>https://builds.sonatype.org/job/insight-clm/</url>
+    <url>https://builds.sonatype.org/job/insight-brain/</url>
   </ciManagement>
 
   <modules>
-    <module>insight-clm-server</module>
+    <module>insight-brain-server</module>
   </modules>
 
   <build>

@@ -1,0 +1,155 @@
+<!--
+
+    Copyright (c) 2011-2012 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype</groupId>
+    <artifactId>sonatype</artifactId>
+    <version>16</version>
+    <relativePath />
+  </parent>
+
+  <groupId>com.sonatype.insight.clm</groupId>
+  <artifactId>insight-clm</artifactId>
+  <version>2.4-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Insight CLM Parent POM</name>
+
+  <properties>
+    <insight-scanner.version>1.22-SNAPSHOT</insight-scanner.version>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git@github.com/sonatype/insight-clm.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/sonatype/insight-clm.git</developerConnection>
+    <url>http://github.com/sonatype/insight-clm</url>
+  </scm>
+
+  <ciManagement>
+    <system>hudson</system>
+    <url>https://builds.sonatype.org/job/insight-clm/</url>
+  </ciManagement>
+
+  <modules>
+    <module>insight-clm-server</module>
+  </modules>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources-filtered</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.mycila.maven-license-plugin</groupId>
+          <artifactId>maven-license-plugin</artifactId>
+          <version>1.9.0</version>
+          <configuration>
+            <header>header.txt</header>
+            <encoding>UTF-8</encoding>
+            <strictCheck>true</strictCheck>
+            <!-- otherwise pom.xml is excluded, yuck -->
+            <useDefaultExcludes>false</useDefaultExcludes>
+            <includes>
+              <include>**/*.java</include>
+              <include>**/*.css</include>
+              <include>**/*.html</include>
+              <include>**/*.js</include>
+              <include>**/*.xml</include>
+              <include>**/*.properties</include>
+              <include>**/pom.xml</include>
+            </includes>
+            <excludes>
+              <!-- git -->
+              <exclude>**/.git</exclude>
+              <exclude>**/.git/**</exclude>
+              <!-- maven project's temporary files -->
+              <exclude>**/target/**</exclude>
+              <exclude>**/test-output/**</exclude>
+              <exclude>**/release.properties</exclude>
+              <exclude>**/dependency-reduced-pom.xml</exclude>
+              <!-- eclipse project files -->
+              <exclude>**/.classpath</exclude>
+              <exclude>**/.project</exclude>
+              <exclude>**/.settings/**</exclude>
+              <!-- IDEA project files -->
+              <exclude>**/*.iml</exclude>
+              <exclude>**/*.ipr</exclude>
+              <exclude>**/*.iws</exclude>
+              <!-- binary files - images -->
+              <exclude>**/*.png</exclude>
+              <exclude>**/*.gif</exclude>
+              <!-- 3rd party contents -->
+              <exclude>**/bootstrap*.css</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>quick</id>
+      <activation>
+        <property>
+          <name>quick</name>
+        </property>
+      </activation>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+        <failIfNoTests>false</failIfNoTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>it</id>
+      <activation>
+        <property>
+          <name>it</name>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <includes combine.children="append">
+                  <include>**/*IT.java</include>
+                </includes>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

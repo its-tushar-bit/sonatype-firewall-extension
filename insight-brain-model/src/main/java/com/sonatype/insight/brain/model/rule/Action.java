@@ -11,22 +11,22 @@ public class Action
 
     private String value;
 
-    protected ActionType getActionType()
+    public ActionType getActionType()
     {
         return actionType;
     }
 
-    protected void setActionType( ActionType actionType )
+    public void setActionType( ActionType actionType )
     {
         this.actionType = actionType;
     }
 
-    protected String getValue()
+    public String getValue()
     {
         return value;
     }
 
-    protected void setValue( String value )
+    public void setValue( String value )
     {
         this.value = value;
     }

@@ -9,6 +9,8 @@ import java.util.List;
 
 public class Rule
 {
+    private String id;
+
     private String name;
 
     private List<SimpleCondition> conditions;
@@ -17,43 +19,53 @@ public class Rule
 
     private Action action;
 
-    protected List<SimpleCondition> getConditions()
+    public List<SimpleCondition> getConditions()
     {
         return conditions;
     }
 
-    protected void setConditions( List<SimpleCondition> conditions )
+    public void setConditions( List<SimpleCondition> conditions )
     {
         this.conditions = conditions;
     }
 
-    protected LogicalOperator getOperator()
+    public LogicalOperator getOperator()
     {
         return operator;
     }
 
-    protected void setOperator( LogicalOperator operator )
+    public void setOperator( LogicalOperator operator )
     {
         this.operator = operator;
     }
 
-    protected Action getAction()
+    public Action getAction()
     {
         return action;
     }
 
-    protected void setAction( Action action )
+    public void setAction( Action action )
     {
         this.action = action;
     }
 
-    protected String getName()
+    public String getName()
     {
         return name;
     }
 
-    protected void setName( String name )
+    public void setName( String name )
     {
         this.name = name;
+    }
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
     }
 }

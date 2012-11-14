@@ -19,6 +19,8 @@ public class Rule
 
     private Action action;
 
+    private boolean enabled = true;
+
     public List<SimpleCondition> getConditions()
     {
         return conditions;
@@ -67,5 +69,15 @@ public class Rule
     public void setId( String id )
     {
         this.id = id;
+    }
+
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
     }
 }

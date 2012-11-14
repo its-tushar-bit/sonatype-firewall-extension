@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map.Entry;
 
 import javax.ws.rs.GET;
@@ -20,12 +23,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.data.Auditing;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDataRequest;
 import com.sonatype.insight.scan.upload.ReportDataResult;
@@ -61,7 +66,7 @@ public class ReportResource
                              @PathParam( "entryPath" ) final String entryPath )
     {
         final String name = Report.toEntryName( entryPath );
-        if ( Auditing.isData( name ) )
+        if ( Auditing.isData( name ) || !work.getReportFile( scanId ).exists() )
         {
             refreshCache( appId, scanId );
         }
@@ -131,7 +136,10 @@ public class ReportResource
                 final File reportFile = work.getReportFile( scanId );
                 if ( !reportFile.exists() )
                 {
-                    return;
+                    if ( !downloadReport( appId, scanId, reportFile ) )
+                    {
+                        return;
+                    }
                 }
 
                 Report.deletePdf( log, reportFile );
@@ -143,5 +151,34 @@ public class ReportResource
         {
             log.warn( "Could not apply latest data edits to Insight report", e );
         }
+    }
+
+    private boolean downloadReport( final String appId, final String scanId, final File reportFile )
+    {
+        final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
+
+        request.setRetryAttempts( 30 );
+        request.setRetryInterval( 30 );
+
+        reportFile.getAbsoluteFile().getParentFile().mkdirs();
+        try
+        {
+            final OutputStream os = new BufferedOutputStream( new FileOutputStream( reportFile ) );
+            try
+            {
+                new DefaultReportDownloader( log ).download( proxy.contextualize( request ), os );
+                return true;
+            }
+            finally
+            {
+                IOUtil.close( os );
+            }
+        }
+        catch ( final Exception e )
+        {
+            // don't leave an incomplete file around
+            reportFile.delete();
+        }
+        return false;
     }
 }

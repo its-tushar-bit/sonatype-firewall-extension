@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.google.common.cache.CacheBuilderSpec;
 import com.sonatype.insight.brain.data.DataResource;
 import com.sonatype.insight.brain.legacy.BCResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.yammer.dropwizard.Service;
+import com.yammer.dropwizard.bundles.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 
 public class InsightBrainService
@@ -18,6 +20,12 @@ public class InsightBrainService
         throws Exception
     {
         new InsightBrainService().run( args );
+    }
+    
+    public InsightBrainService()
+    {
+        CacheBuilderSpec cacheSpec = AssetsBundle.DEFAULT_CACHE_SPEC;
+        addBundle(new AssetsBundle("/com/sonatype/insight/brain/rules/assets/", cacheSpec, "/rule-assets/"));
     }
 
     @Override

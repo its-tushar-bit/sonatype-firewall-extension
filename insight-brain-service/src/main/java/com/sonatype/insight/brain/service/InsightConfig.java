@@ -32,7 +32,7 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
-    protected String sonatypeWork = "sonatype-work";
+    protected String sonatypeWork = "target/sonatype-work";
 
     public String getSaasAddress()
     {

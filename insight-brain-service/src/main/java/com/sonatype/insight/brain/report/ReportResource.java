@@ -10,8 +10,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.Map.Entry;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -28,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.data.Auditing;
+import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
@@ -108,9 +111,17 @@ public class ReportResource
     public Response getArtifact( @PathParam( "scanId" ) final String scanId,
                                  @QueryParam( "groupId" ) final String groupId,
                                  @QueryParam( "artifactId" ) final String artifactId,
-                                 @QueryParam( "version" ) final String version )
+                                 @QueryParam( "version" ) final String version,
+                                 @Context final HttpServletRequest httpRequest )
         throws Exception
     {
+        final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+        final ReportEntry reportEntry = Report.getEntry( work.getReportFile( scanId ), "licenses.json" );
+        if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
+        {
+            return Response.status( 304 ).build();
+        }
+
         final ReportDataRequest request = new ReportDataRequest( "rest/bc/artifact/" + scanId + //
             "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
 
@@ -123,7 +134,19 @@ public class ReportResource
             response.header( header.getKey(), header.getValue() );
         }
 
-        return response.entity( result.getData() ).build();
+        final byte[] data;
+        if ( result.getStatusCode() < 300 )
+        {
+            data = DataStore.augmentArtifactDetails( result.getData(), reportEntry.buf );
+            response.lastModified( new Date( reportEntry.time ) );
+            response.type( "application/json; charset=UTF-8" );
+        }
+        else
+        {
+            data = result.getData();
+        }
+
+        return response.entity( data ).build();
     }
 
     private void refreshCache( final String appId, final String scanId )

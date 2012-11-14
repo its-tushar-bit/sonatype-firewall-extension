@@ -233,7 +233,7 @@ public final class DataStore
         };
     }
 
-    static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
+    public static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
         throws IOException
     {
         byte[] augmentedDetailData = detailData;

@@ -24,6 +24,10 @@ public class InsightBrainService
     protected void initialize( final InsightConfig config, final Environment env )
         throws Exception
     {
+        config.getSonatypeWork().mkdirs();
+
+        env.addHealthCheck( new InsightHealth( config ) );
+
         env.addProvider( new InsightWork( config ) );
         env.addProvider( new InsightProxy( config ) );
 

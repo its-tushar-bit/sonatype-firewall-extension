@@ -7,18 +7,32 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 
+import javax.validation.constraints.NotNull;
+
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.yammer.dropwizard.config.Configuration;
+import com.yammer.dropwizard.config.HttpConfiguration;
 
 public class InsightConfig
     extends Configuration
 {
-    @JsonProperty
-    private String saasAddress = "http://127.0.0.1:8085/insight-portal/";
+    {
+        http = new HttpConfiguration()
+        {
+            {
+                port = adminPort = 8070;
+            }
+        };
+    }
 
+    @NotNull
     @JsonProperty
-    private String sonatypeWork = "sonatype-work";
+    protected String saasAddress = "https://insight.sonatype.com/";
+
+    @NotNull
+    @JsonProperty
+    protected String sonatypeWork = "sonatype-work";
 
     public String getSaasAddress()
     {

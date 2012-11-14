@@ -37,6 +37,7 @@
   </ciManagement>
 
   <modules>
+    <module>insight-brain-model</module>
     <module>insight-brain-service</module>
   </modules>
 

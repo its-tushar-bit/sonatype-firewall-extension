@@ -10,8 +10,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.Map.Entry;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -28,7 +30,11 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.data.DataStore;
+import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
@@ -47,6 +53,9 @@ public class BCResource
     final ScanUploader uploader = new DefaultScanUploader( log, false );
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
+
+    @Context
+    InsightWork work;
 
     @Context
     InsightProxy proxy;
@@ -124,9 +133,17 @@ public class BCResource
     public Response getArtifactInfo( @PathParam( "scanId" ) final String scanId,
                                      @QueryParam( "groupId" ) final String groupId,
                                      @QueryParam( "artifactId" ) final String artifactId,
-                                     @QueryParam( "version" ) final String version )
+                                     @QueryParam( "version" ) final String version,
+                                     @Context final HttpServletRequest httpRequest )
         throws Exception
     {
+        final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+        final ReportEntry reportEntry = Report.getEntry( work.getReportFile( scanId ), "licenses.json" );
+        if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
+        {
+            return Response.status( 304 ).build();
+        }
+
         final ReportDataRequest request = new ReportDataRequest( "rest/bc/artifact/" + scanId + //
             "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
 
@@ -139,6 +156,18 @@ public class BCResource
             response.header( header.getKey(), header.getValue() );
         }
 
-        return response.entity( result.getData() ).build();
+        final byte[] data;
+        if ( result.getStatusCode() < 300 )
+        {
+            data = DataStore.augmentArtifactDetails( result.getData(), reportEntry.buf );
+            response.lastModified( new Date( reportEntry.time ) );
+            response.type( "application/json; charset=UTF-8" );
+        }
+        else
+        {
+            data = result.getData();
+        }
+
+        return response.entity( data ).build();
     }
 }

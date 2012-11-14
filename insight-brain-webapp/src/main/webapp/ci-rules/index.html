@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="ruleApp">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>Sonatype Insight Continuous Integration Report</title>
+	<link type="text/css" href="jquery.ui.selectmenu.css" rel="stylesheet" />
+	<link type="text/css" href="jquery-ui.css" rel="stylesheet" />
+	<link type="text/css" href="slick.grid.css" rel="stylesheet">
+	<link type="text/css" href="slick.grid.custom.css" rel="stylesheet">
+	<link type="text/css" href="bootstrap.min.css" rel="stylesheet">
+	<style>
+	.alignTop {
+	    vertical-align: top;
+	}
+	td {
+	    padding: 3px;
+	}
+	.sectionBorder {
+	    border-width: 10px;
+	    border-style: solid;
+	    border-color:#f7f7f7;
+	}
+	.slick-cell-checkboxsel {
+	    background: #f0f0f0;
+	    border-right-color: silver;
+	    border-right-style: solid;
+	}
+	#ruleConditionsTable .slick-header-columns { 
+	    height: 0px; 
+	} 
+	#ruleConditionsTable .slick-header.ui-state-default { 
+	    border: none; 
+	}
+	.label {
+	    border-color: #AFBFCF;
+	    border-radius: 3px 3px 3px 3px;
+	    border-style: solid;
+	    border-width: 1px;
+	    font-size: 12px;
+	    margin: 0;
+	    overflow: hidden;
+	    padding: 1px 3px;
+	    text-align: center;
+	    vertical-align: middle;
+	    white-space: nowrap;
+	}
+	.whiteLabel {
+	    background-color: #EEEEEE;
+    	color : black;
+	}
+	
+	.greyLabel {
+		background-color: #BFBFBF;
+		color : black;
+	}
+	
+	.blackLabel {
+		background-color: #444444;
+		color : white;
+	}
+	
+	.greenLabel {
+		background-color: #46A546;
+		color : white;
+	}
+	
+	.yellowLabel {
+		background-color: #FAF20F;
+		color : black;
+	}
+	
+	.orangeLabel {
+		background-color: #F89406;
+		color : white;
+	}
+	
+	.redLabel {
+		background-color: #C43C35;
+		color : white;
+	}
+	
+	.blueLabel {
+		background-color: #0080FF;
+		color : white;
+	}
+	</style>
+    <script type='text/javascript' src='jquery.min.js'></script>
+    <script type='text/javascript' src='jquery-ui.min.js'></script>
+    <script type='text/javascript' src='jquery.ui.selectmenu.min.js'></script>
+    <script type='text/javascript' src='jquery.event.drag-2.0.min.js'></script>
+    <script type='text/javascript' src='bootstrap.min.js'></script>
+    <script type='text/javascript' src='slick.core.js'></script>
+    <script type='text/javascript' src='slick.grid.js'></script>
+    <script type='text/javascript' src='slick.rowselectionmodel.js'></script>
+    <script type='text/javascript' src='slick.checkboxselectcolumn.js'></script>
+    <script type='text/javascript' src='angular-1.0.2.js'></script>
+    <script type='text/javascript' src='SlickGridComponent.js'></script>
+    <script type='text/javascript' src='RuleApp.js'></script>
+    <script type='text/javascript' src='RuleController.js'></script>
+</head>
+<body>
+	<div class='container'>
+		<div style='width: 100%'>
+			<div id='rules' class="inline" style='padding-top: 5px' ng-controller="RuleController">
+			    <table>
+				    <tr>
+					    <td class="alignTop" width="10%">
+				            <div id='addRuleButton' class="btn-group" ng-show="showAllRulesView">
+							    <button type='none' class='btn btn-primary' ng-click="viewAddRule()">Add&nbsp;New&nbsp;Rule</button>
+				            </div>
+							<div id='viewAllRulesButton' class="btn-group" style="margin-left:0px;" ng-show="showAddRuleView">
+								<button type='none' class='btn btn-primary' ng-click="viewAllRules()">View&nbsp;All&nbsp;Rules</button>
+				            </div>
+						</td>
+				    </tr>
+				</table>
+				<div id='rulesTableContainer' style='width:100%;' ng-show="showAllRulesView">
+			        <div class='sectionBorder'>
+					    <div id="rulesTableHeader">
+						    <table width="100%">
+							    <tr>
+								    <td width="99%"><h3>All Rules</h3></td>
+								    <td><button class="btn" ng-click="enableRule()" title="Enable selected Rule(s)"><i class="icon-ok-circle"></i></button></td>
+								    <td><button class="btn" ng-click="disableRule()" title="Disable selected Rule(s)"><i class="icon-remove-circle"></i></button></td>
+								    <td><button class="btn" ng-click="removeRule()" title="Delete selected Rule(s)"><i class="icon-trash"></i></button></td>
+									<td><button class="btn" ng-click="ruleInfo()" title="Information"><i class="icon-info-sign"></i></button></td>
+								</tr>
+							</table>
+						</div>
+						<slickgrid id="rulesTable" style="height:200px;" data="state.rows" table-def="state.rulesTableDef"></slickgrid>
+		            </div>
+		            <div>
+    				    Associated Rules will allow more than one rule to govern the outcome of producing a label for any given component.  This will allow for greater chain depth when creating complex rules conditions.  In general, more than one condition can be established on a rule.  This will help users organize their rules to affect other labels too.
+	    			</div>
+	            </div>
+				<div id="newRuleContainer" style='width:100%;' ng-show="showAddRuleView">
+				    <div class='sectionBorder'>
+					    <div id="newRuleHeader">
+						    <table width="100%">
+							    <tr>
+								    <td width="99%"><h3>Create Rule</h3></td>
+								</tr>
+							</table>
+						</div>
+						<div class='form-horizontal'>
+							<div class='control-group'>
+								<label class='control-label'>Conditions</label>
+								<div class='controls' style='text-align:left'>
+									<select ng-model="addRuleOperand" ng-change="ruleOperandChanged()">
+										<option value='secVuln'>Security Vulnerability Count</option>
+										<option value='licCat'>License Category</option>
+									</select>
+									<select ng-model="addRuleOperator" ng-show="secVulnCountSelected" ng-change="validateRuleCondition()">
+										<option value="equal">==&nbsp;&nbsp; Equal to</option>
+										<option value="notEqual">!=&nbsp; Not equal to</option>
+										<option value="lessThan">&lt;&nbsp;&nbsp; Less than</option>
+										<option value="lessThanEqual">&lt;= Less than or equal to</option>
+										<option value="greaterThan">&gt;&nbsp;&nbsp; Greater than</option>
+										<option value="greaterThanEqual">&gt;= Greater than or equal to</option>
+									</select>
+									<select ng-model="addRuleOperator" ng-show="licCatSelected" ng-change="validateRuleCondition()">
+										<option value="equal">==&nbsp;&nbsp; Equal to</option>
+										<option value="notEqual">!=&nbsp; Not equal to</option>
+									</select>
+									<input type="text" ng-model="addRuleValue" placeholder='Enter Value...' ng-show="secVulnCountSelected" ng-change="validateRuleCondition()"></input>
+									<select ng-model="addRuleValue" ng-show="licCatSelected" ng-change="validateRuleCondition()">
+										<option value="copyLeft">Copyleft</option>
+										<option value="nonStandard">Non-Standard</option>
+										<option value="weakCopyLeft">Weak Copyleft</option>
+										<option value="liberal">Liberal</option>
+									</select>
+									<button type='none' class='btn btn-primary' ng-click="addRuleCondition()" ng-disabled="addRuleConditionFormInvalid">Add</button>
+								</div>
+							</div>
+							<div class='control-group'>
+							    <div class='controls'>
+							        <div id="ruleConditionsTableHeader">
+									    <table width="100%">
+										    <tr>
+											    <td width="99%"></td>
+											    <td><button class="btn" ng-click="removeRuleCondition()" title="Delete selected item(s)"><i class="icon-trash"></i></button></td>
+											</tr>
+										</table>
+									</div>
+							        <slickgrid id="ruleConditionsTable" style="height:100px;" data="state.ruleConditions" table-def="state.ruleConditionsTableDef"></slickgrid>
+							        <label class="radio inline">
+									    <input type="radio" ng-model="addRuleMatchType" value="any" ng-change="validateRule()">
+									    Any one Condition met
+									</label>
+									<label class="radio inline">
+									    <input type="radio" ng-model="addRuleMatchType" value="all" ng-change="validateRule()">
+									    All Conditions met
+									</label>
+							    </div>
+							</div>
+							<div class='control-group'>
+							    <label class='control-label'>Action</label>
+								<div class='controls' style='text-align:left'>
+   									<select ng-model="addRuleAction" ng-change="validateRule()">
+    									<option value="failBuild">Fail the Build</option>
+				    				</select>
+								</div>
+							</div>
+							<div class='control-group'>
+							    <label class='control-label'>Name</label>
+								<div class='controls' style='text-align:left'>
+									<input type="text" ng-model="addRuleName" ng-change="validateRule()" placeholder='Enter Rule Name...'></input>
+								</div>
+							</div>
+							<div class='controls' style='text-align:right'>
+								<button type='none' class='btn btn-primary' ng-click="saveRule()" ng-disabled="addRuleFormInvalid">Save</button>
+								<button type='none' class='btn btn-primary' ng-click="viewAllRules()">Cancel</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

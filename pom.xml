@@ -39,6 +39,7 @@
   <modules>
     <module>insight-brain-model</module>
     <module>insight-brain-service</module>
+	<module>insight-brain-webapp</module>
   </modules>
 
   <build>

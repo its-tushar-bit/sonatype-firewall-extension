@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import com.yammer.metrics.core.HealthCheck;
 
+/**
+ * This is a Dropwizard health check. It has nothing to do with Insight's Health Check features like "Application Health
+ * Check" or "Repository Health Check". :)
+ */
 public class InsightHealth
     extends HealthCheck
 {

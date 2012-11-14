@@ -1,20 +1,12 @@
 function RuleController($scope, global) {
 	$scope.state = global;
-	$scope.showAddRuleView = false;
-	$scope.showAllRulesView = true;
-	$scope.state.ruleConditions = [];
-	$scope.addRuleConditionFormInvalid = true;
-	$scope.addRuleFormInvalid = true;
-	$scope.addRuleMatchType = 'any';
 	
-	$scope.viewAddRule = function() {
-		//TODO: not a fan of this, but i want the panels to be same height, will put alternative in later
-		$('#newRuleContainer').height($('#rulesTableContainer').height());
+	$scope.addRule = function() {
 		$scope.showAddRuleView = true;
 		$scope.showAllRulesView = false;
 	}
 	
-	$scope.viewAllRules = function() {
+	$scope.reset = function() {
 		$scope.showAddRuleView = false;
 		$scope.showAllRulesView = true;
 		
@@ -116,7 +108,7 @@ function RuleController($scope, global) {
 		    status: "enabled"
 		});
 		
-		$scope.viewAllRules();
+		$scope.reset();
 	}
 	
 	$scope.validateRule = function() {
@@ -150,4 +142,6 @@ function RuleController($scope, global) {
 		
 		$scope.validateRuleCondition();
 	}
+	
+	$scope.reset();
 }

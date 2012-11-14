@@ -103,24 +103,13 @@
 	<div class='container'>
 		<div style='width: 100%'>
 			<div id='rules' class="inline" style='padding-top: 5px' ng-controller="RuleController">
-			    <table>
-				    <tr>
-					    <td class="alignTop" width="10%">
-				            <div id='addRuleButton' class="btn-group" ng-show="showAllRulesView">
-							    <button type='none' class='btn btn-primary' ng-click="viewAddRule()">Add&nbsp;New&nbsp;Rule</button>
-				            </div>
-							<div id='viewAllRulesButton' class="btn-group" style="margin-left:0px;" ng-show="showAddRuleView">
-								<button type='none' class='btn btn-primary' ng-click="viewAllRules()">View&nbsp;All&nbsp;Rules</button>
-				            </div>
-						</td>
-				    </tr>
-				</table>
 				<div id='rulesTableContainer' style='width:100%;' ng-show="showAllRulesView">
 			        <div class='sectionBorder'>
 					    <div id="rulesTableHeader">
 						    <table width="100%">
 							    <tr>
 								    <td width="99%"><h3>All Rules</h3></td>
+								    <td><button class="btn" ng-click="addRule()" title="Add new Rule"><i class="icon-plus-sign"></i></button></td>
 								    <td><button class="btn" ng-click="enableRule()" title="Enable selected Rule(s)"><i class="icon-ok-circle"></i></button></td>
 								    <td><button class="btn" ng-click="disableRule()" title="Disable selected Rule(s)"><i class="icon-remove-circle"></i></button></td>
 								    <td><button class="btn" ng-click="removeRule()" title="Delete selected Rule(s)"><i class="icon-trash"></i></button></td>
@@ -210,7 +199,7 @@
 							</div>
 							<div class='controls' style='text-align:right'>
 								<button type='none' class='btn btn-primary' ng-click="saveRule()" ng-disabled="addRuleFormInvalid">Save</button>
-								<button type='none' class='btn btn-primary' ng-click="viewAllRules()">Cancel</button>
+								<button type='none' class='btn btn-primary' ng-click="reset()">Cancel</button>
 							</div>
 						</div>
 					</div>

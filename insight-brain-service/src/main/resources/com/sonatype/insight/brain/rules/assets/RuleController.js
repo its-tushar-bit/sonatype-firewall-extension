@@ -84,7 +84,7 @@ function RuleController($scope, global) {
 			for ( var i = 0 ; i < $scope.state.rules.length ; i++ ) {
 				if ( $scope.state.rules[i].id == $scope.state.addRuleId) {
 					$scope.state.rules[i].name = $scope.state.addRuleName;
-					$scope.state.rules[i].conditions = $scope.state.ruleConditions;
+					$scope.state.rules[i].conditions = $scope.state.ruleConditions.slice(0);
 					$scope.state.rules[i].matchType = $scope.state.addRuleMatchType;
 					$scope.state.rules[i].action = $scope.state.addRuleAction;
 					break;
@@ -93,7 +93,7 @@ function RuleController($scope, global) {
 		} else {
 			$scope.state.rules.push({
 			    name: $scope.state.addRuleName,
-			    conditions: $scope.state.ruleConditions,
+			    conditions: $scope.state.ruleConditions.slice(0),
 			    matchType: $scope.state.addRuleMatchType,
 			    action: $scope.state.addRuleAction,
 			    status: 'enabled',
@@ -139,7 +139,7 @@ function RuleController($scope, global) {
 	$scope.populateForEdit = function(rule) {
 		$scope.state.addRuleName = rule.name;
 		$scope.state.addRuleAction = rule.action;
-		$scope.state.ruleConditions = rule.conditions;
+		$scope.state.ruleConditions = rule.conditions.slice(0);
 		$scope.state.addRuleMatchType = rule.matchType;
 		$scope.state.addRuleId = rule.id;
         
@@ -209,6 +209,7 @@ function RuleController($scope, global) {
     
     $('#ruleConditionsTable .slick-row .btn-delete').live('click', function(){
 		$scope.ruleConditionsTable.dataView.deleteItem($(this).attr('id'));
+		$scope.validateRule();
 		
         //since this event is called outside of angular, we need to force
         //an apply to get everything mapped up properly

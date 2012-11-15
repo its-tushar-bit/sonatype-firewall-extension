@@ -27,6 +27,12 @@ public class InsightWork
         return new File( insightConfig.getSonatypeWork(), "report" + File.separatorChar + scanId );
     }
 
+    public File getRuleDir( final String appId )
+    {
+        File ruleBaseDir = new File( insightConfig.getSonatypeWork(), "rule" );
+        return new File( ruleBaseDir, appId );
+    }
+
     public File getReportFile( final String scanId )
     {
         return new File( getReportDir( scanId ), "report.zip" );

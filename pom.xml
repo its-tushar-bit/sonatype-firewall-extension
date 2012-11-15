@@ -37,9 +37,21 @@
   </ciManagement>
 
   <modules>
+    <module>insight-brain-data-access</module>
     <module>insight-brain-model</module>
     <module>insight-brain-service</module>
   </modules>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <resources>

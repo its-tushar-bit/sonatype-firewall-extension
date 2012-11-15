@@ -9,6 +9,7 @@ import com.google.common.cache.CacheBuilderSpec;
 import com.sonatype.insight.brain.data.DataResource;
 import com.sonatype.insight.brain.legacy.BCResource;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.rule.RuleResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.bundles.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
@@ -43,6 +44,7 @@ public class InsightBrainService
 
         env.addResource( DataResource.class );
         env.addResource( ReportResource.class );
+        env.addResource( RuleResource.class );
         env.addResource( BCResource.class );
     }
 }

@@ -112,6 +112,7 @@ public class BCResource
 
         return new StreamingOutput()
         {
+            @Override
             public void write( final OutputStream os )
                 throws IOException
             {

@@ -101,6 +101,7 @@ final class Pdf
 
         response.entity( new StreamingOutput()
         {
+            @Override
             public void write( final OutputStream os )
                 throws IOException
             {

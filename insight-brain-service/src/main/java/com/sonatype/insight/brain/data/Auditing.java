@@ -44,6 +44,7 @@ public final class Auditing
 
     private static final FilenameFilter JSON_FILES = new FilenameFilter()
     {
+        @Override
         public boolean accept( final File dir, final String name )
         {
             return name.endsWith( ".json" );

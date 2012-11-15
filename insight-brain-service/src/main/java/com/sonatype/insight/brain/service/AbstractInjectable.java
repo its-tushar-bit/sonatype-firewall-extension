@@ -17,16 +17,19 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 public abstract class AbstractInjectable<T>
     implements InjectableProvider<Context, Type>, Injectable<AbstractInjectable<T>>
 {
+    @Override
     public final ComponentScope getScope()
     {
         return ComponentScope.Singleton;
     }
 
+    @Override
     public final Injectable<?> getInjectable( final ComponentContext ic, final Context a, final Type c )
     {
         return c == getClass() ? this : null;
     }
 
+    @Override
     public final AbstractInjectable<T> getValue()
     {
         return this;

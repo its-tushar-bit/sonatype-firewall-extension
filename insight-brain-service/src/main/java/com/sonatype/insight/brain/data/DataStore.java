@@ -226,6 +226,7 @@ public final class DataStore
     {
         return new Iterable<T>()
         {
+            @Override
             public Iterator<T> iterator()
             {
                 return itr;

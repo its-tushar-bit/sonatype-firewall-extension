@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,14 +94,17 @@ public class ReportResource
     @GET
     @Path( "pdf" )
     @Produces( "application/pdf" )
-    public Response getPDF( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId )
+    public Response getPDF( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
+                            @QueryParam( "projectName" ) final String projectName,
+                            @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
         refreshCache( appId, scanId );
 
         final ResponseBuilder response = Response.ok();
 
-        Report.printPdf( log, work.getReportFile( scanId ), "Insight", 0, response ); // FIXME: pass in job title
+        Report.printPdf( log, work.getReportFile( scanId ), StringUtils.defaultString( projectName, "insight" ),
+                         buildNumber, response );
 
         return response.build();
     }

@@ -33,11 +33,20 @@
 	    border-right-color: silver;
 	    border-right-style: solid;
 	}
+	.slick-row-hover-button {
+	    height:18px;
+	    width:18px;
+	    padding-top:1px;
+	    display:none
+	}
 	#ruleConditionsTable .slick-header-columns { 
 	    height: 0px; 
 	} 
 	#ruleConditionsTable .slick-header.ui-state-default { 
 	    border: none; 
+	}
+	.edit-click {
+	    cursor: pointer;
 	}
 	</style>
     <script type='text/javascript' src='jquery.min.js'></script>
@@ -120,14 +129,6 @@
 							</div>
 							<div class='control-group'>
 							    <div class='controls'>
-							        <div id="ruleConditionsTableHeader">
-									    <table width="100%">
-										    <tr>
-											    <td width="99%"></td>
-											    <td><button class="btn" ng-click="removeRuleCondition()" title="Delete selected item(s)"><i class="icon-trash"></i></button></td>
-											</tr>
-										</table>
-									</div>
 							        <slickgrid id="ruleConditionsTable" style="height:100px;" data="state.ruleConditions" table-def="state.ruleConditionsTableDef"></slickgrid>
 							        <label class="radio inline">
 									    <input type="radio" ng-model="state.addRuleMatchType" value="any" ng-change="validateRule()">

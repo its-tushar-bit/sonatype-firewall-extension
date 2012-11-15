@@ -8,23 +8,25 @@ ruleApp.factory('global', function($rootScope) {
         cssClass: "slick-cell-checkboxsel"
 	});
     
-    var checkboxRuleConditionsSelector = new Slick.CheckboxSelectColumn({
-        cssClass: "slick-cell-checkboxsel"
-	});
-    
     state.rulesTableDef = {
 		columns : [ checkboxRulesSelector.getColumnDefinition(), {
 			id : "name",
 			name : "Rule Name",
 			field : "name",
-			width : 500
+			width : 400,
+			cssClass : 'edit-click'
 		}, {
 			id : "status",
 			name : "Status",
 			field : "status",
 			width : 100,
 			formatter : function(row, cell, value, columnDef, dataContext) {
-				return '<table><tr><td style="padding: 0px;width: 99%;">' + value + '</td><td style="padding: 0px;"><button id="' + dataContext.id + '" style="height:18px;padding-top:1px;display:none" class="btn btn-small" title="Edit Rule">Edit</button></td></tr></table>';
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + value + '</td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-small btn-edit slick-row-hover-button" title="Edit Rule"><i class="icon-pencil"></i></button></td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-small btn-enable slick-row-hover-button" title="Enable Rule"><i class="icon-ok-circle"></i></button></td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-small btn-disable slick-row-hover-button" title="Disable Rule"><i class="icon-remove-circle"></i></button></td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-small btn-delete slick-row-hover-button" title="Delete Rule"><i class="icon-trash"></i></button></td>'
+				    + '</tr></table>';
 			}
 		} ],
 		options : {
@@ -37,7 +39,7 @@ ruleApp.factory('global', function($rootScope) {
 	};
     
     state.ruleConditionsTableDef = {
-    	columns : [ checkboxRuleConditionsSelector.getColumnDefinition(), {
+    	columns : [{
     		id : "operand",
     		name : "Operand",
     		field : "operand",
@@ -55,8 +57,10 @@ ruleApp.factory('global', function($rootScope) {
     		id : "value",
     		name : "Value",
     		field : "value",
-    		formatter : function(row, cell, value, columnDef, dataContext) {
-    			return ruleApp.getRuleValueText(value);
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + ruleApp.getRuleValueText(value) + '</td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-small btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'
+				    + '</tr></table>';
 			}
     	}],
     	options : {
@@ -64,7 +68,7 @@ ruleApp.factory('global', function($rootScope) {
     		forceFitColumns : true,
 			fullWidthRows : true
 		},
-		plugins : [checkboxRuleConditionsSelector],
+		plugins : [],
 		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
     };
     
@@ -113,4 +117,12 @@ ruleApp.getRuleValueText = function(val) {
 	
 	//must be numeric value
 	return val;
+}
+
+ruleApp.getNextId = function(data) {
+	if (!data || data.length < 1) {
+		return 1;
+	}
+	
+	return data[data.length - 1].id + 1;
 }

@@ -19,13 +19,15 @@ public class InsightBrainService
     public static void main( final String[] args )
         throws Exception
     {
-        new InsightBrainService().run( args );
+        new InsightBrainService().run( args.length > 0 ? args : new String[] { "server" } );
     }
-    
+
     public InsightBrainService()
     {
-        CacheBuilderSpec cacheSpec = AssetsBundle.DEFAULT_CACHE_SPEC;
-        addBundle(new AssetsBundle("/com/sonatype/insight/brain/rules/assets/", cacheSpec, "/rule-assets/"));
+        super( "insight-brain-service" );
+
+        final CacheBuilderSpec cacheSpec = AssetsBundle.DEFAULT_CACHE_SPEC;
+        addBundle( new AssetsBundle( "/com/sonatype/insight/brain/rules/assets/", cacheSpec, "/rule-assets/" ) );
     }
 
     @Override

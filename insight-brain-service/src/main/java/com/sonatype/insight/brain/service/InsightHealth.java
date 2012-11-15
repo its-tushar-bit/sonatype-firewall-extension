@@ -18,7 +18,7 @@ public class InsightHealth
 
     public InsightHealth( final InsightConfig insightConfig )
     {
-        super( "insightBrainService" );
+        super( "insight-brain-service" );
         this.insightConfig = insightConfig;
     }
 

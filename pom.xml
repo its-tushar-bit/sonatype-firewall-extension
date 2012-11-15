@@ -73,9 +73,11 @@
             <useDefaultExcludes>false</useDefaultExcludes>
             <includes>
               <include>**/*.java</include>
+<!--
               <include>**/*.css</include>
-              <include>**/*.html</include>
               <include>**/*.js</include>
+-->
+              <include>**/*.html</include>
               <include>**/*.xml</include>
               <include>**/*.properties</include>
               <include>**/pom.xml</include>

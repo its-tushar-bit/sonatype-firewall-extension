@@ -16,6 +16,7 @@ function RuleController($scope, global) {
 		delete $scope.state.licCatSelected;
 		delete $scope.state.addRuleFormValid;
 		delete $scope.state.addRuleConditionFormValid;
+		delete $scope.state.addRuleId;
 		
 		$scope.state.ruleConditions = [];
 		$scope.state.addRuleMatchType = 'any';
@@ -25,7 +26,8 @@ function RuleController($scope, global) {
 		$scope.state.ruleConditions.push({
 			operand: $scope.state.addRuleOperand,
 			operator: $scope.state.addRuleOperator,
-			value: $scope.state.addRuleValue
+			value: $scope.state.addRuleValue,
+			id: $scope.state.ruleConditions.length
 		});
 		
 		$scope.validateRule();
@@ -81,13 +83,27 @@ function RuleController($scope, global) {
 	}
 	
 	$scope.saveRule = function() {
-		$scope.state.rules.push({
-		    name: $scope.state.addRuleName,
-		    conditions: $scope.state.ruleConditions,
-		    matchType: $scope.state.addRuleMatchType,
-		    action: $scope.state.addRuleAction,
-		    status: 'enabled'
-		});
+		//edit
+		if ($scope.state.addRuleId) {
+			for ( var i = 0 ; i < $scope.state.rules.length ; i++ ) {
+				if ( $scope.state.rules[i].id == $scope.state.addRuleId) {
+					$scope.state.rules[i].name = $scope.state.addRuleName;
+					$scope.state.rules[i].conditions = $scope.state.ruleConditions;
+					$scope.state.rules[i].matchType = $scope.state.addRuleMatchType;
+					$scope.state.rules[i].action = $scope.state.addRuleAction;
+					break;
+				}
+			}
+		} else {
+			$scope.state.rules.push({
+			    name: $scope.state.addRuleName,
+			    conditions: $scope.state.ruleConditions,
+			    matchType: $scope.state.addRuleMatchType,
+			    action: $scope.state.addRuleAction,
+			    status: 'enabled',
+			    id: $scope.state.rules.length + 1
+			});	
+		}
 		
 		$scope.reset();
 	}
@@ -125,4 +141,32 @@ function RuleController($scope, global) {
 	}
 	
 	$scope.reset();
+	
+    $('#rulesTable .slick-row').live('mouseover mouseout', function (event) {
+        if (event.type == 'mouseover') {
+            $(this).find(".btn").show(); 
+        } else {
+
+             $(this).find(".btn").hide();
+        }
+    });
+    
+    $('#rulesTable .slick-row .btn').live('click', function(){
+        var me = $(this), id = me.attr('id');
+        
+		var rule = $scope.rulesTable.dataView.getItem($scope.rulesTable.dataView.getIdxById(id));
+		
+		$scope.state.addRuleName = rule.name;
+		$scope.state.addRuleAction = rule.action;
+		$scope.state.ruleConditions = rule.conditions;
+		$scope.state.addRuleMatchType = rule.matchType;
+		$scope.state.addRuleId = rule.id;
+        
+        $scope.addRule();
+        $scope.validateRule();
+
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
+    });
 }

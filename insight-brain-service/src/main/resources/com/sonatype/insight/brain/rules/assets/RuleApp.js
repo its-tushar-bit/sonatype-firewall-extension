@@ -22,7 +22,10 @@ ruleApp.factory('global', function($rootScope) {
 			id : "status",
 			name : "Status",
 			field : "status",
-			width : 100
+			width : 100,
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + value + '</td><td style="padding: 0px;"><button id="' + dataContext.id + '" style="height:18px;padding-top:1px;display:none" class="btn btn-small" title="Edit Rule">Edit</button></td></tr></table>';
+			}
 		} ],
 		options : {
 			height : 200,

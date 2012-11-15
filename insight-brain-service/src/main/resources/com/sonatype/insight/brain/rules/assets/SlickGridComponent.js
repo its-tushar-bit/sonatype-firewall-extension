@@ -7,6 +7,7 @@ var SlickGridComponent = function() {
         link: function($scope, element, attrs) {
         	var grid;
             var data = [];
+            var dataView = new Slick.Data.DataView();
             
             var deepLocate = function(obj, key) {
             	var keys = key.split('.');
@@ -24,15 +25,19 @@ var SlickGridComponent = function() {
             
             var tableDef = deepLocate($scope, attrs.tableDef);
             
-            grid = new Slick.Grid('#' + attrs.id, [], tableDef.columns, tableDef.options);
+            grid = new Slick.Grid('#' + attrs.id, dataView, tableDef.columns, tableDef.options);
             grid.setSelectionModel(tableDef.selectionModel);
+            grid.dataView = dataView;
+            dataView.syncGridSelection(grid, true);
             angular.forEach(tableDef.plugins, function(plugin) {
             	grid.registerPlugin(plugin);
             });
 
             var redraw = function(newScopeData) {
-                grid.setData(newScopeData);
-                grid.render();
+            	dataView.beginUpdate();
+            	dataView.setItems(newScopeData);
+            	dataView.endUpdate();
+                grid.invalidate();
             };
 
             $scope.$watch(attrs.data, redraw, true);

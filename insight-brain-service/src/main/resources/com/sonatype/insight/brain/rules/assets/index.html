@@ -39,58 +39,6 @@
 	#ruleConditionsTable .slick-header.ui-state-default { 
 	    border: none; 
 	}
-	.label {
-	    border-color: #AFBFCF;
-	    border-radius: 3px 3px 3px 3px;
-	    border-style: solid;
-	    border-width: 1px;
-	    font-size: 12px;
-	    margin: 0;
-	    overflow: hidden;
-	    padding: 1px 3px;
-	    text-align: center;
-	    vertical-align: middle;
-	    white-space: nowrap;
-	}
-	.whiteLabel {
-	    background-color: #EEEEEE;
-    	color : black;
-	}
-	
-	.greyLabel {
-		background-color: #BFBFBF;
-		color : black;
-	}
-	
-	.blackLabel {
-		background-color: #444444;
-		color : white;
-	}
-	
-	.greenLabel {
-		background-color: #46A546;
-		color : white;
-	}
-	
-	.yellowLabel {
-		background-color: #FAF20F;
-		color : black;
-	}
-	
-	.orangeLabel {
-		background-color: #F89406;
-		color : white;
-	}
-	
-	.redLabel {
-		background-color: #C43C35;
-		color : white;
-	}
-	
-	.blueLabel {
-		background-color: #0080FF;
-		color : white;
-	}
 	</style>
     <script type='text/javascript' src='jquery.min.js'></script>
     <script type='text/javascript' src='jquery-ui.min.js'></script>
@@ -110,7 +58,7 @@
 	<div class='container'>
 		<div style='width: 100%'>
 			<div id='rules' class="inline" style='padding-top: 5px' ng-controller="RuleController">
-				<div id='rulesTableContainer' style='width:100%;' ng-show="showAllRulesView">
+				<div id='rulesTableContainer' style='width:100%;' ng-show="!state.showAddRuleView">
 			        <div class='sectionBorder'>
 					    <div id="rulesTableHeader">
 						    <table width="100%">
@@ -124,13 +72,13 @@
 								</tr>
 							</table>
 						</div>
-						<slickgrid id="rulesTable" style="height:200px;" data="state.rows" table-def="state.rulesTableDef"></slickgrid>
+						<slickgrid id="rulesTable" style="height:200px;" data="state.rules" table-def="state.rulesTableDef"></slickgrid>
 		            </div>
 		            <div>
     				    Associated Rules will allow more than one rule to govern the outcome of producing a label for any given component.  This will allow for greater chain depth when creating complex rules conditions.  In general, more than one condition can be established on a rule.  This will help users organize their rules to affect other labels too.
 	    			</div>
 	            </div>
-				<div id="newRuleContainer" style='width:100%;' ng-show="showAddRuleView">
+				<div id="newRuleContainer" style='width:100%;' ng-show="state.showAddRuleView">
 				    <div class='sectionBorder'>
 					    <div id="newRuleHeader">
 						    <table width="100%">
@@ -143,11 +91,11 @@
 							<div class='control-group'>
 								<label class='control-label'>Conditions</label>
 								<div class='controls' style='text-align:left'>
-									<select ng-model="addRuleOperand" ng-change="ruleOperandChanged()">
+									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()">
 										<option value='secVuln'>Security Vulnerability Count</option>
 										<option value='licCat'>License Category</option>
 									</select>
-									<select ng-model="addRuleOperator" ng-show="secVulnCountSelected" ng-change="validateRuleCondition()">
+									<select ng-model="state.addRuleOperator" ng-show="state.secVulnCountSelected" ng-change="validateRuleCondition()">
 										<option value="equal">==&nbsp;&nbsp; Equal to</option>
 										<option value="notEqual">!=&nbsp; Not equal to</option>
 										<option value="lessThan">&lt;&nbsp;&nbsp; Less than</option>
@@ -155,18 +103,18 @@
 										<option value="greaterThan">&gt;&nbsp;&nbsp; Greater than</option>
 										<option value="greaterThanEqual">&gt;= Greater than or equal to</option>
 									</select>
-									<select ng-model="addRuleOperator" ng-show="licCatSelected" ng-change="validateRuleCondition()">
+									<select ng-model="state.addRuleOperator" ng-show="state.licCatSelected" ng-change="validateRuleCondition()">
 										<option value="equal">==&nbsp;&nbsp; Equal to</option>
 										<option value="notEqual">!=&nbsp; Not equal to</option>
 									</select>
-									<input type="text" ng-model="addRuleValue" placeholder='Enter Value...' ng-show="secVulnCountSelected" ng-change="validateRuleCondition()"></input>
-									<select ng-model="addRuleValue" ng-show="licCatSelected" ng-change="validateRuleCondition()">
+									<input type="text" ng-model="state.addRuleValue" placeholder='Enter Value...' ng-show="state.secVulnCountSelected" ng-change="validateRuleCondition()"></input>
+									<select ng-model="state.addRuleValue" ng-show="state.licCatSelected" ng-change="validateRuleCondition()">
 										<option value="copyLeft">Copyleft</option>
 										<option value="nonStandard">Non-Standard</option>
 										<option value="weakCopyLeft">Weak Copyleft</option>
 										<option value="liberal">Liberal</option>
 									</select>
-									<button type='none' class='btn btn-primary' ng-click="addRuleCondition()" ng-disabled="addRuleConditionFormInvalid">Add</button>
+									<button type='none' class='btn btn-primary' ng-click="addRuleCondition()" ng-disabled="!state.addRuleConditionFormValid">Add</button>
 								</div>
 							</div>
 							<div class='control-group'>
@@ -181,11 +129,11 @@
 									</div>
 							        <slickgrid id="ruleConditionsTable" style="height:100px;" data="state.ruleConditions" table-def="state.ruleConditionsTableDef"></slickgrid>
 							        <label class="radio inline">
-									    <input type="radio" ng-model="addRuleMatchType" value="any" ng-change="validateRule()">
+									    <input type="radio" ng-model="state.addRuleMatchType" value="any" ng-change="validateRule()">
 									    Any one Condition met
 									</label>
 									<label class="radio inline">
-									    <input type="radio" ng-model="addRuleMatchType" value="all" ng-change="validateRule()">
+									    <input type="radio" ng-model="state.addRuleMatchType" value="all" ng-change="validateRule()">
 									    All Conditions met
 									</label>
 							    </div>
@@ -193,7 +141,7 @@
 							<div class='control-group'>
 							    <label class='control-label'>Action</label>
 								<div class='controls' style='text-align:left'>
-   									<select ng-model="addRuleAction" ng-change="validateRule()">
+   									<select ng-model="state.addRuleAction" ng-change="validateRule()">
     									<option value="failBuild">Fail the Build</option>
 				    				</select>
 								</div>
@@ -201,11 +149,11 @@
 							<div class='control-group'>
 							    <label class='control-label'>Name</label>
 								<div class='controls' style='text-align:left'>
-									<input type="text" ng-model="addRuleName" ng-change="validateRule()" placeholder='Enter Rule Name...'></input>
+									<input type="text" ng-model="state.addRuleName" ng-change="validateRule()" placeholder='Enter Rule Name...'></input>
 								</div>
 							</div>
 							<div class='controls' style='text-align:right'>
-								<button type='none' class='btn btn-primary' ng-click="saveRule()" ng-disabled="addRuleFormInvalid">Save</button>
+								<button type='none' class='btn btn-primary' ng-click="saveRule()" ng-disabled="!state.addRuleFormValid">Save</button>
 								<button type='none' class='btn btn-primary' ng-click="reset()">Cancel</button>
 							</div>
 						</div>

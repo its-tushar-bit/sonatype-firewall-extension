@@ -2,8 +2,7 @@ var ruleApp = angular.module('ruleApp', []);
 
 ruleApp.factory('global', function($rootScope) {
     var state = {};
-    state.rows = [];
-    state.ruleConditions = [];
+    state.rules = [];
     
     var checkboxRulesSelector = new Slick.CheckboxSelectColumn({
         cssClass: "slick-cell-checkboxsel"

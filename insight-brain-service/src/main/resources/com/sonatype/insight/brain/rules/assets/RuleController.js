@@ -2,87 +2,70 @@ function RuleController($scope, global) {
 	$scope.state = global;
 	
 	$scope.addRule = function() {
-		$scope.showAddRuleView = true;
-		$scope.showAllRulesView = false;
+		$scope.state.showAddRuleView = true;
 	}
 	
 	$scope.reset = function() {
-		$scope.showAddRuleView = false;
-		$scope.showAllRulesView = true;
-		
-		delete $scope.addRuleName;
-		delete $scope.addRuleOperand;
-		delete $scope.addRuleOperator;
-		delete $scope.addRuleValue;
-		delete $scope.addRuleAction;
-		delete $scope.secVulnCountSelected;
-		delete $scope.licCatSelected;
+		delete $scope.state.showAddRuleView;
+		delete $scope.state.addRuleName;
+		delete $scope.state.addRuleOperand;
+		delete $scope.state.addRuleOperator;
+		delete $scope.state.addRuleValue;
+		delete $scope.state.addRuleAction;
+		delete $scope.state.secVulnCountSelected;
+		delete $scope.state.licCatSelected;
+		delete $scope.state.addRuleFormValid;
+		delete $scope.state.addRuleConditionFormValid;
 		
 		$scope.state.ruleConditions = [];
-		$scope.addRuleMatchType = 'any';
-		$scope.addRuleFormInvalid = true;
-		$scope.addRuleConditionFormInvalid = true;
+		$scope.state.addRuleMatchType = 'any';
 	}
 	
 	$scope.addRuleCondition = function() {
 		$scope.state.ruleConditions.push({
-			operand: $scope.addRuleOperand,
-			operator: $scope.addRuleOperator,
-			value: $scope.addRuleValue
+			operand: $scope.state.addRuleOperand,
+			operator: $scope.state.addRuleOperator,
+			value: $scope.state.addRuleValue
 		});
 		
 		$scope.validateRule();
 	}
 	
 	$scope.enableRule = function() {
-		var grid = $scope.rulesTable;
-		
-		var rows = grid.getSelectedRows();
-		
-		for ( var i = 0 ; i < rows.length ; i++ ) {
-			var item = grid.getDataItem(i);
-			item.status = "enabled";
-		}
-		
-		$scope.state.rows = grid.getData();
+		$scope.updateStatus("enabled");
 	}
 	
 	$scope.disableRule = function() {
+		$scope.updateStatus("disabled");
+	}
+	
+	$scope.updateStatus = function(status) {
         var grid = $scope.rulesTable;
-		
 		var rows = grid.getSelectedRows();
 		
 		for ( var i = 0 ; i < rows.length ; i++ ) {
 			var item = grid.getDataItem(i);
-			item.status = "disabled";
+			item.status = status;
 		}
 		
-		$scope.state.rows = grid.getData();
+		$scope.state.rules = grid.getData();
 	}
 	
 	$scope.removeRule = function() {
 		var grid = $scope.rulesTable;
-		
-		var rows = grid.getSelectedRows();
-		
-		var data = grid.getData();
-		
-		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
-			data.splice(rows[i], 1);
-		}
-		
-		grid.setSelectedRows([]);
-		
-		grid.invalidate();
-		
-		$scope.state.rows = grid.getData();
+		$scope.removeSelectedItems(grid);
+		$scope.state.rules = grid.getData();
 	}
 	
 	$scope.removeRuleCondition = function() {
 		var grid = $scope.ruleConditionsTable;
-		
+		$scope.removeSelectedItems(grid);
+		$scope.state.ruleConditions = grid.getData();
+		$scope.validateRule();
+	}
+	
+	$scope.removeSelectedItems = function(grid) {		
 		var rows = grid.getSelectedRows();
-		
 		var data = grid.getData();
 		
 		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
@@ -90,12 +73,7 @@ function RuleController($scope, global) {
 		}
 		
 		grid.setSelectedRows([]);
-		
 		grid.invalidate();
-		
-		$scope.state.ruleConditions = grid.getData();
-		
-		$scope.validateRule();
 	}
 	
 	$scope.ruleInfo = function() {
@@ -103,41 +81,44 @@ function RuleController($scope, global) {
 	}
 	
 	$scope.saveRule = function() {
-		$scope.state.rows.push({
-		    name: $scope.addRuleName,
-		    status: "enabled"
+		$scope.state.rules.push({
+		    name: $scope.state.addRuleName,
+		    conditions: $scope.state.ruleConditions,
+		    matchType: $scope.state.addRuleMatchType,
+		    action: $scope.state.addRuleAction,
+		    status: 'enabled'
 		});
 		
 		$scope.reset();
 	}
 	
 	$scope.validateRule = function() {
-		$scope.addRuleFormInvalid = true;
+		delete $scope.state.addRuleFormValid;
 		if ($scope.state.ruleConditions.length > 0
-				&& $scope.addRuleAction
-				&& $scope.addRuleName
-				&& $scope.addRuleMatchType) {
-			$scope.addRuleFormInvalid = false;
+				&& $scope.state.addRuleAction
+				&& $scope.state.addRuleName
+				&& $scope.state.addRuleMatchType) {
+			$scope.state.addRuleFormValid = true;
 		}
 	}
 	
 	$scope.validateRuleCondition = function() {
-		$scope.addRuleConditionFormInvalid = true;
-		if ($scope.addRuleOperand
-				&& $scope.addRuleOperator
-				&& $scope.addRuleValue) {
-			$scope.addRuleConditionFormInvalid = false;
+		delete $scope.state.addRuleConditionFormValid;
+		if ($scope.state.addRuleOperand
+				&& $scope.state.addRuleOperator
+				&& $scope.state.addRuleValue) {
+			$scope.state.addRuleConditionFormValid = true;
 		}
 	}
 	
 	$scope.ruleOperandChanged = function() {
-		$scope.secVulnCountSelected = false;
-		$scope.licCatSelected = false;
+		delete $scope.state.secVulnCountSelected;
+		delete $scope.state.licCatSelected;
 		
-		if ($scope.addRuleOperand == 'secVuln') {
-			$scope.secVulnCountSelected = true;
-		} else if ($scope.addRuleOperand == 'licCat') {
-			$scope.licCatSelected = true;
+		if ($scope.state.addRuleOperand == 'secVuln') {
+			$scope.state.secVulnCountSelected = true;
+		} else if ($scope.state.addRuleOperand == 'licCat') {
+			$scope.state.licCatSelected = true;
 		}
 		
 		$scope.validateRuleCondition();

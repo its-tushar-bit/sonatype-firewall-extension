@@ -18,6 +18,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-model</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    
+    <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-upload</artifactId>
       <version>${insight-scanner.version}</version>

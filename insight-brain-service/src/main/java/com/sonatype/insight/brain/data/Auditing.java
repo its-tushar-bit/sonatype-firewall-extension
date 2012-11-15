@@ -127,20 +127,20 @@ public final class Auditing
                                           final String user, final String ip, final String where )
         throws IOException
     {
+        saveData( auditDir, name, parseData( IOUtil.toByteArray( data ) ), user, ip, where );
+    }
+
+    public static void saveData( final File auditDir, final String name, final ContainerNode data, final String user,
+                                 final String ip, final String where )
+        throws IOException
+    {
         final AuditLock lock = lockFor( auditDir );
 
         lock.exclusiveLock();
         try
         {
             final File auditFile = new File( auditDir, name );
-            try
-            {
-                logData( auditFile, user, ip, where, parseData( IOUtil.toByteArray( data ) ) );
-            }
-            finally
-            {
-                IOUtil.close( data );
-            }
+            logData( auditFile, user, ip, where, data );
         }
         finally
         {

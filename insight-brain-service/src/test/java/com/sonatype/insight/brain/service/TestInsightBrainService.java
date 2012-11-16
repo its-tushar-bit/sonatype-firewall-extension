@@ -68,11 +68,4 @@ public class TestInsightBrainService
     {
         testServerCommand.server.stop();
     }
-    // public static InsightBrainService getService()
-    // {
-    // InsightBrainService service = new InsightBrainService();
-    //
-    // service._addCommand( command );
-    // return service;
-    // }
 }

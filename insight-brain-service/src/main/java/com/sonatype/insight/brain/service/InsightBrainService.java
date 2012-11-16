@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.rule.ConditionTypeResource;
 import com.sonatype.insight.brain.rule.RuleResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.bundles.AssetsBundle;
-import com.yammer.dropwizard.cli.Command;
 import com.yammer.dropwizard.config.Environment;
 
 public class InsightBrainService
@@ -49,13 +48,5 @@ public class InsightBrainService
         env.addResource( ReportResource.class );
         env.addResource( RuleResource.class );
         env.addResource( BCResource.class );
-    }
-
-    /**
-     * For tests only
-     */
-    public void _addCommand( Command command )
-    {
-        super.addCommand( command );
     }
 }

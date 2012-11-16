@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface ConditionType
 {
+    String getId();
+
     String getOperandName();
 
     List<String> getSupportedOperators();

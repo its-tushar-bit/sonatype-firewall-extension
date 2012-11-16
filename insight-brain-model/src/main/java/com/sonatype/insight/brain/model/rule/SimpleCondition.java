@@ -7,21 +7,11 @@ package com.sonatype.insight.brain.model.rule;
 
 public class SimpleCondition
 {
-    private ConditionType conditionType;
+    private String conditionTypeId;
 
     private String operator;
 
     private String value;
-
-    public ConditionType getConditionType()
-    {
-        return conditionType;
-    }
-
-    public void setConditionType( ConditionType conditionType )
-    {
-        this.conditionType = conditionType;
-    }
 
     public String getOperator()
     {
@@ -41,5 +31,15 @@ public class SimpleCondition
     public void setValue( String value )
     {
         this.value = value;
+    }
+
+    public String getConditionTypeId()
+    {
+        return conditionTypeId;
+    }
+
+    public void setConditionTypeId( String conditionTypeId )
+    {
+        this.conditionTypeId = conditionTypeId;
     }
 }

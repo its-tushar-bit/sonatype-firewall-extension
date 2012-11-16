@@ -42,12 +42,12 @@ public class RuleAuditTest
         rule.setName( "A rule" );
         List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
         SimpleCondition condition = new SimpleCondition();
-        condition.setConditionType( new SecurityVulnerabilityCountConditionType() );
+        condition.setConditionTypeId( SecurityVulnerabilityCountConditionType.ID );
         condition.setOperator( "<" );
         condition.setValue( "2" );
         conditions.add( condition );
         condition = new SimpleCondition();
-        condition.setConditionType( new LicenseInListConditionType() );
+        condition.setConditionTypeId( LicenseInListConditionType.ID );
         condition.setOperator( "in" );
         condition.setValue( "Apache-2.0" );
         conditions.add( condition );

@@ -11,12 +11,20 @@ import java.util.List;
 public class LicenseInListConditionType
     implements ConditionType
 {
+    public static final String ID = "LicenseInList";
+
     private static List<String> supportedOperators = new ArrayList<String>();
 
     static
     {
         supportedOperators.add( "in" );
         supportedOperators.add( "not in" );
+    }
+
+    @Override
+    public String getId()
+    {
+        return ID;
     }
 
     @Override

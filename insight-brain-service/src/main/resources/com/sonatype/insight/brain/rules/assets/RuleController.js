@@ -215,4 +215,12 @@ function RuleController($scope, global) {
         //an apply to get everything mapped up properly
         $scope.$apply();
     });
+    
+    $('.btn-add').live('click', function(){
+    	$scope.addRule();
+    	
+    	//since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+    	$scope.$apply();
+    });
 }

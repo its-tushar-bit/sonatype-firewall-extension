@@ -35,7 +35,8 @@ ruleApp.factory('global', function($rootScope) {
 			fullWidthRows : true
 		},
 		plugins : [checkboxRulesSelector],
-		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
+		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
+		emptyMessage : "There are no rules, why don't you <a class='btn-add'>create one</a>?"
 	};
     
     state.ruleConditionsTableDef = {
@@ -69,7 +70,8 @@ ruleApp.factory('global', function($rootScope) {
 			fullWidthRows : true
 		},
 		plugins : [],
-		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
+		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
+		emptyMessage : "Add one or more Conditions to define the Rule."
     };
     
     return state;

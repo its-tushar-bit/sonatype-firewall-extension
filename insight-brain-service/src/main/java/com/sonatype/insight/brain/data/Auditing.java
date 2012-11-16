@@ -128,7 +128,14 @@ public final class Auditing
                                           final String user, final String ip, final String where )
         throws IOException
     {
-        saveData( auditDir, name, parseData( IOUtil.toByteArray( data ) ), user, ip, where );
+        try
+        {
+            saveData( auditDir, name, parseData( IOUtil.toByteArray( data ) ), user, ip, where );
+        }
+        finally
+        {
+            IOUtil.close( data );
+        }
     }
 
     public static void saveData( final File auditDir, final String name, final ContainerNode data, final String user,

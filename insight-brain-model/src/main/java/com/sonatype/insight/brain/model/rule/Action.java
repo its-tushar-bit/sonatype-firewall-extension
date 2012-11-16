@@ -7,19 +7,9 @@ package com.sonatype.insight.brain.model.rule;
 
 public class Action
 {
-    private ActionType actionType;
+    private String actionTypeId;
 
     private String value;
-
-    public ActionType getActionType()
-    {
-        return actionType;
-    }
-
-    public void setActionType( ActionType actionType )
-    {
-        this.actionType = actionType;
-    }
 
     public String getValue()
     {
@@ -29,5 +19,15 @@ public class Action
     public void setValue( String value )
     {
         this.value = value;
+    }
+
+    public String getActionTypeId()
+    {
+        return actionTypeId;
+    }
+
+    public void setActionTypeId( String actionTypeId )
+    {
+        this.actionTypeId = actionTypeId;
     }
 }

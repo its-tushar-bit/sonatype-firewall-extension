@@ -5,41 +5,18 @@
  */
 package com.sonatype.insight.brain.rule;
 
-import java.io.IOException;
-
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.service.TestInsightBrainService;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
 public class RuleResourceTest
+    extends AbstractResourceTest
 {
-    private TestInsightBrainService service;
-
-    @Before
-    public void startService()
-        throws Exception
-    {
-        service = new TestInsightBrainService();
-        service.run( new String[] { "server" } );
-    }
-
-    @After
-    public void stopService()
-        throws Exception
-    {
-        if (service!= null)
-        {
-            service.stop();
-        }
-    }
-
     @Test
     public void testCRUD()
         throws Exception
@@ -98,14 +75,6 @@ public class RuleResourceTest
 
     private String getServiceURL( String appId )
     {
-        return RestAccess.BASE_URL + "rest/rule/" + appId;
-    }
-
-    protected static void assertResponseStatus( int expectedStatus, Response response )
-        throws IOException
-    {
-        int actualStatus = response.getStatusCode();
-        Assert.assertEquals( "URI:" + response.getUri() + ", StatusText:" + response.getStatusText()
-            + ", ResponseBody:" + response.getResponseBody(), expectedStatus, actualStatus );
+        return RestAccess.BASE_URL + RuleResource.SERVICE_PATH.replace( "{appId}", appId );
     }
 }

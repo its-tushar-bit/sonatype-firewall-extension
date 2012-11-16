@@ -1,0 +1,35 @@
+/**
+ * Copyright (c) 2011-2012 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.rule;
+
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class AllConditionTypes
+{
+    private static final Map<String, ConditionType> allConditionTypes = new LinkedHashMap<String, ConditionType>();
+
+    static
+    {
+        add( new LicenseInListConditionType() );
+        add( new SecurityVulnerabilityCountConditionType() );
+    }
+
+    public static Collection<ConditionType> getAll()
+    {
+        return allConditionTypes.values();
+    }
+
+    private static void add( ConditionType conditionType )
+    {
+        if ( allConditionTypes.keySet().contains( conditionType.getId() ) )
+        {
+            throw new IllegalStateException( "Duplicate condition type id: " + conditionType.getId() );
+        }
+        allConditionTypes.put( conditionType.getId(), conditionType );
+    }
+}

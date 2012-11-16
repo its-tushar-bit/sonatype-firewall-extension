@@ -26,9 +26,11 @@ import com.sonatype.insight.brain.dataaccess.RuleDAO;
 import com.sonatype.insight.brain.model.rule.Rule;
 import com.sonatype.insight.brain.service.InsightWork;
 
-@Path( "/rest/rule/{appId}" )
+@Path( RuleResource.SERVICE_PATH )
 public class RuleResource
 {
+    public static final String SERVICE_PATH = "rest/policy/rule/{appId}";
+    
     private static final Logger log = LoggerFactory.getLogger( RuleResource.class );
 
     @Context

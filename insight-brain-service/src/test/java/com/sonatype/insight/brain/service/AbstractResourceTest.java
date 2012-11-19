@@ -86,8 +86,6 @@ public abstract class AbstractResourceTest
                     continue;
                 }
             }
-
-            log.getLoggerContext().stop();
         }
         catch ( final Exception e )
         {

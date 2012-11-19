@@ -123,8 +123,8 @@ ruleApp.getRuleValueText = function(val) {
 
 ruleApp.getNextId = function(data) {
 	if (!data || data.length < 1) {
-		return 1;
+		return '1';
 	}
 	
-	return data[data.length - 1].id + 1;
+	return '' + (parseInt(data[data.length - 1].id) + 1);
 }

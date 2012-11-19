@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.scan.upload.HttpClientUtils;
+import com.sonatype.insight.client.utils.HttpClientUtils;
 
 public class InsightProxy
     extends AbstractInjectable<InsightProxy>

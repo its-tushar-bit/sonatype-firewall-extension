@@ -22,6 +22,9 @@ public class DroolsGenerator
     {
         StringBuilder droolsCode = new StringBuilder();
         // TODO add imports for drools
+        droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.component.PolicyFact\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
         for (Rule rule : rules)
         {
             if ( !rule.isEnabled() )

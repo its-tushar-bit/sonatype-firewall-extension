@@ -272,6 +272,40 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>com.github.searls</groupId>
+        <artifactId>jasmine-maven-plugin</artifactId>
+        <version>1.2.0.0</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>test-rules-assets</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <sourceIncludes>
+		    <include>jquery.min.js</include>
+            <include>jquery-ui.min.js</include>
+		    <include>jquery.ui.selectmenu.min.js</include>
+		    <include>jquery.event.drag-2.0.min.js</include>
+		    <include>bootstrap.min.js</include>
+		    <include>slick.core.js</include>
+		    <include>slick.grid.js</include>
+		    <include>slick.dataview.js</include>
+		    <include>slick.rowselectionmodel.js</include>
+		    <include>slick.checkboxselectcolumn.js</include>
+		    <include>angular-1.0.2.js</include>
+		    <include>SlickGridComponent.js</include>
+		    <include>RuleApp.js</include>
+		    <include>RuleController.js</include>
+		  </sourceIncludes>
+          <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/rules/assets</jsSrcDir>
+          <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/rules/assets</jsTestSrcDir>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <configuration>

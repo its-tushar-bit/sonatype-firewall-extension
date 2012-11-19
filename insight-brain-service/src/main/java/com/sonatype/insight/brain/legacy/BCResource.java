@@ -68,7 +68,7 @@ public class BCResource
     {
         final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( token, null, null );
 
-        return uploader.validateToken( proxy.contextualize( request ) ) ? "OK" : "FAILED";
+        return uploader.validateToken( proxy.contextualize( request ) );
     }
 
     @PUT

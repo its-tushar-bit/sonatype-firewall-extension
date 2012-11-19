@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.rule.SimpleCondition;
 
 public class DroolsGenerator
 {
+    private static final String INDENT = "    ";
+
     public String generate( List<Rule> rules )
     {
         StringBuilder droolsCode = new StringBuilder();
@@ -38,7 +40,7 @@ public class DroolsGenerator
             int conditionIndex = 0;
             for (SimpleCondition condition : rule.getConditions())
             {
-                droolsCode.append( "\t" );
+                droolsCode.append( INDENT );
                 if ( conditionIndex > 0 )
                 {
                     if ( rule.getOperator() == LogicalOperator.AND )
@@ -59,7 +61,7 @@ public class DroolsGenerator
             for ( Action action : rule.getActions() )
             {
                 ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
-                droolsCode.append( "\t" ).append( actionType.generateDroolsCode( action ) );
+                droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) );
                 droolsCode.append( "\n" );
             }
             droolsCode.append( "end\n" );

@@ -36,4 +36,11 @@ public class AddLabelActionType
         label.add( "Must have" );
         return label;
     }
+
+    @Override
+    public String generateDroolsCode( Action action )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

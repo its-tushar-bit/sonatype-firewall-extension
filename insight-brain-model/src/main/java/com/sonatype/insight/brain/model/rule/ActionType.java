@@ -17,4 +17,6 @@ public interface ActionType
      * Returns a list of available values or null if the condition does not support available values.
      */
     List<String> getAvailableValues();
+
+    String generateDroolsCode( Action action );
 }

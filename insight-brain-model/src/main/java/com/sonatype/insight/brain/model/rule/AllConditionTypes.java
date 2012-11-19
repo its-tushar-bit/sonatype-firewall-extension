@@ -24,6 +24,12 @@ public class AllConditionTypes
         return allConditionTypes.values();
     }
 
+    public static ConditionType getById( String conditionTypeId )
+    {
+        // TODO throw exception if conditionTypeId is unknown
+        return allConditionTypes.get( conditionTypeId );
+    }
+
     private static void add( ConditionType conditionType )
     {
         if ( allConditionTypes.keySet().contains( conditionType.getId() ) )

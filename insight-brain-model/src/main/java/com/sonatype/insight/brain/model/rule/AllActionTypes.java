@@ -32,4 +32,10 @@ public class AllActionTypes
         }
         allActionTypes.put( actionType.getId(), actionType );
     }
+
+    public static ActionType getById( String actionTypeId )
+    {
+        // TODO throw exception if actionTypeId is unknown
+        return allActionTypes.get( actionTypeId );
+    }
 }

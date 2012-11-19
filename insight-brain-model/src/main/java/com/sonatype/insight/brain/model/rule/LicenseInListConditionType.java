@@ -51,4 +51,11 @@ public class LicenseInListConditionType
         licenses.add( "Non-Standard" );
         return licenses;
     }
+
+    @Override
+    public String generateDroolsCode( SimpleCondition condition )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

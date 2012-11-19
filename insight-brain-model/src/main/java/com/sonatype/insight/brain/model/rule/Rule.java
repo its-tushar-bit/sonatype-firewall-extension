@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.rule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Rule
@@ -29,6 +30,15 @@ public class Rule
     public void setConditions( List<SimpleCondition> conditions )
     {
         this.conditions = conditions;
+    }
+
+    public void addCondition( SimpleCondition condition )
+    {
+        if ( conditions == null )
+        {
+            conditions = new ArrayList<SimpleCondition>();
+        }
+        conditions.add( condition );
     }
 
     public LogicalOperator getOperator()
@@ -79,5 +89,14 @@ public class Rule
     public void setActions( List<Action> actions )
     {
         this.actions = actions;
+    }
+
+    public void addAction( Action action )
+    {
+        if ( actions == null )
+        {
+            actions = new ArrayList<Action>();
+        }
+        actions.add( action );
     }
 }

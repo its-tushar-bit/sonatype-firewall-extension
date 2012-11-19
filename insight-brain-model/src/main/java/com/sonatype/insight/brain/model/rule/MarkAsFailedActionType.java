@@ -29,4 +29,11 @@ public class MarkAsFailedActionType
     {
         return null;
     }
+
+    @Override
+    public String generateDroolsCode( Action action )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

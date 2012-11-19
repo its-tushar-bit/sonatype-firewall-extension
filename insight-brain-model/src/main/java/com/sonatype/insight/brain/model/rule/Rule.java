@@ -17,7 +17,7 @@ public class Rule
 
     private LogicalOperator operator;
 
-    private Action action;
+    private List<Action> actions;
 
     private boolean enabled = true;
 
@@ -39,16 +39,6 @@ public class Rule
     public void setOperator( LogicalOperator operator )
     {
         this.operator = operator;
-    }
-
-    public Action getAction()
-    {
-        return action;
-    }
-
-    public void setAction( Action action )
-    {
-        this.action = action;
     }
 
     public String getName()
@@ -79,5 +69,15 @@ public class Rule
     public void setEnabled( boolean enabled )
     {
         this.enabled = enabled;
+    }
+
+    public List<Action> getActions()
+    {
+        return actions;
+    }
+
+    public void setActions( List<Action> actions )
+    {
+        this.actions = actions;
     }
 }

@@ -55,7 +55,9 @@ public class RuleAuditTest
         rule.setOperator( LogicalOperator.AND );
         Action action = new Action();
         action.setValue( "be happy" );
-        rule.setAction( action );
+        List<Action> actions = new ArrayList<Action>();
+        actions.add( action );
+        rule.setActions( actions );
 
         RuleAudit.saveChange( auditDir, rule, user, ip, where );
 

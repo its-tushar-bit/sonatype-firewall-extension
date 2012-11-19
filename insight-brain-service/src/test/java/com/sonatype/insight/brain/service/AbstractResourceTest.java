@@ -73,17 +73,13 @@ public abstract class AbstractResourceTest
             while ( itr.hasNext() )
             {
                 final ch.qos.logback.core.Appender<?> appender = itr.next();
-                final Thread t = ( (Thread) dispatcher.get( appender ) );
-                try
+                if ( appender instanceof com.yammer.dropwizard.logging.AsyncAppender )
                 {
                     running.setBoolean( appender, false );
+                    final Thread t = ( (Thread) dispatcher.get( appender ) );
                     t.interrupt();
                     t.interrupt();
                     t.interrupt();
-                }
-                catch ( final Exception e )
-                {
-                    continue;
                 }
             }
         }

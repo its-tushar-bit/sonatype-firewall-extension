@@ -78,8 +78,6 @@ public abstract class AbstractResourceTest
                     running.setBoolean( appender, false );
                     final Thread t = ( (Thread) dispatcher.get( appender ) );
                     t.interrupt();
-                    t.interrupt();
-                    t.interrupt();
                 }
             }
         }

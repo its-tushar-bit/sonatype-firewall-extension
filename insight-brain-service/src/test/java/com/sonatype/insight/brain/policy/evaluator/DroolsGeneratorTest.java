@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.rule.Action;
 import com.sonatype.insight.brain.model.rule.LogicalOperator;
 import com.sonatype.insight.brain.model.rule.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityCountConditionType;
+import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentType;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
 
 public class DroolsGeneratorTest
@@ -28,9 +28,8 @@ public class DroolsGeneratorTest
         rule1.setName( "Rule Name 1" );
         rule1.setOperator( LogicalOperator.AND );
         SimpleCondition condition = new SimpleCondition();
-        condition.setConditionTypeId( SecurityVulnerabilityCountConditionType.ID );
-        condition.setOperator( "<" );
-        condition.setValue( "1" );
+        condition.setConditionTypeId( SecurityVulnerabilityPresentType.ID );
+        condition.setOperator( "present" );
         rule1.addCondition( condition );
         Action action = new Action();
         action.setActionTypeId( MarkAsFailedActionType.ID );
@@ -41,9 +40,8 @@ public class DroolsGeneratorTest
         rule2.setName( "Rule Name 2" );
         rule2.setOperator( LogicalOperator.OR );
         condition = new SimpleCondition();
-        condition.setConditionTypeId( SecurityVulnerabilityCountConditionType.ID );
-        condition.setOperator( "<" );
-        condition.setValue( "1" );
+        condition.setConditionTypeId( SecurityVulnerabilityPresentType.ID );
+        condition.setOperator( "present" );
         rule2.addCondition( condition );
         action = new Action();
         action.setActionTypeId( MarkAsFailedActionType.ID );

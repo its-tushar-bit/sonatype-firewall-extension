@@ -8,17 +8,17 @@ package com.sonatype.insight.brain.model.rule;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LicenseInListConditionType
+public class LicenseCategoryConditionType
     implements ConditionType
 {
-    public static final String ID = "LicenseInList";
+    public static final String ID = "LicenseCategory";
 
     private static List<String> supportedOperators = new ArrayList<String>();
 
     static
     {
-        supportedOperators.add( "in" );
-        supportedOperators.add( "not in" );
+        supportedOperators.add( "is" );
+        supportedOperators.add( "is not" );
     }
 
     @Override
@@ -30,7 +30,7 @@ public class LicenseInListConditionType
     @Override
     public String getOperandName()
     {
-        return "License";
+        return "License Category";
     }
 
     @Override
@@ -43,13 +43,13 @@ public class LicenseInListConditionType
     public List<String> getAvailableValues()
     {
         // TODO Return a list of all known licenses
-        List<String> licenses = new ArrayList<String>();
-        licenses.add( "Apache-2.0" );
-        licenses.add( "EPL-1.0" );
-        licenses.add( "GPL-2.0" );
-        licenses.add( "Not Provided" );
-        licenses.add( "Non-Standard" );
-        return licenses;
+        List<String> licenseCategories = new ArrayList<String>();
+        licenseCategories.add( "Copyleft" );
+        licenseCategories.add( "Non-Standard" );
+        licenseCategories.add( "Not Provided" );
+        licenseCategories.add( "Weak Copyleft" );
+        licenseCategories.add( "Liberal" );
+        return licenseCategories;
     }
 
     @Override

@@ -17,10 +17,10 @@ import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.model.rule.Action;
-import com.sonatype.insight.brain.model.rule.LicenseInListConditionType;
+import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.rule.LogicalOperator;
 import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityCountConditionType;
+import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentType;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
 
 public class RuleAuditTest
@@ -42,14 +42,13 @@ public class RuleAuditTest
         rule.setName( "A rule" );
         List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
         SimpleCondition condition = new SimpleCondition();
-        condition.setConditionTypeId( SecurityVulnerabilityCountConditionType.ID );
-        condition.setOperator( "<" );
-        condition.setValue( "2" );
+        condition.setConditionTypeId( SecurityVulnerabilityPresentType.ID );
+        condition.setOperator( "present" );
         conditions.add( condition );
         condition = new SimpleCondition();
-        condition.setConditionTypeId( LicenseInListConditionType.ID );
-        condition.setOperator( "in" );
-        condition.setValue( "Apache-2.0" );
+        condition.setConditionTypeId( LicenseCategoryConditionType.ID );
+        condition.setOperator( "is" );
+        condition.setValue( "Copyleft" );
         conditions.add( condition );
         rule.setConditions( conditions );
         rule.setOperator( LogicalOperator.AND );

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.rule.ActionType;
 import com.sonatype.insight.brain.model.rule.AllActionTypes;
 import com.sonatype.insight.brain.model.rule.AllConditionTypes;
 import com.sonatype.insight.brain.model.rule.ConditionType;
+import com.sonatype.insight.brain.model.rule.LogicalOperator;
 import com.sonatype.insight.brain.model.rule.Rule;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
 
@@ -28,21 +29,35 @@ public class DroolsGenerator
                 continue;
             }
             droolsCode.append( '\n' );
+            droolsCode.append( "// Rule name: " ).append( rule.getName() ).append( '\n' );
             droolsCode.append( "rule \"" ).append( rule.getId() ).append( "\"\n" );
             droolsCode.append( "when\n" );
-            // TODO deal with ALL/ANY - i.e. rule.getOperator()
+            int conditionIndex = 0;
             for (SimpleCondition condition : rule.getConditions())
             {
+                droolsCode.append( "\t" );
+                if ( conditionIndex > 0 )
+                {
+                    if ( rule.getOperator() == LogicalOperator.AND )
+                    {
+                        droolsCode.append( "and " );
+                    }
+                    else
+                    {
+                        droolsCode.append( "or " );
+                    }
+                }
                 ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
-                droolsCode.append( "\t" ).append( conditionType.generateDroolsCode( condition ) );
-                droolsCode.append( ";\n" );
+                droolsCode.append( conditionType.generateDroolsCode( condition ) );
+                droolsCode.append( "\n" );
+                conditionIndex++;
             }
             droolsCode.append( "then\n" );
             for ( Action action : rule.getActions() )
             {
                 ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
                 droolsCode.append( "\t" ).append( actionType.generateDroolsCode( action ) );
-                droolsCode.append( ";\n" );
+                droolsCode.append( "\n" );
             }
             droolsCode.append( "end\n" );
         }

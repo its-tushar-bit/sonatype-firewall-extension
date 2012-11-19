@@ -42,7 +42,7 @@ public class LicenseCategoryConditionType
     @Override
     public List<String> getAvailableValues()
     {
-        // TODO Return a list of all known licenses
+        // TODO Return a list of all known license categories
         List<String> licenseCategories = new ArrayList<String>();
         licenseCategories.add( "Copyleft" );
         licenseCategories.add( "Non-Standard" );

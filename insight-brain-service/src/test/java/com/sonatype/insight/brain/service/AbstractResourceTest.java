@@ -38,10 +38,10 @@ public abstract class AbstractResourceTest
     {
         if ( service != null )
         {
-            stopAsyncAppenders();
-
             service.stop();
             service = null;
+
+            stopAsyncAppenders();
         }
     }
 

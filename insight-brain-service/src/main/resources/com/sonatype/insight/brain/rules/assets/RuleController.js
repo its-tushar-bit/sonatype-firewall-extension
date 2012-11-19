@@ -46,7 +46,7 @@ function RuleController($scope, global) {
 		var rows = grid.getSelectedRows();
 		
 		for ( var i = 0 ; i < rows.length ; i++ ) {
-			var item = grid.getDataItem(i);
+			var item = grid.getDataItem(rows[i]);
 			item.status = status;
 		}
 		
@@ -70,7 +70,7 @@ function RuleController($scope, global) {
 		var rows = grid.getSelectedRows();
 		
 		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
-			$scope.rulesTable.dataView.deleteItem($scope.rulesTable.dataView.getItemByIdx(rows).id);
+			grid.dataView.deleteItem(grid.dataView.getItemByIdx(rows[i]).id);
 		}
 	}
 	

@@ -204,5 +204,44 @@ describe('RuleController tests', function() {
 		expect(scope.state.licCatSelected).toEqual(true);
 	});
 	
+	it('validate enable and disable of rules', function(){
+		var item = {
+			id: 'id',
+			name: 'name',
+			conditions: ['condition'],
+			matchType: 'matchType',
+			action: 'action'
+		};
+		
+        var scope = {
+            //slick grid mock
+			rulesTable: {
+				getSelectedRows: function() {
+					return [1];
+				},
+				getDataItem: function(index) {
+					return item;
+				},
+				getData: function() {
+					return {
+						getItems: function() {
+							return [item];
+						}
+					}
+				}
+			}
+		};
+		
+		var controller = new RuleController(scope, {});
+		
+		scope.enableRule();
+		
+		expect(item.status).toEqual('enabled');
+		
+		scope.disableRule();
+		
+		expect(item.status).toEqual('disabled');
+	});
+	
 	//TODO: need to test the functions that access the grid, but first need to mock the grid object
 });

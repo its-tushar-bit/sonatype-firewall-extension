@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Component
@@ -55,5 +56,14 @@ public class Component
     public void setSecurityVulnerabilities( List<SecurityVulnerability> securityVulnerabilities )
     {
         this.securityVulnerabilities = securityVulnerabilities;
+    }
+
+    public void addSecurityVulnerability( SecurityVulnerability securityVulnerability )
+    {
+        if ( securityVulnerabilities == null )
+        {
+            securityVulnerabilities = new ArrayList<SecurityVulnerability>();
+        }
+        securityVulnerabilities.add( securityVulnerability );
     }
 }

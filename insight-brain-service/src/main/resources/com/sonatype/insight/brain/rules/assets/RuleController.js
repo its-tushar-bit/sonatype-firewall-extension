@@ -1,4 +1,4 @@
-function RuleController($scope, global) {
+function RuleController($scope, global, $http) {
 	$scope.state = global;
 	
 	$scope.addRule = function() {
@@ -17,6 +17,8 @@ function RuleController($scope, global) {
 		delete $scope.state.addRuleFormValid;
 		delete $scope.state.addRuleConditionFormValid;
 		delete $scope.state.addRuleId;
+		delete $scope.state.conditionOperators;
+		delete $scope.state.conditionValues;
 		
 		$scope.state.ruleConditions = [];
 		$scope.state.addRuleMatchType = 'any';
@@ -29,6 +31,10 @@ function RuleController($scope, global) {
 			value: $scope.state.addRuleValue,
 			id: ruleApp.getNextId($scope.state.ruleConditions)
 		});
+		
+		delete $scope.state.addRuleOperand;
+		delete $scope.state.addRuleOperator;
+		delete $scope.state.addRuleValue;
 		
 		$scope.validateRule();
 	}
@@ -124,13 +130,14 @@ function RuleController($scope, global) {
 	}
 	
 	$scope.ruleOperandChanged = function() {
-		delete $scope.state.secVulnCountSelected;
-		delete $scope.state.licCatSelected;
+		delete $scope.state.conditionValues;
 		
-		if ($scope.state.addRuleOperand == 'secVuln') {
-			$scope.state.secVulnCountSelected = true;
-		} else if ($scope.state.addRuleOperand == 'licCat') {
-			$scope.state.licCatSelected = true;
+		var condition = $scope.state.addRuleOperand;
+		
+		$scope.state.conditionOperators = condition.operators.slice(0);
+		
+		if (condition.values) {
+			$scope.state.conditionValues = condition.values.slice(0);
 		}
 		
 		$scope.validateRuleCondition();
@@ -149,11 +156,22 @@ function RuleController($scope, global) {
 	
 	$scope.reset();
 	
+    $http.get('/rest/policy/conditionType').success(function(data, status, headers, config) {
+    	$scope.state.conditions = [];
+    	for ( var i = 0 ; i < data.length ; i++ ){
+    		$scope.state.conditions.push({
+    			id: data[i].id,
+    			name: data[i].operandName,
+    			operators: data[i].supportedOperators,
+    			values: data[i].availableValues
+    		});
+    	}
+    });
+	
     $('#rulesTable .slick-row').live('mouseover mouseout', function (event) {
         if (event.type == 'mouseover') {
             $(this).find(".btn").show(); 
         } else {
-
              $(this).find(".btn").hide();
         }
     });

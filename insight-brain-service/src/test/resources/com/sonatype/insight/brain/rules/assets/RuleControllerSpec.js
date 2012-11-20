@@ -1,31 +1,54 @@
 describe('RuleController tests', function() {	
+	var scope;
+	
+	//setup our http backend to return what we want
+	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
+      $httpBackend = _$httpBackend_;
+      $httpBackend.expectGET('/rest/policy/conditionType').
+          respond([{
+        	  id: 'LicenseInList',
+        	  availableValues: ['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard'],
+        	  operandName: 'License',
+        	  supportedOperators: ['in', 'not in'] 
+          }, {
+        	  id: 'SecurityVulnerabilityCount',
+        	  operandName: 'Security Vulnerability Count',
+        	  supportedOperators: ['<','<=','>','>='] 
+          }]);
+
+      //inject the controller
+      scope = $rootScope.$new();
+      $controller(RuleController, {$scope: scope, global: {}});
+      $httpBackend.flush();
+    }));
+	
 	it('initial state of the controller should be applied', function() {
-		var scope = {};
-		var global = {};
+		expect(scope.state.conditions.length).toEqual(2);
+		expect(scope.state.conditions[0].id).toEqual('LicenseInList');
+		expect(scope.state.conditions[0].name).toEqual('License');
+		expect(scope.state.conditions[0].operators).toEqual(['in', 'not in']);
+		expect(scope.state.conditions[0].values).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
+		expect(scope.state.conditions[1].id).toEqual('SecurityVulnerabilityCount');
+		expect(scope.state.conditions[1].name).toEqual('Security Vulnerability Count');
+		expect(scope.state.conditions[1].operators).toEqual(['<','<=','>','>=']);
+		expect(scope.state.conditions[1].values).toEqual(null);
 		
-		var controller = new RuleController(scope, global);
-		
-		expect(scope.state).toEqual(global);
-		expect(scope.state.showAddRuleView).toBe(undefined);
-		expect(scope.state.addRuleName).toBe(undefined);
-		expect(scope.state.addRuleOperand).toBe(undefined);
-		expect(scope.state.addRuleOperator).toBe(undefined);
-		expect(scope.state.addRuleValue).toBe(undefined);
-		expect(scope.state.addRuleAction).toBe(undefined);
-		expect(scope.state.secVulnCountSelected).toBe(undefined);
-		expect(scope.state.licCatSelected).toBe(undefined);
-		expect(scope.state.addRuleFormValid).toBe(undefined);
-		expect(scope.state.addRuleConditionFormValid).toBe(undefined);
-		expect(scope.state.addRuleId).toBe(undefined);
+		expect(scope.state.showAddRuleView).toEqual(undefined);
+		expect(scope.state.addRuleName).toEqual(undefined);
+		expect(scope.state.addRuleOperand).toEqual(undefined);
+		expect(scope.state.addRuleOperator).toEqual(undefined);
+		expect(scope.state.addRuleValue).toEqual(undefined);
+		expect(scope.state.addRuleAction).toEqual(undefined);
+		expect(scope.state.secVulnCountSelected).toEqual(undefined);
+		expect(scope.state.licCatSelected).toEqual(undefined);
+		expect(scope.state.addRuleFormValid).toEqual(undefined);
+		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
+		expect(scope.state.addRuleId).toEqual(undefined);
 		expect(scope.state.ruleConditions).toEqual([]);
 		expect(scope.state.addRuleMatchType).toEqual('any');
 	});
 	
-	it('validate adding a rule', function(){
-		var scope = {};
-		
-		var controller = new RuleController(scope, {});
-		
+	it('validate adding a rule', function(){		
 		expect(scope.state.showAddRuleView).toEqual(undefined);
 		
 		scope.addRule();
@@ -38,11 +61,7 @@ describe('RuleController tests', function() {
 		expect(scope.state.showAddRuleView).toEqual(undefined);
 	});
 	
-	it('validate the rule validation', function(){
-		var scope = {};
-		
-		var controller = new RuleController(scope, {});
-		
+	it('validate the rule validation', function(){		
 		//clear the var, shouldn't be able to get in this state, but we'll validate anyway
 		delete scope.state.addRuleMatchType;
 		
@@ -72,10 +91,6 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate the rule condition validation', function(){
-        var scope = {};
-		
-		var controller = new RuleController(scope, {});
-		
 		scope.validateRuleCondition();
 		
 		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
@@ -97,10 +112,6 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate loading of rule data for edit', function(){
-        var scope = {};
-		
-		var controller = new RuleController(scope, {});
-		
 		scope.populateForEdit({
 			name: 'name',
 			action: 'action',
@@ -119,10 +130,6 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate save new rule', function(){
-        var scope = {};
-		
-		var controller = new RuleController(scope, {});
-		
 		scope.state.rules = [];
 		
 		expect(scope.state.rules.length).toEqual(0);
@@ -149,10 +156,6 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate save existing rule', function(){
-        var scope = {};
-		
-		var controller = new RuleController(scope, {});
-		
 		scope.state.rules = [{
 			id: 'id',
 			name: 'name',
@@ -184,24 +187,28 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate rule operand change behavior', function(){
-        var scope = {};
+		scope.state.addRuleOperand = {
+    	    id: 'LicenseInList',
+    	    values: ['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard'],
+    	    name: 'License',
+    	    operators: ['in', 'not in'] 
+        };
 		
-		var controller = new RuleController(scope, {});
-		
-		expect(scope.state.secVulnCountSelected).toEqual(undefined);
-		expect(scope.state.licCatSelected).toEqual(undefined);
-		
-		scope.state.addRuleOperand = 'secVuln';
 		scope.ruleOperandChanged();
 		
-		expect(scope.state.secVulnCountSelected).toEqual(true);
-		expect(scope.state.licCatSelected).toEqual(undefined);
+		expect(scope.state.conditionOperators).toEqual(['in', 'not in'])
+		expect(scope.state.conditionValues).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
 		
-		scope.state.addRuleOperand = 'licCat';
-		scope.ruleOperandChanged();
+		scope.state.addRuleOperand = {
+			id: 'SecurityVulnerabilityCount',
+	        name: 'Security Vulnerability Count',
+	        operators: ['<','<=','>','>='] 	
+		}
 		
-		expect(scope.state.secVulnCountSelected).toEqual(undefined);
-		expect(scope.state.licCatSelected).toEqual(true);
+        scope.ruleOperandChanged();
+		
+		expect(scope.state.conditionOperators).toEqual(['<','<=','>','>='])
+		expect(scope.state.conditionValues).toEqual(undefined);
 	});
 	
 	it('validate enable and disable of rules', function(){
@@ -213,26 +220,22 @@ describe('RuleController tests', function() {
 			action: 'action'
 		};
 		
-        var scope = {
-            //slick grid mock
-			rulesTable: {
-				getSelectedRows: function() {
-					return [1];
-				},
-				getDataItem: function(index) {
-					return item;
-				},
-				getData: function() {
-					return {
-						getItems: function() {
-							return [item];
-						}
+		//slickgrid mock
+        scope.rulesTable = {
+			getSelectedRows: function() {
+				return [1];
+			},
+			getDataItem: function(index) {
+				return item;
+			},
+			getData: function() {
+				return {
+					getItems: function() {
+						return [item];
 					}
 				}
 			}
 		};
-		
-		var controller = new RuleController(scope, {});
 		
 		scope.enableRule();
 		

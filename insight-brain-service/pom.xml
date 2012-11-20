@@ -301,6 +301,10 @@
             <include>RuleApp.js</include>
             <include>RuleController.js</include>
           </sourceIncludes>
+		  <specIncludes>
+		    <include>angular-mocks-1.0.2.js</include>
+		    <include>RuleControllerSpec.js</include>
+		  </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/rules/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/rules/assets</jsTestSrcDir>
         </configuration>

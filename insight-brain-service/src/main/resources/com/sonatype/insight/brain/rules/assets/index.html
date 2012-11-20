@@ -109,28 +109,12 @@
 							<div class='control-group'>
 								<label class='control-label'>Conditions</label>
 								<div class='controls' style='text-align:left'>
-									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()">
-										<option value='secVuln'>Security Vulnerability Count</option>
-										<option value='licCat'>License Category</option>
+									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()" ng-options="c.name for c in state.conditions">
 									</select>
-									<select ng-model="state.addRuleOperator" ng-show="state.secVulnCountSelected" ng-change="validateRuleCondition()">
-										<option value="equal">==&nbsp;&nbsp; Equal to</option>
-										<option value="notEqual">!=&nbsp; Not equal to</option>
-										<option value="lessThan">&lt;&nbsp;&nbsp; Less than</option>
-										<option value="lessThanEqual">&lt;= Less than or equal to</option>
-										<option value="greaterThan">&gt;&nbsp;&nbsp; Greater than</option>
-										<option value="greaterThanEqual">&gt;= Greater than or equal to</option>
+									<select ng-model="state.addRuleOperator" ng-show="state.addRuleOperand" ng-change="validateRuleCondition()" ng-options="c for c in state.conditionOperators">
 									</select>
-									<select ng-model="state.addRuleOperator" ng-show="state.licCatSelected" ng-change="validateRuleCondition()">
-										<option value="equal">==&nbsp;&nbsp; Equal to</option>
-										<option value="notEqual">!=&nbsp; Not equal to</option>
-									</select>
-									<input type="text" ng-model="state.addRuleValue" placeholder='Enter Value...' ng-show="state.secVulnCountSelected" ng-change="validateRuleCondition()"></input>
-									<select ng-model="state.addRuleValue" ng-show="state.licCatSelected" ng-change="validateRuleCondition()">
-										<option value="copyLeft">Copyleft</option>
-										<option value="nonStandard">Non-Standard</option>
-										<option value="weakCopyLeft">Weak Copyleft</option>
-										<option value="liberal">Liberal</option>
+									<input type="text" ng-model="state.addRuleValue" placeholder='Enter Value...' ng-show="state.addRuleOperand && !state.conditionValues" ng-change="validateRuleCondition()"></input>
+									<select ng-model="state.addRuleValue" ng-show="state.addRuleOperand && state.conditionValues" ng-change="validateRuleCondition()" ng-options="c for c in state.conditionValues">
 									</select>
 									<button type='none' class='btn btn-primary' ng-click="addRuleCondition()" ng-disabled="!state.addRuleConditionFormValid">Add</button>
 								</div>

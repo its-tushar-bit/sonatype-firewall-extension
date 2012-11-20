@@ -54,10 +54,18 @@ var SlickGridComponent = function() {
             });
 
             var redraw = function(newScopeData) {
-            	dataView.beginUpdate();
-            	dataView.setItems(newScopeData);
-            	dataView.endUpdate();
-                grid.invalidate();
+            	if (newScopeData) {
+	            	var now = new Date().getTime();
+	            	for ( var i = 0 ; i < newScopeData.length ; i++ ) {
+	            		if (!newScopeData[i].id) {
+	            			newScopeData[i].id = '' + (now + i);
+	            		}
+	            	}
+	            	dataView.beginUpdate();
+	            	dataView.setItems(newScopeData);
+	            	dataView.endUpdate();
+	                grid.invalidate();
+            	}
                 
                 if (dataView.getLength() == 0) {
                 	showEmptyMessage();

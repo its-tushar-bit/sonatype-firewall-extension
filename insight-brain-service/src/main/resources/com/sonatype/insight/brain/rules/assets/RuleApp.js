@@ -74,11 +74,3 @@ ruleApp.factory('global', function($rootScope) {
 });
 
 ruleApp.directive('slickgrid', SlickGridComponent);
-
-ruleApp.getNextId = function(data) {
-	if (!data || data.length < 1) {
-		return '1';
-	}
-	
-	return '' + (parseInt(data[data.length - 1].id) + 1);
-}

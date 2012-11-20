@@ -19,15 +19,14 @@ function RuleController($scope, global, $http, $location) {
 		delete $scope.state.conditionValues;
 		
 		$scope.state.ruleConditions = [];
-		$scope.state.addRuleMatchType = 'any';
+		$scope.state.addRuleMatchType = 'OR';
 	}
 	
 	$scope.addRuleCondition = function() {
 		$scope.state.ruleConditions.push({
 			operand: $scope.state.addRuleOperand,
 			operator: $scope.state.addRuleOperator,
-			value: $scope.state.addRuleValue,
-			id: ruleApp.getNextId($scope.state.ruleConditions)
+			value: $scope.state.addRuleValue
 		});
 		
 		delete $scope.state.addRuleOperand;
@@ -35,6 +34,7 @@ function RuleController($scope, global, $http, $location) {
 		delete $scope.state.addRuleValue;
 		
 		$scope.validateRule();
+		$scope.validateRuleCondition();
 	}
 	
 	$scope.enableRule = function() {
@@ -83,29 +83,55 @@ function RuleController($scope, global, $http, $location) {
 	}
 	
 	$scope.saveRule = function() {
-		//edit
-		if ($scope.state.addRuleId) {
-			for ( var i = 0 ; i < $scope.state.rules.length ; i++ ) {
-				if ( $scope.state.rules[i].id == $scope.state.addRuleId) {
-					$scope.state.rules[i].name = $scope.state.addRuleName;
-					$scope.state.rules[i].conditions = $scope.state.ruleConditions.slice(0);
-					$scope.state.rules[i].matchType = $scope.state.addRuleMatchType;
-					$scope.state.rules[i].action = $scope.state.addRuleAction;
-					break;
-				}
-			}
-		} else {
-			$scope.state.rules.push({
-			    name: $scope.state.addRuleName,
-			    conditions: $scope.state.ruleConditions.slice(0),
-			    matchType: $scope.state.addRuleMatchType,
-			    action: $scope.state.addRuleAction,
-			    status: 'enabled',
-			    id: ruleApp.getNextId($scope.state.rules)
-			});	
-		}
+		var data = {
+    		name: $scope.state.addRuleName,
+			operator: $scope.state.addRuleMatchType,
+			actions: [{
+				actionTypeId: $scope.state.addRuleAction.id
+			}],
+			conditions: [],
+			enabled: true
+	    };
 		
-		$scope.reset();
+		for ( var i = 0 ; i < $scope.state.ruleConditions.length ; i++ ){
+	    	data.conditions.push({
+	    		conditionTypeId: $scope.state.ruleConditions[i].operand.id,
+	    		operator: $scope.state.ruleConditions[i].operator,
+	    		value: $scope.state.ruleConditions[i].value
+	    	});
+	    }
+		
+		//edit
+		if ($scope.state.addRuleId) {	
+			data.id = $scope.state.addRuleId;
+		    
+			$http.put('/rest/policy/rule/' + $location.search().appId,data).success(function(data, status, headers, config){
+				for ( var i = 0 ; i < $scope.state.rules.length ; i++ ) {
+					if ( $scope.state.rules[i].id == $scope.state.addRuleId) {
+						$scope.state.rules[i].name = $scope.state.addRuleName;
+						$scope.state.rules[i].conditions = $scope.state.ruleConditions.slice(0);
+						$scope.state.rules[i].matchType = $scope.state.addRuleMatchType;
+						$scope.state.rules[i].action = $scope.state.addRuleAction;
+						break;
+					}
+				}
+				
+				$scope.reset();
+			});
+		} else {		    
+			$http.post('/rest/policy/rule/' + $location.search().appId,data).success(function(data, status, headers, config){
+				$scope.state.rules.push({
+				    name: $scope.state.addRuleName,
+				    conditions: $scope.state.ruleConditions.slice(0),
+				    matchType: $scope.state.addRuleMatchType,
+				    action: $scope.state.addRuleAction,
+				    status: 'enabled',
+				    id: data.id
+				});	
+				
+				$scope.reset();
+			});
+		}
 	}
 	
 	$scope.validateRule = function() {
@@ -154,7 +180,7 @@ function RuleController($scope, global, $http, $location) {
 	
 	$scope.reset();
 	
-	//chaining these requests together as the rule list requires requires the responses for condition/alert types to have already been received
+	//chaining these requests together as the rule list requires the responses for condition/alert types to have already been received
     $http.get('/rest/policy/conditionType').success(function(data, status, headers, config) {
     	$scope.state.conditionTypes = [];
     	for ( var i = 0 ; i < data.length ; i++ ){
@@ -177,14 +203,14 @@ function RuleController($scope, global, $http, $location) {
         	}
         	
         	$scope.state.rules = [];
-            $http.get('rest/policy/rule/' + $location.search().appId).success(function(data, status, headers, config) {
+            $http.get('/rest/policy/rule/' + $location.search().appId).success(function(data, status, headers, config) {
             	$scope.state.rules = [];
 
             	for ( var i = 0 ; i < data.length ; i++ ){
             		var newRule = {
         				name: data[i].name,
             			conditions: [],
-            			matchType: (data[i].operator == 'AND' ? 'all' : 'any'),
+            			matchType: data[i].operator,
             			status: (data[i].enabled ? 'enabled' : 'disabled'),
             			id: data[i].id
             		};

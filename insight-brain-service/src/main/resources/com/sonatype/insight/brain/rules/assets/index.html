@@ -123,11 +123,11 @@
 							    <div class='controls'>
 							        <slickgrid id="ruleConditionsTable" style="height:100px;" data="state.ruleConditions" table-def="state.ruleConditionsTableDef"></slickgrid>
 							        <label class="radio inline">
-									    <input type="radio" ng-model="state.addRuleMatchType" value="any" ng-change="validateRule()">
+									    <input type="radio" ng-model="state.addRuleMatchType" value="OR" ng-change="validateRule()">
 									    Any one Condition met
 									</label>
 									<label class="radio inline">
-									    <input type="radio" ng-model="state.addRuleMatchType" value="all" ng-change="validateRule()">
+									    <input type="radio" ng-model="state.addRuleMatchType" value="AND" ng-change="validateRule()">
 									    All Conditions met
 									</label>
 							    </div>

@@ -1,8 +1,9 @@
 describe('RuleController tests', function() {	
-	var scope;
+	var scope, $httpBackend, $location;
 	
 	//setup our http backend to return what we want
-	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller, $location) {
+	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller, _$location_) {
+	  $location = _$location_;
 	  $location.search('appId','myAppId');
       $httpBackend = _$httpBackend_;
       $httpBackend.expectGET('/rest/policy/conditionType').
@@ -25,7 +26,7 @@ describe('RuleController tests', function() {
         	  id: 'MarkAsFailed',
         	  name: 'Mark as failed'
           }]);
-      $httpBackend.expectGET('rest/policy/rule/' + $location.search().appId).
+      $httpBackend.expectGET('/rest/policy/rule/' + $location.search().appId).
           respond([{
         	  id: 'ruleId1',
         	  name: 'ruleId1',
@@ -89,11 +90,11 @@ describe('RuleController tests', function() {
 		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
 		expect(scope.state.addRuleId).toEqual(undefined);
 		expect(scope.state.ruleConditions).toEqual([]);
-		expect(scope.state.addRuleMatchType).toEqual('any');
+		expect(scope.state.addRuleMatchType).toEqual('OR');
 		expect(scope.state.rules.length).toEqual(2);
 		expect(scope.state.rules[0].id).toEqual('ruleId1');
 		expect(scope.state.rules[0].name).toEqual('ruleId1');
-		expect(scope.state.rules[0].matchType).toEqual('all');
+		expect(scope.state.rules[0].matchType).toEqual('AND');
 		expect(scope.state.rules[0].status).toEqual('enabled');
 		expect(scope.state.rules[0].action).toEqual(scope.state.actionTypes[1]);
 		expect(scope.state.rules[0].conditions.length).toEqual(1);
@@ -102,7 +103,7 @@ describe('RuleController tests', function() {
 		expect(scope.state.rules[0].conditions[0].value).toEqual('Not Provided');
 		expect(scope.state.rules[1].id).toEqual('ruleId2');
 		expect(scope.state.rules[1].name).toEqual('ruleId2');
-		expect(scope.state.rules[1].matchType).toEqual('any');
+		expect(scope.state.rules[1].matchType).toEqual('OR');
 		expect(scope.state.rules[1].status).toEqual('disabled');
 		expect(scope.state.rules[1].action).toEqual(scope.state.actionTypes[0]);
 		expect(scope.state.rules[1].conditions.length).toEqual(1);
@@ -193,58 +194,137 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate save new rule', function(){
+		$httpBackend.expectPOST('/rest/policy/rule/' + $location.search().appId, {
+	    	  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: true
+	      }).respond({
+	    	  id: 'ruleId3',
+	    	  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: true
+	      });
+		
 		scope.state.rules = [];
 		
 		expect(scope.state.rules.length).toEqual(0);
 		
-		scope.state.addRuleName = 'name';
-		scope.state.addRuleAction = 'action';
-		scope.state.addRuleMatchType = 'matchType';
-		scope.state.ruleConditions = ['condition'];
+		scope.state.addRuleName = 'ruleId3';
+		scope.state.addRuleAction = scope.state.actionTypes[1];
+		scope.state.addRuleMatchType = 'AND';
+		scope.state.ruleConditions = [{
+			operand: scope.state.conditionTypes[0],
+			operator: 'in',
+			value: 'Not Provided'
+		}];
 		
 		scope.saveRule();
 		
+		$httpBackend.flush();
+		
 		expect(scope.state.rules.length).toEqual(1);
-		expect(scope.state.rules[0].name).toEqual('name');
-		expect(scope.state.rules[0].action).toEqual('action');
-		expect(scope.state.rules[0].matchType).toEqual('matchType');
-		expect(scope.state.rules[0].conditions).toEqual(['condition']);
-		expect(scope.state.rules[0].id).toEqual('1');
+		expect(scope.state.rules[0].name).toEqual('ruleId3');
+		expect(scope.state.rules[0].action).toEqual(scope.state.actionTypes[1]);
+		expect(scope.state.rules[0].matchType).toEqual('AND');
+		expect(scope.state.rules[0].conditions).toEqual([{
+			operand: scope.state.conditionTypes[0],
+			operator: 'in',
+			value: 'Not Provided'
+		}]);
+		expect(scope.state.rules[0].id).toEqual('ruleId3');
 		expect(scope.state.addRuleName).toEqual(undefined);
 		expect(scope.state.addRuleAction).toEqual(undefined);
 		//any is the default, doesn't get into undefined state
-		expect(scope.state.addRuleMatchType).toEqual('any');
+		expect(scope.state.addRuleMatchType).toEqual('OR');
 		expect(scope.state.ruleConditions).toEqual([]);
 		expect(scope.state.addRuleId).toEqual(undefined);
 	});
 	
 	it('validate save existing rule', function(){
+		$httpBackend.expectPUT('/rest/policy/rule/' + $location.search().appId, {
+			  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: true,
+	    	  id: 'ruleId3'
+	      }).respond({
+	    	  id: 'ruleId3',
+	    	  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: true
+	      });
+		
 		scope.state.rules = [{
-			id: 'id',
+			id: 'ruleId3',
 			name: 'name',
-			conditions: ['condition'],
-			matchType: 'matchType',
-			action: 'action'
+			conditions: [{
+				operand: scope.state.conditionTypes[0],
+				operator: 'in',
+				value: 'Not Provided'
+			}],
+			matchType: 'AND',
+			action: scope.state.actionTypes[1]
 		}];
 		
-		scope.state.addRuleId = 'id',
-		scope.state.addRuleName = 'name2';
-		scope.state.addRuleAction = 'action2';
-		scope.state.addRuleMatchType = 'matchType2';
-		scope.state.ruleConditions = ['condition2'];
+		scope.state.addRuleId = 'ruleId3',
+		scope.state.addRuleName = 'ruleId3';
+		scope.state.addRuleAction = scope.state.actionTypes[1]
+		scope.state.addRuleMatchType = 'AND';
+		scope.state.ruleConditions = [{
+			operand: scope.state.conditionTypes[0],
+			operator: 'in',
+			value: 'Not Provided'
+		}];
 		
 		scope.saveRule();
 		
+		$httpBackend.flush();
+		
 		expect(scope.state.rules.length).toEqual(1);
-		expect(scope.state.rules[0].name).toEqual('name2');
-		expect(scope.state.rules[0].action).toEqual('action2');
-		expect(scope.state.rules[0].matchType).toEqual('matchType2');
-		expect(scope.state.rules[0].conditions).toEqual(['condition2']);
-		expect(scope.state.rules[0].id).toEqual('id');
+		expect(scope.state.rules[0].name).toEqual('ruleId3');
+		expect(scope.state.rules[0].action).toEqual(scope.state.actionTypes[1]);
+		expect(scope.state.rules[0].matchType).toEqual('AND');
+		expect(scope.state.rules[0].conditions).toEqual([{
+			operand: scope.state.conditionTypes[0],
+			operator: 'in',
+			value: 'Not Provided'
+		}]);
+		expect(scope.state.rules[0].id).toEqual('ruleId3');
 		expect(scope.state.addRuleName).toEqual(undefined);
 		expect(scope.state.addRuleAction).toEqual(undefined);
 		//any is the default, doesn't get into undefined state
-		expect(scope.state.addRuleMatchType).toEqual('any');
+		expect(scope.state.addRuleMatchType).toEqual('OR');
 		expect(scope.state.ruleConditions).toEqual([]);
 		expect(scope.state.addRuleId).toEqual(undefined);
 	});

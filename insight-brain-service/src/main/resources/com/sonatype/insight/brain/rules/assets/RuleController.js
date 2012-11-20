@@ -12,8 +12,6 @@ function RuleController($scope, global, $http) {
 		delete $scope.state.addRuleOperator;
 		delete $scope.state.addRuleValue;
 		delete $scope.state.addRuleAction;
-		delete $scope.state.secVulnCountSelected;
-		delete $scope.state.licCatSelected;
 		delete $scope.state.addRuleFormValid;
 		delete $scope.state.addRuleConditionFormValid;
 		delete $scope.state.addRuleId;
@@ -157,12 +155,23 @@ function RuleController($scope, global, $http) {
 	$scope.reset();
 	
     $http.get('/rest/policy/conditionType').success(function(data, status, headers, config) {
-    	$scope.state.conditions = [];
+    	$scope.state.conditionTypes = [];
     	for ( var i = 0 ; i < data.length ; i++ ){
-    		$scope.state.conditions.push({
+    		$scope.state.conditionTypes.push({
     			id: data[i].id,
     			name: data[i].operandName,
     			operators: data[i].supportedOperators,
+    			values: data[i].availableValues
+    		});
+    	}
+    });
+    
+    $http.get('/rest/policy/actionType').success(function(data, status, headers, config) {
+    	$scope.state.actionTypes = [];
+    	for ( var i = 0 ; i < data.length ; i++ ){
+    		$scope.state.actionTypes.push({
+    			id: data[i].id,
+    			name: data[i].name,
     			values: data[i].availableValues
     		});
     	}

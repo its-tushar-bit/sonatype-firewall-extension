@@ -15,6 +15,15 @@ describe('RuleController tests', function() {
         	  operandName: 'Security Vulnerability Count',
         	  supportedOperators: ['<','<=','>','>='] 
           }]);
+      $httpBackend.expectGET('/rest/policy/actionType').
+          respond([{
+        	  id: 'AddLabel',
+        	  name: 'Add label',
+        	  availableValues: ['Whitelist','Blacklist','Big no-no','Must have']
+          },{
+        	  id: 'MarkAsFailed',
+        	  name: 'Mark as failed'
+          }]);
 
       //inject the controller
       scope = $rootScope.$new();
@@ -23,15 +32,23 @@ describe('RuleController tests', function() {
     }));
 	
 	it('initial state of the controller should be applied', function() {
-		expect(scope.state.conditions.length).toEqual(2);
-		expect(scope.state.conditions[0].id).toEqual('LicenseInList');
-		expect(scope.state.conditions[0].name).toEqual('License');
-		expect(scope.state.conditions[0].operators).toEqual(['in', 'not in']);
-		expect(scope.state.conditions[0].values).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
-		expect(scope.state.conditions[1].id).toEqual('SecurityVulnerabilityCount');
-		expect(scope.state.conditions[1].name).toEqual('Security Vulnerability Count');
-		expect(scope.state.conditions[1].operators).toEqual(['<','<=','>','>=']);
-		expect(scope.state.conditions[1].values).toEqual(null);
+		expect(scope.state.conditionTypes.length).toEqual(2);
+		expect(scope.state.conditionTypes[0].id).toEqual('LicenseInList');
+		expect(scope.state.conditionTypes[0].name).toEqual('License');
+		expect(scope.state.conditionTypes[0].operators).toEqual(['in', 'not in']);
+		expect(scope.state.conditionTypes[0].values).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
+		expect(scope.state.conditionTypes[1].id).toEqual('SecurityVulnerabilityCount');
+		expect(scope.state.conditionTypes[1].name).toEqual('Security Vulnerability Count');
+		expect(scope.state.conditionTypes[1].operators).toEqual(['<','<=','>','>=']);
+		expect(scope.state.conditionTypes[1].values).toEqual(null);
+		
+		expect(scope.state.actionTypes.length).toEqual(2);
+		expect(scope.state.actionTypes[0].id).toEqual('AddLabel');
+		expect(scope.state.actionTypes[0].name).toEqual('Add label');
+		expect(scope.state.actionTypes[0].values).toEqual(['Whitelist','Blacklist','Big no-no','Must have']);
+		expect(scope.state.actionTypes[1].id).toEqual('MarkAsFailed');
+		expect(scope.state.actionTypes[1].name).toEqual('Mark as failed');
+		expect(scope.state.actionTypes[1].values).toEqual(null);
 		
 		expect(scope.state.showAddRuleView).toEqual(undefined);
 		expect(scope.state.addRuleName).toEqual(undefined);
@@ -39,8 +56,6 @@ describe('RuleController tests', function() {
 		expect(scope.state.addRuleOperator).toEqual(undefined);
 		expect(scope.state.addRuleValue).toEqual(undefined);
 		expect(scope.state.addRuleAction).toEqual(undefined);
-		expect(scope.state.secVulnCountSelected).toEqual(undefined);
-		expect(scope.state.licCatSelected).toEqual(undefined);
 		expect(scope.state.addRuleFormValid).toEqual(undefined);
 		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
 		expect(scope.state.addRuleId).toEqual(undefined);

@@ -109,7 +109,7 @@
 							<div class='control-group'>
 								<label class='control-label'>Conditions</label>
 								<div class='controls' style='text-align:left'>
-									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()" ng-options="c.name for c in state.conditions">
+									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()" ng-options="c.name for c in state.conditionTypes">
 									</select>
 									<select ng-model="state.addRuleOperator" ng-show="state.addRuleOperand" ng-change="validateRuleCondition()" ng-options="c for c in state.conditionOperators">
 									</select>
@@ -135,9 +135,8 @@
 							<div class='control-group'>
 							    <label class='control-label'>Action</label>
 								<div class='controls' style='text-align:left'>
-   									<select ng-model="state.addRuleAction" ng-change="validateRule()">
-    									<option value="failBuild">Fail the Build</option>
-				    				</select>
+								    <select ng-model="state.addRuleAction" ng-change="validateRule()" ng-options="c.name for c in state.actionTypes">
+									</select>
 								</div>
 							</div>
 							<div class='control-group'>

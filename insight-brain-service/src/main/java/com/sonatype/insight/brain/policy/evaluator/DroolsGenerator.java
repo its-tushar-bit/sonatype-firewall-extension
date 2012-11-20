@@ -61,7 +61,7 @@ public class DroolsGenerator
             for ( Action action : rule.getActions() )
             {
                 ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
-                droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) );
+                droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) ).append( ";" );
                 droolsCode.append( "\n" );
             }
             droolsCode.append( "end\n" );

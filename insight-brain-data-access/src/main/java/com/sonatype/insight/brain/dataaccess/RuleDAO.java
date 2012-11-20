@@ -14,12 +14,16 @@ import java.util.UUID;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.rule.Rule;
 
 public class RuleDAO
 {
     public static final String RULE_FILENAME = "rule.json";
+
+    private static final Logger log = LoggerFactory.getLogger( RuleDAO.class );
 
     private final File dataStoreDir;
 
@@ -31,6 +35,7 @@ public class RuleDAO
     public List<Rule> getByApplicationId( String applicationId )
     {
         File ruleFile = getRuleFile( applicationId );
+        log.debug( "Loading rules from {}", ruleFile.getAbsolutePath() );
         return loadJson( ruleFile );
     }
 

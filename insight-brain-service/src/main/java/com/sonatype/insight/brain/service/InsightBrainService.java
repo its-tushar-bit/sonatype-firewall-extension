@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import com.google.common.cache.CacheBuilderSpec;
 import com.sonatype.insight.brain.data.DataResource;
 import com.sonatype.insight.brain.legacy.BCResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluatorResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.rule.ActionTypeResource;
 import com.sonatype.insight.brain.rule.ConditionTypeResource;
@@ -47,6 +48,7 @@ public class InsightBrainService
         env.addResource( ActionTypeResource.class );
         env.addResource( ConditionTypeResource.class );
         env.addResource( DataResource.class );
+        env.addResource( PolicyEvaluatorResource.class );
         env.addResource( ReportResource.class );
         env.addResource( RuleResource.class );
         env.addResource( BCResource.class );

@@ -7,11 +7,15 @@ package com.sonatype.insight.brain.model.component;
 
 public class PolicyFact
 {
-    private final Component component;
+    private Component component;
 
-    private final String ruleId;
+    private String ruleId;
 
-    private final String kind;
+    private String kind;
+
+    public PolicyFact()
+    {
+    }
 
     public PolicyFact( Component component, String ruleId, String kind )
     {

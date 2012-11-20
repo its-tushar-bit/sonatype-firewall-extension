@@ -58,4 +58,10 @@ public class LicenseCategoryConditionType
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public boolean requiresValue()
+    {
+        return true;
+    }
 }

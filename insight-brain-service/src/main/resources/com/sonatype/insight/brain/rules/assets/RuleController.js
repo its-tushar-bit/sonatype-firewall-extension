@@ -1,4 +1,4 @@
-function RuleController($scope, global, $http) {
+function RuleController($scope, global, $http, $location) {
 	$scope.state = global;
 	
 	$scope.addRule = function() {
@@ -154,6 +154,7 @@ function RuleController($scope, global, $http) {
 	
 	$scope.reset();
 	
+	//chaining these requests together as the rule list requires requires the responses for condition/alert types to have already been received
     $http.get('/rest/policy/conditionType').success(function(data, status, headers, config) {
     	$scope.state.conditionTypes = [];
     	for ( var i = 0 ; i < data.length ; i++ ){
@@ -164,17 +165,59 @@ function RuleController($scope, global, $http) {
     			values: data[i].availableValues
     		});
     	}
-    });
-    
-    $http.get('/rest/policy/actionType').success(function(data, status, headers, config) {
-    	$scope.state.actionTypes = [];
-    	for ( var i = 0 ; i < data.length ; i++ ){
-    		$scope.state.actionTypes.push({
-    			id: data[i].id,
-    			name: data[i].name,
-    			values: data[i].availableValues
-    		});
-    	}
+    	
+    	$http.get('/rest/policy/actionType').success(function(data, status, headers, config) {
+        	$scope.state.actionTypes = [];
+        	for ( var i = 0 ; i < data.length ; i++ ){
+        		$scope.state.actionTypes.push({
+        			id: data[i].id,
+        			name: data[i].name,
+        			values: data[i].availableValues
+        		});
+        	}
+        	
+        	$scope.state.rules = [];
+            $http.get('rest/policy/rule/' + $location.search().appId).success(function(data, status, headers, config) {
+            	$scope.state.rules = [];
+
+            	for ( var i = 0 ; i < data.length ; i++ ){
+            		var newRule = {
+        				name: data[i].name,
+            			conditions: [],
+            			matchType: (data[i].operator == 'AND' ? 'all' : 'any'),
+            			status: (data[i].enabled ? 'enabled' : 'disabled'),
+            			id: data[i].id
+            		};
+            		
+            		for ( var j = 0 ; j < data[i].conditions.length ; j++ ){
+            			for ( var k = 0 ; k < $scope.state.conditionTypes.length ; k++ ){
+            				if ( $scope.state.conditionTypes[k].id == data[i].conditions[j].conditionTypeId ){
+            					newRule.conditions.push({
+            	    				operand: $scope.state.conditionTypes[k],
+            	    				operator: data[i].conditions[j].operator,
+            	    				value: data[i].conditions[j].value,
+            	    				id: data[i].conditions[j].id
+            	    			});
+            					break;
+            				}
+            			}
+            		}
+            		
+            		//TODO: server currently supports multiple actions, UI only a single action
+            		//this will be remedied at some point
+            		for ( var j = 0 ; j < data[i].actions.length && j < 1; j++ ){
+            			for ( var k = 0 ; k < $scope.state.actionTypes.length ; k++ ){
+            				if ( $scope.state.actionTypes[k].id == data[i].actions[j].actionTypeId ){
+            					newRule.action = $scope.state.actionTypes[k]
+            					break;
+            				}
+            			} 
+            		}
+            		
+            		$scope.state.rules.push(newRule);
+            	}
+            });
+        });
     });
 	
     $('#rulesTable .slick-row').live('mouseover mouseout', function (event) {

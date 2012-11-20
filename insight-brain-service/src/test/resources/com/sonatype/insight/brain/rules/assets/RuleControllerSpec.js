@@ -2,7 +2,8 @@ describe('RuleController tests', function() {
 	var scope;
 	
 	//setup our http backend to return what we want
-	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
+	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller, $location) {
+	  $location.search('appId','myAppId');
       $httpBackend = _$httpBackend_;
       $httpBackend.expectGET('/rest/policy/conditionType').
           respond([{
@@ -23,6 +24,34 @@ describe('RuleController tests', function() {
           },{
         	  id: 'MarkAsFailed',
         	  name: 'Mark as failed'
+          }]);
+      $httpBackend.expectGET('rest/policy/rule/' + $location.search().appId).
+          respond([{
+        	  id: 'ruleId1',
+        	  name: 'ruleId1',
+        	  operator: 'AND',
+        	  enabled: true,
+        	  actions: [{
+        		  actionTypeId: 'MarkAsFailed'
+        	  }],
+        	  conditions: [{
+        		  conditionTypeId: 'LicenseInList',
+        		  operator: 'in',
+        		  value: 'Not Provided'
+        	  }]
+          },{
+        	  id: 'ruleId2',
+        	  name: 'ruleId2',
+        	  operator: 'OR',
+        	  enabled: false,
+        	  actions: [{
+        		  actionTypeId: 'AddLabel'
+        	  }],
+        	  conditions: [{
+        		  conditionTypeId: 'SecurityVulnerabilityCount',
+        		  operator: '<',
+        		  value: '25'
+        	  }]
           }]);
 
       //inject the controller
@@ -61,6 +90,25 @@ describe('RuleController tests', function() {
 		expect(scope.state.addRuleId).toEqual(undefined);
 		expect(scope.state.ruleConditions).toEqual([]);
 		expect(scope.state.addRuleMatchType).toEqual('any');
+		expect(scope.state.rules.length).toEqual(2);
+		expect(scope.state.rules[0].id).toEqual('ruleId1');
+		expect(scope.state.rules[0].name).toEqual('ruleId1');
+		expect(scope.state.rules[0].matchType).toEqual('all');
+		expect(scope.state.rules[0].status).toEqual('enabled');
+		expect(scope.state.rules[0].action).toEqual(scope.state.actionTypes[1]);
+		expect(scope.state.rules[0].conditions.length).toEqual(1);
+		expect(scope.state.rules[0].conditions[0].operand).toEqual(scope.state.conditionTypes[0]);
+		expect(scope.state.rules[0].conditions[0].operator).toEqual('in');
+		expect(scope.state.rules[0].conditions[0].value).toEqual('Not Provided');
+		expect(scope.state.rules[1].id).toEqual('ruleId2');
+		expect(scope.state.rules[1].name).toEqual('ruleId2');
+		expect(scope.state.rules[1].matchType).toEqual('any');
+		expect(scope.state.rules[1].status).toEqual('disabled');
+		expect(scope.state.rules[1].action).toEqual(scope.state.actionTypes[0]);
+		expect(scope.state.rules[1].conditions.length).toEqual(1);
+		expect(scope.state.rules[1].conditions[0].operand).toEqual(scope.state.conditionTypes[1]);
+		expect(scope.state.rules[1].conditions[0].operator).toEqual('<');
+		expect(scope.state.rules[1].conditions[0].value).toEqual('25');
 	});
 	
 	it('validate adding a rule', function(){		

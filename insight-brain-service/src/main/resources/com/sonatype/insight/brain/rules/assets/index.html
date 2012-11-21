@@ -109,12 +109,12 @@
 							<div class='control-group'>
 								<label class='control-label'>Conditions</label>
 								<div class='controls' style='text-align:left'>
-									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()" ng-options="c.name for c in state.conditionTypes">
+									<select ng-model="state.addRuleOperand" ng-change="ruleOperandChanged()" ng-options="c.operandName for c in state.conditionTypes">
 									</select>
-									<select ng-model="state.addRuleOperator" ng-show="state.addRuleOperand" ng-change="validateRuleCondition()" ng-options="c for c in state.conditionOperators">
+									<select ng-model="state.addRuleOperator" ng-show="state.addRuleOperand" ng-change="validateRuleCondition()" ng-options="c for c in state.addRuleOperand.supportedOperators">
 									</select>
-									<input type="text" ng-model="state.addRuleValue" placeholder='Enter Value...' ng-show="state.addRuleOperand && !state.conditionValues" ng-change="validateRuleCondition()"></input>
-									<select ng-model="state.addRuleValue" ng-show="state.addRuleOperand && state.conditionValues" ng-change="validateRuleCondition()" ng-options="c for c in state.conditionValues">
+									<input type="text" ng-model="state.addRuleValue" placeholder='Enter Value...' ng-show="state.addRuleOperand && state.addRuleOperand.requiresValue && !state.addRuleOperand.availableValues" ng-change="validateRuleCondition()"></input>
+									<select ng-model="state.addRuleValue" ng-show="state.addRuleOperand && state.addRuleOperand.requiresValue && state.addRuleOperand.availableValues" ng-change="validateRuleCondition()" ng-options="c for c in state.addRuleOperand.availableValues">
 									</select>
 									<button type='none' class='btn btn-primary' ng-click="addRuleCondition()" ng-disabled="!state.addRuleConditionFormValid">Add</button>
 								</div>

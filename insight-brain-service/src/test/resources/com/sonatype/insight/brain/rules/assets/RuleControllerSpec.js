@@ -11,7 +11,8 @@ describe('RuleController tests', function() {
         	  id: 'LicenseInList',
         	  availableValues: ['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard'],
         	  operandName: 'License',
-        	  supportedOperators: ['in', 'not in'] 
+        	  supportedOperators: ['in', 'not in'],
+        	  requiresValue: true
           }, {
         	  id: 'SecurityVulnerabilityCount',
         	  operandName: 'Security Vulnerability Count',
@@ -64,21 +65,22 @@ describe('RuleController tests', function() {
 	it('initial state of the controller should be applied', function() {
 		expect(scope.state.conditionTypes.length).toEqual(2);
 		expect(scope.state.conditionTypes[0].id).toEqual('LicenseInList');
-		expect(scope.state.conditionTypes[0].name).toEqual('License');
-		expect(scope.state.conditionTypes[0].operators).toEqual(['in', 'not in']);
-		expect(scope.state.conditionTypes[0].values).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
+		expect(scope.state.conditionTypes[0].operandName).toEqual('License');
+		expect(scope.state.conditionTypes[0].supportedOperators).toEqual(['in', 'not in']);
+		expect(scope.state.conditionTypes[0].availableValues).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
+		expect(scope.state.conditionTypes[0].requiresValue).toEqual(true);
 		expect(scope.state.conditionTypes[1].id).toEqual('SecurityVulnerabilityCount');
-		expect(scope.state.conditionTypes[1].name).toEqual('Security Vulnerability Count');
-		expect(scope.state.conditionTypes[1].operators).toEqual(['<','<=','>','>=']);
-		expect(scope.state.conditionTypes[1].values).toEqual(null);
+		expect(scope.state.conditionTypes[1].operandName).toEqual('Security Vulnerability Count');
+		expect(scope.state.conditionTypes[1].supportedOperators).toEqual(['<','<=','>','>=']);
+		expect(scope.state.conditionTypes[1].availableValues).toEqual(null);
 		
 		expect(scope.state.actionTypes.length).toEqual(2);
 		expect(scope.state.actionTypes[0].id).toEqual('AddLabel');
 		expect(scope.state.actionTypes[0].name).toEqual('Add label');
-		expect(scope.state.actionTypes[0].values).toEqual(['Whitelist','Blacklist','Big no-no','Must have']);
+		expect(scope.state.actionTypes[0].availableValues).toEqual(['Whitelist','Blacklist','Big no-no','Must have']);
 		expect(scope.state.actionTypes[1].id).toEqual('MarkAsFailed');
 		expect(scope.state.actionTypes[1].name).toEqual('Mark as failed');
-		expect(scope.state.actionTypes[1].values).toEqual(null);
+		expect(scope.state.actionTypes[1].availableValues).toEqual(null);
 		
 		expect(scope.state.showAddRuleView).toEqual(undefined);
 		expect(scope.state.addRuleName).toEqual(undefined);
@@ -159,7 +161,7 @@ describe('RuleController tests', function() {
 		
 		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
 		
-		scope.state.addRuleOperand = 'something';
+		scope.state.addRuleOperand = scope.state.conditionTypes[0];
 		scope.validateRuleCondition();
 		
 		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
@@ -171,6 +173,12 @@ describe('RuleController tests', function() {
 		
 		scope.state.addRuleValue = 'something';
         scope.validateRuleCondition();
+		
+		expect(scope.state.addRuleConditionFormValid).toEqual(true);
+		
+		delete scope.state.addRuleValue;
+		scope.state.addRuleOperand = scope.state.conditionTypes[1];
+		scope.validateRuleCondition();
 		
 		expect(scope.state.addRuleConditionFormValid).toEqual(true);
 	});
@@ -330,28 +338,16 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate rule operand change behavior', function(){
-		scope.state.addRuleOperand = {
-    	    id: 'LicenseInList',
-    	    values: ['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard'],
-    	    name: 'License',
-    	    operators: ['in', 'not in'] 
-        };
+		scope.state.addRuleOperand = scope.state.conditionTypes[0];
+		
+		scope.state.addRuleOperator = 'something';
+		scope.state.addRuleValue = 'something';
 		
 		scope.ruleOperandChanged();
 		
-		expect(scope.state.conditionOperators).toEqual(['in', 'not in'])
-		expect(scope.state.conditionValues).toEqual(['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard']);
-		
-		scope.state.addRuleOperand = {
-			id: 'SecurityVulnerabilityCount',
-	        name: 'Security Vulnerability Count',
-	        operators: ['<','<=','>','>='] 	
-		}
-		
-        scope.ruleOperandChanged();
-		
-		expect(scope.state.conditionOperators).toEqual(['<','<=','>','>='])
-		expect(scope.state.conditionValues).toEqual(undefined);
+		expect(scope.state.addRuleOperator).toEqual(undefined);
+		expect(scope.state.addRuleValue).toEqual(undefined);
+		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
 	});
 	
 	it('validate enable and disable of rules', function(){

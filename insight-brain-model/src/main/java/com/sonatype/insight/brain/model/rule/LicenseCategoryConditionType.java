@@ -60,7 +60,7 @@ public class LicenseCategoryConditionType
     }
 
     @Override
-    public boolean requiresValue()
+    public boolean isRequiresValue()
     {
         return true;
     }

@@ -15,8 +15,6 @@ function RuleController($scope, global, $http, $location) {
 		delete $scope.state.addRuleFormValid;
 		delete $scope.state.addRuleConditionFormValid;
 		delete $scope.state.addRuleId;
-		delete $scope.state.conditionOperators;
-		delete $scope.state.conditionValues;
 		
 		$scope.state.ruleConditions = [];
 		$scope.state.addRuleMatchType = 'OR';
@@ -148,22 +146,14 @@ function RuleController($scope, global, $http, $location) {
 		delete $scope.state.addRuleConditionFormValid;
 		if ($scope.state.addRuleOperand
 				&& $scope.state.addRuleOperator
-				&& $scope.state.addRuleValue) {
+				&& (!$scope.state.addRuleOperand.requiresValue || $scope.state.addRuleValue)) {
 			$scope.state.addRuleConditionFormValid = true;
 		}
 	}
 	
 	$scope.ruleOperandChanged = function() {
-		delete $scope.state.conditionValues;
-		
-		var condition = $scope.state.addRuleOperand;
-		
-		$scope.state.conditionOperators = condition.operators.slice(0);
-		
-		if (condition.values) {
-			$scope.state.conditionValues = condition.values.slice(0);
-		}
-		
+		delete $scope.state.addRuleOperator;
+		delete $scope.state.addRuleValue;
 		$scope.validateRuleCondition();
 	}
 	
@@ -181,31 +171,14 @@ function RuleController($scope, global, $http, $location) {
 	$scope.reset();
 	
 	//chaining these requests together as the rule list requires the responses for condition/alert types to have already been received
-    $http.get('/rest/policy/conditionType').success(function(data, status, headers, config) {
-    	$scope.state.conditionTypes = [];
-    	for ( var i = 0 ; i < data.length ; i++ ){
-    		$scope.state.conditionTypes.push({
-    			id: data[i].id,
-    			name: data[i].operandName,
-    			operators: data[i].supportedOperators,
-    			values: data[i].availableValues
-    		});
-    	}
+    $http.get('/rest/policy/conditionType').success(function(conditionTypeData, status, headers, config) {
+    	$scope.state.conditionTypes = conditionTypeData;
     	
-    	$http.get('/rest/policy/actionType').success(function(data, status, headers, config) {
-        	$scope.state.actionTypes = [];
-        	for ( var i = 0 ; i < data.length ; i++ ){
-        		$scope.state.actionTypes.push({
-        			id: data[i].id,
-        			name: data[i].name,
-        			values: data[i].availableValues
-        		});
-        	}
+    	$http.get('/rest/policy/actionType').success(function(actionTypeData, status, headers, config) {
+        	$scope.state.actionTypes = actionTypeData;
         	
         	$scope.state.rules = [];
             $http.get('/rest/policy/rule/' + $location.search().appId).success(function(data, status, headers, config) {
-            	$scope.state.rules = [];
-
             	for ( var i = 0 ; i < data.length ; i++ ){
             		var newRule = {
         				name: data[i].name,

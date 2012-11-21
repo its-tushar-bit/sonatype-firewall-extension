@@ -44,7 +44,7 @@ ruleApp.factory('global', function($rootScope) {
     		name : "Operand",
     		field : "operand",
     		formatter : function(row, cell, value, columnDef, dataContext) {
-    			return value.name;
+    			return value.operandName;
     		}
     	},{
     		id : "operator",
@@ -55,7 +55,7 @@ ruleApp.factory('global', function($rootScope) {
     		name : "Value",
     		field : "value",
 			formatter : function(row, cell, value, columnDef, dataContext) {
-				return '<table><tr><td style="padding: 0px;width: 99%;">' + value + '</td>'
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? value : '') + '</td>'
 				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'
 				    + '</tr></table>';
 			}

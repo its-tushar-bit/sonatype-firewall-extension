@@ -20,7 +20,7 @@ public interface ConditionType
      */
     List<String> getAvailableValues();
 
-    boolean requiresValue();
+    boolean isRequiresValue();
 
     String generateDroolsCode( SimpleCondition condition );
 }

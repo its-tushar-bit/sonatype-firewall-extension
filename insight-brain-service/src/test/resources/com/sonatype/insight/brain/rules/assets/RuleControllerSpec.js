@@ -97,7 +97,7 @@ describe('RuleController tests', function() {
 		expect(scope.state.rules[0].id).toEqual('ruleId1');
 		expect(scope.state.rules[0].name).toEqual('ruleId1');
 		expect(scope.state.rules[0].matchType).toEqual('AND');
-		expect(scope.state.rules[0].status).toEqual('enabled');
+		expect(scope.state.rules[0].enabled).toEqual(true);
 		expect(scope.state.rules[0].action).toEqual(scope.state.actionTypes[1]);
 		expect(scope.state.rules[0].conditions.length).toEqual(1);
 		expect(scope.state.rules[0].conditions[0].operand).toEqual(scope.state.conditionTypes[0]);
@@ -106,7 +106,7 @@ describe('RuleController tests', function() {
 		expect(scope.state.rules[1].id).toEqual('ruleId2');
 		expect(scope.state.rules[1].name).toEqual('ruleId2');
 		expect(scope.state.rules[1].matchType).toEqual('OR');
-		expect(scope.state.rules[1].status).toEqual('disabled');
+		expect(scope.state.rules[1].enabled).toEqual(false);
 		expect(scope.state.rules[1].action).toEqual(scope.state.actionTypes[0]);
 		expect(scope.state.rules[1].conditions.length).toEqual(1);
 		expect(scope.state.rules[1].conditions[0].operand).toEqual(scope.state.conditionTypes[1]);
@@ -351,12 +351,44 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate enable and disable of rules', function(){
+		$httpBackend.expectPUT('/rest/policy/rule/' + $location.search().appId, {
+			  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: true,
+	    	  id: 'ruleId3'
+	      }).respond({
+	    	  id: 'ruleId3',
+	    	  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: true
+	      });
+		
 		var item = {
-			id: 'id',
-			name: 'name',
-			conditions: ['condition'],
-			matchType: 'matchType',
-			action: 'action'
+			id: 'ruleId3',
+			name: 'ruleId3',
+			conditions: [{
+				operand: scope.state.conditionTypes[0],
+				operator: 'in',
+				value: 'Not Provided'
+			}],
+			matchType: 'AND',
+			action: scope.state.actionTypes[1]
 		};
 		
 		//slickgrid mock
@@ -378,11 +410,43 @@ describe('RuleController tests', function() {
 		
 		scope.enableRule();
 		
-		expect(item.status).toEqual('enabled');
+		$httpBackend.flush();
+		
+		expect(item.enabled).toEqual(true);
+		
+		$httpBackend.expectPUT('/rest/policy/rule/' + $location.search().appId, {
+			  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: false,
+	    	  id: 'ruleId3'
+	      }).respond({
+	    	  id: 'ruleId3',
+	    	  name: 'ruleId3',
+	    	  operator: 'AND',
+	    	  actions: [{
+	    		  actionTypeId: 'MarkAsFailed'
+	    	  }],
+	    	  conditions: [{
+	    		  conditionTypeId: 'LicenseInList',
+	    		  operator: 'in',
+	    		  value: 'Not Provided'
+	    	  }],
+	    	  enabled: false
+	      });
 		
 		scope.disableRule();
 		
-		expect(item.status).toEqual('disabled');
+		$httpBackend.flush();
+		
+		expect(item.enabled).toEqual(false);
 	});
 	
 	//TODO: need to test the functions that access the grid, but first need to mock the grid object

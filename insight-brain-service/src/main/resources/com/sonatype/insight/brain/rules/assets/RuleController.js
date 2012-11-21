@@ -36,23 +36,43 @@ function RuleController($scope, global, $http, $location) {
 	}
 	
 	$scope.enableRule = function() {
-		$scope.updateStatus("enabled");
+		$scope.updateStatus(true);
 	}
 	
 	$scope.disableRule = function() {
-		$scope.updateStatus("disabled");
+		$scope.updateStatus(false);
 	}
 	
-	$scope.updateStatus = function(status) {
+	$scope.updateStatus = function(enabled) {
         var grid = $scope.rulesTable;
 		var rows = grid.getSelectedRows();
 		
 		for ( var i = 0 ; i < rows.length ; i++ ) {
 			var item = grid.getDataItem(rows[i]);
-			item.status = status;
+			var data = {
+	    		name: item.name,
+				operator: item.matchType,
+				actions: [{
+					actionTypeId: item.action.id
+				}],
+				conditions: [],
+				enabled: enabled,
+				id: item.id	
+		    };
+			
+			for ( var j = 0 ; j < item.conditions.length ; j++ ){
+		    	data.conditions.push({
+		    		conditionTypeId: item.conditions[j].operand.id,
+		    		operator: item.conditions[j].operator,
+		    		value: item.conditions[j].value
+		    	});
+		    }
+			
+			$http.put('/rest/policy/rule/' + $location.search().appId,data,{item: item}).success(function(data, status, headers, config){
+				config.item.enabled = enabled;
+				$scope.state.rules = grid.getData().getItems();
+			});
 		}
-		
-		$scope.state.rules = grid.getData().getItems();
 	}
 	
 	$scope.removeRule = function() {
@@ -123,7 +143,7 @@ function RuleController($scope, global, $http, $location) {
 				    conditions: $scope.state.ruleConditions.slice(0),
 				    matchType: $scope.state.addRuleMatchType,
 				    action: $scope.state.addRuleAction,
-				    status: 'enabled',
+				    enabled: true,
 				    id: data.id
 				});	
 				
@@ -184,7 +204,7 @@ function RuleController($scope, global, $http, $location) {
         				name: data[i].name,
             			conditions: [],
             			matchType: data[i].operator,
-            			status: (data[i].enabled ? 'enabled' : 'disabled'),
+            			enabled: data[i].enabled,
             			id: data[i].id
             		};
             		
@@ -244,19 +264,57 @@ function RuleController($scope, global, $http, $location) {
     });
     
     $('#rulesTable .slick-row .btn-enable').live('click', function(){
-		$scope.rulesTable.dataView.getItem($scope.rulesTable.dataView.getIdxById($(this).attr('id'))).status = 'enabled';
+    	var item = $scope.rulesTable.dataView.getItem($scope.rulesTable.dataView.getIdxById($(this).attr('id')));
+		var data = {
+    		name: item.name,
+			operator: item.matchType,
+			actions: [{
+				actionTypeId: item.action.id
+			}],
+			conditions: [],
+			enabled: true,
+			id: item.id	
+	    };
 		
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
+		for ( var j = 0 ; j < item.conditions.length ; j++ ){
+	    	data.conditions.push({
+	    		conditionTypeId: item.conditions[j].operand.id,
+	    		operator: item.conditions[j].operator,
+	    		value: item.conditions[j].value
+	    	});
+	    }
+		
+		$http.put('/rest/policy/rule/' + $location.search().appId,data,{item: item}).success(function(data, status, headers, config){
+			config.item.enabled = true;
+			$scope.state.rules = $scope.rulesTable.getData().getItems();
+		});
     });
     
     $('#rulesTable .slick-row .btn-disable').live('click', function(){
-		$scope.rulesTable.dataView.getItem($scope.rulesTable.dataView.getIdxById($(this).attr('id'))).status = 'disabled';
+    	var item = $scope.rulesTable.dataView.getItem($scope.rulesTable.dataView.getIdxById($(this).attr('id')));
+		var data = {
+    		name: item.name,
+			operator: item.matchType,
+			actions: [{
+				actionTypeId: item.action.id
+			}],
+			conditions: [],
+			enabled: false,
+			id: item.id
+	    };
 		
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
+		for ( var j = 0 ; j < item.conditions.length ; j++ ){
+	    	data.conditions.push({
+	    		conditionTypeId: item.conditions[j].operand.id,
+	    		operator: item.conditions[j].operator,
+	    		value: item.conditions[j].value
+	    	});
+	    }
+		
+		$http.put('/rest/policy/rule/' + $location.search().appId,data,{item: item}).success(function(data, status, headers, config){
+			config.item.enabled = false;
+			$scope.state.rules = $scope.rulesTable.getData().getItems();
+		});
     });
     
     $('#rulesTable .slick-row .btn-delete').live('click', function(){

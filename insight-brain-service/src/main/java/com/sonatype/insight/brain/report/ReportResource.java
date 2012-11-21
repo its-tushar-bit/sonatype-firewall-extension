@@ -202,7 +202,7 @@ public class ReportResource
                 final File reportFile = work.getReportFile( scanId );
                 if ( !reportFile.exists() )
                 {
-                    if ( !downloadReport( appId, scanId, reportFile ) )
+                    if ( !downloadReport( proxy, appId, scanId, reportFile ) )
                     {
                         return;
                     }
@@ -219,7 +219,8 @@ public class ReportResource
         }
     }
 
-    private boolean downloadReport( final String appId, final String scanId, final File reportFile )
+    public static boolean downloadReport( final InsightProxy proxy, final String appId, final String scanId,
+                                    final File reportFile )
     {
         final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
 
@@ -243,6 +244,7 @@ public class ReportResource
         catch ( final Exception e )
         {
             // don't leave an incomplete file around
+            log.error( e.getMessage(), e );
             reportFile.delete();
         }
         return false;

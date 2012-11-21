@@ -26,7 +26,10 @@ import com.sonatype.insight.brain.model.component.PolicyFact;
 import com.sonatype.insight.brain.model.rule.Rule;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sun.jersey.api.NotFoundException;
 
 @Path( PolicyEvaluatorResource.SERVICE_PATH )
 public class PolicyEvaluatorResource
@@ -37,6 +40,9 @@ public class PolicyEvaluatorResource
 
     @Context
     private InsightWork work;
+
+    @Context
+    private InsightProxy proxy;
 
     @Path( "{scanId}" )
     @GET
@@ -50,8 +56,16 @@ public class PolicyEvaluatorResource
         RuleDAO ruleDAO = new RuleDAO( ruleDir );
         List<Rule> rules = ruleDAO.getByApplicationId( appId );
 
-        ReportEntry licenseReportEntry = Report.getEntry( work.getReportFile( scanId ), "licenses.json" );
-        ReportEntry securityReportEntry = Report.getEntry( work.getReportFile( scanId ), "security.json" );
+        File reportFile = work.getReportFile( scanId );
+        if ( !reportFile.exists() )
+        {
+            if ( !ReportResource.downloadReport( proxy, appId, scanId, reportFile ) )
+            {
+                throw new NotFoundException();
+            }
+        }
+        ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
+        ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
         ComponentDAO componentDAO = new ComponentDAO();
         List<Component> components = componentDAO.getAll( licenseReportEntry.buf, securityReportEntry.buf );
         PolicyEvaluator policyEvaluator = new PolicyEvaluator();

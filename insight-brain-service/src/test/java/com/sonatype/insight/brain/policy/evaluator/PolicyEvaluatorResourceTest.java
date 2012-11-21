@@ -33,6 +33,8 @@ extends AbstractResourceTest
     {
         String appId = "PolicyEvaluatorResourceTest_AppId";
         String scanId = "PolicyEvaluatorResourceTest_ScanId";
+        File reportFile = new File( "target/sonatype-work/report/" + scanId + "/report.zip" );
+        reportFile.delete();
 
         Rule rule = new Rule();
         rule.setName( "PolicyEvaluatorResourceTest rule 1" );
@@ -46,10 +48,14 @@ extends AbstractResourceTest
         rule.addAction( action );
         RuleResourceTest.addRule( appId, rule );
 
-        URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
-        File reportFile = new File( "target/sonatype-work/report/" + scanId + "/report.zip" );
-        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), reportFile );
+        // The report file is not available yet
         Response response = RestAccess.get( getServiceURL( appId, scanId ) );
+        assertResponseStatus( 404, response );
+
+        // Simulate that the report is available
+        URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), reportFile );
+        response = RestAccess.get( getServiceURL( appId, scanId ) );
         assertResponseStatus( 200, response );
         PolicyFact[] policyFacts = JsonHelpers.fromJson( response.getResponseBody(), PolicyFact[].class );
         Assert.assertNotNull( policyFacts );

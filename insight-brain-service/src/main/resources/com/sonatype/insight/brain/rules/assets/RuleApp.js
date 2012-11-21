@@ -73,4 +73,49 @@ ruleApp.factory('global', function($rootScope) {
     return state;
 });
 
+ruleApp.createRuleDTO = function(data){
+	var dto = {
+		name: data.name,
+		operator: data.operator,
+		actions: [{
+			actionTypeId: data.actionTypeId
+		}],
+		conditions: [],
+		enabled: data.enabled,
+		id: data.id
+    };
+	
+	for ( var i = 0 ; i < data.conditions.length ; i++ ){
+    	dto.conditions.push({
+    		conditionTypeId: data.conditions[i].operand.id,
+    		operator: data.conditions[i].operator,
+    		value: data.conditions[i].value
+    	});
+    }
+	
+	return dto;
+}
+
+ruleApp.getBaseUrl = function(){
+	var idx = location.href.indexOf('/rule-assets/');
+	
+	if (idx > -1) {
+		return location.href.substring(0,idx);
+	}
+	
+	return '';
+}
+
+ruleApp.getRuleUrl = function(){
+	return ruleApp.getBaseUrl() + '/rest/policy/rule/' + ruleApp.appId;
+}
+
+ruleApp.getConditionTypeUrl = function(){
+	return ruleApp.getBaseUrl() + '/rest/policy/conditionType';
+}
+
+ruleApp.getActionTypeUrl = function(){
+	return ruleApp.getBaseUrl() + '/rest/policy/actionType';
+}
+
 ruleApp.directive('slickgrid', SlickGridComponent);

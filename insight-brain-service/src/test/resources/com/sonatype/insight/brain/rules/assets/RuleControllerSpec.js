@@ -5,8 +5,9 @@ describe('RuleController tests', function() {
 	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller, _$location_) {
 	  $location = _$location_;
 	  $location.search('appId','myAppId');
+	  ruleApp.appId = 'myAppId';
       $httpBackend = _$httpBackend_;
-      $httpBackend.expectGET('/rest/policy/conditionType').
+      $httpBackend.expectGET(ruleApp.getConditionTypeUrl()).
           respond([{
         	  id: 'LicenseInList',
         	  availableValues: ['Apache-2.0','EPL-1.0','GPL-2.0','Not Provided','Non-Standard'],
@@ -18,7 +19,7 @@ describe('RuleController tests', function() {
         	  operandName: 'Security Vulnerability Count',
         	  supportedOperators: ['<','<=','>','>='] 
           }]);
-      $httpBackend.expectGET('/rest/policy/actionType').
+      $httpBackend.expectGET(ruleApp.getActionTypeUrl()).
           respond([{
         	  id: 'AddLabel',
         	  name: 'Add label',
@@ -27,7 +28,7 @@ describe('RuleController tests', function() {
         	  id: 'MarkAsFailed',
         	  name: 'Mark as failed'
           }]);
-      $httpBackend.expectGET('/rest/policy/rule/' + $location.search().appId).
+      $httpBackend.expectGET(ruleApp.getRuleUrl()).
           respond([{
         	  id: 'ruleId1',
         	  name: 'ruleId1',
@@ -90,7 +91,7 @@ describe('RuleController tests', function() {
 		expect(scope.state.addRuleAction).toEqual(undefined);
 		expect(scope.state.addRuleFormValid).toEqual(undefined);
 		expect(scope.state.addRuleConditionFormValid).toEqual(undefined);
-		expect(scope.state.addRuleId).toEqual(undefined);
+		expect(scope.state.currentRule).toEqual(undefined);
 		expect(scope.state.ruleConditions).toEqual([]);
 		expect(scope.state.addRuleMatchType).toEqual('OR');
 		expect(scope.state.rules.length).toEqual(2);
@@ -198,11 +199,11 @@ describe('RuleController tests', function() {
 		expect(scope.state.addRuleAction).toEqual('action');
 		expect(scope.state.ruleConditions).toEqual(['condition']);
 		expect(scope.state.addRuleMatchType).toEqual('matchType');
-		expect(scope.state.addRuleId).toEqual('id');
+		expect(scope.state.currentRule.id).toEqual('id');
 	});
 	
 	it('validate save new rule', function(){
-		$httpBackend.expectPOST('/rest/policy/rule/' + $location.search().appId, {
+		$httpBackend.expectPOST(ruleApp.getRuleUrl(), {
 	    	  name: 'ruleId3',
 	    	  operator: 'AND',
 	    	  actions: [{
@@ -261,11 +262,11 @@ describe('RuleController tests', function() {
 		//any is the default, doesn't get into undefined state
 		expect(scope.state.addRuleMatchType).toEqual('OR');
 		expect(scope.state.ruleConditions).toEqual([]);
-		expect(scope.state.addRuleId).toEqual(undefined);
+		expect(scope.state.currentRule).toEqual(undefined);
 	});
 	
 	it('validate save existing rule', function(){
-		$httpBackend.expectPUT('/rest/policy/rule/' + $location.search().appId, {
+		$httpBackend.expectPUT(ruleApp.getRuleUrl(), {
 			  name: 'ruleId3',
 	    	  operator: 'AND',
 	    	  actions: [{
@@ -302,10 +303,11 @@ describe('RuleController tests', function() {
 				value: 'Not Provided'
 			}],
 			matchType: 'AND',
-			action: scope.state.actionTypes[1]
+			action: scope.state.actionTypes[1],
+			enabled: true
 		}];
 		
-		scope.state.addRuleId = 'ruleId3',
+		scope.state.currentRule = scope.state.rules[0],
 		scope.state.addRuleName = 'ruleId3';
 		scope.state.addRuleAction = scope.state.actionTypes[1]
 		scope.state.addRuleMatchType = 'AND';
@@ -334,7 +336,7 @@ describe('RuleController tests', function() {
 		//any is the default, doesn't get into undefined state
 		expect(scope.state.addRuleMatchType).toEqual('OR');
 		expect(scope.state.ruleConditions).toEqual([]);
-		expect(scope.state.addRuleId).toEqual(undefined);
+		expect(scope.state.currentRule).toEqual(undefined);
 	});
 	
 	it('validate rule operand change behavior', function(){
@@ -351,7 +353,7 @@ describe('RuleController tests', function() {
 	});
 	
 	it('validate enable and disable of rules', function(){
-		$httpBackend.expectPUT('/rest/policy/rule/' + $location.search().appId, {
+		$httpBackend.expectPUT(ruleApp.getRuleUrl(), {
 			  name: 'ruleId3',
 	    	  operator: 'AND',
 	    	  actions: [{
@@ -414,7 +416,7 @@ describe('RuleController tests', function() {
 		
 		expect(item.enabled).toEqual(true);
 		
-		$httpBackend.expectPUT('/rest/policy/rule/' + $location.search().appId, {
+		$httpBackend.expectPUT(ruleApp.getRuleUrl(), {
 			  name: 'ruleId3',
 	    	  operator: 'AND',
 	    	  actions: [{

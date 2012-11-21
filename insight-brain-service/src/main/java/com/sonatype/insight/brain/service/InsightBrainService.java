@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.service;
 
 import com.google.common.cache.CacheBuilderSpec;
-import com.sonatype.insight.brain.legacy.BCResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluatorResource;
+import com.sonatype.insight.brain.proxy.BCResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.rule.ActionTypeResource;
 import com.sonatype.insight.brain.rule.ConditionTypeResource;

@@ -9,12 +9,15 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -151,6 +154,42 @@ public class ReportResource
         }
 
         return response.entity( data ).build();
+    }
+
+    @PUT
+    @Path( "augment/{path}" )
+    @Consumes( MediaType.APPLICATION_JSON )
+    public Response putData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
+                             @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
+                             @Context final HttpServletRequest request, final InputStream data )
+        throws IOException
+    {
+        if ( Auditing.isData( path ) )
+        {
+            final File auditDir = work.getAuditDir( appId );
+            Auditing.saveAugmentedData( auditDir, path, data, user, Auditing.findIP( request ), where );
+            return Response.ok().build();
+        }
+        return Response.status( Status.BAD_REQUEST ).build();
+    }
+
+    @GET
+    @Path( "audit/{path}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public Response getData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
+                             @QueryParam( "key" ) final String key )
+        throws IOException
+    {
+        if ( StringUtils.isNotBlank( key ) )
+        {
+            final File auditDir = work.getAuditDir( appId );
+            final byte[] buf = Auditing.filterAuditLog( auditDir, key.getBytes( "UTF-8" ), path.split( "[+]+" ) );
+            if ( buf != null )
+            {
+                return Response.ok( buf ).build();
+            }
+        }
+        return Response.ok().build();
     }
 
     private void refreshCache( final String appId, final String scanId )

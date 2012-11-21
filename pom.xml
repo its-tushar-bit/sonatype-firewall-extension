@@ -40,6 +40,7 @@
   <modules>
     <module>insight-brain-data-access</module>
     <module>insight-brain-model</module>
+    <module>insight-brain-client</module>
     <module>insight-brain-service</module>
   </modules>
   

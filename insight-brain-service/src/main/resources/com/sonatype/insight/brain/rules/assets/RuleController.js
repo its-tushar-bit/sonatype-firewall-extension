@@ -76,24 +76,25 @@ function RuleController($scope, global, $http, $location) {
 	}
 	
 	$scope.removeRule = function() {
-		var grid = $scope.rulesTable;
-		$scope.removeSelectedItems(grid);
-		$scope.state.rules = grid.getData().getItems();
+		var rows = $scope.rulesTable.getSelectedRows();
+		
+		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
+			var item = $scope.rulesTable.getDataItem(rows[i]);
+			$http.delete('/rest/policy/rule/' + $location.search().appId + '/' + item.id,{item: item}).success(function(data, status, headers, config){
+				$scope.rulesTable.dataView.deleteItem(config.item.id);
+				$scope.state.rules = $scope.rulesTable.getData().getItems();
+			});
+		}
 	}
 	
 	$scope.removeRuleCondition = function() {
 		var grid = $scope.ruleConditionsTable;
-		$scope.removeSelectedItems(grid);
-		$scope.state.ruleConditions = grid.getData().getItems();
-		$scope.validateRule();
-	}
-	
-	$scope.removeSelectedItems = function(grid) {		
 		var rows = grid.getSelectedRows();
-		
 		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
 			grid.dataView.deleteItem(grid.dataView.getItemByIdx(rows[i]).id);
 		}
+		$scope.state.ruleConditions = grid.getData().getItems();
+		$scope.validateRule();
 	}
 	
 	$scope.ruleInfo = function() {
@@ -318,11 +319,11 @@ function RuleController($scope, global, $http, $location) {
     });
     
     $('#rulesTable .slick-row .btn-delete').live('click', function(){
-		$scope.rulesTable.dataView.deleteItem($(this).attr('id'));
-		
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
+		var item = $scope.rulesTable.dataView.getItem($scope.rulesTable.dataView.getIdxById($(this).attr('id')));
+		$http.delete('/rest/policy/rule/' + $location.search().appId + '/' + item.id,{item: item}).success(function(data, status, headers, config){
+			$scope.rulesTable.dataView.deleteItem(config.item.id);
+			$scope.state.rules = $scope.rulesTable.getData().getItems();
+		});
     });
     
     $('#ruleConditionsTable .slick-row').live('mouseover mouseout', function (event) {

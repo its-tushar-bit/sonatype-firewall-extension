@@ -75,14 +75,14 @@ public class RuleResource
     }
 
     @DELETE
-    @Consumes( MediaType.APPLICATION_JSON )
-    public void deleteRule( @PathParam( "appId" ) final String appId, Rule rule )
+    @Path("/{ruleId}")
+    public void deleteRule( @PathParam( "appId" ) final String appId, @PathParam( "ruleId" ) final String ruleId )
     {
         log.debug( "Received request to delete rule for appId {}", appId );
 
         File ruleDir = work.getRuleDir();
         RuleDAO ruleDAO = new RuleDAO( ruleDir );
-        ruleDAO.delete( appId, rule );
+        ruleDAO.delete( appId, ruleId );
         return;
     }
 }

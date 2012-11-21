@@ -73,15 +73,15 @@ public class RuleDAO
 
         saveJson( ruleFile, rules );
     }
-
-    public void delete( String applicationId, Rule rule )
+    
+    public void delete( String applicationId, String ruleId )
     {
         // TODO Throw an exception if the rule does not exist ?
         File ruleFile = getRuleFile( applicationId );
         List<Rule> rules = loadJson( ruleFile );
         for ( int i = 0; i < rules.size(); i++ )
         {
-            if ( rule.getId().equals( rules.get( i ).getId() ) )
+            if ( ruleId.equals( rules.get( i ).getId() ) )
             {
                 rules.remove( i );
                 break;

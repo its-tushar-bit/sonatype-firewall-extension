@@ -89,7 +89,7 @@ public class RuleDAOTest
         assertRule( rule2, rules.get( 1 ) );
 
         // Delete a rule
-        ruleDAO.delete( applicationId, rule1 );
+        ruleDAO.delete( applicationId, rule1.getId() );
 
         rules = ruleDAO.getByApplicationId( applicationId );
         Assert.assertNotNull( rules );
@@ -97,7 +97,7 @@ public class RuleDAOTest
         assertRule( rule2, rules.get( 0 ) );
 
         // Delete another rule
-        ruleDAO.delete( applicationId, rule2 );
+        ruleDAO.delete( applicationId, rule2.getId() );
 
         rules = ruleDAO.getByApplicationId( applicationId );
         Assert.assertNotNull( rules );

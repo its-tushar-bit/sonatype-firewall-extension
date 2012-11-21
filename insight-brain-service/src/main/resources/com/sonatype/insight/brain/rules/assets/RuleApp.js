@@ -1,4 +1,6 @@
-var ruleApp = angular.module('ruleApp', []);
+var ruleApp = angular.module('ruleApp', [], function($locationProvider){
+	$locationProvider.html5Mode(true);
+});
 
 ruleApp.factory('global', function($rootScope) {
     var state = {};

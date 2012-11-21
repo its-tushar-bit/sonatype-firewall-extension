@@ -66,7 +66,7 @@ public class RuleResource
     @Produces( MediaType.APPLICATION_JSON )
     public Rule updateRule( @PathParam( "appId" ) final String appId, Rule rule )
     {
-        log.debug( "Received request to update rule for appId {}", appId );
+        log.debug( "Received request to update rule for appId {}, rule id {}", appId, rule.getId() );
 
         File ruleDir = work.getRuleDir();
         RuleDAO ruleDAO = new RuleDAO( ruleDir );
@@ -78,7 +78,7 @@ public class RuleResource
     @Path("/{ruleId}")
     public void deleteRule( @PathParam( "appId" ) final String appId, @PathParam( "ruleId" ) final String ruleId )
     {
-        log.debug( "Received request to delete rule for appId {}", appId );
+        log.debug( "Received request to delete rule for appId {}, rule id {}", appId, ruleId );
 
         File ruleDir = work.getRuleDir();
         RuleDAO ruleDAO = new RuleDAO( ruleDir );

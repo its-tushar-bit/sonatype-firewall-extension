@@ -60,6 +60,7 @@ public final class ReportClient
     public ServletResult auditLog( final String path, final String jsonKey )
         throws IOException
     {
-        return path( "rest/report", appId, scanId, "auditLog", path ).query( "key", jsonKey ).get();
+        final String[] params = { "key", jsonKey };
+        return path( "rest/report", appId, scanId, "auditLog", path ).query( params ).get();
     }
 }

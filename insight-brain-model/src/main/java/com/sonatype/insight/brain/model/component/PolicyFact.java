@@ -11,8 +11,11 @@ public class PolicyFact
 
     private String ruleId;
 
+    private String ruleName;
+
     private String kind;
 
+    // Required for json deserialization
     public PolicyFact()
     {
     }
@@ -37,5 +40,15 @@ public class PolicyFact
     public String getKind()
     {
         return kind;
+    }
+
+    public String getRuleName()
+    {
+        return ruleName;
+    }
+
+    public void setRuleName( String ruleName )
+    {
+        this.ruleName = ruleName;
     }
 }

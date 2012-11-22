@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseFactory;
@@ -58,9 +60,21 @@ public class PolicyEvaluator
 
         // TODO Aggregate/deduplicate policy facts
         List<PolicyFact> result = new ArrayList<PolicyFact>();
+        if ( policyFacts == null || policyFacts.isEmpty() )
+        {
+            return result;
+        }
+
+        Map<String, Rule> rulesById = new LinkedHashMap<String, Rule>();
+        for ( Rule rule : rules )
+        {
+            rulesById.put( rule.getId(), rule );
+        }
         for ( Object o : policyFacts )
         {
-            result.add( (PolicyFact) o );
+            PolicyFact policyFact = (PolicyFact) o;
+            policyFact.setRuleName( rulesById.get( policyFact.getRuleId() ).getName() );
+            result.add( policyFact );
         }
         return result;
     }

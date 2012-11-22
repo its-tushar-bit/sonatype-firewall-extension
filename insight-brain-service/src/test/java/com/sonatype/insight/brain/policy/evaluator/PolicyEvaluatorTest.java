@@ -68,6 +68,7 @@ public class PolicyEvaluatorTest
         PolicyFact policyFact = policyFacts.get( 0 );
         Assert.assertEquals( component1, policyFact.getComponent() );
         Assert.assertEquals( "RuleId1", policyFact.getRuleId() );
+        Assert.assertEquals( "Rule Name 1", policyFact.getRuleName() );
         Assert.assertEquals( MarkAsFailedActionType.ID, policyFact.getKind() );
     }
 }

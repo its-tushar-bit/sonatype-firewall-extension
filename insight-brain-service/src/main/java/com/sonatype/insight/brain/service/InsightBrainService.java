@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.service;
 
 import com.google.common.cache.CacheBuilderSpec;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluatorResource;
-import com.sonatype.insight.brain.proxy.BCResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.rule.ActionTypeResource;
 import com.sonatype.insight.brain.rule.ConditionTypeResource;
 import com.sonatype.insight.brain.rule.RuleResource;
+import com.sonatype.insight.brain.saas.BCResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.bundles.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;

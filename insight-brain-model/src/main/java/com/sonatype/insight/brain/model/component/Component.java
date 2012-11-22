@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.model.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 public class Component
 {
     private String groupId;
@@ -65,5 +67,11 @@ public class Component
             securityVulnerabilities = new ArrayList<SecurityVulnerability>();
         }
         securityVulnerabilities.add( securityVulnerability );
+    }
+
+    @JsonIgnore
+    public String getGAV()
+    {
+        return groupId + ':' + artifactId + ':' + version;
     }
 }

@@ -61,9 +61,10 @@ public class PolicyEvaluatorResource
         {
             if ( !ReportResource.downloadReport( proxy, appId, scanId, reportFile ) )
             {
-                throw new NotFoundException();
+                throw new NotFoundException( "Could not download the report for scan id " + scanId );
             }
         }
+
         ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
         ComponentDAO componentDAO = new ComponentDAO();

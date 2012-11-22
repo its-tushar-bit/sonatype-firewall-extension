@@ -16,4 +16,11 @@
   <artifactId>insight-brain-model</artifactId>
   <name>Insight Brain Model</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+  </dependencies>
 </project>

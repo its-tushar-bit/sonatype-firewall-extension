@@ -15,9 +15,8 @@ import java.util.Date;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -95,7 +94,7 @@ public class ReportResource
     }
 
     @GET
-    @Path( "pdf" )
+    @Path( "printReport" )
     @Produces( "application/pdf" )
     public Response getPDF( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
                             @QueryParam( "projectName" ) final String projectName,
@@ -113,7 +112,7 @@ public class ReportResource
     }
 
     @GET
-    @Path( "artifact" )
+    @Path( "artifactDetails{ignore:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
     public Response getArtifact( @PathParam( "scanId" ) final String scanId,
                                  @QueryParam( "groupId" ) final String groupId,
@@ -156,9 +155,8 @@ public class ReportResource
         return response.entity( data ).build();
     }
 
-    @PUT
-    @Path( "augment/{path}" )
-    @Consumes( MediaType.APPLICATION_JSON )
+    @POST
+    @Path( "augmentData/{path}" )
     public Response putData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
                              @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
                              @Context final HttpServletRequest request, final InputStream data )
@@ -174,7 +172,7 @@ public class ReportResource
     }
 
     @GET
-    @Path( "audit/{path}" )
+    @Path( "auditLog/{path}" )
     @Produces( MediaType.APPLICATION_JSON )
     public Response getData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
                              @QueryParam( "key" ) final String key )
@@ -220,7 +218,7 @@ public class ReportResource
     }
 
     public static boolean downloadReport( final InsightProxy proxy, final String appId, final String scanId,
-                                    final File reportFile )
+                                          final File reportFile )
     {
         final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
 

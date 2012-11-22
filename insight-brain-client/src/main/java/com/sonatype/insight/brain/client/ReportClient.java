@@ -33,30 +33,30 @@ public final class ReportClient
         return consume( request( "rest/report", appId, scanId, "html", path ).get() );
     }
 
-    public Result pdf( final String projectName, final int buildNumber )
+    public Result printReport( final String projectName, final int buildNumber )
         throws IOException
     {
         final String[] params = { "projectName", projectName, "buildNumber", String.valueOf( buildNumber ) };
-        return consume( request( "rest/report", appId, scanId, "pdf" ).query( params ).get() );
+        return consume( request( "rest/report", appId, scanId, "printReport" ).query( params ).get() );
     }
 
-    public Result artifact( final String groupId, final String artifactId, final String version )
+    public Result artifactDetails( final String groupId, final String artifactId, final String version )
         throws IOException
     {
         final String[] params = { "groupId", groupId, "artifactId", artifactId, "version", version };
-        return consume( request( "rest/report", appId, scanId, "artifact" ).query( params ).get() );
+        return consume( request( "rest/report", appId, scanId, "artifactDetails" ).query( params ).get() );
     }
 
-    public Result augment( final String path, final String jsonData )
+    public Result augmentData( final String path, final String jsonData )
         throws IOException
     {
         final StringEntity entity = new StringEntity( jsonData, "application/json", "UTF-8" );
-        return consume( request( "rest/report", appId, scanId, "augment", path ).put( entity ) );
+        return consume( request( "rest/report", appId, scanId, "augmentData", path ).post( entity ) );
     }
 
-    public Result audit( final String path, final String jsonKey )
+    public Result auditLog( final String path, final String jsonKey )
         throws IOException
     {
-        return consume( request( "rest/report", appId, scanId, "audit", path ).query( "key", jsonKey ).get() );
+        return consume( request( "rest/report", appId, scanId, "auditLog", path ).query( "key", jsonKey ).get() );
     }
 }

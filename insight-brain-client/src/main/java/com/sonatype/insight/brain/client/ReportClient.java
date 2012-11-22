@@ -29,10 +29,10 @@ public final class ReportClient
         this.scanId = UrlUtils.encodeUrlComponent( scanId );
     }
 
-    public ServletResult html( final String path )
+    public ServletResult embedReport( final String path )
         throws IOException
     {
-        return path( "rest/report", appId, scanId, "html", path ).get();
+        return path( "rest/report", appId, scanId, "embedReport", path ).get();
     }
 
     public ServletResult printReport( final String projectName, final int buildNumber )

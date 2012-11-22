@@ -68,11 +68,11 @@ public class ReportResource
     InsightProxy proxy;
 
     @GET
-    @Path( "html/{entryPath:.*}" )
-    public Response getHTML( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
-                             @PathParam( "entryPath" ) final String entryPath )
+    @Path( "embedReport/{path:.*}" )
+    public Response embedReport( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
+                                 @PathParam( "path" ) final String path )
     {
-        final String name = Report.toEntryName( entryPath );
+        final String name = Report.toEntryName( path );
         if ( Auditing.isData( name ) || !work.getReportFile( scanId ).exists() )
         {
             refreshCache( appId, scanId );
@@ -97,9 +97,9 @@ public class ReportResource
     @GET
     @Path( "printReport" )
     @Produces( "application/pdf" )
-    public Response getPDF( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
-                            @QueryParam( "projectName" ) final String projectName,
-                            @QueryParam( "buildNumber" ) final int buildNumber )
+    public Response printReport( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
+                                 @QueryParam( "projectName" ) final String projectName,
+                                 @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
         refreshCache( appId, scanId );
@@ -115,11 +115,11 @@ public class ReportResource
     @GET
     @Path( "artifactDetails{ignore:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response getArtifact( @PathParam( "scanId" ) final String scanId,
-                                 @QueryParam( "groupId" ) final String groupId,
-                                 @QueryParam( "artifactId" ) final String artifactId,
-                                 @QueryParam( "version" ) final String version,
-                                 @Context final HttpServletRequest httpRequest )
+    public Response artifactDetails( @PathParam( "scanId" ) final String scanId,
+                                     @QueryParam( "groupId" ) final String groupId,
+                                     @QueryParam( "artifactId" ) final String artifactId,
+                                     @QueryParam( "version" ) final String version,
+                                     @Context final HttpServletRequest httpRequest )
         throws Exception
     {
         final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
@@ -158,9 +158,9 @@ public class ReportResource
 
     @POST
     @Path( "augmentData/{path}" )
-    public Response putData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
-                             @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
-                             @Context final HttpServletRequest request, final InputStream data )
+    public Response augmentData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
+                                 @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
+                                 @Context final HttpServletRequest request, final InputStream data )
         throws IOException
     {
         if ( Auditing.isData( path ) )
@@ -175,8 +175,8 @@ public class ReportResource
     @GET
     @Path( "auditLog/{path}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response getData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
-                             @QueryParam( "key" ) final String key )
+    public Response auditLog( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
+                              @QueryParam( "key" ) final String key )
         throws IOException
     {
         if ( StringUtils.isNotBlank( key ) )

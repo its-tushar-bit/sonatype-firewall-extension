@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.model.rule;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LicenseCategoryConditionType
     implements ConditionType
@@ -15,10 +17,23 @@ public class LicenseCategoryConditionType
 
     private static List<String> supportedOperators = new ArrayList<String>();
 
+    private static List<String> licenseCategoryNames = new ArrayList<String>();
+
+    private static Map<String, String> licenseCategoryIdsByName = new LinkedHashMap<String, String>();
+
     static
     {
         supportedOperators.add( "is" );
         supportedOperators.add( "is not" );
+
+        // TODO Return a list of all known license categories from the datamart db
+        licenseCategoryIdsByName.put( "Copyleft", "COPYLEFT" );
+        licenseCategoryIdsByName.put( "Non-Standard", "NON-STANDARD" );
+        licenseCategoryIdsByName.put( "Not Provided", "NOT-PROVIDED" );
+        licenseCategoryIdsByName.put( "Weak Copyleft", "WEAKCOPYLEFT" );
+        licenseCategoryIdsByName.put( "Liberal", "LIBERAL" );
+
+        licenseCategoryNames.addAll( licenseCategoryIdsByName.keySet() );
     }
 
     @Override
@@ -42,21 +57,14 @@ public class LicenseCategoryConditionType
     @Override
     public List<String> getAvailableValues()
     {
-        // TODO Return a list of all known license categories
-        List<String> licenseCategories = new ArrayList<String>();
-        licenseCategories.add( "Copyleft" );
-        licenseCategories.add( "Non-Standard" );
-        licenseCategories.add( "Not Provided" );
-        licenseCategories.add( "Weak Copyleft" );
-        licenseCategories.add( "Liberal" );
-        return licenseCategories;
+        return licenseCategoryNames;
     }
 
     @Override
     public String generateDroolsCode( SimpleCondition condition )
     {
-        // TODO Auto-generated method stub
-        return null;
+        return "$component : Component( getLicenseThreat() == \"" + licenseCategoryIdsByName.get( condition.getValue() )
+            + "\")";
     }
 
     @Override

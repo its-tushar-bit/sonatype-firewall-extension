@@ -24,7 +24,36 @@ public class ComponentDAO
     {
         Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
 
-        // TODO load license data too
+        JsonNode licenseJson = loadJson( licenseData );
+        if ( licenseJson != null )
+        {
+            licenseJson = licenseJson.get( "aaData" );
+            if ( licenseJson != null )
+            {
+                // TODO load the rest of the license data
+                ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
+                for ( int i = 0; i < licenseJsonArray.size(); i++ )
+                {
+                    JsonNode artifactLicenseJson = licenseJsonArray.get( i );
+                    String groupId = artifactLicenseJson.get( "groupId" ).asText();
+                    String artifactId = artifactLicenseJson.get( "artifactId" ).asText();
+                    String version = artifactLicenseJson.get( "version" ).asText();
+                    String licenseThreat = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
+
+                    String key = getComponentKey( groupId, artifactId, version );
+                    Component component = componentsByGAV.get( key );
+                    if ( component == null )
+                    {
+                        component = new Component();
+                        component.setGroupId( groupId );
+                        component.setArtifactId( artifactId );
+                        component.setVersion( version );
+                        componentsByGAV.put( key, component );
+                    }
+                    component.setLicenseThreat( licenseThreat );
+                }
+            }
+        }
         JsonNode securityJson = loadJson( securityData );
         if ( securityJson != null )
         {

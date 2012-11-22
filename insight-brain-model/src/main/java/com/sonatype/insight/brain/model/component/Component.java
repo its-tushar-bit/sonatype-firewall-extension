@@ -18,6 +18,8 @@ public class Component
 
     private String version;
 
+    private String licenseThreat;
+
     private List<SecurityVulnerability> securityVulnerabilities;
 
     public String getGroupId()
@@ -73,5 +75,15 @@ public class Component
     public String getGAV()
     {
         return groupId + ':' + artifactId + ':' + version;
+    }
+
+    public String getLicenseThreat()
+    {
+        return licenseThreat;
+    }
+
+    public void setLicenseThreat( String licenseThreat )
+    {
+        this.licenseThreat = licenseThreat;
     }
 }

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.data.Auditing;
 import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDataRequest;
@@ -165,7 +166,7 @@ public class ReportResource
         if ( Auditing.isData( path ) )
         {
             final File auditDir = work.getAuditDir( appId );
-            Auditing.saveAugmentedData( auditDir, path, data, user, Auditing.findIP( request ), where );
+            Auditing.saveAugmentedData( auditDir, path, data, user, AuditUtils.findIP( request ), where );
             return Response.ok().build();
         }
         return Response.status( Status.BAD_REQUEST ).build();

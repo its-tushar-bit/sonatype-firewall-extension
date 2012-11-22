@@ -15,29 +15,19 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.security.Principal;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ContainerNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 public final class Auditing
 {
-    private static final String XFF_HEADER = "X-Forwarded-For";
-
     private static final ConcurrentMap<String, AuditLock> LOCK_TABLE = new ConcurrentHashMap<String, AuditLock>();
 
     private static final String[] NO_FILE_NAMES = {};
@@ -50,28 +40,6 @@ public final class Auditing
             return name.endsWith( ".json" );
         }
     };
-
-    public static String findUser( final HttpServletRequest request )
-    {
-        String user = null;
-        final Principal principal = request.getUserPrincipal();
-        if ( principal != null )
-        {
-            user = principal.getName();
-        }
-        return user != null ? user : "anonymous";
-    }
-
-    public static String findIP( final HttpServletRequest request )
-    {
-        String ip = null;
-        final String xff = request.getHeader( XFF_HEADER );
-        if ( StringUtils.isNotEmpty( xff ) )
-        {
-            ip = resolveIp( xff.split( "," ) );
-        }
-        return ip != null ? ip : request.getRemoteAddr();
-    }
 
     public static byte[] filterAuditLog( final File auditDir, final byte[] key, final String... names )
         throws IOException
@@ -191,46 +159,6 @@ public final class Auditing
             }
         }
         return lock;
-    }
-
-    private static String resolveIp( final String... ips )
-    {
-        String ip4 = null;
-        String ip6 = null;
-
-        for ( final String ip : ips )
-        {
-            final InetAddress address;
-            try
-            {
-                address = InetAddress.getByAddress( ip.getBytes() );
-            }
-            catch ( final UnknownHostException e )
-            {
-                continue;
-            }
-            if ( address instanceof Inet4Address )
-            {
-                ip4 = ip;
-                continue;
-            }
-            if ( address instanceof Inet6Address )
-            {
-                ip6 = ip;
-                continue;
-            }
-        }
-
-        if ( ip4 != null )
-        {
-            return ip4;
-        }
-        if ( ip6 != null )
-        {
-            return ip6;
-        }
-
-        return ips.length > 0 ? ips[0] : null;
     }
 
     private static final class AuditLock

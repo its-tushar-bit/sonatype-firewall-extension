@@ -15,15 +15,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.component.PolicyFact;
-import com.sonatype.insight.client.utils.AbstractServletClient;
+import com.sonatype.insight.client.utils.AbstractClient;
+import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 
 public class PolicyClient
-    extends AbstractServletClient<PolicyClient>
+    extends AbstractClient
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyClient.class );
+
     private final String appId;
 
     private final String scanId;

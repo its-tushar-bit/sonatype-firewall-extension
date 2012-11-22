@@ -9,7 +9,9 @@ import java.io.IOException;
 
 import org.apache.http.entity.StringEntity;
 
+import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.ServletResult;
 import com.sonatype.insight.client.utils.UrlUtils;
 
 public final class ReportClient
@@ -27,36 +29,37 @@ public final class ReportClient
         this.scanId = UrlUtils.encodeUrlComponent( scanId );
     }
 
-    public Result html( final String path )
+    public ServletResult html( final String path )
         throws IOException
     {
-        return consume( request( "rest/report", appId, scanId, "html", path ).get() );
+        return path( "rest/report", appId, scanId, "html", path ).get();
     }
 
-    public Result printReport( final String projectName, final int buildNumber )
+    public ServletResult printReport( final String projectName, final int buildNumber )
         throws IOException
     {
         final String[] params = { "projectName", projectName, "buildNumber", String.valueOf( buildNumber ) };
-        return consume( request( "rest/report", appId, scanId, "printReport" ).query( params ).get() );
+        return path( "rest/report", appId, scanId, "printReport" ).query( params ).get();
     }
 
-    public Result artifactDetails( final String groupId, final String artifactId, final String version )
+    public ServletResult artifactDetails( final String groupId, final String artifactId, final String version )
         throws IOException
     {
         final String[] params = { "groupId", groupId, "artifactId", artifactId, "version", version };
-        return consume( request( "rest/report", appId, scanId, "artifactDetails" ).query( params ).get() );
+        return path( "rest/report", appId, scanId, "artifactDetails" ).query( params ).get();
     }
 
-    public Result augmentData( final String path, final String jsonData )
+    public ServletResult augmentData( final String path, final String jsonData, final String user, final String where )
         throws IOException
     {
+        final String[] params = { "user", user, "where", where };
         final StringEntity entity = new StringEntity( jsonData, "application/json", "UTF-8" );
-        return consume( request( "rest/report", appId, scanId, "augmentData", path ).post( entity ) );
+        return path( "rest/report", appId, scanId, "augmentData", path ).query( params ).post( entity );
     }
 
-    public Result auditLog( final String path, final String jsonKey )
+    public ServletResult auditLog( final String path, final String jsonKey )
         throws IOException
     {
-        return consume( request( "rest/report", appId, scanId, "auditLog", path ).query( "key", jsonKey ).get() );
+        return path( "rest/report", appId, scanId, "auditLog", path ).query( "key", jsonKey ).get();
     }
 }

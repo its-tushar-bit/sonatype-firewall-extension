@@ -22,6 +22,17 @@ public class Component
 
     private List<SecurityVulnerability> securityVulnerabilities;
 
+    public Component()
+    {
+    }
+
+    public Component( String groupId, String artifactId, String version )
+    {
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+    }
+
     public String getGroupId()
     {
         return groupId;

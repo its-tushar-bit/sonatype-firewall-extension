@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.rule.Action;
 import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.rule.LogicalOperator;
 import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentType;
+import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
 
 public class RuleAuditTest
@@ -42,7 +42,7 @@ public class RuleAuditTest
         rule.setName( "A rule" );
         List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
         SimpleCondition condition = new SimpleCondition();
-        condition.setConditionTypeId( SecurityVulnerabilityPresentType.ID );
+        condition.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition.setOperator( "present" );
         conditions.add( condition );
         condition = new SimpleCondition();

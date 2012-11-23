@@ -33,30 +33,35 @@ public class DroolsGenerator
             {
                 continue;
             }
+
             droolsCode.append( '\n' );
             droolsCode.append( "// Rule name: " ).append( rule.getName() ).append( '\n' );
             droolsCode.append( "rule \"" ).append( rule.getId() ).append( "\"\n" );
             droolsCode.append( "when\n" );
+            droolsCode.append( INDENT ).append( "$component : Component\n" );
+            droolsCode.append( INDENT ).append( "(\n" );
             int conditionIndex = 0;
             for (SimpleCondition condition : rule.getConditions())
             {
-                droolsCode.append( INDENT );
                 if ( conditionIndex > 0 )
                 {
+                    droolsCode.append( INDENT ).append( INDENT );
                     if ( rule.getOperator() == LogicalOperator.AND )
                     {
-                        droolsCode.append( "and " );
+                        droolsCode.append( "&&\n" );
                     }
                     else
                     {
-                        droolsCode.append( "or " );
+                        droolsCode.append( "||\n" );
                     }
                 }
+                droolsCode.append( INDENT ).append( INDENT ).append( "( " );
                 ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
                 droolsCode.append( conditionType.generateDroolsCode( condition ) );
-                droolsCode.append( "\n" );
+                droolsCode.append( " )\n" );
                 conditionIndex++;
             }
+            droolsCode.append( INDENT ).append( ")\n" );
             droolsCode.append( "then\n" );
             for ( Action action : rule.getActions() )
             {

@@ -31,6 +31,7 @@ public class PolicyEvaluator
     public List<PolicyFact> evaluate( List<Rule> rules, List<Component> components )
     {
         String droolsCode = new DroolsGenerator().generate( rules );
+        System.out.println( droolsCode );
 
         KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
         droolsKnowledgeBuilder.add( ResourceFactory.newReaderResource( new StringReader( droolsCode ) ),

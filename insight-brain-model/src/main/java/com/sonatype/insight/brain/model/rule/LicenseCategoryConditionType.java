@@ -63,8 +63,8 @@ public class LicenseCategoryConditionType
     @Override
     public String generateDroolsCode( SimpleCondition condition )
     {
-        return "$component : Component( getLicenseThreat() == \"" + licenseCategoryIdsByName.get( condition.getValue() )
-            + "\")";
+        return "getLicenseThreat() " + ( "is".equals( condition.getOperator() ) ? "==" : "!=" ) + " \""
+            + licenseCategoryIdsByName.get( condition.getValue() ) + "\"";
     }
 
     @Override

@@ -22,6 +22,17 @@ public class Rule
 
     private boolean enabled = true;
 
+    public Rule()
+    {
+    }
+
+    public Rule( String id, String name, LogicalOperator operator )
+    {
+        this.id = id;
+        this.name = name;
+        this.operator = operator;
+    }
+
     public List<SimpleCondition> getConditions()
     {
         return conditions;

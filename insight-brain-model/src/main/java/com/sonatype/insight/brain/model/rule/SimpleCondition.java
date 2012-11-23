@@ -13,6 +13,23 @@ public class SimpleCondition
 
     private String value;
 
+    public SimpleCondition()
+    {
+    }
+
+    public SimpleCondition( String conditionTypeId, String operator )
+    {
+        this.conditionTypeId = conditionTypeId;
+        this.operator = operator;
+    }
+
+    public SimpleCondition( String conditionTypeId, String operator, String value )
+    {
+        this.conditionTypeId = conditionTypeId;
+        this.operator = operator;
+        this.value = value;
+    }
+
     public String getOperator()
     {
         return operator;

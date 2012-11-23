@@ -11,6 +11,15 @@ public class Action
 
     private String value;
 
+    public Action()
+    {
+    }
+
+    public Action( String actionTypeId )
+    {
+        this.actionTypeId = actionTypeId;
+    }
+
     public String getValue()
     {
         return value;

@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.rule.Action;
 import com.sonatype.insight.brain.model.rule.LogicalOperator;
 import com.sonatype.insight.brain.model.rule.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentType;
+import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
 import com.sonatype.insight.brain.rule.RuleResourceTest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -40,7 +40,7 @@ extends AbstractResourceTest
         rule.setName( "PolicyEvaluatorResourceTest rule 1" );
         rule.setOperator( LogicalOperator.AND );
         SimpleCondition condition1 = new SimpleCondition();
-        condition1.setConditionTypeId( SecurityVulnerabilityPresentType.ID );
+        condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition1.setOperator( "present" );
         rule.addCondition( condition1 );
         Action action = new Action();

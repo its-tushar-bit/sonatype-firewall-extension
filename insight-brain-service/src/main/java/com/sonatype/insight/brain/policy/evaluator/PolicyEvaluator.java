@@ -21,6 +21,8 @@ import org.drools.definition.KnowledgePackage;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.ObjectFilter;
 import org.drools.runtime.StatefulKnowledgeSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.PolicyFact;
@@ -28,10 +30,13 @@ import com.sonatype.insight.brain.model.rule.Rule;
 
 public class PolicyEvaluator
 {
+    private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
+
     public List<PolicyFact> evaluate( List<Rule> rules, List<Component> components )
     {
         String droolsCode = new DroolsGenerator().generate( rules );
-        System.out.println( droolsCode );
+        // Most probably this is too much logging, but it's good for debugging for now
+        log.debug( "Generated drools code:\n{}", droolsCode );
 
         KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
         droolsKnowledgeBuilder.add( ResourceFactory.newReaderResource( new StringReader( droolsCode ) ),

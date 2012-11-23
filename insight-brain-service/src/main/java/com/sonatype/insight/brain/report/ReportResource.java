@@ -122,11 +122,17 @@ public class ReportResource
                                      @Context final HttpServletRequest httpRequest )
         throws Exception
     {
-        final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
-        final ReportEntry reportEntry = Report.getEntry( work.getReportFile( scanId ), "licenses.json" );
-        if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
+        ReportEntry reportEntry = null;
+
+        final File reportFile = work.getReportFile( scanId );
+        if ( reportFile.exists() )
         {
-            return Response.status( 304 ).build();
+            reportEntry = Report.getEntry( reportFile, "licenses.json" );
+            final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+            if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
+            {
+                return Response.status( 304 ).build();
+            }
         }
 
         final ReportDataRequest request = new ReportDataRequest( "rest/bc/artifact/" + scanId + //
@@ -142,7 +148,7 @@ public class ReportResource
         }
 
         final byte[] data;
-        if ( result.getStatusCode() < 300 )
+        if ( result.getStatusCode() < 300 && reportEntry != null )
         {
             data = DataStore.augmentArtifactDetails( result.getData(), reportEntry.buf );
             response.lastModified( new Date( reportEntry.time ) );

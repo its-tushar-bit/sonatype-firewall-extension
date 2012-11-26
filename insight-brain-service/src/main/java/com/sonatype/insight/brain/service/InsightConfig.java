@@ -28,7 +28,7 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
-    protected String saasAddress = "https://insight.sonatype.com/";
+    protected String saasAddress = "https://insight-staging.sonatype.com/";
 
     @NotNull
     @JsonProperty

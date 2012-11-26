@@ -30,7 +30,6 @@ import org.codehaus.jackson.node.ContainerNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
 
 import com.sonatype.insight.brain.data.Auditing;
 
@@ -355,17 +354,17 @@ public final class Report
         return text;
     }
 
-    public static void printPdf( final Logger log, final File reportFile, final String projectName,
-                                 final int buildNumber, final ResponseBuilder response )
+    public static void printPdf( final File reportFile, final String projectName, final int buildNumber,
+                                 final ResponseBuilder response )
         throws IOException
     {
-        Pdf.generate( log, reportFile, getCacheDir( reportFile ), ReportType.SAMPLE.equals( getType( reportFile ) ),
+        Pdf.generate( reportFile, getCacheDir( reportFile ), ReportType.SAMPLE.equals( getType( reportFile ) ),
                       projectName, buildNumber, response );
     }
 
-    public static void deletePdf( final Logger log, final File reportFile )
+    public static void deletePdf( final File reportFile )
     {
-        Pdf.delete( log, reportFile );
+        Pdf.delete( reportFile );
     }
 
     private static ContainerNode applyChanges( final File reportFile, final String name, final File auditDir )

@@ -106,7 +106,7 @@ public class ReportResource
 
         final ResponseBuilder response = Response.ok();
 
-        Report.printPdf( log, work.getReportFile( scanId ), StringUtils.defaultString( projectName, "insight" ),
+        Report.printPdf( work.getReportFile( scanId ), StringUtils.defaultString( projectName, "insight" ),
                          buildNumber, response );
 
         return response.build();
@@ -213,7 +213,7 @@ public class ReportResource
                     }
                 }
 
-                Report.deletePdf( log, reportFile );
+                Report.deletePdf( reportFile );
 
                 Report.applyChanges( reportFile, work.getAuditDir( appId ) );
             }

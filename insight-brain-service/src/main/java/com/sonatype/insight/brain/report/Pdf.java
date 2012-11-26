@@ -37,11 +37,13 @@ import org.eclipse.birt.report.engine.api.IReportRunnable;
 import org.eclipse.birt.report.engine.api.IRunAndRenderTask;
 import org.eclipse.birt.report.engine.api.RenderOption;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.data.DataStore;
 
 final class Pdf
 {
+    private static final Logger log = LoggerFactory.getLogger( Pdf.class );
 
     private static IReportEngine reportEngine;
 
@@ -50,7 +52,7 @@ final class Pdf
         return new File( reportFile.getParentFile(), "report.pdf" );
     }
 
-    public static void delete( final Logger log, final File reportFile )
+    public static void delete( final File reportFile )
     {
         final File pdfFile = getPdfFile( reportFile );
         log.debug( "Deleting report PDF {}", pdfFile );
@@ -60,7 +62,7 @@ final class Pdf
         }
     }
 
-    public static void generate( final Logger log, final File reportFile, final File cacheDir, final boolean sample,
+    public static void generate( final File reportFile, final File cacheDir, final boolean sample,
                                  final String projectName, final int buildNumber, final ResponseBuilder response )
         throws IOException
     {
@@ -78,7 +80,7 @@ final class Pdf
                  */
                 Thread.currentThread().setContextClassLoader( Pdf.class.getClassLoader() );
 
-                generate( log, pdfFile, templateDir, sample );
+                generate( pdfFile, templateDir, sample );
 
             }
             finally
@@ -188,10 +190,10 @@ final class Pdf
         return false;
     }
 
-    private static File generate( final Logger log, final File pdfFile, final File templateDir, final boolean sample )
+    private static File generate( final File pdfFile, final File templateDir, final boolean sample )
         throws IOException
     {
-        init( log );
+        init();
 
         log.debug( "Generating report PDF {}", pdfFile );
         long millis = System.currentTimeMillis();
@@ -250,7 +252,7 @@ final class Pdf
         return pdfFile;
     }
 
-    private static synchronized void init( final Logger log )
+    private static synchronized void init()
         throws IOException
     {
         if ( reportEngine == null )

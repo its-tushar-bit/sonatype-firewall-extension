@@ -389,6 +389,7 @@
                     <versionRange>[1.2.0.0,)</versionRange>
                     <goals>
                       <goal>test</goal>
+                      <goal>testResources</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>

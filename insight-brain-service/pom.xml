@@ -363,7 +363,7 @@
                   <mainClass>com.sonatype.insight.brain.service.InsightBrainService</mainClass>
                   <manifestEntries>
                     <!-- Required by BIRT to discover the extensions we have shaded in -->
-                    <Bundle-SymbolicName>${project.groupId}.common</Bundle-SymbolicName>
+                    <Bundle-SymbolicName>${project.groupId}.server</Bundle-SymbolicName>
                   </manifestEntries>
                 </transformer>
               </transformers>

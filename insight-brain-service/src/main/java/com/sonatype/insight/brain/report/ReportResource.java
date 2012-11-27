@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.data.Auditing;
 import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
@@ -43,21 +44,10 @@ import com.sonatype.insight.scan.upload.ReportDataRequest;
 import com.sonatype.insight.scan.upload.ReportDataResult;
 import com.sonatype.insight.scan.upload.ReportDownloader;
 
-import eu.medsea.mimeutil.MimeType;
-import eu.medsea.mimeutil.MimeUtil2;
-import eu.medsea.mimeutil.detector.ExtensionMimeDetector;
-
 @Path( "/rest/report/{appId}/{scanId}" )
 public class ReportResource
 {
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
-
-    private static final MimeUtil2 mimeUtil = new MimeUtil2();
-
-    static
-    {
-        mimeUtil.registerMimeDetector( ExtensionMimeDetector.class.getName() );
-    }
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 
@@ -88,7 +78,7 @@ public class ReportResource
         }
         if ( entry != null )
         {
-            return Response.ok( entry.buf, mediaType( name ) ).build();
+            return Response.ok( entry.buf, MediaTypeUtils.byName( name ) ).build();
         }
         return Response.status( Status.NOT_FOUND ).build();
     }
@@ -252,16 +242,5 @@ public class ReportResource
             reportFile.delete();
         }
         return false;
-    }
-
-    private static String mediaType( final String name )
-    {
-        final MimeType mimeType = MimeUtil2.getMostSpecificMimeType( mimeUtil.getMimeTypes( name ) );
-        if ( mimeType != null )
-        {
-            final String mediaType = mimeType.toString(); // returns "<mediaType>/<subType>"
-            return mediaType.startsWith( "text" ) ? mediaType + ";charset=UTF-8" : mediaType;
-        }
-        return null;
     }
 }

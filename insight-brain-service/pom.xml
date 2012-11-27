@@ -355,9 +355,6 @@
                     <include>org/eclipse/**</include>
                     <include>javax/**</include>
                   </includes>
-                  <excludes>
-                    <exclude>org/eclipse/birt/report/engine/internal/util/BundleVersionUtil*</exclude>
-                  </excludes>
                 </filter>
               </filters>
               <transformers>

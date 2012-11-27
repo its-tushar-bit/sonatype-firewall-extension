@@ -88,8 +88,7 @@ public class ReportResource
         }
         if ( entry != null )
         {
-            final MimeType mimeType = MimeUtil2.getMostSpecificMimeType( mimeUtil.getMimeTypes( name ) );
-            return Response.ok( entry.buf ).type( mimeType.toString() ).build();
+            return Response.ok( entry.buf, mediaType( name ) ).build();
         }
         return Response.status( Status.NOT_FOUND ).build();
     }
@@ -152,7 +151,7 @@ public class ReportResource
         {
             data = DataStore.augmentArtifactDetails( result.getData(), reportEntry.buf );
             response.lastModified( new Date( reportEntry.time ) );
-            response.type( "application/json; charset=UTF-8" );
+            response.type( "application/json;charset=UTF-8" );
         }
         else
         {
@@ -253,5 +252,16 @@ public class ReportResource
             reportFile.delete();
         }
         return false;
+    }
+
+    private static String mediaType( final String name )
+    {
+        final MimeType mimeType = MimeUtil2.getMostSpecificMimeType( mimeUtil.getMimeTypes( name ) );
+        if ( mimeType != null )
+        {
+            final String mediaType = mimeType.toString(); // returns "<mediaType>/<subType>"
+            return mediaType.startsWith( "text" ) ? mediaType + ";charset=UTF-8" : mediaType;
+        }
+        return null;
     }
 }

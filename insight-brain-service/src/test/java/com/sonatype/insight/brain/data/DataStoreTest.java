@@ -73,6 +73,8 @@ public class DataStoreTest
         {
             final int[] data = { 1, 1, 2, 3, 5, 8 };
 
+            assertThat( data, equalTo( parseData( Arrays.toString( data ).getBytes( "UTF-8" ), int[].class ) ) );
+
             saveData( store, parseData( Arrays.toString( data ).getBytes( "UTF-8" ) ) );
 
             assertThat( data, equalTo( loadData( store, int[].class ) ) );
@@ -90,6 +92,33 @@ public class DataStoreTest
         final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
         try
         {
+            final String table = "[ { \"id\" : \"one\" }, { \"id\" : \"two\" }, { \"id\" : \"three\" } ]";
+
+            final String additions =
+                "[ { \"data\" : [ { \"modified\" : \"true\", \"id\" : \"three\" } ] }, { \"data\" : [ { \"id\" : \"one\", \"count\" : 42 } ] } ]";
+
+            final String result =
+                "[ { \"id\" : \"one\", \"count\" : 42 }, { \"id\" : \"two\" }, { \"id\" : \"three\", \"modified\" : \"true\" } ]";
+
+            saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+
+            final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+
+            assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
+        }
+        finally
+        {
+            store.delete();
+        }
+    }
+
+    @Test
+    public void testAugmentAAData()
+        throws IOException
+    {
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
+        try
+        {
             final String table =
                 "{ \"aaData\" : [ { \"id\" : \"one\" }, { \"id\" : \"two\" }, { \"id\" : \"three\" } ] }";
 
@@ -98,6 +127,59 @@ public class DataStoreTest
 
             final String result =
                 "{ \"aaData\" : [ { \"id\" : \"one\", \"count\" : 42 }, { \"id\" : \"two\" }, { \"id\" : \"three\", \"modified\" : \"true\" } ] }";
+
+            saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+
+            final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+
+            assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
+        }
+        finally
+        {
+            store.delete();
+        }
+    }
+
+    @Test
+    public void testAugmentNestedData()
+        throws IOException
+    {
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
+        try
+        {
+            final String table = "[ { \"outer\" : { \"inner\" : { \"A\" : \"1\", \"B\" : \"2\" } } } ]";
+
+            final String additions =
+                "[ { \"data\" : [ { \"outer\" : { \"inner\" : { \"B\" : \"2\", \"level\" : 3 }, \"level\" : 2 }, \"level\" : 1 } ] } ]";
+
+            final String result =
+                "[ { \"outer\" : { \"inner\" : { \"A\" : \"1\", \"B\" : \"2\", \"level\" : 3 }, \"level\" : 2 }, \"level\" : 1 } ]";
+
+            saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+
+            final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+
+            assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
+        }
+        finally
+        {
+            store.delete();
+        }
+    }
+
+    @Test
+    public void testAugmentDataOnlyAppliedToFirstMatchingRow()
+        throws IOException
+    {
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
+        try
+        {
+            final String table = "[ { \"A\" : \"1\", \"B\" : \"2\" }, { \"A\" : \"1\", \"B\" : \"2\" } ]";
+
+            final String additions = "[ { \"data\" : [ { \"B\" : \"2\", \"C\" : \"3\" } ] } ]";
+
+            final String result =
+                "[ { \"A\" : \"1\", \"B\" : \"2\", \"C\" : \"3\" }, { \"A\" : \"1\", \"B\" : \"2\" } ]";
 
             saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
 

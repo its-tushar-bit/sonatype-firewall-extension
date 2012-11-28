@@ -25,9 +25,13 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ContainerNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Auditing
 {
+    private static final Logger logger = LoggerFactory.getLogger( Auditing.class );
+
     private static final ConcurrentMap<String, AuditLock> LOCK_TABLE = new ConcurrentHashMap<String, AuditLock>();
 
     private static final String[] NO_FILE_NAMES = {};
@@ -59,6 +63,7 @@ public final class Auditing
             {
                 fileNames = listAugmentedData( auditDir );
             }
+            logger.debug( "Filtering audit log from directory {}, files {}", auditDir.getAbsolutePath(), fileNames );
             for ( final String name : fileNames )
             {
                 final File file = new File( auditDir, name );

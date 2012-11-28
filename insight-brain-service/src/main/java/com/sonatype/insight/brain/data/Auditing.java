@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,7 +95,12 @@ public final class Auditing
     public static String[] listAugmentedData( final File auditDir )
     {
         final String[] names = auditDir.list( JSON_FILES );
-        return names != null ? names : NO_FILE_NAMES;
+        if ( names != null && names.length > 0 )
+        {
+            Arrays.sort( names );
+            return names;
+        }
+        return NO_FILE_NAMES;
     }
 
     public static void saveAugmentedData( final File auditDir, final String name, final InputStream data,

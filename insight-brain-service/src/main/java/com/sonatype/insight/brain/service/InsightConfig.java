@@ -18,12 +18,13 @@ public class InsightConfig
     extends Configuration
 {
     {
-        http = new HttpConfiguration()
+        setHttpConfiguration( new HttpConfiguration()
         {
             {
-                port = adminPort = 8070;
+                setPort( 8070 );
+                setAdminPort( 8070 );
             }
-        };
+        } );
     }
 
     @NotNull
@@ -42,5 +43,10 @@ public class InsightConfig
     public File getSonatypeWork()
     {
         return new File( sonatypeWork );
+    }
+
+    public void setSaasAddress( String saasAddress )
+    {
+        this.saasAddress = saasAddress;
     }
 }

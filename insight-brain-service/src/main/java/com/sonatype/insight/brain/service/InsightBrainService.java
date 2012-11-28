@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.google.common.cache.CacheBuilderSpec;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluatorResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.rule.ActionTypeResource;
@@ -13,7 +12,8 @@ import com.sonatype.insight.brain.rule.ConditionTypeResource;
 import com.sonatype.insight.brain.rule.RuleResource;
 import com.sonatype.insight.brain.saas.BCResource;
 import com.yammer.dropwizard.Service;
-import com.yammer.dropwizard.bundles.AssetsBundle;
+import com.yammer.dropwizard.assets.AssetsBundle;
+import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 
 public class InsightBrainService
@@ -25,16 +25,14 @@ public class InsightBrainService
         new InsightBrainService().run( args.length > 0 ? args : new String[] { "server" } );
     }
 
-    public InsightBrainService()
+    @Override
+    public void initialize( Bootstrap<InsightConfig> bootstrap )
     {
-        super( "insight-brain-service" );
-
-        final CacheBuilderSpec cacheSpec = AssetsBundle.DEFAULT_CACHE_SPEC;
-        addBundle( new AssetsBundle( "/com/sonatype/insight/brain/rules/assets/", cacheSpec, "/rule-assets/" ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/rules/assets/", "/rule-assets/" ) );
     }
 
     @Override
-    protected void initialize( final InsightConfig config, final Environment env )
+    public void run( InsightConfig config, Environment env )
         throws Exception
     {
         config.getSonatypeWork().mkdirs();

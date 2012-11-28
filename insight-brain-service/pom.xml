@@ -18,7 +18,7 @@
   
   <properties>
     <drools.version>5.5.0.Final</drools.version>
-    <dropwizard.version>0.5.1</dropwizard.version>
+    <dropwizard.version>0.6.0</dropwizard.version>
   </properties>
 
   <dependencies>
@@ -270,6 +270,12 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

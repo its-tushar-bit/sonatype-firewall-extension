@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
-import org.apache.commons.cli.CommandLine;
+import net.sourceforge.argparse4j.inf.Namespace;
+
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yammer.dropwizard.AbstractService;
+import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.cli.ServerCommand;
+import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.ServerFactory;
+import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 
 public class TestInsightBrainService
     extends InsightBrainService
@@ -30,22 +33,25 @@ public class TestInsightBrainService
 
         private Server server;
 
-        public TestServerCommand( Class<T> configurationClass )
+        public TestServerCommand( Service<T> service )
         {
-            super( configurationClass );
+            super( service );
         }
 
         @Override
-        protected void run( AbstractService<T> service, T configuration, CommandLine params )
+        protected void run( Environment environment, Namespace namespace, T configuration )
             throws Exception
         {
-            final Environment environment = new Environment( service, configuration );
-            service.initializeWithBundles( configuration, environment );
             server =
-                new ServerFactory( configuration.getHttpConfiguration(), service.getName() ).buildServer( environment );
+                new ServerFactory( configuration.getHttpConfiguration(), environment.getName() ).buildServer( environment );
             try
             {
                 server.start();
+                final ServerLifecycleListener listener = environment.getServerListener();
+                if ( listener != null )
+                {
+                    listener.serverStarted( server );
+                }
             }
             catch ( Exception e )
             {
@@ -57,10 +63,12 @@ public class TestInsightBrainService
 
     private TestServerCommand<InsightConfig> testServerCommand;
 
-    public TestInsightBrainService()
+    @Override
+    public void initialize( Bootstrap<InsightConfig> bootstrap )
     {
-        testServerCommand = new TestServerCommand<InsightConfig>( getConfigurationClass() );
-        addCommand( testServerCommand );
+        super.initialize( bootstrap );
+        testServerCommand = new TestServerCommand<InsightConfig>( this );
+        bootstrap.addCommand( testServerCommand );
     }
 
     public void stop()

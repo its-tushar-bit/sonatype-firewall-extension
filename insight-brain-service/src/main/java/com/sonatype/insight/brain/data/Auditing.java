@@ -44,7 +44,7 @@ public final class Auditing
     public static byte[] filterAuditLog( final File auditDir, final byte[] key, final String... names )
         throws IOException
     {
-        final ObjectNode keyData = parseData( key );
+        final ObjectNode keyData = parseData( key != null ? key : "{}".getBytes( "UTF-8" ) );
         final ObjectNode log = keyData.objectNode();
 
         final ArrayNode entries = log.putArray( "aaData" );

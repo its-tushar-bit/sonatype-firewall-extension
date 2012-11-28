@@ -43,7 +43,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 
@@ -75,7 +75,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 
@@ -115,7 +115,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 
@@ -148,7 +148,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 
@@ -189,7 +189,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 
@@ -231,7 +231,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 
@@ -246,7 +246,7 @@ public class AuditingTest
         }
         finally
         {
-            auditDir.delete();
+            FileUtils.deleteDirectory( auditDir );
         }
     }
 }

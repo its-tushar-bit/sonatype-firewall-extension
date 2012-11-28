@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 public class DataStoreTest
@@ -26,7 +27,7 @@ public class DataStoreTest
     public void testStoreObject()
         throws IOException
     {
-        final File store = File.createTempFile( "datastore", "test", new File( "target" ) );
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
         try
         {
             final String data =
@@ -47,7 +48,7 @@ public class DataStoreTest
     public void testStoreArray()
         throws IOException
     {
-        final File store = File.createTempFile( "datastore", "test", new File( "target" ) );
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
         try
         {
             final String data = "[ { \"id\" : \"one\" }, { \"id\" : \"two\" }, { \"id\" : \"three\" } ]";
@@ -67,7 +68,7 @@ public class DataStoreTest
     public void testStoreData()
         throws IOException
     {
-        final File store = File.createTempFile( "datastore", "test", new File( "target" ) );
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
         try
         {
             final int[] data = { 1, 1, 2, 3, 5, 8 };
@@ -86,17 +87,17 @@ public class DataStoreTest
     public void testAugmentData()
         throws IOException
     {
-        final File store = File.createTempFile( "datastore", "test", new File( "target" ) );
+        final File store = FileUtils.createTempFile( "datastore", "test", new File( "target" ) );
         try
         {
             final String table =
                 "{ \"aaData\" : [ { \"id\" : \"one\" }, { \"id\" : \"two\" }, { \"id\" : \"three\" } ] }";
 
             final String additions =
-                "[ { \"data\" : [ { \"modified\" : \"true\", \"id\" : \"three\" } ] }, { \"data\" : [ { \"id\" : \"one\", \"count\" : \"42\" } ] } ]";
+                "[ { \"data\" : [ { \"modified\" : \"true\", \"id\" : \"three\" } ] }, { \"data\" : [ { \"id\" : \"one\", \"count\" : 42 } ] } ]";
 
             final String result =
-                "{ \"aaData\" : [ { \"id\" : \"one\", \"count\" : \"42\" }, { \"id\" : \"two\" }, { \"id\" : \"three\", \"modified\" : \"true\" } ] }";
+                "{ \"aaData\" : [ { \"id\" : \"one\", \"count\" : 42 }, { \"id\" : \"two\" }, { \"id\" : \"three\", \"modified\" : \"true\" } ] }";
 
             saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
 

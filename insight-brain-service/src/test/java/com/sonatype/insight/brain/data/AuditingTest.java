@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.data;
 
 import static com.sonatype.insight.brain.data.Auditing.applyAugmentedData;
 import static com.sonatype.insight.brain.data.Auditing.filterAuditLog;
+import static com.sonatype.insight.brain.data.Auditing.getModificationCount;
 import static com.sonatype.insight.brain.data.Auditing.saveAugmentedData;
 import static com.sonatype.insight.brain.data.DataStore.parseData;
 import static com.sonatype.insight.brain.data.DataStore.streamData;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
+@SuppressWarnings( "boxing" )
 public class AuditingTest
 {
     @Test
@@ -36,6 +38,8 @@ public class AuditingTest
                 streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );
 
             assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( table ) );
+
+            assertThat( 0, equalTo( getModificationCount( auditDir ) ) );
         }
         finally
         {
@@ -50,6 +54,8 @@ public class AuditingTest
         final File auditDir = FileUtils.createTempFile( "audit", "test", new File( "target" ) );
         try
         {
+            assertThat( 0, equalTo( getModificationCount( auditDir ) ) );
+
             final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
             final String addition = "[ { \"id\" : \"B\", \"override\" : \"EPL\", \"comment\" : \"Testing...\" } ]";
@@ -64,6 +70,8 @@ public class AuditingTest
                 streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );
 
             assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
+
+            assertThat( 1, equalTo( getModificationCount( auditDir ) ) );
         }
         finally
         {
@@ -78,6 +86,8 @@ public class AuditingTest
         final File auditDir = FileUtils.createTempFile( "audit", "test", new File( "target" ) );
         try
         {
+            assertThat( 0, equalTo( getModificationCount( auditDir ) ) );
+
             final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
             final String addition1 =
@@ -91,8 +101,12 @@ public class AuditingTest
             saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition1.getBytes( "UTF-8" ) ),
                                "anon", "127.0.0.1", "office" );
 
+            assertThat( 1, equalTo( getModificationCount( auditDir ) ) );
+
             saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition2.getBytes( "UTF-8" ) ),
                                "anon", "127.0.0.1", "office" );
+
+            assertThat( 2, equalTo( getModificationCount( auditDir ) ) );
 
             final byte[] buf =
                 streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );

@@ -96,7 +96,14 @@ public class TestInsightBrainService
         config.getHttpConfiguration().setPort( testPort );
         config.getHttpConfiguration().setAdminPort( testPort );
         config.setSaasAddress( testSaasAddress );
-        env.setServerLifecycleListener( new TestServerListener( env.getServerListener() ) );
+        env.addServerLifecycleListener( new ServerLifecycleListener()
+        {
+            @Override
+            public void serverStarted( Server server )
+            {
+                testBrainServer = server;
+            }
+        } );
         super.run( config, env );
     }
 
@@ -111,27 +118,6 @@ public class TestInsightBrainService
         if ( brainFault != null )
         {
             throw brainFault;
-        }
-    }
-
-    private class TestServerListener
-        implements ServerLifecycleListener
-    {
-        ServerLifecycleListener delegate;
-
-        TestServerListener( ServerLifecycleListener delegate )
-        {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void serverStarted( Server server )
-        {
-            if ( delegate != null )
-            {
-                delegate.serverStarted( server );
-            }
-            testBrainServer = server;
         }
     }
 }

@@ -18,7 +18,7 @@
   
   <properties>
     <drools.version>5.5.0.Final</drools.version>
-    <dropwizard.version>0.6.0</dropwizard.version>
+    <dropwizard.version>0.6.1</dropwizard.version>
   </properties>
 
   <dependencies>

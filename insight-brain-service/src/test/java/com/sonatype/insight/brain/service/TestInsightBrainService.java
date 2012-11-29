@@ -5,83 +5,124 @@
  */
 package com.sonatype.insight.brain.service;
 
-import net.sourceforge.argparse4j.inf.Namespace;
-
 import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.yammer.dropwizard.Service;
-import com.yammer.dropwizard.cli.ServerCommand;
-import com.yammer.dropwizard.config.Bootstrap;
-import com.yammer.dropwizard.config.Configuration;
+import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.config.Environment;
-import com.yammer.dropwizard.config.ServerFactory;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 
 public class TestInsightBrainService
     extends InsightBrainService
 {
-    /**
-     * Copied from com.yammer.dropwizard.cli.ServerCommand only to be able to keep a reference to the server instance
-     * that is started by the command.
-     */
-    private static final class TestServerCommand<T extends Configuration>
-        extends ServerCommand<T>
+    int testPort;
+
+    String testSaasAddress;
+
+    Server testBrainServer;
+
+    Exception brainFault;
+
+    public void setHttpPort( int port )
     {
-        private static final Logger log = LoggerFactory.getLogger( TestServerCommand.class );
+        testPort = port;
+    }
 
-        private Server server;
+    public void setSaasAddress( String saasAddress )
+    {
+        testSaasAddress = saasAddress;
+    }
 
-        public TestServerCommand( Service<T> service )
+    public void start()
+        throws Exception
+    {
+        if ( testBrainServer != null )
         {
-            super( service );
+            throw new IllegalStateException( "Brain server already started" );
         }
 
-        @Override
-        protected void run( Environment environment, Namespace namespace, T configuration )
-            throws Exception
+        new Thread()
         {
-            server =
-                new ServerFactory( configuration.getHttpConfiguration(), environment.getName() ).buildServer( environment );
+            @Override
+            public void run()
+            {
+                brainFault = null;
+                try
+                {
+                    // this method will only return when the service is stopped...
+                    TestInsightBrainService.this.run( new String[] { "server" } );
+                }
+                catch ( Exception e )
+                {
+                    brainFault = e;
+                }
+            }
+        }.start();
+
+        // Warning: must set correct test port *before* any use of RestAccess!
+        System.setProperty( "insight-app-port", Integer.toString( testPort ) );
+
+        final String testURL = RestAccess.BASE_REST_URL + "/bc/validate/freemium"; // low-cost service
+
+        for ( int retries = 0; retries < 60; retries++ )
+        {
             try
             {
-                server.start();
-                final ServerLifecycleListener listener = environment.getServerListener();
-                if ( listener != null )
+                Thread.sleep( 1000 );
+                if ( RestAccess.get( testURL ).getStatusCode() == 200 )
                 {
-                    listener.serverStarted( server );
+                    break;
                 }
             }
             catch ( Exception e )
             {
-                log.error( "Unable to start server, shutting down", e );
-                server.stop();
+                // server is still booting...
             }
         }
-    }
-
-    private TestServerCommand<InsightConfig> testServerCommand;
-
-    @Override
-    public void initialize( Bootstrap<InsightConfig> bootstrap )
-    {
-        super.initialize( bootstrap );
-        testServerCommand = new TestServerCommand<InsightConfig>( this );
-        bootstrap.addCommand( testServerCommand );
     }
 
     @Override
     public void run( InsightConfig config, Environment env )
         throws Exception
     {
-        config.saasAddress = "http://127.0.0.1:9000/";
+        config.getHttpConfiguration().setPort( testPort );
+        config.getHttpConfiguration().setAdminPort( testPort );
+        config.setSaasAddress( testSaasAddress );
+        env.setServerLifecycleListener( new TestServerListener( env.getServerListener() ) );
         super.run( config, env );
     }
 
     public void stop()
         throws Exception
     {
-        testServerCommand.server.stop();
+        if ( testBrainServer != null )
+        {
+            testBrainServer.stop();
+            testBrainServer = null;
+        }
+        if ( brainFault != null )
+        {
+            throw brainFault;
+        }
+    }
+
+    private class TestServerListener
+        implements ServerLifecycleListener
+    {
+        ServerLifecycleListener delegate;
+
+        TestServerListener( ServerLifecycleListener delegate )
+        {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void serverStarted( Server server )
+        {
+            if ( delegate != null )
+            {
+                delegate.serverStarted( server );
+            }
+            testBrainServer = server;
+        }
     }
 }

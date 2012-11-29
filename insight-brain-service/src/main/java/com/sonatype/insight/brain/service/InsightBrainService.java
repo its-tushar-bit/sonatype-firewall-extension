@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.rule.ActionTypeResource;
 import com.sonatype.insight.brain.rule.ConditionTypeResource;
 import com.sonatype.insight.brain.rule.RuleResource;
 import com.sonatype.insight.brain.saas.BCResource;
+import com.sun.jersey.api.core.ResourceConfig;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
@@ -36,6 +37,9 @@ public class InsightBrainService
         throws Exception
     {
         config.getSonatypeWork().mkdirs();
+
+        env.enableJerseyFeature( ResourceConfig.FEATURE_CANONICALIZE_URI_PATH );
+        env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
 
         env.addHealthCheck( new InsightHealth( config ) );
 

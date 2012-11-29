@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -17,9 +18,13 @@ import com.sonatype.insight.mock.InsightMockServer;
 
 public abstract class AbstractResourceTest
 {
-    private static InsightMockServer saas;
+    private static int saasPort = findFreePort( 8071 );
 
-    private static TestInsightBrainService brain;
+    private static int brainPort = findFreePort( 8070 );
+
+    private InsightMockServer saas;
+
+    private TestInsightBrainService brain;
 
     @Before
     public void startService()
@@ -28,7 +33,7 @@ public abstract class AbstractResourceTest
         if ( saas == null )
         {
             saas = new InsightMockServer();
-            saas.setHttpPort( 9000 );
+            saas.setHttpPort( saasPort );
             saas.setJsonResponseDirectory( new File( "src/test/resources/json" ) );
             saas.setZipResponseDirectory( new File( "src/test/resources/zip" ) );
             saas.start();
@@ -36,7 +41,9 @@ public abstract class AbstractResourceTest
         if ( brain == null )
         {
             brain = new TestInsightBrainService();
-            brain.run( new String[] { "server" } );
+            brain.setHttpPort( brainPort );
+            brain.setSaasAddress( saas.getHttpUrl() );
+            brain.start();
         }
     }
 
@@ -62,5 +69,35 @@ public abstract class AbstractResourceTest
         int actualStatus = response.getStatusCode();
         Assert.assertEquals( "URI:" + response.getUri() + ", StatusText:" + response.getStatusText()
             + ", ResponseBody:" + response.getResponseBody(), expectedStatus, actualStatus );
+    }
+
+    protected static int findFreePort( int defaultPort )
+    {
+        int port = defaultPort;
+        ServerSocket socket = null;
+        try
+        {
+            socket = new ServerSocket( 0 );
+            port = socket.getLocalPort();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if ( socket != null )
+            {
+                try
+                {
+                    socket.close();
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return port;
     }
 }

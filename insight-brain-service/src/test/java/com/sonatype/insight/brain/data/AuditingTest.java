@@ -14,6 +14,7 @@ import static com.sonatype.insight.brain.data.DataStore.streamData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -50,14 +51,14 @@ public class AuditingTest
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( table ) );
 
-        assertThat( 0, equalTo( getModificationCount( auditDir ) ) );
+        assertThat( getModificationCount( auditDir ), equalTo( 0 ) );
     }
 
     @Test
     public void testSingleAugmentedData()
         throws IOException
     {
-        assertThat( 0, equalTo( getModificationCount( auditDir ) ) );
+        assertThat( getModificationCount( auditDir ), equalTo( 0 ) );
 
         final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
@@ -74,14 +75,14 @@ public class AuditingTest
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
 
-        assertThat( 1, equalTo( getModificationCount( auditDir ) ) );
+        assertThat( getModificationCount( auditDir ), equalTo( 1 ) );
     }
 
     @Test
     public void testMultipleAugmentedData()
         throws IOException
     {
-        assertThat( 0, equalTo( getModificationCount( auditDir ) ) );
+        assertThat( getModificationCount( auditDir ), equalTo( 0 ) );
 
         final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
@@ -96,12 +97,12 @@ public class AuditingTest
         saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition1.getBytes( "UTF-8" ) ), "anon",
                            "127.0.0.1", "office" );
 
-        assertThat( 1, equalTo( getModificationCount( auditDir ) ) );
+        assertThat( getModificationCount( auditDir ), equalTo( 1 ) );
 
         saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition2.getBytes( "UTF-8" ) ), "anon",
                            "127.0.0.1", "office" );
 
-        assertThat( 2, equalTo( getModificationCount( auditDir ) ) );
+        assertThat( getModificationCount( auditDir ), equalTo( 2 ) );
 
         final byte[] buf =
             streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );
@@ -205,6 +206,6 @@ public class AuditingTest
     public void testEmptyAuditFeed()
         throws IOException
     {
-        assertThat( null, equalTo( filterAuditLog( auditDir, null, "" ) ) );
+        assertNull( filterAuditLog( auditDir, null, "" ) );
     }
 }

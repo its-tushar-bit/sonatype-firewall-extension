@@ -73,11 +73,11 @@ public class DataStoreTest
         {
             final int[] data = { 1, 1, 2, 3, 5, 8 };
 
-            assertThat( data, equalTo( parseData( Arrays.toString( data ).getBytes( "UTF-8" ), int[].class ) ) );
+            assertThat( parseData( Arrays.toString( data ).getBytes( "UTF-8" ), int[].class ), equalTo( data ) );
 
             saveData( store, parseData( Arrays.toString( data ).getBytes( "UTF-8" ) ) );
 
-            assertThat( data, equalTo( loadData( store, int[].class ) ) );
+            assertThat( loadData( store, int[].class ), equalTo( data ) );
         }
         finally
         {

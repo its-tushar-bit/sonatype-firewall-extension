@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Server;
 
 import com.sonatype.insight.test.RestAccess;
@@ -95,7 +96,11 @@ public class TestInsightBrainService
     {
         config.getHttpConfiguration().setPort( testPort );
         config.getHttpConfiguration().setAdminPort( testPort );
+
         config.setSaasAddress( testSaasAddress );
+
+        FileUtils.deleteDirectory( config.getSonatypeWork() );
+
         env.addServerLifecycleListener( new ServerLifecycleListener()
         {
             @Override

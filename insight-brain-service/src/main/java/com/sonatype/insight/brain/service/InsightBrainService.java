@@ -20,8 +20,6 @@ import com.yammer.dropwizard.config.Environment;
 public class InsightBrainService
     extends Service<InsightConfig>
 {
-    private InsightWork insightWork;
-
     public static void main( final String[] args )
         throws Exception
     {
@@ -45,8 +43,7 @@ public class InsightBrainService
 
         env.addHealthCheck( new InsightHealth( config ) );
 
-        insightWork = new InsightWork( config );
-        env.addProvider( insightWork );
+        env.addProvider( new InsightWork( config ) );
         env.addProvider( new InsightProxy( config ) );
 
         env.addResource( ActionTypeResource.class );
@@ -55,10 +52,5 @@ public class InsightBrainService
         env.addResource( ReportResource.class );
         env.addResource( RuleResource.class );
         env.addResource( BCResource.class );
-    }
-
-    public InsightWork getInsightWork()
-    {
-        return insightWork;
     }
 }

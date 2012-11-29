@@ -35,8 +35,6 @@ extends AbstractResourceTest
         String scanId = "PolicyEvaluatorResourceTest_ScanId";
         File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
-        File localReportFile = brain.getInsightWork().getReportFile( scanId );
-        localReportFile.delete();
 
         Rule rule = new Rule();
         rule.setName( "PolicyEvaluatorResourceTest rule 1" );

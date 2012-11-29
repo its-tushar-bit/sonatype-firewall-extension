@@ -33,8 +33,10 @@ extends AbstractResourceTest
     {
         String appId = "PolicyEvaluatorResourceTest_AppId";
         String scanId = "PolicyEvaluatorResourceTest_ScanId";
-        File reportFile = getReportResponseFile( appId , scanId );
-        reportFile.delete();
+        File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+        File localReportFile = brain.getInsightWork().getReportFile( scanId );
+        localReportFile.delete();
 
         Rule rule = new Rule();
         rule.setName( "PolicyEvaluatorResourceTest rule 1" );
@@ -54,7 +56,7 @@ extends AbstractResourceTest
 
         // Simulate that the report is available
         URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
-        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), reportFile );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.get( getServiceURL( appId, scanId ) );
         assertResponseStatus( 200, response );
         PolicyFact[] policyFacts = JsonHelpers.fromJson( response.getResponseBody(), PolicyFact[].class );

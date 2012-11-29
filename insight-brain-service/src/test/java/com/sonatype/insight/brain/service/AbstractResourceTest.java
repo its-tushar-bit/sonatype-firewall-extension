@@ -26,7 +26,7 @@ public abstract class AbstractResourceTest
 
     private InsightMockServer saas;
 
-    private TestInsightBrainService brain;
+    protected TestInsightBrainService brain;
 
     @Before
     public void startService()

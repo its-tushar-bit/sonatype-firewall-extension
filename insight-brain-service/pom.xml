@@ -285,6 +285,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-mock-server</artifactId>
+      <version>${insight-scanner.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-test</artifactId>
       <version>1.0.0-SNAPSHOT</version>

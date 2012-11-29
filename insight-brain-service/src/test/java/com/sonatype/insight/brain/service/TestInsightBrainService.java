@@ -71,6 +71,14 @@ public class TestInsightBrainService
         bootstrap.addCommand( testServerCommand );
     }
 
+    @Override
+    public void run( InsightConfig config, Environment env )
+        throws Exception
+    {
+        config.saasAddress = "http://127.0.0.1:9000/";
+        super.run( config, env );
+    }
+
     public void stop()
         throws Exception
     {

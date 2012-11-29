@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.After;
@@ -12,19 +13,30 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.ning.http.client.Response;
+import com.sonatype.insight.mock.InsightMockServer;
 
 public abstract class AbstractResourceTest
 {
-    private static TestInsightBrainService service;
+    private static InsightMockServer saas;
+
+    private static TestInsightBrainService brain;
 
     @Before
     public void startService()
         throws Exception
     {
-        if ( service == null )
+        if ( saas == null )
         {
-            service = new TestInsightBrainService();
-            service.run( new String[] { "server" } );
+            saas = new InsightMockServer();
+            saas.setHttpPort( 9000 );
+            saas.setJsonResponseDirectory( new File( "src/test/resources/json" ) );
+            saas.setZipResponseDirectory( new File( "src/test/resources/zip" ) );
+            saas.start();
+        }
+        if ( brain == null )
+        {
+            brain = new TestInsightBrainService();
+            brain.run( new String[] { "server" } );
         }
     }
 
@@ -32,10 +44,15 @@ public abstract class AbstractResourceTest
     public void stopService()
         throws Exception
     {
-        if ( service != null )
+        if ( brain != null )
         {
-            service.stop();
-            service = null;
+            brain.stop();
+            brain = null;
+        }
+        if ( saas != null )
+        {
+            saas.stop();
+            saas = null;
         }
     }
 

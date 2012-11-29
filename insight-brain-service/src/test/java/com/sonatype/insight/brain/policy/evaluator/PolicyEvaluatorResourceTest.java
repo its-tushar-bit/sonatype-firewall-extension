@@ -33,7 +33,7 @@ extends AbstractResourceTest
     {
         String appId = "PolicyEvaluatorResourceTest_AppId";
         String scanId = "PolicyEvaluatorResourceTest_ScanId";
-        File reportFile = new File( "target/sonatype-work/report/" + scanId + "/report.zip" );
+        File reportFile = getReportResponseFile( appId , scanId );
         reportFile.delete();
 
         Rule rule = new Rule();

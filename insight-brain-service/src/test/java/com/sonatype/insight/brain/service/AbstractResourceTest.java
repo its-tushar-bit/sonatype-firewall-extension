@@ -22,6 +22,8 @@ public abstract class AbstractResourceTest
 
     private static int brainPort = findFreePort( 8070 );
 
+    private static File saasWork = new File( "target/mock-saas-work/" );
+
     private InsightMockServer saas;
 
     private TestInsightBrainService brain;
@@ -34,8 +36,8 @@ public abstract class AbstractResourceTest
         {
             saas = new InsightMockServer();
             saas.setHttpPort( saasPort );
-            saas.setJsonResponseDirectory( new File( "src/test/resources/json" ) );
-            saas.setZipResponseDirectory( new File( "src/test/resources/zip" ) );
+            saas.setJsonResponseDirectory( getJsonResponseDirectory() );
+            saas.setZipResponseDirectory( getZipResponseDirectory() );
             saas.start();
         }
         if ( brain == null )
@@ -61,6 +63,21 @@ public abstract class AbstractResourceTest
             saas.stop();
             saas = null;
         }
+    }
+
+    protected static File getJsonResponseDirectory()
+    {
+        return new File( saasWork, "json" );
+    }
+
+    protected static File getZipResponseDirectory()
+    {
+        return new File( saasWork, "zip" );
+    }
+
+    protected static File getReportResponseFile( String appId, String scanId )
+    {
+        return new File( getZipResponseDirectory(), appId + '-' + scanId + ".zip" );
     }
 
     protected static void assertResponseStatus( int expectedStatus, Response response )

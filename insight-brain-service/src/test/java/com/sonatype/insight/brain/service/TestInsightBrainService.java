@@ -63,21 +63,30 @@ public class TestInsightBrainService
 
         final String testURL = RestAccess.BASE_REST_URL + "/bc/validate/freemium"; // low-cost service
 
-        for ( int retries = 0; retries < 60; retries++ )
+        long start = System.currentTimeMillis();
+        Exception serverStartException = null;
+        for ( int retries = 0; retries < 60 * 20; retries++ )
         {
             try
             {
-                Thread.sleep( 1000 );
+                Thread.sleep( 50 );
                 if ( RestAccess.get( testURL ).getStatusCode() == 200 )
                 {
+                    serverStartException = null;
                     break;
                 }
             }
             catch ( Exception e )
             {
                 // server is still booting...
+                serverStartException = e;
             }
         }
+        if ( serverStartException != null )
+        {
+            throw serverStartException;
+        }
+        System.out.println( "Detected server started in " + ( System.currentTimeMillis() - start ) );
     }
 
     @Override

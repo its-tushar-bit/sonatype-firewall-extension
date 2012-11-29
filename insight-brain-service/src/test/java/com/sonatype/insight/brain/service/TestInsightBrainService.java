@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.service;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Server;
 
-import com.sonatype.insight.test.RestAccess;
+import com.sonatype.insight.client.utils.AbstractClient;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 
@@ -41,6 +42,9 @@ public class TestInsightBrainService
             throw new IllegalStateException( "Brain server already started" );
         }
 
+        // Warning: must set correct test port *before* any use of RestAccess!
+        System.setProperty( "insight-app-port", Integer.toString( testPort ) );
+
         new Thread()
         {
             @Override
@@ -59,10 +63,9 @@ public class TestInsightBrainService
             }
         }.start();
 
-        // Warning: must set correct test port *before* any use of RestAccess!
-        System.setProperty( "insight-app-port", Integer.toString( testPort ) );
-
-        final String testURL = RestAccess.BASE_REST_URL + "/bc/validate/freemium"; // low-cost service
+        final Configuration configuration = new Configuration();
+        configuration.setServerUrl( "http://localhost:" + testPort );
+        final StatusClient client = new StatusClient( configuration );
 
         long start = System.currentTimeMillis();
         Exception serverStartException = null;
@@ -71,7 +74,7 @@ public class TestInsightBrainService
             try
             {
                 Thread.sleep( 50 );
-                if ( RestAccess.get( testURL ).getStatusCode() == 200 )
+                if ( client.get() )
                 {
                     serverStartException = null;
                     break;
@@ -96,7 +99,7 @@ public class TestInsightBrainService
     {
         config.getHttpConfiguration().setPort( testPort );
         config.getHttpConfiguration().setAdminPort( testPort );
-
+        config.setSonatypeWork( "target/test-brain-work" );
         config.setSaasAddress( testSaasAddress );
 
         FileUtils.deleteDirectory( config.getSonatypeWork() );
@@ -123,6 +126,21 @@ public class TestInsightBrainService
         if ( brainFault != null )
         {
             throw brainFault;
+        }
+    }
+
+    private static class StatusClient
+        extends AbstractClient
+    {
+        StatusClient( Configuration configuration )
+        {
+            super( configuration );
+        }
+
+        public boolean get()
+            throws Exception
+        {
+            return path( "rest/bc/validate/freemium" ).get().status() == 200;
         }
     }
 }

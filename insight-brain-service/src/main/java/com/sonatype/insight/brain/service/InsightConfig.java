@@ -49,4 +49,9 @@ public class InsightConfig
     {
         this.saasAddress = saasAddress;
     }
+
+    public void setSonatypeWork( String sonatypeWork )
+    {
+        this.sonatypeWork = sonatypeWork;
+    }
 }

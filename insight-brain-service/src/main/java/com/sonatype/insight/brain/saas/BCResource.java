@@ -37,9 +37,11 @@ import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ReportDownloader;
 import com.sonatype.insight.scan.upload.ScanUploader;
 
-@Path( "/rest/bc" )
+@Path( BCResource.SERVICE_PATH )
 public class BCResource
 {
+    public static final String SERVICE_PATH = "rest/bc";
+
     private static final Logger log = LoggerFactory.getLogger( BCResource.class );
 
     final ScanUploader uploader = new DefaultScanUploader( log, false );

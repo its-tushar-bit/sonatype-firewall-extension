@@ -44,9 +44,11 @@ import com.sonatype.insight.scan.upload.ReportDataRequest;
 import com.sonatype.insight.scan.upload.ReportDataResult;
 import com.sonatype.insight.scan.upload.ReportDownloader;
 
-@Path( "/rest/report/{appId}/{scanId}" )
+@Path( ReportResource.SERVICE_PATH )
 public class ReportResource
 {
+    public static final String SERVICE_PATH = "rest/report/{appId}/{scanId}";
+    
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );

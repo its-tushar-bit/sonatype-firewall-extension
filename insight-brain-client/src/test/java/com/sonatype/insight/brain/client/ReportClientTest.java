@@ -58,7 +58,7 @@ public class ReportClientTest
         // The report is not available
         ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
         ServletResult servletResult = reportClient.printReport( "ReportClientTest_ProjectName", 17 );
-        Assert.assertEquals( 500, servletResult.status() );
+        Assert.assertEquals( 404, servletResult.status() );
 
         // Simulate that the report is available
         URL testReportFileUrl = getClass().getResource( "/ReportClientTest/report.zip" );

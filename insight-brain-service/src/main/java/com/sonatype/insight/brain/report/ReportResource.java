@@ -91,7 +91,14 @@ public class ReportResource
                                  @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
-        refreshCache( appId, scanId );
+        if ( !work.getReportFile( scanId ).exists() )
+        {
+            refreshCache( appId, scanId );
+            if ( !work.getReportFile( scanId ).exists() )
+            {
+                return Response.status( Status.NOT_FOUND ).build();
+            }
+        }
 
         final ResponseBuilder response = Response.ok();
 

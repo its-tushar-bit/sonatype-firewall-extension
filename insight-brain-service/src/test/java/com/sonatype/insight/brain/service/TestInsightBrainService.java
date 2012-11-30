@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.service;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -16,13 +18,15 @@ import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 public class TestInsightBrainService
     extends InsightBrainService
 {
-    int testPort;
+    private static final Logger log = LoggerFactory.getLogger( TestInsightBrainService.class );
 
-    String testSaasAddress;
+    private int testPort;
 
-    Server testBrainServer;
+    private String testSaasAddress;
 
-    Exception brainFault;
+    private Server testBrainServer;
+
+    private Exception brainFault;
 
     public void setHttpPort( int port )
     {
@@ -32,6 +36,13 @@ public class TestInsightBrainService
     public void setSaasAddress( String saasAddress )
     {
         testSaasAddress = saasAddress;
+    }
+
+    public Configuration getClientConfiguration()
+    {
+        Configuration configuration = new Configuration();
+        configuration.setServerUrl( "http://localhost:" + testPort );
+        return configuration;
     }
 
     public void start()
@@ -45,7 +56,7 @@ public class TestInsightBrainService
         // Warning: must set correct test port *before* any use of RestAccess!
         System.setProperty( "insight-app-port", Integer.toString( testPort ) );
 
-        new Thread()
+        new Thread( "TestInsightBrainService" )
         {
             @Override
             public void run()
@@ -58,19 +69,23 @@ public class TestInsightBrainService
                 }
                 catch ( Exception e )
                 {
+                    log.error( e.getMessage(), e );
                     brainFault = e;
                 }
             }
         }.start();
 
-        final Configuration configuration = new Configuration();
-        configuration.setServerUrl( "http://localhost:" + testPort );
+        final Configuration configuration = getClientConfiguration();
         final StatusClient client = new StatusClient( configuration );
 
         long start = System.currentTimeMillis();
         Exception serverStartException = null;
         for ( int retries = 0; retries < 60 * 20; retries++ )
         {
+            if ( brainFault != null )
+            {
+                throw brainFault;
+            }
             try
             {
                 Thread.sleep( 50 );
@@ -88,6 +103,7 @@ public class TestInsightBrainService
         }
         if ( serverStartException != null )
         {
+            log.error( serverStartException.getMessage(), serverStartException );
             throw serverStartException;
         }
         System.out.println( "Detected server started in " + ( System.currentTimeMillis() - start ) );

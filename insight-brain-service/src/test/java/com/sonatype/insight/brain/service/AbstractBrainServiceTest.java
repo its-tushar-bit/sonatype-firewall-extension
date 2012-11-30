@@ -63,6 +63,11 @@ public abstract class AbstractBrainServiceTest
         }
     }
 
+    protected void invalidateAppId( String appId, String reason )
+    {
+        saas.invalidateAppId( appId, reason );
+    }
+
     protected static File getJsonResponseDirectory()
     {
         return new File( saasWork, "json" );

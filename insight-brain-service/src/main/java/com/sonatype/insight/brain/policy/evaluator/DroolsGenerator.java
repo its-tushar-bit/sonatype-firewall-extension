@@ -27,7 +27,7 @@ public class DroolsGenerator
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.PolicyFact\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
-        for (Rule rule : rules)
+        for ( Rule rule : rules )
         {
             if ( !rule.isEnabled() )
             {
@@ -41,7 +41,7 @@ public class DroolsGenerator
             droolsCode.append( INDENT ).append( "$component : Component\n" );
             droolsCode.append( INDENT ).append( "(\n" );
             int conditionIndex = 0;
-            for (SimpleCondition condition : rule.getConditions())
+            for ( SimpleCondition condition : rule.getConditions() )
             {
                 if ( conditionIndex > 0 )
                 {

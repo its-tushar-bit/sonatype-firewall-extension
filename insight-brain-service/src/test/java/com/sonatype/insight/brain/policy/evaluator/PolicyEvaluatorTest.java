@@ -114,10 +114,8 @@ public class PolicyEvaluatorTest
         List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
-        assertContainsPolicyFact( component1, "RuleIdIs", "Rule Name Is", MarkAsFailedActionType.ID,
-                                  policyFacts );
-        assertContainsPolicyFact( component2, "RuleIdIsNot", "Rule Name IsNot", MarkAsFailedActionType.ID,
-                                  policyFacts );
+        assertContainsPolicyFact( component1, "RuleIdIs", "Rule Name Is", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "RuleIdIsNot", "Rule Name IsNot", MarkAsFailedActionType.ID, policyFacts );
     }
 
     @Test

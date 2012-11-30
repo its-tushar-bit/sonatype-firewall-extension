@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 public class RuleResource
 {
     public static final String SERVICE_PATH = "rest/policy/rule/{appId}";
-    
+
     private static final Logger log = LoggerFactory.getLogger( RuleResource.class );
 
     @Context
@@ -75,7 +75,7 @@ public class RuleResource
     }
 
     @DELETE
-    @Path("/{ruleId}")
+    @Path( "/{ruleId}" )
     public void deleteRule( @PathParam( "appId" ) final String appId, @PathParam( "ruleId" ) final String ruleId )
     {
         log.debug( "Received request to delete rule for appId {}, rule id {}", appId, ruleId );

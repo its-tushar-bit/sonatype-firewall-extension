@@ -26,10 +26,11 @@ import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
 public class PolicyEvaluatorResourceTest
-extends AbstractResourceTest
+    extends AbstractResourceTest
 {
     @Test
-    public void testEvaluate() throws Exception
+    public void testEvaluate()
+        throws Exception
     {
         String appId = "PolicyEvaluatorResourceTest_AppId";
         String scanId = "PolicyEvaluatorResourceTest_ScanId";
@@ -61,7 +62,7 @@ extends AbstractResourceTest
         Assert.assertNotNull( policyFacts );
         Assert.assertTrue( policyFacts.length > 0 );
     }
-    
+
     private String getServiceURL( String appId, String scanId )
     {
         return RestAccess.BASE_URL + PolicyEvaluatorResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;

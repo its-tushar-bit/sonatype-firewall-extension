@@ -67,8 +67,7 @@ public class RuleResourceTest
 
         // Delete a rule
         rule = rule1;
-        response =
-            RestAccess.delete( getServiceURL( appId, rule.getId() ), null /* username */, null /* password */ );
+        response = RestAccess.delete( getServiceURL( appId, rule.getId() ), null /* username */, null /* password */);
         assertResponseStatus( 204, response );
 
         // Get all rules
@@ -83,9 +82,9 @@ public class RuleResourceTest
     {
         return RestAccess.BASE_URL + RuleResource.SERVICE_PATH.replace( "{appId}", appId );
     }
-    
+
     private static String getServiceURL( String appId, String ruleId )
     {
-        return getServiceURL(appId) + "/" + ruleId;
+        return getServiceURL( appId ) + "/" + ruleId;
     }
 }

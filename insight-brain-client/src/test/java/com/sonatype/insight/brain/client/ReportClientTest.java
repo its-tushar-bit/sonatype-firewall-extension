@@ -63,9 +63,73 @@ public class ReportClientTest
         // Simulate that the report is available
         URL testReportFileUrl = getClass().getResource( "/ReportClientTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
-        servletResult = reportClient.printReport( "ReportClientTest_ProjectName", 17 );
+        servletResult = reportClient.printReport( "ReportClientTest_ProjectName", 17 /* buildNumber */);
         Assert.assertEquals( 200, servletResult.status() );
         byte[] pdf = servletResult.data();
         Assert.assertNotNull( pdf );
+    }
+
+    @Test
+    public void testAugmentData()
+        throws Exception
+    {
+        String appId = "ReportClientTest_AppId";
+        String scanId = "ReportClientTest_ScanId";
+        File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+        String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
+
+        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        ServletResult servletResult =
+            reportClient.augmentData( "physics.json", jsonData, "Archimedes" /* user */, "Syracuse" /* where */);
+        Assert.assertEquals( 200, servletResult.status() );
+    }
+
+    @Test
+    public void testAuditLog()
+        throws Exception
+    {
+        String appId = "ReportClientTest_AppId";
+        String scanId = "ReportClientTest_ScanId";
+        File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+        String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
+
+        // Should get empty audit log because there is no data
+        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        ServletResult servletResult = reportClient.auditLog( "physics.json", "{\"scream\" : \"Eureka\"}" /* key */);
+        Assert.assertEquals( 200, servletResult.status() );
+        byte[] auditLog = servletResult.data();
+        Assert.assertNotNull( auditLog );
+        Assert.assertTrue( auditLog.length == 0 );
+
+        // Add some data
+        servletResult =
+            reportClient.augmentData( "physics.json", jsonData, "Archimedes" /* user */, "Syracuse" /* where */);
+        Assert.assertEquals( 200, servletResult.status() );
+
+        // Should get not empty audit log
+        servletResult = reportClient.auditLog( "physics.json", "{\"scream\" : \"Eureka\"}" /* key */);
+        Assert.assertEquals( 200, servletResult.status() );
+        auditLog = servletResult.data();
+        Assert.assertNotNull( auditLog );
+        Assert.assertTrue( auditLog.length > 0 );
+    }
+
+    @Test
+    public void testArtifactDetails()
+        throws Exception
+    {
+        String appId = "ReportClientTest_AppId";
+        String scanId = "ReportClientTest_ScanId";
+        File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+
+        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        ServletResult servletResult = reportClient.artifactDetails( "groupId1", "artifactId1", "version1" );
+        Assert.assertEquals( 200, servletResult.status() );
+        byte[] artifactDetails = servletResult.data();
+        Assert.assertNotNull( artifactDetails );
+        Assert.assertTrue( artifactDetails.length > 0 );
     }
 }

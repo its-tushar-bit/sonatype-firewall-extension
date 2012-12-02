@@ -34,7 +34,7 @@ import com.sun.jersey.api.NotFoundException;
 @Path( PolicyEvaluatorResource.SERVICE_PATH )
 public class PolicyEvaluatorResource
 {
-    public static final String SERVICE_PATH = "rest/policy/evaluator/{appId}";
+    public static final String SERVICE_PATH = "/rest/policy/evaluator/{appId}";
 
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluatorResource.class );
 

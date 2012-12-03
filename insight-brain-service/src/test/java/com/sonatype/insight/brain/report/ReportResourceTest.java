@@ -9,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.not;
 
 import java.io.File;
@@ -21,6 +21,7 @@ import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -91,6 +92,7 @@ public class ReportResourceTest
         zipFile.close();
     }
 
+    @Ignore
     @Test
     public void testPrintReport()
         throws Exception

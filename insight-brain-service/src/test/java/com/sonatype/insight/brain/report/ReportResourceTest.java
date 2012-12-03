@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.report;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.isIn;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -23,6 +25,9 @@ import com.ning.http.client.Response;
 import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import eu.medsea.mimeutil.MimeType;
+import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
 
 public class ReportResourceTest
     extends AbstractResourceTest
@@ -81,5 +86,49 @@ public class ReportResourceTest
         }
 
         zipFile.close();
+    }
+
+    @Test
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    public void testPrintReport()
+        throws Exception
+    {
+        final String appId = "ReportResourceTest_AppId";
+        final String scanId = "ReportResourceTest_ScanId";
+
+        final String resourcePrefix =
+            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+
+        final File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final Response response = RestAccess.get( resourcePrefix + "/printReport" );
+        assertResponseStatus( 200, response );
+
+        // validate content type and check the actual content is really a PDF
+        assertThat( "application/pdf", equalTo( response.getContentType() ) );
+        final Collection mimeTypes = new MagicMimeMimeDetector().getMimeTypes( response.getResponseBodyAsStream() );
+        assertThat( new MimeType( "application/pdf" ), isIn( mimeTypes ) );
+    }
+
+    @Test
+    public void testArtifactDetails()
+        throws Exception
+    {
+    }
+
+    @Test
+    public void testAugmentData()
+        throws Exception
+    {
+    }
+
+    @Test
+    public void testAuditLog()
+        throws Exception
+    {
     }
 }

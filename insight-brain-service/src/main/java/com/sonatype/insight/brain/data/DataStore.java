@@ -287,13 +287,27 @@ public final class DataStore
         for ( int x = 0; x < dataLog.size(); x++ )
         {
             final ObjectNode entry = (ObjectNode) dataLog.get( x );
-            final ArrayNode data = (ArrayNode) entry.remove( "data" );
+            final ContainerNode data = (ContainerNode) entry.remove( "data" );
             entry.put( "filename", file.getName() );
-            for ( int y = 0; y < data.size(); y++ )
+            if ( data instanceof ArrayNode )
+            {
+                for ( int y = 0; y < data.size(); y++ )
+                {
+                    try
+                    {
+                        filteredLog.add( augment( key, (ObjectNode) data.get( y ) ).putAll( entry ) );
+                    }
+                    catch ( final JsonMappingException e )
+                    {
+                        // incompatible data, try next entry from audit log
+                    }
+                }
+            }
+            else
             {
                 try
                 {
-                    filteredLog.add( augment( key, (ObjectNode) data.get( y ) ).putAll( entry ) );
+                    filteredLog.add( augment( key, (ObjectNode) data ).putAll( entry ) );
                 }
                 catch ( final JsonMappingException e )
                 {

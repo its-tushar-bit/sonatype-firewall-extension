@@ -9,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.not;
 
 import java.io.File;
@@ -26,6 +26,7 @@ import org.junit.Test;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.test.RestAccess;
 
 import eu.medsea.mimeutil.MimeType;
@@ -133,7 +134,7 @@ public class ReportResourceTest
     }
 
     @Test
-    public void testAugmentData()
+    public void testAugmentDataAndAuditLog()
         throws Exception
     {
         final String appId = "ReportResourceTest_AppId";
@@ -166,5 +167,17 @@ public class ReportResourceTest
         assertResponseStatus( 200, response );
 
         assertThat( response.getResponseBody(), containsString( "\"state\" : \"accepted\"" ) );
+
+        response =
+            RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
+                + UrlUtils.encodeUrlComponent( "{\"hash\":\"964cd74171f427720480\"}" ) );
+
+        assertResponseStatus( 200, response );
+
+        final String feed =
+            "{ \"aaData\" : [ { \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+
+        assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
+                    equalToIgnoringWhiteSpace( feed ) );
     }
 }

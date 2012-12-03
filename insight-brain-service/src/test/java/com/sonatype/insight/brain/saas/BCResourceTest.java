@@ -29,9 +29,7 @@ public class BCResourceTest
     {
         final String appId = "BCResourceTest_AppId";
 
-        Response response;
-
-        response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/validate/" + appId );
+        Response response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/validate/" + appId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "OK" ) );
 
@@ -95,6 +93,6 @@ public class BCResourceTest
         response = RestAccess.get( response.getHeader( "Location" ) );
         assertResponseStatus( 200, response );
 
-        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( query ) );
+        assertThat( response.getResponseBody(), equalTo( query ) );
     }
 }

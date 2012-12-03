@@ -64,10 +64,17 @@ public final class DataStore
         final List<JsonNode> changes = new ArrayList<JsonNode>();
         for ( int x = 0; x < dataLog.size(); x++ )
         {
-            final ArrayNode data = (ArrayNode) dataLog.get( x ).get( "data" );
-            for ( int y = 0; y < data.size(); y++ )
+            final ContainerNode data = (ContainerNode) dataLog.get( x ).get( "data" );
+            if ( data instanceof ArrayNode )
             {
-                changes.add( data.get( y ) );
+                for ( int y = 0; y < data.size(); y++ )
+                {
+                    changes.add( data.get( y ) );
+                }
+            }
+            else
+            {
+                changes.add( data );
             }
         }
 

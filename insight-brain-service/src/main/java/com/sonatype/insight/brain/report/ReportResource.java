@@ -167,7 +167,7 @@ public class ReportResource
                                  @Context final HttpServletRequest request, final InputStream data )
         throws IOException
     {
-        if ( Auditing.isData( path ) )
+        if ( Auditing.isData( path ) && request.getContentLength() > 0 )
         {
             final File auditDir = work.getAuditDir( appId );
             Auditing.saveAugmentedData( auditDir, path, data, user, AuditUtils.findIP( request ), where );

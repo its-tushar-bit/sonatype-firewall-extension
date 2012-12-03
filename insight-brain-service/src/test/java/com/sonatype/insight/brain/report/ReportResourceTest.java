@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.report;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.not;
 
 import java.io.File;
 import java.net.URL;
@@ -66,22 +68,22 @@ public class ReportResourceTest
                 // embedded report processor removes trailing zeros from arrays
                 expected = expected.replaceAll( ", \\[ 0, 0, 0 \\] \\]", " ]" );
 
-                assertThat( expected, equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+                assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( expected ) );
             }
             else if ( "badges.json".equals( entry.getName() ) )
             {
-                assertThat( new int[] { 6, 6, 6 },
-                            equalTo( DataStore.parseData( response.getResponseBodyAsBytes(), int[].class ) ) );
+                assertThat( DataStore.parseData( response.getResponseBodyAsBytes(), int[].class ), equalTo( new int[] {
+                    6, 6, 6 } ) );
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {
-                assertThat( IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" ),
-                            equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+                assertThat( response.getResponseBody(),
+                            equalToIgnoringWhiteSpace( IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" ) ) );
             }
             else
             {
-                assertThat( IOUtil.toByteArray( zipFile.getInputStream( entry ) ),
-                            equalTo( IOUtil.toByteArray( response.getResponseBodyAsStream() ) ) );
+                assertThat( IOUtil.toByteArray( response.getResponseBodyAsStream() ),
+                            equalTo( IOUtil.toByteArray( zipFile.getInputStream( entry ) ) ) );
             }
         }
 
@@ -89,7 +91,6 @@ public class ReportResourceTest
     }
 
     @Test
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public void testPrintReport()
         throws Exception
     {
@@ -109,9 +110,9 @@ public class ReportResourceTest
         assertResponseStatus( 200, response );
 
         // validate content type and check the actual content is really a PDF
-        assertThat( "application/pdf", equalTo( response.getContentType() ) );
-        final Collection mimeTypes = new MagicMimeMimeDetector().getMimeTypes( response.getResponseBodyAsStream() );
-        assertThat( new MimeType( "application/pdf" ), isIn( mimeTypes ) );
+        assertThat( response.getContentType(), equalTo( "application/pdf" ) );
+        final Collection<?> mimeTypes = new MagicMimeMimeDetector().getMimeTypes( response.getResponseBodyAsStream() );
+        assertThat( mimeTypes, contains( (Object) new MimeType( "application/pdf" ) ) );
     }
 
     @Test
@@ -128,18 +129,42 @@ public class ReportResourceTest
         final Response response = RestAccess.get( resourcePrefix + "/artifactDetails" + query );
         assertResponseStatus( 200, response );
 
-        assertThat( scanId + query, equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( scanId + query ) );
     }
 
     @Test
     public void testAugmentData()
         throws Exception
     {
-    }
+        final String appId = "ReportResourceTest_AppId";
+        final String scanId = "ReportResourceTest_ScanId";
 
-    @Test
-    public void testAuditLog()
-        throws Exception
-    {
+        final String resourcePrefix =
+            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+
+        final File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final String query = "security.json?user=test&where=ReportResourceTest";
+        Response response = RestAccess.post( resourcePrefix + "/augmentData/" + query, "" );
+        assertResponseStatus( 400, response ); // bad request; no changes
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+
+        assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
+
+        final String edit = "{ \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\" }";
+
+        response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
+        assertResponseStatus( 200, response );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+
+        assertThat( response.getResponseBody(), containsString( "\"state\" : \"accepted\"" ) );
     }
 }

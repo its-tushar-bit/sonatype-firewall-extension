@@ -22,22 +22,22 @@ public class ReportClientTest
     public void testEmbedReport()
         throws Exception
     {
-        String appId = "ReportClientTest_AppId";
-        String scanId = "ReportClientTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "ReportClientTest_AppId";
+        final String scanId = "ReportClientTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
         // The report is not available
-        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        final ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
         ServletResult servletResult = reportClient.embedReport( "index.html" );
         Assert.assertEquals( 404, servletResult.status() );
 
         // Simulate that the report is available
-        URL testReportFileUrl = getClass().getResource( "/ReportClientTest/report.zip" );
+        final URL testReportFileUrl = getClass().getResource( "/ReportClientTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         servletResult = reportClient.embedReport( "index.html" );
         Assert.assertEquals( 200, servletResult.status() );
-        String html = servletResult.text();
+        final String html = servletResult.text();
         Assert.assertNotNull( html );
         Assert.assertTrue( html, html.contains( "<html" ) );
         Assert.assertTrue( html, html.contains( "</html>" ) );
@@ -50,22 +50,22 @@ public class ReportClientTest
     public void testPrintReport()
         throws Exception
     {
-        String appId = "ReportClientTest_AppId";
-        String scanId = "ReportClientTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "ReportClientTest_AppId";
+        final String scanId = "ReportClientTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
         // The report is not available
-        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        final ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
         ServletResult servletResult = reportClient.printReport( "ReportClientTest_ProjectName", 17 );
         Assert.assertEquals( 404, servletResult.status() );
 
         // Simulate that the report is available
-        URL testReportFileUrl = getClass().getResource( "/ReportClientTest/report.zip" );
+        final URL testReportFileUrl = getClass().getResource( "/ReportClientTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         servletResult = reportClient.printReport( "ReportClientTest_ProjectName", 17 /* buildNumber */);
         Assert.assertEquals( 200, servletResult.status() );
-        byte[] pdf = servletResult.data();
+        final byte[] pdf = servletResult.data();
         Assert.assertNotNull( pdf );
     }
 
@@ -73,14 +73,14 @@ public class ReportClientTest
     public void testAugmentData()
         throws Exception
     {
-        String appId = "ReportClientTest_AppId";
-        String scanId = "ReportClientTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "ReportClientTest_AppId";
+        final String scanId = "ReportClientTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
-        String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
+        final String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
 
-        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
-        ServletResult servletResult =
+        final ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        final ServletResult servletResult =
             reportClient.augmentData( "physics.json", jsonData, "Archimedes" /* user */, "Syracuse" /* where */);
         Assert.assertEquals( 200, servletResult.status() );
     }
@@ -89,14 +89,14 @@ public class ReportClientTest
     public void testAuditLog()
         throws Exception
     {
-        String appId = "ReportClientTest_AppId";
-        String scanId = "ReportClientTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "ReportClientTest_AppId";
+        final String scanId = "ReportClientTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
-        String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
+        final String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
 
         // Should get empty audit log because there is no data
-        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        final ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
         ServletResult servletResult = reportClient.auditLog( "physics.json", "{\"scream\" : \"Eureka\"}" /* key */);
         Assert.assertEquals( 200, servletResult.status() );
         byte[] auditLog = servletResult.data();
@@ -120,15 +120,15 @@ public class ReportClientTest
     public void testArtifactDetails()
         throws Exception
     {
-        String appId = "ReportClientTest_AppId";
-        String scanId = "ReportClientTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "ReportClientTest_AppId";
+        final String scanId = "ReportClientTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
-        ServletResult servletResult = reportClient.artifactDetails( "groupId1", "artifactId1", "version1" );
+        final ReportClient reportClient = new ReportClient( brain.getClientConfiguration(), appId, scanId );
+        final ServletResult servletResult = reportClient.artifactDetails( "groupId1", "artifactId1", "version1" );
         Assert.assertEquals( 200, servletResult.status() );
-        byte[] artifactDetails = servletResult.data();
+        final byte[] artifactDetails = servletResult.data();
         Assert.assertNotNull( artifactDetails );
         Assert.assertTrue( artifactDetails.length > 0 );
     }

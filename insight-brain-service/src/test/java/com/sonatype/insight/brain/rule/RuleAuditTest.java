@@ -32,15 +32,15 @@ public class RuleAuditTest
     public void testRuleAudit_Add()
         throws Exception
     {
-        File auditDir = tempDir.newFolder();
-        String user = "James Blond";
-        String ip = "1.2.3.4";
-        String where = "not here";
+        final File auditDir = tempDir.newFolder();
+        final String user = "James Blond";
+        final String ip = "1.2.3.4";
+        final String where = "not here";
 
-        Rule rule = new Rule();
+        final Rule rule = new Rule();
         rule.setId( "An id" );
         rule.setName( "A rule" );
-        List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
+        final List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
         SimpleCondition condition = new SimpleCondition();
         condition.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition.setOperator( "present" );
@@ -52,21 +52,21 @@ public class RuleAuditTest
         conditions.add( condition );
         rule.setConditions( conditions );
         rule.setOperator( LogicalOperator.AND );
-        Action action = new Action();
+        final Action action = new Action();
         action.setValue( "be happy" );
-        List<Action> actions = new ArrayList<Action>();
+        final List<Action> actions = new ArrayList<Action>();
         actions.add( action );
         rule.setActions( actions );
 
         RuleAudit.saveChange( auditDir, rule, user, ip, where );
 
-        ArrayNode auditData = DataStore.loadData( new File( auditDir, RuleAudit.RULE_AUDIT_FILENAME ) );
+        final ArrayNode auditData = DataStore.loadData( new File( auditDir, RuleAudit.RULE_AUDIT_FILENAME ) );
         Assert.assertNotNull( auditData );
         Assert.assertEquals( auditData.toString(), 1, auditData.size() );
         assertRuleAuditData( user, ip, where, (ObjectNode) auditData.get( 0 ) );
     }
 
-    private void assertRuleAuditData( String user, String ip, String where, ObjectNode actual )
+    private void assertRuleAuditData( final String user, final String ip, final String where, final ObjectNode actual )
     {
         Assert.assertEquals( user, actual.get( "user" ).asText() );
         Assert.assertEquals( ip, actual.get( "ip" ).asText() );

@@ -20,14 +20,14 @@ public class DroolsGenerator
 {
     private static final String INDENT = "    ";
 
-    public String generate( List<Rule> rules )
+    public String generate( final List<Rule> rules )
     {
-        StringBuilder droolsCode = new StringBuilder();
+        final StringBuilder droolsCode = new StringBuilder();
         // TODO add imports for drools
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.PolicyFact\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
-        for ( Rule rule : rules )
+        for ( final Rule rule : rules )
         {
             if ( !rule.isEnabled() )
             {
@@ -41,7 +41,7 @@ public class DroolsGenerator
             droolsCode.append( INDENT ).append( "$component : Component\n" );
             droolsCode.append( INDENT ).append( "(\n" );
             int conditionIndex = 0;
-            for ( SimpleCondition condition : rule.getConditions() )
+            for ( final SimpleCondition condition : rule.getConditions() )
             {
                 if ( conditionIndex > 0 )
                 {
@@ -56,16 +56,16 @@ public class DroolsGenerator
                     }
                 }
                 droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
+                final ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
                 droolsCode.append( conditionType.generateDroolsCode( condition ) );
                 droolsCode.append( " )\n" );
                 conditionIndex++;
             }
             droolsCode.append( INDENT ).append( ")\n" );
             droolsCode.append( "then\n" );
-            for ( Action action : rule.getActions() )
+            for ( final Action action : rule.getActions() )
             {
-                ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
+                final ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
                 droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) ).append( ";" );
                 droolsCode.append( "\n" );
             }

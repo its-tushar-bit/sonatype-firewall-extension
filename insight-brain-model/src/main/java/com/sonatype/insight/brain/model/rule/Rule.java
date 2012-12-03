@@ -26,7 +26,7 @@ public class Rule
     {
     }
 
-    public Rule( String id, String name, LogicalOperator operator )
+    public Rule( final String id, final String name, final LogicalOperator operator )
     {
         this.id = id;
         this.name = name;
@@ -38,12 +38,12 @@ public class Rule
         return conditions;
     }
 
-    public void setConditions( List<SimpleCondition> conditions )
+    public void setConditions( final List<SimpleCondition> conditions )
     {
         this.conditions = conditions;
     }
 
-    public void addCondition( SimpleCondition condition )
+    public void addCondition( final SimpleCondition condition )
     {
         if ( conditions == null )
         {
@@ -57,7 +57,7 @@ public class Rule
         return operator;
     }
 
-    public void setOperator( LogicalOperator operator )
+    public void setOperator( final LogicalOperator operator )
     {
         this.operator = operator;
     }
@@ -67,7 +67,7 @@ public class Rule
         return name;
     }
 
-    public void setName( String name )
+    public void setName( final String name )
     {
         this.name = name;
     }
@@ -77,7 +77,7 @@ public class Rule
         return id;
     }
 
-    public void setId( String id )
+    public void setId( final String id )
     {
         this.id = id;
     }
@@ -87,7 +87,7 @@ public class Rule
         return enabled;
     }
 
-    public void setEnabled( boolean enabled )
+    public void setEnabled( final boolean enabled )
     {
         this.enabled = enabled;
     }
@@ -97,12 +97,12 @@ public class Rule
         return actions;
     }
 
-    public void setActions( List<Action> actions )
+    public void setActions( final List<Action> actions )
     {
         this.actions = actions;
     }
 
-    public void addAction( Action action )
+    public void addAction( final Action action )
     {
         if ( actions == null )
         {

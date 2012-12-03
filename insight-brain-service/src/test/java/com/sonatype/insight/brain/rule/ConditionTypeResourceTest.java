@@ -20,9 +20,9 @@ public class ConditionTypeResourceTest
     public void testGetConditionTypes()
         throws Exception
     {
-        Response response = RestAccess.get( getServiceURL() );
+        final Response response = RestAccess.get( getServiceURL() );
         assertResponseStatus( 200, response );
-        Object[] conditionTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
+        final Object[] conditionTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
         Assert.assertNotNull( conditionTypes );
         Assert.assertTrue( conditionTypes.length > 0 );
     }

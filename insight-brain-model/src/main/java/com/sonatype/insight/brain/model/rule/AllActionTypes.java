@@ -24,7 +24,7 @@ public class AllActionTypes
         return allActionTypes.values();
     }
 
-    private static void add( ActionType actionType )
+    private static void add( final ActionType actionType )
     {
         if ( allActionTypes.keySet().contains( actionType.getId() ) )
         {
@@ -33,7 +33,7 @@ public class AllActionTypes
         allActionTypes.put( actionType.getId(), actionType );
     }
 
-    public static ActionType getById( String actionTypeId )
+    public static ActionType getById( final String actionTypeId )
     {
         // TODO throw exception if actionTypeId is unknown
         return allActionTypes.get( actionTypeId );

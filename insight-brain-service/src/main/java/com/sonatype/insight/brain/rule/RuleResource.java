@@ -42,21 +42,21 @@ public class RuleResource
     {
         log.debug( "Received request to get all rules for appId {}", appId );
 
-        File ruleDir = work.getRuleDir();
+        final File ruleDir = work.getRuleDir();
         log.debug( "Loading rules from {}", ruleDir.getAbsolutePath() );
-        RuleDAO ruleDAO = new RuleDAO( ruleDir );
+        final RuleDAO ruleDAO = new RuleDAO( ruleDir );
         return ruleDAO.getByApplicationId( appId );
     }
 
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Rule addRule( @PathParam( "appId" ) final String appId, Rule rule )
+    public Rule addRule( @PathParam( "appId" ) final String appId, final Rule rule )
     {
         log.debug( "Received request to add rule for appId {}", appId );
 
-        File ruleDir = work.getRuleDir();
-        RuleDAO ruleDAO = new RuleDAO( ruleDir );
+        final File ruleDir = work.getRuleDir();
+        final RuleDAO ruleDAO = new RuleDAO( ruleDir );
         ruleDAO.insert( appId, rule );
         return rule;
     }
@@ -64,12 +64,12 @@ public class RuleResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Rule updateRule( @PathParam( "appId" ) final String appId, Rule rule )
+    public Rule updateRule( @PathParam( "appId" ) final String appId, final Rule rule )
     {
         log.debug( "Received request to update rule for appId {}, rule id {}", appId, rule.getId() );
 
-        File ruleDir = work.getRuleDir();
-        RuleDAO ruleDAO = new RuleDAO( ruleDir );
+        final File ruleDir = work.getRuleDir();
+        final RuleDAO ruleDAO = new RuleDAO( ruleDir );
         ruleDAO.update( appId, rule );
         return rule;
     }
@@ -80,8 +80,8 @@ public class RuleResource
     {
         log.debug( "Received request to delete rule for appId {}, rule id {}", appId, ruleId );
 
-        File ruleDir = work.getRuleDir();
-        RuleDAO ruleDAO = new RuleDAO( ruleDir );
+        final File ruleDir = work.getRuleDir();
+        final RuleDAO ruleDAO = new RuleDAO( ruleDir );
         ruleDAO.delete( appId, ruleId );
         return;
     }

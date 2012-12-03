@@ -29,7 +29,7 @@ public class AddLabelActionType
     public List<String> getAvailableValues()
     {
         // TODO Return a list of known labels
-        List<String> label = new ArrayList<String>();
+        final List<String> label = new ArrayList<String>();
         label.add( "Whitelist" );
         label.add( "Blacklist" );
         label.add( "Big no-no" );
@@ -38,7 +38,7 @@ public class AddLabelActionType
     }
 
     @Override
-    public String generateDroolsCode( Action action )
+    public String generateDroolsCode( final Action action )
     {
         // TODO Auto-generated method stub
         return null;

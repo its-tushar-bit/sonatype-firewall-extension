@@ -30,27 +30,27 @@ public class PolicyEvaluatorTest
     public void testEvaluate_TwoRulesWithSimpleConditions()
     {
         // Create policy rules
-        List<Rule> rules = new ArrayList<Rule>();
-        Rule rule1 = new Rule( "RuleId1", "Rule Name 1", LogicalOperator.AND );
+        final List<Rule> rules = new ArrayList<Rule>();
+        final Rule rule1 = new Rule( "RuleId1", "Rule Name 1", LogicalOperator.AND );
         rule1.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
         rule1.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( rule1 );
-        Rule rule2 = new Rule( "RuleId2", "Rule Name 2", LogicalOperator.AND );
+        final Rule rule2 = new Rule( "RuleId2", "Rule Name 2", LogicalOperator.AND );
         rule2.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         rule2.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( rule2 );
 
-        List<Component> components = new ArrayList<Component>();
+        final List<Component> components = new ArrayList<Component>();
         // A component with one security vulnerability
-        Component component1 = new Component( "g1", "a1", "v1" );
+        final Component component1 = new Component( "g1", "a1", "v1" );
         component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
         components.add( component1 );
         // A component with license threat "Weak Copyleft"
-        Component component2 = new Component( "g2", "a2", "v2" );
+        final Component component2 = new Component( "g2", "a2", "v2" );
         component2.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component2 );
         // Evaluate the policy
-        List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
+        final List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
         assertContainsPolicyFact( component1, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
@@ -61,26 +61,26 @@ public class PolicyEvaluatorTest
     public void testEvaluate_SecurityVulnerabilityPresentConditionType()
     {
         // Create policy rules
-        List<Rule> rules = new ArrayList<Rule>();
-        Rule ruleSVPresent = new Rule( "RuleIdSVPresent", "Rule Name SVPresent", LogicalOperator.AND );
+        final List<Rule> rules = new ArrayList<Rule>();
+        final Rule ruleSVPresent = new Rule( "RuleIdSVPresent", "Rule Name SVPresent", LogicalOperator.AND );
         ruleSVPresent.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
         ruleSVPresent.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( ruleSVPresent );
-        Rule ruleSVAbsent = new Rule( "RuleIdSVAbsent", "Rule Name SVAbsent", LogicalOperator.AND );
+        final Rule ruleSVAbsent = new Rule( "RuleIdSVAbsent", "Rule Name SVAbsent", LogicalOperator.AND );
         ruleSVAbsent.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "absent" ) );
         ruleSVAbsent.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( ruleSVAbsent );
 
-        List<Component> components = new ArrayList<Component>();
+        final List<Component> components = new ArrayList<Component>();
         // A component without security vulnerabilities
-        Component component1 = new Component( "g1", "a1", "v1" );
+        final Component component1 = new Component( "g1", "a1", "v1" );
         components.add( component1 );
         // A component with one security vulnerability
-        Component component2 = new Component( "g2", "a2", "v2" );
+        final Component component2 = new Component( "g2", "a2", "v2" );
         component2.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
         components.add( component2 );
         // Evaluate the policy
-        List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
+        final List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
         assertContainsPolicyFact( component1, "RuleIdSVAbsent", "Rule Name SVAbsent", MarkAsFailedActionType.ID,
@@ -93,25 +93,25 @@ public class PolicyEvaluatorTest
     public void testEvaluate_LicenseCategoryConditionType()
     {
         // Create policy rules
-        List<Rule> rules = new ArrayList<Rule>();
-        Rule ruleSVIs = new Rule( "RuleIdIs", "Rule Name Is", LogicalOperator.AND );
+        final List<Rule> rules = new ArrayList<Rule>();
+        final Rule ruleSVIs = new Rule( "RuleIdIs", "Rule Name Is", LogicalOperator.AND );
         ruleSVIs.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         ruleSVIs.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( ruleSVIs );
-        Rule ruleSVIsNot = new Rule( "RuleIdIsNot", "Rule Name IsNot", LogicalOperator.AND );
+        final Rule ruleSVIsNot = new Rule( "RuleIdIsNot", "Rule Name IsNot", LogicalOperator.AND );
         ruleSVIsNot.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is not", "Weak Copyleft" ) );
         ruleSVIsNot.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( ruleSVIsNot );
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        final List<Component> components = new ArrayList<Component>();
+        final Component component1 = new Component( "g1", "a1", "v1" );
         component1.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        final Component component2 = new Component( "g2", "a2", "v2" );
         component2.setLicenseThreat( "LIBERAL" );
         components.add( component2 );
         // Evaluate the policy
-        List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
+        final List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( rules, components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
         assertContainsPolicyFact( component1, "RuleIdIs", "Rule Name Is", MarkAsFailedActionType.ID, policyFacts );
@@ -122,16 +122,16 @@ public class PolicyEvaluatorTest
     public void testEvaluate_OneRuleWithCompositeConditionAll()
     {
         // Create policy rules
-        List<Rule> rules = new ArrayList<Rule>();
-        Rule rule1 = new Rule( "RuleId1", "Rule Name 1", LogicalOperator.AND );
+        final List<Rule> rules = new ArrayList<Rule>();
+        final Rule rule1 = new Rule( "RuleId1", "Rule Name 1", LogicalOperator.AND );
         rule1.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
         rule1.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         rule1.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( rule1 );
 
-        List<Component> components = new ArrayList<Component>();
+        final List<Component> components = new ArrayList<Component>();
         // A component with one security vulnerability
-        Component component1 = new Component( "g1", "a1", "v1" );
+        final Component component1 = new Component( "g1", "a1", "v1" );
         component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
         components.add( component1 );
         // Evaluate the policy
@@ -139,7 +139,7 @@ public class PolicyEvaluatorTest
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 0, policyFacts.size() );
         // A component with license threat "Weak Copyleft"
-        Component component2 = new Component( "g2", "a2", "v2" );
+        final Component component2 = new Component( "g2", "a2", "v2" );
         component2.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component2 );
         // Evaluate the policy
@@ -147,7 +147,7 @@ public class PolicyEvaluatorTest
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 0, policyFacts.size() );
         // A component with one security vulnerability and license threat "Weak Copyleft"
-        Component component3 = new Component( "g3", "a3", "v3" );
+        final Component component3 = new Component( "g3", "a3", "v3" );
         component3.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
         component3.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component3 );
@@ -157,7 +157,7 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyFacts.size() );
         assertContainsPolicyFact( component3, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
         // Another component with one security vulnerability and license threat "Weak Copyleft"
-        Component component4 = new Component( "g4", "a4", "v4" );
+        final Component component4 = new Component( "g4", "a4", "v4" );
         component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
         component4.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component4 );
@@ -173,16 +173,16 @@ public class PolicyEvaluatorTest
     public void testEvaluate_OneRuleWithCompositeConditionAny()
     {
         // Create policy rules
-        List<Rule> rules = new ArrayList<Rule>();
-        Rule rule1 = new Rule( "RuleId1", "Rule Name 1", LogicalOperator.OR );
+        final List<Rule> rules = new ArrayList<Rule>();
+        final Rule rule1 = new Rule( "RuleId1", "Rule Name 1", LogicalOperator.OR );
         rule1.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
         rule1.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         rule1.addAction( new Action( MarkAsFailedActionType.ID ) );
         rules.add( rule1 );
 
-        List<Component> components = new ArrayList<Component>();
+        final List<Component> components = new ArrayList<Component>();
         // A component with one security vulnerability
-        Component component1 = new Component( "g1", "a1", "v1" );
+        final Component component1 = new Component( "g1", "a1", "v1" );
         component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
         components.add( component1 );
         // Evaluate the policy
@@ -191,7 +191,7 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyFacts.size() );
         assertContainsPolicyFact( component1, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
         // A component with license threat "Weak Copyleft"
-        Component component2 = new Component( "g2", "a2", "v2" );
+        final Component component2 = new Component( "g2", "a2", "v2" );
         component2.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component2 );
         // Evaluate the policy
@@ -201,7 +201,7 @@ public class PolicyEvaluatorTest
         assertContainsPolicyFact( component1, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
         assertContainsPolicyFact( component2, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
         // A component with one security vulnerability and license threat "Weak Copyleft"
-        Component component3 = new Component( "g3", "a3", "v3" );
+        final Component component3 = new Component( "g3", "a3", "v3" );
         component3.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
         component3.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component3 );
@@ -213,7 +213,7 @@ public class PolicyEvaluatorTest
         assertContainsPolicyFact( component2, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
         assertContainsPolicyFact( component3, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
         // Another component with one security vulnerability and license threat "Weak Copyleft"
-        Component component4 = new Component( "g4", "a4", "v4" );
+        final Component component4 = new Component( "g4", "a4", "v4" );
         component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
         component4.setLicenseThreat( "WEAKCOPYLEFT" );
         components.add( component4 );
@@ -227,10 +227,11 @@ public class PolicyEvaluatorTest
         assertContainsPolicyFact( component4, "RuleId1", "Rule Name 1", MarkAsFailedActionType.ID, policyFacts );
     }
 
-    private void assertContainsPolicyFact( Component expectedComponent, String expectedRuleId, String expectedRuleName,
-                                           String expectedKind, List<PolicyFact> actual )
+    private void assertContainsPolicyFact( final Component expectedComponent, final String expectedRuleId,
+                                           final String expectedRuleName, final String expectedKind,
+                                           final List<PolicyFact> actual )
     {
-        for ( PolicyFact actualPolicyFact : actual )
+        for ( final PolicyFact actualPolicyFact : actual )
         {
             if ( expectedComponent == actualPolicyFact.getComponent()
                 && expectedRuleId.equals( actualPolicyFact.getRuleId() )

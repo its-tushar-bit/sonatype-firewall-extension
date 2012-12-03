@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 
 public class ComponentDAO
 {
-    public List<Component> getAll( byte[] licenseData, byte[] securityData )
+    public List<Component> getAll( final byte[] licenseData, final byte[] securityData )
     {
-        Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
+        final Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
 
         JsonNode licenseJson = loadJson( licenseData );
         if ( licenseJson != null )
@@ -31,16 +31,16 @@ public class ComponentDAO
             if ( licenseJson != null )
             {
                 // TODO load the rest of the license data
-                ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
+                final ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
                 for ( int i = 0; i < licenseJsonArray.size(); i++ )
                 {
-                    JsonNode artifactLicenseJson = licenseJsonArray.get( i );
-                    String groupId = artifactLicenseJson.get( "groupId" ).asText();
-                    String artifactId = artifactLicenseJson.get( "artifactId" ).asText();
-                    String version = artifactLicenseJson.get( "version" ).asText();
-                    String licenseThreat = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
+                    final JsonNode artifactLicenseJson = licenseJsonArray.get( i );
+                    final String groupId = artifactLicenseJson.get( "groupId" ).asText();
+                    final String artifactId = artifactLicenseJson.get( "artifactId" ).asText();
+                    final String version = artifactLicenseJson.get( "version" ).asText();
+                    final String licenseThreat = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
 
-                    String key = getComponentKey( groupId, artifactId, version );
+                    final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
                     if ( component == null )
                     {
@@ -60,19 +60,19 @@ public class ComponentDAO
             securityJson = securityJson.get( "aaData" );
             if ( securityJson != null )
             {
-                ArrayNode securityJsonArray = (ArrayNode) securityJson;
+                final ArrayNode securityJsonArray = (ArrayNode) securityJson;
                 for ( int i = 0; i < securityJsonArray.size(); i++ )
                 {
-                    JsonNode securityVulnerabilityJson = securityJsonArray.get( i );
-                    String groupId = securityVulnerabilityJson.get( "groupId" ).asText();
-                    String artifactId = securityVulnerabilityJson.get( "artifactId" ).asText();
-                    String version = securityVulnerabilityJson.get( "version" ).asText();
-                    String source = securityVulnerabilityJson.get( "source" ).asText();
-                    String reference = securityVulnerabilityJson.get( "reference" ).asText();
-                    JsonNode scoreJson = securityVulnerabilityJson.get( "score" );
-                    Float score = ( scoreJson == null ? null : (float) scoreJson.asDouble() );
+                    final JsonNode securityVulnerabilityJson = securityJsonArray.get( i );
+                    final String groupId = securityVulnerabilityJson.get( "groupId" ).asText();
+                    final String artifactId = securityVulnerabilityJson.get( "artifactId" ).asText();
+                    final String version = securityVulnerabilityJson.get( "version" ).asText();
+                    final String source = securityVulnerabilityJson.get( "source" ).asText();
+                    final String reference = securityVulnerabilityJson.get( "reference" ).asText();
+                    final JsonNode scoreJson = securityVulnerabilityJson.get( "score" );
+                    final Float score = scoreJson == null ? null : (float) scoreJson.asDouble();
 
-                    String key = getComponentKey( groupId, artifactId, version );
+                    final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
                     if ( component == null )
                     {
@@ -82,7 +82,7 @@ public class ComponentDAO
                         component.setVersion( version );
                         componentsByGAV.put( key, component );
                     }
-                    SecurityVulnerability securityVulnerability = new SecurityVulnerability();
+                    final SecurityVulnerability securityVulnerability = new SecurityVulnerability();
                     securityVulnerability.setSource( source );
                     securityVulnerability.setRefId( reference );
                     securityVulnerability.setScore( score );
@@ -91,24 +91,24 @@ public class ComponentDAO
             }
         }
 
-        List<Component> result = new ArrayList<Component>();
+        final List<Component> result = new ArrayList<Component>();
         result.addAll( componentsByGAV.values() );
         return result;
     }
 
-    private String getComponentKey( String groupId, String artifactId, String version )
+    private String getComponentKey( final String groupId, final String artifactId, final String version )
     {
         return groupId + ':' + artifactId + ':' + version;
     }
 
-    private JsonNode loadJson( byte[] data )
+    private JsonNode loadJson( final byte[] data )
     {
         try
         {
-            ObjectMapper mapper = new ObjectMapper();
+            final ObjectMapper mapper = new ObjectMapper();
             return mapper.readTree( data );
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             throw new IllegalStateException( e );
         }

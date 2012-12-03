@@ -14,10 +14,10 @@ import com.ning.http.client.Response;
 public abstract class AbstractResourceTest
     extends AbstractBrainServiceTest
 {
-    protected static void assertResponseStatus( int expectedStatus, Response response )
+    protected static void assertResponseStatus( final int expectedStatus, final Response response )
         throws IOException
     {
-        int actualStatus = response.getStatusCode();
+        final int actualStatus = response.getStatusCode();
         Assert.assertEquals( "URI:" + response.getUri() + ", StatusText:" + response.getStatusText()
             + ", ResponseBody:" + response.getResponseBody(), expectedStatus, actualStatus );
     }

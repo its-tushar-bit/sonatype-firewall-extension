@@ -32,19 +32,19 @@ public class PolicyEvaluatorResourceTest
     public void testEvaluate()
         throws Exception
     {
-        String appId = "PolicyEvaluatorResourceTest_AppId";
-        String scanId = "PolicyEvaluatorResourceTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "PolicyEvaluatorResourceTest_AppId";
+        final String scanId = "PolicyEvaluatorResourceTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        Rule rule = new Rule();
+        final Rule rule = new Rule();
         rule.setName( "PolicyEvaluatorResourceTest rule 1" );
         rule.setOperator( LogicalOperator.AND );
-        SimpleCondition condition1 = new SimpleCondition();
+        final SimpleCondition condition1 = new SimpleCondition();
         condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition1.setOperator( "present" );
         rule.addCondition( condition1 );
-        Action action = new Action();
+        final Action action = new Action();
         action.setActionTypeId( MarkAsFailedActionType.ID );
         rule.addAction( action );
         RuleResourceTest.addRule( appId, rule );
@@ -54,16 +54,16 @@ public class PolicyEvaluatorResourceTest
         assertResponseStatus( 404, response );
 
         // Simulate that the report is available
-        URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
+        final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.get( getServiceURL( appId, scanId ) );
         assertResponseStatus( 200, response );
-        PolicyFact[] policyFacts = JsonHelpers.fromJson( response.getResponseBody(), PolicyFact[].class );
+        final PolicyFact[] policyFacts = JsonHelpers.fromJson( response.getResponseBody(), PolicyFact[].class );
         Assert.assertNotNull( policyFacts );
         Assert.assertTrue( policyFacts.length > 0 );
     }
 
-    private String getServiceURL( String appId, String scanId )
+    private String getServiceURL( final String appId, final String scanId )
     {
         return RestAccess.BASE_URL + PolicyEvaluatorResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;
     }

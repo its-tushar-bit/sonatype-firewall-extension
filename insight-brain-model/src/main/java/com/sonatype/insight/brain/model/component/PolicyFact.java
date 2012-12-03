@@ -20,7 +20,7 @@ public class PolicyFact
     {
     }
 
-    public PolicyFact( Component component, String ruleId, String kind )
+    public PolicyFact( final Component component, final String ruleId, final String kind )
     {
         this.component = component;
         this.ruleId = ruleId;
@@ -47,7 +47,7 @@ public class PolicyFact
         return ruleName;
     }
 
-    public void setRuleName( String ruleName )
+    public void setRuleName( final String ruleName )
     {
         this.ruleName = ruleName;
     }

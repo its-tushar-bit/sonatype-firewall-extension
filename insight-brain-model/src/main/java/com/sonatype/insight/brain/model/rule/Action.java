@@ -15,7 +15,7 @@ public class Action
     {
     }
 
-    public Action( String actionTypeId )
+    public Action( final String actionTypeId )
     {
         this.actionTypeId = actionTypeId;
     }
@@ -25,7 +25,7 @@ public class Action
         return value;
     }
 
-    public void setValue( String value )
+    public void setValue( final String value )
     {
         this.value = value;
     }
@@ -35,7 +35,7 @@ public class Action
         return actionTypeId;
     }
 
-    public void setActionTypeId( String actionTypeId )
+    public void setActionTypeId( final String actionTypeId )
     {
         this.actionTypeId = actionTypeId;
     }

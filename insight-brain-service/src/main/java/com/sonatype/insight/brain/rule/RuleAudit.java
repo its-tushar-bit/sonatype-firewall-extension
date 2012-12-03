@@ -26,9 +26,9 @@ public class RuleAudit
         Auditing.saveData( auditDir, RULE_AUDIT_FILENAME, toJson( rule ), user, ip, where );
     }
 
-    private static ContainerNode toJson( Rule rule )
+    private static ContainerNode toJson( final Rule rule )
     {
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.configure( SerializationConfig.Feature.INDENT_OUTPUT, true );
         return mapper.convertValue( rule, ContainerNode.class );
     }

@@ -63,7 +63,7 @@ public abstract class AbstractBrainServiceTest
         }
     }
 
-    protected void invalidateAppId( String appId, String reason )
+    protected void invalidateAppId( final String appId, final String reason )
     {
         saas.invalidateAppId( appId, reason );
     }
@@ -78,17 +78,17 @@ public abstract class AbstractBrainServiceTest
         return new File( saasWork, "zip" );
     }
 
-    protected static File getScanResponseFile( String appId )
+    protected static File getScanResponseFile( final String appId )
     {
         return new File( getJsonResponseDirectory(), appId + ".json" );
     }
 
-    protected static File getReportResponseFile( String appId, String scanId )
+    protected static File getReportResponseFile( final String appId, final String scanId )
     {
         return new File( getZipResponseDirectory(), appId + '-' + scanId + ".zip" );
     }
 
-    protected static int findFreePort( int defaultPort )
+    protected static int findFreePort( final int defaultPort )
     {
         int port = defaultPort;
         ServerSocket socket = null;
@@ -97,7 +97,7 @@ public abstract class AbstractBrainServiceTest
             socket = new ServerSocket( 0 );
             port = socket.getLocalPort();
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             e.printStackTrace();
         }
@@ -109,7 +109,7 @@ public abstract class AbstractBrainServiceTest
                 {
                     socket.close();
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     e.printStackTrace();
                 }

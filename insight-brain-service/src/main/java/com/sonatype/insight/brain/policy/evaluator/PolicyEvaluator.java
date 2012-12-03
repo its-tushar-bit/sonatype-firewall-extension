@@ -32,53 +32,53 @@ public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
-    public List<PolicyFact> evaluate( List<Rule> rules, List<Component> components )
+    public List<PolicyFact> evaluate( final List<Rule> rules, final List<Component> components )
     {
-        String droolsCode = new DroolsGenerator().generate( rules );
+        final String droolsCode = new DroolsGenerator().generate( rules );
         // Most probably this is too much logging, but it's good for debugging for now
         log.debug( "Generated drools code:\n{}", droolsCode );
 
-        KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        final KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
         droolsKnowledgeBuilder.add( ResourceFactory.newReaderResource( new StringReader( droolsCode ) ),
                                     ResourceType.DRL );
         if ( droolsKnowledgeBuilder.hasErrors() )
         {
             throw new RuntimeException( "Failed to load the rules:" + droolsKnowledgeBuilder.getErrors().toString() );
         }
-        Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
-        KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
+        final Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
+        final KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
         droolsKnowledgeBase.addKnowledgePackages( droolsKnowledgePackages );
-        StatefulKnowledgeSession droolsSession = droolsKnowledgeBase.newStatefulKnowledgeSession();
+        final StatefulKnowledgeSession droolsSession = droolsKnowledgeBase.newStatefulKnowledgeSession();
 
-        for ( Component component : components )
+        for ( final Component component : components )
         {
             droolsSession.insert( component );
         }
         droolsSession.fireAllRules();
-        Collection<Object> policyFacts = droolsSession.getObjects( new ObjectFilter()
+        final Collection<Object> policyFacts = droolsSession.getObjects( new ObjectFilter()
         {
             @Override
-            public boolean accept( Object object )
+            public boolean accept( final Object object )
             {
-                return ( object instanceof PolicyFact );
+                return object instanceof PolicyFact;
             }
         } );
 
         // TODO Aggregate/deduplicate policy facts
-        List<PolicyFact> result = new ArrayList<PolicyFact>();
+        final List<PolicyFact> result = new ArrayList<PolicyFact>();
         if ( policyFacts == null || policyFacts.isEmpty() )
         {
             return result;
         }
 
-        Map<String, Rule> rulesById = new LinkedHashMap<String, Rule>();
-        for ( Rule rule : rules )
+        final Map<String, Rule> rulesById = new LinkedHashMap<String, Rule>();
+        for ( final Rule rule : rules )
         {
             rulesById.put( rule.getId(), rule );
         }
-        for ( Object o : policyFacts )
+        for ( final Object o : policyFacts )
         {
-            PolicyFact policyFact = (PolicyFact) o;
+            final PolicyFact policyFact = (PolicyFact) o;
             policyFact.setRuleName( rulesById.get( policyFact.getRuleId() ).getName() );
             result.add( policyFact );
         }

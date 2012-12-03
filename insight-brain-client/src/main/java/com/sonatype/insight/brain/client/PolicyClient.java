@@ -41,22 +41,22 @@ public class PolicyClient
     public List<PolicyFact> evaluate()
         throws IOException
     {
-        Result httpResult = path( "rest/policy/evaluator", appId, scanId ).get();
+        final Result httpResult = path( "rest/policy/evaluator", appId, scanId ).get();
         if ( httpResult.status() >= 400 )
         {
             throw new ClientException( httpResult );
         }
 
-        String jsonResult = httpResult.text();
+        final String jsonResult = httpResult.text();
         try
         {
-            ObjectMapper mapper = new ObjectMapper();
-            PolicyFact[] policyFacts = mapper.readValue( jsonResult, PolicyFact[].class );
-            List<PolicyFact> result = new ArrayList<PolicyFact>();
+            final ObjectMapper mapper = new ObjectMapper();
+            final PolicyFact[] policyFacts = mapper.readValue( jsonResult, PolicyFact[].class );
+            final List<PolicyFact> result = new ArrayList<PolicyFact>();
             result.addAll( Arrays.asList( policyFacts ) );
             return result;
         }
-        catch ( IOException e )
+        catch ( final IOException e )
         {
             log.error( "Cannot parse json:" + jsonResult );
             throw new ClientException( httpResult, e );

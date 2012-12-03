@@ -26,12 +26,12 @@ public class RuleDAOTest
     public void testCRUD()
         throws Exception
     {
-        File dataStoreDir = tempDir.newFolder( "RuleDAOTest" );
-        RuleDAO ruleDAO = new RuleDAO( dataStoreDir );
-        String applicationId = "RuleDAOTest_AppId";
+        final File dataStoreDir = tempDir.newFolder( "RuleDAOTest" );
+        final RuleDAO ruleDAO = new RuleDAO( dataStoreDir );
+        final String applicationId = "RuleDAOTest_AppId";
 
         // Add a rule
-        Rule rule1 = new Rule();
+        final Rule rule1 = new Rule();
         rule1.setName( "RuleDAOTest new rule 1" );
         rule1.setOperator( LogicalOperator.OR );
         List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
@@ -49,7 +49,7 @@ public class RuleDAOTest
         assertRule( rule1, rules.get( 0 ) );
 
         // Add another rule
-        Rule rule2 = new Rule();
+        final Rule rule2 = new Rule();
         rule2.setName( "RuleDAOTest new rule 2" );
         rule2.setOperator( LogicalOperator.OR );
         conditions = new ArrayList<SimpleCondition>();
@@ -103,7 +103,7 @@ public class RuleDAOTest
         Assert.assertEquals( 0, rules.size() );
     }
 
-    private void assertRule( Rule expected, Rule actual )
+    private void assertRule( final Rule expected, final Rule actual )
     {
         Assert.assertEquals( expected.getId(), actual.getId() );
         Assert.assertEquals( expected.getOperator(), actual.getOperator() );

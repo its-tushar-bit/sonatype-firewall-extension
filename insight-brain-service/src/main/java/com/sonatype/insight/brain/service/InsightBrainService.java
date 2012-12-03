@@ -27,13 +27,13 @@ public class InsightBrainService
     }
 
     @Override
-    public void initialize( Bootstrap<InsightConfig> bootstrap )
+    public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/rules/assets/", "/rule-assets/" ) );
     }
 
     @Override
-    public void run( InsightConfig config, Environment env )
+    public void run( final InsightConfig config, final Environment env )
         throws Exception
     {
         config.getSonatypeWork().mkdirs();

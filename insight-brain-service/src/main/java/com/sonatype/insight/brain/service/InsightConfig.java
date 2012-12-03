@@ -45,12 +45,12 @@ public class InsightConfig
         return new File( sonatypeWork );
     }
 
-    public void setSaasAddress( String saasAddress )
+    public void setSaasAddress( final String saasAddress )
     {
         this.saasAddress = saasAddress;
     }
 
-    public void setSonatypeWork( String sonatypeWork )
+    public void setSonatypeWork( final String sonatypeWork )
     {
         this.sonatypeWork = sonatypeWork;
     }

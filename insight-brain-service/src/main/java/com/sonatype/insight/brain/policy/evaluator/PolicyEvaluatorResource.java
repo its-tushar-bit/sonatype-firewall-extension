@@ -47,16 +47,17 @@ public class PolicyEvaluatorResource
     @Path( "{scanId}" )
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<PolicyFact> evaluate( @PathParam( "appId" ) String appId, @PathParam( "scanId" ) String scanId )
+    public List<PolicyFact> evaluate( @PathParam( "appId" ) final String appId,
+                                      @PathParam( "scanId" ) final String scanId )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}", appId, scanId );
 
-        File ruleDir = work.getRuleDir();
-        RuleDAO ruleDAO = new RuleDAO( ruleDir );
-        List<Rule> rules = ruleDAO.getByApplicationId( appId );
+        final File ruleDir = work.getRuleDir();
+        final RuleDAO ruleDAO = new RuleDAO( ruleDir );
+        final List<Rule> rules = ruleDAO.getByApplicationId( appId );
 
-        File reportFile = work.getReportFile( scanId );
+        final File reportFile = work.getReportFile( scanId );
         if ( !reportFile.exists() )
         {
             if ( !ReportResource.downloadReport( proxy, appId, scanId, reportFile ) )
@@ -65,12 +66,12 @@ public class PolicyEvaluatorResource
             }
         }
 
-        ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
-        ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
-        ComponentDAO componentDAO = new ComponentDAO();
-        List<Component> components = componentDAO.getAll( licenseReportEntry.buf, securityReportEntry.buf );
-        PolicyEvaluator policyEvaluator = new PolicyEvaluator();
-        List<PolicyFact> result = policyEvaluator.evaluate( rules, components );
+        final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
+        final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
+        final ComponentDAO componentDAO = new ComponentDAO();
+        final List<Component> components = componentDAO.getAll( licenseReportEntry.buf, securityReportEntry.buf );
+        final PolicyEvaluator policyEvaluator = new PolicyEvaluator();
+        final List<PolicyFact> result = policyEvaluator.evaluate( rules, components );
         return result;
     }
 }

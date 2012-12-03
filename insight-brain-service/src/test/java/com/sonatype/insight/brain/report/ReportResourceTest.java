@@ -31,25 +31,25 @@ public class ReportResourceTest
     public void testEmbedReport()
         throws Exception
     {
-        String appId = "ReportResourceTest_AppId";
-        String scanId = "ReportResourceTest_ScanId";
+        final String appId = "ReportResourceTest_AppId";
+        final String scanId = "ReportResourceTest_ScanId";
 
-        String resourcePrefix =
+        final String resourcePrefix =
             RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
 
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
-        ZipFile zipFile = new ZipFile( saasReportFile );
-        Enumeration<? extends ZipEntry> e = zipFile.entries();
+        final ZipFile zipFile = new ZipFile( saasReportFile );
+        final Enumeration<? extends ZipEntry> e = zipFile.entries();
         while ( e.hasMoreElements() )
         {
-            ZipEntry entry = e.nextElement();
-            Response response = RestAccess.get( resourcePrefix + "/embedReport/" + entry.getName() );
-            String contentType = response.getContentType();
+            final ZipEntry entry = e.nextElement();
+            final Response response = RestAccess.get( resourcePrefix + "/embedReport/" + entry.getName() );
+            final String contentType = response.getContentType();
             assertResponseStatus( 200, response );
 
             if ( "data.json".equals( entry.getName() ) )

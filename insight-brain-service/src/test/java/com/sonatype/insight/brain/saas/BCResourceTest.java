@@ -27,7 +27,7 @@ public class BCResourceTest
     public void testValidate()
         throws Exception
     {
-        String appId = "BCResourceTest_AppId";
+        final String appId = "BCResourceTest_AppId";
 
         Response response;
 
@@ -47,14 +47,14 @@ public class BCResourceTest
     public void testScan()
         throws Exception
     {
-        String appId = "BCResourceTest_AppId";
-        File saasScanFile = getScanResponseFile( appId );
+        final String appId = "BCResourceTest_AppId";
+        final File saasScanFile = getScanResponseFile( appId );
         saasScanFile.delete();
 
-        URL testScanResultUrl = getClass().getResource( "/BCResourceTest/scan.json" );
+        final URL testScanResultUrl = getClass().getResource( "/BCResourceTest/scan.json" );
         FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
 
-        Response response = RestAccess.put( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/scan/" + appId, "" );
+        final Response response = RestAccess.put( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/scan/" + appId, "" );
 
         assertResponseStatus( 200, response );
 
@@ -65,15 +65,15 @@ public class BCResourceTest
     public void testReport()
         throws Exception
     {
-        String appId = "BCResourceTest_AppId";
-        String scanId = "BCResourceTest_ScanId";
-        File saasReportFile = getReportResponseFile( appId, scanId );
+        final String appId = "BCResourceTest_AppId";
+        final String scanId = "BCResourceTest_ScanId";
+        final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        URL testReportResultUrl = getClass().getResource( "/BCResourceTest/report.zip" );
+        final URL testReportResultUrl = getClass().getResource( "/BCResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
-        Response response =
+        final Response response =
             RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/report/" + appId + "?scanId=" + scanId );
 
         assertResponseStatus( 200, response );
@@ -86,9 +86,9 @@ public class BCResourceTest
     public void testArtifact()
         throws Exception
     {
-        String scanId = "BCResourceTest_ScanId";
+        final String scanId = "BCResourceTest_ScanId";
 
-        String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
+        final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         Response response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/artifact/" + query );
         assertResponseStatus( 307, response );
 

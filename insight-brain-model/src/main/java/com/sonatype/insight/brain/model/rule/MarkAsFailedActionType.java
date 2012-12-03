@@ -31,7 +31,7 @@ public class MarkAsFailedActionType
     }
 
     @Override
-    public String generateDroolsCode( Action action )
+    public String generateDroolsCode( final Action action )
     {
         return "insert( new PolicyFact( $component, drools.getRule().getName(), \"" + MarkAsFailedActionType.ID
             + "\" ) )";

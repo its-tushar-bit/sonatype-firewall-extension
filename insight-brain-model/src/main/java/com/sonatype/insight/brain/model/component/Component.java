@@ -26,7 +26,7 @@ public class Component
     {
     }
 
-    public Component( String groupId, String artifactId, String version )
+    public Component( final String groupId, final String artifactId, final String version )
     {
         this.groupId = groupId;
         this.artifactId = artifactId;
@@ -38,7 +38,7 @@ public class Component
         return groupId;
     }
 
-    public void setGroupId( String groupId )
+    public void setGroupId( final String groupId )
     {
         this.groupId = groupId;
     }
@@ -48,7 +48,7 @@ public class Component
         return artifactId;
     }
 
-    public void setArtifactId( String artifactId )
+    public void setArtifactId( final String artifactId )
     {
         this.artifactId = artifactId;
     }
@@ -58,7 +58,7 @@ public class Component
         return version;
     }
 
-    public void setVersion( String version )
+    public void setVersion( final String version )
     {
         this.version = version;
     }
@@ -68,12 +68,12 @@ public class Component
         return securityVulnerabilities;
     }
 
-    public void setSecurityVulnerabilities( List<SecurityVulnerability> securityVulnerabilities )
+    public void setSecurityVulnerabilities( final List<SecurityVulnerability> securityVulnerabilities )
     {
         this.securityVulnerabilities = securityVulnerabilities;
     }
 
-    public void addSecurityVulnerability( SecurityVulnerability securityVulnerability )
+    public void addSecurityVulnerability( final SecurityVulnerability securityVulnerability )
     {
         if ( securityVulnerabilities == null )
         {
@@ -93,7 +93,7 @@ public class Component
         return licenseThreat;
     }
 
-    public void setLicenseThreat( String licenseThreat )
+    public void setLicenseThreat( final String licenseThreat )
     {
         this.licenseThreat = licenseThreat;
     }

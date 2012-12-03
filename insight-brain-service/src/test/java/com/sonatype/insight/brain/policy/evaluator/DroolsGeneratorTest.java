@@ -29,8 +29,8 @@ public class DroolsGeneratorTest
     @Test
     public void testGenerate()
     {
-        List<Rule> rules = new ArrayList<Rule>();
-        Rule rule1 = new Rule();
+        final List<Rule> rules = new ArrayList<Rule>();
+        final Rule rule1 = new Rule();
         rule1.setId( "RuleId1" );
         rule1.setName( "Rule Name 1" );
         rule1.setOperator( LogicalOperator.AND );
@@ -47,7 +47,7 @@ public class DroolsGeneratorTest
         action.setActionTypeId( MarkAsFailedActionType.ID );
         rule1.addAction( action );
         rules.add( rule1 );
-        Rule rule2 = new Rule();
+        final Rule rule2 = new Rule();
         rule2.setId( "RuleId2" );
         rule2.setName( "Rule Name 2" );
         rule2.setOperator( LogicalOperator.OR );
@@ -65,8 +65,8 @@ public class DroolsGeneratorTest
         rule2.addAction( action );
         rules.add( rule2 );
 
-        DroolsGenerator generator = new DroolsGenerator();
-        String droolsCode = generator.generate( rules );
+        final DroolsGenerator generator = new DroolsGenerator();
+        final String droolsCode = generator.generate( rules );
         System.out.println( droolsCode );
         // TODO Add asserts - for now it's good if we get no exceptions :)
 

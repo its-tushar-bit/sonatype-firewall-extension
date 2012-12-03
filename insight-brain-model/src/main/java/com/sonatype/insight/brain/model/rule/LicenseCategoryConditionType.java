@@ -61,7 +61,7 @@ public class LicenseCategoryConditionType
     }
 
     @Override
-    public String generateDroolsCode( SimpleCondition condition )
+    public String generateDroolsCode( final SimpleCondition condition )
     {
         return "getLicenseThreat() " + ( "is".equals( condition.getOperator() ) ? "==" : "!=" ) + " \""
             + licenseCategoryIdsByName.get( condition.getValue() ) + "\"";

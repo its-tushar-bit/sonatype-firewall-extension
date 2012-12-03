@@ -17,13 +17,13 @@ public class SimpleCondition
     {
     }
 
-    public SimpleCondition( String conditionTypeId, String operator )
+    public SimpleCondition( final String conditionTypeId, final String operator )
     {
         this.conditionTypeId = conditionTypeId;
         this.operator = operator;
     }
 
-    public SimpleCondition( String conditionTypeId, String operator, String value )
+    public SimpleCondition( final String conditionTypeId, final String operator, final String value )
     {
         this.conditionTypeId = conditionTypeId;
         this.operator = operator;
@@ -35,7 +35,7 @@ public class SimpleCondition
         return operator;
     }
 
-    public void setOperator( String operator )
+    public void setOperator( final String operator )
     {
         this.operator = operator;
     }
@@ -45,7 +45,7 @@ public class SimpleCondition
         return value;
     }
 
-    public void setValue( String value )
+    public void setValue( final String value )
     {
         this.value = value;
     }
@@ -55,7 +55,7 @@ public class SimpleCondition
         return conditionTypeId;
     }
 
-    public void setConditionTypeId( String conditionTypeId )
+    public void setConditionTypeId( final String conditionTypeId )
     {
         this.conditionTypeId = conditionTypeId;
     }

@@ -28,19 +28,19 @@ public class TestInsightBrainService
 
     private Exception brainFault;
 
-    public void setHttpPort( int port )
+    public void setHttpPort( final int port )
     {
         testPort = port;
     }
 
-    public void setSaasAddress( String saasAddress )
+    public void setSaasAddress( final String saasAddress )
     {
         testSaasAddress = saasAddress;
     }
 
     public Configuration getClientConfiguration()
     {
-        Configuration configuration = new Configuration();
+        final Configuration configuration = new Configuration();
         configuration.setServerUrl( "http://localhost:" + testPort );
         return configuration;
     }
@@ -67,7 +67,7 @@ public class TestInsightBrainService
                     // this method will only return when the service is stopped...
                     TestInsightBrainService.this.run( new String[] { "server" } );
                 }
-                catch ( Exception e )
+                catch ( final Exception e )
                 {
                     log.error( e.getMessage(), e );
                     brainFault = e;
@@ -78,7 +78,7 @@ public class TestInsightBrainService
         final Configuration configuration = getClientConfiguration();
         final StatusClient client = new StatusClient( configuration );
 
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         Exception serverStartException = null;
         for ( int retries = 0; retries < 60 * 20; retries++ )
         {
@@ -95,7 +95,7 @@ public class TestInsightBrainService
                     break;
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 // server is still booting...
                 serverStartException = e;
@@ -110,7 +110,7 @@ public class TestInsightBrainService
     }
 
     @Override
-    public void run( InsightConfig config, Environment env )
+    public void run( final InsightConfig config, final Environment env )
         throws Exception
     {
         config.getHttpConfiguration().setPort( testPort );
@@ -123,7 +123,7 @@ public class TestInsightBrainService
         env.addServerLifecycleListener( new ServerLifecycleListener()
         {
             @Override
-            public void serverStarted( Server server )
+            public void serverStarted( final Server server )
             {
                 testBrainServer = server;
             }
@@ -148,7 +148,7 @@ public class TestInsightBrainService
     private static class StatusClient
         extends AbstractClient
     {
-        StatusClient( Configuration configuration )
+        StatusClient( final Configuration configuration )
         {
             super( configuration );
         }

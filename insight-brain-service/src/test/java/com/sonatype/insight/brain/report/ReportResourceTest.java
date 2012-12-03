@@ -118,6 +118,17 @@ public class ReportResourceTest
     public void testArtifactDetails()
         throws Exception
     {
+        final String appId = "ReportResourceTest_AppId";
+        final String scanId = "ReportResourceTest_ScanId";
+
+        final String resourcePrefix =
+            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+
+        final String query = "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
+        final Response response = RestAccess.get( resourcePrefix + "/artifactDetails" + query );
+        assertResponseStatus( 200, response );
+
+        assertThat( scanId + query, equalToIgnoringWhiteSpace( response.getResponseBody() ) );
     }
 
     @Test

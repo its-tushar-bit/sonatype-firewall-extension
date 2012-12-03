@@ -78,6 +78,11 @@ public abstract class AbstractBrainServiceTest
         return new File( saasWork, "zip" );
     }
 
+    protected static File getScanResponseFile( String appId )
+    {
+        return new File( getJsonResponseDirectory(), appId + ".json" );
+    }
+
     protected static File getReportResponseFile( String appId, String scanId )
     {
         return new File( getZipResponseDirectory(), appId + '-' + scanId + ".zip" );

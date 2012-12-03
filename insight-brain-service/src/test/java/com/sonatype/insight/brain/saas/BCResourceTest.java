@@ -33,14 +33,14 @@ public class BCResourceTest
 
         response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/validate/" + appId );
         assertResponseStatus( 200, response );
-        assertThat( "OK", equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+        assertThat( response.getResponseBody(), equalTo( "OK" ) );
 
         invalidateAppId( appId, "Expired" );
 
         // validate service always returns 200, the actual result is in the response body
         response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/validate/" + appId );
         assertResponseStatus( 200, response );
-        assertThat( "Expired", equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+        assertThat( response.getResponseBody(), equalTo( "Expired" ) );
     }
 
     @Test
@@ -58,7 +58,7 @@ public class BCResourceTest
 
         assertResponseStatus( 200, response );
 
-        assertThat( FileUtils.fileRead( saasScanFile, "UTF-8" ), equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( FileUtils.fileRead( saasScanFile, "UTF-8" ) ) );
     }
 
     @Test
@@ -78,8 +78,8 @@ public class BCResourceTest
 
         assertResponseStatus( 200, response );
 
-        assertThat( IOUtil.toByteArray( testReportResultUrl.openStream() ),
-                    equalTo( IOUtil.toByteArray( response.getResponseBodyAsStream() ) ) );
+        assertThat( IOUtil.toByteArray( response.getResponseBodyAsStream() ),
+                    equalTo( IOUtil.toByteArray( testReportResultUrl.openStream() ) ) );
     }
 
     @Test
@@ -95,6 +95,6 @@ public class BCResourceTest
         response = RestAccess.get( response.getHeader( "Location" ) );
         assertResponseStatus( 200, response );
 
-        assertThat( query, equalToIgnoringWhiteSpace( response.getResponseBody() ) );
+        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( query ) );
     }
 }

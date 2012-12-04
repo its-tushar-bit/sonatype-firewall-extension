@@ -276,4 +276,15 @@ final class Pdf
         }
     }
 
+    /*
+     * For embedded test purposes...
+     */
+    static synchronized void destroy()
+    {
+        if ( reportEngine != null )
+        {
+            reportEngine.destroy();
+            reportEngine = null;
+        }
+    }
 }

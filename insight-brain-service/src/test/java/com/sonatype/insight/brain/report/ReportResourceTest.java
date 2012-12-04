@@ -21,7 +21,6 @@ import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -92,7 +91,6 @@ public class ReportResourceTest
         zipFile.close();
     }
 
-    @Ignore
     @Test
     public void testPrintReport()
         throws Exception
@@ -109,8 +107,16 @@ public class ReportResourceTest
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
-        final Response response = RestAccess.get( resourcePrefix + "/printReport" );
-        assertResponseStatus( 200, response );
+        final Response response;
+        try
+        {
+            response = RestAccess.get( resourcePrefix + "/printReport" );
+            assertResponseStatus( 200, response );
+        }
+        finally
+        {
+            Pdf.destroy();
+        }
 
         // validate content type and check the actual content is really a PDF
         assertThat( response.getContentType(), equalTo( "application/pdf" ) );

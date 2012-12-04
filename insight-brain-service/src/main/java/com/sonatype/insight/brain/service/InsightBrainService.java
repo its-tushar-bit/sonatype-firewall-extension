@@ -30,6 +30,7 @@ public class InsightBrainService
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/rules/assets/", "/rule-assets/" ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", "/policy-assets/" ) );
     }
 
     @Override

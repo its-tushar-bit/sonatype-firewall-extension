@@ -15,12 +15,87 @@
 
   <artifactId>insight-brain-model</artifactId>
   <name>Insight Brain Model</name>
+  
+  <properties>
+    <openjpa.version>2.2.0</openjpa.version>
+  </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.apache.openjpa</groupId>
+      <artifactId>openjpa</artifactId>
+      <version>${openjpa.version}</version>
+    </dependency>    
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
       <version>${jackson.version}</version>
     </dependency>
+    
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-db-common</artifactId>
+      <version>${insight-saas.version}</version>
+    </dependency>
   </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa-maven-plugin</artifactId>
+        <version>${openjpa.version}</version>
+        <configuration>
+          <includes>com/sonatype/insight/*/dto/*.class</includes>
+          <addDefaultConstructor>true</addDefaultConstructor>
+          <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
+        </configuration>
+        <executions>
+          <execution>
+            <id>enhancer</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa</artifactId>
+            <version>${openjpa.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.openjpa</groupId>
+                    <artifactId>openjpa-maven-plugin</artifactId>
+                    <versionRange>[${openjpa.version},)</versionRange>
+                    <goals>
+                      <goal>enhance</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute/>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>    
+  </build>
 </project>

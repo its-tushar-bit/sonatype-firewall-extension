@@ -23,7 +23,9 @@
 
   <properties>
     <insight-scanner.version>1.22-SNAPSHOT</insight-scanner.version>
+    <insight-saas.version>1.0.0-SNAPSHOT</insight-saas.version>
     <slf4j.version>1.7.2</slf4j.version>
+    <logback-classic.version>1.0.7</logback-classic.version>
     <jackson.version>1.9.9</jackson.version>
   </properties>
 
@@ -40,6 +42,7 @@
 
   <modules>
     <module>insight-brain-data-access</module>
+    <module>insight-brain-db</module>
     <module>insight-brain-model</module>
     <module>insight-brain-client</module>
     <module>insight-brain-service</module>
@@ -51,6 +54,17 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback-classic.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-test</artifactId>
+        <version>${insight-saas.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>junit</groupId>

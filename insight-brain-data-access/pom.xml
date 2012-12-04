@@ -20,6 +20,11 @@
   <dependencies>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-model</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -37,6 +42,11 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

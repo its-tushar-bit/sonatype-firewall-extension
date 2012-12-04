@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<dbconfig>
+    <insight_brain_ods>
+        <driverClassName>org.h2.Driver</driverClassName>
+        <url>jdbc:h2:target/OperationalDataStoreProviderTest/test</url>
+        <username>sa</username>
+        <password></password>
+    </insight_brain_ods>
+</dbconfig>

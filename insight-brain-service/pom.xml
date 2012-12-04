@@ -293,8 +293,6 @@
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-test</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

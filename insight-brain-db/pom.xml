@@ -23,6 +23,12 @@
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-db-common</artifactId>
       <version>${insight-saas.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>mysql-connector-java</artifactId>
+          <groupId>mysql</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

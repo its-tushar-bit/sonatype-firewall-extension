@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
 public class LabelDAO
@@ -31,5 +32,17 @@ public class LabelDAO
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE label.id=?1";
         return get( em, sQuery, id );
+    }
+
+    @Override
+    public void delete( EntityManager em, Label label )
+    {
+        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId( label.getId() );
+        for ( ComponentLabel componentLabel : componentLabels )
+        {
+            componentLabelDAO.delete( em, componentLabel );
+        }
+        super.delete( em, label );
     }
 }

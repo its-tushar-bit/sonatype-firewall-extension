@@ -10,6 +10,13 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 public class ComponentLabelDAO
     extends AbstractSqlDAO<ComponentLabel>
 {
+    public List<ComponentLabel> getByLabelId( String labelId )
+    {
+        String sQuery = "SELECT entity FROM ComponentLabel entity" + //
+            " WHERE entity.labelId=?1";
+        return getList( sQuery, labelId );
+    }
+
     public List<ComponentLabel> getByApplicationId( String applicationId )
     {
         String sQuery = "SELECT label FROM ComponentLabel label" + //

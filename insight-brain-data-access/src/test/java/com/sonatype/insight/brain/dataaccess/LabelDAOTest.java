@@ -12,11 +12,13 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -49,8 +51,6 @@ public class LabelDAOTest
     public void testCRUD()
         throws Exception
     {
-        DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
-        OperationalDataStoreProvider.init( databaseConfig );
         LabelDAO dao = new LabelDAO();
 
         // Create
@@ -77,6 +77,33 @@ public class LabelDAOTest
         dao.delete( label );
 
         label = dao.getById( label.getId() );
+        Assert.assertNull( label );
+    }
+
+    @Test
+    public void testCascadeDelete()
+    {
+        LabelDAO labelDAO = new LabelDAO();
+        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
+        // Create
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( "My label" );
+        label.setColor( Color.blue );
+        labelDAO.insert( label );
+        Assert.assertNotNull( label.getId() );
+
+        ComponentLabel componentLabel = new ComponentLabel();
+        componentLabel.setApplicationId( applicationId );
+        componentLabel.setLabelId( label.getId() );
+        componentLabel.setHash( "ababababab" );
+        componentLabelDAO.insert( componentLabel );
+
+        // Delete
+        labelDAO.delete( label );
+
+        label = labelDAO.getById( label.getId() );
         Assert.assertNull( label );
     }
 

@@ -75,7 +75,6 @@ public class LabelResource
         applicationDAO.getOrInsertByPublicId( applicationPublicId );
 
         Label label = labelDAO.getById( labelId );
-        // TODO Cascade delete to ComponentLabel
         labelDAO.delete( label );
     }
 }

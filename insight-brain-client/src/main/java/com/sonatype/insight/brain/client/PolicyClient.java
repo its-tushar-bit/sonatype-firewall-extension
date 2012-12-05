@@ -39,7 +39,7 @@ public class PolicyClient
     public ServletResult manage( final String path )
         throws IOException
     {
-        return path( "policy-assets", path ).get();
+        return path( "policy-assets", path.length() == 0 || path.endsWith( "/" ) ? path + "index.html" : path ).get();
     }
 
     public List<PolicyFact> evaluate( final String scanId )

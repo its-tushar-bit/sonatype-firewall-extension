@@ -19,6 +19,11 @@
   
   <dependencies>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-db</artifactId>
       <version>0.1-SNAPSHOT</version>
@@ -27,16 +32,6 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-model</artifactId>
       <version>0.1-SNAPSHOT</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
     
     <dependency>

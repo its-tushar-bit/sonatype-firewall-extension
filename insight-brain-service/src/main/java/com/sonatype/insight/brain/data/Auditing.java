@@ -22,12 +22,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ContainerNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class Auditing
 {
@@ -117,8 +118,8 @@ public final class Auditing
         }
     }
 
-    public static void saveData( final File auditDir, final String name, final ContainerNode data, final String user,
-                                 final String ip, final String where )
+    public static void saveData( final File auditDir, final String name, final ContainerNode<?> data,
+                                 final String user, final String ip, final String where )
         throws IOException
     {
         final AuditLock lock = lockFor( auditDir );
@@ -135,7 +136,8 @@ public final class Auditing
         }
     }
 
-    public static ContainerNode applyAugmentedData( final ContainerNode table, final File auditDir, final String name )
+    public static ContainerNode<?> applyAugmentedData( final ContainerNode<?> table, final File auditDir,
+                                                       final String name )
         throws IOException
     {
         final File auditFile = new File( auditDir, name );

@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.model.component.PolicyFact;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;

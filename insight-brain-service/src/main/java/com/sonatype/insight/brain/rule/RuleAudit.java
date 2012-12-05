@@ -8,10 +8,9 @@ package com.sonatype.insight.brain.rule;
 import java.io.File;
 import java.io.IOException;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.node.ContainerNode;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.data.Auditing;
 import com.sonatype.insight.brain.model.rule.Rule;
 
@@ -26,10 +25,10 @@ public class RuleAudit
         Auditing.saveData( auditDir, RULE_AUDIT_FILENAME, toJson( rule ), user, ip, where );
     }
 
-    private static ContainerNode toJson( final Rule rule )
+    private static ContainerNode<?> toJson( final Rule rule )
     {
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.configure( SerializationConfig.Feature.INDENT_OUTPUT, true );
+        mapper.configure( SerializationFeature.INDENT_OUTPUT, true );
         return mapper.convertValue( rule, ContainerNode.class );
     }
 }

@@ -13,24 +13,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonParser.Feature;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.MappingJsonFactory;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ContainerNode;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonFactory.Feature;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
     static void logData( final File file, final String user, final String ip, final String where,
-                         final ContainerNode data )
+                         final ContainerNode<?> data )
         throws IOException
     {
         final ArrayNode dataLog;
@@ -55,7 +55,7 @@ public final class DataStore
         saveData( file, dataLog );
     }
 
-    static <T extends ContainerNode> T augmentTable( final T table, final File file )
+    static <T extends ContainerNode<?>> T augmentTable( final T table, final File file )
         throws IOException
     {
         final ArrayNode dataLog = loadData( file );
@@ -64,7 +64,7 @@ public final class DataStore
         final List<JsonNode> changes = new ArrayList<JsonNode>();
         for ( int x = 0; x < dataLog.size(); x++ )
         {
-            final ContainerNode data = (ContainerNode) dataLog.get( x ).get( "data" );
+            final ContainerNode<?> data = (ContainerNode<?>) dataLog.get( x ).get( "data" );
             if ( data instanceof ArrayNode )
             {
                 for ( int y = 0; y < data.size(); y++ )
@@ -102,7 +102,7 @@ public final class DataStore
     }
 
     @SuppressWarnings( "unchecked" )
-    public static <T extends ContainerNode> T loadData( final File file )
+    public static <T extends ContainerNode<?>> T loadData( final File file )
         throws IOException
     {
         final JsonParser parser = JSON.createJsonParser( file );
@@ -130,7 +130,7 @@ public final class DataStore
         }
     }
 
-    public static void saveData( final File file, final ContainerNode data )
+    public static void saveData( final File file, final ContainerNode<?> data )
         throws IOException
     {
         file.getAbsoluteFile().getParentFile().mkdirs();
@@ -146,7 +146,7 @@ public final class DataStore
     }
 
     @SuppressWarnings( "unchecked" )
-    public static <T extends ContainerNode> T parseData( final byte[] buf )
+    public static <T extends ContainerNode<?>> T parseData( final byte[] buf )
         throws IOException
     {
         final JsonParser parser = JSON.createJsonParser( buf );
@@ -174,7 +174,7 @@ public final class DataStore
         }
     }
 
-    public static byte[] streamData( final ContainerNode data )
+    public static byte[] streamData( final ContainerNode<?> data )
         throws IOException
     {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -194,7 +194,7 @@ public final class DataStore
         throws JsonMappingException
     {
         final ObjectNode[] result = { primary };
-        for ( final Entry<String, JsonNode> field : each( secondary.getFields() ) )
+        for ( final Entry<String, JsonNode> field : each( secondary.fields() ) )
         {
             final String name = field.getKey();
             final JsonNode primaryValue = primary.get( name );
@@ -248,7 +248,7 @@ public final class DataStore
 
         final ObjectNode details = parseData( detailData );
 
-        final ContainerNode licenses = parseData( licenseData );
+        final ContainerNode<?> licenses = parseData( licenseData );
         final ArrayNode artifacts = (ArrayNode) ( licenses instanceof ArrayNode ? licenses : licenses.get( "aaData" ) );
 
         final JsonNode overriddenLicenses = getOverriddenLicenses( details, artifacts );
@@ -287,7 +287,7 @@ public final class DataStore
         for ( int x = 0; x < dataLog.size(); x++ )
         {
             final ObjectNode entry = (ObjectNode) dataLog.get( x );
-            final ContainerNode data = (ContainerNode) entry.remove( "data" );
+            final ContainerNode<?> data = (ContainerNode<?>) entry.remove( "data" );
             entry.put( "filename", file.getName() );
             if ( data instanceof ArrayNode )
             {

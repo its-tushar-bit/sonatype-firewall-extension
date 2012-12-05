@@ -9,12 +9,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.model.rule.Action;
 import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;

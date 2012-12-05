@@ -24,13 +24,13 @@ import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ContainerNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.data.Auditing;
 
 public final class Report
@@ -93,8 +93,8 @@ public final class Report
             return new int[] { -1, -1 };
         }
 
-        final ContainerNode security = applyChanges( reportFile, "security.json", auditDir );
-        final ContainerNode licenses = applyChanges( reportFile, "licenses.json", auditDir );
+        final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
+        final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
         for ( final String name : Auditing.listAugmentedData( auditDir ) )
         {
@@ -246,7 +246,7 @@ public final class Report
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
     }
 
-    private static void filterKeyFindings( final ObjectNode data, final ContainerNode security )
+    private static void filterKeyFindings( final ObjectNode data, final ContainerNode<?> security )
     {
         final Set<String> textSet = new HashSet<String>();
 
@@ -256,7 +256,7 @@ public final class Report
             sourceFindings = data.putArray( "keyFindings" );
         }
 
-        final Iterator<JsonNode> sourceIter = sourceFindings.getElements();
+        final Iterator<JsonNode> sourceIter = sourceFindings.elements();
 
         // simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as
         // 'Not Applicable'
@@ -288,7 +288,7 @@ public final class Report
                     // applicable
                     for ( final JsonNode row : security.get( "aaData" ) )
                     {
-                        final Iterator<String> iter = svNode.getFieldNames();
+                        final Iterator<String> iter = svNode.fieldNames();
 
                         boolean recordMatch = true;
 
@@ -367,10 +367,10 @@ public final class Report
         Pdf.delete( reportFile );
     }
 
-    private static ContainerNode applyChanges( final File reportFile, final String name, final File auditDir )
+    private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )
         throws IOException
     {
-        ContainerNode table = parseData( extractEntry( reportFile, name ).buf );
+        ContainerNode<?> table = parseData( extractEntry( reportFile, name ).buf );
 
         table = Auditing.applyAugmentedData( table, auditDir, name );
         cache( getCacheFile( reportFile, name ), streamData( table ) );

@@ -12,11 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sonatype.insight.brain.model.rule.Rule;
 
 public class RuleDAO
@@ -102,7 +102,7 @@ public class RuleDAO
         {
             ruleFile.getParentFile().mkdirs();
             final ObjectMapper mapper = new ObjectMapper();
-            mapper.configure( SerializationConfig.Feature.INDENT_OUTPUT, true );
+            mapper.configure( SerializationFeature.INDENT_OUTPUT, true );
             mapper.writeValue( ruleFile, rules );
         }
         catch ( final IOException e )

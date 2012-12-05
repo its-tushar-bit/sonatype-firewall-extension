@@ -22,7 +22,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.birt.core.exception.BirtException;
@@ -39,6 +38,7 @@ import org.eclipse.birt.report.engine.api.RenderOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.data.DataStore;
 
 final class Pdf

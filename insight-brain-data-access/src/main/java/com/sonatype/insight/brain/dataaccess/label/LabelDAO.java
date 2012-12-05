@@ -5,7 +5,6 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
-import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.label.Label;
 
 public class LabelDAO
@@ -19,7 +18,7 @@ public class LabelDAO
         return getList( sQuery, applicationId );
     }
 
-    public Label getByLowercaseLabel( String applicationId, String labelLowercase )
+    public Label getByApplicationIdAndLowercaseLabel( String applicationId, String labelLowercase )
     {
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE  label.applicationId=?1 AND label.labelLowercase=?2";
@@ -27,15 +26,10 @@ public class LabelDAO
     }
 
     @Override
-    protected Label getById( EntityManager em, String applicationLabelId )
+    protected Label getById( EntityManager em, String id )
     {
-        if ( applicationLabelId == null || applicationLabelId.isEmpty() )
-        {
-            throw new DataAccessException( "The applicationId cannot be null or empty." );
-        }
-
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE label.id=?1";
-        return get( em, sQuery, applicationLabelId );
+        return get( em, sQuery, id );
     }
 }

@@ -29,6 +29,8 @@ public class LabelDAOTest
     {
         DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
         OperationalDataStoreProvider.init( databaseConfig );
+
+        // Create an application
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
         application.setPublicId( "LabelDAOTest_AppId" );

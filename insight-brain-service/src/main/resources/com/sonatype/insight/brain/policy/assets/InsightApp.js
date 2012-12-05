@@ -3,11 +3,7 @@ var insightApp = angular.module('insightApp', [], function($locationProvider){
 });
 
 insightApp.factory('global', function($rootScope) {
-    var state = {
-    	policyTabCls: 'active',
-    	labelTabCls: '',
-    	licenseGroupTabCls: ''
-    };
+    var state = {};
         
     return state;
 });

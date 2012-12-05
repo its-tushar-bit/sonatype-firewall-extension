@@ -11,13 +11,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <title>Policy Management</title>
-<link type="text/css" href="jquery/jquery.ui.selectmenu.css"
-	rel="stylesheet" />
+<link type="text/css" href="jquery/jquery.ui.selectmenu.css" rel="stylesheet" />
 <link type="text/css" href="jquery/jquery-ui.css" rel="stylesheet" />
-<link type="text/css" href="bootstrap/bootstrap.css"
-	rel="stylesheet" />
-<link type="text/css" href="bootstrap/bootstrap-responsive.css"
-	rel="stylesheet" />
+<link type="text/css" href="bootstrap/bootstrap.css" rel="stylesheet" />
+<link type="text/css" href="bootstrap/bootstrap-responsive.css" rel="stylesheet" />
+<link type="text/css" href="insight.css" rel="stylesheet" />
 <script type='text/javascript' src='jquery/jquery.min.js'></script>
 <script type='text/javascript' src='jquery/jquery-ui.min.js'></script>
 <script type='text/javascript' src='jquery/jquery.ui.selectmenu.min.js'></script>
@@ -28,14 +26,25 @@
 </head>
 <body style="height: 100%; padding-top: 60px;">
 	<div class="container">
-		<div class="navbar navbar-fixed-top" ng-controller="InsightNavController">
+		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
-				<a class="brand" href="#">Application Management</a>
+				<a class="brand pull-right" href="#">Application Management</a>
 				<ul class="nav pull-right">
-					<li class="{{state.policyTabCls}}"><a href="#" ng-click="policyTabClick()">Policies</a></li>
-					<li class="{{state.labelTabCls}}"><a href="#" ng-click="labelTabClick()">Labels</a></li>
-					<li class="{{state.licenseGroupTabCls}}"><a href="#" ng-click="licenseGroupTabClick()">License Groups</a></li>
+					<li class="active"><a href="#policy" data-toggle="tab">Policies</a></li>
+					<li><a href="#label" data-toggle="tab">Labels</a></li>
+					<li><a href="#licenseGroup" data-toggle="tab">License Groups</a></li>
 				</ul>
+			</div>
+		</div>
+		<div class="tab-content">
+			<div class="tab-pane active" id="policy" ng-controller="InsightPolicyController">
+				<div class="span6 offset4 no-content">No Policies have been defined<br><a href="#" ng-click="createClick()">Create</a> a new Policy.</div>
+			</div>
+			<div class="tab-pane" id="label">
+			    <div class="span6 offset4 no-content">Label content is under development..</div>
+			</div>
+			<div class="tab-pane" id="licenseGroup">
+			    <div class="span6 offset4 no-content">License Group content is under development..</div>
 			</div>
 		</div>
 	</div>

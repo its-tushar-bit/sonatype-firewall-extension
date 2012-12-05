@@ -15,33 +15,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.component.PolicyFact;
-import com.sonatype.insight.client.utils.AbstractClient;
+import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
+import com.sonatype.insight.client.utils.ServletResult;
 import com.sonatype.insight.client.utils.UrlUtils;
 
 public class PolicyClient
-    extends AbstractClient
+    extends AbstractServletClient<PolicyClient>
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyClient.class );
 
     private final String appId;
 
-    private final String scanId;
-
-    public PolicyClient( final Configuration config, final String appId, final String scanId )
+    public PolicyClient( final Configuration config, final String appId )
     {
         super( config );
 
         this.appId = UrlUtils.encodeUrlComponent( appId );
-        this.scanId = UrlUtils.encodeUrlComponent( scanId );
     }
 
-    public List<PolicyFact> evaluate()
+    public ServletResult manage( final String path )
         throws IOException
     {
-        final Result httpResult = path( "rest/policy/evaluator", appId, scanId ).get();
+        return path( "policy-assets", path ).get();
+    }
+
+    public List<PolicyFact> evaluate( final String scanId )
+        throws IOException
+    {
+        final Result httpResult = path( "rest/policy/evaluator", appId, UrlUtils.encodeUrlComponent( scanId ) ).get();
         if ( httpResult.status() >= 400 )
         {
             throw new ClientException( httpResult );

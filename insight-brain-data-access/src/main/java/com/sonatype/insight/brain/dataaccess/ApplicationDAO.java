@@ -10,7 +10,19 @@ import com.sonatype.insight.brain.model.Application;
 public class ApplicationDAO
     extends AbstractSqlDAO<Application>
 {
-    public Application getByPublicId( String publicId )
+    public Application getOrInsertByPublicId( String publicId )
+    {
+        Application application = getByPublicId( publicId );
+        if ( application == null )
+        {
+            application = new Application();
+            application.setPublicId( publicId );
+            insert( application );
+        }
+        return application;
+    }
+
+    private Application getByPublicId( String publicId )
     {
         if ( publicId == null || publicId.trim().isEmpty() )
         {

@@ -10,8 +10,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.mock.InsightMockServer;
 
 public abstract class AbstractBrainServiceTest
@@ -25,6 +30,19 @@ public abstract class AbstractBrainServiceTest
     private InsightMockServer saas;
 
     protected TestInsightBrainService brain;
+
+    @BeforeClass
+    public static void beforeClass()
+    {
+        DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
+        OperationalDataStoreProvider.init( databaseConfig );
+    }
+
+    @AfterClass
+    public static void afterClass()
+    {
+        DataSourceFactory.unloadAll();
+    }
 
     @Before
     public void startService()

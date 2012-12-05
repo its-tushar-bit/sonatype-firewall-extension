@@ -45,6 +45,11 @@ public class InsightConfig
         return new File( sonatypeWork );
     }
 
+    public File getConfigDir()
+    {
+        return new File( sonatypeWork, "config" );
+    }
+
     public void setSaasAddress( final String saasAddress )
     {
         this.saasAddress = saasAddress;

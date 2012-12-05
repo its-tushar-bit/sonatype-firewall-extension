@@ -102,4 +102,9 @@ public class Label
     public void setLabelLowercase( String labelLowercase )
     {
     }
+
+    public void fixLabelLowercase()
+    {
+        setLabel( label );
+    }
 }

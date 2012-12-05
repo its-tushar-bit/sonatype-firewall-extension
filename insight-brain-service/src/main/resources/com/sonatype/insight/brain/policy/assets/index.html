@@ -6,7 +6,7 @@
 
 -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="insightApp">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -23,16 +23,18 @@
 <script type='text/javascript' src='jquery/jquery.ui.selectmenu.min.js'></script>
 <script type='text/javascript' src='bootstrap/bootstrap.js'></script>
 <script type='text/javascript' src='angular/angular-1.0.2.js'></script>
+<script type='text/javascript' src='InsightApp.js'></script>
+<script type='text/javascript' src='InsightNavController.js'></script>
 </head>
 <body style="height: 100%; padding-top: 60px;">
 	<div class="container">
-		<div class="navbar navbar-fixed-top">
+		<div class="navbar navbar-fixed-top" ng-controller="InsightNavController">
 			<div class="navbar-inner">
 				<a class="brand" href="#">Application Management</a>
 				<ul class="nav pull-right">
-					<li class="active"><a href="#">Policies</a></li>
-					<li><a href="#">Labels</a></li>
-					<li><a href="#">License Groups</a></li>
+					<li class="{{state.policyTabCls}}"><a href="#" ng-click="policyTabClick()">Policies</a></li>
+					<li class="{{state.labelTabCls}}"><a href="#" ng-click="labelTabClick()">Labels</a></li>
+					<li class="{{state.licenseGroupTabCls}}"><a href="#" ng-click="licenseGroupTabClick()">License Groups</a></li>
 				</ul>
 			</div>
 		</div>

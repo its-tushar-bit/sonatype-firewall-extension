@@ -12,20 +12,29 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.sonatype.insight.brain.dataaccess.label.ApplicationLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.model.label.ApplicationLabel;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.db.DatabaseConfig;
 
-public class ApplicationLabelDAOTest
+public class LabelDAOTest
 {
+    private static String applicationId;
+
     @BeforeClass
     public static void setUp()
     {
         DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
         OperationalDataStoreProvider.init( databaseConfig );
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = new Application();
+        application.setPublicId( "LabelDAOTest_AppId" );
+        applicationDAO.insert( application );
+        applicationId = application.getId();
+        Assert.assertNotNull( applicationId );
     }
 
     @AfterClass
@@ -40,36 +49,36 @@ public class ApplicationLabelDAOTest
     {
         DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
         OperationalDataStoreProvider.init( databaseConfig );
-        ApplicationLabelDAO dao = new ApplicationLabelDAO();
+        LabelDAO dao = new LabelDAO();
 
         // Create
-        ApplicationLabel applicationLabel = new ApplicationLabel();
-        applicationLabel.setApplicationId( "ApplicationLabelDAOTest_AppId" );
-        applicationLabel.setLabel( "My label" );
-        applicationLabel.setColor( Color.blue );
-        dao.insert( applicationLabel );
-        Assert.assertNotNull( applicationLabel.getId() );
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( "My label" );
+        label.setColor( Color.blue );
+        dao.insert( label );
+        Assert.assertNotNull( label.getId() );
 
-        applicationLabel = dao.getById( applicationLabel.getId() );
-        Assert.assertNotNull( applicationLabel );
-        assertApplicationLabel( "ApplicationLabelDAOTest_AppId", "My label", Color.blue, applicationLabel );
+        label = dao.getById( label.getId() );
+        Assert.assertNotNull( label );
+        assertLabel( applicationId, "My label", Color.blue, label );
 
         // Update
-        applicationLabel.setLabel( "My updated label" );
-        dao.update( applicationLabel );
+        label.setLabel( "My updated label" );
+        dao.update( label );
 
-        applicationLabel = dao.getById( applicationLabel.getId() );
-        Assert.assertNotNull( applicationLabel );
-        assertApplicationLabel( "ApplicationLabelDAOTest_AppId", "My updated label", Color.blue, applicationLabel );
+        label = dao.getById( label.getId() );
+        Assert.assertNotNull( label );
+        assertLabel( applicationId, "My updated label", Color.blue, label );
 
         // Delete
-        dao.delete( applicationLabel );
+        dao.delete( label );
 
-        applicationLabel = dao.getById( applicationLabel.getId() );
-        Assert.assertNull( applicationLabel );
+        label = dao.getById( label.getId() );
+        Assert.assertNull( label );
     }
 
-    private void assertApplicationLabel( String applicationId, String label, Color color, ApplicationLabel actual )
+    private void assertLabel( String applicationId, String label, Color color, Label actual )
     {
         Assert.assertEquals( applicationId, actual.getApplicationId() );
         Assert.assertEquals( label, actual.getLabel() );

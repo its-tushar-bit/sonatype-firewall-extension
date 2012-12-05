@@ -10,8 +10,8 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@Table( name = "app_artifact_label" )
-public class ApplicationArtifactLabel
+@Table( name = "component_label" )
+public class ComponentLabel
     implements HasStringId
 {
     /*
@@ -21,13 +21,13 @@ public class ApplicationArtifactLabel
     public static final Date NULL_DELETE_TIME = new Date( 0 );
 
     @Id
-    @Column( name = "app_artifact_label_id" )
+    @Column( name = "component_label_id" )
     private String id;
 
-    @Column( name = "app_id" )
+    @Column( name = "application_id" )
     private String applicationId;
 
-    @Column( name = "sha1" )
+    @Column( name = "hash" )
     private String hash;
 
     @Column( name = "label" )
@@ -51,11 +51,11 @@ public class ApplicationArtifactLabel
     @Column( name = "delete_time" )
     private Date deleteTime;
 
-    public ApplicationArtifactLabel()
+    public ComponentLabel()
     {
     }
 
-    public ApplicationArtifactLabel( String label )
+    public ComponentLabel( String label )
     {
         setLabel( label );
     }

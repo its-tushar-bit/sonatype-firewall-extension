@@ -10,15 +10,15 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@Table( name = "app_label" )
-public class ApplicationLabel
+@Table( name = "label" )
+public class Label
     implements HasStringId
 {
     @Id
-    @Column( name = "app_label_id" )
+    @Column( name = "label_id" )
     private String id;
 
-    @Column( name = "app_id" )
+    @Column( name = "application_id" )
     private String applicationId;
 
     @Column( name = "label" )

@@ -3,50 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess;
+package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.Locale;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.db.DatabaseConfig;
 
 public class LabelDAOTest
+    extends AbstractDbDAOTest
 {
-    private static String applicationId;
-
-    @BeforeClass
-    public static void setUp()
-    {
-        DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
-        OperationalDataStoreProvider.init( databaseConfig );
-
-        // Create an application
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = new Application();
-        application.setPublicId( "LabelDAOTest_AppId" );
-        applicationDAO.insert( application );
-        applicationId = application.getId();
-        Assert.assertNotNull( applicationId );
-    }
-
-    @AfterClass
-    public static void tearDown()
-    {
-        DataSourceFactory.unloadAll();
-    }
-
     @Test
     public void testCRUD()
         throws Exception

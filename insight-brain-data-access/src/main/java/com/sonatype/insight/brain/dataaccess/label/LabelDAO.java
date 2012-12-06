@@ -21,9 +21,22 @@ public class LabelDAO
 
     public Label getByApplicationIdAndLowercaseLabel( String applicationId, String labelLowercase )
     {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByApplicationIdAndLowercaseLabel( em, applicationId, labelLowercase );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    Label getByApplicationIdAndLowercaseLabel( EntityManager em, String applicationId, String labelLowercase )
+    {
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE  label.applicationId=?1 AND label.labelLowercase=?2";
-        return get( sQuery, applicationId, labelLowercase );
+        return get( em, sQuery, applicationId, labelLowercase );
     }
 
     @Override

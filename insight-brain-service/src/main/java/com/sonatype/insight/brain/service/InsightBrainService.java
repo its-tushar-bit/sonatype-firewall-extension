@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluatorResource;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -54,6 +55,7 @@ public class InsightBrainService
         OperationalDataStoreProvider.init( databaseConfig );
 
         env.addResource( ActionTypeResource.class );
+        env.addResource( ComponentLabelResource.class );
         env.addResource( ConditionTypeResource.class );
         env.addResource( LabelResource.class );
         env.addResource( PolicyEvaluatorResource.class );

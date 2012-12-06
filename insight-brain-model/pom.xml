@@ -15,7 +15,7 @@
 
   <artifactId>insight-brain-model</artifactId>
   <name>Insight Brain Model</name>
-  
+
   <properties>
     <openjpa.version>2.2.0</openjpa.version>
   </properties>
@@ -25,20 +25,21 @@
       <groupId>org.apache.openjpa</groupId>
       <artifactId>openjpa</artifactId>
       <version>${openjpa.version}</version>
-    </dependency>    
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-db-common</artifactId>
       <version>${insight-saas.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -98,6 +99,6 @@
           </configuration>
         </plugin>
       </plugins>
-    </pluginManagement>    
+    </pluginManagement>
   </build>
 </project>

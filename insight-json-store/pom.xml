@@ -15,7 +15,7 @@
 
   <artifactId>insight-json-store</artifactId>
   <name>Insight JSON Store</name>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -25,12 +25,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>3.0.1</version>
     </dependency>
 
     <dependency>
@@ -40,8 +39,7 @@
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.3</version>
+      <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -50,5 +48,5 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
 </project>

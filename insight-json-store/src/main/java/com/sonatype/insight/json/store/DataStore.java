@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.data;
+package com.sonatype.insight.json.store;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

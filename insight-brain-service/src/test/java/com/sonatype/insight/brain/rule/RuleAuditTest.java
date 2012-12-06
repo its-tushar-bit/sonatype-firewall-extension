@@ -15,13 +15,13 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.insight.brain.data.JsonUtils;
 import com.sonatype.insight.brain.model.rule.Action;
 import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.rule.LogicalOperator;
 import com.sonatype.insight.brain.model.rule.Rule;
 import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class RuleAuditTest
 {

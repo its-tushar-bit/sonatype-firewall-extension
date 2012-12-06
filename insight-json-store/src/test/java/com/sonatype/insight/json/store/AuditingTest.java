@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.data;
+package com.sonatype.insight.json.store;
 
-import static com.sonatype.insight.brain.data.Auditing.applyAugmentedData;
-import static com.sonatype.insight.brain.data.Auditing.filterAuditLog;
-import static com.sonatype.insight.brain.data.Auditing.getModificationCount;
-import static com.sonatype.insight.brain.data.Auditing.saveAugmentedData;
-import static com.sonatype.insight.brain.data.DataStore.parseData;
-import static com.sonatype.insight.brain.data.DataStore.streamData;
+import static com.sonatype.insight.json.store.Auditing.applyAugmentedData;
+import static com.sonatype.insight.json.store.Auditing.filterAuditLog;
+import static com.sonatype.insight.json.store.Auditing.getModificationCount;
+import static com.sonatype.insight.json.store.Auditing.saveAugmentedData;
+import static com.sonatype.insight.json.store.DataStore.parseData;
+import static com.sonatype.insight.json.store.DataStore.streamData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;

@@ -28,8 +28,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.insight.brain.data.Auditing;
-import com.sonatype.insight.brain.data.JsonUtils;
+import com.sonatype.insight.json.store.Auditing;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public final class Report
 {

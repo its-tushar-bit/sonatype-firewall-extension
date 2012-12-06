@@ -32,12 +32,12 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.data.Auditing;
-import com.sonatype.insight.brain.data.DataStore;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.json.store.Auditing;
+import com.sonatype.insight.json.store.DataStore;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDataRequest;

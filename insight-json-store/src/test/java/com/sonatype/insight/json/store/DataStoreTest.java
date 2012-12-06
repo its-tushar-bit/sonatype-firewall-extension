@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.data;
+package com.sonatype.insight.json.store;
 
-import static com.sonatype.insight.brain.data.DataStore.augmentTable;
-import static com.sonatype.insight.brain.data.DataStore.loadData;
-import static com.sonatype.insight.brain.data.DataStore.parseData;
-import static com.sonatype.insight.brain.data.DataStore.saveData;
-import static com.sonatype.insight.brain.data.DataStore.streamData;
+import static com.sonatype.insight.json.store.DataStore.augmentTable;
+import static com.sonatype.insight.json.store.DataStore.loadData;
+import static com.sonatype.insight.json.store.DataStore.parseData;
+import static com.sonatype.insight.json.store.DataStore.saveData;
+import static com.sonatype.insight.json.store.DataStore.streamData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;

@@ -11,8 +11,8 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.sonatype.insight.brain.data.Auditing;
 import com.sonatype.insight.brain.model.rule.Rule;
+import com.sonatype.insight.json.store.Auditing;
 
 public class RuleAudit
 {

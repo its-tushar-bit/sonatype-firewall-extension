@@ -17,14 +17,6 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class RuleResourceTest
     extends AbstractResourceTest
 {
-    public static Response addRule( final String appId, final Rule rule )
-        throws Exception
-    {
-        final Response response = RestAccess.post( getServiceURL( appId ), JsonHelpers.asJson( rule ) );
-        assertResponseStatus( 200, response );
-        return response;
-    }
-
     @Test
     public void testCRUD()
         throws Exception
@@ -34,7 +26,8 @@ public class RuleResourceTest
         // Add a rule
         Rule rule = new Rule();
         rule.setName( "RuleResourceTest new rule" );
-        Response response = addRule( appId, rule );
+        Response response = RestAccess.post( getServiceURL( appId ), JsonHelpers.asJson( rule ) );
+        assertResponseStatus( 200, response );
         Rule rule1 = JsonHelpers.fromJson( response.getResponseBody(), Rule.class );
         Assert.assertNotNull( rule1.getId() );
         Assert.assertEquals( "RuleResourceTest new rule", rule1.getName() );
@@ -78,12 +71,12 @@ public class RuleResourceTest
         Assert.assertEquals( 0, rules.length );
     }
 
-    private static String getServiceURL( final String appId )
+    private String getServiceURL( final String appId )
     {
-        return RestAccess.BASE_URL + RuleResource.SERVICE_PATH.replace( "{appId}", appId );
+        return getRestBaseUrl() + RuleResource.SERVICE_PATH.replace( "{appId}", appId );
     }
 
-    private static String getServiceURL( final String appId, final String ruleId )
+    private String getServiceURL( final String appId, final String ruleId )
     {
         return getServiceURL( appId ) + "/" + ruleId;
     }

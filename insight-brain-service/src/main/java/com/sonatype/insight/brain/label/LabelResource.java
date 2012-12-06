@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.label.Label;
 @Path( LabelResource.SERVICE_PATH )
 public class LabelResource
 {
-    public static final String SERVICE_PATH = "/rest/label/application/{appId}";
+    public static final String SERVICE_PATH = "rest/label/application/{appId}";
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 

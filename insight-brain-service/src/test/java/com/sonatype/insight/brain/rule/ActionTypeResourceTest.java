@@ -29,6 +29,6 @@ public class ActionTypeResourceTest
 
     private String getServiceURL()
     {
-        return RestAccess.BASE_URL + ActionTypeResource.SERVICE_PATH;
+        return getRestBaseUrl() + ActionTypeResource.SERVICE_PATH;
     }
 }

@@ -29,6 +29,6 @@ public class ConditionTypeResourceTest
 
     private String getServiceURL()
     {
-        return RestAccess.BASE_URL + ConditionTypeResource.SERVICE_PATH;
+        return getRestBaseUrl() + ConditionTypeResource.SERVICE_PATH;
     }
 }

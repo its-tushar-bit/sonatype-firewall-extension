@@ -43,7 +43,7 @@ public class ReportResourceTest
         final String scanId = "ReportResourceTest_ScanId";
 
         final String resourcePrefix =
-            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
 
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
@@ -99,7 +99,7 @@ public class ReportResourceTest
         final String scanId = "ReportResourceTest_ScanId";
 
         final String resourcePrefix =
-            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
 
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
@@ -132,7 +132,7 @@ public class ReportResourceTest
         final String scanId = "ReportResourceTest_ScanId";
 
         final String resourcePrefix =
-            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
 
         final String query = "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         final Response response = RestAccess.get( resourcePrefix + "/artifactDetails" + query );
@@ -149,7 +149,7 @@ public class ReportResourceTest
         final String scanId = "ReportResourceTest_ScanId";
 
         final String resourcePrefix =
-            RestAccess.BASE_URL + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
 
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();

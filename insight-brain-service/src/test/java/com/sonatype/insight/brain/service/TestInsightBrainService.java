@@ -53,9 +53,6 @@ public class TestInsightBrainService
             throw new IllegalStateException( "Brain server already started" );
         }
 
-        // Warning: must set correct test port *before* any use of RestAccess!
-        System.setProperty( "insight-app-port", Integer.toString( testPort ) );
-
         new Thread( "TestInsightBrainService" )
         {
             @Override

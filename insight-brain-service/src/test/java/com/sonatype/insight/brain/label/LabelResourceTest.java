@@ -92,8 +92,8 @@ public class LabelResourceTest
         Assert.assertEquals( color, actual.getColor() );
     }
 
-    private static String getServiceURL( final String appId )
+    private String getServiceURL( final String appId )
     {
-        return RestAccess.BASE_URL + LabelResource.SERVICE_PATH.replace( "{appId}", appId );
+        return getRestBaseUrl() + LabelResource.SERVICE_PATH.replace( "{appId}", appId );
     }
 }

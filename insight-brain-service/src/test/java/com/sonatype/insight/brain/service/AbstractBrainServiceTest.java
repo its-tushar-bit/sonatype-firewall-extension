@@ -135,4 +135,14 @@ public abstract class AbstractBrainServiceTest
         }
         return port;
     }
+
+    protected String getRestBaseUrl()
+    {
+        String restBaseUrl = brain.getClientConfiguration().getServerUrl();
+        if ( !restBaseUrl.endsWith( "/" ) )
+        {
+            restBaseUrl = restBaseUrl + "/";
+        }
+        return restBaseUrl;
+    }
 }

@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.rule.ConditionType;
 @Path( ConditionTypeResource.SERVICE_PATH )
 public class ConditionTypeResource
 {
-    public static final String SERVICE_PATH = "/rest/policy/conditionType";
+    public static final String SERVICE_PATH = "rest/policy/conditionType";
 
     private static final Logger log = LoggerFactory.getLogger( ConditionTypeResource.class );
 

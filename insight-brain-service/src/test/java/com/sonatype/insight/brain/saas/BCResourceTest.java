@@ -29,14 +29,14 @@ public class BCResourceTest
     {
         final String appId = "BCResourceTest_AppId";
 
-        Response response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/validate/" + appId );
+        Response response = RestAccess.get( getServiceURL() + "/validate/" + appId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "OK" ) );
 
         invalidateAppId( appId, "Expired" );
 
         // validate service always returns 200, the actual result is in the response body
-        response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/validate/" + appId );
+        response = RestAccess.get( getServiceURL() + "/validate/" + appId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "Expired" ) );
     }
@@ -52,7 +52,7 @@ public class BCResourceTest
         final URL testScanResultUrl = getClass().getResource( "/BCResourceTest/scan.json" );
         FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
 
-        final Response response = RestAccess.put( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/scan/" + appId, "" );
+        final Response response = RestAccess.put( getServiceURL() + "/scan/" + appId, "" );
 
         assertResponseStatus( 200, response );
 
@@ -71,8 +71,7 @@ public class BCResourceTest
         final URL testReportResultUrl = getClass().getResource( "/BCResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
-        final Response response =
-            RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/report/" + appId + "?scanId=" + scanId );
+        final Response response = RestAccess.get( getServiceURL() + "/report/" + appId + "?scanId=" + scanId );
 
         assertResponseStatus( 200, response );
 
@@ -87,12 +86,17 @@ public class BCResourceTest
         final String scanId = "BCResourceTest_ScanId";
 
         final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
-        Response response = RestAccess.get( RestAccess.BASE_URL + BCResource.SERVICE_PATH + "/artifact/" + query );
+        Response response = RestAccess.get( getServiceURL() + "/artifact/" + query );
         assertResponseStatus( 307, response );
 
         response = RestAccess.get( response.getHeader( "Location" ) );
         assertResponseStatus( 200, response );
 
         assertThat( response.getResponseBody(), equalTo( query ) );
+    }
+
+    private String getServiceURL()
+    {
+        return getRestBaseUrl() + BCResource.SERVICE_PATH;
     }
 }

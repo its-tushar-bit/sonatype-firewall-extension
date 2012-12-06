@@ -40,7 +40,7 @@ import com.sonatype.insight.scan.upload.ScanUploader;
 @Path( BCResource.SERVICE_PATH )
 public class BCResource
 {
-    public static final String SERVICE_PATH = "/rest/bc";
+    public static final String SERVICE_PATH = "rest/bc";
 
     private static final Logger log = LoggerFactory.getLogger( BCResource.class );
 

@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 @Path( RuleResource.SERVICE_PATH )
 public class RuleResource
 {
-    public static final String SERVICE_PATH = "/rest/policy/rule/{appId}";
+    public static final String SERVICE_PATH = "rest/policy/rule/{appId}";
 
     private static final Logger log = LoggerFactory.getLogger( RuleResource.class );
 

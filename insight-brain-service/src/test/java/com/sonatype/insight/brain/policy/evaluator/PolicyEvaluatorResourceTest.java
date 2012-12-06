@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.rule.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.rule.Rule;
 import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
 import com.sonatype.insight.brain.model.rule.SimpleCondition;
-import com.sonatype.insight.brain.rule.RuleResourceTest;
+import com.sonatype.insight.brain.rule.RuleResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -28,6 +28,16 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class PolicyEvaluatorResourceTest
     extends AbstractResourceTest
 {
+    private Response addRule( final String appId, final Rule rule )
+        throws Exception
+    {
+        final Response response =
+            RestAccess.post( getRestBaseUrl() + RuleResource.SERVICE_PATH.replace( "{appId}", appId ),
+                             JsonHelpers.asJson( rule ) );
+        assertResponseStatus( 200, response );
+        return response;
+    }
+
     @Test
     public void testEvaluate()
         throws Exception
@@ -47,7 +57,7 @@ public class PolicyEvaluatorResourceTest
         final Action action = new Action();
         action.setActionTypeId( MarkAsFailedActionType.ID );
         rule.addAction( action );
-        RuleResourceTest.addRule( appId, rule );
+        addRule( appId, rule );
 
         // The report file is not available yet
         Response response = RestAccess.get( getServiceURL( appId, scanId ) );
@@ -65,6 +75,6 @@ public class PolicyEvaluatorResourceTest
 
     private String getServiceURL( final String appId, final String scanId )
     {
-        return RestAccess.BASE_URL + PolicyEvaluatorResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;
+        return getRestBaseUrl() + PolicyEvaluatorResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;
     }
 }

@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.rule.AllActionTypes;
 @Path( ActionTypeResource.SERVICE_PATH )
 public class ActionTypeResource
 {
-    public static final String SERVICE_PATH = "/rest/policy/actionType";
+    public static final String SERVICE_PATH = "rest/policy/actionType";
 
     private static final Logger log = LoggerFactory.getLogger( ActionTypeResource.class );
 

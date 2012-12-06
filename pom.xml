@@ -41,6 +41,7 @@
   </ciManagement>
 
   <modules>
+    <module>insight-json-store</module>
     <module>insight-brain-data-access</module>
     <module>insight-brain-db</module>
     <module>insight-brain-model</module>

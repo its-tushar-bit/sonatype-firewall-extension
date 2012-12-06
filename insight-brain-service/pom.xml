@@ -24,6 +24,11 @@
   <dependencies>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-json-store</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data-access</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>

@@ -15,7 +15,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.insight.brain.data.DataStore;
+import com.sonatype.insight.brain.data.JsonUtils;
 import com.sonatype.insight.brain.model.rule.Action;
 import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.rule.LogicalOperator;
@@ -60,13 +60,14 @@ public class RuleAuditTest
 
         RuleAudit.saveChange( auditDir, rule, user, ip, where );
 
-        final ArrayNode auditData = DataStore.loadData( new File( auditDir, RuleAudit.RULE_AUDIT_FILENAME ) );
+        final ArrayNode auditData = JsonUtils.read( new File( auditDir, RuleAudit.RULE_AUDIT_FILENAME ) );
         Assert.assertNotNull( auditData );
         Assert.assertEquals( auditData.toString(), 1, auditData.size() );
         assertRuleAuditData( user, ip, where, (ObjectNode) auditData.get( 0 ) );
     }
 
-    private void assertRuleAuditData( final String user, final String ip, final String where, final ObjectNode actual )
+    private static void assertRuleAuditData( final String user, final String ip, final String where,
+                                             final ObjectNode actual )
     {
         Assert.assertEquals( user, actual.get( "user" ).asText() );
         Assert.assertEquals( ip, actual.get( "ip" ).asText() );

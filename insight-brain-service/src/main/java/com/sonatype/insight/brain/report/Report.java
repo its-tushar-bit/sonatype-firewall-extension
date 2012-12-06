@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import static com.sonatype.insight.brain.data.DataStore.parseData;
-import static com.sonatype.insight.brain.data.DataStore.streamData;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.data.Auditing;
+import com.sonatype.insight.brain.data.JsonUtils;
 
 public final class Report
 {
@@ -106,10 +104,11 @@ public final class Report
 
         if ( ReportType.SAMPLE.equals( reportType ) )
         {
-            return parseData( extractEntry( reportFile, "badges.json" ).buf, int[].class );
+            return JsonUtils.parse( extractEntry( reportFile, "badges.json" ).buf, int[].class );
         }
 
-        final JsonNode gavDepths = parseData( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
+        final JsonNode gavDepths =
+            JsonUtils.parse( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
 
         /*
          * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
@@ -222,7 +221,7 @@ public final class Report
             }
         }
 
-        final ObjectNode data = parseData( extractEntry( reportFile, "data.json" ).buf );
+        final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
         fill( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
         data.put( "copyleftLicenseCount", copyleftLicenseCount );
@@ -234,7 +233,7 @@ public final class Report
         fill( data.putArray( "licensePunchCard" ), licensePunchCard );
         filterKeyFindings( data, security );
 
-        cache( getCacheFile( reportFile, "data.json" ), streamData( data ) );
+        cache( getCacheFile( reportFile, "data.json" ), JsonUtils.generate( data ) );
 
         final StringBuilder badges = new StringBuilder( "[" );
         badges.append( securityAlerts ).append( ',' );
@@ -370,10 +369,10 @@ public final class Report
     private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )
         throws IOException
     {
-        ContainerNode<?> table = parseData( extractEntry( reportFile, name ).buf );
+        ContainerNode<?> table = JsonUtils.parse( extractEntry( reportFile, name ).buf );
 
         table = Auditing.applyAugmentedData( table, auditDir, name );
-        cache( getCacheFile( reportFile, name ), streamData( table ) );
+        cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
 
         return table;
     }

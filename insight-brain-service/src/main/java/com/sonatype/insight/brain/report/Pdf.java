@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.insight.brain.data.DataStore;
+import com.sonatype.insight.brain.data.JsonUtils;
 
 final class Pdf
 {
@@ -160,10 +160,10 @@ final class Pdf
                     }
                     if ( "summary.json".equals( name ) )
                     {
-                        final ObjectNode summary = DataStore.loadData( extractedFile );
+                        final ObjectNode summary = JsonUtils.read( extractedFile );
                         summary.put( "projectName", projectName );
                         summary.put( "buildNumber", Integer.toString( buildNumber ) );
-                        DataStore.saveData( extractedFile, summary );
+                        JsonUtils.write( extractedFile, summary );
                     }
                 }
             }

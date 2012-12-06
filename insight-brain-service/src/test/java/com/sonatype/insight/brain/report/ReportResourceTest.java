@@ -24,7 +24,7 @@ import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.data.DataStore;
+import com.sonatype.insight.brain.data.JsonUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.test.RestAccess;
@@ -73,8 +73,8 @@ public class ReportResourceTest
             }
             else if ( "badges.json".equals( entry.getName() ) )
             {
-                assertThat( DataStore.parseData( response.getResponseBodyAsBytes(), int[].class ), equalTo( new int[] {
-                    6, 6, 6 } ) );
+                assertThat( JsonUtils.parse( response.getResponseBodyAsBytes(), int[].class ), equalTo( new int[] { 6,
+                    6, 6 } ) );
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {

@@ -32,12 +32,16 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.json.store.Auditing;
-import com.sonatype.insight.json.store.DataStore;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDataRequest;
@@ -65,7 +69,7 @@ public class ReportResource
                                  @PathParam( "path" ) final String path )
     {
         final String name = Report.toEntryName( path );
-        if ( Auditing.isData( name ) || !work.getReportFile( scanId ).exists() )
+        if ( name.endsWith( ".json" ) || !work.getReportFile( scanId ).exists() )
         {
             refreshCache( appId, scanId );
         }
@@ -148,7 +152,7 @@ public class ReportResource
         final byte[] data;
         if ( result.getStatusCode() < 300 && reportEntry != null )
         {
-            data = DataStore.augmentArtifactDetails( result.getData(), reportEntry.buf );
+            data = augmentArtifactDetails( result.getData(), reportEntry.buf );
             response.lastModified( new Date( reportEntry.time ) );
             response.type( "application/json;charset=UTF-8" );
         }
@@ -167,7 +171,7 @@ public class ReportResource
                                  @Context final HttpServletRequest request, final InputStream data )
         throws IOException
     {
-        if ( Auditing.isData( path ) && request.getContentLength() > 0 )
+        if ( path.endsWith( ".json" ) && request.getContentLength() > 0 )
         {
             final File auditDir = work.getAuditDir( appId );
             Auditing.saveAugmentedData( auditDir, path, data, user, AuditUtils.findIP( request ), where );
@@ -251,5 +255,43 @@ public class ReportResource
             reportFile.delete();
         }
         return false;
+    }
+
+    public static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
+        throws IOException
+    {
+        byte[] augmentedDetailData = detailData;
+
+        final ObjectNode details = JsonUtils.parse( detailData );
+
+        final ContainerNode<?> licenses = JsonUtils.parse( licenseData );
+        final ArrayNode artifacts = (ArrayNode) ( licenses instanceof ArrayNode ? licenses : licenses.get( "aaData" ) );
+
+        final JsonNode overriddenLicenses = getOverriddenLicenses( details, artifacts );
+        if ( overriddenLicenses != null )
+        {
+            details.put( "overriddenLicenses", overriddenLicenses );
+            augmentedDetailData = JsonUtils.generate( details );
+        }
+
+        return augmentedDetailData;
+    }
+
+    private static JsonNode getOverriddenLicenses( final ObjectNode details, final ArrayNode artifacts )
+    {
+        final String groupId = details.path( "groupId" ).asText();
+        final String artifactId = details.path( "artifactId" ).asText();
+        final String version = details.path( "version" ).asText();
+
+        for ( int i = 0; i < artifacts.size(); i++ )
+        {
+            final JsonNode row = artifacts.get( i );
+            if ( artifactId.equals( row.path( "artifactId" ).asText() )
+                && groupId.equals( row.path( "groupId" ).asText() ) && version.equals( row.path( "version" ).asText() ) )
+            {
+                return row.get( "overriddenLicenses" );
+            }
+        }
+        return null;
     }
 }

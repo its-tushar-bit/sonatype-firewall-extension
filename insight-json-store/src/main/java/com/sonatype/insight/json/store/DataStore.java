@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public final class DataStore
+final class DataStore
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
 
@@ -239,44 +239,6 @@ public final class DataStore
                 return itr;
             }
         };
-    }
-
-    public static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
-        throws IOException
-    {
-        byte[] augmentedDetailData = detailData;
-
-        final ObjectNode details = parseData( detailData );
-
-        final ContainerNode<?> licenses = parseData( licenseData );
-        final ArrayNode artifacts = (ArrayNode) ( licenses instanceof ArrayNode ? licenses : licenses.get( "aaData" ) );
-
-        final JsonNode overriddenLicenses = getOverriddenLicenses( details, artifacts );
-        if ( overriddenLicenses != null )
-        {
-            details.put( "overriddenLicenses", overriddenLicenses );
-            augmentedDetailData = streamData( details );
-        }
-
-        return augmentedDetailData;
-    }
-
-    private static JsonNode getOverriddenLicenses( final ObjectNode details, final ArrayNode artifacts )
-    {
-        final String groupId = details.path( "groupId" ).asText();
-        final String artifactId = details.path( "artifactId" ).asText();
-        final String version = details.path( "version" ).asText();
-
-        for ( int i = 0; i < artifacts.size(); i++ )
-        {
-            final JsonNode row = artifacts.get( i );
-            if ( artifactId.equals( row.path( "artifactId" ).asText() )
-                && groupId.equals( row.path( "groupId" ).asText() ) && version.equals( row.path( "version" ).asText() ) )
-            {
-                return row.get( "overriddenLicenses" );
-            }
-        }
-        return null;
     }
 
     static ArrayNode filterDataLog( final File file, final ObjectNode key )

@@ -18,17 +18,14 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-db-common</artifactId>
-      <version>${insight-saas.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>mysql-connector-java</artifactId>
-          <groupId>mysql</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>

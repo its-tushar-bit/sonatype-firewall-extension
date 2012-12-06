@@ -57,9 +57,30 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
         <version>${logback-classic.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-db-common</artifactId>
+        <version>${insight-saas.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>

@@ -53,7 +53,7 @@ var SlickGridComponent = function() {
             	grid.registerPlugin(plugin);
             });
 
-            var redraw = function(newScopeData) {
+            grid.redraw = function(newScopeData) {
             	if (newScopeData) {
 	            	var now = new Date().getTime();
 	            	for ( var i = 0 ; i < newScopeData.length ; i++ ) {
@@ -74,7 +74,7 @@ var SlickGridComponent = function() {
                 }
             };
 
-            $scope.$watch(attrs.data, redraw, true);
+            $scope.$watch(attrs.data, grid.redraw, true);
             $scope[attrs.id] = grid;
             
             if (dataView.getLength() == 0) {

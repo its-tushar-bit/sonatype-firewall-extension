@@ -7,9 +7,9 @@ insightApp.factory('global', function($rootScope) {
         cssClass: "slick-cell-checkboxsel"
 	}), state = {
     	//TODO: this will be removed when REST request for this data is in place
-    	policyConstraintCount : 1,
+    	constraintCount : 1,
     	//TODO: this will be removed when REST request for this data is in place
-    	policyConstraintList : [{
+    	constraintList : [{
     		name: 'myname',
     		status: 'status'
     	},{
@@ -34,7 +34,7 @@ insightApp.factory('global', function($rootScope) {
     		name: 'myname8',
     		status: 'status8'
     	}],
-    	policyConstraintTableDefinition : {
+    	constraintTableDefinition : {
     		columns : [ checkboxRulesSelector.getColumnDefinition(), {
     			id : "name",
     			name : "Constraint Name",
@@ -63,10 +63,55 @@ insightApp.factory('global', function($rootScope) {
     		plugins : [checkboxRulesSelector],
     		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
     		emptyMessage : "No Constraints have been defined.<br><a href='#newConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
-    	}
+    	},
+    	constraintConditionsTableDefinition : {
+        	columns : [{
+        		id : "operand",
+        		name : "Operand",
+        		field : "operand",
+        		formatter : function(row, cell, value, columnDef, dataContext) {
+        			return value.operandName;
+        		}
+        	},{
+        		id : "operator",
+        		name : "Operator",
+        		field : "operator"
+        	},{
+        		id : "value",
+        		name : "Value",
+        		field : "value",
+    			formatter : function(row, cell, value, columnDef, dataContext) {
+    				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? value : '') + '</td>'
+    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'
+    				    + '</tr></table>';
+    			}
+        	}],
+        	options : {
+        		height : 125,
+        		forceFitColumns : true,
+    			fullWidthRows : true
+    		},
+    		plugins : [],
+    		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
+    		emptyMessage : "Add one or more Conditions to define the Rule."
+        }
     };
         
     return state;
 });
+
+insightApp.getBaseUrl = function(){
+	var idx = location.href.indexOf('/policy-assets/');
+	
+	if (idx > -1) {
+		return location.href.substring(0,idx);
+	}
+	
+	return '';
+}
+
+insightApp.getConditionTypeUrl = function(){
+	return insightApp.getBaseUrl() + '/rest/policy/conditionType';
+}
 
 insightApp.directive('slickgrid', SlickGridComponent);

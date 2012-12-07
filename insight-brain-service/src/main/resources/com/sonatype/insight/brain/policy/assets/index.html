@@ -58,9 +58,9 @@
 					    	</div>
 					    </div>
 					    <div class="control-group">
-					    	<label class="control-label" for="policyConstraints">Constraints</label>
+					    	<label class="control-label">Constraints</label>
 					    	<div class="controls">
-					    	    <div style="width:100%;" ng-show="state.policyConstraintCount">
+					    	    <div style="width:100%;" ng-show="state.constraintCount">
 						            <table width="100%">
 									    <tr>
 										    <td width="99%"></td>
@@ -70,7 +70,7 @@
 										    <td><button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button></td>
 										</tr>
 									</table>
-									<slickgrid id="policyConstraintGrid" style="height:200px;" data="state.policyConstraintList" table-def="state.policyConstraintTableDefinition"></slickgrid>
+									<slickgrid id="constraintGrid" style="height:200px;" data="state.constraintList" table-def="state.constraintTableDefinition"></slickgrid>
 					            </div>
 					    	</div>
 					    </div>
@@ -87,16 +87,49 @@
 							<button type='none' class='btn' ng-click="cancelPolicyClick()">Cancel</button>
 						</div>
 					</div>
-					<div id="newConstraintModal" class="modal hide fade">
+					<div id="newConstraintModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
 						<div class="modal-header">
 						    <button type="button" class="close" data-dismiss="modal">×</button>
 						    <h3>New Policy Constraint</h3>
 						</div>
 						<div class="modal-body">
-						    <p>One fine body…</p>
+						    <div class='form-horizontal'>
+								<div class='control-group'>
+									<label class='control-label'>Conditions</label>
+									<div class='controls' style='text-align:left'>
+										<select ng-model="state.addConstraintOperand" ng-change="constraintOperandChanged()" ng-options="c.operandName for c in state.conditionTypes">
+										</select>
+										<select ng-model="state.addConstraintOperator" ng-show="state.addConstraintOperand" ng-change="validateConstraintCondition()" ng-options="c for c in state.addConstraintOperand.supportedOperators">
+										</select>
+										<input type="text" ng-model="state.addConstraintValue" placeholder='Enter Value...' ng-show="state.addConstraintOperand && state.addConstraintOperand.requiresValue && !state.addConstraintOperand.availableValues" ng-change="validateConstraintCondition()"></input>
+										<select ng-model="state.addConstraintValue" ng-show="state.addConstraintOperand && state.addConstraintOperand.requiresValue && state.addConstraintOperand.availableValues" ng-change="validateConstraintCondition()" ng-options="c for c in state.addConstraintOperand.availableValues">
+										</select>
+										<button type='none' class='btn btn-primary' ng-click="addConstraintCondition()" ng-disabled="!state.addConstraintConditionFormValid">Add</button>
+									</div>
+								</div>
+								<div class='control-group'>
+								    <div class='controls'>
+								        <slickgrid id="constraintConditionsGrid" style="height:125px;width:700px;" data="state.constraintConditionList" table-def="state.constraintConditionsTableDefinition"></slickgrid>
+								        <label class="radio inline">
+										    <input type="radio" ng-model="state.addConstraintMatchType" value="OR" ng-change="validateConstraint()">
+										    Any one Condition met
+										</label>
+										<label class="radio inline">
+										    <input type="radio" ng-model="state.addConstraintMatchType" value="AND" ng-change="validateConstraint()">
+										    All Conditions met
+										</label>
+								    </div>
+								</div>
+								<div class='control-group'>
+								    <label class='control-label'>Name</label>
+									<div class='controls' style='text-align:left'>
+										<input type="text" ng-model="state.addConstraintName" ng-change="validateConstraint()" placeholder='Enter Constraint Name...'></input>
+									</div>
+								</div>
+							</div>
 						</div>
 						<div class="modal-footer">
-						    <button class="btn btn-primary">Add</button>
+						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid">Add</button>
 						    <button class="btn" data-dismiss="modal">Cancel</button>
 						</div>
 					</div>

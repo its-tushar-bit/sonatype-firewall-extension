@@ -14,13 +14,14 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.model.component.PolicyFact;
-import com.sonatype.insight.brain.model.rule.Action;
-import com.sonatype.insight.brain.model.rule.LogicalOperator;
-import com.sonatype.insight.brain.model.rule.MarkAsFailedActionType;
-import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
-import com.sonatype.insight.brain.model.rule.SimpleCondition;
-import com.sonatype.insight.brain.rule.RuleResource;
+import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SimpleCondition;
+import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -28,12 +29,12 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class PolicyEvaluatorResourceTest
     extends AbstractResourceTest
 {
-    private Response addRule( final String appId, final Rule rule )
+    private Response addPolicy( final String appId, final Policy policy )
         throws Exception
     {
         final Response response =
-            RestAccess.post( getRestBaseUrl() + RuleResource.SERVICE_PATH.replace( "{appId}", appId ),
-                             JsonHelpers.asJson( rule ) );
+            RestAccess.post( getRestBaseUrl() + PolicyResource.SERVICE_PATH.replace( "{appId}", appId ),
+                             JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         return response;
     }
@@ -47,17 +48,22 @@ public class PolicyEvaluatorResourceTest
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        final Rule rule = new Rule();
-        rule.setName( "PolicyEvaluatorResourceTest rule 1" );
-        rule.setOperator( LogicalOperator.AND );
+        final Constraint constraint = new Constraint();
+        constraint.setName( "PolicyEvaluatorResourceTest constraint 1" );
+        constraint.setOperator( LogicalOperator.AND );
         final SimpleCondition condition1 = new SimpleCondition();
         condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition1.setOperator( "present" );
-        rule.addCondition( condition1 );
+        constraint.addCondition( condition1 );
+
         final Action action = new Action();
         action.setActionTypeId( MarkAsFailedActionType.ID );
-        rule.addAction( action );
-        addRule( appId, rule );
+
+        final Policy policy = new Policy();
+        policy.setName( "PolicyEvaluatorResourceTest policy" );
+        policy.addConstraint( constraint );
+        policy.addAction( action );
+        addPolicy( appId, policy );
 
         // The report file is not available yet
         Response response = RestAccess.get( getServiceURL( appId, scanId ) );

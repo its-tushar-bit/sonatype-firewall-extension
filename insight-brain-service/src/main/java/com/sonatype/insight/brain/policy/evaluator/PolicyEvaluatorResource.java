@@ -20,10 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.RuleDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.PolicyFact;
-import com.sonatype.insight.brain.model.rule.Rule;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -53,9 +53,9 @@ public class PolicyEvaluatorResource
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}", appId, scanId );
 
-        final File ruleDir = work.getRuleDir();
-        final RuleDAO ruleDAO = new RuleDAO( ruleDir );
-        final List<Rule> rules = ruleDAO.getByApplicationId( appId );
+        final File policyDir = work.getPolicyDir();
+        final PolicyDAO policyDAO = new PolicyDAO( policyDir );
+        final List<Policy> policies = policyDAO.getByApplicationId( appId );
 
         final File reportFile = work.getReportFile( scanId );
         if ( !reportFile.exists() )
@@ -71,7 +71,7 @@ public class PolicyEvaluatorResource
         final ComponentDAO componentDAO = new ComponentDAO();
         final List<Component> components = componentDAO.getAll( licenseReportEntry.buf, securityReportEntry.buf );
         final PolicyEvaluator policyEvaluator = new PolicyEvaluator();
-        final List<PolicyFact> result = policyEvaluator.evaluate( rules, components );
+        final List<PolicyFact> result = policyEvaluator.evaluate( policies, components );
         return result;
     }
 }

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.rule;
+package com.sonatype.insight.brain.policy;
 
 import java.util.Collection;
 
@@ -15,8 +15,8 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.rule.ActionType;
-import com.sonatype.insight.brain.model.rule.AllActionTypes;
+import com.sonatype.insight.brain.model.policy.ActionType;
+import com.sonatype.insight.brain.model.policy.AllActionTypes;
 
 @Path( ActionTypeResource.SERVICE_PATH )
 public class ActionTypeResource

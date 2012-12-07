@@ -9,9 +9,9 @@ public class PolicyFact
 {
     private Component component;
 
-    private String ruleId;
+    private String policyId;
 
-    private String ruleName;
+    private String policyName;
 
     private String kind;
 
@@ -20,10 +20,10 @@ public class PolicyFact
     {
     }
 
-    public PolicyFact( final Component component, final String ruleId, final String kind )
+    public PolicyFact( final Component component, final String policyId, final String kind )
     {
         this.component = component;
-        this.ruleId = ruleId;
+        this.policyId = policyId;
         this.kind = kind;
     }
 
@@ -32,9 +32,9 @@ public class PolicyFact
         return component;
     }
 
-    public String getRuleId()
+    public String getPolicyId()
     {
-        return ruleId;
+        return policyId;
     }
 
     public String getKind()
@@ -42,13 +42,13 @@ public class PolicyFact
         return kind;
     }
 
-    public String getRuleName()
+    public String getPolicyName()
     {
-        return ruleName;
+        return policyName;
     }
 
-    public void setRuleName( final String ruleName )
+    public void setPolicyName( final String policyName )
     {
-        this.ruleName = ruleName;
+        this.policyName = policyName;
     }
 }

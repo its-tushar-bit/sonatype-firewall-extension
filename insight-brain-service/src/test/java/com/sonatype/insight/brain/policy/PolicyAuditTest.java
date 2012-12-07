@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.rule;
+package com.sonatype.insight.brain.policy;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,21 +15,22 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.insight.brain.model.rule.Action;
-import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;
-import com.sonatype.insight.brain.model.rule.LogicalOperator;
-import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
-import com.sonatype.insight.brain.model.rule.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SimpleCondition;
 import com.sonatype.insight.json.store.JsonUtils;
 
-public class RuleAuditTest
+public class PolicyAuditTest
 {
     @org.junit.Rule
     public TemporaryFolder tempDir = new TemporaryFolder();
 
     @Test
-    public void testRuleAudit_Add()
+    public void testPolicyAudit_Add()
         throws Exception
     {
         final File auditDir = tempDir.newFolder();
@@ -37,9 +38,12 @@ public class RuleAuditTest
         final String ip = "1.2.3.4";
         final String where = "not here";
 
-        final Rule rule = new Rule();
-        rule.setId( "An id" );
-        rule.setName( "A rule" );
+        final Policy policy = new Policy();
+        policy.setId( "An id" );
+        policy.setName( "A policy" );
+        final Constraint constraint = new Constraint();
+        constraint.setId( "Another id" );
+        constraint.setName( "A constraint" );
         final List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
         SimpleCondition condition = new SimpleCondition();
         condition.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
@@ -50,24 +54,25 @@ public class RuleAuditTest
         condition.setOperator( "is" );
         condition.setValue( "Copyleft" );
         conditions.add( condition );
-        rule.setConditions( conditions );
-        rule.setOperator( LogicalOperator.AND );
+        constraint.setConditions( conditions );
+        constraint.setOperator( LogicalOperator.AND );
+        policy.addConstraint( constraint );
         final Action action = new Action();
         action.setValue( "be happy" );
         final List<Action> actions = new ArrayList<Action>();
         actions.add( action );
-        rule.setActions( actions );
+        policy.setActions( actions );
 
-        RuleAudit.saveChange( auditDir, rule, user, ip, where );
+        PolicyAudit.saveChange( auditDir, policy, user, ip, where );
 
-        final ArrayNode auditData = JsonUtils.read( new File( auditDir, RuleAudit.RULE_AUDIT_FILENAME ) );
+        final ArrayNode auditData = JsonUtils.read( new File( auditDir, PolicyAudit.POLICY_AUDIT_FILENAME ) );
         Assert.assertNotNull( auditData );
         Assert.assertEquals( auditData.toString(), 1, auditData.size() );
-        assertRuleAuditData( user, ip, where, (ObjectNode) auditData.get( 0 ) );
+        assertPolicyAuditData( user, ip, where, (ObjectNode) auditData.get( 0 ) );
     }
 
-    private static void assertRuleAuditData( final String user, final String ip, final String where,
-                                             final ObjectNode actual )
+    private static void assertPolicyAuditData( final String user, final String ip, final String where,
+                                               final ObjectNode actual )
     {
         Assert.assertEquals( user, actual.get( "user" ).asText() );
         Assert.assertEquals( ip, actual.get( "ip" ).asText() );

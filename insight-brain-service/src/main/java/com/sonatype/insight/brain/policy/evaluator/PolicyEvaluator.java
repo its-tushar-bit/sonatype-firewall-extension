@@ -26,15 +26,15 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.PolicyFact;
-import com.sonatype.insight.brain.model.rule.Rule;
+import com.sonatype.insight.brain.model.policy.Policy;
 
 public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
-    public List<PolicyFact> evaluate( final List<Rule> rules, final List<Component> components )
+    public List<PolicyFact> evaluate( final List<Policy> policies, final List<Component> components )
     {
-        final String droolsCode = new DroolsGenerator().generate( rules );
+        final String droolsCode = new DroolsGenerator().generate( policies );
         // Most probably this is too much logging, but it's good for debugging for now
         log.debug( "Generated drools code:\n{}", droolsCode );
 
@@ -43,7 +43,7 @@ public class PolicyEvaluator
                                     ResourceType.DRL );
         if ( droolsKnowledgeBuilder.hasErrors() )
         {
-            throw new RuntimeException( "Failed to load the rules:" + droolsKnowledgeBuilder.getErrors().toString() );
+            throw new RuntimeException( "Failed to load the policies:" + droolsKnowledgeBuilder.getErrors().toString() );
         }
         final Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
         final KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
@@ -71,15 +71,15 @@ public class PolicyEvaluator
             return result;
         }
 
-        final Map<String, Rule> rulesById = new LinkedHashMap<String, Rule>();
-        for ( final Rule rule : rules )
+        final Map<String, Policy> policiesById = new LinkedHashMap<String, Policy>();
+        for ( final Policy policy : policies )
         {
-            rulesById.put( rule.getId(), rule );
+            policiesById.put( policy.getId(), policy );
         }
         for ( final Object o : policyFacts )
         {
             final PolicyFact policyFact = (PolicyFact) o;
-            policyFact.setRuleName( rulesById.get( policyFact.getRuleId() ).getName() );
+            policyFact.setPolicyName( policiesById.get( policyFact.getPolicyId() ).getName() );
             result.add( policyFact );
         }
         return result;

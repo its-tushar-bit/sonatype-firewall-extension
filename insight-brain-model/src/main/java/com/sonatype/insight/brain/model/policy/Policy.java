@@ -3,63 +3,31 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.rule;
+package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Rule
+public class Policy
 {
     private String id;
 
     private String name;
 
-    private List<SimpleCondition> conditions;
-
-    private LogicalOperator operator;
+    private List<Constraint> constraints;
 
     private List<Action> actions;
 
     private boolean enabled = true;
 
-    public Rule()
+    public Policy()
     {
     }
 
-    public Rule( final String id, final String name, final LogicalOperator operator )
+    public Policy( final String id, final String name )
     {
         this.id = id;
         this.name = name;
-        this.operator = operator;
-    }
-
-    public List<SimpleCondition> getConditions()
-    {
-        return conditions;
-    }
-
-    public void setConditions( final List<SimpleCondition> conditions )
-    {
-        this.conditions = conditions;
-    }
-
-    public void addCondition( final SimpleCondition condition )
-    {
-        if ( conditions == null )
-        {
-            conditions = new ArrayList<SimpleCondition>();
-        }
-        conditions.add( condition );
-    }
-
-    public LogicalOperator getOperator()
-    {
-        return operator;
-    }
-
-    public void setOperator( final LogicalOperator operator )
-    {
-        this.operator = operator;
     }
 
     public String getName()
@@ -90,6 +58,25 @@ public class Rule
     public void setEnabled( final boolean enabled )
     {
         this.enabled = enabled;
+    }
+
+    public List<Constraint> getConstraints()
+    {
+        return constraints;
+    }
+
+    public void setConstraints( final List<Constraint> constraints )
+    {
+        this.constraints = constraints;
+    }
+
+    public void addConstraint( final Constraint constraint )
+    {
+        if ( constraints == null )
+        {
+            constraints = new ArrayList<Constraint>();
+        }
+        constraints.add( constraint );
     }
 
     public List<Action> getActions()

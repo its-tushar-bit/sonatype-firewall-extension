@@ -7,63 +7,84 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.rule.Action;
-import com.sonatype.insight.brain.model.rule.ActionType;
-import com.sonatype.insight.brain.model.rule.AllActionTypes;
-import com.sonatype.insight.brain.model.rule.AllConditionTypes;
-import com.sonatype.insight.brain.model.rule.ConditionType;
-import com.sonatype.insight.brain.model.rule.LogicalOperator;
-import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.ActionType;
+import com.sonatype.insight.brain.model.policy.AllActionTypes;
+import com.sonatype.insight.brain.model.policy.AllConditionTypes;
+import com.sonatype.insight.brain.model.policy.ConditionType;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.SimpleCondition;
 
 public class DroolsGenerator
 {
     private static final String INDENT = "    ";
 
-    public String generate( final List<Rule> rules )
+    public String generate( final List<Policy> policies )
     {
         final StringBuilder droolsCode = new StringBuilder();
         // TODO add imports for drools
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.PolicyFact\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
-        for ( final Rule rule : rules )
+        for ( final Policy policy : policies )
         {
-            if ( !rule.isEnabled() )
+            if ( !policy.isEnabled() )
             {
                 continue;
             }
 
             droolsCode.append( '\n' );
-            droolsCode.append( "// Rule name: " ).append( rule.getName() ).append( '\n' );
-            droolsCode.append( "rule \"" ).append( rule.getId() ).append( "\"\n" );
+            droolsCode.append( "// Policy name: " ).append( policy.getName() ).append( '\n' );
+            droolsCode.append( "rule \"" ).append( policy.getId() ).append( "\"\n" );
             droolsCode.append( "when\n" );
             droolsCode.append( INDENT ).append( "$component : Component\n" );
             droolsCode.append( INDENT ).append( "(\n" );
-            int conditionIndex = 0;
-            for ( final SimpleCondition condition : rule.getConditions() )
+
+            int constraintIndex = 0;
+            for ( final Constraint constraint : policy.getConstraints() )
             {
-                if ( conditionIndex > 0 )
+                if ( !constraint.isEnabled() )
                 {
-                    droolsCode.append( INDENT ).append( INDENT );
-                    if ( rule.getOperator() == LogicalOperator.AND )
-                    {
-                        droolsCode.append( "&&\n" );
-                    }
-                    else
-                    {
-                        droolsCode.append( "||\n" );
-                    }
+                    continue;
                 }
-                droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                final ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
-                droolsCode.append( conditionType.generateDroolsCode( condition ) );
-                droolsCode.append( " )\n" );
-                conditionIndex++;
+
+                if ( constraintIndex > 0 )
+                {
+                    droolsCode.append( INDENT ).append( INDENT ).append( "||\n" );
+                }
+                droolsCode.append( INDENT ).append( INDENT ).append( "(\n" );
+
+                int conditionIndex = 0;
+                for ( final SimpleCondition condition : constraint.getConditions() )
+                {
+                    if ( conditionIndex > 0 )
+                    {
+                        droolsCode.append( INDENT ).append( INDENT ).append( INDENT );
+                        if ( constraint.getOperator() == LogicalOperator.AND )
+                        {
+                            droolsCode.append( "&&\n" );
+                        }
+                        else
+                        {
+                            droolsCode.append( "||\n" );
+                        }
+                    }
+                    droolsCode.append( INDENT ).append( INDENT ).append( INDENT ).append( "( " );
+                    final ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
+                    droolsCode.append( conditionType.generateDroolsCode( condition ) );
+                    droolsCode.append( " )\n" );
+                    conditionIndex++;
+                }
+
+                droolsCode.append( INDENT ).append( INDENT ).append( ")\n" );
+                constraintIndex++;
             }
+
             droolsCode.append( INDENT ).append( ")\n" );
             droolsCode.append( "then\n" );
-            for ( final Action action : rule.getActions() )
+            for ( final Action action : policy.getActions() )
             {
                 final ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
                 droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) ).append( ";" );

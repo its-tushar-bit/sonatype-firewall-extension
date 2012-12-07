@@ -3,15 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.rule;
+package com.sonatype.insight.brain.model.policy;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class AddLabelActionType
+public class MarkAsFailedActionType
     implements ActionType
 {
-    public static final String ID = "AddLabel";
+    public static final String ID = "MarkAsFailed";
 
     @Override
     public String getId()
@@ -22,25 +21,19 @@ public class AddLabelActionType
     @Override
     public String getName()
     {
-        return "Add label";
+        return "Mark as failed";
     }
 
     @Override
     public List<String> getAvailableValues()
     {
-        // TODO Return a list of known labels
-        final List<String> label = new ArrayList<String>();
-        label.add( "Whitelist" );
-        label.add( "Blacklist" );
-        label.add( "Big no-no" );
-        label.add( "Must have" );
-        return label;
+        return null;
     }
 
     @Override
     public String generateDroolsCode( final Action action )
     {
-        // TODO Auto-generated method stub
-        return null;
+        return "insert( new PolicyFact( $component, drools.getRule().getName(), \"" + MarkAsFailedActionType.ID
+            + "\" ) )";
     }
 }

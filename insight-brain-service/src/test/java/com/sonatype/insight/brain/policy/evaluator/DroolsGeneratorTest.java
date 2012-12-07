@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.drools.builder.KnowledgeBuilder;
@@ -16,57 +17,60 @@ import org.drools.io.ResourceFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sonatype.insight.brain.model.rule.Action;
-import com.sonatype.insight.brain.model.rule.LicenseCategoryConditionType;
-import com.sonatype.insight.brain.model.rule.LogicalOperator;
-import com.sonatype.insight.brain.model.rule.MarkAsFailedActionType;
-import com.sonatype.insight.brain.model.rule.Rule;
-import com.sonatype.insight.brain.model.rule.SecurityVulnerabilityPresentConditionType;
-import com.sonatype.insight.brain.model.rule.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SimpleCondition;
 
 public class DroolsGeneratorTest
 {
     @Test
     public void testGenerate()
     {
-        final List<Rule> rules = new ArrayList<Rule>();
-        final Rule rule1 = new Rule();
-        rule1.setId( "RuleId1" );
-        rule1.setName( "Rule Name 1" );
-        rule1.setOperator( LogicalOperator.AND );
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraint1 = new Constraint();
+        constraint1.setId( "ConstraintId1" );
+        constraint1.setName( "Constraint Name 1" );
+        constraint1.setOperator( LogicalOperator.AND );
         SimpleCondition condition1 = new SimpleCondition();
         condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition1.setOperator( "present" );
-        rule1.addCondition( condition1 );
+        constraint1.addCondition( condition1 );
         SimpleCondition condition2 = new SimpleCondition();
         condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition2.setOperator( "is" );
         condition2.setValue( "Copyleft" );
-        rule1.addCondition( condition2 );
-        Action action = new Action();
-        action.setActionTypeId( MarkAsFailedActionType.ID );
-        rule1.addAction( action );
-        rules.add( rule1 );
-        final Rule rule2 = new Rule();
-        rule2.setId( "RuleId2" );
-        rule2.setName( "Rule Name 2" );
-        rule2.setOperator( LogicalOperator.OR );
+        constraint1.addCondition( condition2 );
+        constraints.add( constraint1 );
+        final Constraint constraint2 = new Constraint();
+        constraint2.setId( "ConstraintId2" );
+        constraint2.setName( "Constraint Name 2" );
+        constraint2.setOperator( LogicalOperator.OR );
         condition1 = new SimpleCondition();
         condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
         condition1.setOperator( "absent" );
-        rule2.addCondition( condition1 );
+        constraint2.addCondition( condition1 );
         condition2 = new SimpleCondition();
         condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition2.setOperator( "is not" );
         condition2.setValue( "Weak Copyleft" );
-        rule2.addCondition( condition2 );
-        action = new Action();
+        constraint2.addCondition( condition2 );
+        constraints.add( constraint2 );
+
+        final Policy policy = new Policy();
+        policy.setId( "PolicyId1" );
+        policy.setName( "Policy Name 1" );
+        policy.setConstraints( constraints );
+        Action action = new Action();
         action.setActionTypeId( MarkAsFailedActionType.ID );
-        rule2.addAction( action );
-        rules.add( rule2 );
+        policy.addAction( action );
 
         final DroolsGenerator generator = new DroolsGenerator();
-        final String droolsCode = generator.generate( rules );
+        final String droolsCode = generator.generate( Arrays.asList( policy ) );
         System.out.println( droolsCode );
         // TODO Add asserts - for now it's good if we get no exceptions :)
 

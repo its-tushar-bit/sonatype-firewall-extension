@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.rule;
+package com.sonatype.insight.brain.policy;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,24 +11,24 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.sonatype.insight.brain.model.rule.Rule;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.json.store.Auditing;
 
-public class RuleAudit
+public class PolicyAudit
 {
-    public static String RULE_AUDIT_FILENAME = "rule.json";
+    public static String POLICY_AUDIT_FILENAME = "policy.json";
 
-    public static void saveChange( final File auditDir, final Rule rule, final String user, final String ip,
+    public static void saveChange( final File auditDir, final Policy policy, final String user, final String ip,
                                    final String where )
         throws IOException
     {
-        Auditing.saveData( auditDir, RULE_AUDIT_FILENAME, toJson( rule ), user, ip, where );
+        Auditing.saveData( auditDir, POLICY_AUDIT_FILENAME, toJson( policy ), user, ip, where );
     }
 
-    private static ContainerNode<?> toJson( final Rule rule )
+    private static ContainerNode<?> toJson( final Policy policy )
     {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure( SerializationFeature.INDENT_OUTPUT, true );
-        return mapper.convertValue( rule, ContainerNode.class );
+        return mapper.convertValue( policy, ContainerNode.class );
     }
 }

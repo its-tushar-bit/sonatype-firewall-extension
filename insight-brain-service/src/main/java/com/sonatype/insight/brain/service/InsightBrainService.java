@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.service;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
+import com.sonatype.insight.brain.policy.ActionTypeResource;
+import com.sonatype.insight.brain.policy.ConditionTypeResource;
+import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluatorResource;
 import com.sonatype.insight.brain.report.ReportResource;
-import com.sonatype.insight.brain.rule.ActionTypeResource;
-import com.sonatype.insight.brain.rule.ConditionTypeResource;
-import com.sonatype.insight.brain.rule.RuleResource;
 import com.sonatype.insight.brain.saas.BCResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sun.jersey.api.core.ResourceConfig;
@@ -60,7 +60,7 @@ public class InsightBrainService
         env.addResource( LabelResource.class );
         env.addResource( PolicyEvaluatorResource.class );
         env.addResource( ReportResource.class );
-        env.addResource( RuleResource.class );
+        env.addResource( PolicyResource.class );
         env.addResource( BCResource.class );
     }
 }

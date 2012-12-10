@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.SimpleCondition;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -52,7 +52,7 @@ public class PolicyEvaluatorResourceTest
         constraint.setName( "PolicyEvaluatorResourceTest constraint 1" );
         constraint.setOperator( LogicalOperator.AND );
         final SimpleCondition condition1 = new SimpleCondition();
-        condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
+        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "present" );
         constraint.addCondition( condition1 );
 

@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.SimpleCondition;
 
 public class DroolsGeneratorTest
@@ -37,7 +37,7 @@ public class DroolsGeneratorTest
         constraint1.setName( "Constraint Name 1" );
         constraint1.setOperator( LogicalOperator.AND );
         SimpleCondition condition1 = new SimpleCondition();
-        condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
+        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "present" );
         constraint1.addCondition( condition1 );
         SimpleCondition condition2 = new SimpleCondition();
@@ -51,7 +51,7 @@ public class DroolsGeneratorTest
         constraint2.setName( "Constraint Name 2" );
         constraint2.setOperator( LogicalOperator.OR );
         condition1 = new SimpleCondition();
-        condition1.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
+        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "absent" );
         constraint2.addCondition( condition1 );
         condition2 = new SimpleCondition();

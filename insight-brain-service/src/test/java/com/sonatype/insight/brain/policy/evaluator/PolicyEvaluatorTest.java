@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.SimpleCondition;
 
 public class PolicyEvaluatorTest
@@ -34,7 +34,7 @@ public class PolicyEvaluatorTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
-        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
+        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraints.add( constraint1 );
         final Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.AND );
         constraint2.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
@@ -62,17 +62,17 @@ public class PolicyEvaluatorTest
     }
 
     @Test
-    public void testEvaluate_SecurityVulnerabilityPresentConditionType()
+    public void testEvaluate_SecurityVulnerabilityConditionType()
     {
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraintSVPresent =
             new Constraint( "ConstraintIdSVPresent", "Constraint Name SVPresent", LogicalOperator.AND );
-        constraintSVPresent.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
+        constraintSVPresent.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraints.add( constraintSVPresent );
         final Constraint constraintSVAbsent =
             new Constraint( "ConstraintIdSVAbsent", "Constraint Name SVAbsent", LogicalOperator.AND );
-        constraintSVAbsent.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "absent" ) );
+        constraintSVAbsent.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "absent" ) );
         constraints.add( constraintSVAbsent );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
@@ -133,7 +133,7 @@ public class PolicyEvaluatorTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
-        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
+        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraint1.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         constraints.add( constraint1 );
 
@@ -187,7 +187,7 @@ public class PolicyEvaluatorTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.OR );
-        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityPresentConditionType.ID, "present" ) );
+        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraint1.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         constraints.add( constraint1 );
 

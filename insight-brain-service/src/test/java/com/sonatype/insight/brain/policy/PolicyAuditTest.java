@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityPresentConditionType;
+import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.SimpleCondition;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -46,7 +46,7 @@ public class PolicyAuditTest
         constraint.setName( "A constraint" );
         final List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
         SimpleCondition condition = new SimpleCondition();
-        condition.setConditionTypeId( SecurityVulnerabilityPresentConditionType.ID );
+        condition.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition.setOperator( "present" );
         conditions.add( condition );
         condition = new SimpleCondition();

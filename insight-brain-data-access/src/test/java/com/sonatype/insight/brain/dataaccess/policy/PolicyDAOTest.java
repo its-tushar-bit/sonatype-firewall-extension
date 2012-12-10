@@ -56,7 +56,7 @@ public class PolicyDAOTest
         final Policy policy2 = new Policy();
         policy2.setName( "PolicyDAOTest new policy 2" );
         final Constraint constraint2 = new Constraint();
-        constraint2.setName( "RuleDAOTest new constraint 2" );
+        constraint2.setName( "PolicyDAOTest new constraint 2" );
         constraint2.setOperator( LogicalOperator.OR );
         conditions = new ArrayList<SimpleCondition>();
         condition = new SimpleCondition();

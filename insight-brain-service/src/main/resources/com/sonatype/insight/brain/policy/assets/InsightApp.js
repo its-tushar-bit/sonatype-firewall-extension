@@ -7,7 +7,112 @@ insightApp.factory('global', function($rootScope) {
         cssClass: "slick-cell-checkboxsel"
 	}), state = {
     	//TODO: this will be removed when REST request for this data is in place
-    	constraintCount : 1,
+    	policyList : [{
+    		name: 'policy1',
+    		id: 'policy1',
+    		constraints: [{
+    			id: 'constraint1',
+    			name: 'constraint1',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy2',
+    		id: 'policy2',
+    		constraints: [{
+    			id: 'constraint2',
+    			name: 'constraint2',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy3',
+    		id: 'policy3',
+    		constraints: [{
+    			id: 'constraint3',
+    			name: 'constraint3',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy4',
+    		id: 'policy4',
+    		constraints: [{
+    			id: 'constraint4',
+    			name: 'constraint4',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy5',
+    		id: 'policy5',
+    		constraints: [{
+    			id: 'constraint5',
+    			name: 'constraint5',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy6',
+    		id: 'policy6',
+    		constraints: [{
+    			id: 'constraint6',
+    			name: 'constraint6',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy7',
+    		id: 'policy7',
+    		constraints: [{
+    			id: 'constraint7',
+    			name: 'constraint7',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	},{
+    		name: 'policy8',
+    		id: 'policy8',
+    		constraints: [{
+    			id: 'constraint8',
+    			name: 'constraint8',
+    			conditions: [],
+    			operator: 'AND',
+    			enabled: true
+    		}],
+    		actions: []
+    	}],
+    	//TODO: this will be removed when REST request for this data is in place
+    	actionTypeList : [{
+    		context: 'Procure',
+    		id: 'procure'
+    	},{
+    		context: 'Develop',
+    		id: 'develop'
+    	},{
+    		context: 'Build',
+    		id: 'build'
+    	},{
+    		context: 'Release',
+    		id: 'release'
+    	},{
+    		context: 'Operate',
+    		id: 'operate'
+    	}],
     	//TODO: this will be removed when REST request for this data is in place
     	constraintList : [{
     		name: 'myname',
@@ -34,6 +139,31 @@ insightApp.factory('global', function($rootScope) {
     		name: 'myname8',
     		status: 'status8'
     	}],
+    	actionTableDefinition : {
+    		columns : [{
+    			id : "context",
+    			name : "Context",
+    			field : "context"
+    		},{
+    			id : "fail",
+    			name : "Fail",
+    			field : "fail"
+    		},{
+    			id : "warn",
+    			name : "Warn",
+    			field : "warn"
+    		},{
+    			id : "notify",
+    			name : "Notify",
+    			field : "notify"
+    		}],
+    		options : {
+    			height : 200,
+    			forceFitColumns : true,
+    			fullWidthRows : true
+    		},
+    		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
+    	},
     	constraintTableDefinition : {
     		columns : [ checkboxRulesSelector.getColumnDefinition(), {
     			id : "name",

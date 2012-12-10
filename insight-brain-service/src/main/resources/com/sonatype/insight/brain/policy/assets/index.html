@@ -47,7 +47,12 @@
 		</div>
 		<div class="tab-content">
 			<div class="tab-pane active" id="policy" ng-controller="InsightPolicyController">
-				<div ng-show="!state.showAddPolicyScreen" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
+				<div ng-show="!state.showAddPolicyScreen && !state.policyList.length" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
+				<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
+				    <div class="policy-item" ng-repeat="policy in state.policyList" ng-click="policyEditClick()">
+				        <span><b>{{policy.name}}</b><br>7 Constraints to be evaluated<br>3 Actions assigned<br>&nbsp;&nbsp;&nbsp;Block Procurement, Fail the build, Notify email<br><br>Created 4 years ago by jwhitehouse</span>
+				    </div>
+				</div>
 				<div ng-show="state.showAddPolicyScreen">
 					<div class="page-header">Create a new Policy</div>
 					<div class="form-horizontal">
@@ -60,7 +65,7 @@
 					    <div class="control-group">
 					    	<label class="control-label">Constraints</label>
 					    	<div class="controls">
-					    	    <div style="width:100%;" ng-show="state.constraintCount">
+					    	    <div style="width:100%;">
 						            <table width="100%">
 									    <tr>
 										    <td width="99%"></td>
@@ -77,8 +82,14 @@
 					    <div class="control-group">
 					    	<label class="control-label" for="policyActions">Actions</label>
 					    	<div class="controls">
-					    	    <div style="height: 100px;" class="well">
-					    	    	<div class="span3 offset3" style="padding-top:30px;">TODO</div>
+					    	    <div style="width:100%;">
+					    	        <table width="100%">
+									    <tr>
+										    <td width="99%"></td>
+										    <td><button class="btn" data-toggle="modal" data-target="#editActionsModal" title="Edit Actions"><i class="icon-pencil"></i></button></td>
+										</tr>
+									</table>
+					    	        <slickgrid id="actionGrid" style="height:200px;" data="state.actionTypeList" table-def="state.actionTableDefinition"></slickgrid>
 					    	    </div>
 					    	</div>
 					    </div>
@@ -130,6 +141,19 @@
 						</div>
 						<div class="modal-footer">
 						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid">Add</button>
+						    <button class="btn" data-dismiss="modal">Cancel</button>
+						</div>
+					</div>
+					<div id="editActionsModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
+						<div class="modal-header">
+						    <button type="button" class="close" data-dismiss="modal">×</button>
+						    <h3>Edit Actions</h3>
+						</div>
+						<div class="modal-body">
+						    TODO
+						</div>
+						<div class="modal-footer">
+						    <button class="btn btn-primary" ng-click="doneEditActionsClick()">Done</button>
 						    <button class="btn" data-dismiss="modal">Cancel</button>
 						</div>
 					</div>

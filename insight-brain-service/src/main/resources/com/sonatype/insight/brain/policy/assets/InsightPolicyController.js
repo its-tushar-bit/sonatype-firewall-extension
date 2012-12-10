@@ -133,6 +133,16 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.validateConstraintCondition();
 	}
 	
+	$scope.doneEditActionsClick = function() {
+		
+	}
+	
+	$scope.policyEditClick = function() {
+		//this.policy contains the record
+		$scope.state.constraintList = this.policy.constraints;
+		$scope.state.showAddPolicyScreen = true;
+	}
+	
 	$scope.reset();
 	
 	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {

@@ -17,7 +17,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy2',
     		id: 'policy2',
@@ -28,7 +50,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy3',
     		id: 'policy3',
@@ -39,7 +83,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy4',
     		id: 'policy4',
@@ -50,7 +116,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy5',
     		id: 'policy5',
@@ -61,7 +149,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy6',
     		id: 'policy6',
@@ -72,7 +182,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy7',
     		id: 'policy7',
@@ -83,7 +215,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	},{
     		name: 'policy8',
     		id: 'policy8',
@@ -94,7 +248,29 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: []
+    		actions: [{
+				id: 'procure',
+				warn: false,
+				fail: true,
+				notify: 'notify@notify.com'
+			},{
+				id: 'develop',
+				warn: true,
+				fail: true
+			},{
+				id: 'build',
+				warn: false,
+				fail: false
+			},{
+				id: 'release',
+				warn: true,
+				fail: true,
+				notify: 'anotheremail@mail.com'
+			},{
+				id: 'operate',
+				warn: true,
+				fail: false
+			}]
     	}],
     	//TODO: this will be removed when REST request for this data is in place
     	actionTypeList : [{
@@ -115,21 +291,48 @@ insightApp.factory('global', function($rootScope) {
     	}],
     	actionTableDefinition : {
     		columns : [{
-    			id : "context",
+    			id : "id",
     			name : "Context",
-    			field : "context"
+    			field : "id",
+    			width : 200,
+    			formatter : function(row, cell, value, columnDef, dataContext) {
+    				var text = '';
+    				$.each(state.actionTypeList, function(index,actionType) {
+    					if (actionType.id === value) {
+    						text = actionType.context;
+    						return false;
+    					}
+    					return true;
+    				});
+    				return text;
+    			}
     		},{
     			id : "fail",
     			name : "Fail",
-    			field : "fail"
+    			field : "fail",
+    			width : 50,
+    			formatter : function(row, cell, value, columnDef, dataContext) {
+    				if ( value ){
+    					return '<div class="icon-check"></div>';
+    				}
+    				return '';
+    			}
     		},{
     			id : "warn",
     			name : "Warn",
-    			field : "warn"
+    			field : "warn",
+    			width : 50,
+    			formatter : function(row, cell, value, columnDef, dataContext) {
+    				if ( value ){
+    					return '<div class="icon-check"></div>';
+    				}
+    				return '';
+    			}
     		},{
     			id : "notify",
     			name : "Notify",
-    			field : "notify"
+    			field : "notify",
+    			width : 800
     		}],
     		options : {
     			height : 200,

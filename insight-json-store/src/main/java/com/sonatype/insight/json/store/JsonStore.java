@@ -1,0 +1,27 @@
+/**
+ * Copyright (c) 2011-2012 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.json.store;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.databind.node.ContainerNode;
+
+public interface JsonStore
+{
+    void commit( String path, ContainerNode<?> data )
+        throws IOException;
+
+    Iterable<String> list()
+        throws IOException;
+
+    int modificationCount();
+
+    ContainerNode<?> history( ContainerNode<?> key, String... paths )
+        throws IOException;
+
+    void augment( ContainerNode<?> key, String... paths )
+        throws IOException;
+}

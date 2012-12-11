@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.insight.json.store.Auditing;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public final class Report
@@ -94,7 +93,7 @@ public final class Report
         final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
-        for ( final String name : Auditing.listAugmentedData( auditDir ) )
+        for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
             if ( !"security.json".equals( name ) && !"licenses.json".equals( name ) )
             {
@@ -371,7 +370,7 @@ public final class Report
     {
         ContainerNode<?> table = JsonUtils.parse( extractEntry( reportFile, name ).buf );
 
-        table = Auditing.applyAugmentedData( table, auditDir, name );
+        JsonUtils.fileStore( auditDir ).augment( table, name );
         cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
 
         return table;

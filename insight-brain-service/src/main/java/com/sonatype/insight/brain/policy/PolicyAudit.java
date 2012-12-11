@@ -12,7 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.json.store.Auditing;
+import com.sonatype.insight.json.store.JsonStore;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class PolicyAudit
 {
@@ -22,7 +23,8 @@ public class PolicyAudit
                                    final String where )
         throws IOException
     {
-        Auditing.saveData( auditDir, POLICY_AUDIT_FILENAME, toJson( policy ), user, ip, where );
+        final JsonStore store = JsonUtils.fileStore( auditDir );
+        store.commit( POLICY_AUDIT_FILENAME, JsonUtils.stamp( user, ip, where, toJson( policy ) ) );
     }
 
     private static ContainerNode<?> toJson( final Policy policy )

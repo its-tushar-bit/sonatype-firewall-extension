@@ -40,7 +40,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
-import com.sonatype.insight.json.store.Auditing;
+import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
@@ -168,13 +168,22 @@ public class ReportResource
     @Path( "augmentData/{path}" )
     public Response augmentData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
                                  @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
-                                 @Context final HttpServletRequest request, final InputStream data )
+                                 @Context final HttpServletRequest request, final InputStream stream )
         throws IOException
     {
         if ( path.endsWith( ".json" ) && request.getContentLength() > 0 )
         {
-            final File auditDir = work.getAuditDir( appId );
-            Auditing.saveAugmentedData( auditDir, path, data, user, AuditUtils.findIP( request ), where );
+            final ContainerNode<?> data;
+            try
+            {
+                data = JsonUtils.parse( IOUtil.toByteArray( stream ) );
+            }
+            finally
+            {
+                IOUtil.close( stream );
+            }
+            final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
+            store.commit( path, JsonUtils.stamp( user, AuditUtils.findIP( request ), where, data ) );
             return Response.ok().build();
         }
         return Response.status( Status.BAD_REQUEST ).build();
@@ -184,16 +193,17 @@ public class ReportResource
     @Path( "auditLog/{path}" )
     @Produces( MediaType.APPLICATION_JSON )
     public Response auditLog( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
-                              @QueryParam( "key" ) final String key )
+                              @QueryParam( "key" ) final String encodedKey )
         throws IOException
     {
-        if ( StringUtils.isNotBlank( key ) )
+        if ( StringUtils.isNotBlank( encodedKey ) )
         {
-            final File auditDir = work.getAuditDir( appId );
-            final byte[] buf = Auditing.filterAuditLog( auditDir, key.getBytes( "UTF-8" ), path.split( "[+]+" ) );
-            if ( buf != null )
+            final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
+            final ContainerNode<?> key = JsonUtils.parse( encodedKey.getBytes( "UTF-8" ) );
+            final ContainerNode<?> feed = store.history( key, path.split( "[+]+" ) );
+            if ( feed != null )
             {
-                return Response.ok( buf ).build();
+                return Response.ok( JsonUtils.generate( feed ) ).build();
             }
         }
         return Response.ok().build();
@@ -203,8 +213,8 @@ public class ReportResource
     {
         try
         {
-            Auditing.getModificationCount( work.getAuditDir( appId ) );
-            if ( true /* FIXME: should only refresh when necessary */)
+            final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
+            if ( store.modificationCount() >= 0 /* FIXME: should only refresh when necessary */)
             {
                 final File reportFile = work.getReportFile( scanId );
                 if ( !reportFile.exists() )

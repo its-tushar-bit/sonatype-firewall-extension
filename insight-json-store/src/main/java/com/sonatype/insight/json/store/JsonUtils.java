@@ -16,10 +16,28 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JsonUtils
 {
     private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
+
+    public static JsonStore fileStore( final File folder )
+    {
+        return new JsonFileStore( folder );
+    }
+
+    public static ContainerNode<?> stamp( final String user, final String ip, final String where,
+                                          final ContainerNode<?> data )
+    {
+        final ObjectNode stampedData = data.objectNode();
+        stampedData.put( "time", System.currentTimeMillis() );
+        stampedData.put( "user", user );
+        stampedData.put( "ip", ip );
+        stampedData.put( "where", where );
+        stampedData.put( "data", data );
+        return stampedData;
+    }
 
     @SuppressWarnings( "unchecked" )
     public static <T extends ContainerNode<?>> T read( final File file )

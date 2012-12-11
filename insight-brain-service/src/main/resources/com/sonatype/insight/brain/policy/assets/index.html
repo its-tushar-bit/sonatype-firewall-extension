@@ -59,7 +59,7 @@
 					    <div class="control-group">
 					        <label class="control-label" for="policyName">Name</label>
 					    	<div class="controls">
-						        <input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.policyName">
+						        <input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name">
 					    	</div>
 					    </div>
 					    <div class="control-group">
@@ -69,13 +69,13 @@
 						            <table width="100%">
 									    <tr>
 										    <td width="99%"></td>
-										    <td><button class="btn" data-toggle="modal" data-target="#newConstraintModal" title="Add new Constraint"><i class="icon-plus-sign"></i></button></td>
+										    <td><button class="btn" data-toggle="modal" data-target="#editConstraintModal" title="Add new Constraint"><i class="icon-plus-sign"></i></button></td>
 										    <td><button class="btn" ng-click="enableConstraint()" title="Enable selected Constraint(s)"><i class="icon-ok-circle"></i></button></td>
 										    <td><button class="btn" ng-click="disableConstraint()" title="Disable selected Constraint(s)"><i class="icon-remove-circle"></i></button></td>
 										    <td><button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button></td>
 										</tr>
 									</table>
-									<slickgrid id="constraintGrid" style="height:200px;" data="state.constraintList" table-def="state.constraintTableDefinition"></slickgrid>
+									<slickgrid id="constraintGrid" style="height:200px;" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
 					            </div>
 					    	</div>
 					    </div>
@@ -98,7 +98,7 @@
 							<button type='none' class='btn' ng-click="cancelPolicyClick()">Cancel</button>
 						</div>
 					</div>
-					<div id="newConstraintModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
+					<div id="editConstraintModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
 						<div class="modal-header">
 						    <button type="button" class="close" data-dismiss="modal">×</button>
 						    <h3>New Policy Constraint</h3>
@@ -140,7 +140,7 @@
 							</div>
 						</div>
 						<div class="modal-footer">
-						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid">Add</button>
+						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid" data-dismiss="modal">Add</button>
 						    <button class="btn" data-dismiss="modal">Cancel</button>
 						</div>
 					</div>

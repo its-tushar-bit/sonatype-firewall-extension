@@ -1,7 +1,7 @@
 function InsightPolicyController($scope, global, $http, $location) {
 	$scope.state = global;
 	
-	$scope.reset = function() {
+	$scope.resetConstraint = function() {
 		delete $scope.state.addConstraintName;
 		delete $scope.state.addConstraintOperand;
 		delete $scope.state.addConstraintOperator;
@@ -14,23 +14,49 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.state.addConstraintMatchType = 'OR';
 	}
 	
+	$scope.reset = function() {
+		$scope.resetConstraint();
+		delete $scope.state.currentPolicy;
+		delete $scope.state.showAddPolicyScreen;
+		if ($scope.constraintGrid) {
+			$scope.constraintGrid.setSelectedRows([]);
+		}
+	}
+	
 	$scope.createPolicyClick = function(){
+		$scope.state.currentPolicy = {
+			constraints: []
+		}
 		$scope.state.showAddPolicyScreen = true;
+		setTimeout(function(){
+			$scope.constraintGrid.redraw();
+		},50);
+	}
+	
+	$scope.policyEditClick = function() {
+		//do a copy so that we dont update the record in the list from server
+		$scope.state.currentPolicy = angular.copy(this.policy);
+		$scope.state.currentPolicyRef = this.policy;
+		$scope.state.showAddPolicyScreen = true;
+		$scope.state.policyValid = true;
+		setTimeout(function(){
+			$scope.constraintGrid.redraw();
+		},50);
 	}
 	
 	$scope.savePolicyClick = function(){
-		//TODO: save the policy
+		angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
+		$scope.reset();
 	}
 	
 	$scope.cancelPolicyClick = function(){
-		//TODO: process the cancel
-		delete $scope.state.showAddPolicyScreen;
+		$scope.reset();
 	}
 	
 	$scope.validatePolicy = function() {
 		delete $scope.state.policyValid;
-		//TODO: put validations in place in place
-		if ($scope.state.policyName) {
+		if ($scope.state.currentPolicy.name
+			&& $scope.state.currentPolicy.constraints.length > 0) {
 			$scope.state.policyValid = true;
 		}
 	}
@@ -71,7 +97,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.addConstraintClick = function() {
-		$scope.state.constraintList.push({
+		$scope.state.currentPolicy.constraints.push({
 		    name: $scope.state.addConstraintName,
 		    conditions: $scope.state.constraintConditionList.slice(0),
 		    matchType: $scope.state.addConstraintMatchType,
@@ -80,8 +106,10 @@ function InsightPolicyController($scope, global, $http, $location) {
 		    id: $scope.state.addConstraintName
 		});	
 		
-		$('#newConstraintModal').modal('hide');
-		$scope.reset();
+		$scope.resetConstraint();
+		
+		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element
+		$('#editConstraintModal').modal('hide');
 	}
 	
 	$scope.addConstraintCondition = function() {
@@ -137,19 +165,13 @@ function InsightPolicyController($scope, global, $http, $location) {
 		
 	}
 	
-	$scope.policyEditClick = function() {
-		//this.policy contains the record
-		$scope.state.constraintList = this.policy.constraints;
-		$scope.state.showAddPolicyScreen = true;
-	}
-	
 	$scope.reset();
 	
 	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {
     	$scope.state.conditionTypes = conditionTypeData;
     });
 	
-	$('#newConstraintModal').live('show', function (event) {
+	$('#editConstraintModal').live('show', function (event) {
 		setTimeout(function(){
 			$scope.constraintConditionsGrid.redraw();
 		},100);

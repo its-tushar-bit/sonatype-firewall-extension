@@ -113,32 +113,6 @@ insightApp.factory('global', function($rootScope) {
     		context: 'Operate',
     		id: 'operate'
     	}],
-    	//TODO: this will be removed when REST request for this data is in place
-    	constraintList : [{
-    		name: 'myname',
-    		status: 'status'
-    	},{
-    		name: 'myname2',
-    		status: 'status2'
-    	},{
-    		name: 'myname3',
-    		status: 'status3'
-    	},{
-    		name: 'myname4',
-    		status: 'status4'
-    	},{
-    		name: 'myname5',
-    		status: 'status5'
-    	},{
-    		name: 'myname6',
-    		status: 'status6'
-    	},{
-    		name: 'myname7',
-    		status: 'status7'
-    	},{
-    		name: 'myname8',
-    		status: 'status8'
-    	}],
     	actionTableDefinition : {
     		columns : [{
     			id : "context",
@@ -192,7 +166,7 @@ insightApp.factory('global', function($rootScope) {
     		},
     		plugins : [checkboxRulesSelector],
     		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
-    		emptyMessage : "No Constraints have been defined.<br><a href='#newConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
+    		emptyMessage : "No Constraints have been defined.<br><a href='#editConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
     	},
     	constraintConditionsTableDefinition : {
         	columns : [{

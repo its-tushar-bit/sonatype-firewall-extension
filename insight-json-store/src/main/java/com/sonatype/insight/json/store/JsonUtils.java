@@ -15,7 +15,9 @@ import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JsonUtils
@@ -30,7 +32,7 @@ public final class JsonUtils
     public static ContainerNode<?> stamp( final String user, final String ip, final String where,
                                           final ContainerNode<?> data )
     {
-        final ObjectNode stampedData = data.objectNode();
+        final ObjectNode stampedData = objectNode( data );
         stampedData.put( "time", System.currentTimeMillis() );
         stampedData.put( "user", user );
         stampedData.put( "ip", ip );
@@ -126,5 +128,15 @@ public final class JsonUtils
             generator.close();
         }
         return os.toByteArray();
+    }
+
+    public static ArrayNode arrayNode( final ContainerNode<?> data )
+    {
+        return data != null ? data.arrayNode() : JsonNodeFactory.instance.arrayNode();
+    }
+
+    public static ObjectNode objectNode( final ContainerNode<?> data )
+    {
+        return data != null ? data.objectNode() : JsonNodeFactory.instance.objectNode();
     }
 }

@@ -5,18 +5,11 @@
  */
 package com.sonatype.insight.json.store;
 
-import static com.sonatype.insight.json.store.Auditing.applyAugmentedData;
-import static com.sonatype.insight.json.store.Auditing.filterAuditLog;
-import static com.sonatype.insight.json.store.Auditing.getModificationCount;
-import static com.sonatype.insight.json.store.Auditing.saveAugmentedData;
-import static com.sonatype.insight.json.store.DataStore.parseData;
-import static com.sonatype.insight.json.store.DataStore.streamData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.junit.Assert.assertNull;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -26,18 +19,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 @SuppressWarnings( "boxing" )
 public class AuditingTest
 {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder( new File( "target" ) );
 
-    private File auditDir;
+    private JsonStore store;
 
     @Before
     public void setUp()
     {
-        auditDir = FileUtils.createTempFile( "audit", "test", temporaryFolder.getRoot() );
+        store = new JsonFileStore( FileUtils.createTempFile( "audit", "test", temporaryFolder.getRoot() ) );
     }
 
     @Test
@@ -46,19 +41,20 @@ public class AuditingTest
     {
         final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
-        final byte[] buf =
-            streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );
+        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, "sample.json" );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( table ) );
 
-        assertThat( getModificationCount( auditDir ), equalTo( 0 ) );
+        assertThat( store.modificationCount(), equalTo( 0 ) );
     }
 
     @Test
     public void testSingleAugmentedData()
         throws IOException
     {
-        assertThat( getModificationCount( auditDir ), equalTo( 0 ) );
+        assertThat( store.modificationCount(), equalTo( 0 ) );
 
         final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
@@ -67,22 +63,22 @@ public class AuditingTest
         final String result =
             "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\", \"override\" : \"EPL\", \"comment\" : \"Testing...\" }, { \"id\" : \"C\" } ] }";
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition.getBytes( "UTF-8" ) ), "anon",
-                           "127.0.0.1", "office" );
+        store.commit( "sample.json", JsonUtils.parse( addition.getBytes( "UTF-8" ) ) );
 
-        final byte[] buf =
-            streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );
+        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, "sample.json" );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
 
-        assertThat( getModificationCount( auditDir ), equalTo( 1 ) );
+        assertThat( store.modificationCount(), equalTo( 1 ) );
     }
 
     @Test
     public void testMultipleAugmentedData()
         throws IOException
     {
-        assertThat( getModificationCount( auditDir ), equalTo( 0 ) );
+        assertThat( store.modificationCount(), equalTo( 0 ) );
 
         final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
@@ -94,18 +90,17 @@ public class AuditingTest
         final String result =
             "{ \"aaData\" : [ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" }, { \"id\" : \"C\" } ] }";
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition1.getBytes( "UTF-8" ) ), "anon",
-                           "127.0.0.1", "office" );
+        store.commit( "sample.json", JsonUtils.parse( addition1.getBytes( "UTF-8" ) ) );
 
-        assertThat( getModificationCount( auditDir ), equalTo( 1 ) );
+        assertThat( store.modificationCount(), equalTo( 1 ) );
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition2.getBytes( "UTF-8" ) ), "anon",
-                           "127.0.0.1", "office" );
+        store.commit( "sample.json", JsonUtils.parse( addition2.getBytes( "UTF-8" ) ) );
 
-        assertThat( getModificationCount( auditDir ), equalTo( 2 ) );
+        assertThat( store.modificationCount(), equalTo( 2 ) );
 
-        final byte[] buf =
-            streamData( applyAugmentedData( parseData( table.getBytes( "UTF-8" ) ), auditDir, "sample.json" ) );
+        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, "sample.json" );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -123,13 +118,14 @@ public class AuditingTest
             "{ \"aaData\" : [ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\", \"time\" : 0, \"user\" : \"test\", \"ip\" : \"192.168.1.8\", \"where\" : \"home\", \"filename\" : \"sample.json\" }, "
                 + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" } ] }";
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition1.getBytes( "UTF-8" ) ), "anon",
-                           "127.0.0.1", "office" );
+        store.commit( "sample.json",
+                      JsonUtils.stamp( "anon", "127.0.0.1", "office", JsonUtils.parse( addition1.getBytes( "UTF-8" ) ) ) );
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition2.getBytes( "UTF-8" ) ), "test",
-                           "192.168.1.8", "home" );
+        store.commit( "sample.json",
+                      JsonUtils.stamp( "test", "192.168.1.8", "home", JsonUtils.parse( addition2.getBytes( "UTF-8" ) ) ) );
 
-        final byte[] buf = filterAuditLog( auditDir, "{\"id\":\"B\"}".getBytes( "UTF-8" ), "sample.json" );
+        final byte[] buf =
+            JsonUtils.generate( store.history( JsonUtils.parse( "{\"id\":\"B\"}".getBytes( "UTF-8" ) ), "sample.json" ) );
 
         assertThat( new String( buf, "UTF-8" ).replaceAll( "\"time\" : [0-9]+", "\"time\" : 0" ),
                     equalToIgnoringWhiteSpace( result ) );
@@ -153,16 +149,17 @@ public class AuditingTest
                 + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" }"
                 + " ] }";
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition1.getBytes( "UTF-8" ) ), "anon",
-                           "127.0.0.1", "office" );
+        store.commit( "sample.json",
+                      JsonUtils.stamp( "anon", "127.0.0.1", "office", JsonUtils.parse( addition1.getBytes( "UTF-8" ) ) ) );
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition2.getBytes( "UTF-8" ) ), "test",
-                           "192.168.1.8", "home" );
+        store.commit( "sample.json",
+                      JsonUtils.stamp( "test", "192.168.1.8", "home", JsonUtils.parse( addition2.getBytes( "UTF-8" ) ) ) );
 
-        saveAugmentedData( auditDir, "another.json", new ByteArrayInputStream( addition3.getBytes( "UTF-8" ) ), "test",
-                           "127.0.0.1", "cafe" );
+        store.commit( "another.json",
+                      JsonUtils.stamp( "test", "127.0.0.1", "cafe", JsonUtils.parse( addition3.getBytes( "UTF-8" ) ) ) );
 
-        final byte[] buf = filterAuditLog( auditDir, "{\"id\":\"B\"}".getBytes( "UTF-8" ) );
+        final byte[] buf =
+            JsonUtils.generate( store.history( JsonUtils.parse( "{\"id\":\"B\"}".getBytes( "UTF-8" ) ) ) );
 
         assertThat( new String( buf, "UTF-8" ).replaceAll( "\"time\" : [0-9]+", "\"time\" : 0" ),
                     equalToIgnoringWhiteSpace( result ) );
@@ -187,16 +184,16 @@ public class AuditingTest
                 + "{ \"id\" : \"B\", \"override\" : \"APL\", \"time\" : 0, \"user\" : \"anon\", \"ip\" : \"127.0.0.1\", \"where\" : \"office\", \"filename\" : \"sample.json\" }"
                 + " ] }";
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition1.getBytes( "UTF-8" ) ), "anon",
-                           "127.0.0.1", "office" );
+        store.commit( "sample.json",
+                      JsonUtils.stamp( "anon", "127.0.0.1", "office", JsonUtils.parse( addition1.getBytes( "UTF-8" ) ) ) );
 
-        saveAugmentedData( auditDir, "sample.json", new ByteArrayInputStream( addition2.getBytes( "UTF-8" ) ), "test",
-                           "192.168.1.8", "home" );
+        store.commit( "sample.json",
+                      JsonUtils.stamp( "test", "192.168.1.8", "home", JsonUtils.parse( addition2.getBytes( "UTF-8" ) ) ) );
 
-        saveAugmentedData( auditDir, "another.json", new ByteArrayInputStream( addition3.getBytes( "UTF-8" ) ), "test",
-                           "127.0.0.1", "cafe" );
+        store.commit( "another.json",
+                      JsonUtils.stamp( "test", "127.0.0.1", "cafe", JsonUtils.parse( addition3.getBytes( "UTF-8" ) ) ) );
 
-        final byte[] buf = filterAuditLog( auditDir, null );
+        final byte[] buf = JsonUtils.generate( store.history( null ) );
 
         assertThat( new String( buf, "UTF-8" ).replaceAll( "\"time\" : [0-9]+", "\"time\" : 0" ),
                     equalToIgnoringWhiteSpace( result ) );
@@ -206,6 +203,6 @@ public class AuditingTest
     public void testEmptyAuditFeed()
         throws IOException
     {
-        assertNull( filterAuditLog( auditDir, null, "" ) );
+        assertNull( store.history( null, "" ) );
     }
 }

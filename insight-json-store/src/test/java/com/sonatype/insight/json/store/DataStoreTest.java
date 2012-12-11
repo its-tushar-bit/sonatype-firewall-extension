@@ -5,11 +5,6 @@
  */
 package com.sonatype.insight.json.store;
 
-import static com.sonatype.insight.json.store.DataStore.augmentTable;
-import static com.sonatype.insight.json.store.DataStore.loadData;
-import static com.sonatype.insight.json.store.DataStore.parseData;
-import static com.sonatype.insight.json.store.DataStore.saveData;
-import static com.sonatype.insight.json.store.DataStore.streamData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
@@ -24,17 +19,23 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class DataStoreTest
 {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder( new File( "target" ) );
 
-    private File store;
+    private File file;
+
+    private JsonStore store;
 
     @Before
     public void setUp()
     {
-        store = FileUtils.createTempFile( "audit", "test", temporaryFolder.getRoot() );
+        file = FileUtils.createTempFile( "audit", "test", temporaryFolder.getRoot() );
+        store = new JsonFileStore( file.getParentFile() );
     }
 
     @Test
@@ -44,8 +45,8 @@ public class DataStoreTest
         final String data =
             "{ \"license\" : \"EPL\", \"coords\" : { \"groupId\" : \"some\", \"artifactId\" : \"example\", \"version\" : \"0.1\" } }";
 
-        saveData( store, parseData( data.getBytes( "UTF-8" ) ) );
-        final byte[] buf = streamData( loadData( store ) );
+        JsonUtils.write( file, JsonUtils.parse( data.getBytes( "UTF-8" ) ) );
+        final byte[] buf = JsonUtils.generate( JsonUtils.read( file ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( data ) );
     }
@@ -56,8 +57,8 @@ public class DataStoreTest
     {
         final String data = "[ { \"id\" : \"one\" }, { \"id\" : \"two\" }, { \"id\" : \"three\" } ]";
 
-        saveData( store, parseData( data.getBytes( "UTF-8" ) ) );
-        final byte[] buf = streamData( loadData( store ) );
+        JsonUtils.write( file, JsonUtils.parse( data.getBytes( "UTF-8" ) ) );
+        final byte[] buf = JsonUtils.generate( JsonUtils.read( file ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( data ) );
     }
@@ -68,11 +69,11 @@ public class DataStoreTest
     {
         final int[] data = { 1, 1, 2, 3, 5, 8 };
 
-        assertThat( parseData( Arrays.toString( data ).getBytes( "UTF-8" ), int[].class ), equalTo( data ) );
+        assertThat( JsonUtils.parse( Arrays.toString( data ).getBytes( "UTF-8" ), int[].class ), equalTo( data ) );
 
-        saveData( store, parseData( Arrays.toString( data ).getBytes( "UTF-8" ) ) );
+        JsonUtils.write( file, JsonUtils.parse( Arrays.toString( data ).getBytes( "UTF-8" ) ) );
 
-        assertThat( loadData( store, int[].class ), equalTo( data ) );
+        assertThat( JsonUtils.read( file, int[].class ), equalTo( data ) );
     }
 
     @Test
@@ -87,9 +88,11 @@ public class DataStoreTest
         final String result =
             "[ { \"id\" : \"one\", \"count\" : 42 }, { \"id\" : \"two\" }, { \"id\" : \"three\", \"modified\" : \"true\" } ]";
 
-        saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+        JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+        final ArrayNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, file.getName() );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -106,9 +109,11 @@ public class DataStoreTest
         final String result =
             "{ \"aaData\" : [ { \"id\" : \"one\", \"count\" : 42 }, { \"id\" : \"two\" }, { \"id\" : \"three\", \"modified\" : \"true\" } ] }";
 
-        saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+        JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, file.getName() );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -125,9 +130,11 @@ public class DataStoreTest
         final String result =
             "[ { \"outer\" : { \"inner\" : { \"A\" : \"1\", \"B\" : \"2\", \"level\" : 3 }, \"level\" : 2 }, \"level\" : 1 } ]";
 
-        saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+        JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+        final ArrayNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, file.getName() );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -142,9 +149,11 @@ public class DataStoreTest
 
         final String result = "[ { \"A\" : \"1\", \"B\" : \"2\", \"C\" : \"3\" }, { \"A\" : \"1\", \"B\" : \"2\" } ]";
 
-        saveData( store, parseData( additions.getBytes( "UTF-8" ) ) );
+        JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final byte[] buf = streamData( augmentTable( parseData( table.getBytes( "UTF-8" ) ), store ) );
+        final ArrayNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
+        store.augment( data, file.getName() );
+        final byte[] buf = JsonUtils.generate( data );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }

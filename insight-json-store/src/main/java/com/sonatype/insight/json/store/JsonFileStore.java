@@ -54,7 +54,7 @@ public final class JsonFileStore
             }
             else
             {
-                log = data.arrayNode();
+                log = JsonUtils.arrayNode( data );
             }
 
             // newest entries appear at the top of the log
@@ -90,7 +90,7 @@ public final class JsonFileStore
     public ContainerNode<?> history( ContainerNode<?> key, String... paths )
         throws IOException
     {
-        final ObjectNode log = key.objectNode();
+        final ObjectNode log = JsonUtils.objectNode( key );
 
         final ArrayNode entries = log.putArray( "aaData" );
 
@@ -149,7 +149,7 @@ public final class JsonFileStore
         throws IOException
     {
         final ArrayNode dataLog = JsonUtils.read( file );
-        final ArrayNode filteredLog = dataLog.arrayNode();
+        final ArrayNode filteredLog = JsonUtils.arrayNode( dataLog );
         for ( int x = 0; x < dataLog.size(); x++ )
         {
             final ObjectNode entry = (ObjectNode) dataLog.get( x );
@@ -233,6 +233,10 @@ public final class JsonFileStore
     private static ObjectNode augment( final ObjectNode primary, final ObjectNode secondary )
         throws JsonMappingException
     {
+        if ( primary == null )
+        {
+            return secondary;
+        }
         final ObjectNode[] result = { primary };
         for ( final Entry<String, JsonNode> field : each( secondary.fields() ) )
         {
@@ -243,7 +247,7 @@ public final class JsonFileStore
             {
                 mutate( result, primary ).put( name, secondaryValue ); // pure augmented data
             }
-            else if ( primaryValue.isObject() && secondaryValue.isObject() )
+            else if ( primaryValue.isObject() && secondaryValue != null && secondaryValue.isObject() )
             {
                 final ObjectNode value = augment( (ObjectNode) primaryValue, (ObjectNode) secondaryValue );
                 if ( primaryValue != value )

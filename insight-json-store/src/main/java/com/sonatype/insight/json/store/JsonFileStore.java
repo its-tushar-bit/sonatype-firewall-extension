@@ -90,10 +90,6 @@ public final class JsonFileStore
     public ContainerNode<?> history( final ContainerNode<?> key, final String... paths )
         throws IOException
     {
-        final ObjectNode log = JsonUtils.objectNode( key );
-
-        final ArrayNode entries = log.putArray( "aaData" );
-
         final CountingLock lock = lockFor( folder );
 
         lock.sharedLock();
@@ -104,6 +100,10 @@ public final class JsonFileStore
             {
                 filenames = list();
             }
+
+            final ObjectNode log = JsonUtils.objectNode( key );
+            final ArrayNode entries = log.putArray( "aaData" );
+
             for ( final String name : filenames )
             {
                 final File file = new File( folder, name );
@@ -112,17 +112,17 @@ public final class JsonFileStore
                     entries.addAll( filterLog( file, (ObjectNode) key ) );
                 }
             }
+
+            return entries.size() > 0 ? log : null;
         }
         finally
         {
             lock.sharedUnlock();
         }
-
-        return entries.size() > 0 ? log : null;
     }
 
     @Override
-    public void augment( final ContainerNode<?> key, final String... paths )
+    public ContainerNode<?> augment( final ContainerNode<?> key, final String... paths )
         throws IOException
     {
         final CountingLock lock = lockFor( folder );
@@ -130,14 +130,16 @@ public final class JsonFileStore
         lock.sharedLock();
         try
         {
+            ContainerNode<?> table = key;
             for ( final String path : paths )
             {
                 final File file = new File( folder, path );
                 if ( file.canRead() )
                 {
-                    augmentTable( key, (ArrayNode) JsonUtils.read( file ) );
+                    table = augmentTable( table, (ArrayNode) JsonUtils.read( file ) );
                 }
             }
+            return table;
         }
         finally
         {
@@ -185,7 +187,7 @@ public final class JsonFileStore
         return filteredLog;
     }
 
-    private static void augmentTable( final ContainerNode<?> table, final ArrayNode log )
+    private static ContainerNode<?> augmentTable( final ContainerNode<?> table, final ArrayNode log )
     {
         // first aggregate all the changes found in the data log
         final List<JsonNode> changes = new ArrayList<JsonNode>();
@@ -228,6 +230,8 @@ public final class JsonFileStore
                 }
             }
         }
+
+        return table;
     }
 
     private static ObjectNode augment( final ObjectNode primary, final ObjectNode secondary )

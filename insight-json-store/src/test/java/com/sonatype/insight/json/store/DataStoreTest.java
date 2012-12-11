@@ -19,9 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 public class DataStoreTest
 {
     @Rule
@@ -90,9 +87,8 @@ public class DataStoreTest
 
         JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final ArrayNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, file.getName() );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), file.getName() ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -111,9 +107,8 @@ public class DataStoreTest
 
         JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, file.getName() );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), file.getName() ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -132,9 +127,8 @@ public class DataStoreTest
 
         JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final ArrayNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, file.getName() );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), file.getName() ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }
@@ -151,9 +145,8 @@ public class DataStoreTest
 
         JsonUtils.write( file, JsonUtils.parse( additions.getBytes( "UTF-8" ) ) );
 
-        final ArrayNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, file.getName() );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), file.getName() ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }

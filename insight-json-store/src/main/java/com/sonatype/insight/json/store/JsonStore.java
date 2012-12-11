@@ -22,6 +22,6 @@ public interface JsonStore
     ContainerNode<?> history( ContainerNode<?> key, String... paths )
         throws IOException;
 
-    void augment( ContainerNode<?> key, String... paths )
+    ContainerNode<?> augment( ContainerNode<?> key, String... paths )
         throws IOException;
 }

@@ -370,7 +370,7 @@ public final class Report
     {
         ContainerNode<?> table = JsonUtils.parse( extractEntry( reportFile, name ).buf );
 
-        JsonUtils.fileStore( auditDir ).augment( table, name );
+        table = JsonUtils.fileStore( auditDir ).augment( table, name );
         cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
 
         return table;

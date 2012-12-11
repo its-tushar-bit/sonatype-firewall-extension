@@ -19,8 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 @SuppressWarnings( "boxing" )
 public class AuditingTest
 {
@@ -41,9 +39,8 @@ public class AuditingTest
     {
         final String table = "{ \"aaData\" : [ { \"id\" : \"A\" }, { \"id\" : \"B\" }, { \"id\" : \"C\" } ] }";
 
-        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, "sample.json" );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), "sample.json" ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( table ) );
 
@@ -65,9 +62,8 @@ public class AuditingTest
 
         store.commit( "sample.json", JsonUtils.parse( addition.getBytes( "UTF-8" ) ) );
 
-        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, "sample.json" );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), "sample.json" ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
 
@@ -98,9 +94,8 @@ public class AuditingTest
 
         assertThat( store.modificationCount(), equalTo( 2 ) );
 
-        final ObjectNode data = JsonUtils.parse( table.getBytes( "UTF-8" ) );
-        store.augment( data, "sample.json" );
-        final byte[] buf = JsonUtils.generate( data );
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( table.getBytes( "UTF-8" ) ), "sample.json" ) );
 
         assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
     }

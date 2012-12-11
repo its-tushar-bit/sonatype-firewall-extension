@@ -31,13 +31,13 @@ public final class JsonFileStore
 
     private final File folder;
 
-    public JsonFileStore( File folder )
+    public JsonFileStore( final File folder )
     {
         this.folder = folder;
     }
 
     @Override
-    public void commit( String path, ContainerNode<?> data )
+    public void commit( final String path, final ContainerNode<?> data )
         throws IOException
     {
         final CountingLock lock = lockFor( folder );
@@ -87,7 +87,7 @@ public final class JsonFileStore
     }
 
     @Override
-    public ContainerNode<?> history( ContainerNode<?> key, String... paths )
+    public ContainerNode<?> history( final ContainerNode<?> key, final String... paths )
         throws IOException
     {
         final ObjectNode log = JsonUtils.objectNode( key );
@@ -122,7 +122,7 @@ public final class JsonFileStore
     }
 
     @Override
-    public void augment( ContainerNode<?> key, String... paths )
+    public void augment( final ContainerNode<?> key, final String... paths )
         throws IOException
     {
         final CountingLock lock = lockFor( folder );

@@ -9,13 +9,14 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
-import com.sonatype.insight.brain.model.policy.AllActionTypes;
-import com.sonatype.insight.brain.model.policy.AllConditionTypes;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
 
 public class DroolsGenerator
 {
@@ -31,6 +32,12 @@ public class DroolsGenerator
         for ( final Policy policy : policies )
         {
             if ( !policy.isEnabled() )
+            {
+                continue;
+            }
+
+            final List<Action> actions = policy.getActions( BuildContextType.ID /* TODO: current context */);
+            if ( actions == null || actions.isEmpty() )
             {
                 continue;
             }
@@ -57,7 +64,7 @@ public class DroolsGenerator
                 droolsCode.append( INDENT ).append( INDENT ).append( "(\n" );
 
                 int conditionIndex = 0;
-                for ( final SimpleCondition condition : constraint.getConditions() )
+                for ( final Condition condition : constraint.getConditions() )
                 {
                     if ( conditionIndex > 0 )
                     {
@@ -72,7 +79,7 @@ public class DroolsGenerator
                         }
                     }
                     droolsCode.append( INDENT ).append( INDENT ).append( INDENT ).append( "( " );
-                    final ConditionType conditionType = AllConditionTypes.getById( condition.getConditionTypeId() );
+                    final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
                     droolsCode.append( conditionType.generateDroolsCode( condition ) );
                     droolsCode.append( " )\n" );
                     conditionIndex++;
@@ -84,9 +91,9 @@ public class DroolsGenerator
 
             droolsCode.append( INDENT ).append( ")\n" );
             droolsCode.append( "then\n" );
-            for ( final Action action : policy.getActions() )
+            for ( final Action action : actions )
             {
-                final ActionType actionType = AllActionTypes.getById( action.getActionTypeId() );
+                final ActionType actionType = ActionTypes.getById( action.getActionTypeId() );
                 droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) ).append( ";" );
                 droolsCode.append( "\n" );
             }

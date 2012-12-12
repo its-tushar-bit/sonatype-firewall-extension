@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-public class SimpleCondition
+public class Condition
 {
     private String conditionTypeId;
 
@@ -13,21 +13,31 @@ public class SimpleCondition
 
     private String value;
 
-    public SimpleCondition()
+    public Condition()
     {
     }
 
-    public SimpleCondition( final String conditionTypeId, final String operator )
+    public Condition( final String conditionTypeId, final String operator )
     {
         this.conditionTypeId = conditionTypeId;
         this.operator = operator;
     }
 
-    public SimpleCondition( final String conditionTypeId, final String operator, final String value )
+    public Condition( final String conditionTypeId, final String operator, final String value )
     {
         this.conditionTypeId = conditionTypeId;
         this.operator = operator;
         this.value = value;
+    }
+
+    public String getConditionTypeId()
+    {
+        return conditionTypeId;
+    }
+
+    public void setConditionTypeId( final String conditionTypeId )
+    {
+        this.conditionTypeId = conditionTypeId;
     }
 
     public String getOperator()
@@ -48,15 +58,5 @@ public class SimpleCondition
     public void setValue( final String value )
     {
         this.value = value;
-    }
-
-    public String getConditionTypeId()
-    {
-        return conditionTypeId;
-    }
-
-    public void setConditionTypeId( final String conditionTypeId )
-    {
-        this.conditionTypeId = conditionTypeId;
     }
 }

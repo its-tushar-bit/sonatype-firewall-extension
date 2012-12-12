@@ -14,11 +14,11 @@ public class Constraint
 
     private String name;
 
-    private List<SimpleCondition> conditions;
+    private boolean enabled = true;
 
     private LogicalOperator operator;
 
-    private boolean enabled = true;
+    private List<Condition> conditions;
 
     public Constraint()
     {
@@ -31,33 +31,14 @@ public class Constraint
         this.operator = operator;
     }
 
-    public List<SimpleCondition> getConditions()
+    public String getId()
     {
-        return conditions;
+        return id;
     }
 
-    public void setConditions( final List<SimpleCondition> conditions )
+    public void setId( final String id )
     {
-        this.conditions = conditions;
-    }
-
-    public void addCondition( final SimpleCondition condition )
-    {
-        if ( conditions == null )
-        {
-            conditions = new ArrayList<SimpleCondition>();
-        }
-        conditions.add( condition );
-    }
-
-    public LogicalOperator getOperator()
-    {
-        return operator;
-    }
-
-    public void setOperator( final LogicalOperator operator )
-    {
-        this.operator = operator;
+        this.id = id;
     }
 
     public String getName()
@@ -70,16 +51,6 @@ public class Constraint
         this.name = name;
     }
 
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( final String id )
-    {
-        this.id = id;
-    }
-
     public boolean isEnabled()
     {
         return enabled;
@@ -88,5 +59,34 @@ public class Constraint
     public void setEnabled( final boolean enabled )
     {
         this.enabled = enabled;
+    }
+
+    public LogicalOperator getOperator()
+    {
+        return operator;
+    }
+
+    public void setOperator( final LogicalOperator operator )
+    {
+        this.operator = operator;
+    }
+
+    public List<Condition> getConditions()
+    {
+        return conditions;
+    }
+
+    public void setConditions( final List<Condition> conditions )
+    {
+        this.conditions = conditions;
+    }
+
+    public void addCondition( final Condition condition )
+    {
+        if ( conditions == null )
+        {
+            conditions = new ArrayList<Condition>();
+        }
+        conditions.add( condition );
     }
 }

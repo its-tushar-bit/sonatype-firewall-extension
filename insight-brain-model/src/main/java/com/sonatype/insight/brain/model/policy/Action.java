@@ -9,7 +9,7 @@ public class Action
 {
     private String actionTypeId;
 
-    private String value;
+    private String target;
 
     public Action()
     {
@@ -20,16 +20,6 @@ public class Action
         this.actionTypeId = actionTypeId;
     }
 
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( final String value )
-    {
-        this.value = value;
-    }
-
     public String getActionTypeId()
     {
         return actionTypeId;
@@ -38,5 +28,15 @@ public class Action
     public void setActionTypeId( final String actionTypeId )
     {
         this.actionTypeId = actionTypeId;
+    }
+
+    public String getTarget()
+    {
+        return target;
+    }
+
+    public void setTarget( final String target )
+    {
+        this.target = target;
     }
 }

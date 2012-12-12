@@ -5,19 +5,9 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.util.List;
-
-public interface ConditionType
+public interface ContextType
 {
     String getId();
 
     String getName();
-
-    List<String> getSupportedOperators();
-
-    List<String> getAvailableValues();
-
-    boolean isRequiresValue();
-
-    String generateDroolsCode( Condition condition );
 }

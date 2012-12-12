@@ -13,10 +13,9 @@ public interface ActionType
 
     String getName();
 
-    /**
-     * Returns a list of available values or null if the condition does not support available values.
-     */
-    List<String> getAvailableValues();
+    List<String> getAvailableTargets();
+
+    boolean isRequiresTarget();
 
     String generateDroolsCode( Action action );
 }

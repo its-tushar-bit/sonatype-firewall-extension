@@ -3,12 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.policy;
+package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 
 public class LicenseCategoryConditionType
     implements ConditionType
@@ -43,7 +46,7 @@ public class LicenseCategoryConditionType
     }
 
     @Override
-    public String getOperandName()
+    public String getName()
     {
         return "License Category";
     }
@@ -61,7 +64,7 @@ public class LicenseCategoryConditionType
     }
 
     @Override
-    public String generateDroolsCode( final SimpleCondition condition )
+    public String generateDroolsCode( final Condition condition )
     {
         return "getLicenseThreat() " + ( "is".equals( condition.getOperator() ) ? "==" : "!=" ) + " \""
             + licenseCategoryIdsByName.get( condition.getValue() ) + "\"";

@@ -13,10 +13,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SimpleCondition;
 
 public class PolicyDAOTest
 {
@@ -37,8 +37,8 @@ public class PolicyDAOTest
         final Constraint constraint1 = new Constraint();
         constraint1.setName( "PolicyDAOTest new constraint 1" );
         constraint1.setOperator( LogicalOperator.OR );
-        List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
-        SimpleCondition condition = new SimpleCondition();
+        List<Condition> conditions = new ArrayList<Condition>();
+        Condition condition = new Condition();
         // TODO condition.setConditionType( conditionType )
         condition.setOperator( "<" );
         condition.setValue( "5" );
@@ -58,8 +58,8 @@ public class PolicyDAOTest
         final Constraint constraint2 = new Constraint();
         constraint2.setName( "PolicyDAOTest new constraint 2" );
         constraint2.setOperator( LogicalOperator.OR );
-        conditions = new ArrayList<SimpleCondition>();
-        condition = new SimpleCondition();
+        conditions = new ArrayList<Condition>();
+        condition = new Condition();
         // TODO condition.setConditionType( conditionType )
         condition.setOperator( ">" );
         condition.setValue( "7" );

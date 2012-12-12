@@ -15,8 +15,8 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.AllConditionTypes;
 import com.sonatype.insight.brain.model.policy.ConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 @Path( ConditionTypeResource.SERVICE_PATH )
 public class ConditionTypeResource
@@ -31,6 +31,6 @@ public class ConditionTypeResource
     {
         log.debug( "Received request to get all condition types" );
 
-        return AllConditionTypes.getAll();
+        return ConditionTypes.getAll();
     }
 }

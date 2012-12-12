@@ -16,33 +16,34 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.PolicyFact;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
 
 public class PolicyEvaluatorTest
 {
     // TODO We need a lot more tests here
 
     @Test
-    public void testEvaluate_TwoConstraintsWithSimpleConditions()
+    public void testEvaluate_TwoConstraintsWithConditions()
     {
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
-        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraints.add( constraint1 );
         final Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.AND );
-        constraint2.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraint2.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         constraints.add( constraint2 );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
         policy.setConstraints( constraints );
-        policy.addAction( new Action( MarkAsFailedActionType.ID ) );
+        policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
 
         final List<Component> components = new ArrayList<Component>();
         // A component with one security vulnerability
@@ -57,8 +58,8 @@ public class PolicyEvaluatorTest
         final List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     }
 
     @Test
@@ -68,16 +69,16 @@ public class PolicyEvaluatorTest
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraintSVPresent =
             new Constraint( "ConstraintIdSVPresent", "Constraint Name SVPresent", LogicalOperator.AND );
-        constraintSVPresent.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraintSVPresent.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraints.add( constraintSVPresent );
         final Constraint constraintSVAbsent =
             new Constraint( "ConstraintIdSVAbsent", "Constraint Name SVAbsent", LogicalOperator.AND );
-        constraintSVAbsent.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "absent" ) );
+        constraintSVAbsent.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "absent" ) );
         constraints.add( constraintSVAbsent );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
         policy.setConstraints( constraints );
-        policy.addAction( new Action( MarkAsFailedActionType.ID ) );
+        policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
 
         final List<Component> components = new ArrayList<Component>();
         // A component without security vulnerabilities
@@ -91,8 +92,8 @@ public class PolicyEvaluatorTest
         final List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     }
 
     @Test
@@ -101,16 +102,16 @@ public class PolicyEvaluatorTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraintSVIs = new Constraint( "ConstraintIdIs", "Constraint Name Is", LogicalOperator.AND );
-        constraintSVIs.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraintSVIs.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         constraints.add( constraintSVIs );
         final Constraint constraintSVIsNot =
             new Constraint( "ConstraintIdIsNot", "Constraint Name IsNot", LogicalOperator.AND );
-        constraintSVIsNot.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is not", "Weak Copyleft" ) );
+        constraintSVIsNot.addCondition( new Condition( LicenseCategoryConditionType.ID, "is not", "Weak Copyleft" ) );
         constraints.add( constraintSVIsNot );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
         policy.setConstraints( constraints );
-        policy.addAction( new Action( MarkAsFailedActionType.ID ) );
+        policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
 
         final List<Component> components = new ArrayList<Component>();
         final Component component1 = new Component( "g1", "a1", "v1" );
@@ -123,8 +124,8 @@ public class PolicyEvaluatorTest
         final List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     }
 
     @Test
@@ -133,13 +134,13 @@ public class PolicyEvaluatorTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
-        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
-        constraint1.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraint1.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         constraints.add( constraint1 );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
         policy.setConstraints( constraints );
-        policy.addAction( new Action( MarkAsFailedActionType.ID ) );
+        policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
 
         final List<Component> components = new ArrayList<Component>();
         // A component with one security vulnerability
@@ -167,7 +168,7 @@ public class PolicyEvaluatorTest
         policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 1, policyFacts.size() );
-        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
         // Another component with one security vulnerability and license threat "Weak Copyleft"
         final Component component4 = new Component( "g4", "a4", "v4" );
         component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
@@ -177,8 +178,8 @@ public class PolicyEvaluatorTest
         policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
-        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component4, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     }
 
     @Test
@@ -187,13 +188,13 @@ public class PolicyEvaluatorTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.OR );
-        constraint1.addCondition( new SimpleCondition( SecurityVulnerabilityConditionType.ID, "present" ) );
-        constraint1.addCondition( new SimpleCondition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraint1.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
         constraints.add( constraint1 );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
         policy.setConstraints( constraints );
-        policy.addAction( new Action( MarkAsFailedActionType.ID ) );
+        policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
 
         final List<Component> components = new ArrayList<Component>();
         // A component with one security vulnerability
@@ -204,7 +205,7 @@ public class PolicyEvaluatorTest
         List<PolicyFact> policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 1, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
         // A component with license threat "Weak Copyleft"
         final Component component2 = new Component( "g2", "a2", "v2" );
         component2.setLicenseThreat( "WEAKCOPYLEFT" );
@@ -213,8 +214,8 @@ public class PolicyEvaluatorTest
         policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 2, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
         // A component with one security vulnerability and license threat "Weak Copyleft"
         final Component component3 = new Component( "g3", "a3", "v3" );
         component3.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
@@ -224,9 +225,9 @@ public class PolicyEvaluatorTest
         policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 3, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
         // Another component with one security vulnerability and license threat "Weak Copyleft"
         final Component component4 = new Component( "g4", "a4", "v4" );
         component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
@@ -236,10 +237,10 @@ public class PolicyEvaluatorTest
         policyFacts = new PolicyEvaluator().evaluate( Arrays.asList( policy ), components );
         Assert.assertNotNull( policyFacts );
         Assert.assertEquals( 4, policyFacts.size() );
-        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
-        assertContainsPolicyFact( component4, "PolicyId1", "Policy Name 1", MarkAsFailedActionType.ID, policyFacts );
+        assertContainsPolicyFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
+        assertContainsPolicyFact( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     }
 
     private static void assertContainsPolicyFact( final Component expectedComponent, final String expectedPolicyId,

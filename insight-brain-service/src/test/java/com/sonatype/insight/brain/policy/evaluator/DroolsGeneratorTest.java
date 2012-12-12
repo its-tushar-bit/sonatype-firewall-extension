@@ -18,13 +18,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
 
 public class DroolsGeneratorTest
 {
@@ -36,11 +37,11 @@ public class DroolsGeneratorTest
         constraint1.setId( "ConstraintId1" );
         constraint1.setName( "Constraint Name 1" );
         constraint1.setOperator( LogicalOperator.AND );
-        SimpleCondition condition1 = new SimpleCondition();
+        Condition condition1 = new Condition();
         condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "present" );
         constraint1.addCondition( condition1 );
-        SimpleCondition condition2 = new SimpleCondition();
+        Condition condition2 = new Condition();
         condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition2.setOperator( "is" );
         condition2.setValue( "Copyleft" );
@@ -50,11 +51,11 @@ public class DroolsGeneratorTest
         constraint2.setId( "ConstraintId2" );
         constraint2.setName( "Constraint Name 2" );
         constraint2.setOperator( LogicalOperator.OR );
-        condition1 = new SimpleCondition();
+        condition1 = new Condition();
         condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "absent" );
         constraint2.addCondition( condition1 );
-        condition2 = new SimpleCondition();
+        condition2 = new Condition();
         condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition2.setOperator( "is not" );
         condition2.setValue( "Weak Copyleft" );
@@ -66,8 +67,8 @@ public class DroolsGeneratorTest
         policy.setName( "Policy Name 1" );
         policy.setConstraints( constraints );
         Action action = new Action();
-        action.setActionTypeId( MarkAsFailedActionType.ID );
-        policy.addAction( action );
+        action.setActionTypeId( FailActionType.ID );
+        policy.addAction( BuildContextType.ID, action );
 
         final DroolsGenerator generator = new DroolsGenerator();
         final String droolsCode = generator.generate( Arrays.asList( policy ) );

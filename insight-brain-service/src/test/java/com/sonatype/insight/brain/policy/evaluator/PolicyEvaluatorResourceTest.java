@@ -15,12 +15,13 @@ import org.junit.Test;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.model.component.PolicyFact;
 import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.MarkAsFailedActionType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -51,18 +52,18 @@ public class PolicyEvaluatorResourceTest
         final Constraint constraint = new Constraint();
         constraint.setName( "PolicyEvaluatorResourceTest constraint 1" );
         constraint.setOperator( LogicalOperator.AND );
-        final SimpleCondition condition1 = new SimpleCondition();
+        final Condition condition1 = new Condition();
         condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "present" );
         constraint.addCondition( condition1 );
 
         final Action action = new Action();
-        action.setActionTypeId( MarkAsFailedActionType.ID );
+        action.setActionTypeId( FailActionType.ID );
 
         final Policy policy = new Policy();
         policy.setName( "PolicyEvaluatorResourceTest policy" );
         policy.addConstraint( constraint );
-        policy.addAction( action );
+        policy.addAction( BuildContextType.ID, action );
         addPolicy( appId, policy );
 
         // The report file is not available yet

@@ -15,22 +15,22 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.ActionType;
-import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
+import com.sonatype.insight.brain.model.policy.ContextType;
+import com.sonatype.insight.brain.model.policy.contexts.ContextTypes;
 
-@Path( ActionTypeResource.SERVICE_PATH )
-public class ActionTypeResource
+@Path( ContextTypeResource.SERVICE_PATH )
+public class ContextTypeResource
 {
-    public static final String SERVICE_PATH = "rest/policy/actionType";
+    public static final String SERVICE_PATH = "rest/policy/contextType";
 
-    private static final Logger log = LoggerFactory.getLogger( ActionTypeResource.class );
+    private static final Logger log = LoggerFactory.getLogger( ContextTypeResource.class );
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public Collection<ActionType> getActionTypes()
+    public Collection<ContextType> getContextTypes()
     {
-        log.debug( "Received request to get all action types" );
+        log.debug( "Received request to get all context types" );
 
-        return ActionTypes.getAll();
+        return ContextTypes.getAll();
     }
 }

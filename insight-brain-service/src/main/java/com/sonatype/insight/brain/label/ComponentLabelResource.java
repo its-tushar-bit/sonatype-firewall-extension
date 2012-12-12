@@ -29,7 +29,7 @@ public class ComponentLabelResource
     @PUT
     @Consumes( { MediaType.APPLICATION_JSON } )
     public void setComponentLabels( @PathParam( "appId" ) String applicationPublicId, @PathParam( "hash" ) String hash,
-                     Set<String> stringLabels )
+                                    Set<String> stringLabels )
     {
         Application application = applicationDAO.getOrInsertByPublicId( applicationPublicId );
 

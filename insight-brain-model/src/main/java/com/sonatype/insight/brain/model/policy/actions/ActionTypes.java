@@ -3,20 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.policy;
+package com.sonatype.insight.brain.model.policy.actions;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AllActionTypes
+import com.sonatype.insight.brain.model.policy.ActionType;
+
+public class ActionTypes
 {
     private static final Map<String, ActionType> allActionTypes = new LinkedHashMap<String, ActionType>();
 
     static
     {
-        add( new AddLabelActionType() );
-        add( new MarkAsFailedActionType() );
+        add( new FailActionType() );
+        add( new WarnActionType() );
+        add( new NotifyActionType() );
     }
 
     public static Collection<ActionType> getAll()

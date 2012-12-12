@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Policy
 {
@@ -14,11 +16,11 @@ public class Policy
 
     private String name;
 
+    private boolean enabled = true;
+
     private List<Constraint> constraints;
 
-    private List<Action> actions;
-
-    private boolean enabled = true;
+    private Map<String, List<Action>> actions;
 
     public Policy()
     {
@@ -30,16 +32,6 @@ public class Policy
         this.name = name;
     }
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( final String name )
-    {
-        this.name = name;
-    }
-
     public String getId()
     {
         return id;
@@ -48,6 +40,16 @@ public class Policy
     public void setId( final String id )
     {
         this.id = id;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( final String name )
+    {
+        this.name = name;
     }
 
     public boolean isEnabled()
@@ -79,22 +81,37 @@ public class Policy
         constraints.add( constraint );
     }
 
-    public List<Action> getActions()
+    public Map<String, List<Action>> getActions()
     {
         return actions;
     }
 
-    public void setActions( final List<Action> actions )
+    public void setActions( final Map<String, List<Action>> actions )
     {
         this.actions = actions;
     }
 
-    public void addAction( final Action action )
+    public List<Action> getActions( final String contextTypeId )
+    {
+        return actions != null ? actions.get( contextTypeId ) : null;
+    }
+
+    public void setActions( final String contextTypeId, final List<Action> contextActions )
     {
         if ( actions == null )
         {
-            actions = new ArrayList<Action>();
+            actions = new HashMap<String, List<Action>>();
         }
-        actions.add( action );
+        actions.put( contextTypeId, contextActions );
+    }
+
+    public void addAction( final String contextTypeId, final Action action )
+    {
+        List<Action> contextActions = getActions( contextTypeId );
+        if ( contextActions == null )
+        {
+            setActions( contextTypeId, contextActions = new ArrayList<Action>() );
+        }
+        contextActions.add( action );
     }
 }

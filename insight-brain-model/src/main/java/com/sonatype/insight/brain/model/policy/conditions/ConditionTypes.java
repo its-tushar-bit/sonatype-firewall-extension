@@ -3,13 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.policy;
+package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AllConditionTypes
+import com.sonatype.insight.brain.model.policy.ConditionType;
+
+public class ConditionTypes
 {
     private static final Map<String, ConditionType> allConditionTypes = new LinkedHashMap<String, ConditionType>();
 

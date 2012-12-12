@@ -16,12 +16,14 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.SimpleCondition;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class PolicyAuditTest
@@ -44,12 +46,12 @@ public class PolicyAuditTest
         final Constraint constraint = new Constraint();
         constraint.setId( "Another id" );
         constraint.setName( "A constraint" );
-        final List<SimpleCondition> conditions = new ArrayList<SimpleCondition>();
-        SimpleCondition condition = new SimpleCondition();
+        final List<Condition> conditions = new ArrayList<Condition>();
+        Condition condition = new Condition();
         condition.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition.setOperator( "present" );
         conditions.add( condition );
-        condition = new SimpleCondition();
+        condition = new Condition();
         condition.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition.setOperator( "is" );
         condition.setValue( "Copyleft" );
@@ -58,10 +60,10 @@ public class PolicyAuditTest
         constraint.setOperator( LogicalOperator.AND );
         policy.addConstraint( constraint );
         final Action action = new Action();
-        action.setValue( "be happy" );
+        action.setActionTypeId( WarnActionType.ID );
         final List<Action> actions = new ArrayList<Action>();
         actions.add( action );
-        policy.setActions( actions );
+        policy.setActions( BuildContextType.ID, actions );
 
         PolicyAudit.saveChange( auditDir, policy, user, ip, where );
 

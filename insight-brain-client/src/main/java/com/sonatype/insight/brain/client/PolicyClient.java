@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
+import org.apache.http.message.BasicHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,18 +43,19 @@ public class PolicyClient
     public ServletResult manage( final String path )
         throws IOException
     {
-        if ( path.startsWith( "/rest/" ) || path.startsWith( "rest/" ) )
+        if ( path.length() == 0 )
         {
-            return path( path ).get();
+            // implicit redirect from initial top-level request to the actual management asset
+            final HttpResponse redirect = new BasicHttpResponse( HttpVersion.HTTP_1_1, 302, null );
+            redirect.setHeader( HttpHeaders.LOCATION, "policy-assets/index.html" );
+            return result( redirect );
         }
-        else if ( path.length() == 0 || path.endsWith( "/" ) )
+        if ( path.contains( "-assets/" ) && path.endsWith( "/" ) )
         {
-            return path( "policy-assets", path, "index.html" ).get();
+            // workaround for DropWizard index bug
+            return path( path, "index.html" ).get();
         }
-        else
-        {
-            return path( "policy-assets", path ).get();
-        }
+        return path( path ).get();
     }
 
     public List<PolicyFact> evaluate( final String scanId )

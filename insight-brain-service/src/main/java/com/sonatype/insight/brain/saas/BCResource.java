@@ -55,25 +55,25 @@ public class BCResource
     InsightProxy proxy;
 
     @GET
-    @Path( "validate/{token}" )
+    @Path( "validate/{appId}" )
     @Produces( MediaType.TEXT_PLAIN )
-    public String validateToken( @PathParam( "token" ) final String token )
+    public String validateToken( @PathParam( "appId" ) final String appId )
         throws Exception
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( token, null, null );
+        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( appId, null, null );
 
         return uploader.validateToken( proxy.contextualize( request ) );
     }
 
     @PUT
-    @Path( "scan/{token}" )
+    @Path( "scan/{appId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response putScan( @PathParam( "token" ) final String token,
+    public Response putScan( @PathParam( "appId" ) final String appId,
                              @QueryParam( "instanceId" ) final String instanceId,
                              @QueryParam( "jobId" ) final String jobId, final InputStream data )
         throws Exception
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( token, null, null );
+        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( appId, null, null );
 
         final File scanFile = File.createTempFile( "insight-brain", "xml" ); // FIXME
 
@@ -97,12 +97,12 @@ public class BCResource
     }
 
     @GET
-    @Path( "report/{token}" )
+    @Path( "report/{appId}" )
     @Produces( MediaType.APPLICATION_OCTET_STREAM )
-    public StreamingOutput getReport( @PathParam( "token" ) final String token,
+    public StreamingOutput getReport( @PathParam( "appId" ) final String appId,
                                       @QueryParam( "scanId" ) final String scanId )
     {
-        final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( token, scanId, null );
+        final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
 
         return new StreamingOutput()
         {

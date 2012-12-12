@@ -3,7 +3,7 @@ var insightApp = angular.module('insightApp', [], function($locationProvider){
 });
 
 insightApp.factory('global', function($rootScope) {
-    var checkboxRulesSelector = new Slick.CheckboxSelectColumn({
+    var checkboxSelector = new Slick.CheckboxSelectColumn({
         cssClass: "slick-cell-checkboxsel"
 	}), state = {
     	//TODO: this will be removed when REST request for this data is in place
@@ -13,7 +13,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint1',
     			name: 'constraint1',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -24,7 +31,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -33,7 +40,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -46,7 +53,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint2',
     			name: 'constraint2',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -57,7 +71,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -66,7 +80,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -79,7 +93,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint3',
     			name: 'constraint3',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -90,7 +111,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -99,7 +120,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -112,7 +133,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint4',
     			name: 'constraint4',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -123,7 +151,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -132,7 +160,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -145,7 +173,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint5',
     			name: 'constraint5',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -156,7 +191,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -165,7 +200,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -178,7 +213,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint6',
     			name: 'constraint6',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -189,7 +231,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -198,7 +240,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -211,7 +253,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint7',
     			name: 'constraint7',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -222,7 +271,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -231,7 +280,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -244,7 +293,14 @@ insightApp.factory('global', function($rootScope) {
     		constraints: [{
     			id: 'constraint8',
     			name: 'constraint8',
-    			conditions: [],
+    			conditions: [{
+    				conditionTypeId: 'LicenseCategory',
+    				operator: 'is',
+    				value: 'COPYLEFT'
+    			},{
+    				conditionTypeId: 'SecurityVulnerability',
+    				operator: 'present'
+    			}],
     			operator: 'AND',
     			enabled: true
     		}],
@@ -255,7 +311,7 @@ insightApp.factory('global', function($rootScope) {
 				notify: 'notify@notify.com'
 			},{
 				id: 'develop',
-				warn: true,
+				warn: false,
 				fail: true
 			},{
 				id: 'build',
@@ -264,7 +320,7 @@ insightApp.factory('global', function($rootScope) {
 			},{
 				id: 'release',
 				warn: true,
-				fail: true,
+				fail: false,
 				notify: 'anotheremail@mail.com'
 			},{
 				id: 'operate',
@@ -342,7 +398,7 @@ insightApp.factory('global', function($rootScope) {
     		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
     	},
     	constraintTableDefinition : {
-    		columns : [ checkboxRulesSelector.getColumnDefinition(), {
+    		columns : [ checkboxSelector.getColumnDefinition(), {
     			id : "name",
     			name : "Constraint Name",
     			field : "name",
@@ -355,10 +411,10 @@ insightApp.factory('global', function($rootScope) {
     			width : 100,
     			formatter : function(row, cell, value, columnDef, dataContext) {
     				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? 'enabled' : 'disabled') + '</td>'
-    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Rule"><i class="icon-pencil"></i></button></td>'
-    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-enable slick-row-hover-button" title="Enable Rule"><i class="icon-ok-circle"></i></button></td>'
-    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-disable slick-row-hover-button" title="Disable Rule"><i class="icon-remove-circle"></i></button></td>'
-    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Rule"><i class="icon-trash"></i></button></td>'
+    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Constraint"><i class="icon-pencil" style="margin-top:0px;"></i></button></td>'
+    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-enable slick-row-hover-button" title="Enable Constraint"><i class="icon-ok-circle" style="margin-top:0px;"></i></button></td>'
+    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-disable slick-row-hover-button" title="Disable Constraint"><i class="icon-remove-circle" style="margin-top:0px;"></i></button></td>'
+    				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Constraint"><i class="icon-trash" style="margin-top:0px;"></i></button></td>'
     				    + '</tr></table>';
     			}
     		} ],
@@ -367,7 +423,7 @@ insightApp.factory('global', function($rootScope) {
     			forceFitColumns : true,
     			fullWidthRows : true
     		},
-    		plugins : [checkboxRulesSelector],
+    		plugins : [checkboxSelector],
     		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
     		emptyMessage : "No Constraints have been defined.<br><a href='#editConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
     	},
@@ -400,7 +456,7 @@ insightApp.factory('global', function($rootScope) {
     		},
     		plugins : [],
     		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
-    		emptyMessage : "Add one or more Conditions to define the Rule."
+    		emptyMessage : "Add one or more Conditions to define the Constraint."
         }
     };
         

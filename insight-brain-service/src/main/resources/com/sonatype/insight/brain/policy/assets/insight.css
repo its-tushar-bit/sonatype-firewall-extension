@@ -19,8 +19,8 @@
 .slick-row-hover-button {
 	height: 18px;
 	width: 18px;
-	padding: 1px 0 0 0;
-	display: none
+	padding: 0px;
+	display: none;
 }
 
 #constraintConditionsGrid .slick-header-columns {
@@ -39,18 +39,18 @@
 	border: 1px solid #e5e5e5;
 	float: left;
 	width: 300px;
-    background-color: #ffffff;
-    border: 1px solid #999;
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    margin: 10px;
-    cursor: pointer;
-    padding: 2px;
-    *border: 1px solid #999;
-    -webkit-border-radius: 6px;
-       -moz-border-radius: 6px;
-            border-radius: 6px;
-    outline: none;
-    -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-       -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	background-color: #ffffff;
+	border: 1px solid #999;
+	border: 1px solid rgba(0, 0, 0, 0.3);
+	margin: 10px;
+	cursor: pointer;
+	padding: 2px;
+	*border: 1px solid #999;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+	outline: none;
+	-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
 }

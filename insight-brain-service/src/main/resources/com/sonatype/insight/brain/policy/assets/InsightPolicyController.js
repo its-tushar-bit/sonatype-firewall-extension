@@ -2,16 +2,32 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.state = global;
 	
 	$scope.resetConstraint = function() {
-		delete $scope.state.addConstraintName;
 		delete $scope.state.addConstraintOperand;
 		delete $scope.state.addConstraintOperator;
 		delete $scope.state.addConstraintValue;
 		delete $scope.state.addConstraintFormValid;
 		delete $scope.state.addConstraintConditionFormValid;
 		delete $scope.state.currentConstraint;
+	}
+	
+	$scope.resetActions = function() {
+		delete $scope.state.procureAction;
+		delete $scope.state.procureNotify;
+		delete $scope.state.developAction;
+		delete $scope.state.developNotify;
+		delete $scope.state.buildAction;
+		delete $scope.state.buildNotify;
+		delete $scope.state.releaseAction;
+		delete $scope.state.releaseNotify;
+		delete $scope.state.operateAction;
+		delete $scope.state.operateNotify;
 		
-		$scope.state.constraintConditionList = [];
-		$scope.state.addConstraintMatchType = 'OR';
+		if ($scope.state.currentPolicy) {
+			angular.forEach($scope.state.currentPolicy.actions, function(value, key) {
+				$scope.state[value.id + 'Action'] = value.warn ? 'warn' : (value.fail ? 'fail' : '');
+				$scope.state[value.id + 'Notify'] = value.notify;
+			});
+		}
 	}
 	
 	$scope.reset = function() {
@@ -25,7 +41,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 	
 	$scope.createPolicyClick = function(){
 		$scope.state.currentPolicy = {
-			constraints: []
+			constraints: [],
+			actions: []
 		}
 		$scope.state.showAddPolicyScreen = true;
 		setTimeout(function(){
@@ -39,6 +56,10 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.state.currentPolicyRef = this.policy;
 		$scope.state.showAddPolicyScreen = true;
 		$scope.state.policyValid = true;
+		angular.forEach($scope.state.currentPolicy.actions, function(value, key) {
+			$scope.state[value.id + 'Action'] = value.warn ? 'warn' : (value.fail ? 'fail' : '');
+			$scope.state[value.id + 'Notify'] = value.notify;
+		});
 		setTimeout(function(){
 			$scope.constraintGrid.redraw();
 		},50);
@@ -96,15 +117,39 @@ function InsightPolicyController($scope, global, $http, $location) {
 		});
 	}
 	
+	$scope.createConstraintClick = function() {
+		$scope.resetConstraint();
+		$scope.state.currentConstraint = {
+			conditions: [],
+			actions: [],
+			operator: 'OR'
+		};
+		$('#editConstraintModal').modal('show');
+	}
+	
 	$scope.addConstraintClick = function() {
-		$scope.state.currentPolicy.constraints.push({
-		    name: $scope.state.addConstraintName,
-		    conditions: $scope.state.constraintConditionList.slice(0),
-		    matchType: $scope.state.addConstraintMatchType,
+		var constraintObj = {
+			name: $scope.state.currentConstraint.name,
+		    conditions: $scope.state.currentConstraint.conditions,
+		    operator: $scope.state.currentConstraint.operator,
 		    enabled: true,
 		    //TODO: this will ultimately come from the server
-		    id: $scope.state.addConstraintName
-		});	
+		    id: $scope.state.currentConstraint.id ? $scope.state.currentConstraint.id : $scope.state.currentConstraint.name
+		}
+		
+		var found = false;
+		
+		for ( var i = 0 ; i < $scope.state.currentPolicy.constraints.length ; i++) {
+			if ( $scope.state.currentPolicy.constraints[i].id == constraintObj.id ) {
+				$scope.state.currentPolicy.constraints[i] = constraintObj;
+				found = true;
+				break;
+			}
+		}
+		
+		if (!found) {
+			$scope.state.currentPolicy.constraints.push(constraintObj);		
+		}
 		
 		$scope.resetConstraint();
 		
@@ -113,7 +158,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.addConstraintCondition = function() {
-		$scope.state.constraintConditionList.push({
+		$scope.state.currentConstraint.conditions.push({
 			operand: $scope.state.addConstraintOperand,
 			operator: $scope.state.addConstraintOperator,
 			value: $scope.state.addConstraintValue
@@ -133,15 +178,15 @@ function InsightPolicyController($scope, global, $http, $location) {
 		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
 			grid.dataView.deleteItem(grid.dataView.getItemByIdx(rows[i]).id);
 		}
-		$scope.state.constraintConditionList = grid.getData().getItems();
+		$scope.state.currentConstraint.conditions = grid.getData().getItems();
 		$scope.validateConstraint();
 	}
 	
 	$scope.validateConstraint = function() {
 		delete $scope.state.addConstraintFormValid;
-		if ($scope.state.constraintConditionList.length > 0
-				&& $scope.state.addConstraintName
-				&& $scope.state.addConstraintMatchType) {
+		if ($scope.state.currentConstraint.conditions.length > 0
+				&& $scope.state.currentConstraint.name
+				&& $scope.state.currentConstraint.operator) {
 			$scope.state.addConstraintFormValid = true;
 		}
 	}
@@ -162,7 +207,39 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.doneEditActionsClick = function() {
+		//TODO: validation, at least on emails
 		
+		$scope.state.currentPolicy.actions = [{
+			id: 'procure',
+			warn: $scope.state.procureAction === 'warn',
+			fail: $scope.state.procureAction === 'fail',
+			notify: $scope.state.procureNotify
+		},{
+			id: 'develop',
+			warn: $scope.state.developAction === 'warn',
+			fail: $scope.state.developAction === 'fail',
+			notify: $scope.state.developNotify
+		},{
+			id: 'build',
+			warn: $scope.state.buildAction === 'warn',
+			fail: $scope.state.buildAction === 'fail',
+			notify: $scope.state.buildNotify
+		},{
+			id: 'release',
+			warn: $scope.state.releaseAction === 'warn',
+			fail: $scope.state.releaseAction === 'fail',
+			notify: $scope.state.releaseNotify
+		},{
+			id: 'operate',
+			warn: $scope.state.operateAction === 'warn',
+			fail: $scope.state.operateAction === 'fail',
+			notify: $scope.state.operateNotify
+		}];
+		
+		$scope.resetActions();
+		
+		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element
+		$('#editActionsModal').modal('hide');
 	}
 	
 	$scope.reset();
@@ -175,5 +252,64 @@ function InsightPolicyController($scope, global, $http, $location) {
 		setTimeout(function(){
 			$scope.constraintConditionsGrid.redraw();
 		},100);
+    });
+	
+	$('#constraintGrid .slick-row').live('mouseover mouseout', function (event) {
+        if (event.type == 'mouseover') {
+            $(this).find(".btn").show(); 
+        } else {
+
+             $(this).find(".btn").hide();
+        }
+    });
+	
+    $('#constraintGrid .slick-row .btn-edit').live('click', function(){
+    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
+    	
+    	//copy so we dont update data in the current list
+    	$scope.state.currentConstraint = angular.copy(constraint);
+		$scope.validateConstraint();
+		
+		for ( var j = 0 ; j < $scope.state.currentConstraint.conditions.length ; j++ ){
+			for ( var k = 0 ; k < $scope.state.conditionTypes.length ; k++ ){
+				if ( $scope.state.conditionTypes[k].id == $scope.state.currentConstraint.conditions[j].conditionTypeId ){
+					$scope.state.currentConstraint.conditions[j].operand = $scope.state.conditionTypes[k];
+					break;
+				}
+			}
+		}
+
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
+        
+        $('#editConstraintModal').modal('show');
+    });
+    
+    $('#constraintGrid .slick-row .btn-enable').live('click', function(){
+    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
+    	constraint.enabled = true;
+    	
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
+    });
+    
+    $('#constraintGrid .slick-row .btn-disable').live('click', function(){
+    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
+    	constraint.enabled = false;
+    	
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
+    });
+    
+    $('#constraintGrid .slick-row .btn-delete').live('click', function(){
+    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
+    	$scope.constraintGrid.dataView.deleteItem(constraint.id);
+    	
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
     });
 }

@@ -69,7 +69,7 @@
 						            <table width="100%">
 									    <tr>
 										    <td width="99%"></td>
-										    <td><button class="btn" data-toggle="modal" data-target="#editConstraintModal" title="Add new Constraint"><i class="icon-plus-sign"></i></button></td>
+										    <td><button class="btn" ng-click="createConstraintClick()" title="Add new Constraint"><i class="icon-plus-sign"></i></button></td>
 										    <td><button class="btn" ng-click="enableConstraint()" title="Enable selected Constraint(s)"><i class="icon-ok-circle"></i></button></td>
 										    <td><button class="btn" ng-click="disableConstraint()" title="Disable selected Constraint(s)"><i class="icon-remove-circle"></i></button></td>
 										    <td><button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button></td>
@@ -101,7 +101,7 @@
 					<div id="editConstraintModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
 						<div class="modal-header">
 						    <button type="button" class="close" data-dismiss="modal">×</button>
-						    <h3>New Policy Constraint</h3>
+						    <h3>Policy Constraint</h3>
 						</div>
 						<div class="modal-body">
 						    <div class='form-horizontal'>
@@ -120,13 +120,13 @@
 								</div>
 								<div class='control-group'>
 								    <div class='controls'>
-								        <slickgrid id="constraintConditionsGrid" style="height:125px;width:700px;" data="state.constraintConditionList" table-def="state.constraintConditionsTableDefinition"></slickgrid>
+								        <slickgrid id="constraintConditionsGrid" style="height:125px;width:700px;" data="state.currentConstraint.conditions" table-def="state.constraintConditionsTableDefinition"></slickgrid>
 								        <label class="radio inline">
-										    <input type="radio" ng-model="state.addConstraintMatchType" value="OR" ng-change="validateConstraint()">
+										    <input type="radio" ng-model="state.currentConstraint.operator" value="OR" ng-change="validateConstraint()">
 										    Any one Condition met
 										</label>
 										<label class="radio inline">
-										    <input type="radio" ng-model="state.addConstraintMatchType" value="AND" ng-change="validateConstraint()">
+										    <input type="radio" ng-model="state.currentConstraint.operator" value="AND" ng-change="validateConstraint()">
 										    All Conditions met
 										</label>
 								    </div>
@@ -134,7 +134,7 @@
 								<div class='control-group'>
 								    <label class='control-label'>Name</label>
 									<div class='controls' style='text-align:left'>
-										<input type="text" ng-model="state.addConstraintName" ng-change="validateConstraint()" placeholder='Enter Constraint Name...'></input>
+										<input type="text" ng-model="state.currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...'></input>
 									</div>
 								</div>
 							</div>
@@ -144,16 +144,30 @@
 						    <button class="btn" data-dismiss="modal">Cancel</button>
 						</div>
 					</div>
-					<div id="editActionsModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
+					<div id="editActionsModal" class="modal hide" style="width: 750px;margin: -250px 0 0 -475px;">
 						<div class="modal-header">
 						    <button type="button" class="close" data-dismiss="modal">×</button>
 						    <h3>Edit Actions</h3>
 						</div>
 						<div class="modal-body">
-						    TODO
+							<div ng-repeat="actionType in state.actionTypeList">
+								<div class="form-horizontal">
+									<div class="control-group">
+									    <label class='control-label'>{{actionType.context}}</label>
+										<div class='controls' style='text-align:left'>
+											<select ng-model="state[actionType.id + 'Action']">
+											    <option value="">-- Choose Action --</option>
+												<option value="warn">Warn</option>
+												<option value="fail">Fail</option>
+											</select>
+											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state[actionType.id + 'Notify']">
+										</div>
+									</div>
+								</div>
+						    </div>
 						</div>
 						<div class="modal-footer">
-						    <button class="btn btn-primary" ng-click="doneEditActionsClick()">Done</button>
+						    <button class="btn btn-primary" ng-click="doneEditActionsClick()" data-dismiss="modal">Done</button>
 						    <button class="btn" data-dismiss="modal">Cancel</button>
 						</div>
 					</div>

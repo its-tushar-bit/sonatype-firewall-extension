@@ -48,6 +48,7 @@
 		<div class="tab-content">
 			<div class="tab-pane active" id="policy" ng-controller="InsightPolicyController">
 				<div ng-show="!state.showAddPolicyScreen && !state.policyList.length" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
+				<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 				    <div class="policy-item" ng-repeat="policy in state.policyList" ng-click="policyEditClick()">
 				        <span><b>{{policy.name}}</b><br>7 Constraints to be evaluated<br>3 Actions assigned<br>&nbsp;&nbsp;&nbsp;Block Procurement, Fail the build, Notify email<br><br>Created 4 years ago by jwhitehouse</span>
@@ -108,12 +109,12 @@
 								<div class='control-group'>
 									<label class='control-label'>Conditions</label>
 									<div class='controls' style='text-align:left'>
-										<select ng-model="state.addConstraintOperand" ng-change="constraintOperandChanged()" ng-options="c.operandName for c in state.conditionTypes">
+										<select ng-model="state.currentCondition.operand" ng-change="constraintOperandChanged()" ng-options="c.name for c in state.conditionTypes">
 										</select>
-										<select ng-model="state.addConstraintOperator" ng-show="state.addConstraintOperand" ng-change="validateConstraintCondition()" ng-options="c for c in state.addConstraintOperand.supportedOperators">
+										<select ng-model="state.currentCondition.operator" ng-show="state.currentCondition.operand" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentCondition.operand.supportedOperators">
 										</select>
-										<input type="text" ng-model="state.addConstraintValue" placeholder='Enter Value...' ng-show="state.addConstraintOperand && state.addConstraintOperand.requiresValue && !state.addConstraintOperand.availableValues" ng-change="validateConstraintCondition()"></input>
-										<select ng-model="state.addConstraintValue" ng-show="state.addConstraintOperand && state.addConstraintOperand.requiresValue && state.addConstraintOperand.availableValues" ng-change="validateConstraintCondition()" ng-options="c for c in state.addConstraintOperand.availableValues">
+										<input type="text" ng-model="state.currentCondition.value" placeholder='Enter Value...' ng-show="state.currentCondition.operand && state.currentCondition.operand.requiresValue && !state.currentCondition.operand.availableValues" ng-change="validateConstraintCondition()"></input>
+										<select ng-model="state.currentCondition.value" ng-show="state.currentCondition.operand && state.currentCondition.operand.requiresValue && state.currentCondition.operand.availableValues" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentCondition.operand.availableValues">
 										</select>
 										<button type='none' class='btn btn-primary' ng-click="addConstraintCondition()" ng-disabled="!state.addConstraintConditionFormValid">Add</button>
 									</div>

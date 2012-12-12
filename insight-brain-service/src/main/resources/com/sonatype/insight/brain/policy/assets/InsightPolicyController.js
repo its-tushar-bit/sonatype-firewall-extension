@@ -2,12 +2,14 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.state = global;
 	
 	$scope.resetConstraint = function() {
-		delete $scope.state.addConstraintOperand;
-		delete $scope.state.addConstraintOperator;
-		delete $scope.state.addConstraintValue;
 		delete $scope.state.addConstraintFormValid;
 		delete $scope.state.addConstraintConditionFormValid;
-		delete $scope.state.currentConstraint;
+		$scope.state.currentConstraint = {
+			conditions: [],
+			actions: [],
+			operator: 'OR'
+		};
+		$scope.state.currentCondition = {};
 	}
 	
 	$scope.resetActions = function() {
@@ -33,6 +35,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.reset = function() {
 		$scope.resetConstraint();
 		delete $scope.state.currentPolicy;
+		delete $scope.state.currentPolicyRef;
 		delete $scope.state.showAddPolicyScreen;
 		if ($scope.constraintGrid) {
 			$scope.constraintGrid.setSelectedRows([]);
@@ -42,7 +45,17 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.createPolicyClick = function(){
 		$scope.state.currentPolicy = {
 			constraints: [],
-			actions: []
+			actions: [{
+				id: 'procure'
+			},{
+				id: 'develop'
+			},{
+				id: 'build'
+			},{
+				id: 'release'
+			},{
+				id: 'operate'
+			}]
 		}
 		$scope.state.showAddPolicyScreen = true;
 		setTimeout(function(){
@@ -66,7 +79,11 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.savePolicyClick = function(){
-		angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
+		if ($scope.state.currentPolicyRef) {
+			angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
+		} else {
+			$scope.state.policyList.push($scope.state.currentPolicy);
+		}
 		$scope.reset();
 	}
 	
@@ -115,15 +132,12 @@ function InsightPolicyController($scope, global, $http, $location) {
 		angular.forEach(rows, function(value, key){
 			$scope.constraintGrid.dataView.deleteItem($scope.constraintGrid.getDataItem(value).id);
 		});
+		
+		$scope.validatePolicy();
 	}
 	
 	$scope.createConstraintClick = function() {
 		$scope.resetConstraint();
-		$scope.state.currentConstraint = {
-			conditions: [],
-			actions: [],
-			operator: 'OR'
-		};
 		$('#editConstraintModal').modal('show');
 	}
 	
@@ -155,18 +169,14 @@ function InsightPolicyController($scope, global, $http, $location) {
 		
 		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element
 		$('#editConstraintModal').modal('hide');
+		
+		$scope.validatePolicy();
 	}
 	
 	$scope.addConstraintCondition = function() {
-		$scope.state.currentConstraint.conditions.push({
-			operand: $scope.state.addConstraintOperand,
-			operator: $scope.state.addConstraintOperator,
-			value: $scope.state.addConstraintValue
-		});
+		$scope.state.currentConstraint.conditions.push($scope.state.currentCondition);
 		
-		delete $scope.state.addConstraintOperand;
-		delete $scope.state.addConstraintOperator;
-		delete $scope.state.addConstraintValue;
+		$scope.state.currentCondition = {};
 		
 		$scope.validateConstraint();
 		$scope.validateConstraintCondition();
@@ -193,16 +203,16 @@ function InsightPolicyController($scope, global, $http, $location) {
 	
 	$scope.validateConstraintCondition = function() {
 		delete $scope.state.addConstraintConditionFormValid;
-		if ($scope.state.addConstraintOperand
-				&& $scope.state.addConstraintOperator
-				&& (!$scope.state.addConstraintOperand.requiresValue || $scope.state.addConstraintValue)) {
+		if ($scope.state.currentCondition.operand
+				&& $scope.state.currentCondition.operator
+				&& (!$scope.state.currentCondition.operand.requiresValue || $scope.state.currentCondition.value)) {
 			$scope.state.addConstraintConditionFormValid = true;
 		}
 	}
 	
 	$scope.constraintOperandChanged = function() {
-		delete $scope.state.addConstraintOperator;
-		delete $scope.state.addConstraintValue;
+		delete $scope.state.currentCondition.operator;
+		delete $scope.state.currentCondition.value;
 		$scope.validateConstraintCondition();
 	}
 	

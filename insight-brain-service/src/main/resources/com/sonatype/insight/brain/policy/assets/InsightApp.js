@@ -433,7 +433,7 @@ insightApp.factory('global', function($rootScope) {
         		name : "Operand",
         		field : "operand",
         		formatter : function(row, cell, value, columnDef, dataContext) {
-        			return value.operandName;
+        			return value.name;
         		}
         	},{
         		id : "operator",

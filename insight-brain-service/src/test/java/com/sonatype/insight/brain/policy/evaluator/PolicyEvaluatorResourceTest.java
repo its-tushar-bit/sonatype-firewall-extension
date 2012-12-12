@@ -82,6 +82,6 @@ public class PolicyEvaluatorResourceTest
 
     private String getServiceURL( final String appId, final String scanId )
     {
-        return getRestBaseUrl() + PolicyEvaluatorResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;
+        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;
     }
 }

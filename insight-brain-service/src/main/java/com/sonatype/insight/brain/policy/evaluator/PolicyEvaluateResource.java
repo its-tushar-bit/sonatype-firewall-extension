@@ -13,6 +13,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -31,12 +32,12 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sun.jersey.api.NotFoundException;
 
-@Path( PolicyEvaluatorResource.SERVICE_PATH )
-public class PolicyEvaluatorResource
+@Path( PolicyEvaluateResource.SERVICE_PATH )
+public class PolicyEvaluateResource
 {
-    public static final String SERVICE_PATH = "rest/policy/evaluator/{appId}";
+    public static final String SERVICE_PATH = "rest/policy/{appId}/evaluate";
 
-    private static final Logger log = LoggerFactory.getLogger( PolicyEvaluatorResource.class );
+    private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
     @Context
     private InsightWork work;
@@ -44,11 +45,10 @@ public class PolicyEvaluatorResource
     @Context
     private InsightProxy proxy;
 
-    @Path( "{scanId}" )
     @GET
     @Produces( MediaType.APPLICATION_JSON )
     public List<PolicyFact> evaluate( @PathParam( "appId" ) final String appId,
-                                      @PathParam( "scanId" ) final String scanId )
+                                      @QueryParam( "scanId" ) final String scanId )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}", appId, scanId );

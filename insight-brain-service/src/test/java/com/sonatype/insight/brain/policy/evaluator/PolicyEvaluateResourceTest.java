@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
-public class PolicyEvaluatorResourceTest
+public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
     private Response addPolicy( final String appId, final Policy policy )
@@ -82,6 +82,6 @@ public class PolicyEvaluatorResourceTest
 
     private String getServiceURL( final String appId, final String scanId )
     {
-        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "/" + scanId;
+        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "?scanId=" + scanId;
     }
 }

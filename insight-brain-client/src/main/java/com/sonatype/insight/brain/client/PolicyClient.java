@@ -61,7 +61,7 @@ public class PolicyClient
     public List<PolicyFact> evaluate( final String scanId )
         throws IOException
     {
-        final Result httpResult = path( "rest/policy/evaluate", appId, UrlUtils.encodeUrlComponent( scanId ) ).get();
+        final Result httpResult = path( "rest/policy/evaluate", appId ).query( "scanId", scanId ).get();
         if ( httpResult.status() >= 400 )
         {
             throw new ClientException( httpResult );

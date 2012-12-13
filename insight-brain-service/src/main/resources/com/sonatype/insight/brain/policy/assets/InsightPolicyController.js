@@ -30,23 +30,23 @@ function InsightPolicyController($scope, global, $http, $location) {
 					}
 				}
 			});
-			
-			var handleActionForTable = function(id){
-				return {
-					id: id,
-					fail: $scope.state.actionData[id + 'Action'] === 'fail',
-					warn: $scope.state.actionData[id + 'Action'] === 'warn',
-					notify: $scope.state.actionData[id + 'Notify']
-				};
-			}
-			
-			$scope.state.currentActionData = [];
-			
-			//this is for the table displayed in constraint screen
-			angular.forEach($scope.state.actionContextList, function(value, key) {
-				$scope.state.currentActionData.push(handleActionForTable(value.id));
-			});
 		}
+		
+		$scope.state.actionTableData = [];
+		
+		var handleActionForTable = function(id){
+			return {
+				id: id,
+				fail: $scope.state.actionData[id + 'Action'] === 'fail',
+				warn: $scope.state.actionData[id + 'Action'] === 'warn',
+				notify: $scope.state.actionData[id + 'Notify']
+			};
+		}
+		
+		//this is for the table displayed in constraint screen
+		angular.forEach($scope.state.actionContextList, function(value, key) {
+			$scope.state.actionTableData.push(handleActionForTable(value.id));
+		});
 	}
 	
 	$scope.reset = function() {
@@ -57,11 +57,13 @@ function InsightPolicyController($scope, global, $http, $location) {
 		if ($scope.constraintGrid) {
 			$scope.constraintGrid.setSelectedRows([]);
 		}
+		$scope.resetActions();
 	}
 	
 	$scope.createPolicyClick = function(){
 		$scope.state.currentPolicy = {
-			constraints: []
+			constraints: [],
+			actions: {}
 		}
 		$scope.state.showAddPolicyScreen = true;
 		setTimeout(function(){
@@ -254,7 +256,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$('#editActionsModal').modal('hide');
 	}
 	
-	$scope.reset();
+	insightApp.appId = $location.search().appId;
 	
 	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {
     	$scope.state.conditionTypes = conditionTypeData;
@@ -262,6 +264,26 @@ function InsightPolicyController($scope, global, $http, $location) {
         	$scope.state.actionTypeList = actionTypeData;
         	$http.get(insightApp.getActionContextUrl()).success(function(actionContextData, status, headers, config) {
         		$scope.state.actionContextList = actionContextData;
+        		$scope.state.policyList = [];
+                $http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
+                	for ( var i = 0 ; i < data.length ; i++ ){
+                		$scope.state.policyList.push(data[i]);
+                		
+                		//solely to setup the operand with the conditionType object
+                		for ( var j = 0 ; j < data[i].constraints.length ; j++ ) {
+                			for ( var k = 0 ; k < data[i].constraints[j].conditions.length ; k++ ) {
+                				for ( var l = 0 ; l < $scope.state.conditionTypes.length ; l++ ){
+                    				if ( $scope.state.conditionTypes[l].id == data[i].constraints[j].conditions[k].conditionTypeId ){
+                    					data[i].constraints[j].conditions[k].operand = $scope.state.conditionTypes[l];				
+                    					break;
+                    				}
+                    			}
+                			}
+                		}
+                	}
+                	
+                	$scope.reset();
+                });
         	});
     	});
     });

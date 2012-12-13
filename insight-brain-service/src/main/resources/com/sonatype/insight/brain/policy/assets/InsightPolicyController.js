@@ -302,6 +302,45 @@ function InsightPolicyController($scope, global, $http, $location) {
 		},100);
     });
 	
+	$('.policy-item').live('mouseover mouseout', function (event) {
+        if (event.type == 'mouseover') {
+            $(this).find(".btn").show(); 
+        } else {
+
+             $(this).find(".btn").hide();
+        }
+    });
+	
+	$('.policy-item .btn-edit').live('click', function(){
+		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
+			if ( $scope.state.policyList[i].id === $(this).attr('id')) {
+				$scope.state.currentPolicy = angular.copy($scope.state.policyList[i]);
+				$scope.state.currentPolicyRef = $scope.state.policyList[i];
+				$scope.state.showAddPolicyScreen = true;
+				$scope.state.policyValid = true;
+				$scope.resetActions();
+				setTimeout(function(){
+					$scope.constraintGrid.redraw();
+				},50);
+
+		        //since this event is called outside of angular, we need to force
+		        //an apply to get everything mapped up properly
+		        $scope.$apply();
+			}
+		}
+    });
+	
+	$('.policy-item .btn-delete').live('click', function(){
+		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
+			if ( $scope.state.policyList[i].id === $(this).attr('id')) {
+				$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[i].id,{itemIndex: i}).success(function(data, status, headers, config){
+					$scope.state.policyList.splice(config.itemIndex,1);
+				});
+				break;
+			}
+		}
+    });
+	
 	$('#constraintGrid .slick-row').live('mouseover mouseout', function (event) {
         if (event.type == 'mouseover') {
             $(this).find(".btn").show(); 

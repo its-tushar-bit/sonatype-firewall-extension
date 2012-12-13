@@ -50,7 +50,8 @@
 				<div ng-show="!state.showAddPolicyScreen && !state.policyList.length" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
-				    <div class="policy-item" ng-repeat="policy in state.policyList" ng-click="policyEditClick()">
+				    <div class="policy-item" ng-repeat="policy in state.policyList">
+				    	<div style="float:right;"><button id="{{policy.id}}" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Policy"><i class="icon-pencil" style="margin-top:0px;"></i></button><button id="{{policy.id}}" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Policy"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
 				        <span><b>{{policy.name}}</b><br>{{policy.constraints.length}} Constraints to be evaluated<br>3 Actions assigned<br>&nbsp;&nbsp;&nbsp;Block Procurement, Fail the build, Notify email<br><br>Created 4 years ago by jwhitehouse</span>
 				    </div>
 				</div>

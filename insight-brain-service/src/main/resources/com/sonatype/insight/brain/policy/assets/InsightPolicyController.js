@@ -186,6 +186,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.addConstraintCondition = function() {
+		$scope.state.currentCondition.conditionTypeId = $scope.state.currentCondition.operand.id;
 		$scope.state.currentConstraint.conditions.push($scope.state.currentCondition);
 		
 		$scope.state.currentCondition = {};
@@ -354,7 +355,26 @@ function InsightPolicyController($scope, global, $http, $location) {
     $('#constraintGrid .slick-row .btn-delete').live('click', function(){
     	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
     	$scope.constraintGrid.dataView.deleteItem(constraint.id);
+    	$scope.validatePolicy();
     	
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
+    });
+    
+    $('#constraintConditionsGrid .slick-row').live('mouseover mouseout', function (event) {
+        if (event.type == 'mouseover') {
+            $(this).find(".btn").show(); 
+        } else {
+
+             $(this).find(".btn").hide();
+        }
+    });
+    
+    $('#constraintConditionsGrid .slick-row .btn-delete').live('click', function(){
+		$scope.constraintConditionsGrid.dataView.deleteItem($(this).attr('id'));
+		$scope.validateConstraint();
+		
         //since this event is called outside of angular, we need to force
         //an apply to get everything mapped up properly
         $scope.$apply();

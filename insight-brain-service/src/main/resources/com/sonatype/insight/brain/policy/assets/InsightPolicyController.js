@@ -83,13 +83,20 @@ function InsightPolicyController($scope, global, $http, $location) {
 		},50);
 	}
 	
-	$scope.savePolicyClick = function(){
-		if ($scope.state.currentPolicyRef) {
-			angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
-		} else {
-			$scope.state.policyList.push($scope.state.currentPolicy);
+	$scope.savePolicyClick = function() {		
+		//edit
+		if ($scope.state.currentPolicyRef) {		    
+			$http.put(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
+				angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);				
+				$scope.reset();
+			});
+		} else {		   			
+			$http.post(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
+				$scope.state.currentPolicy.id = data.id;
+				$scope.state.policyList.push($scope.state.currentPolicy);
+				$scope.reset();
+			});
 		}
-		$scope.reset();
 	}
 	
 	$scope.cancelPolicyClick = function(){

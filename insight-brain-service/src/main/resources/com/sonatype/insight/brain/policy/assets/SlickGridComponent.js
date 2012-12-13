@@ -82,6 +82,12 @@ var SlickGridComponent = function() {
             } else {
             	hideEmptyMessage();
             }
+            
+            var resizeFn = function () {
+            	grid.resizeCanvas();
+            };
+
+            $(window).resize(resizeFn);
         }
     }
 }

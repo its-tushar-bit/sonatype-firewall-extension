@@ -24,29 +24,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy2',
     		id: 'policy2',
@@ -64,29 +65,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy3',
     		id: 'policy3',
@@ -104,29 +106,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy4',
     		id: 'policy4',
@@ -144,29 +147,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy5',
     		id: 'policy5',
@@ -184,29 +188,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy6',
     		id: 'policy6',
@@ -224,29 +229,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy7',
     		id: 'policy7',
@@ -264,29 +270,30 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
     	},{
     		name: 'policy8',
     		id: 'policy8',
@@ -304,46 +311,58 @@ insightApp.factory('global', function($rootScope) {
     			operator: 'AND',
     			enabled: true
     		}],
-    		actions: [{
-				id: 'procure',
-				warn: false,
-				fail: true,
-				notify: 'notify@notify.com'
-			},{
-				id: 'develop',
-				warn: false,
-				fail: true
-			},{
-				id: 'build',
-				warn: false,
-				fail: false
-			},{
-				id: 'release',
-				warn: true,
-				fail: false,
-				notify: 'anotheremail@mail.com'
-			},{
-				id: 'operate',
-				warn: true,
-				fail: false
-			}]
+    		actions : {
+		        procure : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }, {
+		            actionTypeId : 'notify',
+		            target : 'notify@notify.com'
+		        }],
+		        develop : [{
+		            actionTypeId : 'fail',
+		            target : null
+		        }],
+		        release : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        },{
+		            actionTypeId : 'notify',
+		            target : 'anotheremail@mail.com'
+		        }],
+		        operate : [{
+		            actionTypeId : 'warn',
+		            target : null
+		        }]
+		    }
+    	}],
+    	actionContextList : [{
+    		name: 'Procure',
+    		id: 'procure'
+    	},{
+    		name: 'Develop',
+    		id: 'develop'
+    	},{
+    		name: 'Build',
+    		id: 'build'
+    	},{
+    		name: 'Release',
+    		id: 'release'
+    	},{
+    		name: 'Operate',
+    		id: 'operate'
     	}],
     	//TODO: this will be removed when REST request for this data is in place
     	actionTypeList : [{
-    		context: 'Procure',
-    		id: 'procure'
+    		id: 'fail',
+    		name: 'fail',
     	},{
-    		context: 'Develop',
-    		id: 'develop'
+    		id: 'warn',
+    		name: 'Warn'
     	},{
-    		context: 'Build',
-    		id: 'build'
-    	},{
-    		context: 'Release',
-    		id: 'release'
-    	},{
-    		context: 'Operate',
-    		id: 'operate'
+    		id: 'notify',
+    		name: 'Notify',
+    		requiresTarget: true
     	}],
     	actionTableDefinition : {
     		columns : [{
@@ -353,9 +372,9 @@ insightApp.factory('global', function($rootScope) {
     			width : 200,
     			formatter : function(row, cell, value, columnDef, dataContext) {
     				var text = '';
-    				$.each(state.actionTypeList, function(index,actionType) {
-    					if (actionType.id === value) {
-    						text = actionType.context;
+    				$.each(state.actionContextList, function(index,actionContext) {
+    					if (actionContext.id === value) {
+    						text = actionContext.name;
     						return false;
     					}
     					return true;
@@ -432,17 +451,20 @@ insightApp.factory('global', function($rootScope) {
         		id : "operand",
         		name : "Operand",
         		field : "operand",
+        		width : 100,
         		formatter : function(row, cell, value, columnDef, dataContext) {
         			return value.name;
         		}
         	},{
         		id : "operator",
         		name : "Operator",
-        		field : "operator"
+        		field : "operator",
+        		width : 100
         	},{
         		id : "value",
         		name : "Value",
         		field : "value",
+        		width : 100,
     			formatter : function(row, cell, value, columnDef, dataContext) {
     				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? value : '') + '</td>'
     				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'

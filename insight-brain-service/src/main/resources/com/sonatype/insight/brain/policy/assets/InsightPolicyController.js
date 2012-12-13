@@ -6,7 +6,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 		delete $scope.state.addConstraintConditionFormValid;
 		$scope.state.currentConstraint = {
 			conditions: [],
-			actions: [],
 			operator: 'OR'
 		};
 		$scope.state.currentCondition = {};
@@ -26,9 +25,38 @@ function InsightPolicyController($scope, global, $http, $location) {
 		
 		if ($scope.state.currentPolicy) {
 			angular.forEach($scope.state.currentPolicy.actions, function(value, key) {
-				$scope.state[value.id + 'Action'] = value.warn ? 'warn' : (value.fail ? 'fail' : '');
-				$scope.state[value.id + 'Notify'] = value.notify;
+				for ( var i = 0 ; i < value.length ; i++ ){
+					switch (value[i].actionTypeId) {
+					case 'fail':
+						$scope.state[key + 'Action'] = 'fail';
+						break;
+					case 'warn':
+						$scope.state[key + 'Action'] = 'warn';
+						break;
+					case 'notify':
+						$scope.state[key + 'Notify'] = value[i].target;
+						break;
+					}
+				}
 			});
+			
+			var handleActionForTable = function(id){
+				return {
+					id: id,
+					fail: $scope.state[id + 'Action'] === 'fail',
+					warn: $scope.state[id + 'Action'] === 'warn',
+					notify: $scope.state[id + 'Notify']
+				};
+			}
+			
+			//this is for the table displayed in constraint screen
+			$scope.state.currentActionData = [
+			    handleActionForTable('procure'),
+			    handleActionForTable('develop'),
+			    handleActionForTable('build'),
+			    handleActionForTable('release'),
+			    handleActionForTable('operate'),
+			];
 		}
 	}
 	
@@ -44,18 +72,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	
 	$scope.createPolicyClick = function(){
 		$scope.state.currentPolicy = {
-			constraints: [],
-			actions: [{
-				id: 'procure'
-			},{
-				id: 'develop'
-			},{
-				id: 'build'
-			},{
-				id: 'release'
-			},{
-				id: 'operate'
-			}]
+			constraints: []
 		}
 		$scope.state.showAddPolicyScreen = true;
 		setTimeout(function(){
@@ -69,10 +86,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.state.currentPolicyRef = this.policy;
 		$scope.state.showAddPolicyScreen = true;
 		$scope.state.policyValid = true;
-		angular.forEach($scope.state.currentPolicy.actions, function(value, key) {
-			$scope.state[value.id + 'Action'] = value.warn ? 'warn' : (value.fail ? 'fail' : '');
-			$scope.state[value.id + 'Notify'] = value.notify;
-		});
+		$scope.resetActions();
 		setTimeout(function(){
 			$scope.constraintGrid.redraw();
 		},50);
@@ -218,34 +232,37 @@ function InsightPolicyController($scope, global, $http, $location) {
 	
 	$scope.doneEditActionsClick = function() {
 		//TODO: validation, at least on emails
+		var handleAction = function(id){
+			var result = [];
+			
+			if ($scope.state[id + 'Action'] === 'warn') {
+				result.push({
+					actionTypeId: 'warn'
+				});
+			} else if ($scope.state[id + 'Action'] === 'fail') {
+				result.push({
+					actionTypeId: 'fail'
+				});
+			}
+			
+			if ($scope.state[id + 'Notify']) {
+				result.push({
+					actionTypeId: 'notify',
+					target: $scope.state[id + 'Notify']
+				});
+			}
+			
+			return result;
+		};
 		
-		$scope.state.currentPolicy.actions = [{
-			id: 'procure',
-			warn: $scope.state.procureAction === 'warn',
-			fail: $scope.state.procureAction === 'fail',
-			notify: $scope.state.procureNotify
-		},{
-			id: 'develop',
-			warn: $scope.state.developAction === 'warn',
-			fail: $scope.state.developAction === 'fail',
-			notify: $scope.state.developNotify
-		},{
-			id: 'build',
-			warn: $scope.state.buildAction === 'warn',
-			fail: $scope.state.buildAction === 'fail',
-			notify: $scope.state.buildNotify
-		},{
-			id: 'release',
-			warn: $scope.state.releaseAction === 'warn',
-			fail: $scope.state.releaseAction === 'fail',
-			notify: $scope.state.releaseNotify
-		},{
-			id: 'operate',
-			warn: $scope.state.operateAction === 'warn',
-			fail: $scope.state.operateAction === 'fail',
-			notify: $scope.state.operateNotify
-		}];
-		
+		$scope.state.currentPolicy.actions = {
+			procure: handleAction('procure'),
+			develop: handleAction('develop'),
+			build: handleAction('build'),
+			release: handleAction('release'),
+			operate: handleAction('operate')
+		};
+			
 		$scope.resetActions();
 		
 		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element

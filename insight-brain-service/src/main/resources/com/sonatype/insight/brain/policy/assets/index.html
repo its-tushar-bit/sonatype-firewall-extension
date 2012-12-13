@@ -51,7 +51,7 @@
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="createPolicyClick()">Create</a> a new Policy.</div>
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 				    <div class="policy-item" ng-repeat="policy in state.policyList" ng-click="policyEditClick()">
-				        <span><b>{{policy.name}}</b><br>7 Constraints to be evaluated<br>3 Actions assigned<br>&nbsp;&nbsp;&nbsp;Block Procurement, Fail the build, Notify email<br><br>Created 4 years ago by jwhitehouse</span>
+				        <span><b>{{policy.name}}</b><br>{{policy.constraints.length}} Constraints to be evaluated<br>3 Actions assigned<br>&nbsp;&nbsp;&nbsp;Block Procurement, Fail the build, Notify email<br><br>Created 4 years ago by jwhitehouse</span>
 				    </div>
 				</div>
 				<div ng-show="state.showAddPolicyScreen">
@@ -76,7 +76,7 @@
 										    <td><button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button></td>
 										</tr>
 									</table>
-									<slickgrid id="constraintGrid" style="height:200px;" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
+									<slickgrid id="constraintGrid" style="height:200px;" class="borderedTable" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
 					            </div>
 					    	</div>
 					    </div>
@@ -90,7 +90,7 @@
 										    <td><button class="btn" data-toggle="modal" data-target="#editActionsModal" title="Edit Actions"><i class="icon-pencil"></i></button></td>
 										</tr>
 									</table>
-					    	        <slickgrid id="actionGrid" style="height:200px;" data="state.currentPolicy.actions" table-def="state.actionTableDefinition"></slickgrid>
+					    	        <slickgrid id="actionGrid" style="height:200px;" class="borderedTable" data="state.currentActionData" table-def="state.actionTableDefinition"></slickgrid>
 					    	    </div>
 					    	</div>
 					    </div>
@@ -121,15 +121,17 @@
 								</div>
 								<div class='control-group'>
 								    <div class='controls'>
-								        <slickgrid id="constraintConditionsGrid" style="height:125px;width:700px;" data="state.currentConstraint.conditions" table-def="state.constraintConditionsTableDefinition"></slickgrid>
-								        <label class="radio inline">
-										    <input type="radio" ng-model="state.currentConstraint.operator" value="OR" ng-change="validateConstraint()">
-										    Any one Condition met
-										</label>
-										<label class="radio inline">
-										    <input type="radio" ng-model="state.currentConstraint.operator" value="AND" ng-change="validateConstraint()">
-										    All Conditions met
-										</label>
+								    	<div style="width:100%">
+									        <slickgrid id="constraintConditionsGrid" style="height:125px;width:700px;" data="state.currentConstraint.conditions" table-def="state.constraintConditionsTableDefinition"></slickgrid>
+									        <label class="radio inline">
+											    <input type="radio" ng-model="state.currentConstraint.operator" value="OR" ng-change="validateConstraint()">
+											    Any one Condition met
+											</label>
+											<label class="radio inline">
+											    <input type="radio" ng-model="state.currentConstraint.operator" value="AND" ng-change="validateConstraint()">
+											    All Conditions met
+											</label>
+										</div>
 								    </div>
 								</div>
 								<div class='control-group'>
@@ -151,17 +153,17 @@
 						    <h3>Edit Actions</h3>
 						</div>
 						<div class="modal-body">
-							<div ng-repeat="actionType in state.actionTypeList">
+							<div ng-repeat="actionContext in state.actionContextList">
 								<div class="form-horizontal">
 									<div class="control-group">
-									    <label class='control-label'>{{actionType.context}}</label>
+									    <label class='control-label'>{{actionContext.name}}</label>
 										<div class='controls' style='text-align:left'>
-											<select ng-model="state[actionType.id + 'Action']">
+											<select ng-model="state[actionContext.id + 'Action']">
 											    <option value="">-- Choose Action --</option>
 												<option value="warn">Warn</option>
 												<option value="fail">Fail</option>
 											</select>
-											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state[actionType.id + 'Notify']">
+											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state[actionContext.id + 'Notify']">
 										</div>
 									</div>
 								</div>

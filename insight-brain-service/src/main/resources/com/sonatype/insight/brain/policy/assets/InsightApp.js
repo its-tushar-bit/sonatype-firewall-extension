@@ -336,22 +336,6 @@ insightApp.factory('global', function($rootScope) {
 		        }]
 		    }
     	}],
-    	actionContextList : [{
-    		name: 'Procure',
-    		id: 'procure'
-    	},{
-    		name: 'Develop',
-    		id: 'develop'
-    	},{
-    		name: 'Build',
-    		id: 'build'
-    	},{
-    		name: 'Release',
-    		id: 'release'
-    	},{
-    		name: 'Operate',
-    		id: 'operate'
-    	}],
     	actionTableDefinition : {
     		columns : [{
     			id : "id",
@@ -489,6 +473,10 @@ insightApp.getConditionTypeUrl = function(){
 
 insightApp.getActionTypeUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/actionType';
+}
+
+insightApp.getActionContextUrl = function(){
+	return insightApp.getBaseUrl() + '/rest/policy/contextType';
 }
 
 insightApp.directive('slickgrid', SlickGridComponent);

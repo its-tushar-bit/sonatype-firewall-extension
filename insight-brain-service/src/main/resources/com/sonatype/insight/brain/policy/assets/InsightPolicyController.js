@@ -260,6 +260,9 @@ function InsightPolicyController($scope, global, $http, $location) {
     	$scope.state.conditionTypes = conditionTypeData;
     	$http.get(insightApp.getActionTypeUrl()).success(function(actionTypeData, status, headers, config) {
         	$scope.state.actionTypeList = actionTypeData;
+        	$http.get(insightApp.getActionContextUrl()).success(function(actionContextData, status, headers, config) {
+        		$scope.state.actionContextList = actionContextData;
+        	});
     	});
     });
 	

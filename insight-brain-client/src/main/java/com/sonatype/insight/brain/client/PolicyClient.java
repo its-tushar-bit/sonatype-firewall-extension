@@ -41,14 +41,14 @@ public class PolicyClient
     }
 
     @Override
-    public ServletResult handle( final String path )
+    public ServletResult handle( final String path, final String query )
         throws IOException
     {
-        if ( path.length() == 0 )
+        if ( path == null || path.length() == 0 )
         {
             // implicit redirect from initial top-level request to the actual management asset
             final HttpResponse redirect = new BasicHttpResponse( HttpVersion.HTTP_1_1, 302, null );
-            redirect.setHeader( HttpHeaders.LOCATION, "policy-assets/index.html" );
+            redirect.setHeader( HttpHeaders.LOCATION, "policy-assets/index.html?appId=" + appId );
             return result( redirect );
         }
 
@@ -58,7 +58,7 @@ public class PolicyClient
             return path( path, "index.html" ).get();
         }
 
-        return super.handle( path );
+        return super.handle( path, query );
     }
 
     public List<PolicyFact> evaluate( final String scanId )

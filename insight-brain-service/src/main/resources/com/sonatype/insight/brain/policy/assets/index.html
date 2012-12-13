@@ -158,12 +158,12 @@
 									<div class="control-group">
 									    <label class='control-label'>{{actionContext.name}}</label>
 										<div class='controls' style='text-align:left'>
-											<select ng-model="state[actionContext.id + 'Action']">
+											<select ng-model="state.actionData[actionContext.id + 'Action']">
 											    <option value="">-- Choose Action --</option>
 												<option value="warn">Warn</option>
 												<option value="fail">Fail</option>
 											</select>
-											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state[actionContext.id + 'Notify']">
+											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state.actionData[actionContext.id + 'Notify']">
 										</div>
 									</div>
 								</div>

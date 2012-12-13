@@ -352,18 +352,6 @@ insightApp.factory('global', function($rootScope) {
     		name: 'Operate',
     		id: 'operate'
     	}],
-    	//TODO: this will be removed when REST request for this data is in place
-    	actionTypeList : [{
-    		id: 'fail',
-    		name: 'fail',
-    	},{
-    		id: 'warn',
-    		name: 'Warn'
-    	},{
-    		id: 'notify',
-    		name: 'Notify',
-    		requiresTarget: true
-    	}],
     	actionTableDefinition : {
     		columns : [{
     			id : "id",
@@ -497,6 +485,10 @@ insightApp.getBaseUrl = function(){
 
 insightApp.getConditionTypeUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/conditionType';
+}
+
+insightApp.getActionTypeUrl = function(){
+	return insightApp.getBaseUrl() + '/rest/policy/actionType';
 }
 
 insightApp.directive('slickgrid', SlickGridComponent);

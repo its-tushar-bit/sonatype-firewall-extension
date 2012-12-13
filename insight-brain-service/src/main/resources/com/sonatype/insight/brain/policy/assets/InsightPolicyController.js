@@ -12,29 +12,20 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.resetActions = function() {
-		delete $scope.state.procureAction;
-		delete $scope.state.procureNotify;
-		delete $scope.state.developAction;
-		delete $scope.state.developNotify;
-		delete $scope.state.buildAction;
-		delete $scope.state.buildNotify;
-		delete $scope.state.releaseAction;
-		delete $scope.state.releaseNotify;
-		delete $scope.state.operateAction;
-		delete $scope.state.operateNotify;
+		$scope.state.actionData = {};
 		
 		if ($scope.state.currentPolicy) {
 			angular.forEach($scope.state.currentPolicy.actions, function(value, key) {
 				for ( var i = 0 ; i < value.length ; i++ ){
 					switch (value[i].actionTypeId) {
 					case 'fail':
-						$scope.state[key + 'Action'] = 'fail';
+						$scope.state.actionData[key + 'Action'] = 'fail';
 						break;
 					case 'warn':
-						$scope.state[key + 'Action'] = 'warn';
+						$scope.state.actionData[key + 'Action'] = 'warn';
 						break;
 					case 'notify':
-						$scope.state[key + 'Notify'] = value[i].target;
+						$scope.state.actionData[key + 'Notify'] = value[i].target;
 						break;
 					}
 				}
@@ -43,20 +34,18 @@ function InsightPolicyController($scope, global, $http, $location) {
 			var handleActionForTable = function(id){
 				return {
 					id: id,
-					fail: $scope.state[id + 'Action'] === 'fail',
-					warn: $scope.state[id + 'Action'] === 'warn',
-					notify: $scope.state[id + 'Notify']
+					fail: $scope.state.actionData[id + 'Action'] === 'fail',
+					warn: $scope.state.actionData[id + 'Action'] === 'warn',
+					notify: $scope.state.actionData[id + 'Notify']
 				};
 			}
 			
+			$scope.state.currentActionData = [];
+			
 			//this is for the table displayed in constraint screen
-			$scope.state.currentActionData = [
-			    handleActionForTable('procure'),
-			    handleActionForTable('develop'),
-			    handleActionForTable('build'),
-			    handleActionForTable('release'),
-			    handleActionForTable('operate'),
-			];
+			angular.forEach($scope.state.actionContextList, function(value, key) {
+				$scope.state.currentActionData.push(handleActionForTable(value.id));
+			});
 		}
 	}
 	
@@ -235,33 +224,29 @@ function InsightPolicyController($scope, global, $http, $location) {
 		var handleAction = function(id){
 			var result = [];
 			
-			if ($scope.state[id + 'Action'] === 'warn') {
+			if ($scope.state.actionData[id + 'Action'] === 'warn') {
 				result.push({
 					actionTypeId: 'warn'
 				});
-			} else if ($scope.state[id + 'Action'] === 'fail') {
+			} else if ($scope.state.actionData[id + 'Action'] === 'fail') {
 				result.push({
 					actionTypeId: 'fail'
 				});
 			}
 			
-			if ($scope.state[id + 'Notify']) {
+			if ($scope.state.actionData[id + 'Notify']) {
 				result.push({
 					actionTypeId: 'notify',
-					target: $scope.state[id + 'Notify']
+					target: $scope.state.actionData[id + 'Notify']
 				});
 			}
 			
 			return result;
 		};
 		
-		$scope.state.currentPolicy.actions = {
-			procure: handleAction('procure'),
-			develop: handleAction('develop'),
-			build: handleAction('build'),
-			release: handleAction('release'),
-			operate: handleAction('operate')
-		};
+		angular.forEach($scope.state.actionContextList, function(value, key) {
+			$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
+		});
 			
 		$scope.resetActions();
 		
@@ -273,6 +258,9 @@ function InsightPolicyController($scope, global, $http, $location) {
 	
 	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {
     	$scope.state.conditionTypes = conditionTypeData;
+    	$http.get(insightApp.getActionTypeUrl()).success(function(actionTypeData, status, headers, config) {
+        	$scope.state.actionTypeList = actionTypeData;
+    	});
     });
 	
 	$('#editConstraintModal').live('show', function (event) {

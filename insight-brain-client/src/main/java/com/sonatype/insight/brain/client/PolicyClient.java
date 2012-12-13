@@ -40,7 +40,8 @@ public class PolicyClient
         this.appId = UrlUtils.encodeUrlComponent( appId );
     }
 
-    public ServletResult manage( final String path )
+    @Override
+    public ServletResult handle( final String path )
         throws IOException
     {
         if ( path.length() == 0 )
@@ -50,12 +51,14 @@ public class PolicyClient
             redirect.setHeader( HttpHeaders.LOCATION, "policy-assets/index.html" );
             return result( redirect );
         }
+
+        // workaround for DropWizard directory->index redirect bug
         if ( path.contains( "-assets/" ) && path.endsWith( "/" ) )
         {
-            // workaround for DropWizard index bug
             return path( path, "index.html" ).get();
         }
-        return path( path ).get();
+
+        return super.handle( path );
     }
 
     public List<PolicyFact> evaluate( final String scanId )

@@ -110,7 +110,7 @@
 								<div class='control-group'>
 									<label class='control-label'>Conditions</label>
 									<div class='controls' style='text-align:left'>
-										<select ng-model="state.currentCondition.operand" ng-change="constraintOperandChanged()" ng-options="c.name for c in state.conditionTypes">
+										<select ng-model="state.currentCondition.operand" ng-change="constraintOperandChanged()" ng-options="c.name for c in state.conditionTypeList">
 										</select>
 										<select ng-model="state.currentCondition.operator" ng-show="state.currentCondition.operand" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentCondition.operand.supportedOperators">
 										</select>

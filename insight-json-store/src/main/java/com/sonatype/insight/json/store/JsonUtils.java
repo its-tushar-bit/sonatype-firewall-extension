@@ -45,7 +45,7 @@ public final class JsonUtils
     public static <T extends ContainerNode<?>> T read( final File file )
         throws IOException
     {
-        final JsonParser parser = JSON.createJsonParser( file );
+        final JsonParser parser = JSON.createParser( file );
         try
         {
             return (T) parser.readValueAsTree();
@@ -59,7 +59,7 @@ public final class JsonUtils
     public static <T> T read( final File file, final Class<? extends T> type )
         throws IOException
     {
-        final JsonParser parser = JSON.createJsonParser( file );
+        final JsonParser parser = JSON.createParser( file );
         try
         {
             return parser.readValueAs( type );
@@ -74,7 +74,7 @@ public final class JsonUtils
         throws IOException
     {
         file.getAbsoluteFile().getParentFile().mkdirs();
-        final JsonGenerator generator = JSON.createJsonGenerator( file, JsonEncoding.UTF8 );
+        final JsonGenerator generator = JSON.createGenerator( file, JsonEncoding.UTF8 );
         try
         {
             generator.useDefaultPrettyPrinter().writeTree( data );
@@ -89,7 +89,7 @@ public final class JsonUtils
     public static <T extends ContainerNode<?>> T parse( final byte[] buf )
         throws IOException
     {
-        final JsonParser parser = JSON.createJsonParser( buf );
+        final JsonParser parser = JSON.createParser( buf );
         try
         {
             return (T) parser.readValueAsTree();
@@ -103,7 +103,7 @@ public final class JsonUtils
     public static <T> T parse( final byte[] buf, final Class<? extends T> type )
         throws IOException
     {
-        final JsonParser parser = JSON.createJsonParser( buf );
+        final JsonParser parser = JSON.createParser( buf );
         try
         {
             return parser.readValueAs( type );
@@ -114,11 +114,23 @@ public final class JsonUtils
         }
     }
 
+    public static <T extends ContainerNode<?>> T parse( final String json )
+        throws IOException
+    {
+        return parse( json.getBytes( "UTF-8" ) );
+    }
+
+    public static <T> T parse( final String json, final Class<? extends T> type )
+        throws IOException
+    {
+        return parse( json.getBytes( "UTF-8" ), type );
+    }
+
     public static byte[] generate( final ContainerNode<?> data )
         throws IOException
     {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        final JsonGenerator generator = JSON.createJsonGenerator( os, JsonEncoding.UTF8 );
+        final JsonGenerator generator = JSON.createGenerator( os, JsonEncoding.UTF8 );
         try
         {
             generator.useDefaultPrettyPrinter().writeTree( data );

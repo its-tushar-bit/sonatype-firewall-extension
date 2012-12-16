@@ -26,16 +26,40 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-model</artifactId>
       <version>0.1-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.openjpa</groupId>
+          <artifactId>openjpa</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-jdbc</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-dbcp</groupId>
+          <artifactId>commons-dbcp</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.openjpa</groupId>
+      <artifactId>openjpa-kernel</artifactId>
+      <version>${openjpa.version}</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-client-utils</artifactId>
       <version>${insight-scanner.version}</version>
     </dependency>
-
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-json-store</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>

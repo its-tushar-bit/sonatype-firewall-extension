@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import org.apache.http.message.BasicHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.model.component.PolicyFact;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
@@ -25,6 +23,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.ServletResult;
 import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class PolicyClient
     extends AbstractServletClient<PolicyClient>
@@ -73,11 +72,7 @@ public class PolicyClient
         final String jsonResult = httpResult.text();
         try
         {
-            final ObjectMapper mapper = new ObjectMapper();
-            final PolicyFact[] policyFacts = mapper.readValue( jsonResult, PolicyFact[].class );
-            final List<PolicyFact> result = new ArrayList<PolicyFact>();
-            result.addAll( Arrays.asList( policyFacts ) );
-            return result;
+            return Arrays.asList( JsonUtils.parse( jsonResult, PolicyFact[].class ) );
         }
         catch ( final IOException e )
         {

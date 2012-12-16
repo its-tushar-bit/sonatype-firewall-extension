@@ -16,10 +16,6 @@
   <artifactId>insight-brain-model</artifactId>
   <name>Insight Brain Model</name>
 
-  <properties>
-    <openjpa.version>2.2.0</openjpa.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.openjpa</groupId>

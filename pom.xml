@@ -27,6 +27,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <logback-classic.version>1.0.7</logback-classic.version>
     <jackson.version>2.1.2</jackson.version>
+    <openjpa.version>2.2.1</openjpa.version>
   </properties>
 
   <scm>
@@ -42,8 +43,8 @@
 
   <modules>
     <module>insight-json-store</module>
-    <module>insight-brain-db</module>
     <module>insight-brain-model</module>
+    <module>insight-brain-db</module>
     <module>insight-brain-data-access</module>
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>

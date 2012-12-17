@@ -1,4 +1,58 @@
 function InsightPolicyController($scope, global, $http, $location) {
+	function updatePolicySummary(data) {
+		data.summary = {
+			constraints: data.constraints.length + ' Constraints to be evaluated',
+		}
+		
+		var actionCount = 0;
+		var actionNames = '';
+		angular.forEach(data.actions, function(value, key){
+			if ( value.length > 0 ) {
+    			actionCount++;
+    			if ( actionNames.length > 0 ) {
+					actionNames += ', ';
+				}
+    			
+    			for ( var j = 0 ; j < $scope.state.actionContextList.length ; j++ ){
+    				if ( $scope.state.actionContextList[j].id == key ){
+    					actionNames += $scope.state.actionContextList[j].name + ': ';				
+    					break;
+    				}
+    			}
+    			
+    			for ( var j = 0 ; j < value.length ; j++ ) {
+    				if ( value[j].actionTypeId === 'warn') {	
+    					actionNames += 'Warn';
+    				} else if ( value[j].actionTypeId === 'fail') {
+    					actionNames += 'Fail'
+    				} else if ( value[j].actionTypeId === 'notify') {
+    					if ( value.length > 1 ){
+    						actionNames += ' and notify';
+    					} else {
+    						actionNames += 'Notify';
+    					}
+    				}
+    			}
+			}
+		});
+		
+		data.summary.actionCount = actionCount;
+		data.summary.actions = actionNames;
+	}
+	
+	function updateConditionOperands (data) {
+		for ( var i = 0 ; i < data.constraints.length ; i++ ) {
+			for ( var j = 0 ; j < data.constraints[i].conditions.length ; j++ ) {
+				for ( var k = 0 ; k < $scope.state.conditionTypeList.length ; k++ ){
+    				if ( $scope.state.conditionTypeList[k].id == data.constraints[i].conditions[j].conditionTypeId ){
+    					data.constraints[i].conditions[j].operand = $scope.state.conditionTypeList[k];				
+    					break;
+    				}
+    			}
+			}
+		}
+	}
+	
 	$scope.state = global;
 	
 	$scope.resetConstraint = function() {
@@ -75,13 +129,17 @@ function InsightPolicyController($scope, global, $http, $location) {
 		//edit
 		if ($scope.state.currentPolicyRef) {		    
 			$http.put(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
-				angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);				
+				angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
+				updatePolicySummary($scope.state.currentPolicyRef);
+				updateConditionOperands($scope.state.currentPolicyRef);
 				$scope.reset();
 			});
 		} else {		   			
 			$http.post(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
 				$scope.state.currentPolicy.id = data.id;
 				$scope.state.policyList.push($scope.state.currentPolicy);
+				updatePolicySummary($scope.state.currentPolicy);
+				updateConditionOperands($scope.state.currentPolicy);
 				$scope.reset();
 			});
 		}
@@ -264,18 +322,8 @@ function InsightPolicyController($scope, global, $http, $location) {
                 $http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
                 	for ( var i = 0 ; i < data.length ; i++ ){
                 		$scope.state.policyList.push(data[i]);
-                		
-                		//solely to setup the operand with the conditionType object
-                		for ( var j = 0 ; j < data[i].constraints.length ; j++ ) {
-                			for ( var k = 0 ; k < data[i].constraints[j].conditions.length ; k++ ) {
-                				for ( var l = 0 ; l < $scope.state.conditionTypeList.length ; l++ ){
-                    				if ( $scope.state.conditionTypeList[l].id == data[i].constraints[j].conditions[k].conditionTypeId ){
-                    					data[i].constraints[j].conditions[k].operand = $scope.state.conditionTypeList[l];				
-                    					break;
-                    				}
-                    			}
-                			}
-                		}
+                		updatePolicySummary(data[i]);
+                		updateConditionOperands(data[i]);
                 	}
                 	
                 	$scope.reset();

@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
 {
@@ -95,17 +95,16 @@ public class ComponentDAO
         return result;
     }
 
-    private String getComponentKey( final String groupId, final String artifactId, final String version )
+    private static String getComponentKey( final String groupId, final String artifactId, final String version )
     {
         return groupId + ':' + artifactId + ':' + version;
     }
 
-    private JsonNode loadJson( final byte[] data )
+    private static JsonNode loadJson( final byte[] data )
     {
         try
         {
-            final ObjectMapper mapper = new ObjectMapper();
-            return mapper.readTree( data );
+            return JsonUtils.parse( data );
         }
         catch ( final IOException e )
         {

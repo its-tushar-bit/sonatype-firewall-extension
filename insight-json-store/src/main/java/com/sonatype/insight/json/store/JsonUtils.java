@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -85,6 +86,21 @@ public final class JsonUtils
         }
     }
 
+    public static void write( final File file, final Object pojo )
+        throws IOException
+    {
+        file.getAbsoluteFile().getParentFile().mkdirs();
+        final JsonGenerator generator = JSON.createGenerator( file, JsonEncoding.UTF8 );
+        try
+        {
+            generator.useDefaultPrettyPrinter().writeObject( pojo );
+        }
+        finally
+        {
+            generator.close();
+        }
+    }
+
     @SuppressWarnings( "unchecked" )
     public static <T extends ContainerNode<?>> T parse( final byte[] buf )
         throws IOException
@@ -140,6 +156,28 @@ public final class JsonUtils
             generator.close();
         }
         return os.toByteArray();
+    }
+
+    public static byte[] generate( final Object pojo )
+        throws IOException
+    {
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        final JsonGenerator generator = JSON.createGenerator( os, JsonEncoding.UTF8 );
+        try
+        {
+            generator.useDefaultPrettyPrinter().writeObject( pojo );
+        }
+        finally
+        {
+            generator.close();
+        }
+        return os.toByteArray();
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public static <T extends ContainerNode<?>> T asTree( final Object pojo )
+    {
+        return (T) ( (ObjectMapper) JSON.getCodec() ).convertValue( pojo, ContainerNode.class );
     }
 
     public static ArrayNode arrayNode( final ContainerNode<?> data )

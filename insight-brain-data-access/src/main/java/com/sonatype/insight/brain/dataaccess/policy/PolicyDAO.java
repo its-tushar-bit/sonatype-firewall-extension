@@ -15,9 +15,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class PolicyDAO
 {
@@ -100,10 +99,7 @@ public class PolicyDAO
     {
         try
         {
-            policyFile.getParentFile().mkdirs();
-            final ObjectMapper mapper = new ObjectMapper();
-            mapper.configure( SerializationFeature.INDENT_OUTPUT, true );
-            mapper.writeValue( policyFile, policies );
+            JsonUtils.write( policyFile, policies );
         }
         catch ( final IOException e )
         {
@@ -114,22 +110,18 @@ public class PolicyDAO
     private static List<Policy> loadJson( final File policyFile )
     {
         final List<Policy> result = new ArrayList<Policy>();
-        if ( !policyFile.exists() )
+        if ( policyFile.exists() )
         {
-            return result;
+            try
+            {
+                Collections.addAll( result, JsonUtils.read( policyFile, Policy[].class ) );
+            }
+            catch ( final IOException e )
+            {
+                throw new IllegalStateException( e );
+            }
         }
-
-        try
-        {
-            final ObjectMapper mapper = new ObjectMapper();
-            final Policy[] policies = mapper.readValue( policyFile, Policy[].class );
-            Collections.addAll( result, policies );
-            return result;
-        }
-        catch ( final IOException e )
-        {
-            throw new IllegalStateException( e );
-        }
+        return result;
     }
 
     private static String newUUID()

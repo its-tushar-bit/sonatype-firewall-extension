@@ -16,7 +16,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.component.PolicyFact;
+import com.sonatype.insight.brain.model.policy.PolicyEvent;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -60,10 +60,11 @@ public class PolicyClient
         return super.handle( path, query );
     }
 
-    public List<PolicyFact> evaluate( final String scanId )
+    public List<PolicyEvent> evaluate( final String scanId, final String contextTypeId /* FIXME: pass in full Context */)
         throws IOException
     {
-        final Result httpResult = path( "rest/policy/evaluate", appId ).query( "scanId", scanId ).get();
+        final Result httpResult =
+            path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId, "contextTypeId", contextTypeId ).get();
         if ( httpResult.status() >= 400 )
         {
             throw new ClientException( httpResult );
@@ -72,7 +73,7 @@ public class PolicyClient
         final String jsonResult = httpResult.text();
         try
         {
-            return Arrays.asList( JsonUtils.parse( jsonResult, PolicyFact[].class ) );
+            return Arrays.asList( JsonUtils.parse( jsonResult, PolicyEvent[].class ) );
         }
         catch ( final IOException e )
         {

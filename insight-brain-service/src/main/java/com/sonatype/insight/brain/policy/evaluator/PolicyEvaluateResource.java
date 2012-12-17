@@ -14,7 +14,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
@@ -23,8 +22,9 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.PolicyFact;
+import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvent;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -39,19 +39,21 @@ public class PolicyEvaluateResource
 
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
-    @Context
+    @javax.ws.rs.core.Context
     private InsightWork work;
 
-    @Context
+    @javax.ws.rs.core.Context
     private InsightProxy proxy;
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<PolicyFact> evaluate( @PathParam( "appId" ) final String appId,
-                                      @QueryParam( "scanId" ) final String scanId )
+    public List<PolicyEvent> evaluate( @PathParam( "appId" ) final String appId,
+                                       @QueryParam( "scanId" ) final String scanId,
+                                       @QueryParam( "contextTypeId" ) final String contextTypeId )
         throws IOException
     {
-        log.debug( "Received request to evaluate policy for app id {}, scan id {}", appId, scanId );
+        log.debug( "Received request to evaluate policy for app id {}, scan id {}, contextTypeId {}", appId, scanId,
+                   contextTypeId );
 
         final File policyDir = work.getPolicyDir();
         final PolicyDAO policyDAO = new PolicyDAO( policyDir );
@@ -68,10 +70,11 @@ public class PolicyEvaluateResource
 
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
-        final ComponentDAO componentDAO = new ComponentDAO();
-        final List<Component> components = componentDAO.getAll( licenseReportEntry.buf, securityReportEntry.buf );
-        final PolicyEvaluator policyEvaluator = new PolicyEvaluator();
-        final List<PolicyFact> result = policyEvaluator.evaluate( policies, components );
+
+        final List<Component> components = new ComponentDAO().getAll( licenseReportEntry.buf, securityReportEntry.buf );
+        final List<PolicyEvent> result =
+            new PolicyEvaluator().evaluate( new Context( contextTypeId ), policies, components );
+
         return result;
     }
 }

@@ -8,27 +8,28 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.Action;
-import com.sonatype.insight.brain.model.policy.ActionType;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
 
 public class DroolsGenerator
 {
     private static final String INDENT = "    ";
 
-    public String generate( final List<Policy> policies )
+    public String generate( final Context context, final List<Policy> policies )
     {
         final StringBuilder droolsCode = new StringBuilder();
-        // TODO add imports for drools
+
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.component.PolicyFact\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.ComponentFact\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.ConstraintFact\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.PolicyFact\n" );
+
         for ( final Policy policy : policies )
         {
             if ( !policy.isEnabled() )
@@ -36,20 +37,15 @@ public class DroolsGenerator
                 continue;
             }
 
-            final List<Action> actions = policy.getActions( BuildContextType.ID /* TODO: current context */);
+            final List<Action> actions = policy.getActions( context.getContextTypeId() );
             if ( actions == null || actions.isEmpty() )
             {
                 continue;
             }
 
             droolsCode.append( '\n' );
-            droolsCode.append( "// Policy name: " ).append( policy.getName() ).append( '\n' );
-            droolsCode.append( "rule \"" ).append( policy.getId() ).append( "\"\n" );
-            droolsCode.append( "when\n" );
-            droolsCode.append( INDENT ).append( "$component : Component\n" );
-            droolsCode.append( INDENT ).append( "(\n" );
+            droolsCode.append( "// Begin policy: " ).append( policy.getName() ).append( '\n' );
 
-            int constraintIndex = 0;
             for ( final Constraint constraint : policy.getConstraints() )
             {
                 if ( !constraint.isEnabled() )
@@ -57,11 +53,11 @@ public class DroolsGenerator
                     continue;
                 }
 
-                if ( constraintIndex > 0 )
-                {
-                    droolsCode.append( INDENT ).append( INDENT ).append( "||\n" );
-                }
-                droolsCode.append( INDENT ).append( INDENT ).append( "(\n" );
+                droolsCode.append( "// Begin constraint: " ).append( constraint.getName() ).append( '\n' );
+                droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "\"\n" );
+                droolsCode.append( "when\n" );
+                droolsCode.append( INDENT ).append( "$component : Component\n" );
+                droolsCode.append( INDENT ).append( "(\n" );
 
                 int conditionIndex = 0;
                 for ( final Condition condition : constraint.getConditions() )
@@ -85,20 +81,17 @@ public class DroolsGenerator
                     conditionIndex++;
                 }
 
-                droolsCode.append( INDENT ).append( INDENT ).append( ")\n" );
-                constraintIndex++;
+                droolsCode.append( INDENT ).append( ")\n" );
+                droolsCode.append( "then\n" );
+                droolsCode.append( INDENT ).append( "insert( new ComponentFact( $component, \"" ).append( constraint.getId() ).append( "\" ) );\n" );
+                droolsCode.append( "end\n" );
+
+                droolsCode.append( "// End constraint: " ).append( constraint.getName() ).append( '\n' );
             }
 
-            droolsCode.append( INDENT ).append( ")\n" );
-            droolsCode.append( "then\n" );
-            for ( final Action action : actions )
-            {
-                final ActionType actionType = ActionTypes.getById( action.getActionTypeId() );
-                droolsCode.append( INDENT ).append( actionType.generateDroolsCode( action ) ).append( ";" );
-                droolsCode.append( "\n" );
-            }
-            droolsCode.append( "end\n" );
+            droolsCode.append( "// End policy: " ).append( policy.getName() ).append( '\n' );
         }
+
         return droolsCode.toString();
     }
 }

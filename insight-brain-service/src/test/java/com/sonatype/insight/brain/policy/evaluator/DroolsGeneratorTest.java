@@ -20,6 +20,7 @@ import org.junit.Test;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -71,7 +72,7 @@ public class DroolsGeneratorTest
         policy.addAction( BuildContextType.ID, action );
 
         final DroolsGenerator generator = new DroolsGenerator();
-        final String droolsCode = generator.generate( Arrays.asList( policy ) );
+        final String droolsCode = generator.generate( new Context( BuildContextType.ID ), Arrays.asList( policy ) );
         System.out.println( droolsCode );
         // TODO Add asserts - for now it's good if we get no exceptions :)
 

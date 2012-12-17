@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.model.policy.actions;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
 
 public class FailActionType
@@ -37,11 +36,5 @@ public class FailActionType
     public boolean isRequiresTarget()
     {
         return false;
-    }
-
-    @Override
-    public String generateDroolsCode( final Action action )
-    {
-        return "insert( new PolicyFact( $component, drools.getRule().getName(), \"" + FailActionType.ID + "\" ) )";
     }
 }

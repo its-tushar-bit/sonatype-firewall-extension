@@ -25,16 +25,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.PolicyFact;
+import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvent;
+import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
+import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
 public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
-    public List<PolicyFact> evaluate( final List<Policy> policies, final List<Component> components )
+    public List<PolicyEvent> evaluate( final Context context, final List<Policy> policies,
+                                       final List<Component> components )
     {
-        final String droolsCode = new DroolsGenerator().generate( policies );
+        final String droolsCode = new DroolsGenerator().generate( context, policies );
         // Most probably this is too much logging, but it's good for debugging for now
         log.debug( "Generated drools code:\n{}", droolsCode );
 
@@ -55,33 +62,64 @@ public class PolicyEvaluator
             droolsSession.insert( component );
         }
         droolsSession.fireAllRules();
-        final Collection<Object> policyFacts = droolsSession.getObjects( new ObjectFilter()
+
+        final Collection<Object> componentFacts = droolsSession.getObjects( new ObjectFilter()
         {
             @Override
             public boolean accept( final Object object )
             {
-                return object instanceof PolicyFact;
+                return object instanceof ComponentFact;
             }
         } );
 
-        // TODO Aggregate/deduplicate policy facts
-        final List<PolicyFact> result = new ArrayList<PolicyFact>();
-        if ( policyFacts == null || policyFacts.isEmpty() )
+        // TODO Aggregate/deduplicate component facts
+        final List<PolicyEvent> result = new ArrayList<PolicyEvent>();
+        if ( componentFacts == null || componentFacts.isEmpty() )
         {
             return result;
         }
 
-        final Map<String, Policy> policiesById = new LinkedHashMap<String, Policy>();
+        final Map<String, ConstraintFact> constraintFactsById = new LinkedHashMap<String, ConstraintFact>();
+
         for ( final Policy policy : policies )
         {
-            policiesById.put( policy.getId(), policy );
+            for ( final Constraint constraint : policy.getConstraints() )
+            {
+                constraintFactsById.put( constraint.getId(), new ConstraintFact( constraint ) );
+            }
         }
-        for ( final Object o : policyFacts )
+
+        for ( final Object o : componentFacts )
         {
-            final PolicyFact policyFact = (PolicyFact) o;
-            policyFact.setPolicyName( policiesById.get( policyFact.getPolicyId() ).getName() );
-            result.add( policyFact );
+            final ComponentFact componentFact = (ComponentFact) o;
+            final ConstraintFact constraintFact = constraintFactsById.get( componentFact.getConstraintId() );
+            if ( constraintFact != null )
+            {
+                constraintFact.addComponentFact( componentFact );
+            }
         }
+
+        for ( final Policy policy : policies )
+        {
+            PolicyFact policyFact = new PolicyFact( policy );
+            for ( final Constraint constraint : policy.getConstraints() )
+            {
+                final ConstraintFact constraintFact = constraintFactsById.get( constraint.getId() );
+                if ( constraintFact.getComponentFacts() != null )
+                {
+                    policyFact.addConstraintFact( constraintFact );
+                }
+            }
+            if ( policyFact.getConstraintFacts() != null )
+            {
+                final List<Action> actions = policy.getActions( context.getContextTypeId() );
+                if ( actions != null )
+                {
+                    result.add( new PolicyEvent( policyFact, new ArrayList<Action>( actions ) ) );
+                }
+            }
+        }
+
         return result;
     }
 }

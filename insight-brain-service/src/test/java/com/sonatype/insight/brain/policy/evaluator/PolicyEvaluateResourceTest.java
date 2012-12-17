@@ -13,12 +13,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.model.component.PolicyFact;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvent;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
@@ -50,6 +50,7 @@ public class PolicyEvaluateResourceTest
         saasReportFile.delete();
 
         final Constraint constraint = new Constraint();
+        constraint.setId( "C1" );
         constraint.setName( "PolicyEvaluatorResourceTest constraint 1" );
         constraint.setOperator( LogicalOperator.AND );
         final Condition condition1 = new Condition();
@@ -61,6 +62,7 @@ public class PolicyEvaluateResourceTest
         action.setActionTypeId( FailActionType.ID );
 
         final Policy policy = new Policy();
+        policy.setId( "P1" );
         policy.setName( "PolicyEvaluatorResourceTest policy" );
         policy.addConstraint( constraint );
         policy.addAction( BuildContextType.ID, action );
@@ -75,13 +77,14 @@ public class PolicyEvaluateResourceTest
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.get( getServiceURL( appId, scanId ) );
         assertResponseStatus( 200, response );
-        final PolicyFact[] policyFacts = JsonHelpers.fromJson( response.getResponseBody(), PolicyFact[].class );
-        Assert.assertNotNull( policyFacts );
-        Assert.assertTrue( policyFacts.length > 0 );
+        final PolicyEvent[] policyEvents = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvent[].class );
+        Assert.assertNotNull( policyEvents );
+        Assert.assertTrue( policyEvents.length > 0 );
     }
 
     private String getServiceURL( final String appId, final String scanId )
     {
-        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "?scanId=" + scanId;
+        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "?scanId=" + scanId
+            + "&contextTypeId=" + BuildContextType.ID;
     }
 }

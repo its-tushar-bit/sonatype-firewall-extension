@@ -16,6 +16,4 @@ public interface ActionType
     List<String> getAvailableTargets();
 
     boolean isRequiresTarget();
-
-    String generateDroolsCode( Action action );
 }

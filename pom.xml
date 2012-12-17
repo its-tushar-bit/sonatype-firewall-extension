@@ -22,7 +22,7 @@
   <name>Insight Brain Parent POM</name>
 
   <properties>
-    <insight-scanner.version>1.22-SNAPSHOT</insight-scanner.version>
+    <insight-scanner.version>1.22.1-SNAPSHOT</insight-scanner.version>
     <insight-saas.version>1.0.0-SNAPSHOT</insight-saas.version>
     <slf4j.version>1.7.2</slf4j.version>
     <logback-classic.version>1.0.7</logback-classic.version>

@@ -40,20 +40,138 @@ function InsightPolicyController($scope, global, $http, $location) {
 		data.summary.actions = actionNames;
 	}
 	
-	function updateConditionOperands (data) {
-		for ( var i = 0 ; i < data.constraints.length ; i++ ) {
-			for ( var j = 0 ; j < data.constraints[i].conditions.length ; j++ ) {
-				for ( var k = 0 ; k < $scope.state.conditionTypeList.length ; k++ ){
-    				if ( $scope.state.conditionTypeList[k].id == data.constraints[i].conditions[j].conditionTypeId ){
-    					data.constraints[i].conditions[j].operand = $scope.state.conditionTypeList[k];				
-    					break;
-    				}
-    			}
+	function getConditionType (id) {
+		for ( var i = 0 ; i < $scope.state.conditionTypeList.length ; i++ ){
+			if ( $scope.state.conditionTypeList[i].id == id ){
+				return $scope.state.conditionTypeList[i];
 			}
 		}
+		
+		return null;
 	}
 	
 	$scope.state = global;
+	
+	var checkboxSelector = new Slick.CheckboxSelectColumn({
+        cssClass: "slick-cell-checkboxsel"
+	})
+	
+	$scope.state.actionTableDefinition = {
+		columns : [{
+			id : "id",
+			name : "Context",
+			field : "id",
+			width : 200,
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				var text = '';
+				$.each($scope.state.actionContextList, function(index,actionContext) {
+					if (actionContext.id === value) {
+						text = actionContext.name;
+						return false;
+					}
+					return true;
+				});
+				return text;
+			}
+		},{
+			id : "fail",
+			name : "Fail",
+			field : "fail",
+			width : 50,
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				if ( value ){
+					return '<div class="icon-check"></div>';
+				}
+				return '';
+			}
+		},{
+			id : "warn",
+			name : "Warn",
+			field : "warn",
+			width : 50,
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				if ( value ){
+					return '<div class="icon-check"></div>';
+				}
+				return '';
+			}
+		},{
+			id : "notify",
+			name : "Notify",
+			field : "notify",
+			width : 800
+		}],
+		options : {
+			height : 200,
+			forceFitColumns : true,
+			fullWidthRows : true
+		},
+		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
+	};
+	$scope.state.constraintTableDefinition = {
+		columns : [ checkboxSelector.getColumnDefinition(), {
+			id : "name",
+			name : "Constraint Name",
+			field : "name",
+			width : 400,
+			cssClass : 'edit-click'
+		}, {
+			id : "enabled",
+			name : "Status",
+			field : "enabled",
+			width : 100,
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? 'enabled' : 'disabled') + '</td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Constraint"><i class="icon-pencil" style="margin-top:0px;"></i></button></td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-enable slick-row-hover-button" title="Enable Constraint"><i class="icon-ok-circle" style="margin-top:0px;"></i></button></td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-disable slick-row-hover-button" title="Disable Constraint"><i class="icon-remove-circle" style="margin-top:0px;"></i></button></td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Constraint"><i class="icon-trash" style="margin-top:0px;"></i></button></td>'
+				    + '</tr></table>';
+			}
+		} ],
+		options : {
+			height : 200,
+			forceFitColumns : true,
+			fullWidthRows : true
+		},
+		plugins : [checkboxSelector],
+		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
+		emptyMessage : "No Constraints have been defined.<br><a href='#editConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
+	};
+	$scope.state.constraintConditionsTableDefinition = {
+    	columns : [{
+    		id : "conditionTypeId",
+    		name : "Operand",
+    		field : "conditionTypeId",
+    		width : 100,
+    		formatter : function(row, cell, value, columnDef, dataContext) {
+    			return getConditionType(value).name;
+    		}
+    	},{
+    		id : "operator",
+    		name : "Operator",
+    		field : "operator",
+    		width : 100
+    	},{
+    		id : "value",
+    		name : "Value",
+    		field : "value",
+    		width : 100,
+			formatter : function(row, cell, value, columnDef, dataContext) {
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? value : '') + '</td>'
+				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'
+				    + '</tr></table>';
+			}
+    	}],
+    	options : {
+    		height : 125,
+    		forceFitColumns : true,
+			fullWidthRows : true
+		},
+		plugins : [],
+		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
+		emptyMessage : "Add one or more Conditions to define the Constraint."
+    };
 	
 	$scope.resetConstraint = function() {
 		delete $scope.state.addConstraintFormValid;
@@ -132,7 +250,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 			$http.put(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
 				angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
 				updatePolicySummary($scope.state.currentPolicyRef);
-				updateConditionOperands($scope.state.currentPolicyRef);
 				$scope.reset();
 			});
 		} else {		   			
@@ -140,7 +257,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 				$scope.state.currentPolicy.id = data.id;
 				$scope.state.policyList.push($scope.state.currentPolicy);
 				updatePolicySummary($scope.state.currentPolicy);
-				updateConditionOperands($scope.state.currentPolicy);
 				$scope.reset();
 			});
 		}
@@ -244,7 +360,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.addConstraintCondition = function() {
-		$scope.state.currentCondition.conditionTypeId = $scope.state.currentCondition.operand.id;
 		$scope.state.currentConstraint.conditions.push($scope.state.currentCondition);
 		
 		$scope.state.currentCondition = {};
@@ -274,9 +389,9 @@ function InsightPolicyController($scope, global, $http, $location) {
 	
 	$scope.validateConstraintCondition = function() {
 		delete $scope.state.addConstraintConditionFormValid;
-		if ($scope.state.currentCondition.operand
+		if ($scope.state.currentCondition.conditionTypeId
 				&& $scope.state.currentCondition.operator
-				&& (!$scope.state.currentCondition.operand.requiresValue || $scope.state.currentCondition.value)) {
+				&& (!getConditionType($scope.state.currentCondition.conditionTypeId).requiresValue || $scope.state.currentCondition.value)) {
 			$scope.state.addConstraintConditionFormValid = true;
 		}
 	}
@@ -284,6 +399,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.constraintOperandChanged = function() {
 		delete $scope.state.currentCondition.operator;
 		delete $scope.state.currentCondition.value;
+		$scope.state.currentOperand = getConditionType($scope.state.currentCondition.conditionTypeId);
 		$scope.validateConstraintCondition();
 	}
 	
@@ -335,7 +451,6 @@ function InsightPolicyController($scope, global, $http, $location) {
                 	for ( var i = 0 ; i < data.length ; i++ ){
                 		$scope.state.policyList.push(data[i]);
                 		updatePolicySummary(data[i]);
-                		updateConditionOperands(data[i]);
                 	}
                 	
                 	$scope.reset();
@@ -404,15 +519,6 @@ function InsightPolicyController($scope, global, $http, $location) {
     	//copy so we dont update data in the current list
     	$scope.state.currentConstraint = angular.copy(constraint);
 		$scope.validateConstraint();
-		
-		for ( var j = 0 ; j < $scope.state.currentConstraint.conditions.length ; j++ ){
-			for ( var k = 0 ; k < $scope.state.conditionTypeList.length ; k++ ){
-				if ( $scope.state.conditionTypeList[k].id == $scope.state.currentConstraint.conditions[j].conditionTypeId ){
-					$scope.state.currentConstraint.conditions[j].operand = $scope.state.conditionTypeList[k];
-					break;
-				}
-			}
-		}
 
         //since this event is called outside of angular, we need to force
         //an apply to get everything mapped up properly

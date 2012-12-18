@@ -121,12 +121,12 @@
 								<div class='control-group'>
 									<label class='control-label'>Conditions</label>
 									<div class='controls' style='text-align:left'>
-										<select ng-model="state.currentCondition.operand" ng-change="constraintOperandChanged()" ng-options="c.name for c in state.conditionTypeList">
+										<select ng-model="state.currentCondition.conditionTypeId" ng-change="constraintOperandChanged()" ng-options="c.id as c.name for c in state.conditionTypeList">
 										</select>
-										<select ng-model="state.currentCondition.operator" ng-show="state.currentCondition.operand" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentCondition.operand.supportedOperators">
+										<select ng-model="state.currentCondition.operator" ng-show="state.currentCondition.conditionTypeId" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentOperand.supportedOperators">
 										</select>
-										<input type="text" ng-model="state.currentCondition.value" placeholder='Enter Value...' ng-show="state.currentCondition.operand && state.currentCondition.operand.requiresValue && !state.currentCondition.operand.availableValues" ng-change="validateConstraintCondition()"></input>
-										<select ng-model="state.currentCondition.value" ng-show="state.currentCondition.operand && state.currentCondition.operand.requiresValue && state.currentCondition.operand.availableValues" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentCondition.operand.availableValues">
+										<input type="text" ng-model="state.currentCondition.value" placeholder='Enter Value...' ng-show="state.currentCondition.conditionTypeId && state.currentOperand.requiresValue && !state.currentOperand.availableValues" ng-change="validateConstraintCondition()"></input>
+										<select ng-model="state.currentCondition.value" ng-show="state.currentCondition.conditionTypeId && state.currentOperand.requiresValue && state.currentOperand.availableValues" ng-change="validateConstraintCondition()" ng-options="c for c in state.currentOperand.availableValues">
 										</select>
 										<button type='none' class='btn btn-primary' ng-click="addConstraintCondition()" ng-disabled="!state.addConstraintConditionFormValid">Add</button>
 									</div>

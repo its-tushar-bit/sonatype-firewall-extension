@@ -64,7 +64,7 @@ public class DroolsGenerator
                 {
                     if ( conditionIndex > 0 )
                     {
-                        droolsCode.append( INDENT ).append( INDENT ).append( INDENT );
+                        droolsCode.append( INDENT ).append( INDENT );
                         if ( constraint.getOperator() == LogicalOperator.AND )
                         {
                             droolsCode.append( "&&\n" );
@@ -74,7 +74,7 @@ public class DroolsGenerator
                             droolsCode.append( "||\n" );
                         }
                     }
-                    droolsCode.append( INDENT ).append( INDENT ).append( INDENT ).append( "( " );
+                    droolsCode.append( INDENT ).append( INDENT ).append( "( " );
                     final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
                     droolsCode.append( conditionType.generateDroolsCode( condition ) );
                     droolsCode.append( " )\n" );

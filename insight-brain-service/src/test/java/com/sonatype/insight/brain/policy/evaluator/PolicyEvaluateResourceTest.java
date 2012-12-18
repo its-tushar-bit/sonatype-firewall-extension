@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvent;
+import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
@@ -77,9 +77,9 @@ public class PolicyEvaluateResourceTest
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.get( getServiceURL( appId, scanId ) );
         assertResponseStatus( 200, response );
-        final PolicyEvent[] policyEvents = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvent[].class );
-        Assert.assertNotNull( policyEvents );
-        Assert.assertTrue( policyEvents.length > 0 );
+        final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertTrue( policyAlerts.length > 0 );
     }
 
     private String getServiceURL( final String appId, final String scanId )

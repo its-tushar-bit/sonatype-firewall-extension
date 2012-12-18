@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvent;
+import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -47,7 +47,7 @@ public class PolicyEvaluateResource
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<PolicyEvent> evaluate( @PathParam( "appId" ) final String appId,
+    public List<PolicyAlert> evaluate( @PathParam( "appId" ) final String appId,
                                        @QueryParam( "scanId" ) final String scanId,
                                        @QueryParam( "contextTypeId" ) final String contextTypeId )
         throws IOException
@@ -72,7 +72,7 @@ public class PolicyEvaluateResource
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
 
         final List<Component> components = new ComponentDAO().getAll( licenseReportEntry.buf, securityReportEntry.buf );
-        final List<PolicyEvent> result =
+        final List<PolicyAlert> result =
             new PolicyEvaluator().evaluate( new Context( contextTypeId ), policies, components );
 
         return result;

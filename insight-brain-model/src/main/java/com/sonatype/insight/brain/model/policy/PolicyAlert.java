@@ -10,17 +10,17 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
-public class PolicyEvent
+public class PolicyAlert
 {
     private PolicyFact trigger;
 
     private List<Action> actions;
 
-    public PolicyEvent()
+    public PolicyAlert()
     {
     }
 
-    public PolicyEvent( final PolicyFact trigger, final List<Action> actions )
+    public PolicyAlert( final PolicyFact trigger, final List<Action> actions )
     {
         this.trigger = trigger;
         this.actions = actions;

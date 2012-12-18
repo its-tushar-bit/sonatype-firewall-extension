@@ -16,7 +16,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.PolicyEvent;
+import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -60,7 +60,7 @@ public class PolicyClient
         return super.handle( path, query );
     }
 
-    public List<PolicyEvent> evaluate( final String scanId, final String contextTypeId /* FIXME: pass in full Context */)
+    public List<PolicyAlert> evaluate( final String scanId, final String contextTypeId /* FIXME: pass in full Context */)
         throws IOException
     {
         final Result httpResult =
@@ -73,7 +73,7 @@ public class PolicyClient
         final String jsonResult = httpResult.text();
         try
         {
-            return Arrays.asList( JsonUtils.parse( jsonResult, PolicyEvent[].class ) );
+            return Arrays.asList( JsonUtils.parse( jsonResult, PolicyAlert[].class ) );
         }
         catch ( final IOException e )
         {

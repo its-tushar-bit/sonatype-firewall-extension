@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvent;
+import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
 import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
@@ -38,7 +38,7 @@ public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
-    public List<PolicyEvent> evaluate( final Context context, final List<Policy> policies,
+    public List<PolicyAlert> evaluate( final Context context, final List<Policy> policies,
                                        final List<Component> components )
     {
         final String droolsCode = new DroolsGenerator().generate( context, policies );
@@ -73,7 +73,7 @@ public class PolicyEvaluator
         } );
 
         // TODO Aggregate/deduplicate component facts
-        final List<PolicyEvent> result = new ArrayList<PolicyEvent>();
+        final List<PolicyAlert> result = new ArrayList<PolicyAlert>();
         if ( componentFacts == null || componentFacts.isEmpty() )
         {
             return result;
@@ -115,7 +115,7 @@ public class PolicyEvaluator
                 final List<Action> actions = policy.getActions( context.getContextTypeId() );
                 if ( actions != null )
                 {
-                    result.add( new PolicyEvent( policyFact, new ArrayList<Action>( actions ) ) );
+                    result.add( new PolicyAlert( policyFact, new ArrayList<Action>( actions ) ) );
                 }
             }
         }

@@ -66,6 +66,7 @@ describe('InsightPolicyController tests', function() {
     	  id: '1de8469ae4604d67a86a676c0819d109',
     	  name: 'policy1',
     	  enabled: true,
+    	  threatLevel: 0,
     	  constraints: [{
     		  id: 'constraint1',
     		  name: 'constraint1',
@@ -140,6 +141,7 @@ describe('InsightPolicyController tests', function() {
     	  id: '8add99ae020443708d9514804774f455',
     	  name: 'policy2',
     	  enabled: true,
+    	  threatLevel: 10,
     	  constraints: [{
     		  id: 'constraint3',
     		  name: 'constraint3',
@@ -267,6 +269,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.policyList[0].id).toBe('1de8469ae4604d67a86a676c0819d109');
 		expect(scope.state.policyList[0].name).toBe('policy1');
 		expect(scope.state.policyList[0].enabled).toBe(true);
+		expect(scope.state.policyList[0].threatLevel).toBe(0);
 		expect(scope.state.policyList[0].constraints[0].id).toBe('constraint1');
 		expect(scope.state.policyList[0].constraints[0].name).toBe('constraint1');
 		expect(scope.state.policyList[0].constraints[0].enabled).toBe(true);
@@ -313,6 +316,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.policyList[1].id).toBe('8add99ae020443708d9514804774f455');
 		expect(scope.state.policyList[1].name).toBe('policy2');
 		expect(scope.state.policyList[1].enabled).toBe(true);
+		expect(scope.state.policyList[1].threatLevel).toBe(10);
 		expect(scope.state.policyList[1].constraints[0].id).toBe('constraint3');
 		expect(scope.state.policyList[1].constraints[0].name).toBe('constraint3');
 		expect(scope.state.policyList[1].constraints[0].enabled).toBe(true);
@@ -354,6 +358,7 @@ describe('InsightPolicyController tests', function() {
 		scope.state.currentPolicy = {
     	    name: 'policy3',
     	    enabled: true,
+    	    threatLevel: 5,
     	    constraints: [{
     		    id: 'constraint4',
     		    name: 'constraint4',
@@ -417,6 +422,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.policyList[2].id).toBe('anid');
 		expect(scope.state.policyList[2].name).toBe('policy3');
 		expect(scope.state.policyList[2].enabled).toBe(true);
+		expect(scope.state.policyList[2].threatLevel).toBe(5);
 		expect(scope.state.policyList[2].constraints[0].id).toBe('constraint4');
 		expect(scope.state.policyList[2].constraints[0].name).toBe('constraint4');
 		expect(scope.state.policyList[2].constraints[0].enabled).toBe(true);

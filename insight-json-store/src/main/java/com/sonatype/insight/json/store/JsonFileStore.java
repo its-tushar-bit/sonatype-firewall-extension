@@ -194,7 +194,7 @@ public final class JsonFileStore
         for ( int x = 0; x < log.size(); x++ )
         {
             ContainerNode<?> data = (ContainerNode<?>) log.get( x );
-            if ( data.has( "data" ) && !table.has( "data" ) )
+            if ( data.has( "data" ) )
             {
                 data = (ContainerNode<?>) data.get( "data" );
             }

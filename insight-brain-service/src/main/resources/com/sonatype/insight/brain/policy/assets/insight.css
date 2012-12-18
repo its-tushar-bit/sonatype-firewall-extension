@@ -24,6 +24,35 @@
 	margin-top: -4px;
 }
 
+.policy-threat-level-0, .policy-threat-level-1, .policy-threat-level-2, .policy-threat-level-3, .policy-threat-level-4, .policy-threat-level-5, .policy-threat-level-6, .policy-threat-level-7, .policy-threat-level-8, .policy-threat-level-9, .policy-threat-level-10 {
+	border-radius: 2px 2px 2px 2px;
+    display: inline-block;
+    height: 18px;
+    padding: 0 5px;
+    text-align: center;
+    color: black;
+    font-family: Arial;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: bold;
+}
+
+.policy-threat-level-0 {
+    border: 1px solid #6185B7;
+    background-color: #6E99D0;
+}
+.policy-threat-level-1, .policy-threat-level-2, .policy-threat-level-3 {
+    border: 1px solid #DDBE18;
+    background-color: #FEDF15;
+}
+.policy-threat-level-4, .policy-threat-level-5, .policy-threat-level-6, .policy-threat-level-7 {
+    border: 1px solid #C67A22;
+    background-color: #F7941D;
+}
+.policy-threat-level-8, .policy-threat-level-9, .policy-threat-level-10 {
+    border: 1px solid #B71218;
+    background-color: #EE1B24;
+}
 #constraintConditionsGrid .slick-header-columns {
 	height: 0px;
 }

@@ -53,7 +53,7 @@
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 				    <div class="policy-item" ng-repeat="policy in state.policyList">
 				    	<div style="float:right;"><button id="{{policy.id}}" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Policy"><i class="icon-pencil" style="margin-top:0px;"></i></button><button id="{{policy.id}}" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Policy"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
-				        <span><b>{{policy.name}}</b><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
+				        <span><b>{{policy.name}}</b><br>Threat Level: <div class="policy-threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
 				    </div>
 				</div>
 				<div ng-show="state.showAddPolicyScreen">
@@ -61,8 +61,18 @@
 					<div class="form-horizontal">
 					    <div class="control-group">
 					        <label class="control-label" for="policyName">Name</label>
-					    	<div class="controls">
+					    	<div class="controls form-inline">
 						        <input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name">
+						        <label style="padding-left:10px;">Threat Level
+						    		<select 
+						    			id="policyThreatLevel" 
+						    			style="width:100px;" 
+						    			ng-model="state.currentPolicy.threatLevel" 
+						    			ng-change="validatePolicy()" 
+						    			ng-init="threatLevels = [{name:'10', value:10},{name:'9', value:9},{name:'8', value:8},{name:'7', value:7},{name:'6', value:6},{name:'5', value:5},{name:'4', value:4},{name:'3', value:3},{name:'2', value:2},{name:'1', value:1},{name:'0 (None)', value:0}]"
+						    			ng-options="o.value as o.name for o in threatLevels">
+						    		</select>
+					    		</label>
 					    	</div>
 					    </div>
 					    <div class="control-group">

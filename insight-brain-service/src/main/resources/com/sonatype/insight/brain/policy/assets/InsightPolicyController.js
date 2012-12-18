@@ -117,7 +117,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.createPolicyClick = function(){
 		$scope.state.currentPolicy = {
 			constraints: [],
-			actions: {}
+			actions: {},
+			threatLevel: 5
 		}
 		$scope.state.showAddPolicyScreen = true;
 		setTimeout(function(){
@@ -162,6 +163,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.validatePolicy = function() {
 		delete $scope.state.policyValid;
 		if ($scope.state.currentPolicy.name
+			&& $scope.state.currentPolicy.threatLevel >= 0
 			&& $scope.state.currentPolicy.constraints.length > 0) {
 			$scope.state.policyValid = true;
 		}
@@ -363,8 +365,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 				$scope.state.currentPolicy = angular.copy($scope.state.policyList[i]);
 				$scope.state.currentPolicyRef = $scope.state.policyList[i];
 				$scope.state.showAddPolicyScreen = true;
-				$scope.state.policyValid = true;
 				$scope.resetActions();
+				$scope.validatePolicy();
 				setTimeout(function(){
 					$scope.constraintGrid.redraw();
 				},50);

@@ -145,6 +145,16 @@ function InsightPolicyController($scope, global, $http, $location) {
 		}
 	}
 	
+	$scope.deletePolicyClick = function(){
+		$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyToDelete.id).success(function(data, status, headers, config){
+			var idx = $scope.state.policyList.indexOf($scope.state.policyToDelete);
+			if (idx >= 0){
+				$scope.state.policyList.splice(idx,1);
+				$('#deletePolicyConfirmationModal').modal('hide');
+			}
+		});
+	}
+	
 	$scope.cancelPolicyClick = function(){
 		$scope.reset();
 	}
@@ -369,9 +379,9 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$('.policy-item .btn-delete').live('click', function(){
 		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
 			if ( $scope.state.policyList[i].id === $(this).attr('id')) {
-				$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[i].id,{itemIndex: i}).success(function(data, status, headers, config){
-					$scope.state.policyList.splice(config.itemIndex,1);
-				});
+				$scope.state.policyToDelete = $scope.state.policyList[i];
+				$scope.$apply();
+				$('#deletePolicyConfirmationModal').modal('show');
 				break;
 			}
 		}

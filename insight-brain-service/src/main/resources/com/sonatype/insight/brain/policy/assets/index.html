@@ -26,6 +26,7 @@
 <script type='text/javascript' src='angular/angular-1.0.2.js'></script>
 <script type='text/javascript' src='slickgrid/slick.core.js'></script>
 <script type='text/javascript' src='slickgrid/slick.grid.js'></script>
+<script type='text/javascript' src='slickgrid/slick.editors.js'></script>
 <script type='text/javascript' src='slickgrid/slick.dataview.js'></script>
 <script type='text/javascript' src='slickgrid/slick.rowselectionmodel.js'></script>
 <script type='text/javascript' src='slickgrid/slick.checkboxselectcolumn.js'></script>
@@ -52,7 +53,7 @@
 				<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 				    <div class="policy-item" ng-repeat="policy in state.policyList">
 				    	<div style="float:right;"><button id="{{policy.id}}" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Policy"><i class="icon-pencil" style="margin-top:0px;"></i></button><button id="{{policy.id}}" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Policy"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
-				        <span><b>{{policy.name}}</b><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Actions assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
+				        <span><b>{{policy.name}}</b><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
 				    </div>
 				</div>
 				<div ng-show="state.showAddPolicyScreen">

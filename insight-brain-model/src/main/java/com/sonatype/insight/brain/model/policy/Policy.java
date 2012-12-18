@@ -18,6 +18,8 @@ public class Policy
 
     private boolean enabled = true;
 
+    private int threatLevel = 5;
+
     private List<Constraint> constraints;
 
     private Map<String, List<Action>> actions;
@@ -60,6 +62,16 @@ public class Policy
     public void setEnabled( final boolean enabled )
     {
         this.enabled = enabled;
+    }
+
+    public int getThreatLevel()
+    {
+        return threatLevel;
+    }
+
+    public void setThreatLevel( final int threatLevel )
+    {
+        this.threatLevel = threatLevel;
     }
 
     public List<Constraint> getConstraints()

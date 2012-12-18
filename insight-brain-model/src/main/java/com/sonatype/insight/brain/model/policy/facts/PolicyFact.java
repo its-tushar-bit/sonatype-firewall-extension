@@ -16,6 +16,8 @@ public class PolicyFact
 
     private String policyName;
 
+    private int threatLevel;
+
     private List<ConstraintFact> constraintFacts;
 
     public PolicyFact()
@@ -26,6 +28,7 @@ public class PolicyFact
     {
         this.policyId = policy.getId();
         this.policyName = policy.getName();
+        this.threatLevel = policy.getThreatLevel();
     }
 
     public String getPolicyId()
@@ -36,6 +39,11 @@ public class PolicyFact
     public String getPolicyName()
     {
         return policyName;
+    }
+
+    public int getThreatLevel()
+    {
+        return threatLevel;
     }
 
     public List<ConstraintFact> getConstraintFacts()

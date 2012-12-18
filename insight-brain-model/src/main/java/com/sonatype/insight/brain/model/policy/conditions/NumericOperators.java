@@ -1,0 +1,39 @@
+/**
+ * Copyright (c) 2011-2012 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.policy.conditions;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class NumericOperators
+{
+    public static final List<String> LIST;
+
+    static
+    {
+        List<String> list = new ArrayList<String>();
+        list.add( "=" );
+        list.add( "<" );
+        list.add( "<=" );
+        list.add( ">" );
+        list.add( ">=" );
+        LIST = Collections.unmodifiableList( list );
+    }
+
+    public static String getDroolsOperator( String numericOperator )
+    {
+        if ( "=".equals( numericOperator ) )
+        {
+            return "==";
+        }
+        return numericOperator;
+    }
+
+    private NumericOperators()
+    {
+    }
+}

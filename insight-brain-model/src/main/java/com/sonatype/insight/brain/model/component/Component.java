@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -61,6 +62,40 @@ public class Component
     public void setVersion( final String version )
     {
         this.version = version;
+    }
+
+    public List<SecurityVulnerability> getSecurityVulnerabilitiesBySeverity( float severity, String operator )
+    {
+        if ( securityVulnerabilities == null || securityVulnerabilities.size() == 0 )
+        {
+            return Collections.emptyList();
+        }
+
+        List<SecurityVulnerability> result = new ArrayList<SecurityVulnerability>();
+        for ( SecurityVulnerability securityVulnerability : securityVulnerabilities )
+        {
+            if ( "=".equals( operator ) && ( securityVulnerability.getSeverity() == severity ) )
+            {
+                result.add( securityVulnerability );
+            }
+            else if ( ">".equals( operator ) && ( securityVulnerability.getSeverity() > severity ) )
+            {
+                result.add( securityVulnerability );
+            }
+            else if ( ">=".equals( operator ) && ( securityVulnerability.getSeverity() >= severity ) )
+            {
+                result.add( securityVulnerability );
+            }
+            else if ( "<".equals( operator ) && ( securityVulnerability.getSeverity() < severity ) )
+            {
+                result.add( securityVulnerability );
+            }
+            else if ( "<=".equals( operator ) && ( securityVulnerability.getSeverity() <= severity ) )
+            {
+                result.add( securityVulnerability );
+            }
+        }
+        return result;
     }
 
     public List<SecurityVulnerability> getSecurityVulnerabilities()

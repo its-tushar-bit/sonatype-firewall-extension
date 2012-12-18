@@ -223,22 +223,4 @@ public class PolicyEvaluatorTest
     // assertContainsPolicyFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     // assertContainsPolicyFact( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, policyFacts );
     // }
-    //
-    // private static void assertContainsPolicyFact( final Component expectedComponent, final String expectedPolicyId,
-    // final String expectedPolicyName, final String expectedKind,
-    // final List<PolicyFact> actual )
-    // {
-    // for ( final PolicyFact actualPolicyFact : actual )
-    // {
-    // if ( expectedComponent == actualPolicyFact.getComponent()
-    // && expectedPolicyId.equals( actualPolicyFact.getPolicyId() )
-    // && expectedPolicyName.equals( actualPolicyFact.getPolicyName() )
-    // && expectedKind.equals( actualPolicyFact.getKind() ) )
-    // {
-    // return;
-    // }
-    // }
-    //
-    // Assert.fail();
-    // }
 }

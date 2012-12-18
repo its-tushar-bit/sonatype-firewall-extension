@@ -19,6 +19,7 @@ public class ConditionTypes
     {
         add( new LicenseCategoryConditionType() );
         add( new SecurityVulnerabilityConditionType() );
+        add( new SecurityVulnerabilitySeverityConditionType() );
     }
 
     public static Collection<ConditionType> getAll()

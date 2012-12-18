@@ -68,8 +68,8 @@ public class ComponentDAO
                     final String version = securityVulnerabilityJson.get( "version" ).asText();
                     final String source = securityVulnerabilityJson.get( "source" ).asText();
                     final String reference = securityVulnerabilityJson.get( "reference" ).asText();
-                    final JsonNode scoreJson = securityVulnerabilityJson.get( "score" );
-                    final Float score = scoreJson == null ? null : (float) scoreJson.asDouble();
+                    final JsonNode severityJson = securityVulnerabilityJson.get( "score" );
+                    final Float severity = severityJson == null ? null : (float) severityJson.asDouble();
 
                     final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
@@ -84,7 +84,7 @@ public class ComponentDAO
                     final SecurityVulnerability securityVulnerability = new SecurityVulnerability();
                     securityVulnerability.setSource( source );
                     securityVulnerability.setRefId( reference );
-                    securityVulnerability.setScore( score );
+                    securityVulnerability.setSeverity( severity );
                     component.addSecurityVulnerability( securityVulnerability );
                 }
             }

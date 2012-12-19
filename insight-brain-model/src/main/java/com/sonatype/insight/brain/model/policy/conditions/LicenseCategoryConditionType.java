@@ -10,8 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.model.component.LicenseCategory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseCategoryValueType;
 
 public class LicenseCategoryConditionType
     implements ConditionType
@@ -29,14 +31,11 @@ public class LicenseCategoryConditionType
         supportedOperators.add( "is" );
         supportedOperators.add( "is not" );
 
-        // TODO Return a list of all known license categories from the datamart db
-        licenseCategoryIdsByName.put( "Copyleft", "COPYLEFT" );
-        licenseCategoryIdsByName.put( "Non-Standard", "NON-STANDARD" );
-        licenseCategoryIdsByName.put( "Not Provided", "NOT-PROVIDED" );
-        licenseCategoryIdsByName.put( "Weak Copyleft", "WEAKCOPYLEFT" );
-        licenseCategoryIdsByName.put( "Liberal", "LIBERAL" );
-
-        licenseCategoryNames.addAll( licenseCategoryIdsByName.keySet() );
+        for ( LicenseCategory licenseCategory : new LicenseCategoryValueType().getAvailableValues() )
+        {
+            licenseCategoryNames.add( licenseCategory.getName() );
+            licenseCategoryIdsByName.put( licenseCategory.getName(), licenseCategory.getId() );
+        }
     }
 
     @Override
@@ -57,6 +56,7 @@ public class LicenseCategoryConditionType
         return supportedOperators;
     }
 
+    @Deprecated
     @Override
     public List<String> getAvailableValues()
     {
@@ -70,9 +70,16 @@ public class LicenseCategoryConditionType
             + licenseCategoryIdsByName.get( condition.getValue() ) + "\"";
     }
 
+    @Deprecated
     @Override
     public boolean isRequiresValue()
     {
         return true;
+    }
+
+    @Override
+    public String getValueTypeId()
+    {
+        return LicenseCategoryValueType.ID;
     }
 }

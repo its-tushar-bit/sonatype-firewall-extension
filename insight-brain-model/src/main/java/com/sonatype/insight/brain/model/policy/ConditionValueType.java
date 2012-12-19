@@ -7,21 +7,13 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.List;
 
-public interface ConditionType
+public interface ConditionValueType<T>
 {
     String getId();
 
-    String getName();
+    String getDataType();
 
-    List<String> getSupportedOperators();
+    boolean isAllowMultiple();
 
-    @Deprecated
-    List<String> getAvailableValues();
-
-    String getValueTypeId();
-
-    @Deprecated
-    boolean isRequiresValue();
-
-    String generateDroolsCode( Condition condition );
+    List<T> getAvailableValues();
 }

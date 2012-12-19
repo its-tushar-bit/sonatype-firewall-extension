@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -61,8 +63,22 @@ public class TestInsightBrainService
                 brainFault = null;
                 try
                 {
+                    String[] args;
+                    File dropWizardConfigFile = new File( "target/test-classes/config-test.yml" );
+                    if ( dropWizardConfigFile.exists() )
+                    {
+                        // I have no idea why, but INFO level is not enabled at this point
+                        log.warn( "Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath() );
+                        args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
+                    }
+                    else
+                    {
+                        log.warn( "Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath() );
+                        args = new String[] { "server" };
+                    }
+
                     // this method will only return when the service is stopped...
-                    TestInsightBrainService.this.run( new String[] { "server" } );
+                    TestInsightBrainService.this.run( args );
                 }
                 catch ( final Exception e )
                 {

@@ -10,8 +10,9 @@ import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
 import com.sonatype.insight.brain.policy.ActionTypeResource;
 import com.sonatype.insight.brain.policy.ConditionTypeResource;
-import com.sonatype.insight.brain.policy.StageTypeResource;
+import com.sonatype.insight.brain.policy.ConditionValueTypeResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.saas.BCResource;
@@ -58,6 +59,7 @@ public class InsightBrainService
         env.addResource( LabelResource.class );
         env.addResource( ActionTypeResource.class );
         env.addResource( ConditionTypeResource.class );
+        env.addResource( ConditionValueTypeResource.class );
         env.addResource( StageTypeResource.class );
         env.addResource( PolicyEvaluateResource.class );
         env.addResource( PolicyResource.class );

@@ -15,22 +15,22 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.ContextType;
-import com.sonatype.insight.brain.model.policy.contexts.ContextTypes;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-@Path( ContextTypeResource.SERVICE_PATH )
-public class ContextTypeResource
+@Path( StageTypeResource.SERVICE_PATH )
+public class StageTypeResource
 {
-    public static final String SERVICE_PATH = "rest/policy/contextType";
+    public static final String SERVICE_PATH = "rest/policy/stageType";
 
-    private static final Logger log = LoggerFactory.getLogger( ContextTypeResource.class );
+    private static final Logger log = LoggerFactory.getLogger( StageTypeResource.class );
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public Collection<ContextType> getContextTypes()
+    public Collection<StageType> getStageTypes()
     {
-        log.debug( "Received request to get all context types" );
+        log.debug( "Received request to get all stage types" );
 
-        return ContextTypes.getAll();
+        return StageTypes.getAll();
     }
 }

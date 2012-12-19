@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Context;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
@@ -38,10 +38,9 @@ public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
-    public List<PolicyAlert> evaluate( final Context context, final List<Policy> policies,
-                                       final List<Component> components )
+    public List<PolicyAlert> evaluate( final Stage stage, final List<Policy> policies, final List<Component> components )
     {
-        final String droolsCode = new DroolsGenerator().generate( context, policies );
+        final String droolsCode = new DroolsGenerator().generate( stage, policies );
         // Most probably this is too much logging, but it's good for debugging for now
         log.debug( "Generated drools code:\n{}", droolsCode );
 
@@ -112,7 +111,7 @@ public class PolicyEvaluator
             }
             if ( policyFact.getConstraintFacts() != null )
             {
-                final List<Action> actions = policy.getActions( context.getContextTypeId() );
+                final List<Action> actions = policy.getActions( stage.getStageTypeId() );
                 if ( actions != null )
                 {
                     result.add( new PolicyAlert( policyFact, new ArrayList<Action>( actions ) ) );

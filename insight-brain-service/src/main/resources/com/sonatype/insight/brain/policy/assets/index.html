@@ -165,17 +165,17 @@
 						    <h3>Edit Actions</h3>
 						</div>
 						<div class="modal-body">
-							<div ng-repeat="actionContext in state.actionContextList">
+							<div ng-repeat="actionStage in state.actionStageList">
 								<div class="form-horizontal">
 									<div class="control-group">
-									    <label class='control-label'>{{actionContext.name}}</label>
+									    <label class='control-label'>{{actionStage.name}}</label>
 										<div class='controls' style='text-align:left'>
-											<select ng-model="state.actionData[actionContext.id + 'Action']">
+											<select ng-model="state.actionData[actionStage.id + 'Action']">
 											    <option value="">-- Choose Action --</option>
 												<option value="warn">Warn</option>
 												<option value="fail">Fail</option>
 											</select>
-											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state.actionData[actionContext.id + 'Notify']">
+											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state.actionData[actionStage.id + 'Notify']">
 										</div>
 									</div>
 								</div>

@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Context;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
@@ -20,7 +20,7 @@ public class DroolsGenerator
 {
     private static final String INDENT = "    ";
 
-    public String generate( final Context context, final List<Policy> policies )
+    public String generate( final Stage stage, final List<Policy> policies )
     {
         final StringBuilder droolsCode = new StringBuilder();
 
@@ -37,7 +37,7 @@ public class DroolsGenerator
                 continue;
             }
 
-            final List<Action> actions = policy.getActions( context.getContextTypeId() );
+            final List<Action> actions = policy.getActions( stage.getStageTypeId() );
             if ( actions == null || actions.isEmpty() )
             {
                 continue;

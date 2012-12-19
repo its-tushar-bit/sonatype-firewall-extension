@@ -24,8 +24,8 @@ insightApp.getActionTypeUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/actionType';
 }
 
-insightApp.getActionContextUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/policy/contextType';
+insightApp.getActionStageUrl = function(){
+	return insightApp.getBaseUrl() + '/rest/policy/stageType';
 }
 
 insightApp.getPolicyUrl = function(){

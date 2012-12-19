@@ -60,11 +60,11 @@ public class PolicyClient
         return super.handle( path, query );
     }
 
-    public List<PolicyAlert> evaluate( final String scanId, final String contextTypeId /* FIXME: pass in full Context */)
+    public List<PolicyAlert> evaluate( final String scanId, final String stageTypeId /* FIXME: pass in full Stage */)
         throws IOException
     {
         final Result httpResult =
-            path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId, "contextTypeId", contextTypeId ).get();
+            path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId, "stageTypeId", stageTypeId ).get();
         if ( httpResult.status() >= 400 )
         {
             throw new ClientException( httpResult );

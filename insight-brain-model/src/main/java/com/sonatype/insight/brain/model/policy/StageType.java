@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-public interface ContextType
+public interface StageType
 {
     String getId();
 

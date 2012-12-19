@@ -103,27 +103,27 @@ public class Policy
         this.actions = actions;
     }
 
-    public List<Action> getActions( final String contextTypeId )
+    public List<Action> getActions( final String stageTypeId )
     {
-        return actions != null ? actions.get( contextTypeId ) : null;
+        return actions != null ? actions.get( stageTypeId ) : null;
     }
 
-    public void setActions( final String contextTypeId, final List<Action> contextActions )
+    public void setActions( final String stageTypeId, final List<Action> stageActions )
     {
         if ( actions == null )
         {
             actions = new HashMap<String, List<Action>>();
         }
-        actions.put( contextTypeId, contextActions );
+        actions.put( stageTypeId, stageActions );
     }
 
-    public void addAction( final String contextTypeId, final Action action )
+    public void addAction( final String stageTypeId, final Action action )
     {
-        List<Action> contextActions = getActions( contextTypeId );
-        if ( contextActions == null )
+        List<Action> stageActions = getActions( stageTypeId );
+        if ( stageActions == null )
         {
-            setActions( contextTypeId, contextActions = new ArrayList<Action>() );
+            setActions( stageTypeId, stageActions = new ArrayList<Action>() );
         }
-        contextActions.add( action );
+        stageActions.add( action );
     }
 }

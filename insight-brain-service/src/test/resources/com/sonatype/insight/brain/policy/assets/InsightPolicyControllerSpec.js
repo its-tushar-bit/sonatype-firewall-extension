@@ -41,7 +41,7 @@ describe('InsightPolicyController tests', function() {
     	  requiresTarget: true
       }]);
       
-      $httpBackend.expectGET(insightApp.getActionContextUrl()).
+      $httpBackend.expectGET(insightApp.getActionStageUrl()).
       respond([{
     	  name: 'Procure',
     	  id: 'procure'
@@ -256,16 +256,16 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.actionTypeList[2].id).toBe('notify');
 		expect(scope.state.actionTypeList[2].availableTargets).toBe(null);
 		expect(scope.state.actionTypeList[2].requiresTarget).toBe(true);
-		expect(scope.state.actionContextList[0].name).toBe('Procure');
-		expect(scope.state.actionContextList[0].id).toBe('procure');
-		expect(scope.state.actionContextList[1].name).toBe('Develop');
-		expect(scope.state.actionContextList[1].id).toBe('develop');
-		expect(scope.state.actionContextList[2].name).toBe('Build');
-		expect(scope.state.actionContextList[2].id).toBe('build');
-		expect(scope.state.actionContextList[3].name).toBe('Release');
-		expect(scope.state.actionContextList[3].id).toBe('release');
-		expect(scope.state.actionContextList[4].name).toBe('Operate');
-		expect(scope.state.actionContextList[4].id).toBe('operate');
+		expect(scope.state.actionStageList[0].name).toBe('Procure');
+		expect(scope.state.actionStageList[0].id).toBe('procure');
+		expect(scope.state.actionStageList[1].name).toBe('Develop');
+		expect(scope.state.actionStageList[1].id).toBe('develop');
+		expect(scope.state.actionStageList[2].name).toBe('Build');
+		expect(scope.state.actionStageList[2].id).toBe('build');
+		expect(scope.state.actionStageList[3].name).toBe('Release');
+		expect(scope.state.actionStageList[3].id).toBe('release');
+		expect(scope.state.actionStageList[4].name).toBe('Operate');
+		expect(scope.state.actionStageList[4].id).toBe('operate');
 		expect(scope.state.policyList[0].id).toBe('1de8469ae4604d67a86a676c0819d109');
 		expect(scope.state.policyList[0].name).toBe('policy1');
 		expect(scope.state.policyList[0].enabled).toBe(true);

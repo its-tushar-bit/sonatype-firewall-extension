@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -65,7 +65,7 @@ public class PolicyEvaluateResourceTest
         policy.setId( "P1" );
         policy.setName( "PolicyEvaluatorResourceTest policy" );
         policy.addConstraint( constraint );
-        policy.addAction( BuildContextType.ID, action );
+        policy.addAction( BuildStageType.ID, action );
         addPolicy( appId, policy );
 
         // The report file is not available yet
@@ -85,6 +85,6 @@ public class PolicyEvaluateResourceTest
     private String getServiceURL( final String appId, final String scanId )
     {
         return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "?scanId=" + scanId
-            + "&contextTypeId=" + BuildContextType.ID;
+            + "&stageTypeId=" + BuildStageType.ID;
     }
 }

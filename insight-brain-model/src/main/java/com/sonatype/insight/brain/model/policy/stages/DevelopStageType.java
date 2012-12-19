@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.policy.contexts;
+package com.sonatype.insight.brain.model.policy.stages;
 
-import com.sonatype.insight.brain.model.policy.ContextType;
+import com.sonatype.insight.brain.model.policy.StageType;
 
-public class BuildContextType
-    implements ContextType
+public class DevelopStageType
+    implements StageType
 {
-    public static final String ID = "build";
+    public static final String ID = "develop";
 
     @Override
     public String getId()
@@ -21,6 +21,6 @@ public class BuildContextType
     @Override
     public String getName()
     {
-        return "Build";
+        return "Develop";
     }
 }

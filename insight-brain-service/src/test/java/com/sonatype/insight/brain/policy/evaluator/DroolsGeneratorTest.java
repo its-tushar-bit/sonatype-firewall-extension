@@ -20,13 +20,13 @@ import org.junit.Test;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Context;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 public class DroolsGeneratorTest
 {
@@ -69,10 +69,10 @@ public class DroolsGeneratorTest
         policy.setConstraints( constraints );
         Action action = new Action();
         action.setActionTypeId( FailActionType.ID );
-        policy.addAction( BuildContextType.ID, action );
+        policy.addAction( BuildStageType.ID, action );
 
         final DroolsGenerator generator = new DroolsGenerator();
-        final String droolsCode = generator.generate( new Context( BuildContextType.ID ), Arrays.asList( policy ) );
+        final String droolsCode = generator.generate( new Stage( BuildStageType.ID ), Arrays.asList( policy ) );
         System.out.println( droolsCode );
         // TODO Add asserts - for now it's good if we get no exceptions :)
 

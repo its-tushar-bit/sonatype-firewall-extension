@@ -14,6 +14,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
@@ -22,9 +23,9 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.Context;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -39,21 +40,21 @@ public class PolicyEvaluateResource
 
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
-    @javax.ws.rs.core.Context
+    @Context
     private InsightWork work;
 
-    @javax.ws.rs.core.Context
+    @Context
     private InsightProxy proxy;
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
     public List<PolicyAlert> evaluate( @PathParam( "appId" ) final String appId,
                                        @QueryParam( "scanId" ) final String scanId,
-                                       @QueryParam( "contextTypeId" ) final String contextTypeId )
+                                       @QueryParam( "stageTypeId" ) final String stageTypeId )
         throws IOException
     {
-        log.debug( "Received request to evaluate policy for app id {}, scan id {}, contextTypeId {}", appId, scanId,
-                   contextTypeId );
+        log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", appId, scanId,
+                   stageTypeId );
 
         final File policyDir = work.getPolicyDir();
         final PolicyDAO policyDAO = new PolicyDAO( policyDir );
@@ -73,7 +74,7 @@ public class PolicyEvaluateResource
 
         final List<Component> components = new ComponentDAO().getAll( licenseReportEntry.buf, securityReportEntry.buf );
         final List<PolicyAlert> result =
-            new PolicyEvaluator().evaluate( new Context( contextTypeId ), policies, components );
+            new PolicyEvaluator().evaluate( new Stage( stageTypeId ), policies, components );
 
         return result;
     }

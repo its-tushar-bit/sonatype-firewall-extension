@@ -24,7 +24,7 @@ public class PolicyEvaluatorTest
     //
     // final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
     // policy.setConstraints( constraints );
-    // policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
+    // policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
     //
     // final List<Component> components = new ArrayList<Component>();
     // // A component with one security vulnerability
@@ -59,7 +59,7 @@ public class PolicyEvaluatorTest
     //
     // final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
     // policy.setConstraints( constraints );
-    // policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
+    // policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
     //
     // final List<Component> components = new ArrayList<Component>();
     // // A component without security vulnerabilities
@@ -92,7 +92,7 @@ public class PolicyEvaluatorTest
     //
     // final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
     // policy.setConstraints( constraints );
-    // policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
+    // policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
     //
     // final List<Component> components = new ArrayList<Component>();
     // final Component component1 = new Component( "g1", "a1", "v1" );
@@ -121,7 +121,7 @@ public class PolicyEvaluatorTest
     //
     // final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
     // policy.setConstraints( constraints );
-    // policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
+    // policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
     //
     // final List<Component> components = new ArrayList<Component>();
     // // A component with one security vulnerability
@@ -175,7 +175,7 @@ public class PolicyEvaluatorTest
     //
     // final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
     // policy.setConstraints( constraints );
-    // policy.addAction( BuildContextType.ID, new Action( FailActionType.ID ) );
+    // policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
     //
     // final List<Component> components = new ArrayList<Component>();
     // // A component with one security vulnerability

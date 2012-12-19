@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.contexts.BuildContextType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class PolicyAuditTest
@@ -63,7 +63,7 @@ public class PolicyAuditTest
         action.setActionTypeId( WarnActionType.ID );
         final List<Action> actions = new ArrayList<Action>();
         actions.add( action );
-        policy.setActions( BuildContextType.ID, actions );
+        policy.setActions( BuildStageType.ID, actions );
 
         PolicyAudit.saveChange( auditDir, policy, user, ip, where );
 

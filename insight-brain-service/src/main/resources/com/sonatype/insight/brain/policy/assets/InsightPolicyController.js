@@ -13,9 +13,9 @@ function InsightPolicyController($scope, global, $http, $location) {
 					actionNames += ', ';
 				}
     			
-    			for ( var j = 0 ; j < $scope.state.actionContextList.length ; j++ ){
-    				if ( $scope.state.actionContextList[j].id == key ){
-    					actionNames += $scope.state.actionContextList[j].name + ': ';				
+    			for ( var j = 0 ; j < $scope.state.actionStageList.length ; j++ ){
+    				if ( $scope.state.actionStageList[j].id == key ){
+    					actionNames += $scope.state.actionStageList[j].name + ': ';				
     					break;
     				}
     			}
@@ -59,14 +59,14 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.state.actionTableDefinition = {
 		columns : [{
 			id : "id",
-			name : "Context",
+			name : "Stage",
 			field : "id",
 			width : 200,
 			formatter : function(row, cell, value, columnDef, dataContext) {
 				var text = '';
-				$.each($scope.state.actionContextList, function(index,actionContext) {
-					if (actionContext.id === value) {
-						text = actionContext.name;
+				$.each($scope.state.actionStageList, function(index,actionStage) {
+					if (actionStage.id === value) {
+						text = actionStage.name;
 						return false;
 					}
 					return true;
@@ -216,7 +216,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 		}
 		
 		//this is for the table displayed in constraint screen
-		angular.forEach($scope.state.actionContextList, function(value, key) {
+		angular.forEach($scope.state.actionStageList, function(value, key) {
 			$scope.state.actionTableData.push(handleActionForTable(value.id));
 		});
 	}
@@ -428,7 +428,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 			return result;
 		};
 		
-		angular.forEach($scope.state.actionContextList, function(value, key) {
+		angular.forEach($scope.state.actionStageList, function(value, key) {
 			$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
 		});
 			
@@ -444,8 +444,8 @@ function InsightPolicyController($scope, global, $http, $location) {
     	$scope.state.conditionTypeList = conditionTypeData;
     	$http.get(insightApp.getActionTypeUrl()).success(function(actionTypeData, status, headers, config) {
         	$scope.state.actionTypeList = actionTypeData;
-        	$http.get(insightApp.getActionContextUrl()).success(function(actionContextData, status, headers, config) {
-        		$scope.state.actionContextList = actionContextData;
+        	$http.get(insightApp.getActionStageUrl()).success(function(actionStageData, status, headers, config) {
+        		$scope.state.actionStageList = actionStageData;
         		$scope.state.policyList = [];
                 $http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
                 	for ( var i = 0 ; i < data.length ; i++ ){

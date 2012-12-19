@@ -51,7 +51,7 @@ public class DroolsGenerator
             }
 
             droolsCode.append( '\n' );
-            droolsCode.append( "// Begin policy: " ).append( policy.getName() ).append( '\n' );
+            droolsCode.append( "// Begin policy: " ).append( policy.getName() ).append( " (Id=" ).append( policy.getId() ).append( ")\n" );
 
             for ( final Constraint constraint : policy.getConstraints() )
             {
@@ -60,7 +60,7 @@ public class DroolsGenerator
                     continue;
                 }
 
-                droolsCode.append( "// Begin constraint: " ).append( constraint.getName() ).append( '\n' );
+                droolsCode.append( "// Begin constraint: " ).append( constraint.getName() ).append( " (Id=" ).append( constraint.getId() ).append( ")\n" );
                 droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "\"\n" );
                 droolsCode.append( "when\n" );
                 droolsCode.append( INDENT ).append( "$component : Component\n" );

@@ -7,21 +7,28 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class DroolsGenerator
 {
+    private static final Logger log = LoggerFactory.getLogger( DroolsGenerator.class );
+
     private static final String INDENT = "    ";
 
     public String generate( final Stage stage, final List<Policy> policies )
     {
+        long start = System.currentTimeMillis();
+
         final StringBuilder droolsCode = new StringBuilder();
 
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
@@ -92,6 +99,9 @@ public class DroolsGenerator
             droolsCode.append( "// End policy: " ).append( policy.getName() ).append( '\n' );
         }
 
-        return droolsCode.toString();
+        String result = droolsCode.toString();
+        log.debug( "Generated drools code in {} millisecs", System.currentTimeMillis() - start );
+
+        return result;
     }
 }

@@ -335,15 +335,6 @@
             </goals>
           </execution>
         </executions>
-        <!-- 
-        Note that it seems this plugin isn't pulling configuration from within the execution tag, only from here in the plugin tag
-        So we cant have multiple instances run, so if you want to run the rules app tests, simply change the following:
-        InsightApp.js -> RuleApp.js
-        InsightPolicyController.js -> RuleController.js
-        InsightPolicyControllerSpec.js -> RuleControllerSpec.js 
-        src/main/resources/com/sonatype/insight/brain/policy/assets -> src/main/resources/com/sonatype/insight/brain/rules/assets
-        src/test/resources/com/sonatype/insight/brain/policy/assets -> src/test/resources/com/sonatype/insight/brain/rules/assets
-        -->
         <configuration>
           <sourceIncludes>
             <include>jquery/jquery.min.js</include>
@@ -465,44 +456,4 @@
       </plugins>
     </pluginManagement>
   </build>
-
-	<profiles>
-		<profile>
-			<id>test-rules-app</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.searls</groupId>
-						<artifactId>jasmine-maven-plugin</artifactId>
-						<version>1.2.0.0</version>
-						<configuration>
-							<sourceIncludes>
-								<include>jquery.min.js</include>
-								<include>jquery-ui.min.js</include>
-								<include>jquery.ui.selectmenu.min.js</include>
-								<include>jquery.event.drag-2.0.min.js</include>
-								<include>bootstrap.min.js</include>
-								<include>slick.core.js</include>
-								<include>slick.grid.js</include>
-								<include>slick.dataview.js</include>
-								<include>slick.rowselectionmodel.js</include>
-								<include>slick.checkboxselectcolumn.js</include>
-								<include>angular-1.0.2.js</include>
-								<include>SlickGridComponent.js</include>
-								<include>RuleApp.js</include>
-								<include>RuleController.js</include>
-							</sourceIncludes>
-							<specIncludes>
-								<include>angular-mocks-1.0.2.js</include>
-								<include>RuleControllerSpec.js</include>
-							</specIncludes>
-							<jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/rules/assets</jsSrcDir>
-							<jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/rules/assets</jsTestSrcDir>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-
 </project>

@@ -21,6 +21,10 @@ public class Component
 
     private String licenseThreat;
 
+    private List<String> declaredLicenseNames = new ArrayList<String>();
+
+    private List<String> observedLicenseNames = new ArrayList<String>();
+
     private List<SecurityVulnerability> securityVulnerabilities;
 
     public Component()
@@ -131,5 +135,39 @@ public class Component
     public void setLicenseThreat( final String licenseThreat )
     {
         this.licenseThreat = licenseThreat;
+    }
+
+    public List<String> getDeclaredLicenseNames()
+    {
+        return declaredLicenseNames;
+    }
+
+    public void setDeclaredLicenseNames( List<String> declaredLicenseNames )
+    {
+        this.declaredLicenseNames.clear();
+
+        if ( declaredLicenseNames == null )
+        {
+            return;
+        }
+
+        this.declaredLicenseNames.addAll( declaredLicenseNames );
+    }
+
+    public List<String> getObservedLicenseNames()
+    {
+        return observedLicenseNames;
+    }
+
+    public void setObservedLicenseNames( List<String> observedLicenseNames )
+    {
+        this.observedLicenseNames.clear();
+
+        if ( observedLicenseNames == null )
+        {
+            return;
+        }
+
+        this.observedLicenseNames.addAll( observedLicenseNames );
     }
 }

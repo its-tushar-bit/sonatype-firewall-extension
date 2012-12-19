@@ -29,7 +29,6 @@ public class ComponentDAO
             licenseJson = licenseJson.get( "aaData" );
             if ( licenseJson != null )
             {
-                // TODO load the rest of the license data
                 final ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
                 for ( int i = 0; i < licenseJsonArray.size(); i++ )
                 {
@@ -50,6 +49,9 @@ public class ComponentDAO
                         componentsByGAV.put( key, component );
                     }
                     component.setLicenseThreat( licenseThreat );
+                    component.setDeclaredLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "declaredLicenses" ) ) );
+                    component.setObservedLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) ) );
+                    // TODO Load effective license data too?
                 }
             }
         }
@@ -110,5 +112,24 @@ public class ComponentDAO
         {
             throw new IllegalStateException( e );
         }
+    }
+
+    private List<String> jsonStringArrayToList( JsonNode jsonNode )
+    {
+        if ( jsonNode == null )
+        {
+            return null;
+        }
+        ArrayNode jsonArray = (ArrayNode) jsonNode;
+        if ( jsonArray.size() == 0 )
+        {
+            return null;
+        }
+        List<String> result = new ArrayList<String>();
+        for ( int i = 0; i < jsonArray.size(); i++ )
+        {
+            result.add( jsonArray.get( i ).asText() );
+        }
+        return result;
     }
 }

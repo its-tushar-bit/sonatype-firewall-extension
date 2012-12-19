@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
 import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
-public abstract class AbstractConditionTypeTest
+public abstract class AbstractPolicyEvaluationTest
 {
     protected Constraint createConstraint( String constraintId, String constraintName, String conditionTypeId,
                                            String operator, String value )

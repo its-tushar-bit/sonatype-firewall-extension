@@ -24,12 +24,10 @@ import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
-import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 public class PolicyEvaluatorTest
+    extends AbstractPolicyEvaluationTest
 {
     // TODO We need a lot more tests here
 
@@ -69,8 +67,10 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
+                                   "Constraint Name 2", policyAlerts );
     }
 
     @Test
@@ -110,8 +110,10 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdSVAbsent",
+                                   "Constraint Name SVAbsent", policyAlerts );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID,
+                                   "ConstraintIdSVPresent", "Constraint Name SVPresent", policyAlerts );
     }
 
     @Test
@@ -149,8 +151,10 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIs",
+                                   "Constraint Name Is", policyAlerts );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIsNot",
+                                   "Constraint Name IsNot", policyAlerts );
     }
 
     @Test
@@ -205,7 +209,8 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
 
         // Another component with one security vulnerability and license threat "Weak Copyleft"
         final Component component4 = new Component( "g4", "a4", "v4" );
@@ -220,8 +225,10 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
     }
 
     @Test
@@ -253,7 +260,8 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
 
         // A component with license threat "Weak Copyleft"
         final Component component2 = new Component( "g2", "a2", "v2" );
@@ -267,8 +275,10 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
 
         // A component with one security vulnerability and license threat "Weak Copyleft"
         final Component component3 = new Component( "g3", "a3", "v3" );
@@ -283,9 +293,12 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
 
         // Another component with one security vulnerability and license threat "Weak Copyleft"
         final Component component4 = new Component( "g4", "a4", "v4" );
@@ -300,43 +313,13 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
 
-        assertContainsComponentFact( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-        assertContainsComponentFact( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, policyAlerts );
-    }
-
-    private static void assertContainsComponentFact( final Component expectedComponent, final String expectedPolicyId,
-                                                     final String expectedPolicyName,
-                                                     final String expectedActionTypeId, final List<PolicyAlert> actual )
-    {
-        for ( final PolicyAlert actualPolicyAlert : actual )
-        {
-            final PolicyFact actualPolicyFact = actualPolicyAlert.getTrigger();
-            if ( expectedPolicyId.equals( actualPolicyFact.getPolicyId() )
-                && expectedPolicyName.equals( actualPolicyFact.getPolicyName() ) )
-            {
-                for ( final ConstraintFact actualConstraintFact : actualPolicyFact.getConstraintFacts() )
-                {
-                    for ( final ComponentFact actualComponentFact : actualConstraintFact.getComponentFacts() )
-                    {
-                        if ( expectedComponent.getGroupId().equals( actualComponentFact.getGroupId() )
-                            && expectedComponent.getArtifactId().equals( actualComponentFact.getArtifactId() )
-                            && expectedComponent.getVersion().equals( actualComponentFact.getVersion() ) )
-                        {
-                            for ( final Action actualAction : actualPolicyAlert.getActions() )
-                            {
-                                if ( expectedActionTypeId.equals( actualAction.getActionTypeId() ) )
-                                {
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Assert.fail();
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+        assertContainsPolicyAlert( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
     }
 }

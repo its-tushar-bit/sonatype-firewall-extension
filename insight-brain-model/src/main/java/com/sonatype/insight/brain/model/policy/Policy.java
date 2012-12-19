@@ -126,4 +126,10 @@ public class Policy
         }
         stageActions.add( action );
     }
+
+    @Override
+    public String toString()
+    {
+        return "Policy [id=" + id + ", name=" + name + "]";
+    }
 }

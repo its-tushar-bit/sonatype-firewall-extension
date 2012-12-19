@@ -89,4 +89,10 @@ public class Constraint
         }
         conditions.add( condition );
     }
+
+    @Override
+    public String toString()
+    {
+        return "Constraint [id=" + id + ", name=" + name + ", enabled=" + enabled + ", operator=" + operator + "]";
+    }
 }

@@ -39,4 +39,10 @@ public class Action
     {
         this.target = target;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Action [actionTypeId=" + actionTypeId + ", target=" + target + "]";
+    }
 }

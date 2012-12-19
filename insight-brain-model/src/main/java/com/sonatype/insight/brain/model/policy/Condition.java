@@ -59,4 +59,10 @@ public class Condition
     {
         this.value = value;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Condition [conditionTypeId=" + conditionTypeId + ", operator=" + operator + ", value=" + value + "]";
+    }
 }

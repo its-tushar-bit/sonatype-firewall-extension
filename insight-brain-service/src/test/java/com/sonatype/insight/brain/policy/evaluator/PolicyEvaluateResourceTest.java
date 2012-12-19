@@ -45,14 +45,14 @@ public class PolicyEvaluateResourceTest
     public void testEvaluate()
         throws Exception
     {
-        final String appId = "PolicyEvaluatorResourceTest_AppId";
-        final String scanId = "PolicyEvaluatorResourceTest_ScanId";
+        final String appId = "PolicyEvaluateResourceTest_AppId";
+        final String scanId = "PolicyEvaluateResourceTest_ScanId";
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
         final Constraint constraint = new Constraint();
         constraint.setId( "C1" );
-        constraint.setName( "PolicyEvaluatorResourceTest constraint 1" );
+        constraint.setName( "PolicyEvaluateResourceTest constraint 1" );
         constraint.setOperator( LogicalOperator.AND );
         final Condition condition1 = new Condition();
         condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
@@ -64,7 +64,7 @@ public class PolicyEvaluateResourceTest
 
         final Policy policy = new Policy();
         policy.setId( "P1" );
-        policy.setName( "PolicyEvaluatorResourceTest policy" );
+        policy.setName( "PolicyEvaluateResourceTest policy" );
         policy.addConstraint( constraint );
         policy.addAction( BuildStageType.ID, action );
         addPolicy( appId, policy );
@@ -76,7 +76,7 @@ public class PolicyEvaluateResourceTest
         assertResponseStatus( 404, response );
 
         // Simulate that the report is available
-        final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
+        final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.post( getServiceURL( appId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );

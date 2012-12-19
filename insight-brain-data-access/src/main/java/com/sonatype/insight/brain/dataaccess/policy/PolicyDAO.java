@@ -15,7 +15,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class PolicyDAO
@@ -24,104 +26,116 @@ public class PolicyDAO
 
     private static final Logger log = LoggerFactory.getLogger( PolicyDAO.class );
 
-    private final File dataStoreDir;
+    private final File workDir;
 
-    public PolicyDAO( final File dataStoreDir )
+    public PolicyDAO( final File workDir )
     {
-        this.dataStoreDir = dataStoreDir;
+        this.workDir = workDir;
     }
 
-    public List<Policy> getByApplicationId( final String applicationId )
-    {
-        final File policyFile = getPolicyFile( applicationId );
-        log.debug( "Loading policies from {}", policyFile.getAbsolutePath() );
-        return loadJson( policyFile );
-    }
-
-    public void insert( final String applicationId, final Policy policy )
-    {
-        final File policyFile = getPolicyFile( applicationId );
-        final List<Policy> policies = loadJson( policyFile );
-
-        if ( policy.getId() == null || policy.getId().trim().isEmpty() )
-        {
-            policy.setId( newUUID() );
-        }
-        else
-        {
-            // TODO Throw an exception if the policy exists already
-        }
-        policies.add( policy );
-
-        saveJson( policyFile, policies );
-    }
-
-    public void update( final String applicationId, final Policy policy )
-    {
-        // TODO Throw an exception if the policy does not exist
-        final File policyFile = getPolicyFile( applicationId );
-        final List<Policy> policies = loadJson( policyFile );
-        for ( int i = 0; i < policies.size(); i++ )
-        {
-            if ( policy.getId().equals( policies.get( i ).getId() ) )
-            {
-                policies.set( i, policy );
-                break;
-            }
-        }
-
-        saveJson( policyFile, policies );
-    }
-
-    public void delete( final String applicationId, final String policyId )
-    {
-        // TODO Throw an exception if the policy does not exist ?
-        final File policyFile = getPolicyFile( applicationId );
-        final List<Policy> policies = loadJson( policyFile );
-        for ( int i = 0; i < policies.size(); i++ )
-        {
-            if ( policyId.equals( policies.get( i ).getId() ) )
-            {
-                policies.remove( i );
-                break;
-            }
-        }
-
-        saveJson( policyFile, policies );
-    }
-
-    private File getPolicyFile( final String applicationId )
-    {
-        return new File( new File( dataStoreDir, applicationId ), POLICY_FILENAME );
-    }
-
-    private static void saveJson( final File policyFile, final List<Policy> policies )
-    {
-        try
-        {
-            JsonUtils.write( policyFile, policies );
-        }
-        catch ( final IOException e )
-        {
-            throw new IllegalStateException( e );
-        }
-    }
-
-    private static List<Policy> loadJson( final File policyFile )
+    public List<Policy> getByApplicationId( final String appId )
     {
         final List<Policy> result = new ArrayList<Policy>();
-        if ( policyFile.exists() )
+        final JsonStore store = policyStore( appId );
+        try
         {
-            try
-            {
-                Collections.addAll( result, JsonUtils.read( policyFile, Policy[].class ) );
-            }
-            catch ( final IOException e )
-            {
-                throw new IllegalStateException( e );
-            }
+            final ArrayNode policies = loadPolicies( store );
+            Collections.addAll( result, JsonUtils.asPojo( policies, Policy[].class ) );
+        }
+        catch ( final Exception e )
+        {
+            log.error( "Failed to load policies", e );
         }
         return result;
+    }
+
+    public Policy insert( final String appId, final Policy policy )
+    {
+        final JsonStore store = policyStore( appId );
+        try
+        {
+            final ArrayNode policies = loadPolicies( store );
+            if ( policy.getId() == null || policy.getId().trim().isEmpty() )
+            {
+                policy.setId( newUUID() );
+            }
+            else
+            {
+                // TODO Throw an exception if the policy exists already
+            }
+            policies.add( JsonUtils.asTree( policy ) );
+            savePolicies( store, policies );
+        }
+        catch ( final Exception e )
+        {
+            log.error( "Failed to insert policy " + policy, e );
+        }
+        return policy;
+    }
+
+    public Policy update( final String appId, final Policy policy )
+    {
+        final JsonStore store = policyStore( appId );
+        try
+        {
+            final ArrayNode policies = loadPolicies( store );
+            for ( int i = 0; i < policies.size(); i++ )
+            {
+                if ( policy.getId().equals( policies.get( i ).get( "id" ).asText() ) )
+                {
+                    policies.set( i, JsonUtils.asTree( policy ) );
+                    savePolicies( store, policies );
+                    break;
+                }
+            }
+            // TODO Throw an exception if the policy does not exist
+        }
+        catch ( final Exception e )
+        {
+            log.error( "Failed to update policy " + policy, e );
+        }
+        return policy;
+    }
+
+    public void delete( final String appId, final String policyId )
+    {
+        final JsonStore store = policyStore( appId );
+        try
+        {
+            final ArrayNode policies = loadPolicies( store );
+            for ( int i = 0; i < policies.size(); i++ )
+            {
+                if ( policyId.equals( policies.get( i ).get( "id" ).asText() ) )
+                {
+                    policies.remove( i );
+                    savePolicies( store, policies );
+                    break;
+                }
+            }
+            // TODO Throw an exception if the policy does not exist
+        }
+        catch ( final Exception e )
+        {
+            log.error( "Failed to delete policy " + policyId, e );
+        }
+    }
+
+    private static ArrayNode loadPolicies( final JsonStore store )
+        throws IOException
+    {
+        final ArrayNode policies = (ArrayNode) store.restore( POLICY_FILENAME );
+        return policies != null ? policies : JsonUtils.arrayNode( null );
+    }
+
+    private static void savePolicies( final JsonStore store, final ArrayNode policies )
+        throws IOException
+    {
+        store.commit( POLICY_FILENAME, policies );
+    }
+
+    private JsonStore policyStore( final String appId )
+    {
+        return JsonUtils.fileStore( new File( workDir, "policy" + File.separatorChar + appId ) );
     }
 
     private static String newUUID()

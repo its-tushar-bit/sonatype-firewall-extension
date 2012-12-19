@@ -174,10 +174,15 @@ public final class JsonUtils
         return os.toByteArray();
     }
 
-    @SuppressWarnings( "unchecked" )
     public static <T extends ContainerNode<?>> T asTree( final Object pojo )
     {
-        return (T) ( (ObjectMapper) JSON.getCodec() ).convertValue( pojo, ContainerNode.class );
+        return ( (ObjectMapper) JSON.getCodec() ).valueToTree( pojo );
+    }
+
+    public static <T> T asPojo( final ContainerNode<?> tree, final Class<? extends T> type )
+        throws IOException
+    {
+        return JSON.getCodec().treeToValue( tree, type );
     }
 
     public static ArrayNode arrayNode( final ContainerNode<?> data )

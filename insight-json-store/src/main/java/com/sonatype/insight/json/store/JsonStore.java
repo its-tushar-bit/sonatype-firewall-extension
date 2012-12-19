@@ -14,6 +14,9 @@ public interface JsonStore
     void commit( String path, ContainerNode<?> data )
         throws IOException;
 
+    ContainerNode<?> restore( String path )
+        throws IOException;
+
     Iterable<String> list()
         throws IOException;
 

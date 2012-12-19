@@ -67,6 +67,32 @@ public final class JsonFileStore
     }
 
     @Override
+    public ContainerNode<?> restore( String path )
+        throws IOException
+    {
+        final CountingLock lock = lockFor( folder );
+
+        lock.exclusiveLock();
+        try
+        {
+            final File file = new File( folder, path );
+
+            final ArrayNode log;
+            if ( file.exists() )
+            {
+                log = (ArrayNode) JsonUtils.read( file );
+                return (ContainerNode<?>) log.get( 0 );
+            }
+
+            return null;
+        }
+        finally
+        {
+            lock.exclusiveUnlock();
+        }
+    }
+
+    @Override
     public Iterable<String> list()
         throws IOException
     {

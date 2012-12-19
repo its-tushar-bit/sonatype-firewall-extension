@@ -58,8 +58,7 @@ public class PolicyEvaluateResource
         log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", appId, scanId,
                    stage.getStageTypeId() );
 
-        final File policyDir = work.getPolicyDir();
-        final PolicyDAO policyDAO = new PolicyDAO( policyDir );
+        final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         final List<Policy> policies = policyDAO.getByApplicationId( appId );
 
         final File reportFile = work.getReportFile( scanId );

@@ -17,6 +17,16 @@ public class InsightWork
         this.insightConfig = insightConfig;
     }
 
+    public File getWorkDir()
+    {
+        return insightConfig.getSonatypeWork();
+    }
+
+    public File getScanDir( final String scanId )
+    {
+        return new File( insightConfig.getSonatypeWork(), "scan" + File.separatorChar + scanId );
+    }
+
     public File getAuditDir( final String appId )
     {
         return new File( insightConfig.getSonatypeWork(), "audit" + File.separatorChar + appId );
@@ -25,11 +35,6 @@ public class InsightWork
     public File getReportDir( final String scanId )
     {
         return new File( insightConfig.getSonatypeWork(), "report" + File.separatorChar + scanId );
-    }
-
-    public File getPolicyDir()
-    {
-        return new File( insightConfig.getSonatypeWork(), "policy" );
     }
 
     public File getReportFile( final String scanId )

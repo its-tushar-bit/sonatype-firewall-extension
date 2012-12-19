@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.io.File;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -41,11 +40,7 @@ public class PolicyResource
     public List<Policy> getPolicies( @PathParam( "appId" ) final String appId )
     {
         log.debug( "Received request to get all policies for appId {}", appId );
-
-        final File policyDir = work.getPolicyDir();
-        log.debug( "Loading policies from {}", policyDir.getAbsolutePath() );
-        final PolicyDAO policyDAO = new PolicyDAO( policyDir );
-        return policyDAO.getByApplicationId( appId );
+        return policyDAO().getByApplicationId( appId );
     }
 
     @POST
@@ -54,11 +49,7 @@ public class PolicyResource
     public Policy addPolicy( @PathParam( "appId" ) final String appId, final Policy policy )
     {
         log.debug( "Received request to add policy for appId {}", appId );
-
-        final File policyDir = work.getPolicyDir();
-        final PolicyDAO policyDAO = new PolicyDAO( policyDir );
-        policyDAO.insert( appId, policy );
-        return policy;
+        return policyDAO().insert( appId, policy );
     }
 
     @PUT
@@ -66,23 +57,20 @@ public class PolicyResource
     @Produces( MediaType.APPLICATION_JSON )
     public Policy updatePolicy( @PathParam( "appId" ) final String appId, final Policy policy )
     {
-        log.debug( "Received request to update policy for appId {}, policy id {}", appId, policy.getId() );
-
-        final File policyDir = work.getPolicyDir();
-        final PolicyDAO policyDAO = new PolicyDAO( policyDir );
-        policyDAO.update( appId, policy );
-        return policy;
+        log.debug( "Received request to update policy for appId {}, policyId {}", appId, policy.getId() );
+        return policyDAO().update( appId, policy );
     }
 
     @DELETE
     @Path( "{policyId}" )
     public void deletePolicy( @PathParam( "appId" ) final String appId, @PathParam( "policyId" ) final String policyId )
     {
-        log.debug( "Received request to delete policy for appId {}, policy id {}", appId, policyId );
+        log.debug( "Received request to delete policy for appId {}, policyId {}", appId, policyId );
+        policyDAO().delete( appId, policyId );
+    }
 
-        final File policyDir = work.getPolicyDir();
-        final PolicyDAO policyDAO = new PolicyDAO( policyDir );
-        policyDAO.delete( appId, policyId );
-        return;
+    private PolicyDAO policyDAO()
+    {
+        return new PolicyDAO( work.getWorkDir() );
     }
 }

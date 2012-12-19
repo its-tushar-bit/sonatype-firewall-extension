@@ -55,7 +55,8 @@ public abstract class AbstractPolicyEvaluationTest
                         {
                             if ( expectedComponent.getGroupId().equals( componentFact.getGroupId() )
                                 && expectedComponent.getArtifactId().equals( componentFact.getArtifactId() )
-                                && expectedComponent.getVersion().equals( componentFact.getVersion() ) )
+                                && expectedComponent.getVersion().equals( componentFact.getVersion() )
+                                && expectedConstraintId.equals( componentFact.getConstraintId() ) )
                             {
                                 return;
                             }

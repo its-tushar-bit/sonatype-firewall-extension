@@ -11,9 +11,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -110,8 +112,10 @@ public class ReportResourceTest
         final Response response;
         try
         {
-            response = RestAccess.get( resourcePrefix + "/printReport" );
+            response = RestAccess.get( resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8" );
             assertResponseStatus( 200, response );
+            assertThat( response.getHeader( "Content-Disposition" ),
+                        stringContainsInOrder( Arrays.asList( "attachment; filename=", "Test%20Project-8-", ".pdf" ) ) );
         }
         finally
         {

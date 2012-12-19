@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 final class Pdf
@@ -99,7 +100,7 @@ final class Pdf
 
         final String timestamp = new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( now );
         final String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
-        response.header( "Content-Disposition", "attachment; filename=" + filename );
+        response.header( "Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent( filename ) );
 
         response.entity( new StreamingOutput()
         {

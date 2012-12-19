@@ -16,7 +16,7 @@ public class Constraint
 
     private boolean enabled = true;
 
-    private LogicalOperator operator;
+    private LogicalOperator operator = LogicalOperator.AND;
 
     private List<Condition> conditions;
 

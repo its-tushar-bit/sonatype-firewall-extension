@@ -9,7 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -46,15 +47,16 @@ public class PolicyEvaluateResource
     @Context
     private InsightProxy proxy;
 
-    @GET
+    @POST
+    @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
     public List<PolicyAlert> evaluate( @PathParam( "appId" ) final String appId,
                                        @QueryParam( "scanId" ) final String scanId,
-                                       @QueryParam( "stageTypeId" ) final String stageTypeId )
+                                       final Stage stage )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", appId, scanId,
-                   stageTypeId );
+                   stage.getStageTypeId() );
 
         final File policyDir = work.getPolicyDir();
         final PolicyDAO policyDAO = new PolicyDAO( policyDir );
@@ -73,8 +75,7 @@ public class PolicyEvaluateResource
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
 
         final List<Component> components = new ComponentDAO().getAll( licenseReportEntry.buf, securityReportEntry.buf );
-        final List<PolicyAlert> result =
-            new PolicyEvaluator().evaluate( new Stage( stageTypeId ), policies, components );
+        final List<PolicyAlert> result = new PolicyEvaluator().evaluate( stage, policies, components );
 
         return result;
     }

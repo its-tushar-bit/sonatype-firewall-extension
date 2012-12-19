@@ -12,11 +12,14 @@ import java.util.List;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -60,11 +63,13 @@ public class PolicyClient
         return super.handle( path, query );
     }
 
-    public List<PolicyAlert> evaluate( final String scanId, final String stageTypeId /* FIXME: pass in full Stage */)
+    public List<PolicyAlert> evaluate( final String scanId, final Stage stage )
         throws IOException
     {
-        final Result httpResult =
-            path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId, "stageTypeId", stageTypeId ).get();
+        final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ) );
+        entity.setContentType( "application/json" + HTTP.CHARSET_PARAM + "UTF-8" );
+
+        final Result httpResult = path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId ).post( entity );
         if ( httpResult.status() >= 400 )
         {
             throw new ClientException( httpResult );

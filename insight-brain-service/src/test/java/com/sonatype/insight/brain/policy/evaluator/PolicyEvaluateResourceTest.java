@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -68,14 +69,16 @@ public class PolicyEvaluateResourceTest
         policy.addAction( BuildStageType.ID, action );
         addPolicy( appId, policy );
 
+        final Stage stage = new Stage( BuildStageType.ID );
+
         // The report file is not available yet
-        Response response = RestAccess.get( getServiceURL( appId, scanId ) );
+        Response response = RestAccess.post( getServiceURL( appId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 404, response );
 
         // Simulate that the report is available
         final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluatorResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
-        response = RestAccess.get( getServiceURL( appId, scanId ) );
+        response = RestAccess.post( getServiceURL( appId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );

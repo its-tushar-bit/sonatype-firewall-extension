@@ -18,6 +18,10 @@ public interface ConditionType
     @Deprecated
     List<String> getAvailableValues();
 
+    /**
+     * @return The ID of a ConditionValueType that defines the value type for this condition type or null if the
+     *         condition type does not require or support values.
+     */
     String getValueTypeId();
 
     @Deprecated

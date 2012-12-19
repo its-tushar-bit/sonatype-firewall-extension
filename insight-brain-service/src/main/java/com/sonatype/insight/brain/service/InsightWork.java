@@ -22,9 +22,9 @@ public class InsightWork
         return insightConfig.getSonatypeWork();
     }
 
-    public File getScanDir( final String scanId )
+    public File getScanDir( final String appId )
     {
-        return new File( insightConfig.getSonatypeWork(), "scan" + File.separatorChar + scanId );
+        return new File( insightConfig.getSonatypeWork(), "scan" + File.separatorChar + appId );
     }
 
     public File getAuditDir( final String appId )

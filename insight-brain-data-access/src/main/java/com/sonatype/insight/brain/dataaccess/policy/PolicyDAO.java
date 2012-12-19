@@ -42,9 +42,10 @@ public class PolicyDAO
             final ArrayNode policies = loadPolicies( store );
             Collections.addAll( result, JsonUtils.asPojo( policies, Policy[].class ) );
         }
-        catch ( final Exception e )
+        catch ( final IOException e )
         {
             log.error( "Failed to load policies", e );
+            throw new IllegalStateException( e );
         }
         return result;
     }
@@ -66,9 +67,10 @@ public class PolicyDAO
             policies.add( JsonUtils.asTree( policy ) );
             savePolicies( store, policies );
         }
-        catch ( final Exception e )
+        catch ( final IOException e )
         {
             log.error( "Failed to insert policy " + policy, e );
+            throw new IllegalStateException( e );
         }
         return policy;
     }
@@ -90,9 +92,10 @@ public class PolicyDAO
             }
             // TODO Throw an exception if the policy does not exist
         }
-        catch ( final Exception e )
+        catch ( final IOException e )
         {
             log.error( "Failed to update policy " + policy, e );
+            throw new IllegalStateException( e );
         }
         return policy;
     }
@@ -114,9 +117,10 @@ public class PolicyDAO
             }
             // TODO Throw an exception if the policy does not exist
         }
-        catch ( final Exception e )
+        catch ( final IOException e )
         {
             log.error( "Failed to delete policy " + policyId, e );
+            throw new IllegalStateException( e );
         }
     }
 

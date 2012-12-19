@@ -23,7 +23,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +76,8 @@ public class BCResource
         throws Exception
     {
         final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( appId, null, null );
-
-        final File scanFile = File.createTempFile( "insight-brain", "xml" ); // FIXME
+        final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", work.getScanDir( appId ) );
+        scanFile.getParentFile().mkdirs();
 
         final FileOutputStream os = new FileOutputStream( scanFile );
         try
@@ -92,6 +94,10 @@ public class BCResource
         request.setJobId( jobId );
 
         final BOMCheckScanUploadResult result = uploader.upload( proxy.contextualize( request ) );
+        if ( StringUtils.isNotBlank( result.getScanId() ) )
+        {
+            FileUtils.rename( scanFile, new File( scanFile.getParentFile(), "scan-" + result.getScanId() + ".xml.gz" ) );
+        }
 
         return Response.ok( result ).build();
     }

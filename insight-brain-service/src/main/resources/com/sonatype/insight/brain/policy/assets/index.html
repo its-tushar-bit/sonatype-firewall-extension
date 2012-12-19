@@ -29,6 +29,9 @@
 <script type='text/javascript' src='slickgrid/slick.editors.js'></script>
 <script type='text/javascript' src='slickgrid/slick.dataview.js'></script>
 <script type='text/javascript' src='slickgrid/slick.rowselectionmodel.js'></script>
+<script type='text/javascript' src='slickgrid/slick.cellselectionmodel.js'></script>
+<script type='text/javascript' src='slickgrid/slick.cellrangeselector.js'></script>
+<script type='text/javascript' src='slickgrid/slick.cellrangedecorator.js'></script>
 <script type='text/javascript' src='slickgrid/slick.checkboxselectcolumn.js'></script>
 <script type='text/javascript' src='SlickGridComponent.js'></script>
 <script type='text/javascript' src='InsightApp.js'></script>
@@ -96,12 +99,6 @@
 					    	<label class="control-label" for="policyActions">Actions</label>
 					    	<div class="controls">
 					    	    <div style="width:100%;">
-					    	        <table width="100%">
-									    <tr>
-										    <td width="99%"></td>
-										    <td><button class="btn" data-toggle="modal" data-target="#editActionsModal" title="Edit Actions"><i class="icon-pencil"></i></button></td>
-										</tr>
-									</table>
 					    	        <slickgrid id="actionGrid" style="height:200px;" class="borderedTable" data="state.actionTableData" table-def="state.actionTableDefinition"></slickgrid>
 					    	    </div>
 					    	</div>
@@ -156,33 +153,6 @@
 						</div>
 						<div class="modal-footer">
 						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid" data-dismiss="modal">Add</button>
-						    <button class="btn" data-dismiss="modal">Cancel</button>
-						</div>
-					</div>
-					<div id="editActionsModal" class="modal hide" style="width: 750px;margin: -250px 0 0 -475px;">
-						<div class="modal-header">
-						    <button type="button" class="close" data-dismiss="modal">×</button>
-						    <h3>Edit Actions</h3>
-						</div>
-						<div class="modal-body">
-							<div ng-repeat="actionStage in state.actionStageList">
-								<div class="form-horizontal">
-									<div class="control-group">
-									    <label class='control-label'>{{actionStage.name}}</label>
-										<div class='controls' style='text-align:left'>
-											<select ng-model="state.actionData[actionStage.id + 'Action']">
-											    <option value="">-- Choose Action --</option>
-												<option value="warn">Warn</option>
-												<option value="fail">Fail</option>
-											</select>
-											<input type="text" placeholder="Enter Notification Email Address..." ng-model="state.actionData[actionStage.id + 'Notify']">
-										</div>
-									</div>
-								</div>
-						    </div>
-						</div>
-						<div class="modal-footer">
-						    <button class="btn btn-primary" ng-click="doneEditActionsClick()" data-dismiss="modal">Done</button>
 						    <button class="btn" data-dismiss="modal">Cancel</button>
 						</div>
 					</div>

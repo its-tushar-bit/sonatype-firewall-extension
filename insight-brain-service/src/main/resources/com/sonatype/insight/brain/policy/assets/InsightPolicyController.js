@@ -1,7 +1,7 @@
 function InsightPolicyController($scope, global, $http, $location) {
 	function updatePolicySummary(data) {
 		data.summary = {
-			constraints: data.constraints.length + ' Constraints to be evaluated',
+			constraints: data.constraints.length + ' Constraint(s) to be evaluated',
 		}
 		
 		var actionCount = 0;
@@ -21,16 +21,15 @@ function InsightPolicyController($scope, global, $http, $location) {
     			}
     			
     			for ( var j = 0 ; j < value.length ; j++ ) {
-    				if ( value[j].actionTypeId === 'warn') {	
+    				if (j > 0) {
+						actionNames += '/';
+					}
+    				if ( value[j].actionTypeId === 'warn') {
     					actionNames += 'Warn';
     				} else if ( value[j].actionTypeId === 'fail') {
-    					actionNames += 'Fail'
+    					actionNames += 'Fail';
     				} else if ( value[j].actionTypeId === 'notify') {
-    					if ( value.length > 1 ){
-    						actionNames += ' and notify';
-    					} else {
-    						actionNames += 'Notify';
-    					}
+    					actionNames += 'Notify';
     				}
     			}
 			}
@@ -78,35 +77,36 @@ function InsightPolicyController($scope, global, $http, $location) {
 			name : "Fail",
 			field : "fail",
 			width : 50,
-			formatter : function(row, cell, value, columnDef, dataContext) {
-				if ( value ){
-					return '<div class="icon-check"></div>';
-				}
-				return '';
-			}
+			cssClass: "checkbox-edit-cell",
+			formatter: function(row,cell,value,columnDef,dataContext){
+				return value ? "<img src='img/tick.png'>" : "";
+			},
+			editor: Slick.Editors.Checkbox
 		},{
 			id : "warn",
 			name : "Warn",
 			field : "warn",
 			width : 50,
-			formatter : function(row, cell, value, columnDef, dataContext) {
-				if ( value ){
-					return '<div class="icon-check"></div>';
-				}
-				return '';
-			}
+			cssClass: "checkbox-edit-cell",
+			formatter: function(row,cell,value,columnDef,dataContext){
+				return value ? "<img src='img/tick.png'>" : "";
+			},
+			editor: Slick.Editors.Checkbox
 		},{
 			id : "notify",
 			name : "Notify",
 			field : "notify",
-			width : 800
+			width : 800,
+			editor: Slick.Editors.Text
 		}],
 		options : {
 			height : 200,
 			forceFitColumns : true,
-			fullWidthRows : true
+			fullWidthRows : true,
+			editable: true,
+			autoEdit: false
 		},
-		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false})
+		selectionModel : new Slick.CellSelectionModel()
 	};
 	$scope.state.constraintTableDefinition = {
 		columns : [ checkboxSelector.getColumnDefinition(), {
@@ -184,41 +184,33 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.resetActions = function() {
-		$scope.state.actionData = {};
-		
-		if ($scope.state.currentPolicy) {
-			angular.forEach($scope.state.currentPolicy.actions, function(value, key) {
-				for ( var i = 0 ; i < value.length ; i++ ){
-					switch (value[i].actionTypeId) {
-					case 'fail':
-						$scope.state.actionData[key + 'Action'] = 'fail';
-						break;
-					case 'warn':
-						$scope.state.actionData[key + 'Action'] = 'warn';
-						break;
-					case 'notify':
-						$scope.state.actionData[key + 'Notify'] = value[i].target;
-						break;
-					}
-				}
-			});
-		}
-		
 		$scope.state.actionTableData = [];
 		
-		var handleActionForTable = function(id){
-			return {
-				id: id,
-				fail: $scope.state.actionData[id + 'Action'] === 'fail',
-				warn: $scope.state.actionData[id + 'Action'] === 'warn',
-				notify: $scope.state.actionData[id + 'Notify']
-			};
+		if ($scope.state.currentPolicy) {
+			for ( var i = 0 ; i < $scope.state.actionStageList.length ; i++ ) {
+				var item = {
+					id: $scope.state.actionStageList[i].id
+				};
+				
+				if ($scope.state.currentPolicy.actions[item.id]) {
+					for ( var j = 0 ; j < $scope.state.currentPolicy.actions[item.id].length ; j++ ){
+						switch ($scope.state.currentPolicy.actions[item.id][j].actionTypeId) {
+						case 'fail':
+							item.fail = true;
+							break;
+						case 'warn':
+							item.warn = true;
+							break;
+						case 'notify':
+							item.notify = $scope.state.currentPolicy.actions[item.id][j].target;
+							break;
+						}
+					}
+				}
+				
+				$scope.state.actionTableData.push(item);
+			}
 		}
-		
-		//this is for the table displayed in constraint screen
-		angular.forEach($scope.state.actionStageList, function(value, key) {
-			$scope.state.actionTableData.push(handleActionForTable(value.id));
-		});
 	}
 	
 	$scope.reset = function() {
@@ -403,40 +395,41 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.validateConstraintCondition();
 	}
 	
-	$scope.doneEditActionsClick = function() {
-		//TODO: validation, at least on emails
-		var handleAction = function(id){
-			var result = [];
+	$scope.$watch('state.actionTableData',function(newScopeData){
+		if ($scope.state.currentPolicy) {
+			var handleAction = function(id){
+				var result = [];
+				
+				for ( var i = 0 ; i < newScopeData.length ; i++ ) {
+					if (newScopeData[i].id === id) {
+						if (newScopeData[i].warn) {
+							result.push({
+								actionTypeId: 'warn'
+							});
+						}
+						if (newScopeData[i].fail) {
+							result.push({
+								actionTypeId: 'fail'
+							});
+						}
+						if (newScopeData[i].notify) {
+							result.push({
+								actionTypeId: 'notify',
+								target: newScopeData[i].notify
+							});
+						}
+						break;
+					}
+				}
+				
+				return result;
+			};
 			
-			if ($scope.state.actionData[id + 'Action'] === 'warn') {
-				result.push({
-					actionTypeId: 'warn'
-				});
-			} else if ($scope.state.actionData[id + 'Action'] === 'fail') {
-				result.push({
-					actionTypeId: 'fail'
-				});
-			}
-			
-			if ($scope.state.actionData[id + 'Notify']) {
-				result.push({
-					actionTypeId: 'notify',
-					target: $scope.state.actionData[id + 'Notify']
-				});
-			}
-			
-			return result;
-		};
-		
-		angular.forEach($scope.state.actionStageList, function(value, key) {
-			$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
-		});
-			
-		$scope.resetActions();
-		
-		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element
-		$('#editActionsModal').modal('hide');
-	}
+			angular.forEach($scope.state.actionStageList, function(value, key) {
+				$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
+			});
+		}
+	},true);
 	
 	insightApp.appId = $location.search().appId;
 	

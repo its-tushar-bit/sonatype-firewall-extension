@@ -88,6 +88,13 @@ var SlickGridComponent = function() {
             };
 
             $(window).resize(resizeFn);
+            
+            grid.onCellChange.subscribe(function(e, args) {
+            	var parts = attrs.data.split('.');
+            	parts.splice(0,parts.length-1);
+            	$scope.state[parts[0]] = grid.getData().getItems();
+                $scope.$apply();
+            });
         }
     }
 }

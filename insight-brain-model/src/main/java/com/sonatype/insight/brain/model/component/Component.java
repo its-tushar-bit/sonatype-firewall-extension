@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
 public class Component
 {
@@ -154,6 +155,11 @@ public class Component
         this.declaredLicenseNames.addAll( declaredLicenseNames );
     }
 
+    public void addDeclaredLicenseName( String licenseName )
+    {
+        declaredLicenseNames.add( licenseName );
+    }
+
     public List<String> getObservedLicenseNames()
     {
         return observedLicenseNames;
@@ -169,5 +175,84 @@ public class Component
         }
 
         this.observedLicenseNames.addAll( observedLicenseNames );
+    }
+
+    public void addObservedLicenseName( String licenseName )
+    {
+        observedLicenseNames.add( licenseName );
+    }
+
+    public boolean hasDeclaredLicenseInList( String[] licenseIds )
+    {
+        return hasLicenseInList( declaredLicenseNames, licenseIds );
+    }
+
+    public boolean hasObservedLicenseInList( String[] licenseIds )
+    {
+        return hasLicenseInList( observedLicenseNames, licenseIds );
+    }
+
+    private boolean hasLicenseInList( List<String> componentLicenseNames, String[] licenseIds )
+    {
+        if ( licenseIds == null )
+        {
+            return false;
+        }
+
+        for ( String licenseId : licenseIds )
+        {
+            License license = LicenseValueType.getLicenseById( licenseId );
+            if ( componentLicenseNames.contains( license.getShortDisplayName() ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasDeclaredLicenseNotInList( String[] licenseIds )
+    {
+        return hasLicenseNotInList( declaredLicenseNames, licenseIds );
+    }
+
+    public boolean hasObservedLicenseNotInList( String[] licenseIds )
+    {
+        return hasLicenseNotInList( observedLicenseNames, licenseIds );
+    }
+
+    private boolean hasLicenseNotInList( List<String> componentLicenseNames, String[] licenseIds )
+    {
+        if ( licenseIds == null )
+        {
+            return false;
+        }
+
+        for ( String licenseId : licenseIds )
+        {
+            License license = LicenseValueType.getLicenseById( licenseId );
+            if ( !componentLicenseNames.contains( license.getShortDisplayName() ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasLicenseInList( String[] licenseIds )
+    {
+        if ( hasDeclaredLicenseInList( licenseIds ) )
+        {
+            return true;
+        }
+        return hasObservedLicenseInList( licenseIds );
+    }
+
+    public boolean hasLicenseNotInList( String[] licenseIds )
+    {
+        if ( hasDeclaredLicenseNotInList( licenseIds ) )
+        {
+            return true;
+        }
+        return hasObservedLicenseNotInList( licenseIds );
     }
 }

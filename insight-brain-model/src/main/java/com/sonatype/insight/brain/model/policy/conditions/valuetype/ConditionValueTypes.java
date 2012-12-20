@@ -20,6 +20,7 @@ public class ConditionValueTypes
     {
         add( new FloatValueType() );
         add( new LicenseCategoryValueType() );
+        add( new LicenseValueType() );
     }
 
     public static Collection<ConditionValueType<?>> getAll()

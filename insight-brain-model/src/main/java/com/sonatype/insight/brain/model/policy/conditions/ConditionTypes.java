@@ -17,7 +17,10 @@ public class ConditionTypes
 
     static
     {
+        add( new DeclaredLicenseInListConditionType() );
         add( new LicenseCategoryConditionType() );
+        add( new LicenseInListConditionType() );
+        add( new ObservedLicenseInListConditionType() );
         add( new SecurityVulnerabilityConditionType() );
         add( new SecurityVulnerabilitySeverityConditionType() );
     }

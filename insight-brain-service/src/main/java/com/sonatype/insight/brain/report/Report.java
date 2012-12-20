@@ -48,6 +48,12 @@ public final class Report
         return extractEntry( reportFile, name );
     }
 
+    public static void putEntry( final File reportFile, final String name, final byte[] buf )
+        throws IOException
+    {
+        cache( getCacheFile( reportFile, name ), buf );
+    }
+
     public static String toEntryName( final String path )
     {
         if ( null == path || path.length() == 0 )

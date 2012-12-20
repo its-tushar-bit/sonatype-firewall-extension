@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -21,17 +23,23 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
+import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sun.jersey.api.NotFoundException;
 
 @Path( PolicyEvaluateResource.SERVICE_PATH )
@@ -51,8 +59,7 @@ public class PolicyEvaluateResource
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
     public List<PolicyAlert> evaluate( @PathParam( "appId" ) final String appId,
-                                       @QueryParam( "scanId" ) final String scanId,
-                                       final Stage stage )
+                                       @QueryParam( "scanId" ) final String scanId, final Stage stage )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", appId, scanId,
@@ -76,6 +83,43 @@ public class PolicyEvaluateResource
         final List<Component> components = new ComponentDAO().getAll( licenseReportEntry.buf, securityReportEntry.buf );
         final List<PolicyAlert> result = new PolicyEvaluator().evaluate( stage, policies, components );
 
+        Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( result ) ) );
+
         return result;
+    }
+
+    private static ObjectNode analyzeThreats( final List<PolicyAlert> policyAlerts )
+    {
+        final Map<String, JsonNode> componentThreats = new HashMap<String, JsonNode>();
+        for ( final PolicyAlert alert : policyAlerts )
+        {
+            final PolicyFact trigger = alert.getTrigger();
+            final int threatLevel = trigger.getThreatLevel();
+            for ( final ConstraintFact constraint : trigger.getConstraintFacts() )
+            {
+                for ( final ComponentFact component : constraint.getComponentFacts() )
+                {
+                    final String gav = component.getGAV();
+                    ObjectNode threat = (ObjectNode) componentThreats.get( gav );
+                    if ( threat == null )
+                    {
+                        threat = JsonUtils.asTree( component );
+                        componentThreats.put( gav, threat );
+                    }
+                    if ( threatLevel > threat.path( "threatLevel" ).asInt( -1 ) )
+                    {
+                        threat.put( "constraintId", constraint.getConstraintId() );
+                        threat.put( "constraintName", constraint.getConstraintName() );
+                        threat.put( "policyId", trigger.getPolicyId() );
+                        threat.put( "policyName", trigger.getPolicyName() );
+                        threat.put( "policyThreatLevel", threatLevel );
+                    }
+                }
+            }
+        }
+
+        final ObjectNode threats = JsonUtils.objectNode( null );
+        threats.withArray( "aaData" ).addAll( componentThreats.values() );
+        return threats;
     }
 }

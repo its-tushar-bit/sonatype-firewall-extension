@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy.facts;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.component.Component;
 
 public class ComponentFact
@@ -27,6 +28,12 @@ public class ComponentFact
         this.artifactId = component.getArtifactId();
         this.version = component.getVersion();
         this.constraintId = constraintId;
+    }
+
+    @JsonIgnore
+    public String getGAV()
+    {
+        return groupId + ':' + artifactId + ':' + version;
     }
 
     public String getGroupId()

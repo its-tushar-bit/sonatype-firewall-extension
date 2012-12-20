@@ -12,6 +12,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -24,7 +25,9 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
@@ -65,6 +68,7 @@ public class PolicyEvaluateResourceTest
         final Policy policy = new Policy();
         policy.setId( "P1" );
         policy.setName( "PolicyEvaluateResourceTest policy" );
+        policy.setThreatLevel( 8 );
         policy.addConstraint( constraint );
         policy.addAction( BuildStageType.ID, action );
         addPolicy( appId, policy );
@@ -83,11 +87,25 @@ public class PolicyEvaluateResourceTest
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
         Assert.assertTrue( policyAlerts.length > 0 );
+
+        // check the calculated policy threat
+        response = RestAccess.get( getThreatsURL( appId, scanId ) );
+        assertResponseStatus( 200, response );
+        final JsonNode policyThreats = JsonUtils.parse( response.getResponseBody() ).get( "aaData" );
+        Assert.assertNotNull( policyThreats );
+        Assert.assertTrue( policyThreats.size() > 0 );
+        Assert.assertEquals( 8, policyThreats.get( 0 ).get( "policyThreatLevel" ).asInt() );
     }
 
     private String getServiceURL( final String appId, final String scanId )
     {
         return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "?scanId=" + scanId
             + "&stageTypeId=" + BuildStageType.ID;
+    }
+
+    private String getThreatsURL( final String appId, final String scanId )
+    {
+        return getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId )
+            + "/embedReport/policythreats.json";
     }
 }

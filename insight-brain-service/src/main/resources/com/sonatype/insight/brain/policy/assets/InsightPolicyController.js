@@ -231,6 +231,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 			threatLevel: 5
 		}
 		$scope.state.showAddPolicyScreen = true;
+		$scope.resetActions();
 		setTimeout(function(){
 			$scope.constraintGrid.redraw();
 		},50);

@@ -28,4 +28,7 @@ public interface ConditionType
     boolean isRequiresValue();
 
     String generateDroolsCode( Condition condition );
+    
+    void validateCondition( Condition condition )
+        throws InvalidConditionException;
 }

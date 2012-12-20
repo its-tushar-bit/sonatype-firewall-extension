@@ -9,11 +9,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
 public class Component
 {
+    private static final Logger log = LoggerFactory.getLogger( Component.class );
+
     private String groupId;
 
     private String artifactId;
@@ -202,6 +207,11 @@ public class Component
         for ( String licenseId : licenseIds )
         {
             License license = LicenseValueType.getLicenseById( licenseId );
+            if (license == null)
+            {
+                log.warn( "Unknown license id {}", licenseId );
+                continue;
+            }
             if ( componentLicenseNames.contains( license.getShortDisplayName() ) )
             {
                 return true;
@@ -230,6 +240,11 @@ public class Component
         for ( String licenseId : licenseIds )
         {
             License license = LicenseValueType.getLicenseById( licenseId );
+            if ( license == null )
+            {
+                log.warn( "Unknown license id {}", licenseId );
+                continue;
+            }
             if ( !componentLicenseNames.contains( license.getShortDisplayName() ) )
             {
                 return true;

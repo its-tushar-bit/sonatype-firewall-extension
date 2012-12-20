@@ -13,9 +13,11 @@ import java.util.Map;
 import com.sonatype.insight.brain.model.component.LicenseCategory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseCategoryValueType;
 
 public class LicenseCategoryConditionType
+    extends AbstractConditionType
     implements ConditionType
 {
     public static final String ID = "LicenseCategory";
@@ -81,5 +83,17 @@ public class LicenseCategoryConditionType
     public String getValueTypeId()
     {
         return LicenseCategoryValueType.ID;
+    }
+
+    @Override
+    public void validateCondition( Condition condition )
+        throws InvalidConditionException
+    {
+        super.validateCondition( condition );
+
+        if ( licenseCategoryIdsByName.get( condition.getValue() ) == null )
+        {
+            throw new InvalidConditionException( condition, "Value not supported: " + condition.getValue() );
+        }
     }
 }

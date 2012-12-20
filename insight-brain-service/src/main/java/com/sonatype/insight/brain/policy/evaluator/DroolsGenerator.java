@@ -83,6 +83,7 @@ public class DroolsGenerator
                     }
                     droolsCode.append( INDENT ).append( INDENT ).append( "( " );
                     final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+                    conditionType.validateCondition( condition );
                     droolsCode.append( conditionType.generateDroolsCode( condition ) );
                     droolsCode.append( " )\n" );
                     conditionIndex++;

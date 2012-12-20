@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
@@ -68,4 +69,21 @@ public class LicenseCategoryConditionTypeTest
                                    "Constraint Name IsNot", policyAlerts );
     }
 
+    @Test
+    public void testValidateCondition_ValueNotANumber()
+    {
+        Condition condition = new Condition( LicenseCategoryConditionType.ID, "is", "abc" );
+        try
+        {
+            new LicenseCategoryConditionType().validateCondition( condition );
+            Assert.fail( "Expected InvalidConditionException" );
+        }
+        catch ( InvalidConditionException expected )
+        {
+            if ( !expected.getMessage().endsWith( "Value not supported: abc" ) )
+            {
+                throw expected;
+            }
+        }
+    }
 }

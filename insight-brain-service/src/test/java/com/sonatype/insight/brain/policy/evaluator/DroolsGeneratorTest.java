@@ -20,12 +20,14 @@ import org.junit.Test;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 public class DroolsGeneratorTest
@@ -80,6 +82,142 @@ public class DroolsGeneratorTest
         // this will parse and compile in one step
         kbuilder.add( ResourceFactory.newReaderResource( new StringReader( droolsCode ) ), ResourceType.DRL );
         Assert.assertFalse( kbuilder.getErrors().toString(), kbuilder.hasErrors() );
+    }
+
+    @Test
+    public void testConditionWithoutOperator()
+    {
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraint1 = new Constraint();
+        constraint1.setId( "ConstraintId1" );
+        constraint1.setName( "Constraint Name 1" );
+        constraint1.setOperator( LogicalOperator.AND );
+        Condition condition1 = new Condition();
+        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
+        constraint1.addCondition( condition1 );
+        constraints.add( constraint1 );
+
+        final Policy policy = new Policy();
+        policy.setId( "PolicyId1" );
+        policy.setName( "Policy Name 1" );
+        policy.setConstraints( constraints );
+        Action action = new Action();
+        action.setActionTypeId( FailActionType.ID );
+        policy.addAction( BuildStageType.ID, action );
+
+        final DroolsGenerator generator = new DroolsGenerator();
+        try
+        {
+            generator.generate( new Stage( BuildStageType.ID ), Arrays.asList( policy ) );
+            Assert.fail( "Expected InvalidConditionException" );
+        }
+        catch ( InvalidConditionException expected )
+        {
+            if ( !expected.getMessage().endsWith( "Operator is null" ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testConditionWithUnsupportedOperator()
+    {
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraint1 = new Constraint();
+        constraint1.setId( "ConstraintId1" );
+        constraint1.setName( "Constraint Name 1" );
+        constraint1.setOperator( LogicalOperator.AND );
+        Condition condition1 = new Condition();
+        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
+        condition1.setOperator( "Verdi" );
+        constraint1.addCondition( condition1 );
+        constraints.add( constraint1 );
+
+        final Policy policy = new Policy();
+        policy.setId( "PolicyId1" );
+        policy.setName( "Policy Name 1" );
+        policy.setConstraints( constraints );
+        Action action = new Action();
+        action.setActionTypeId( FailActionType.ID );
+        policy.addAction( BuildStageType.ID, action );
+
+        final DroolsGenerator generator = new DroolsGenerator();
+        try
+        {
+            generator.generate( new Stage( BuildStageType.ID ), Arrays.asList( policy ) );
+            Assert.fail( "Expected InvalidConditionException" );
+        }
+        catch ( InvalidConditionException expected )
+        {
+            if ( !expected.getMessage().endsWith( "Operator is not supported" ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testConditionWithoutValue_Valid()
+    {
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraint1 = new Constraint();
+        constraint1.setId( "ConstraintId1" );
+        constraint1.setName( "Constraint Name 1" );
+        constraint1.setOperator( LogicalOperator.AND );
+        Condition condition1 = new Condition();
+        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
+        condition1.setOperator( "present" );
+        constraint1.addCondition( condition1 );
+        constraints.add( constraint1 );
+
+        final Policy policy = new Policy();
+        policy.setId( "PolicyId1" );
+        policy.setName( "Policy Name 1" );
+        policy.setConstraints( constraints );
+        Action action = new Action();
+        action.setActionTypeId( FailActionType.ID );
+        policy.addAction( BuildStageType.ID, action );
+
+        final DroolsGenerator generator = new DroolsGenerator();
+        generator.generate( new Stage( BuildStageType.ID ), Arrays.asList( policy ) );
+    }
+
+    @Test
+    public void testConditionWithoutValue_Invalid()
+    {
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraint1 = new Constraint();
+        constraint1.setId( "ConstraintId1" );
+        constraint1.setName( "Constraint Name 1" );
+        constraint1.setOperator( LogicalOperator.AND );
+        Condition condition1 = new Condition();
+        condition1.setConditionTypeId( SecurityVulnerabilitySeverityConditionType.ID );
+        condition1.setOperator( ">" );
+        constraint1.addCondition( condition1 );
+        constraints.add( constraint1 );
+
+        final Policy policy = new Policy();
+        policy.setId( "PolicyId1" );
+        policy.setName( "Policy Name 1" );
+        policy.setConstraints( constraints );
+        Action action = new Action();
+        action.setActionTypeId( FailActionType.ID );
+        policy.addAction( BuildStageType.ID, action );
+
+        final DroolsGenerator generator = new DroolsGenerator();
+        try
+        {
+            generator.generate( new Stage( BuildStageType.ID ), Arrays.asList( policy ) );
+            Assert.fail( "Expected InvalidConditionException" );
+        }
+        catch ( InvalidConditionException expected )
+        {
+            if ( !expected.getMessage().endsWith( "Value is null" ) )
+            {
+                throw expected;
+            }
+        }
     }
 
     // @Test

@@ -14,7 +14,9 @@ import org.junit.Test;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
@@ -162,5 +164,23 @@ public class LicenseInListConditionTypeTest
 
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
+    public void testValidateCondition_InvalidLicenseId()
+    {
+        Condition condition = new Condition( LicenseInListConditionType.ID, "in list", "abc" );
+        try
+        {
+            new LicenseInListConditionType().validateCondition( condition );
+            Assert.fail( "Expected InvalidConditionException" );
+        }
+        catch ( InvalidConditionException expected )
+        {
+            if ( !expected.getMessage().endsWith( "Invalid license id: abc" ) )
+            {
+                throw expected;
+            }
+        }
     }
 }

@@ -40,7 +40,7 @@ public class LicenseCategoryValueType
     @Override
     public String getDataType()
     {
-        return "String";
+        return "LicenseCategory";
     }
 
     @Override

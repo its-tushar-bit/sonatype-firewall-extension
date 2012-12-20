@@ -77,11 +77,14 @@ public final class JsonFileStore
         {
             final File file = new File( folder, path );
 
-            final ArrayNode log;
             if ( file.exists() )
             {
-                log = (ArrayNode) JsonUtils.read( file );
-                return (ContainerNode<?>) log.get( 0 );
+                JsonNode data = JsonUtils.read( file ).get( 0 );
+                if ( data != null && data.has( "data" ) ) // stamped data?
+                {
+                    data = data.get( "data" );
+                }
+                return (ContainerNode<?>) data;
             }
 
             return null;
@@ -182,7 +185,7 @@ public final class JsonFileStore
         {
             final ObjectNode entry;
             ContainerNode<?> data = (ContainerNode<?>) log.get( x );
-            if ( data.has( "data" ) ) // stamped data?
+            if ( data != null && data.has( "data" ) ) // stamped data?
             {
                 entry = (ObjectNode) data;
                 data = (ContainerNode<?>) entry.remove( "data" );
@@ -190,7 +193,7 @@ public final class JsonFileStore
             }
             else
             {
-                entry = data.objectNode();
+                entry = JsonUtils.objectNode( data );
             }
             if ( data instanceof ArrayNode )
             {
@@ -229,7 +232,7 @@ public final class JsonFileStore
         for ( int x = 0; x < log.size(); x++ )
         {
             ContainerNode<?> data = (ContainerNode<?>) log.get( x );
-            if ( data.has( "data" ) ) // stamped data?
+            if ( data != null && data.has( "data" ) ) // stamped data?
             {
                 data = (ContainerNode<?>) data.get( "data" );
             }

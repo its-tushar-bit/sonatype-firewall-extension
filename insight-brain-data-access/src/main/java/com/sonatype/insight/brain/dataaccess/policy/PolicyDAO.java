@@ -28,6 +28,12 @@ public class PolicyDAO
 
     private final File workDir;
 
+    private String user;
+
+    private String ip;
+
+    private String where;
+
     public PolicyDAO( final File workDir )
     {
         this.workDir = workDir;
@@ -124,6 +130,14 @@ public class PolicyDAO
         }
     }
 
+    public PolicyDAO session( final String _user, final String _ip, final String _where )
+    {
+        user = _user;
+        ip = _ip;
+        where = _where;
+        return this;
+    }
+
     private static ArrayNode loadPolicies( final JsonStore store )
         throws IOException
     {
@@ -131,10 +145,10 @@ public class PolicyDAO
         return policies != null ? policies : JsonUtils.arrayNode( null );
     }
 
-    private static void savePolicies( final JsonStore store, final ArrayNode policies )
+    private void savePolicies( final JsonStore store, final ArrayNode policies )
         throws IOException
     {
-        store.commit( POLICY_FILENAME, policies );
+        store.commit( POLICY_FILENAME, JsonUtils.stamp( user, ip, where, policies ) );
     }
 
     private JsonStore policyStore( final String appId )

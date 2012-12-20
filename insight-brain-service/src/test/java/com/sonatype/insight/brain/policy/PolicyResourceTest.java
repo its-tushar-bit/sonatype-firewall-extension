@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.policy;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -53,8 +55,11 @@ public class PolicyResourceTest
 
         Assert.assertEquals( 1, store.modificationCount() );
 
-        Assert.assertEquals( JsonUtils.asTree( new Policy[] { policy1 } ),
-                             store.history( null, "policy.json" ).get( "aaData" ) );
+        ObjectNode json;
+
+        json = (ObjectNode) store.history( null, "policy.json" ).get( "aaData" ).get( 0 );
+        json = json.without( Arrays.asList( "user", "ip", "where", "time", "filename" ) );
+        Assert.assertEquals( JsonUtils.asTree( policy1 ), json );
 
         // Update a policy
         policy = policies[0];
@@ -77,8 +82,13 @@ public class PolicyResourceTest
 
         Assert.assertEquals( 2, store.modificationCount() );
 
-        Assert.assertEquals( JsonUtils.asTree( new Policy[] { policy2, policy1 } ),
-                             store.history( null, "policy.json" ).get( "aaData" ) );
+        json = (ObjectNode) store.history( null, "policy.json" ).get( "aaData" ).get( 0 );
+        json = json.without( Arrays.asList( "user", "ip", "where", "time", "filename" ) );
+        Assert.assertEquals( JsonUtils.asTree( policy2 ), json );
+
+        json = (ObjectNode) store.history( null, "policy.json" ).get( "aaData" ).get( 1 );
+        json = json.without( Arrays.asList( "user", "ip", "where", "time", "filename" ) );
+        Assert.assertEquals( JsonUtils.asTree( policy1 ), json );
 
         // Delete a policy
         policy = policies[0];
@@ -96,8 +106,13 @@ public class PolicyResourceTest
 
         Assert.assertEquals( 3, store.modificationCount() );
 
-        Assert.assertEquals( JsonUtils.asTree( new Policy[] { policy2, policy1 } ),
-                             store.history( null, "policy.json" ).get( "aaData" ) );
+        json = (ObjectNode) store.history( null, "policy.json" ).get( "aaData" ).get( 0 );
+        json = json.without( Arrays.asList( "user", "ip", "where", "time", "filename" ) );
+        Assert.assertEquals( JsonUtils.asTree( policy2 ), json );
+
+        json = (ObjectNode) store.history( null, "policy.json" ).get( "aaData" ).get( 1 );
+        json = json.without( Arrays.asList( "user", "ip", "where", "time", "filename" ) );
+        Assert.assertEquals( JsonUtils.asTree( policy1 ), json );
     }
 
     private String getServiceURL( final String appId )

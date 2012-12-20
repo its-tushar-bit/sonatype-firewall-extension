@@ -31,8 +31,7 @@ public final class JsonUtils
         return new JsonFileStore( folder );
     }
 
-    public static ContainerNode<?> stamp( final String user, final String ip, final String where,
-                                          final ContainerNode<?> data )
+    public static ObjectNode stamp( final String user, final String ip, final String where, final ContainerNode<?> data )
     {
         final ObjectNode stampedData = objectNode( data );
         stampedData.put( "time", System.currentTimeMillis() );

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -71,7 +72,7 @@ public final class JsonUtils
         }
     }
 
-    public static void write( final File file, final ContainerNode<?> data )
+    public static void write( final File file, final JsonNode data )
         throws IOException
     {
         file.getAbsoluteFile().getParentFile().mkdirs();
@@ -142,7 +143,7 @@ public final class JsonUtils
         return parse( json.getBytes( "UTF-8" ), type );
     }
 
-    public static byte[] generate( final ContainerNode<?> data )
+    public static byte[] generate( final JsonNode data )
         throws IOException
     {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -179,7 +180,7 @@ public final class JsonUtils
         return ( (ObjectMapper) JSON.getCodec() ).valueToTree( pojo );
     }
 
-    public static <T> T asPojo( final ContainerNode<?> tree, final Class<? extends T> type )
+    public static <T> T asPojo( final JsonNode tree, final Class<? extends T> type )
         throws IOException
     {
         return JSON.getCodec().treeToValue( tree, type );

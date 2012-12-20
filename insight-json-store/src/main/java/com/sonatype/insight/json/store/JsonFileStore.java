@@ -72,7 +72,7 @@ public final class JsonFileStore
     {
         final CountingLock lock = lockFor( folder );
 
-        lock.exclusiveLock();
+        lock.sharedLock();
         try
         {
             final File file = new File( folder, path );
@@ -88,7 +88,7 @@ public final class JsonFileStore
         }
         finally
         {
-            lock.exclusiveUnlock();
+            lock.sharedUnlock();
         }
     }
 
@@ -176,13 +176,22 @@ public final class JsonFileStore
     private static ArrayNode filterLog( final File file, final ObjectNode key )
         throws IOException
     {
-        final ArrayNode dataLog = JsonUtils.read( file );
-        final ArrayNode filteredLog = JsonUtils.arrayNode( dataLog );
-        for ( int x = 0; x < dataLog.size(); x++ )
+        final ArrayNode log = JsonUtils.read( file );
+        final ArrayNode filteredLog = JsonUtils.arrayNode( log );
+        for ( int x = 0; x < log.size(); x++ )
         {
-            final ObjectNode entry = (ObjectNode) dataLog.get( x );
-            final ContainerNode<?> data = (ContainerNode<?>) entry.remove( "data" );
-            entry.put( "filename", file.getName() );
+            final ObjectNode entry;
+            ContainerNode<?> data = (ContainerNode<?>) log.get( x );
+            if ( data.has( "data" ) ) // stamped data?
+            {
+                entry = (ObjectNode) data;
+                data = (ContainerNode<?>) entry.remove( "data" );
+                entry.put( "filename", file.getName() );
+            }
+            else
+            {
+                entry = data.objectNode();
+            }
             if ( data instanceof ArrayNode )
             {
                 for ( int y = 0; y < data.size(); y++ )
@@ -220,7 +229,7 @@ public final class JsonFileStore
         for ( int x = 0; x < log.size(); x++ )
         {
             ContainerNode<?> data = (ContainerNode<?>) log.get( x );
-            if ( data.has( "data" ) )
+            if ( data.has( "data" ) ) // stamped data?
             {
                 data = (ContainerNode<?>) data.get( "data" );
             }

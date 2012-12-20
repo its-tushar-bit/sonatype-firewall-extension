@@ -27,10 +27,11 @@ public class ConditionValueTypeResource
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public Collection<ConditionValueType<?>> getConditionValueTypes()
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    public Collection<ConditionValueType> getConditionValueTypes()
     {
         log.debug( "Received request to get all condition value types" );
 
-        return ConditionValueTypes.getAll();
+        return (Collection) ConditionValueTypes.getAll();
     }
 }

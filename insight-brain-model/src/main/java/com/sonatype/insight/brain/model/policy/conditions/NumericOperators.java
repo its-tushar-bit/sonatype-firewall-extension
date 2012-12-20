@@ -24,15 +24,6 @@ public class NumericOperators
         LIST = Collections.unmodifiableList( list );
     }
 
-    public static String getDroolsOperator( String numericOperator )
-    {
-        if ( "=".equals( numericOperator ) )
-        {
-            return "==";
-        }
-        return numericOperator;
-    }
-
     private NumericOperators()
     {
     }

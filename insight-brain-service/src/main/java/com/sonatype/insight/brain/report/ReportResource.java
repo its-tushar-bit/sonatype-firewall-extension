@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -54,6 +56,8 @@ public class ReportResource
     public static final String SERVICE_PATH = "rest/report/{appId}/{scanId}";
 
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
+
+    private static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = new ConcurrentHashMap<String, Integer>();
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 
@@ -214,21 +218,26 @@ public class ReportResource
     {
         try
         {
-            final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
-            if ( store.modificationCount() >= 0 /* FIXME: should only refresh when necessary */)
+            final File reportFile = work.getReportFile( appId, scanId );
+            if ( !reportFile.exists() )
             {
-                final File reportFile = work.getReportFile( appId, scanId );
-                if ( !reportFile.exists() )
+                if ( !downloadReport( proxy, appId, scanId, reportFile ) )
                 {
-                    if ( !downloadReport( proxy, appId, scanId, reportFile ) )
-                    {
-                        return;
-                    }
+                    return;
                 }
+            }
 
+            final File auditDir = work.getAuditDir( appId );
+            final int newCount = JsonUtils.fileStore( auditDir ).modificationCount();
+            final Integer oldCount = MODIFICATION_COUNTS.get( appId + '-' + scanId );
+
+            if ( oldCount == null || oldCount < newCount )
+            {
                 Report.deletePdf( reportFile );
 
-                Report.applyChanges( reportFile, work.getAuditDir( appId ) );
+                Report.applyChanges( reportFile, auditDir );
+
+                MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
             }
         }
         catch ( final Exception e )

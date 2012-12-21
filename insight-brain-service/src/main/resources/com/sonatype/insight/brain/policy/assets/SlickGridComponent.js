@@ -89,12 +89,9 @@ var SlickGridComponent = function() {
 
             $(window).resize(resizeFn);
             
-            grid.onCellChange.subscribe(function(e, args) {
-            	var parts = attrs.data.split('.');
-            	parts.splice(0,parts.length-1);
-            	$scope.state[parts[0]] = grid.getData().getItems();
-                $scope.$apply();
-            });
+            //this is messing with our own text boxes and losing focus once you start typing
+            //since we aren't using the slickgrid inline edit, no big deal
+            $(grid.getCanvasNode()).unbind('click');
         }
     }
 }

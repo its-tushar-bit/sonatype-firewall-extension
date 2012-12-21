@@ -13,14 +13,12 @@ describe('InsightPolicyController tests', function() {
     	  name: 'License Category',
     	  id: 'LicenseCategory',
     	  supportedOperators: ['is','is not'],
-    	  availableValues: ['Copyleft','Non-Standard','Not Provided','Weak Copyleft','Liberal'],
-    	  requiresValue: true
+    	  valueTypeId: 'LicenseValueType'
       },{
     	  name: 'Security Vulnerability',
     	  id: 'SecurityVulnerability',
     	  supportedOperators: ['present','absent'],
-    	  availableValues: null,
-    	  requiresValue: false
+    	  valueTypeId: null
       }]);
       
       $httpBackend.expectGET(insightApp.getActionTypeUrl()).
@@ -253,13 +251,9 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.conditionTypeList[0].name).toBe('License Category');
 		expect(scope.state.conditionTypeList[0].id).toBe('LicenseCategory');
 		expect(scope.state.conditionTypeList[0].supportedOperators).toEqual(['is','is not']);
-		expect(scope.state.conditionTypeList[0].availableValues).toEqual(['Copyleft','Non-Standard','Not Provided','Weak Copyleft','Liberal']);
-		expect(scope.state.conditionTypeList[0].requiresValue).toBe(true);
 		expect(scope.state.conditionTypeList[1].name).toBe('Security Vulnerability');
 		expect(scope.state.conditionTypeList[1].id).toBe('SecurityVulnerability');
 		expect(scope.state.conditionTypeList[1].supportedOperators).toEqual(['present','absent']);
-		expect(scope.state.conditionTypeList[1].availableValues).toBe(null);
-		expect(scope.state.conditionTypeList[1].requiresValue).toBe(false);
 		expect(scope.state.actionTypeList[0].name).toBe('Fail');
 		expect(scope.state.actionTypeList[0].id).toBe('fail');
 		expect(scope.state.actionTypeList[0].availableTargets).toBe(null);

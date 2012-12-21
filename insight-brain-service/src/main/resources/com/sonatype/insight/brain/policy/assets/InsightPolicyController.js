@@ -112,9 +112,12 @@ function InsightPolicyController($scope, global, $http, $location) {
 			width : 50,
 			cssClass: "checkbox-edit-cell",
 			formatter: function(row,cell,value,columnDef,dataContext){
-				return value ? "<img src='img/tick.png'>" : "";
-			},
-			editor: Slick.Editors.Checkbox
+				if ($scope.state.actionEditMode){
+					return "<input id='actionField-" + dataContext.id + "-fail' class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>";
+				} else {
+					return value ? "<img src='img/tick.png'>" : "";
+				}
+			}
 		},{
 			id : "warn",
 			name : "Warn",
@@ -122,24 +125,39 @@ function InsightPolicyController($scope, global, $http, $location) {
 			width : 50,
 			cssClass: "checkbox-edit-cell",
 			formatter: function(row,cell,value,columnDef,dataContext){
-				return value ? "<img src='img/tick.png'>" : "";
-			},
-			editor: Slick.Editors.Checkbox
+				if ($scope.state.actionEditMode){
+					return "<input id='actionField-" + dataContext.id + "-warn' class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>";
+				} else {
+					return value ? "<img src='img/tick.png'>" : "";
+				}
+			}
 		},{
 			id : "notify",
 			name : "Notify",
 			field : "notify",
 			width : 800,
-			editor: Slick.Editors.Text
+			formatter: function(row,cell,value,columnDef,dataContext){
+				if ($scope.state.actionEditMode){
+					return "<input id='actionField-" + dataContext.id + "-notify' class='editor-text' type='text' value='" + (value ? value : "") + "'></input>";
+				} else {
+					return value;
+				}
+			}
 		}],
 		options : {
 			height : 200,
 			forceFitColumns : true,
-			fullWidthRows : true,
-			editable: true,
-			autoEdit: false
+			fullWidthRows : true
 		},
-		selectionModel : new Slick.CellSelectionModel()
+		selectionModel : {
+			destroy: function(){},
+			init: function(){},
+			setSelectedRanges: function(){},
+			onSelectedRangesChanged: {
+				unsubscribe: function(){},
+				subscribe: function(){}
+			}
+		}
 	};
 	$scope.state.constraintTableDefinition = {
 		columns : [ checkboxSelector.getColumnDefinition(), {
@@ -216,6 +234,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.state.currentCondition = {};
 		delete $scope.state.currentConditionType;
 		delete $scope.state.currentConditionValueType;
+		delete $scope.state.actionEditMode;
 	}
 	
 	$scope.resetActions = function() {
@@ -273,6 +292,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.savePolicyClick = function() {
+		$scope.pushActionDataToModel();
+		
 		//I copy the item here as I don't want to dirty the UI data with changes needed for the server
 		var item = angular.copy($scope.state.currentPolicy);
 		composeConditionValues(item);
@@ -435,6 +456,27 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.validateConstraintCondition();
 	}
 	
+	$scope.editActionsClick = function() {
+		$scope.pushActionDataToModel();
+		$scope.state.actionEditMode = !$scope.state.actionEditMode;
+		$scope.actionGrid.invalidate();
+	}
+	
+	$scope.pushActionDataToModel = function() {
+		if ($scope.state.actionEditMode){
+			$scope.state.actionTableData = [];
+			
+			angular.forEach($scope.state.actionStageList, function(value,key){
+				$scope.state.actionTableData.push({
+					id: value.id,
+					fail: $('#actionField-' + value.id + '-fail').is(":checked"),
+					warn: $('#actionField-' + value.id + '-warn').is(":checked"),
+					notify: $('#actionField-' + value.id + '-notify').val()
+				});
+			});
+		}
+	}
+	
 	$scope.$watch('state.actionTableData',function(newScopeData){
 		if ($scope.state.currentPolicy) {
 			var handleAction = function(id){
@@ -520,6 +562,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 				$scope.resetActions();
 				$scope.validatePolicy();
 				setTimeout(function(){
+					$scope.actionGrid.invalidate();
 					$scope.constraintGrid.redraw();
 				},50);
 

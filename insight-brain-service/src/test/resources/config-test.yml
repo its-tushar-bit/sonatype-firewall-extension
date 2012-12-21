@@ -6,4 +6,6 @@ logging:
     "org.apache.http": INFO
     "org.eclipse.jetty": INFO
     "com.ning.http.client": INFO
+  console:
+    logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"
     

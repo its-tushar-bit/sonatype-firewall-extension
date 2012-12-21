@@ -57,7 +57,7 @@ public class ReportResource
 
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
 
-    private static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = new ConcurrentHashMap<String, Integer>();
+    static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = new ConcurrentHashMap<String, Integer>();
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 

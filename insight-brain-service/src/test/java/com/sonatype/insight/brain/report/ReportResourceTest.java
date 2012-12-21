@@ -162,28 +162,30 @@ public class ReportResourceTest
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
         final String query = "security.json?user=test&where=ReportResourceTest";
+
+        // attempt a bad edit (no augmented data)
         Response response = RestAccess.post( resourcePrefix + "/augmentData/" + query, "" );
         assertResponseStatus( 400, response ); // bad request; no changes
 
+        // verify nothing has changed
         response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
         assertResponseStatus( 200, response );
-
         assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
 
+        // edit the state
         final String edit = "{ \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\" }";
-
         response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
         assertResponseStatus( 200, response );
 
+        // verify the state has changed
         response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
         assertResponseStatus( 200, response );
-
         assertThat( response.getResponseBody(), containsString( "\"state\" : \"accepted\"" ) );
 
+        // check the audit log reflects this change
         response =
             RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
                 + UrlUtils.encodeUrlComponent( "{\"hash\":\"964cd74171f427720480\"}" ) );
-
         assertResponseStatus( 200, response );
 
         final String feed =
@@ -191,5 +193,62 @@ public class ReportResourceTest
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
+    }
+
+    @Test
+    public void testRefreshOnlyOnChange()
+        throws Exception
+    {
+        final String appId = "ReportResourceTest_AppId";
+        final String scanId = "ReportResourceTest_ScanId";
+
+        final String resourcePrefix =
+            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+
+        final File saasReportFile = getReportResponseFile( appId, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final String query = "security.json?user=test&where=ReportResourceTest";
+
+        // verify nothing has changed
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
+
+        // edit the state
+        final String edit = "{ \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\" }";
+        response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
+        assertResponseStatus( 200, response );
+
+        // check the audit log reflects this change
+        response =
+            RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
+                + UrlUtils.encodeUrlComponent( "{\"hash\":\"964cd74171f427720480\"}" ) );
+        assertResponseStatus( 200, response );
+
+        final String feed =
+            "{ \"aaData\" : [ { \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+
+        assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
+                    equalToIgnoringWhiteSpace( feed ) );
+
+        // force the internal modification count to make it look like we're already up-to-date
+        int oldModCount = ReportResource.MODIFICATION_COUNTS.put( appId + '-' + scanId, 888 );
+
+        // verify nothing has changed
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
+
+        // put back the accurate modification count, which should lead to a refresh
+        ReportResource.MODIFICATION_COUNTS.put( appId + '-' + scanId, oldModCount );
+
+        // verify the state has changed
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), containsString( "\"state\" : \"accepted\"" ) );
     }
 }

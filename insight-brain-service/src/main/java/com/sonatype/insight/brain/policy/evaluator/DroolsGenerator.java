@@ -10,13 +10,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class DroolsGenerator
@@ -25,7 +23,7 @@ public class DroolsGenerator
 
     private static final String INDENT = "    ";
 
-    public String generate( final Stage stage, final List<Policy> policies )
+    public String generate( final List<Policy> policies )
     {
         long start = System.currentTimeMillis();
 
@@ -40,12 +38,6 @@ public class DroolsGenerator
         for ( final Policy policy : policies )
         {
             if ( !policy.isEnabled() )
-            {
-                continue;
-            }
-
-            final List<Action> actions = policy.getActions( stage.getStageTypeId() );
-            if ( actions == null || actions.isEmpty() )
             {
                 continue;
             }

@@ -42,7 +42,7 @@ public class PolicyEvaluator
     {
         long start = System.currentTimeMillis();
 
-        final String droolsCode = new DroolsGenerator().generate( stage, policies );
+        final String droolsCode = new DroolsGenerator().generate( policies );
         // Most probably this is too much logging, but it's good for debugging for now
         log.debug( "Generated drools code:\n{}", droolsCode );
 

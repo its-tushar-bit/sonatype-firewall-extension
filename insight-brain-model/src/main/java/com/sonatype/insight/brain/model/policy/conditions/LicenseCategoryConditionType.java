@@ -6,11 +6,8 @@
 package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.sonatype.insight.brain.model.component.LicenseCategory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
@@ -24,20 +21,10 @@ public class LicenseCategoryConditionType
 
     private static List<String> supportedOperators = new ArrayList<String>();
 
-    private static List<String> licenseCategoryNames = new ArrayList<String>();
-
-    private static Map<String, String> licenseCategoryIdsByName = new LinkedHashMap<String, String>();
-
     static
     {
         supportedOperators.add( "is" );
         supportedOperators.add( "is not" );
-
-        for ( LicenseCategory licenseCategory : new LicenseCategoryValueType().getAvailableValues() )
-        {
-            licenseCategoryNames.add( licenseCategory.getName() );
-            licenseCategoryIdsByName.put( licenseCategory.getName(), licenseCategory.getId() );
-        }
     }
 
     @Override
@@ -62,7 +49,7 @@ public class LicenseCategoryConditionType
     public String generateDroolsCode( final Condition condition )
     {
         return "getLicenseThreat() " + ( "is".equals( condition.getOperator() ) ? "==" : "!=" ) + " \""
-            + licenseCategoryIdsByName.get( condition.getValue() ) + "\"";
+            + condition.getValue() + "\"";
     }
 
     @Deprecated
@@ -84,7 +71,7 @@ public class LicenseCategoryConditionType
     {
         super.validateCondition( condition );
 
-        if ( licenseCategoryIdsByName.get( condition.getValue() ) == null )
+        if ( LicenseCategoryValueType.getLicenseCategoryById( condition.getValue() ) == null )
         {
             throw new InvalidConditionException( condition, "Value not supported: " + condition.getValue() );
         }

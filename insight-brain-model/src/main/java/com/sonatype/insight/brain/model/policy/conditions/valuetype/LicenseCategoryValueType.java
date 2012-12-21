@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.model.component.LicenseCategory;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
@@ -19,6 +21,8 @@ public class LicenseCategoryValueType
 
     private static List<LicenseCategory> licenseCategories;
 
+    private static Map<String, LicenseCategory> licenseCategoriesById;
+
     static
     {
         // TODO Return a list of all known license categories from the datamart db
@@ -29,6 +33,12 @@ public class LicenseCategoryValueType
         licenseCategories.add( new LicenseCategory( "WEAKCOPYLEFT", "Weak Copyleft" ) );
         licenseCategories.add( new LicenseCategory( "LIBERAL", "Liberal" ) );
         licenseCategories = Collections.unmodifiableList( licenseCategories );
+
+        licenseCategoriesById = new LinkedHashMap<String, LicenseCategory>();
+        for ( LicenseCategory licenseCategory : licenseCategories )
+        {
+            licenseCategoriesById.put( licenseCategory.getId(), licenseCategory );
+        }
     }
 
     @Override
@@ -53,5 +63,10 @@ public class LicenseCategoryValueType
     public List<LicenseCategory> getAvailableValues()
     {
         return licenseCategories;
+    }
+
+    public static LicenseCategory getLicenseCategoryById( String licenseCategoryId )
+    {
+        return licenseCategoriesById.get( licenseCategoryId );
     }
 }

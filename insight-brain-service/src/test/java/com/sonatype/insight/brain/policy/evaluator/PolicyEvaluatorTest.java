@@ -42,7 +42,7 @@ public class PolicyEvaluatorTest
         constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         constraints.add( constraint1 );
         final Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.AND );
-        constraint2.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraint2.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "WEAKCOPYLEFT" ) );
         constraints.add( constraint2 );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
@@ -82,7 +82,7 @@ public class PolicyEvaluatorTest
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
         constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
-        constraint1.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraint1.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "WEAKCOPYLEFT" ) );
         constraints.add( constraint1 );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
@@ -156,7 +156,7 @@ public class PolicyEvaluatorTest
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.OR );
         constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
-        constraint1.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraint1.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "WEAKCOPYLEFT" ) );
         constraints.add( constraint1 );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );

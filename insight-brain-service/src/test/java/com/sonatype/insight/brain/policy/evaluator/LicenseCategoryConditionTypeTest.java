@@ -36,11 +36,11 @@ public class LicenseCategoryConditionTypeTest
         // Create policy constraints
         final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraintSVIs = new Constraint( "ConstraintIdIs", "Constraint Name Is", LogicalOperator.AND );
-        constraintSVIs.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "Weak Copyleft" ) );
+        constraintSVIs.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "WEAKCOPYLEFT" ) );
         constraints.add( constraintSVIs );
         final Constraint constraintSVIsNot =
             new Constraint( "ConstraintIdIsNot", "Constraint Name IsNot", LogicalOperator.AND );
-        constraintSVIsNot.addCondition( new Condition( LicenseCategoryConditionType.ID, "is not", "Weak Copyleft" ) );
+        constraintSVIsNot.addCondition( new Condition( LicenseCategoryConditionType.ID, "is not", "WEAKCOPYLEFT" ) );
         constraints.add( constraintSVIsNot );
 
         final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );

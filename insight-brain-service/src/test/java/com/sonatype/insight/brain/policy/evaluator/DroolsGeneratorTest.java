@@ -46,7 +46,7 @@ public class DroolsGeneratorTest
         Condition condition2 = new Condition();
         condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition2.setOperator( "is" );
-        condition2.setValue( "Copyleft" );
+        condition2.setValue( "COPYLEFT" );
         constraint1.addCondition( condition2 );
         constraints.add( constraint1 );
         final Constraint constraint2 = new Constraint();
@@ -60,7 +60,7 @@ public class DroolsGeneratorTest
         condition2 = new Condition();
         condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
         condition2.setOperator( "is not" );
-        condition2.setValue( "Weak Copyleft" );
+        condition2.setValue( "WEAKCOPYLEFT" );
         constraint2.addCondition( condition2 );
         constraints.add( constraint2 );
 

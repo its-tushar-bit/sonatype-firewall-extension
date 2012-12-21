@@ -379,6 +379,11 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$('#editConstraintModal').modal('show');
 	}
 	
+	$scope.cancelConstraintClick = function() {
+		$('#editConstraintModal').modal('hide');
+		$scope.resetConstraint();
+	}
+	
 	$scope.addConstraintClick = function() {
 		var constraintObj = {
 			name: $scope.state.currentConstraint.name,

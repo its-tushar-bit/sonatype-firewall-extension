@@ -69,11 +69,11 @@
 						        <label style="padding-left:10px;">Threat Level
 						    		<select 
 						    			id="policyThreatLevel" 
-						    			style="width:100px;" 
+						    			style="width:100px;"
+						    			class="policy-threat-color-{{state.currentPolicy.threatLevel}}" 
 						    			ng-model="state.currentPolicy.threatLevel" 
-						    			ng-change="validatePolicy()" 
-						    			ng-init="threatLevels = [{name:'10', value:10},{name:'9', value:9},{name:'8', value:8},{name:'7', value:7},{name:'6', value:6},{name:'5', value:5},{name:'4', value:4},{name:'3', value:3},{name:'2', value:2},{name:'1', value:1},{name:'0 (None)', value:0}]"
-						    			ng-options="o.value as o.name for o in threatLevels">
+						    			ng-change="validatePolicy()"
+						    			ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
 						    		</select>
 					    		</label>
 					    	</div>
@@ -110,11 +110,11 @@
 					    	</div>
 					    </div>
 					    <div style='text-align:right'>
+					    	<button type='none' class='btn' ng-click="cancelPolicyClick()">Cancel</button>
 						    <button type='none' class='btn btn-primary' ng-click="savePolicyClick()" ng-disabled="!state.policyValid">Save</button>
-							<button type='none' class='btn' ng-click="cancelPolicyClick()">Cancel</button>
 						</div>
 					</div>
-					<div id="editConstraintModal" class="modal hide" style="width: 950px;margin: -250px 0 0 -475px;">
+					<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 950px;margin: -250px 0 0 -475px;">
 						<div class="modal-header">
 						    <button type="button" class="close" data-dismiss="modal">×</button>
 						    <h3>Policy Constraint</h3>
@@ -162,12 +162,12 @@
 							</div>
 						</div>
 						<div class="modal-footer">
-						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid" data-dismiss="modal">Add</button>
-						    <button class="btn" data-dismiss="modal">Cancel</button>
+							<button class="btn" ng-click="cancelConstraintClick()">Cancel</button>
+						    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="!state.addConstraintFormValid">Add</button>
 						</div>
 					</div>
 				</div>
-				<div id="deletePolicyConfirmationModal" class="modal hide">
+				<div id="deletePolicyConfirmationModal" data-backdrop="static" class="modal hide">
 					<div class="modal-header">
 					    <button type="button" class="close" data-dismiss="modal">×</button>
 					    <h3>Delete Policy?</h3>
@@ -176,8 +176,8 @@
 						<p>Are you sure you want to delete the Policy named '{{state.policyToDelete.name}}'?  This action is not reversible.</p>
 					</div>
 					<div class="modal-footer">
+						<button class="btn" data-dismiss="modal">Cancel</button>
 					    <button class="btn btn-primary" ng-click="deletePolicyClick()">Delete</button>
-					    <button class="btn" data-dismiss="modal">Cancel</button>
 					</div>
 				</div>
 			</div>

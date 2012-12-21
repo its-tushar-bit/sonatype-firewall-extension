@@ -70,7 +70,7 @@ public class LicenseCategoryConditionTypeTest
     }
 
     @Test
-    public void testValidateCondition_ValueNotANumber()
+    public void testValidateCondition_ValueNotSupported()
     {
         Condition condition = new Condition( LicenseCategoryConditionType.ID, "is", "abc" );
         try

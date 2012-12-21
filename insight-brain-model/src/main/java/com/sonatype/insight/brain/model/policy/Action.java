@@ -11,8 +11,6 @@ public class Action
 
     private String target;
 
-    private String message;
-
     public Action()
     {
     }
@@ -42,19 +40,9 @@ public class Action
         this.target = target;
     }
 
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
-
     @Override
     public String toString()
     {
-        return "Action [actionTypeId=" + actionTypeId + ", target=" + target + ", message=" + message + "]";
+        return "Action [actionTypeId=" + actionTypeId + ", target=" + target + "]";
     }
 }

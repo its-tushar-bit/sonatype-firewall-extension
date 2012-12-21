@@ -49,6 +49,16 @@ function InsightPolicyController($scope, global, $http, $location) {
 		return null;
 	}
 	
+	function getConditionValueType( id ) {
+		for ( var i = 0 ; i < $scope.state.conditionValueTypeList.length ; i++ ){
+			if ( $scope.state.conditionValueTypeList[i].id == id ){
+				return $scope.state.conditionValueTypeList[i];
+			}
+		}
+		
+		return null;
+	}
+	
 	$scope.state = global;
 	
 	var checkboxSelector = new Slick.CheckboxSelectColumn({
@@ -181,6 +191,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 			operator: 'OR'
 		};
 		$scope.state.currentCondition = {};
+		delete $scope.state.currentConditionType;
+		delete $scope.state.currentConditionValueType;
 	}
 	
 	$scope.resetActions = function() {
@@ -384,7 +396,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 		delete $scope.state.addConstraintConditionFormValid;
 		if ($scope.state.currentCondition.conditionTypeId
 				&& $scope.state.currentCondition.operator
-				&& (!getConditionType($scope.state.currentCondition.conditionTypeId).requiresValue || $scope.state.currentCondition.value)) {
+				&& (!getConditionType($scope.state.currentCondition.conditionTypeId).valueTypeId || $scope.state.currentCondition.value)) {
 			$scope.state.addConstraintConditionFormValid = true;
 		}
 	}
@@ -392,7 +404,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.constraintOperandChanged = function() {
 		delete $scope.state.currentCondition.operator;
 		delete $scope.state.currentCondition.value;
-		$scope.state.currentOperand = getConditionType($scope.state.currentCondition.conditionTypeId);
+		$scope.state.currentConditionType = getConditionType($scope.state.currentCondition.conditionTypeId);
+		$scope.state.currentConditionValueType = getConditionValueType($scope.state.currentConditionType.valueTypeId);
 		$scope.validateConstraintCondition();
 	}
 	
@@ -440,15 +453,18 @@ function InsightPolicyController($scope, global, $http, $location) {
         	$scope.state.actionTypeList = actionTypeData;
         	$http.get(insightApp.getActionStageUrl()).success(function(actionStageData, status, headers, config) {
         		$scope.state.actionStageList = actionStageData;
-        		$scope.state.policyList = [];
-                $http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
-                	for ( var i = 0 ; i < data.length ; i++ ){
-                		$scope.state.policyList.push(data[i]);
-                		updatePolicySummary(data[i]);
-                	}
-                	
-                	$scope.reset();
-                });
+        		$http.get(insightApp.getConditionValueTypeUrl()).success(function(conditionValueTypeData, status, headers, config) {
+        			$scope.state.conditionValueTypeList = conditionValueTypeData;
+	        		$scope.state.policyList = [];
+	                $http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
+	                	for ( var i = 0 ; i < data.length ; i++ ){
+	                		$scope.state.policyList.push(data[i]);
+	                		updatePolicySummary(data[i]);
+	                	}
+	                	
+	                	$scope.reset();
+	                });
+        		});
         	});
     	});
     });

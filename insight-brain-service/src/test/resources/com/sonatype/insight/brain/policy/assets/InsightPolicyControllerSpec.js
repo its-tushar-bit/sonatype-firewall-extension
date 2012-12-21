@@ -59,7 +59,44 @@ describe('InsightPolicyController tests', function() {
     	  id: 'operate'
       }]);
       
-      
+      $httpBackend.expectGET(insightApp.getConditionValueTypeUrl()).
+      respond([{
+    	  id:"FloatValueType",
+    	  availableValues:null,
+    	  dataType:"Float",
+    	  allowMultiple:false
+      },{
+    	  id:"LicenseCategoryValueType",
+    	  availableValues:[{
+    		  id:"COPYLEFT",
+    		  name:"Copyleft"
+    	  },{
+    		  id:"NON-STANDARD",
+    		  name:"Non-Standard"
+    	  },{
+    		  id:"NOT-PROVIDED",
+    		  name:"Not Provided"
+    	  },{
+    		  id:"WEAKCOPYLEFT",
+    		  name:"Weak Copyleft"
+    	  },{
+    		  id:"LIBERAL",
+    		  name:"Liberal"
+    	  }],
+    	  dataType:"LicenseCategory",
+    	  allowMultiple:false
+      },{
+    	  id:"LicenseValueType",
+    	  availableValues:[{
+    		  id:"AAL",
+    		  longDisplayName:"Attribution Assurance License"
+    	  },{
+    		  id:"AFL-UNSPECIFIED",
+    		  longDisplayName:"AFL-Style License Not Identifiable by Sonatype"
+    	  }],
+    	  dataType:"License",
+    	  allowMultiple:false
+      }]);
       
       $httpBackend.expectGET(insightApp.getPolicyUrl()).
       respond([{
@@ -194,14 +231,14 @@ describe('InsightPolicyController tests', function() {
       
       //inject the controller
       scope = $rootScope.$new();
-      $controller(InsightPolicyController, {$scope: scope, global: {}});
-      $httpBackend.flush();
-      
-	  //slickgrid mock
+      //slickgrid mock
 	  scope.constraintGrid = {
 	  	  redraw: function(){},
 	  	  setSelectedRows: function(){}
 	  };
+	  
+      $controller(InsightPolicyController, {$scope: scope, global: {}});
+      $httpBackend.flush();
     }));
 	
 	it('initial state of the controller should be applied', function() {
@@ -245,6 +282,30 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.actionStageList[3].id).toBe('release');
 		expect(scope.state.actionStageList[4].name).toBe('Operate');
 		expect(scope.state.actionStageList[4].id).toBe('operate');
+		expect(scope.state.conditionValueTypeList[0].id).toBe('FloatValueType');
+		expect(scope.state.conditionValueTypeList[0].availableValues).toBe(null);
+		expect(scope.state.conditionValueTypeList[0].dataType).toBe('Float');
+		expect(scope.state.conditionValueTypeList[0].allowMultiple).toBe(false);
+		expect(scope.state.conditionValueTypeList[1].id).toBe('LicenseCategoryValueType');
+		expect(scope.state.conditionValueTypeList[1].availableValues[0].id).toBe('COPYLEFT');
+		expect(scope.state.conditionValueTypeList[1].availableValues[0].name).toBe('Copyleft');
+		expect(scope.state.conditionValueTypeList[1].availableValues[1].id).toBe('NON-STANDARD');
+		expect(scope.state.conditionValueTypeList[1].availableValues[1].name).toBe('Non-Standard');
+		expect(scope.state.conditionValueTypeList[1].availableValues[2].id).toBe('NOT-PROVIDED');
+		expect(scope.state.conditionValueTypeList[1].availableValues[2].name).toBe('Not Provided');
+		expect(scope.state.conditionValueTypeList[1].availableValues[3].id).toBe('WEAKCOPYLEFT');
+		expect(scope.state.conditionValueTypeList[1].availableValues[3].name).toBe('Weak Copyleft');
+		expect(scope.state.conditionValueTypeList[1].availableValues[4].id).toBe('LIBERAL');
+		expect(scope.state.conditionValueTypeList[1].availableValues[4].name).toBe('Liberal');
+		expect(scope.state.conditionValueTypeList[1].dataType).toBe('LicenseCategory');
+		expect(scope.state.conditionValueTypeList[1].allowMultiple).toBe(false);
+		expect(scope.state.conditionValueTypeList[2].id).toBe('LicenseValueType');
+		expect(scope.state.conditionValueTypeList[2].availableValues[0].id).toBe('AAL');
+		expect(scope.state.conditionValueTypeList[2].availableValues[0].longDisplayName).toBe('Attribution Assurance License');
+		expect(scope.state.conditionValueTypeList[2].availableValues[1].id).toBe('AFL-UNSPECIFIED');
+		expect(scope.state.conditionValueTypeList[2].availableValues[1].longDisplayName).toBe('AFL-Style License Not Identifiable by Sonatype');
+		expect(scope.state.conditionValueTypeList[2].dataType).toBe('License');
+		expect(scope.state.conditionValueTypeList[2].allowMultiple).toBe(false);
 		expect(scope.state.policyList[0].id).toBe('1de8469ae4604d67a86a676c0819d109');
 		expect(scope.state.policyList[0].name).toBe('policy1');
 		expect(scope.state.policyList[0].enabled).toBe(true);

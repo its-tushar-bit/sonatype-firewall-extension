@@ -28,6 +28,10 @@ insightApp.getActionStageUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/stageType';
 }
 
+insightApp.getConditionValueTypeUrl = function(){
+	return insightApp.getBaseUrl() + '/rest/policy/conditionValueType';
+}
+
 insightApp.getPolicyUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/' + insightApp.appId;
 }

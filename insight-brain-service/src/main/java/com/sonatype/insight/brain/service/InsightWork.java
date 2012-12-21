@@ -10,10 +10,14 @@ import java.io.IOException;
 import java.util.List;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InsightWork
     extends AbstractInjectable<InsightWork>
 {
+    private static final Logger log = LoggerFactory.getLogger( InsightWork.class );
+
     private final InsightConfig insightConfig;
 
     public InsightWork( final InsightConfig insightConfig )
@@ -62,6 +66,7 @@ public class InsightWork
             catch ( final IOException e )
             {
                 // cannot find the owning appId so can only pass back 'unknown'
+                log.error( e.getMessage(), e );
             }
         }
         return "unknown";

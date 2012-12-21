@@ -69,14 +69,15 @@ public class ReportResource
                                  @PathParam( "path" ) final String path )
     {
         final String name = Report.toEntryName( path );
-        if ( name.endsWith( ".json" ) || !work.getReportFile( scanId ).exists() )
+        final File reportFile = work.getReportFile( appId, scanId );
+        if ( name.endsWith( ".json" ) || !reportFile.exists() )
         {
             refreshCache( appId, scanId );
         }
         ReportEntry entry = null;
         try
         {
-            entry = Report.getEntry( work.getReportFile( scanId ), name );
+            entry = Report.getEntry( reportFile, name );
         }
         catch ( final Exception e )
         {
@@ -97,10 +98,11 @@ public class ReportResource
                                  @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
-        if ( !work.getReportFile( scanId ).exists() )
+        final File reportFile = work.getReportFile( appId, scanId );
+        if ( !reportFile.exists() )
         {
             refreshCache( appId, scanId );
-            if ( !work.getReportFile( scanId ).exists() )
+            if ( !reportFile.exists() )
             {
                 return Response.status( Status.NOT_FOUND ).build();
             }
@@ -108,8 +110,7 @@ public class ReportResource
 
         final ResponseBuilder response = Response.ok();
 
-        Report.printPdf( work.getReportFile( scanId ), StringUtils.defaultString( projectName, "insight" ),
-                         buildNumber, response );
+        Report.printPdf( reportFile, StringUtils.defaultString( projectName, "insight" ), buildNumber, response );
 
         return response.build();
     }
@@ -117,7 +118,8 @@ public class ReportResource
     @GET
     @Path( "artifactDetails{ignore:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response artifactDetails( @PathParam( "scanId" ) final String scanId,
+    public Response artifactDetails( @PathParam( "appId" ) final String appId,
+                                     @PathParam( "scanId" ) final String scanId,
                                      @QueryParam( "groupId" ) final String groupId,
                                      @QueryParam( "artifactId" ) final String artifactId,
                                      @QueryParam( "version" ) final String version,
@@ -125,8 +127,7 @@ public class ReportResource
         throws Exception
     {
         ReportEntry reportEntry = null;
-
-        final File reportFile = work.getReportFile( scanId );
+        final File reportFile = work.getReportFile( appId, scanId );
         if ( reportFile.exists() )
         {
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
@@ -216,7 +217,7 @@ public class ReportResource
             final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
             if ( store.modificationCount() >= 0 /* FIXME: should only refresh when necessary */)
             {
-                final File reportFile = work.getReportFile( scanId );
+                final File reportFile = work.getReportFile( appId, scanId );
                 if ( !reportFile.exists() )
                 {
                     if ( !downloadReport( proxy, appId, scanId, reportFile ) )

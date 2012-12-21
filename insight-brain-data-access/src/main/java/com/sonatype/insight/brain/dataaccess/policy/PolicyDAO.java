@@ -153,7 +153,7 @@ public class PolicyDAO
 
     private JsonStore policyStore( final String appId )
     {
-        return JsonUtils.fileStore( new File( workDir, "policy" + File.separatorChar + appId ) );
+        return JsonUtils.fileStore( new File( workDir, "policy/" + appId ) );
     }
 
     private static String newUUID()

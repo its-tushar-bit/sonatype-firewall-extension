@@ -68,7 +68,7 @@ public class PolicyEvaluateResource
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         final List<Policy> policies = policyDAO.getByApplicationId( appId );
 
-        final File reportFile = work.getReportFile( scanId );
+        final File reportFile = work.getReportFile( appId, scanId );
         if ( !reportFile.exists() )
         {
             if ( !ReportResource.downloadReport( proxy, appId, scanId, reportFile ) )

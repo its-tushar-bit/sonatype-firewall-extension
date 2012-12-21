@@ -77,8 +77,9 @@ public class BCResource
     {
         final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( appId, null, null );
         final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", work.getScanDir( appId ) );
-        scanFile.getParentFile().mkdirs();
+        final File scanDir = scanFile.getParentFile();
 
+        scanDir.mkdirs();
         final FileOutputStream os = new FileOutputStream( scanFile );
         try
         {
@@ -96,7 +97,7 @@ public class BCResource
         final BOMCheckScanUploadResult result = uploader.upload( proxy.contextualize( request ) );
         if ( StringUtils.isNotBlank( result.getScanId() ) )
         {
-            FileUtils.rename( scanFile, new File( scanFile.getParentFile(), "scan-" + result.getScanId() + ".xml.gz" ) );
+            FileUtils.rename( scanFile, new File( scanDir, "scan-" + result.getScanId() + ".xml.gz" ) );
         }
 
         return Response.ok( result ).build();
@@ -136,7 +137,7 @@ public class BCResource
                                      @QueryParam( "artifactId" ) final String artifactId,
                                      @QueryParam( "version" ) final String version )
     {
-        return Response.temporaryRedirect( URI.create( "rest/report/unknown/" + scanId + "/artifactDetails" + //
-            "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
+        return Response.temporaryRedirect( URI.create( "rest/report/" + work.findOwningAppId( scanId ) + '/' + scanId //
+            + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
     }
 }

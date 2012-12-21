@@ -42,9 +42,11 @@ function InsightPolicyController($scope, global, $http, $location) {
 	function parseConditionValues(data) {
 		angular.forEach(data.constraints, function(constraint,constraintIndex){
 			angular.forEach(constraint.conditions, function(condition, conditionIndex){
-				var parts = condition.value.split(',');
-				if ( parts.length > 1 ){
-					condition.value = parts;
+				if ( condition.value ){
+					var parts = condition.value.split(',');
+					if ( parts.length > 1 ){
+						condition.value = parts;
+					}
 				}
 			});
 		});
@@ -53,7 +55,9 @@ function InsightPolicyController($scope, global, $http, $location) {
 	function composeConditionValues(data) {
 		angular.forEach(data.constraints, function(constraint,constraintIndex){
 			angular.forEach(constraint.conditions, function(condition, conditionIndex){
-				condition.value = condition.value.join();
+				if ( angular.isArray(condition.value) ){
+					condition.value = condition.value.join();
+				}
 			});
 		});
 	}
@@ -269,16 +273,18 @@ function InsightPolicyController($scope, global, $http, $location) {
 	}
 	
 	$scope.savePolicyClick = function() {
-		composeConditionValues($scope.state.currentPolicy);
+		//I copy the item here as I don't want to dirty the UI data with changes needed for the server
+		var item = angular.copy($scope.state.currentPolicy);
+		composeConditionValues(item);
 		//edit
 		if ($scope.state.currentPolicyRef) {		    
-			$http.put(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
+			$http.put(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
 				angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
 				updatePolicySummary($scope.state.currentPolicyRef);
 				$scope.reset();
 			});
 		} else {		   			
-			$http.post(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
+			$http.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
 				$scope.state.currentPolicy.id = data.id;
 				$scope.state.policyList.push($scope.state.currentPolicy);
 				updatePolicySummary($scope.state.currentPolicy);

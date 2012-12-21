@@ -82,15 +82,12 @@
 					    	<label class="control-label">Constraints</label>
 					    	<div class="controls">
 					    	    <div style="width:100%;">
-						            <table width="100%">
-									    <tr>
-										    <td width="99%"></td>
-										    <td><button class="btn" ng-click="createConstraintClick()" title="Add new Constraint"><i class="icon-plus-sign"></i></button></td>
-										    <td><button class="btn" ng-click="enableConstraint()" title="Enable selected Constraint(s)"><i class="icon-ok-circle"></i></button></td>
-										    <td><button class="btn" ng-click="disableConstraint()" title="Disable selected Constraint(s)"><i class="icon-remove-circle"></i></button></td>
-										    <td><button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button></td>
-										</tr>
-									</table>
+					    	    	<div class="btn-group btn-group-vertical" style="float:left;">
+						    	    	<button class="btn" ng-click="createConstraintClick()" title="Add new Constraint"><i class="icon-plus-sign"></i></button>
+						    	    	<button class="btn" ng-click="enableConstraint()" title="Enable selected Constraint(s)"><i class="icon-ok-circle"></i></button>
+									    <button class="btn" ng-click="disableConstraint()" title="Disable selected Constraint(s)"><i class="icon-remove-circle"></i></button>
+									    <button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button>
+					    	    	</div>
 									<slickgrid id="constraintGrid" style="height:200px;" class="borderedTable" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
 					            </div>
 					    	</div>
@@ -99,12 +96,9 @@
 					    	<label class="control-label" for="policyActions">Actions</label>
 					    	<div class="controls">
 					    	    <div style="width:100%;">
-					    	    	<table width="100%">
-									    <tr>
-										    <td width="99%"></td>
-										    <td><button class="btn" ng-click="editActionsClick()" title="Edit Actions"><i class="icon-pencil"></i></button></td>
-										</tr>
-									</table>
+					    	    	<div class="btn-group btn-group-vertical" style="float:left;">
+						    	    	<button class="btn" ng-click="editActionsClick()" title="Edit Actions"><i class="icon-pencil"></i></button>
+					    	    	</div>
 					    	        <slickgrid id="actionGrid" style="height:200px;" class="borderedTable" data="state.actionTableData" table-def="state.actionTableDefinition"></slickgrid>
 					    	    </div>
 					    	</div>

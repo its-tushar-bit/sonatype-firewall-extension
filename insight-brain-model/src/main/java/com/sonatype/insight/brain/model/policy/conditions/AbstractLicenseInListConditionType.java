@@ -31,13 +31,6 @@ public abstract class AbstractLicenseInListConditionType
         return supportedOperators;
     }
 
-    @Deprecated
-    @Override
-    public boolean isRequiresValue()
-    {
-        return true;
-    }
-
     @Override
     public String getValueTypeId()
     {

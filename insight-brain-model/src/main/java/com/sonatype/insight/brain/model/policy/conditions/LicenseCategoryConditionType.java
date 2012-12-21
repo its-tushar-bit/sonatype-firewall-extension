@@ -52,13 +52,6 @@ public class LicenseCategoryConditionType
             + condition.getValue() + "\"";
     }
 
-    @Deprecated
-    @Override
-    public boolean isRequiresValue()
-    {
-        return true;
-    }
-
     @Override
     public String getValueTypeId()
     {

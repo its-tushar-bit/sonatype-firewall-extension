@@ -21,9 +21,6 @@ public interface ConditionType
      */
     String getValueTypeId();
 
-    @Deprecated
-    boolean isRequiresValue();
-
     String generateDroolsCode( Condition condition );
     
     void validateCondition( Condition condition )

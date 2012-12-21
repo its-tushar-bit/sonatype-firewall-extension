@@ -33,13 +33,6 @@ public abstract class AbstractLicenseInListConditionType
 
     @Deprecated
     @Override
-    public List<String> getAvailableValues()
-    {
-        return null;
-    }
-
-    @Deprecated
-    @Override
     public boolean isRequiresValue()
     {
         return true;

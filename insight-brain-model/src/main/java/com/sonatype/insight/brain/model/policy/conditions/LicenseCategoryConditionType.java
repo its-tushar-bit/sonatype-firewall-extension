@@ -58,13 +58,6 @@ public class LicenseCategoryConditionType
         return supportedOperators;
     }
 
-    @Deprecated
-    @Override
-    public List<String> getAvailableValues()
-    {
-        return licenseCategoryNames;
-    }
-
     @Override
     public String generateDroolsCode( final Condition condition )
     {

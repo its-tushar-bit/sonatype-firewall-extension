@@ -39,6 +39,25 @@ function InsightPolicyController($scope, global, $http, $location) {
 		data.summary.actions = actionNames;
 	}
 	
+	function parseConditionValues(data) {
+		angular.forEach(data.constraints, function(constraint,constraintIndex){
+			angular.forEach(constraint.conditions, function(condition, conditionIndex){
+				var parts = condition.value.split(',');
+				if ( parts.length > 1 ){
+					condition.value = parts;
+				}
+			});
+		});
+	}
+	
+	function composeConditionValues(data) {
+		angular.forEach(data.constraints, function(constraint,constraintIndex){
+			angular.forEach(constraint.conditions, function(condition, conditionIndex){
+				condition.value = condition.value.join();
+			});
+		});
+	}
+	
 	function getConditionType (id) {
 		for ( var i = 0 ; i < $scope.state.conditionTypeList.length ; i++ ){
 			if ( $scope.state.conditionTypeList[i].id == id ){
@@ -249,7 +268,8 @@ function InsightPolicyController($scope, global, $http, $location) {
 		},50);
 	}
 	
-	$scope.savePolicyClick = function() {		
+	$scope.savePolicyClick = function() {
+		composeConditionValues($scope.state.currentPolicy);
 		//edit
 		if ($scope.state.currentPolicyRef) {		    
 			$http.put(insightApp.getPolicyUrl(),$scope.state.currentPolicy).success(function(data, status, headers, config){
@@ -460,6 +480,7 @@ function InsightPolicyController($scope, global, $http, $location) {
 	                	for ( var i = 0 ; i < data.length ; i++ ){
 	                		$scope.state.policyList.push(data[i]);
 	                		updatePolicySummary(data[i]);
+	                		parseConditionValues(data[i]);
 	                	}
 	                	
 	                	$scope.reset();

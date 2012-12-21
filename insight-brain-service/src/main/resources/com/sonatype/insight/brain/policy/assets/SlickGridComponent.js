@@ -91,7 +91,9 @@ var SlickGridComponent = function() {
             
             //this is messing with our own text boxes and losing focus once you start typing
             //since we aren't using the slickgrid inline edit, no big deal
-            $(grid.getCanvasNode()).unbind('click');
+            if (attrs.ignoreClick) {
+            	$(grid.getCanvasNode()).unbind('click');
+            }
         }
     }
 }

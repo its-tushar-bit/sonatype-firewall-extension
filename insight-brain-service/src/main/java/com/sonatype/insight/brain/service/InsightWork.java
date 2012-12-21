@@ -65,8 +65,7 @@ public class InsightWork
             }
             catch ( final IOException e )
             {
-                // cannot find the owning appId so can only pass back 'unknown'
-                log.error( e.getMessage(), e );
+                log.error( "Problem scanning directory: " + rootDir + " for scanId: " + scanId, e );
             }
         }
         return "unknown";

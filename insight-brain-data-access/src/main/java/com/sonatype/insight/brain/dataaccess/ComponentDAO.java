@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.LicenseStatus;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -104,6 +105,7 @@ public class ComponentDAO
         }
 
         // Load bom data
+        List<Component> unknownComponents = new ArrayList<Component>();
         JsonNode bomJson = loadJson( bomData );
         if ( bomJson != null )
         {
@@ -114,34 +116,45 @@ public class ComponentDAO
                 for ( int i = 0; i < bomJsonArray.size(); i++ )
                 {
                     final JsonNode componentJson = bomJsonArray.get( i );
-                    final String groupId = componentJson.get( "groupId" ).asText();
-                    // Unknown components have null groupId, artifactId, version
-                    if ( groupId == null )
+                    Component component;
+                    final String matchStateString = componentJson.get( "matchState" ).asText();
+                    final MatchState matchState = MatchState.getById( matchStateString );
+                    if ( !matchState.equals( MatchState.UNKNOWN ) )
                     {
-                        continue;
-                    }
-                    final String artifactId = componentJson.get( "artifactId" ).asText();
-                    final String version = componentJson.get( "version" ).asText();
-                    final JsonNode relativePopularityJson = componentJson.get( "relativePopularity" );
-                    final int relativePopularity = (int) ( relativePopularityJson.asDouble() * 100 );
+                        final String groupId = componentJson.get( "groupId" ).asText();
+                        final String artifactId = componentJson.get( "artifactId" ).asText();
+                        final String version = componentJson.get( "version" ).asText();
+                        final JsonNode relativePopularityJson = componentJson.get( "relativePopularity" );
+                        final int relativePopularity = (int) ( relativePopularityJson.asDouble() * 100 );
 
-                    final String key = getComponentKey( groupId, artifactId, version );
-                    Component component = componentsByGAV.get( key );
-                    if ( component == null )
-                    {
-                        component = new Component();
-                        component.setGroupId( groupId );
-                        component.setArtifactId( artifactId );
-                        component.setVersion( version );
-                        componentsByGAV.put( key, component );
+                        final String key = getComponentKey( groupId, artifactId, version );
+                        component = componentsByGAV.get( key );
+                        if ( component == null )
+                        {
+                            component = new Component();
+                            component.setGroupId( groupId );
+                            component.setArtifactId( artifactId );
+                            component.setVersion( version );
+                            componentsByGAV.put( key, component );
+                        }
+                        component.setRelativePopularity( relativePopularity );
                     }
-                    component.setRelativePopularity( relativePopularity );
+                    else
+                    {
+                        // Unknown component
+                        String hash = componentJson.get( "hash" ).asText();
+                        component = new Component();
+                        component.setHash( hash );
+                        unknownComponents.add( component );
+                    }
+                    component.setMatchState( matchState );
                 }
             }
         }
 
         final List<Component> result = new ArrayList<Component>();
         result.addAll( componentsByGAV.values() );
+        result.addAll( unknownComponents );
         return result;
     }
 

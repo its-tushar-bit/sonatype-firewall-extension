@@ -20,8 +20,9 @@ public class ConditionValueTypes
     {
         add( new FloatValueType() );
         add( new LicenseCategoryValueType() );
-        add( new LicenseValueType() );
         add( new LicenseStatusValueType() );
+        add( new LicenseValueType() );
+        add( new MatchStateValueType() );
         add( new PercentageValueType() );
         add( new SecurityVulnerabilityStatusValueType() );
     }

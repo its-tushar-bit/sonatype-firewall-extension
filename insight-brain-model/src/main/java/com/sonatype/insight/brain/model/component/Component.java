@@ -25,6 +25,8 @@ public class Component
 
     private String version;
 
+    private String hash;
+
     private String licenseThreat;
 
     private List<String> declaredLicenseNames = new ArrayList<String>();
@@ -36,6 +38,8 @@ public class Component
     private List<SecurityVulnerability> securityVulnerabilities;
 
     private int relativePopularity;
+
+    private MatchState matchState;
 
     public Component()
     {
@@ -325,5 +329,25 @@ public class Component
     public void setLicenseStatus( LicenseStatus licenseStatus )
     {
         this.licenseStatus = licenseStatus;
+    }
+
+    public MatchState getMatchState()
+    {
+        return matchState;
+    }
+
+    public void setMatchState( MatchState matchState )
+    {
+        this.matchState = matchState;
+    }
+
+    public String getHash()
+    {
+        return hash;
+    }
+
+    public void setHash( String hash )
+    {
+        this.hash = hash;
     }
 }

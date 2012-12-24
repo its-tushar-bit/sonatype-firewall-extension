@@ -16,6 +16,8 @@ public class ComponentFact
 
     private String version;
 
+    private String hash;
+
     private String constraintId;
 
     public ComponentFact()
@@ -27,6 +29,7 @@ public class ComponentFact
         this.groupId = component.getGroupId();
         this.artifactId = component.getArtifactId();
         this.version = component.getVersion();
+        this.hash = component.getHash();
         this.constraintId = constraintId;
     }
 
@@ -59,6 +62,11 @@ public class ComponentFact
     @Override
     public String toString()
     {
-        return "\n  Component(" + groupId + ':' + artifactId + ':' + version + ") ";
+        return "\n  Component(gav=" + groupId + ':' + artifactId + ':' + version + ", hash=" + hash + ") ";
+    }
+
+    public String getHash()
+    {
+        return hash;
     }
 }

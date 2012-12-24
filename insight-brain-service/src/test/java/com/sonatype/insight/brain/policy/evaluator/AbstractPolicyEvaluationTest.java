@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
 
 import com.sonatype.insight.brain.model.component.Component;
@@ -68,9 +69,10 @@ public abstract class AbstractPolicyEvaluationTest
                     {
                         for ( ComponentFact componentFact : constraintFact.getComponentFacts() )
                         {
-                            if ( expectedComponent.getGroupId().equals( componentFact.getGroupId() )
-                                && expectedComponent.getArtifactId().equals( componentFact.getArtifactId() )
-                                && expectedComponent.getVersion().equals( componentFact.getVersion() )
+                            if ( StringUtils.equals(expectedComponent.getGroupId(), componentFact.getGroupId() )
+                                && StringUtils.equals(expectedComponent.getArtifactId(), componentFact.getArtifactId() )
+                                && StringUtils.equals(expectedComponent.getVersion(), componentFact.getVersion() )
+                                && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash() )
                                 && expectedConstraintId.equals( componentFact.getConstraintId() ) )
                             {
                                 return;

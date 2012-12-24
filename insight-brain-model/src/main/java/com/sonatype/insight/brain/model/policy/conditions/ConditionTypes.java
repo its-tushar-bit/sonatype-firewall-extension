@@ -27,6 +27,7 @@ public class ConditionTypes
         add( new SecurityVulnerabilitySeverityConditionType() );
         add( new SecurityVulnerabilityStatusConditionType() );
         add( new RelativePopularityConditionType() );
+        add( new MatchStateConditionType() );
     }
 
     public static Collection<ConditionType> getAll()

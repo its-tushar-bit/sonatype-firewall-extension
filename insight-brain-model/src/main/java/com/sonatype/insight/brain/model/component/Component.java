@@ -27,6 +27,8 @@ public class Component
 
     private String licenseThreat;
 
+    private int relativePopularity;
+
     private List<String> declaredLicenseNames = new ArrayList<String>();
 
     private List<String> observedLicenseNames = new ArrayList<String>();
@@ -269,5 +271,15 @@ public class Component
             return true;
         }
         return hasObservedLicenseNotInList( licenseIds );
+    }
+
+    public int getRelativePopularity()
+    {
+        return relativePopularity;
+    }
+
+    public void setRelativePopularity( int relativePopularity )
+    {
+        this.relativePopularity = relativePopularity;
     }
 }

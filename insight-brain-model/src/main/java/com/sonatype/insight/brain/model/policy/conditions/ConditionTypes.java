@@ -23,6 +23,7 @@ public class ConditionTypes
         add( new ObservedLicenseInListConditionType() );
         add( new SecurityVulnerabilityConditionType() );
         add( new SecurityVulnerabilitySeverityConditionType() );
+        add( new RelativePopularityConditionType() );
     }
 
     public static Collection<ConditionType> getAll()

@@ -19,10 +19,12 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
 {
-    public List<Component> getAll( final byte[] licenseData, final byte[] securityData )
+    public List<Component> getAll( final byte[] licenseData, final byte[] securityData, final byte[] bomData )
     {
         final Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
 
+        // Load license data. This is a little bit misleading since license data contains data that is not related to
+        // licenses.
         JsonNode licenseJson = loadJson( licenseData );
         if ( licenseJson != null )
         {
@@ -55,6 +57,8 @@ public class ComponentDAO
                 }
             }
         }
+
+        // Load security data
         JsonNode securityJson = loadJson( securityData );
         if ( securityJson != null )
         {
@@ -88,6 +92,43 @@ public class ComponentDAO
                     securityVulnerability.setRefId( reference );
                     securityVulnerability.setSeverity( severity );
                     component.addSecurityVulnerability( securityVulnerability );
+                }
+            }
+        }
+
+        // Load bom data
+        JsonNode bomJson = loadJson( bomData );
+        if ( bomJson != null )
+        {
+            bomJson = bomJson.get( "aaData" );
+            if ( bomJson != null )
+            {
+                final ArrayNode bomJsonArray = (ArrayNode) bomJson;
+                for ( int i = 0; i < bomJsonArray.size(); i++ )
+                {
+                    final JsonNode componentJson = bomJsonArray.get( i );
+                    final String groupId = componentJson.get( "groupId" ).asText();
+                    // Unknown components have null groupId, artifactId, version
+                    if ( groupId == null )
+                    {
+                        continue;
+                    }
+                    final String artifactId = componentJson.get( "artifactId" ).asText();
+                    final String version = componentJson.get( "version" ).asText();
+                    final JsonNode relativePopularityJson = componentJson.get( "relativePopularity" );
+                    final int relativePopularity = (int) ( relativePopularityJson.asDouble() * 100 );
+
+                    final String key = getComponentKey( groupId, artifactId, version );
+                    Component component = componentsByGAV.get( key );
+                    if ( component == null )
+                    {
+                        component = new Component();
+                        component.setGroupId( groupId );
+                        component.setArtifactId( artifactId );
+                        component.setVersion( version );
+                        componentsByGAV.put( key, component );
+                    }
+                    component.setRelativePopularity( relativePopularity );
                 }
             }
         }

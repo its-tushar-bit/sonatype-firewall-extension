@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
 import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
@@ -27,9 +28,7 @@ public abstract class AbstractPolicyEvaluationTest
         condition.setConditionTypeId( conditionTypeId );
         condition.setOperator( operator );
         condition.setValue( value );
-        Constraint constraint = new Constraint();
-        constraint.setId( constraintId );
-        constraint.setName( constraintName );
+        Constraint constraint = new Constraint( constraintId, constraintName, LogicalOperator.AND );
         constraint.addCondition( condition );
         return constraint;
     }

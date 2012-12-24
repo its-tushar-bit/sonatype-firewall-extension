@@ -53,10 +53,8 @@ public class PolicyEvaluateResourceTest
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        final Constraint constraint = new Constraint();
-        constraint.setId( "C1" );
-        constraint.setName( "PolicyEvaluateResourceTest constraint 1" );
-        constraint.setOperator( LogicalOperator.AND );
+        final Constraint constraint =
+            new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
         final Condition condition1 = new Condition();
         condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "present" );

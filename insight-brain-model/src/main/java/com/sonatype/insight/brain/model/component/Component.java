@@ -27,13 +27,15 @@ public class Component
 
     private String licenseThreat;
 
-    private int relativePopularity;
-
     private List<String> declaredLicenseNames = new ArrayList<String>();
 
     private List<String> observedLicenseNames = new ArrayList<String>();
 
+    private LicenseStatus licenseStatus;
+
     private List<SecurityVulnerability> securityVulnerabilities;
+
+    private int relativePopularity;
 
     public Component()
     {
@@ -309,5 +311,19 @@ public class Component
     public void setRelativePopularity( int relativePopularity )
     {
         this.relativePopularity = relativePopularity;
+    }
+
+    public LicenseStatus getLicenseStatus()
+    {
+        if ( licenseStatus == null )
+        {
+            licenseStatus = LicenseStatus.OPEN;
+        }
+        return licenseStatus;
+    }
+
+    public void setLicenseStatus( LicenseStatus licenseStatus )
+    {
+        this.licenseStatus = licenseStatus;
     }
 }

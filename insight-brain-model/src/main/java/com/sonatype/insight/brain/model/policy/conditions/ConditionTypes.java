@@ -22,6 +22,7 @@ public class ConditionTypes
         add( new LicenseInListConditionType() );
         add( new DeclaredLicenseInListConditionType() );
         add( new ObservedLicenseInListConditionType() );
+        add( new LicenseStatusConditionType() );
         add( new SecurityVulnerabilityConditionType() );
         add( new SecurityVulnerabilitySeverityConditionType() );
         add( new SecurityVulnerabilityStatusConditionType() );

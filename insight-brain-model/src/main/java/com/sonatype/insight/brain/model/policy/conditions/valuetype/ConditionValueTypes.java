@@ -21,6 +21,7 @@ public class ConditionValueTypes
         add( new FloatValueType() );
         add( new LicenseCategoryValueType() );
         add( new LicenseValueType() );
+        add( new LicenseStatusValueType() );
         add( new PercentageValueType() );
         add( new SecurityVulnerabilityStatusValueType() );
     }

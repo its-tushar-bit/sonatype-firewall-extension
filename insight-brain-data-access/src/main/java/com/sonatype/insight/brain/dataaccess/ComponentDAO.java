@@ -14,6 +14,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.LicenseStatus;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -40,6 +41,8 @@ public class ComponentDAO
                     final String artifactId = artifactLicenseJson.get( "artifactId" ).asText();
                     final String version = artifactLicenseJson.get( "version" ).asText();
                     final String licenseThreat = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
+                    final String statusString = JsonUtils.getNullableString( artifactLicenseJson.get( "status" ) );
+                    final LicenseStatus status = LicenseStatus.getByName( statusString );
 
                     final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
@@ -55,6 +58,7 @@ public class ComponentDAO
                     component.setDeclaredLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "declaredLicenses" ) ) );
                     component.setObservedLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) ) );
                     // TODO Load effective license data too?
+                    component.setLicenseStatus( status );
                 }
             }
         }

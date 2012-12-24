@@ -86,7 +86,8 @@ public class PolicyEvaluateResourceTest
         assertResponseStatus( 200, response );
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
-        Assert.assertTrue( policyAlerts.length > 0 );
+        Assert.assertEquals( 1, policyAlerts.length );
+        SecurityVulnerabilityConditionTypeTest.assertFactCounts( 1, 6, policyAlerts[0] );
 
         // check the calculated policy threat
         response = RestAccess.get( getThreatsURL( appId, scanId ) );

@@ -61,7 +61,7 @@ public class LicenseCategoryConditionTypeTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        assertFactCounts( 2, 2, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIs",
                                    "Constraint Name Is", policyAlerts );

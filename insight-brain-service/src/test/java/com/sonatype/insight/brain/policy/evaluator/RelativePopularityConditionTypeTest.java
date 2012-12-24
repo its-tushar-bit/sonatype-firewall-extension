@@ -60,6 +60,7 @@ public class RelativePopularityConditionTypeTest
             new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
     }
@@ -92,6 +93,7 @@ public class RelativePopularityConditionTypeTest
             new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
     }
@@ -124,6 +126,7 @@ public class RelativePopularityConditionTypeTest
             new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 2, policyAlerts.get( 0 ) );
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
@@ -158,6 +161,7 @@ public class RelativePopularityConditionTypeTest
             new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
     }
@@ -190,6 +194,7 @@ public class RelativePopularityConditionTypeTest
             new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 2, policyAlerts.get( 0 ) );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",

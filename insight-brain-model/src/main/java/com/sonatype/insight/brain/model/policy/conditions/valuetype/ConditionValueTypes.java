@@ -21,6 +21,7 @@ public class ConditionValueTypes
         add( new FloatValueType() );
         add( new LicenseCategoryValueType() );
         add( new LicenseValueType() );
+        add( new PercentageValueType() );
     }
 
     public static Collection<ConditionValueType<?>> getAll()

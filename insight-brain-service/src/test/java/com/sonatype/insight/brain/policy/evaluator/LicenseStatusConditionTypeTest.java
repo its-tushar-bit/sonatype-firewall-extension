@@ -47,7 +47,7 @@ public class LicenseStatusConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        // A component with one security vulnerability with status OPEN
+        // A component with license status OPEN
         Component component1 = new Component( "g1", "a1", "v1" );
         components.add( component1 );
         // A component with license status CONFIRMED
@@ -79,7 +79,7 @@ public class LicenseStatusConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        // A component with one security vulnerability with status OPEN
+        // A component with license status OPEN
         Component component1 = new Component( "g1", "a1", "v1" );
         components.add( component1 );
         // A component with license status CONFIRMED

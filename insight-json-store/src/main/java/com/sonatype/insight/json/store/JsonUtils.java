@@ -194,4 +194,22 @@ public final class JsonUtils
     {
         return data != null ? data.objectNode() : JsonNodeFactory.instance.objectNode();
     }
+
+    public static Float getNullableFloat( JsonNode jsonNode )
+    {
+        if ( jsonNode == null )
+        {
+            return null;
+        }
+        return (float) jsonNode.asDouble();
+    }
+
+    public static String getNullableString( JsonNode jsonNode )
+    {
+        if ( jsonNode == null )
+        {
+            return null;
+        }
+        return jsonNode.asText();
+    }
 }

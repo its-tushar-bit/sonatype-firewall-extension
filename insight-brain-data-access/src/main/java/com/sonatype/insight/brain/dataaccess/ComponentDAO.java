@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
@@ -74,8 +75,9 @@ public class ComponentDAO
                     final String version = securityVulnerabilityJson.get( "version" ).asText();
                     final String source = securityVulnerabilityJson.get( "source" ).asText();
                     final String reference = securityVulnerabilityJson.get( "reference" ).asText();
-                    final JsonNode severityJson = securityVulnerabilityJson.get( "score" );
-                    final Float severity = severityJson == null ? null : (float) severityJson.asDouble();
+                    final Float severity = JsonUtils.getNullableFloat( securityVulnerabilityJson.get( "score" ) );
+                    final String statusString = JsonUtils.getNullableString( securityVulnerabilityJson.get( "status" ) );
+                    final SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName( statusString );
 
                     final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
@@ -91,6 +93,7 @@ public class ComponentDAO
                     securityVulnerability.setSource( source );
                     securityVulnerability.setRefId( reference );
                     securityVulnerability.setSeverity( severity );
+                    securityVulnerability.setStatus( status );
                     component.addSecurityVulnerability( securityVulnerability );
                 }
             }

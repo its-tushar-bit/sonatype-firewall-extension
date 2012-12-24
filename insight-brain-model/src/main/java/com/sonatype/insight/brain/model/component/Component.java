@@ -76,9 +76,28 @@ public class Component
         this.version = version;
     }
 
+    public List<SecurityVulnerability> getSecurityVulnerabilitiesByStatusId( String securityVulnerabilityStatusId )
+    {
+        if ( getSecurityVulnerabilities().isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+
+        SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getById( securityVulnerabilityStatusId );
+        List<SecurityVulnerability> result = new ArrayList<SecurityVulnerability>();
+        for ( SecurityVulnerability securityVulnerability : securityVulnerabilities )
+        {
+            if ( status.equals( securityVulnerability.getStatus() ) )
+            {
+                result.add( securityVulnerability );
+            }
+        }
+        return result;
+    }
+
     public List<SecurityVulnerability> getSecurityVulnerabilitiesBySeverity( float severity, String operator )
     {
-        if ( securityVulnerabilities == null || securityVulnerabilities.size() == 0 )
+        if ( getSecurityVulnerabilities().isEmpty() )
         {
             return Collections.emptyList();
         }
@@ -112,6 +131,10 @@ public class Component
 
     public List<SecurityVulnerability> getSecurityVulnerabilities()
     {
+        if ( securityVulnerabilities == null )
+        {
+            return Collections.emptyList();
+        }
         return securityVulnerabilities;
     }
 

@@ -135,6 +135,8 @@
 										</select>
 										<select ng-model="state.currentCondition.value" ng-show="state.currentCondition.conditionTypeId && state.currentConditionValueType.availableValues && state.currentConditionType.valueTypeId == 'LicenseValueType'" multiple="state.currentConditionValueType.allowMultiple" ng-change="validateConstraintCondition()" ng-options="c.id as c.shortDisplayName for c in state.currentConditionValueType.availableValues" style="vertical-align:top;">
 										</select>
+										<select ng-model="state.currentCondition.value" ng-show="state.currentCondition.conditionTypeId && state.currentConditionValueType.availableValues && state.currentConditionType.valueTypeId == 'SecurityVulnerabilityStatusValueType'" multiple="state.currentConditionValueType.allowMultiple" ng-change="validateConstraintCondition()" ng-options="c.id as c.name for c in state.currentConditionValueType.availableValues" style="vertical-align:top;">
+										</select>
 										<button type='none' class='btn btn-primary' ng-click="addConstraintCondition()" ng-disabled="!state.addConstraintConditionFormValid" style="vertical-align:top;">Add</button>
 									</div>
 								</div>

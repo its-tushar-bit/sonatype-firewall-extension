@@ -17,12 +17,14 @@ public class ConditionTypes
 
     static
     {
+        // Note: The order condition types are added here determines the order they are displayed in the UI
         add( new LicenseCategoryConditionType() );
         add( new LicenseInListConditionType() );
         add( new DeclaredLicenseInListConditionType() );
         add( new ObservedLicenseInListConditionType() );
         add( new SecurityVulnerabilityConditionType() );
         add( new SecurityVulnerabilitySeverityConditionType() );
+        add( new SecurityVulnerabilityStatusConditionType() );
         add( new RelativePopularityConditionType() );
     }
 

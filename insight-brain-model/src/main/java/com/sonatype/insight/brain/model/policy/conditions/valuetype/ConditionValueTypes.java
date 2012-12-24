@@ -22,6 +22,7 @@ public class ConditionValueTypes
         add( new LicenseCategoryValueType() );
         add( new LicenseValueType() );
         add( new PercentageValueType() );
+        add( new SecurityVulnerabilityStatusValueType() );
     }
 
     public static Collection<ConditionValueType<?>> getAll()

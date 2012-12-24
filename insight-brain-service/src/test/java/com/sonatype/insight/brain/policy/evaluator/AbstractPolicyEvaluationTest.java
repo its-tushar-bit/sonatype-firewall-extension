@@ -34,6 +34,22 @@ public abstract class AbstractPolicyEvaluationTest
         return constraint;
     }
 
+    public static void assertFactCounts( int expectedConstraintFactCount, int expectedComponentFactCount,
+                                         PolicyAlert actualPolicyAlert )
+    {
+        List<ConstraintFact> constraintFacts = actualPolicyAlert.getTrigger().getConstraintFacts();
+        Assert.assertEquals( "Incorrect number of constraint facts", expectedConstraintFactCount,
+                             constraintFacts.size() );
+
+        int actualComponentFactCount = 0;
+        for ( ConstraintFact constraintFact : constraintFacts )
+        {
+            actualComponentFactCount += constraintFact.getComponentFacts().size();
+        }
+        Assert.assertEquals( "Incorrect number of component facts", expectedComponentFactCount,
+                             actualComponentFactCount );
+    }
+
     public static void assertContainsPolicyAlert( Component expectedComponent, String expectedPolicyId,
                                                   String expectedPolicyName, String actionTypeId,
                                                   String expectedConstraintId, String expectedConstraintName,

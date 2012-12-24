@@ -59,7 +59,7 @@ public class LicenseInListConditionTypeTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -93,7 +93,7 @@ public class LicenseInListConditionTypeTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -126,7 +126,7 @@ public class LicenseInListConditionTypeTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -160,7 +160,7 @@ public class LicenseInListConditionTypeTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );

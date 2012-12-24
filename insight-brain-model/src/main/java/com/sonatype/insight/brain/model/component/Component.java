@@ -262,6 +262,7 @@ public class Component
             return false;
         }
 
+        List<String> licenseNames = new ArrayList<String>();
         for ( String licenseId : licenseIds )
         {
             License license = LicenseValueType.getLicenseById( licenseId );
@@ -270,7 +271,11 @@ public class Component
                 log.warn( "Unknown license id {}", licenseId );
                 continue;
             }
-            if ( !componentLicenseNames.contains( license.getShortDisplayName() ) )
+            licenseNames.add( license.getShortDisplayName() );
+        }
+        for ( String componentLicenseName : componentLicenseNames )
+        {
+            if ( !licenseNames.contains( componentLicenseName ) )
             {
                 return true;
             }

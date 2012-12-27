@@ -29,6 +29,7 @@ public class ConditionTypes
         add( new RelativePopularityConditionType() );
         add( new AgeInDaysConditionType() );
         add( new MatchStateConditionType() );
+        add( new CoordinatesConditionType() );
     }
 
     public static Collection<ConditionType> getAll()

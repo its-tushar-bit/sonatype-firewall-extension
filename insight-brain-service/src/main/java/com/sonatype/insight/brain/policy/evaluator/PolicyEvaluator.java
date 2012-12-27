@@ -51,7 +51,7 @@ public class PolicyEvaluator
                                     ResourceType.DRL );
         if ( droolsKnowledgeBuilder.hasErrors() )
         {
-            throw new RuntimeException( "Failed to load the policies:" + droolsKnowledgeBuilder.getErrors().toString() );
+            throw new RuntimeException( "Failed to load the policies: " + droolsKnowledgeBuilder.getErrors().toString() );
         }
         final Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
         final KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();

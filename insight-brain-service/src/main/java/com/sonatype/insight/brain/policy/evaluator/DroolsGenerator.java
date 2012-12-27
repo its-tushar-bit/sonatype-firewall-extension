@@ -31,6 +31,7 @@ public class DroolsGenerator
 
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.ComponentFact\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.ConstraintFact\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.PolicyFact\n" );

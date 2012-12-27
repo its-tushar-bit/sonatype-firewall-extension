@@ -6,7 +6,8 @@
 package com.sonatype.insight.brain.model.policy.conditions;
 
 import org.codehaus.plexus.util.StringUtils;
-import org.springframework.util.AntPathMatcher;
+
+//import org.springframework.util.AntPathMatcher;
 
 /**
  * Copied from com.sonatype.nexus.procurement.ArtifactCoordinate.
@@ -41,7 +42,7 @@ public class ArtifactCoordinate
 
     private String version;
 
-    private transient AntPathMatcher pathMatcher = new AntPathMatcher();
+    // private transient AntPathMatcher pathMatcher = new AntPathMatcher();
 
     /**
      * Constructs an ArtifactCoordinate.
@@ -88,51 +89,51 @@ public class ArtifactCoordinate
      * @param version
      * @return
      */
-    public boolean matches( String path )
-    {
-        StringBuffer pathBuf = new StringBuffer( "/" );
-
-        String gid = getGroupId();
-
-        // a* -> a*/**/
-        // a.* -> a/**
-        if ( gid.endsWith( ".*" ) )
-        {
-            gid = gid.substring( 0, gid.length() - 2 ) + "/**";
-        }
-        else if ( gid.endsWith( "*" ) )
-        {
-            gid = gid.substring( 0, gid.length() - 1 ) + "*/**";
-        }
-
-        pathBuf.append( gid.replace( '.', '/' ) );
-
-        if ( !PLACEHOLDER.equals( getArtifactId() ) || !PLACEHOLDER.equals( getVersion() ) )
-        {
-            pathBuf.append( "/" );
-
-            pathBuf.append( getArtifactId() );
-
-            if ( !PLACEHOLDER.equals( getVersion() ) )
-            {
-                pathBuf.append( "/" );
-
-                pathBuf.append( getVersion() );
-            }
-            else
-            {
-                pathBuf.append( "/" );
-
-                pathBuf.append( "**" );
-            }
-        }
-        else
-        {
-            pathBuf.append( "/*/*" );
-        }
-
-        return pathMatcher.match( pathBuf.toString(), path );
-    }
+    // public boolean matches( String path )
+    // {
+    // StringBuffer pathBuf = new StringBuffer( "/" );
+    //
+    // String gid = getGroupId();
+    //
+    // // a* -> a*/**/
+    // // a.* -> a/**
+    // if ( gid.endsWith( ".*" ) )
+    // {
+    // gid = gid.substring( 0, gid.length() - 2 ) + "/**";
+    // }
+    // else if ( gid.endsWith( "*" ) )
+    // {
+    // gid = gid.substring( 0, gid.length() - 1 ) + "*/**";
+    // }
+    //
+    // pathBuf.append( gid.replace( '.', '/' ) );
+    //
+    // if ( !PLACEHOLDER.equals( getArtifactId() ) || !PLACEHOLDER.equals( getVersion() ) )
+    // {
+    // pathBuf.append( "/" );
+    //
+    // pathBuf.append( getArtifactId() );
+    //
+    // if ( !PLACEHOLDER.equals( getVersion() ) )
+    // {
+    // pathBuf.append( "/" );
+    //
+    // pathBuf.append( getVersion() );
+    // }
+    // else
+    // {
+    // pathBuf.append( "/" );
+    //
+    // pathBuf.append( "**" );
+    // }
+    // }
+    // else
+    // {
+    // pathBuf.append( "/*/*" );
+    // }
+    //
+    // return pathMatcher.match( pathBuf.toString(), path );
+    // }
 
     /**
      * Returns true if this ArtifactCoordinate matches the passed coordinates.

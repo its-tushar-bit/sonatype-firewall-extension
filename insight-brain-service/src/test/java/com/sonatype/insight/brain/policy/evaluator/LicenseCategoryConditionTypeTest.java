@@ -29,7 +29,7 @@ public class LicenseCategoryConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
     @Test
-    public void testEvaluate_LicenseCategoryConditionType()
+    public void testEvaluateIs()
     {
         final Stage stage = new Stage( BuildStageType.ID );
 
@@ -38,6 +38,37 @@ public class LicenseCategoryConditionTypeTest
         final Constraint constraintSVIs = new Constraint( "ConstraintIdIs", "Constraint Name Is", LogicalOperator.AND );
         constraintSVIs.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "WEAKCOPYLEFT" ) );
         constraints.add( constraintSVIs );
+
+        final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        final List<Component> components = new ArrayList<Component>();
+        final Component component1 = new Component( "g1", "a1", "v1" );
+        component1.setLicenseCategoryId( "WEAKCOPYLEFT" );
+        components.add( component1 );
+        final Component component2 = new Component( "g2", "a2", "v2" );
+        component2.setLicenseCategoryId( "LIBERAL" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        final List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( stage, Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIs",
+                                   "Constraint Name Is", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIsNot()
+    {
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        // Create policy constraints
+        final List<Constraint> constraints = new ArrayList<Constraint>();
         final Constraint constraintSVIsNot =
             new Constraint( "ConstraintIdIsNot", "Constraint Name IsNot", LogicalOperator.AND );
         constraintSVIsNot.addCondition( new Condition( LicenseCategoryConditionType.ID, "is not", "WEAKCOPYLEFT" ) );
@@ -49,10 +80,10 @@ public class LicenseCategoryConditionTypeTest
 
         final List<Component> components = new ArrayList<Component>();
         final Component component1 = new Component( "g1", "a1", "v1" );
-        component1.setLicenseCategory( "WEAKCOPYLEFT" );
+        component1.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component1 );
         final Component component2 = new Component( "g2", "a2", "v2" );
-        component2.setLicenseCategory( "LIBERAL" );
+        component2.setLicenseCategoryId( "LIBERAL" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -61,11 +92,81 @@ public class LicenseCategoryConditionTypeTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 2, 2, policyAlerts.get( 0 ) );
-
-        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIs",
-                                   "Constraint Name Is", policyAlerts );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIsNot",
+                                   "Constraint Name IsNot", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIs_LicenseCategoryOverridden()
+    {
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        // Create policy constraints
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraintSVIs = new Constraint( "ConstraintIdIs", "Constraint Name Is", LogicalOperator.AND );
+        constraintSVIs.addCondition( new Condition( LicenseCategoryConditionType.ID, "is", "WEAKCOPYLEFT" ) );
+        constraints.add( constraintSVIs );
+
+        final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        final List<Component> components = new ArrayList<Component>();
+        final Component component1 = new Component( "g1", "a1", "v1" );
+        component1.setLicenseCategoryId( "WEAKCOPYLEFT" );
+        component1.setOverriddenLicenseCategoryId( "LIBERAL" );
+        components.add( component1 );
+        final Component component2 = new Component( "g2", "a2", "v2" );
+        component2.setLicenseCategoryId( "LIBERAL" );
+        component2.setOverriddenLicenseCategoryId( "WEAKCOPYLEFT" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        final List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( stage, Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIs",
+                                   "Constraint Name Is", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIsNot_LicenseCategoryOverridden()
+    {
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        // Create policy constraints
+        final List<Constraint> constraints = new ArrayList<Constraint>();
+        final Constraint constraintSVIsNot =
+            new Constraint( "ConstraintIdIsNot", "Constraint Name IsNot", LogicalOperator.AND );
+        constraintSVIsNot.addCondition( new Condition( LicenseCategoryConditionType.ID, "is not", "WEAKCOPYLEFT" ) );
+        constraints.add( constraintSVIsNot );
+
+        final Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        final List<Component> components = new ArrayList<Component>();
+        final Component component1 = new Component( "g1", "a1", "v1" );
+        component1.setLicenseCategoryId( "WEAKCOPYLEFT" );
+        component1.setOverriddenLicenseCategoryId( "LIBERAL" );
+        components.add( component1 );
+        final Component component2 = new Component( "g2", "a2", "v2" );
+        component2.setLicenseCategoryId( "LIBERAL" );
+        component2.setOverriddenLicenseCategoryId( "WEAKCOPYLEFT" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        final List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( stage, Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintIdIsNot",
                                    "Constraint Name IsNot", policyAlerts );
     }
 

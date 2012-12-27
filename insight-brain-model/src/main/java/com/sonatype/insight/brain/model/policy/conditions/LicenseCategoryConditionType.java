@@ -48,8 +48,8 @@ public class LicenseCategoryConditionType
     @Override
     public String generateDroolsCode( final Condition condition )
     {
-        return "getLicenseCategory() " + ( "is".equals( condition.getOperator() ) ? "==" : "!=" ) + " \""
-            + condition.getValue() + "\"";
+        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "isLicenseCategoryId( \""
+            + condition.getValue() + "\" )";
     }
 
     @Override

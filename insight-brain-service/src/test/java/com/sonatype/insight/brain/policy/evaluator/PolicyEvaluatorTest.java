@@ -56,7 +56,7 @@ public class PolicyEvaluatorTest
         components.add( component1 );
         // A component with license category "Weak Copyleft"
         final Component component2 = new Component( "g2", "a2", "v2" );
-        component2.setLicenseCategory( "WEAKCOPYLEFT" );
+        component2.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -103,7 +103,7 @@ public class PolicyEvaluatorTest
 
         // A component with license category "Weak Copyleft"
         final Component component2 = new Component( "g2", "a2", "v2" );
-        component2.setLicenseCategory( "WEAKCOPYLEFT" );
+        component2.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -115,7 +115,7 @@ public class PolicyEvaluatorTest
         // A component with one security vulnerability and license category "Weak Copyleft"
         final Component component3 = new Component( "g3", "a3", "v3" );
         component3.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
-        component3.setLicenseCategory( "WEAKCOPYLEFT" );
+        component3.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component3 );
 
         // Evaluate the policy
@@ -131,7 +131,7 @@ public class PolicyEvaluatorTest
         // Another component with one security vulnerability and license category "Weak Copyleft"
         final Component component4 = new Component( "g4", "a4", "v4" );
         component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
-        component4.setLicenseCategory( "WEAKCOPYLEFT" );
+        component4.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component4 );
 
         // Evaluate the policy
@@ -181,7 +181,7 @@ public class PolicyEvaluatorTest
 
         // A component with license category "Weak Copyleft"
         final Component component2 = new Component( "g2", "a2", "v2" );
-        component2.setLicenseCategory( "WEAKCOPYLEFT" );
+        component2.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -199,7 +199,7 @@ public class PolicyEvaluatorTest
         // A component with one security vulnerability and license category "Weak Copyleft"
         final Component component3 = new Component( "g3", "a3", "v3" );
         component3.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
-        component3.setLicenseCategory( "WEAKCOPYLEFT" );
+        component3.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component3 );
 
         // Evaluate the policy
@@ -219,7 +219,7 @@ public class PolicyEvaluatorTest
         // Another component with one security vulnerability and license category "Weak Copyleft"
         final Component component4 = new Component( "g4", "a4", "v4" );
         component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
-        component4.setLicenseCategory( "WEAKCOPYLEFT" );
+        component4.setLicenseCategoryId( "WEAKCOPYLEFT" );
         components.add( component4 );
 
         // Evaluate the policy

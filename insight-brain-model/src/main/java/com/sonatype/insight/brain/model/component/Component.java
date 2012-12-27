@@ -27,7 +27,9 @@ public class Component
 
     private String hash;
 
-    private String licenseCategory;
+    private String licenseCategoryId;
+
+    private String overriddenLicenseCategoryId;
 
     private List<String> declaredLicenseNames = new ArrayList<String>();
 
@@ -166,14 +168,14 @@ public class Component
         return groupId + ':' + artifactId + ':' + version;
     }
 
-    public String getLicenseCategory()
+    public String getLicenseCategoryId()
     {
-        return licenseCategory;
+        return licenseCategoryId;
     }
 
-    public void setLicenseCategory( final String licenseCategory )
+    public void setLicenseCategoryId( final String licenseCategoryId )
     {
-        this.licenseCategory = licenseCategory;
+        this.licenseCategoryId = licenseCategoryId;
     }
 
     public List<String> getDeclaredLicenseNames()
@@ -361,5 +363,24 @@ public class Component
     public void setCatalogDate( Long catalogDate )
     {
         this.catalogDate = catalogDate;
+    }
+
+    public String getOverriddenLicenseCategoryId()
+    {
+        return overriddenLicenseCategoryId;
+    }
+
+    public void setOverriddenLicenseCategoryId( String overriddenLicenseCategoryId )
+    {
+        this.overriddenLicenseCategoryId = overriddenLicenseCategoryId;
+    }
+
+    public boolean isLicenseCategoryId( String licenseCategoryId )
+    {
+        if ( overriddenLicenseCategoryId != null )
+        {
+            return licenseCategoryId.equals( overriddenLicenseCategoryId );
+        }
+        return licenseCategoryId.equals( this.licenseCategoryId );
     }
 }

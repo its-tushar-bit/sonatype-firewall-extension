@@ -27,7 +27,7 @@ public class Component
 
     private String hash;
 
-    private String licenseThreat;
+    private String licenseCategory;
 
     private List<String> declaredLicenseNames = new ArrayList<String>();
 
@@ -166,14 +166,14 @@ public class Component
         return groupId + ':' + artifactId + ':' + version;
     }
 
-    public String getLicenseThreat()
+    public String getLicenseCategory()
     {
-        return licenseThreat;
+        return licenseCategory;
     }
 
-    public void setLicenseThreat( final String licenseThreat )
+    public void setLicenseCategory( final String licenseCategory )
     {
-        this.licenseThreat = licenseThreat;
+        this.licenseCategory = licenseCategory;
     }
 
     public List<String> getDeclaredLicenseNames()

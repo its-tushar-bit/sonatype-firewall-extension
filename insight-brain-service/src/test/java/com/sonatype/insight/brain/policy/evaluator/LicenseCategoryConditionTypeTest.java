@@ -49,10 +49,10 @@ public class LicenseCategoryConditionTypeTest
 
         final List<Component> components = new ArrayList<Component>();
         final Component component1 = new Component( "g1", "a1", "v1" );
-        component1.setLicenseThreat( "WEAKCOPYLEFT" );
+        component1.setLicenseCategory( "WEAKCOPYLEFT" );
         components.add( component1 );
         final Component component2 = new Component( "g2", "a2", "v2" );
-        component2.setLicenseThreat( "LIBERAL" );
+        component2.setLicenseCategory( "LIBERAL" );
         components.add( component2 );
 
         // Evaluate the policy

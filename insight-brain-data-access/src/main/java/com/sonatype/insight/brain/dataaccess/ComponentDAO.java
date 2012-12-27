@@ -44,6 +44,7 @@ public class ComponentDAO
                     final String licenseThreat = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
                     final String statusString = JsonUtils.getNullableString( artifactLicenseJson.get( "status" ) );
                     final LicenseStatus status = LicenseStatus.getByName( statusString );
+                    final long catalogDate = artifactLicenseJson.get( "catalogDate" ).asLong();
 
                     final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
@@ -60,6 +61,7 @@ public class ComponentDAO
                     component.setObservedLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) ) );
                     // TODO Load effective license data too?
                     component.setLicenseStatus( status );
+                    component.setCatalogDate( catalogDate );
                 }
             }
         }

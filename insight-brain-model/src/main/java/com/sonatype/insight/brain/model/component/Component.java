@@ -41,6 +41,8 @@ public class Component
 
     private MatchState matchState;
 
+    private Long catalogDate;
+
     public Component()
     {
     }
@@ -349,5 +351,15 @@ public class Component
     public void setHash( String hash )
     {
         this.hash = hash;
+    }
+
+    public Long getCatalogDate()
+    {
+        return catalogDate;
+    }
+
+    public void setCatalogDate( Long catalogDate )
+    {
+        this.catalogDate = catalogDate;
     }
 }

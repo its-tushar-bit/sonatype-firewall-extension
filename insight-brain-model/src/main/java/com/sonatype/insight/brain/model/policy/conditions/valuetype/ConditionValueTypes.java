@@ -18,6 +18,7 @@ public class ConditionValueTypes
 
     static
     {
+        add( new AgeInDaysValueType() );
         add( new FloatValueType() );
         add( new LicenseCategoryValueType() );
         add( new LicenseStatusValueType() );

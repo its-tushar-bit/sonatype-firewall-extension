@@ -6,43 +6,40 @@
 }, {
   "id" : "AFL-UNSPECIFIED",
   "shortDisplayName" : "AFL",
-  "longDisplayName" : "AFL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "AFL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "AFL-1.2",
   "shortDisplayName" : "AFL-1.2",
   "longDisplayName" : "Academic Free License v1.2",
-  "licenseUrl" : "http://www.spdx.org/licenses/AFL-1.2",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/AFL-1.2"
 }, {
   "id" : "AFL-2.0",
   "shortDisplayName" : "AFL-2.0",
   "longDisplayName" : "Academic Free License v2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/AFL-2.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/AFL-2.0"
 }, {
   "id" : "AFL-2.1",
   "shortDisplayName" : "AFL-2.1",
   "longDisplayName" : "Academic Free License v2.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/AFL-2.1",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/AFL-2.1"
 }, {
   "id" : "AFL-3.0",
   "shortDisplayName" : "AFL-3.0",
   "longDisplayName" : "Academic Free License v3.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/AFL-3.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/AFL-3.0"
 }, {
   "id" : "AGPL-UNSPECIFIED",
   "shortDisplayName" : "AGPL",
-  "longDisplayName" : "AGPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "COPYLEFT"
+  "longDisplayName" : "AGPL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "AGPL-3.0",
   "shortDisplayName" : "AGPL-3.0",
   "longDisplayName" : "GNU Affero General Public License v3",
-  "licenseUrl" : "http://www.spdx.org/licenses/AGPL-3.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/AGPL-3.0"
+}, {
+  "id" : "AGPL-3.0+",
+  "shortDisplayName" : "AGPL-3.0+",
+  "longDisplayName" : "GNU Affero General Public License v3 or later"
 }, {
   "id" : "ANTLR-PD",
   "shortDisplayName" : "ANTLR-PD",
@@ -76,66 +73,151 @@
 }, {
   "id" : "Apache-UNSPECIFIED",
   "shortDisplayName" : "Apache",
-  "longDisplayName" : "Apache-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "Apache-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "Apache-1.0",
   "shortDisplayName" : "Apache-1.0",
   "longDisplayName" : "Apache License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/Apache-1.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/Apache-1.0"
 }, {
   "id" : "Apache-1.1",
   "shortDisplayName" : "Apache-1.1",
   "longDisplayName" : "Apache License 1.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/Apache-1.1",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/Apache-1.1"
 }, {
   "id" : "Apache-2.0",
   "shortDisplayName" : "Apache-2.0",
   "longDisplayName" : "Apache License 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/Apache-2.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/Apache-2.0"
+}, {
+  "id" : "Apache-2.0-EPL-1.0",
+  "shortDisplayName" : "Apache-2.0 or EPL-1.0",
+  "longDisplayName" : "Dual License Consisting of Apache License 2.0 and Eclipse Public License 1.0"
+}, {
+  "id" : "Apache-2.0-GPL-UNSPECIFIED",
+  "shortDisplayName" : "Apache-2.0 or GPL",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and GPL-style License Not Identifiable by Sonatype"
+}, {
+  "id" : "Apache-2.0-GPL-2.0",
+  "shortDisplayName" : "Apache-2.0 or GPL-2.0",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and GPL 2.0"
+}, {
+  "id" : "Apache-2.0-GPL-2.0+",
+  "shortDisplayName" : "Apache-2.0 or GPL-2.0+",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and GPL 2.0 or later"
+}, {
+  "id" : "Apache-2.0-GPL-3.0",
+  "shortDisplayName" : "Apache-2.0 or GPL-3.0",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and GPL 3.0"
+}, {
+  "id" : "Apache-2.0-GPL-3.0+",
+  "shortDisplayName" : "Apache-2.0 or GPL-3.0+",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and GPL 3.0 or later"
+}, {
+  "id" : "Apache-2.0-LGPL-UNSPECIFIED",
+  "shortDisplayName" : "Apache-2.0 or LGPL",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL-style License Not Identifiable by Sonatype"
+}, {
+  "id" : "Apache-2.0-LGPL-2.0",
+  "shortDisplayName" : "Apache-2.0 or LGPL-2.0",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL 2.0"
+}, {
+  "id" : "Apache-2.0-LGPL-2.0+",
+  "shortDisplayName" : "Apache-2.0 or LGPL-2.0+",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL 2.0 or later"
+}, {
+  "id" : "Apache-2.0-LGPL-2.1",
+  "shortDisplayName" : "Apache-2.0 or LGPL-2.1",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL 2.1"
+}, {
+  "id" : "Apache-2.0-LGPL-2.1+",
+  "shortDisplayName" : "Apache-2.0 or LGPL-2.1+",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL 2.1 or later"
+}, {
+  "id" : "Apache-2.0-LGPL-2.1+-MPL-1.1",
+  "shortDisplayName" : "Apache-2.0 or LGPL-2.1+ or MPL-1.1",
+  "longDisplayName" : "Triple License Consisting of Apache 2.0, LGPL 2.1 or later and Mozilla Public License 1.1"
+}, {
+  "id" : "Apache-2.0-LGPL-3.0",
+  "shortDisplayName" : "Apache-2.0 or LGPL-3.0",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL 3.0"
+}, {
+  "id" : "Apache-2.0-LGPL-3.0+",
+  "shortDisplayName" : "Apache-2.0 or LGPL-3.0+",
+  "longDisplayName" : "Dual License Consisting of Apache 2.0 and LGPL 3.0 or later"
+}, {
+  "id" : "Apache-2.0+",
+  "shortDisplayName" : "Apache-2.0+",
+  "longDisplayName" : "Apache License 2.0 or later"
+}, {
+  "id" : "Apache-2.0+-GPL-2.0+-LGPL-2.1+",
+  "shortDisplayName" : "Apache-2.0+ or GPL-2.0+ or LGPL-2.1+",
+  "longDisplayName" : "Triple License Consisting of Apache 2.0, GPL 2.0 or later and LGPL 2.1 or later"
 }, {
   "id" : "Artistic-UNSPECIFIED",
   "shortDisplayName" : "Artistic",
-  "longDisplayName" : "AGPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "AGPL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "Artistic-1.0",
   "shortDisplayName" : "Artistic-1.0",
   "longDisplayName" : "Artistic License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/Artistic-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/Artistic-1.0"
 }, {
   "id" : "Artistic-2.0",
   "shortDisplayName" : "Artistic-2.0",
   "longDisplayName" : "Artistic License 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/Artistic-2.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/Artistic-2.0"
 }, {
   "id" : "BSD-UNSPECIFIED",
   "shortDisplayName" : "BSD",
-  "longDisplayName" : "BSD-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "BSD-Style License Not Identifiable by Sonatype"
+}, {
+  "id" : "BSD-UNSPECIFIED-EPL-1.0",
+  "shortDisplayName" : "BSD or EPL-1.0",
+  "longDisplayName" : "Dual License Consisting of BSD-Style License Not Identifiable by Sonatype and Eclipse Public License 1.0"
+}, {
+  "id" : "BSD-UNSPECIFIED-GPL-UNSPECIFIED",
+  "shortDisplayName" : "BSD or GPL",
+  "longDisplayName" : "Dual License Consisting of BSD-Style License Not Identifiable by Sonatype and GPL-Style License Not Identifiable by Sonatype"
+}, {
+  "id" : "BSD-UNSPECIFIED-GPL-UNSPECIFIED-MIT",
+  "shortDisplayName" : "BSD or GPL or MIT",
+  "longDisplayName" : "Triple License Consisting of BSD-Style License Not Identifiable by Sonatype, GPL-Style License Not Identifiable by Sonatype and MIT"
+}, {
+  "id" : "BSD-UNSPECIFIED-GPL-2.0",
+  "shortDisplayName" : "BSD or GPL-2.0",
+  "longDisplayName" : "Dual License Consisting of BSD-Style License Not Identifiable by Sonatype and GPL 2.0"
+}, {
+  "id" : "BSD-UNSPECIFIED-GPL-2.0+",
+  "shortDisplayName" : "BSD or GPL-2.0+",
+  "longDisplayName" : "Dual License Consisting of BSD-Style License Not Identifiable by Sonatype and GPL 2.0 or later"
+}, {
+  "id" : "BSD-UNSPECIFIED-GPL-3.0",
+  "shortDisplayName" : "BSD or GPL-3.0",
+  "longDisplayName" : "Dual License Consisting of BSD-Style License Not Identifiable by Sonatype and GPL 3.0"
+}, {
+  "id" : "BSD-UNSPECIFIED-GPL-3.0+",
+  "shortDisplayName" : "BSD or GPL-3.0+",
+  "longDisplayName" : "Dual License Consisting of BSD-Style License Not Identifiable by Sonatype and GPL 3.0 or later"
 }, {
   "id" : "BSD-2-Clause",
   "shortDisplayName" : "BSD-2-Clause",
   "longDisplayName" : "BSD 2-clause \"Simplified\" or \"FreeBSD\" License",
-  "licenseUrl" : "http://www.spdx.org/licenses/BSD-2-Clause",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/BSD-2-Clause"
 }, {
   "id" : "BSD-3-Clause",
   "shortDisplayName" : "BSD-3-Clause",
   "longDisplayName" : "BSD 3-clause \"New\" or \"Revised\" License",
-  "licenseUrl" : "http://www.spdx.org/licenses/BSD-3-Clause",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/BSD-3-Clause"
+}, {
+  "id" : "BSD-3-Clause-EPL-1.0",
+  "shortDisplayName" : "BSD-3-Clause or EPL-1.0",
+  "longDisplayName" : "Dual License Consisting of New BSD License and Eclipse Public License 1.0"
 }, {
   "id" : "BSD-4-Clause",
   "shortDisplayName" : "BSD-4-Clause",
   "longDisplayName" : "BSD 4-clause \"Original\" or \"Old\" License",
-  "licenseUrl" : "http://www.spdx.org/licenses/BSD-4-Clause",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/BSD-4-Clause"
 }, {
   "id" : "BSL-1.0",
   "shortDisplayName" : "BSL-1.0",
@@ -149,32 +231,27 @@
 }, {
   "id" : "CC-BY-UNSPECIFIED",
   "shortDisplayName" : "CC-BY",
-  "longDisplayName" : "CC-BY-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "CC-BY-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "CC-BY-1.0",
   "shortDisplayName" : "CC-BY-1.0",
   "longDisplayName" : "Creative Commons Attribution 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-1.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-1.0"
 }, {
   "id" : "CC-BY-2.0",
   "shortDisplayName" : "CC-BY-2.0",
   "longDisplayName" : "Creative Commons Attribution 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-2.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-2.0"
 }, {
   "id" : "CC-BY-2.5",
   "shortDisplayName" : "CC-BY-2.5",
   "longDisplayName" : "Creative Commons Attribution 2.5",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-2.5",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-2.5"
 }, {
   "id" : "CC-BY-3.0",
   "shortDisplayName" : "CC-BY-3.0",
   "longDisplayName" : "Creative Commons Attribution 3.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-3.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-3.0"
 }, {
   "id" : "CC-BY-NC-1.0",
   "shortDisplayName" : "CC-BY-NC-1.0",
@@ -258,90 +335,95 @@
 }, {
   "id" : "CC-BY-SA-UNSPECIFIED",
   "shortDisplayName" : "CC-BY-SA",
-  "longDisplayName" : "CC-BY-SA-Style License Not Identifiable by Sonatyp",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "CC-BY-SA-Style License Not Identifiable by Sonatyp"
 }, {
   "id" : "CC-BY-SA-1.0",
   "shortDisplayName" : "CC-BY-SA-1.0",
   "longDisplayName" : "Creative Commons Attribution Share Alike 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-1.0"
 }, {
   "id" : "CC-BY-SA-2.0",
   "shortDisplayName" : "CC-BY-SA-2.0",
   "longDisplayName" : "Creative Commons Attribution Share Alike 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-2.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-2.0"
 }, {
   "id" : "CC-BY-SA-2.5",
   "shortDisplayName" : "CC-BY-SA-2.5",
   "longDisplayName" : "Creative Commons Attribution Share Alike 2.5",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-2.5",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-2.5"
 }, {
   "id" : "CC-BY-SA-3.0",
   "shortDisplayName" : "CC-BY-SA-3.0",
   "longDisplayName" : "Creative Commons Attribution Share Alike 3.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-3.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC-BY-SA-3.0"
 }, {
   "id" : "CC0-1.0",
   "shortDisplayName" : "CC0-1.0",
   "longDisplayName" : "Creative Commons Zero v1.0 Universal",
-  "licenseUrl" : "http://www.spdx.org/licenses/CC0-1.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/CC0-1.0"
 }, {
   "id" : "CDDL-UNSPECIFIED",
   "shortDisplayName" : "CDDL",
-  "longDisplayName" : "CDDL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "CDDL-Style License Not Identifiable by Sonatype"
+}, {
+  "id" : "CDDL-GPL-2.0-with-classpath-exception",
+  "shortDisplayName" : "CDDL or GPL-2.0-with-classpath-exception",
+  "longDisplayName" : "Dual License Consisting of CDDL 1.0 and GPL 2.0 or later with classpath exception"
 }, {
   "id" : "CDDL-1.0",
   "shortDisplayName" : "CDDL-1.0",
   "longDisplayName" : "Common Development and Distribution License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CDDL-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CDDL-1.0"
+}, {
+  "id" : "CDDL-1.0-GPL-2.0",
+  "shortDisplayName" : "CDDL-1.0 or GPL-2.0",
+  "longDisplayName" : "Dual License Consisting of CDDL-1.0 and GPL-2.0"
+}, {
+  "id" : "CDDL-1.0-GPL-2.0-CPE",
+  "shortDisplayName" : "CDDL-1.0 or GPL-2.0-CPE",
+  "longDisplayName" : "Dual License Consisting of CDDL-1.0 and GPL-2.0-with-classpath exception"
 }, {
   "id" : "CDDL-1.1",
   "shortDisplayName" : "CDDL-1.1",
   "longDisplayName" : "Common Development and Distribution License 1.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/CDDL-1.1",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CDDL-1.1"
+}, {
+  "id" : "CDDL-1.1-GPL-2.0",
+  "shortDisplayName" : "CDDL-1.1 or GPL-2.0",
+  "longDisplayName" : "Dual License Consisting of CDDL-1.1 and GPL-2.0"
+}, {
+  "id" : "CDDL-1.1-GPL-2.0-CPE",
+  "shortDisplayName" : "CDDL-1.1 or GPL-2.0-CPE",
+  "longDisplayName" : "Dual License Consisting of CDDL-1.1 and GPL-2.0-with-classpath exception"
 }, {
   "id" : "CECILL-UNSPECIFIED",
   "shortDisplayName" : "CECILL",
-  "longDisplayName" : "CeCILL Free Software Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "CeCILL Free Software Style License Not Identifiable by Sonatype"
 }, {
   "id" : "CECILL-1.0",
   "shortDisplayName" : "CECILL-1.0",
   "longDisplayName" : "CeCILL Free Software License Agreement v1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-1.0"
 }, {
   "id" : "CECILL-1.1English",
   "shortDisplayName" : "CECILL-1.1English",
   "longDisplayName" : "CeCILL Free Software License Agreement v1.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-1.1English",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-1.1English"
 }, {
   "id" : "CECILL-2.0",
   "shortDisplayName" : "CECILL-2.0",
   "longDisplayName" : "CeCILL Free Software License Agreement v2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-2.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-2.0"
 }, {
   "id" : "CECILL-B",
   "shortDisplayName" : "CECILL-B",
   "longDisplayName" : "CeCILL-B Free Software License Agreement",
-  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-B",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-B"
 }, {
   "id" : "CECILL-C",
   "shortDisplayName" : "CECILL-C",
   "longDisplayName" : "CeCILL-C Free Software License Agreement",
-  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-C",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CECILL-C"
 }, {
   "id" : "COMMERCIAL",
   "shortDisplayName" : "COMMERCIAL",
@@ -350,14 +432,16 @@
   "id" : "CPAL-1.0",
   "shortDisplayName" : "CPAL-1.0",
   "longDisplayName" : "Common Public Attribution License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CPAL-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CPAL-1.0"
 }, {
   "id" : "CPL-1.0",
   "shortDisplayName" : "CPL-1.0",
   "longDisplayName" : "Common Public License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/CPL-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/CPL-1.0"
+}, {
+  "id" : "CPL-1.0-GPL-2.0+-LGPL-2.1+",
+  "shortDisplayName" : "CPL-1.0 or GPL-2.0+ or LGPL-2.1+",
+  "longDisplayName" : "Triple License Consisting of CPL 1.0, GPL 2.0 or later and LGPL 2.1 or later"
 }, {
   "id" : "CUA-OPL-1.0",
   "shortDisplayName" : "CUA-OPL-1.0",
@@ -371,20 +455,17 @@
 }, {
   "id" : "ECL-UNSPECIFIED",
   "shortDisplayName" : "ECL",
-  "longDisplayName" : "ECL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "ECL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "ECL-1.0",
   "shortDisplayName" : "ECL-1.0",
   "longDisplayName" : "Educational Community License v1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/ECL-1.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/ECL-1.0"
 }, {
   "id" : "ECL-2.0",
   "shortDisplayName" : "ECL-2.0",
   "longDisplayName" : "Educational Community License v2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/ECL-2.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/ECL-2.0"
 }, {
   "id" : "EFL-1.0",
   "shortDisplayName" : "EFL-1.0",
@@ -398,14 +479,52 @@
 }, {
   "id" : "EPL-UNSPECIFIED",
   "shortDisplayName" : "EPL",
-  "longDisplayName" : "EPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "EPL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "EPL-1.0",
   "shortDisplayName" : "EPL-1.0",
   "longDisplayName" : "Eclipse Public License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/EPL-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/EPL-1.0"
+}, {
+  "id" : "EPL-1.0-LGPL-UNSPECIFIED",
+  "shortDisplayName" : "EPL-1.0 or LGPL",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL-style License Not Identifiable by Sonatype"
+}, {
+  "id" : "EPL-1.0-LGPL-2.0",
+  "shortDisplayName" : "EPL-1.0 or LGPL-2.0",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL 2.0"
+}, {
+  "id" : "EPL-1.0-LGPL-2.0+",
+  "shortDisplayName" : "EPL-1.0 or LGPL-2.0+",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL 2.0 or later"
+}, {
+  "id" : "EPL-1.0-LGPL-2.1",
+  "shortDisplayName" : "EPL-1.0 or LGPL-2.1",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL 2.1"
+}, {
+  "id" : "EPL-1.0-LGPL-2.1+",
+  "shortDisplayName" : "EPL-1.0 or LGPL-2.1+",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL 2.1 or later"
+}, {
+  "id" : "EPL-1.0-LGPL-3.0",
+  "shortDisplayName" : "EPL-1.0 or LGPL-3.0",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL 3.0"
+}, {
+  "id" : "EPL-1.0-LGPL-3.0+",
+  "shortDisplayName" : "EPL-1.0 or LGPL-3.0+",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and LGPL 3.0 or later"
+}, {
+  "id" : "EPL-1.0-LGPL-3.0+-MPL-1.1",
+  "shortDisplayName" : "EPL-1.0 or LGPL-3.0+ or MPL-1.1",
+  "longDisplayName" : "Triple License Consisting of Eclipse Public License 1.0, LGPL 3.0 or later and Mozilla Public License 1.1"
+}, {
+  "id" : "EPL-1.0-MPL-1.1",
+  "shortDisplayName" : "EPL-1.0 or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of Eclipse Public License 1.0 and Mozilla Public License 1.1"
+}, {
+  "id" : "EPL-1.0+",
+  "shortDisplayName" : "EPL-1.0+",
+  "longDisplayName" : "Eclipse Public License 1.0 or later"
 }, {
   "id" : "EUDatagrid",
   "shortDisplayName" : "EUDatagrid",
@@ -444,102 +563,148 @@
 }, {
   "id" : "GFDL-UNSPECIFIED",
   "shortDisplayName" : "GFDL",
-  "longDisplayName" : "GFDL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "GFDL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "GFDL-1.1",
   "shortDisplayName" : "GFDL-1.1",
   "longDisplayName" : "GNU Free Documentation License v1.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/GFDL-1.1",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/GFDL-1.1"
 }, {
   "id" : "GFDL-1.2",
   "shortDisplayName" : "GFDL-1.2",
   "longDisplayName" : "GNU Free Documentation License v1.2",
-  "licenseUrl" : "http://www.spdx.org/licenses/GFDL-1.2",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/GFDL-1.2"
+}, {
+  "id" : "GFDL-1.2+",
+  "shortDisplayName" : "GFDL-1.2+",
+  "longDisplayName" : "GNU Free Documentation License v1.2"
 }, {
   "id" : "GFDL-1.3",
   "shortDisplayName" : "GFDL-1.3",
   "longDisplayName" : "GNU Free Documentation License v1.3",
-  "licenseUrl" : "http://www.spdx.org/licenses/GFDL-1.3",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/GFDL-1.3"
 }, {
   "id" : "GPL-UNSPECIFIED",
   "shortDisplayName" : "GPL",
-  "longDisplayName" : "GPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "COPYLEFT"
+  "longDisplayName" : "GPL-Style License Not Identifiable by Sonatype"
+}, {
+  "id" : "GPL-UNSPECIFIED-MIT",
+  "shortDisplayName" : "GPL or MIT",
+  "longDisplayName" : "Dual License Consisting of GPL-Style License Not Identifiable by Sonatype and MIT"
+}, {
+  "id" : "GPL-UNSPECIFIED-MPL-1.1",
+  "shortDisplayName" : "GPL or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of GPL-Style License Not Identifiable by Sonatype and Mozilla Public License 1.1"
 }, {
   "id" : "GPL-1.0",
   "shortDisplayName" : "GPL-1.0",
   "longDisplayName" : "GNU General Public License v1.0 only",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-1.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-1.0"
+}, {
+  "id" : "GPL-1.0+",
+  "shortDisplayName" : "GPL-1.0+",
+  "longDisplayName" : "GNU General Public License v1.0 or later",
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-1.0+"
 }, {
   "id" : "GPL-2.0",
   "shortDisplayName" : "GPL-2.0",
   "longDisplayName" : "GNU General Public License v2.0 only",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0"
+}, {
+  "id" : "GPL-2.0-LGPL-2.1",
+  "shortDisplayName" : "GPL-2.0 or LGPL-2.1",
+  "longDisplayName" : "Dual License Consisting of GPL 2.0 and LGPL 2.1"
+}, {
+  "id" : "GPL-2.0-LGPL-2.1-MPL-1.1",
+  "shortDisplayName" : "GPL-2.0 or LGPL-2.1 or MPL-1.1",
+  "longDisplayName" : "Triple License Consisting of GPL 2.0, LGPL 2.1 and Mozilla Public License 1.1"
+}, {
+  "id" : "GPL-2.0-MIT",
+  "shortDisplayName" : "GPL-2.0 or MIT",
+  "longDisplayName" : "Dual License Consisting of GPL 2.0 and MIT"
+}, {
+  "id" : "GPL-2.0-MPL-1.1",
+  "shortDisplayName" : "GPL-2.0 or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of GPL 2.0 and Mozilla Public License 1.1"
+}, {
+  "id" : "GPL-2.0+",
+  "shortDisplayName" : "GPL-2.0+",
+  "longDisplayName" : "GNU General Public License v2.0 or later",
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0+"
+}, {
+  "id" : "GPL-2.0+-LGPL-2.1+-MPL-1.1",
+  "shortDisplayName" : "GPL-2.0+ or LGPL-2.1+ or MPL-1.1",
+  "longDisplayName" : "Triple License Consisting of GPL 2.0 or later, LGPL 2.1 or later and Mozilla Public License 1.1"
+}, {
+  "id" : "GPL-2.0+-LGPL-2.1+-MPL-1.1+",
+  "shortDisplayName" : "GPL-2.0+ or LGPL-2.1+ or MPL-1.1+",
+  "longDisplayName" : "Triple License Consisting of GPL 2.0 or later, LGPL 2.1 or later and Mozilla Public License 1.1 or later"
+}, {
+  "id" : "GPL-2.0+-MPL-1.1",
+  "shortDisplayName" : "GPL-2.0+ or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of GPL 2.0 or later and Mozilla Public License 1.1"
 }, {
   "id" : "GPL-2.0-with-GCC-exception",
   "shortDisplayName" : "GPL-2.0-with-GCC-exception",
   "longDisplayName" : "GNU General Public License v2.0 w/GCC Runtime Library exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-GCC-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-GCC-exception"
 }, {
   "id" : "GPL-2.0-with-autoconf-exception",
   "shortDisplayName" : "GPL-2.0-with-autoconf-exception",
   "longDisplayName" : "GNU General Public License v2.0 w/Autoconf exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-autoconf-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-autoconf-exception"
 }, {
   "id" : "GPL-2.0-with-bison-exception",
   "shortDisplayName" : "GPL-2.0-with-bison-exception",
   "longDisplayName" : "GNU General Public License v2.0 w/Bison exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-bison-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-bison-exception"
 }, {
   "id" : "GPL-2.0-with-classpath-exception",
   "shortDisplayName" : "GPL-2.0-with-classpath-exception",
   "longDisplayName" : "GNU General Public License v2.0 w/Classpath exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-classpath-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-classpath-exception"
 }, {
   "id" : "GPL-2.0-with-font-exception",
   "shortDisplayName" : "GPL-2.0-with-font-exception",
   "longDisplayName" : "GNU General Public License v2.0 w/Font exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-font-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-2.0-with-font-exception"
 }, {
   "id" : "GPL-3.0",
   "shortDisplayName" : "GPL-3.0",
   "longDisplayName" : "GNU General Public License v3.0 only",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0"
+}, {
+  "id" : "GPL-3.0-MPL-1.1",
+  "shortDisplayName" : "GPL-3.0 or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of GPL 3.0 and Mozilla Public License 1.1"
+}, {
+  "id" : "GPL-3.0+",
+  "shortDisplayName" : "GPL-3.0+",
+  "longDisplayName" : "GNU General Public License v3.0 or later",
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0+"
+}, {
+  "id" : "GPL-3.0+-MPL-1.1",
+  "shortDisplayName" : "GPL-3.0+ or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of GPL 3.0 or later and Mozilla Public License 1.1"
 }, {
   "id" : "GPL-3.0-with-GCC-exception",
   "shortDisplayName" : "GPL-3.0-with-GCC-exception",
   "longDisplayName" : "GNU General Public License v3.0 w/GCC Runtime Library exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0-with-GCC-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0-with-GCC-exception"
 }, {
   "id" : "GPL-3.0-with-autoconf-exception",
   "shortDisplayName" : "GPL-3.0-with-autoconf-exception",
   "longDisplayName" : "GNU General Public License v3.0 w/Autoconf exception",
-  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0-with-autoconf-exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/GPL-3.0-with-autoconf-exception"
 }, {
   "id" : "GPL-3.0-with-classpath-exception",
   "shortDisplayName" : "GPL-3.0-with-classpath-exception",
-  "longDisplayName" : "GNU General Public License v3.0 w/Classpath exception",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "GNU General Public License v3.0 w/Classpath exception"
 }, {
   "id" : "HPND",
   "shortDisplayName" : "HPND",
   "longDisplayName" : "Historic Permission Notice and Disclaimer",
-  "licenseUrl" : "http://www.spdx.org/licenses/HPND",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/HPND"
 }, {
   "id" : "IPA",
   "shortDisplayName" : "IPA",
@@ -549,37 +714,78 @@
   "id" : "IPL-1.0",
   "shortDisplayName" : "IPL-1.0",
   "longDisplayName" : "IBM Public License v1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/IPL-1.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/IPL-1.0"
 }, {
   "id" : "ISC",
   "shortDisplayName" : "ISC",
   "longDisplayName" : "ISC License (Bind, DHCP Server)",
-  "licenseUrl" : "http://www.spdx.org/licenses/ISC",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/ISC"
+}, {
+  "id" : "JRUBY-CPL-GPL-LGPL",
+  "shortDisplayName" : "JRUBY-CPL-GPL-LGPL",
+  "longDisplayName" : "JRuby is Tri-Licensed - CPL-1.0, GPL-2.0+, LGPL-2.1+"
 }, {
   "id" : "LGPL-UNSPECIFIED",
   "shortDisplayName" : "LGPL",
-  "longDisplayName" : "LGPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "LGPL-Style License Not Identifiable by Sonatype"
+}, {
+  "id" : "LGPL-UNSPECIFIED-MPL-1.1",
+  "shortDisplayName" : "LGPL or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL-Style License Not Identifiable by Sonatype and Mozilla Public License 1.1"
 }, {
   "id" : "LGPL-2.0",
   "shortDisplayName" : "LGPL-2.0",
   "longDisplayName" : "GNU Library General Public License v2 only",
-  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-2.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-2.0"
+}, {
+  "id" : "LGPL-2.0-MPL-1.1",
+  "shortDisplayName" : "LGPL-2.0 or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL 2.0 and Mozilla Public License 1.1"
+}, {
+  "id" : "LGPL-2.0+",
+  "shortDisplayName" : "LGPL-2.0+",
+  "longDisplayName" : "GNU Library General Public License v2 or later",
+  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-2.0+"
+}, {
+  "id" : "LGPL-2.0+-MPL-1.1",
+  "shortDisplayName" : "LGPL-2.0+ or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL 2.0 or later and Mozilla Public License 1.1"
 }, {
   "id" : "LGPL-2.1",
   "shortDisplayName" : "LGPL-2.1",
   "longDisplayName" : "GNU Lesser General Public License v2.1 only",
-  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-2.1",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-2.1"
+}, {
+  "id" : "LGPL-2.1-MPL-1.1",
+  "shortDisplayName" : "LGPL-2.1 or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL 2.1 and Mozilla Public License 1.1"
+}, {
+  "id" : "LGPL-2.1+",
+  "shortDisplayName" : "LGPL-2.1+",
+  "longDisplayName" : "GNU Lesser General Public License v2.1 or later",
+  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-2.1+"
+}, {
+  "id" : "LGPL-2.1+-MPL-1.1",
+  "shortDisplayName" : "LGPL-2.1+ or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL 2.1 or later and Mozilla Public License 1.1"
 }, {
   "id" : "LGPL-3.0",
   "shortDisplayName" : "LGPL-3.0",
   "longDisplayName" : "GNU Lesser General Public License v3.0 only",
-  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-3.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-3.0"
+}, {
+  "id" : "LGPL-3.0-MPL-1.1",
+  "shortDisplayName" : "LGPL-3.0 or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL 3.0 and Mozilla Public License 1.1"
+}, {
+  "id" : "LGPL-3.0+",
+  "shortDisplayName" : "LGPL-3.0+",
+  "longDisplayName" : "GNU Lesser General Public License v3.0 or later",
+  "licenseUrl" : "http://www.spdx.org/licenses/LGPL-3.0+"
+}, {
+  "id" : "LGPL-3.0+-MPL-1.1",
+  "shortDisplayName" : "LGPL-3.0+ or MPL-1.1",
+  "longDisplayName" : "Dual License Consisting of LGPL 3.0 or later and Mozilla Public License 1.1"
 }, {
   "id" : "LPL-1.02",
   "shortDisplayName" : "LPL-1.02",
@@ -614,37 +820,39 @@
   "id" : "MIT",
   "shortDisplayName" : "MIT",
   "longDisplayName" : "MIT license (also X11)",
-  "licenseUrl" : "http://www.spdx.org/licenses/MIT",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/MIT"
+}, {
+  "id" : "MIT-UNSPECIFIED",
+  "shortDisplayName" : "MIT-UNSPECIFIED",
+  "longDisplayName" : "MIT-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "MPL-UNSPECIFIED",
   "shortDisplayName" : "MPL",
-  "longDisplayName" : "MPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "longDisplayName" : "MPL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "MPL-1.0",
   "shortDisplayName" : "MPL-1.0",
   "longDisplayName" : "Mozilla Public License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/MPL-1.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/MPL-1.0"
 }, {
   "id" : "MPL-1.1",
   "shortDisplayName" : "MPL-1.1",
   "longDisplayName" : "Mozilla Public License 1.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/MPL-1.1",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/MPL-1.1"
+}, {
+  "id" : "MPL-1.1+",
+  "shortDisplayName" : "MPL-1.1+",
+  "longDisplayName" : "Mozilla Public License 1.1 or later"
 }, {
   "id" : "MPL-2.0",
   "shortDisplayName" : "MPL-2.0",
   "longDisplayName" : "Mozilla Public License 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/MPL-2.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/MPL-2.0"
 }, {
   "id" : "MS-PL",
   "shortDisplayName" : "MS-PL",
   "longDisplayName" : "Microsoft Public License",
-  "licenseUrl" : "http://www.spdx.org/licenses/MS-PL",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/MS-PL"
 }, {
   "id" : "MS-RL",
   "shortDisplayName" : "MS-RL",
@@ -684,8 +892,7 @@
   "id" : "NPOSL-3.0",
   "shortDisplayName" : "NPOSL-3.0",
   "longDisplayName" : "Non-Profit Open Software License 3.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/NPOSL-3.0",
-  "licenseCategoryId" : "WEAKCOPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/NPOSL-3.0"
 }, {
   "id" : "NTP",
   "shortDisplayName" : "NTP",
@@ -704,8 +911,7 @@
 }, {
   "id" : "UNKNOWN",
   "shortDisplayName" : "Non-Standard",
-  "longDisplayName" : "Raw License String Could Not Be Mapped to a Standardized SPDX License",
-  "licenseCategoryId" : "NON-STANDARD"
+  "longDisplayName" : "Raw License String Could Not Be Mapped to a Standardized SPDX License"
 }, {
   "id" : "UNSPECIFIED",
   "shortDisplayName" : "Not Provided",
@@ -738,26 +944,22 @@
 }, {
   "id" : "OSL-UNSPECIFIED",
   "shortDisplayName" : "OSL",
-  "longDisplayName" : "OSL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "COPYLEFT"
+  "longDisplayName" : "OSL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "OSL-1.0",
   "shortDisplayName" : "OSL-1.0",
   "longDisplayName" : "Open Software License 1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/OSL-1.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/OSL-1.0"
 }, {
   "id" : "OSL-2.0",
   "shortDisplayName" : "OSL-2.0",
   "longDisplayName" : "Open Software License 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/OSL-2.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/OSL-2.0"
 }, {
   "id" : "OSL-3.0",
   "shortDisplayName" : "OSL-3.0",
   "longDisplayName" : "Open Software License 3.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/OSL-3.0",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/OSL-3.0"
 }, {
   "id" : "OpenSSL",
   "shortDisplayName" : "OpenSSL",
@@ -771,14 +973,12 @@
 }, {
   "id" : "PHP-UNSPECIFIED",
   "shortDisplayName" : "PHP",
-  "longDisplayName" : "PHP-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "PHP-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "PHP-3.01",
   "shortDisplayName" : "PHP-3.01",
   "longDisplayName" : "PHP License v3.01",
-  "licenseUrl" : "http://www.spdx.org/licenses/PHP-3.01",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/PHP-3.01"
 }, {
   "id" : "PostgreSQL",
   "shortDisplayName" : "PostgreSQL",
@@ -787,19 +987,16 @@
 }, {
   "id" : "PUBLIC-DOMAIN",
   "shortDisplayName" : "Public Domain",
-  "longDisplayName" : "The work has been placed in the public domain",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "The work has been placed in the public domain"
 }, {
   "id" : "Python-UNSPECIFIED",
   "shortDisplayName" : "Python",
-  "longDisplayName" : "Python-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "Python-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "Python-2.0",
   "shortDisplayName" : "Python-2.0",
   "longDisplayName" : "Python License 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/Python-2.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/Python-2.0"
 }, {
   "id" : "QPL-1.0",
   "shortDisplayName" : "QPL-1.0",
@@ -829,8 +1026,7 @@
   "id" : "Ruby",
   "shortDisplayName" : "Ruby",
   "longDisplayName" : "Ruby License",
-  "licenseUrl" : "http://www.spdx.org/licenses/Ruby",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/Ruby"
 }, {
   "id" : "SAX-PD",
   "shortDisplayName" : "SAX-PD",
@@ -840,8 +1036,7 @@
   "id" : "SPL-1.0",
   "shortDisplayName" : "SPL-1.0",
   "longDisplayName" : "Sun Public License v1.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/SPL-1.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/SPL-1.0"
 }, {
   "id" : "SimPL-2.0",
   "shortDisplayName" : "SimPL-2.0",
@@ -851,8 +1046,7 @@
   "id" : "Sleepycat",
   "shortDisplayName" : "Sleepycat",
   "longDisplayName" : "Sleepycat License",
-  "licenseUrl" : "http://www.spdx.org/licenses/Sleepycat",
-  "licenseCategoryId" : "COPYLEFT"
+  "licenseUrl" : "http://www.spdx.org/licenses/Sleepycat"
 }, {
   "id" : "SugarCRM-1.1.3",
   "shortDisplayName" : "SugarCRM-1.1.3",
@@ -867,8 +1061,11 @@
   "id" : "W3C",
   "shortDisplayName" : "W3C",
   "longDisplayName" : "W3C Software and Notice License",
-  "licenseUrl" : "http://www.spdx.org/licenses/W3C",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/W3C"
+}, {
+  "id" : "W3C-UNSPECIFIED",
+  "shortDisplayName" : "W3C-UNSPECIFIED",
+  "longDisplayName" : "W3C-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "WXwindows",
   "shortDisplayName" : "WXwindows",
@@ -897,26 +1094,22 @@
 }, {
   "id" : "ZPL-UNSPECIFIED",
   "shortDisplayName" : "ZPL",
-  "longDisplayName" : "ZPL-Style License Not Identifiable by Sonatype",
-  "licenseCategoryId" : "LIBERAL"
+  "longDisplayName" : "ZPL-Style License Not Identifiable by Sonatype"
 }, {
   "id" : "ZPL-1.1",
   "shortDisplayName" : "ZPL-1.1",
   "longDisplayName" : "Zope Public License 1.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/ZPL-1.1",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/ZPL-1.1"
 }, {
   "id" : "ZPL-2.0",
   "shortDisplayName" : "ZPL-2.0",
   "longDisplayName" : "Zope Public License 2.0",
-  "licenseUrl" : "http://www.spdx.org/licenses/ZPL-2.0",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/ZPL-2.0"
 }, {
   "id" : "ZPL-2.1",
   "shortDisplayName" : "ZPL-2.1",
   "longDisplayName" : "Zope Public License 2.1",
-  "licenseUrl" : "http://www.spdx.org/licenses/ZPL-2.1",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/ZPL-2.1"
 }, {
   "id" : "Zimbra-1.3",
   "shortDisplayName" : "Zimbra-1.3",
@@ -926,8 +1119,7 @@
   "id" : "Zlib",
   "shortDisplayName" : "Zlib",
   "longDisplayName" : "zlib License",
-  "licenseUrl" : "http://www.spdx.org/licenses/Zlib",
-  "licenseCategoryId" : "LIBERAL"
+  "licenseUrl" : "http://www.spdx.org/licenses/Zlib"
 }, {
   "id" : "eCos-2.0",
   "shortDisplayName" : "eCos-2.0",

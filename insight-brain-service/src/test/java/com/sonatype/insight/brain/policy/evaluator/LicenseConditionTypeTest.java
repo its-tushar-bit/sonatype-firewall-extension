@@ -1,0 +1,221 @@
+/**
+ * Copyright (c) 2011-2012 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy.evaluator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+
+public class LicenseConditionTypeTest
+    extends AbstractPolicyEvaluationTest
+{
+    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    {
+        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+    }
+
+    @Test
+    public void testEvaluateIs_Declared()
+    {
+        // Create policy constraints
+        Constraint constraint = createConstraint( LicenseConditionType.ID, "is", "UNSPECIFIED" );
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( constraint );
+
+        // Create policy
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1" );
+        component1.addDeclaredLicenseName( "Not Provided" );
+        components.add( component1 );
+        Component component2 = new Component( "g2", "a2", "v2" );
+        component2.addDeclaredLicenseName( "AFL-1.2" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIsNot_Declared()
+    {
+        // Create policy constraints
+        Constraint constraint = createConstraint( LicenseConditionType.ID, "is not", "UNSPECIFIED" );
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( constraint );
+
+        // Create policy
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1" );
+        component1.addDeclaredLicenseName( "Not Provided" );
+        components.add( component1 );
+        Component component2 = new Component( "g2", "a2", "v2" );
+        component2.addDeclaredLicenseName( "AFL-1.2,Apache-2.0" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIs_Observed()
+    {
+        // Create policy constraints
+        Constraint constraint = createConstraint( LicenseConditionType.ID, "is", "UNSPECIFIED" );
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( constraint );
+
+        // Create policy
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1" );
+        component1.addObservedLicenseName( "Not Provided" );
+        components.add( component1 );
+        Component component2 = new Component( "g2", "a2", "v2" );
+        component2.addObservedLicenseName( "AFL-1.2" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIsNot_Observed()
+    {
+        // Create policy constraints
+        Constraint constraint = createConstraint( LicenseConditionType.ID, "is not", "UNSPECIFIED" );
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( constraint );
+
+        // Create policy
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1" );
+        component1.addObservedLicenseName( "Not Provided" );
+        components.add( component1 );
+        Component component2 = new Component( "g2", "a2", "v2" );
+        component2.addObservedLicenseName( "AFL-1.2,Apache-2.0" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluateIsNot_Overridden()
+    {
+        // Create policy constraints
+        Constraint constraint = createConstraint( LicenseConditionType.ID, "is", "UNSPECIFIED" );
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( constraint );
+
+        // Create policy
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1" );
+        component1.addDeclaredLicenseName( "Not Provided" );
+        component1.addObservedLicenseName( "Not Provided" );
+        component1.addOverriddenLicenseName( "Apache-2.0" );
+        components.add( component1 );
+        Component component2 = new Component( "g2", "a2", "v2" );
+        component2.addDeclaredLicenseName( "AFL-1.2,Apache-2.0" );
+        component2.addObservedLicenseName( "AFL-1.2,Apache-2.0" );
+        component2.addOverriddenLicenseName( "Not Provided" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+
+        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
+    public void testValidateCondition_InvalidLicenseId()
+    {
+        Condition condition = new Condition( LicenseConditionType.ID, "is", "abc" );
+        try
+        {
+            new LicenseConditionType().validateCondition( condition );
+            Assert.fail( "Expected InvalidConditionException" );
+        }
+        catch ( InvalidConditionException expected )
+        {
+            if ( !expected.getMessage().endsWith( "Invalid license id: abc" ) )
+            {
+                throw expected;
+            }
+        }
+    }
+}

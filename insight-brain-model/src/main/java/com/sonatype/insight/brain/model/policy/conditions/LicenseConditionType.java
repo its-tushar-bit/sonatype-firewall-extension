@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 
-public class LicenseInListConditionType
+public class LicenseConditionType
     extends AbstractLicenseInListConditionType
     implements ConditionType
 {
-    public static final String ID = "LicenseInList";
+    public static final String ID = "License";
 
     @Override
     public String getId()
@@ -29,16 +29,7 @@ public class LicenseInListConditionType
     @Override
     public String generateDroolsCode( Condition condition )
     {
-        String methodName;
-        if ("in list".equals( condition.getOperator() ))
-        {
-            methodName = "hasLicenseInList";
-        }
-        else
-        {
-            methodName = "hasLicenseNotInList";
-        }
-        
-        return methodName + "( \"" + condition.getValue() + "\".split(\",\") )";
+        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLicenseId( \"" + condition.getValue()
+            + "\" )";
     }
 }

@@ -21,10 +21,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.conditions.ObservedLicenseInListConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ObservedLicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-public class ObservedLicenseInListConditionTypeTest
+public class ObservedLicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
     private Constraint createConstraint( String conditionTypeId, String operator, String value )
@@ -33,11 +33,11 @@ public class ObservedLicenseInListConditionTypeTest
     }
 
     @Test
-    public void testEvaluateInList()
+    public void testEvaluateIs()
     {
         // Create policy constraints
         Constraint constraint =
-            createConstraint( ObservedLicenseInListConditionType.ID, "in list", "Apache-2.0,UNSPECIFIED" );
+ createConstraint( ObservedLicenseConditionType.ID, "is", "UNSPECIFIED" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -67,11 +67,11 @@ public class ObservedLicenseInListConditionTypeTest
     }
 
     @Test
-    public void testEvaluateNotInList()
+    public void testEvaluateIsNot()
     {
         // Create policy constraints
         Constraint constraint =
-            createConstraint( ObservedLicenseInListConditionType.ID, "not in list", "Apache-2.0,UNSPECIFIED" );
+ createConstraint( ObservedLicenseConditionType.ID, "is not", "UNSPECIFIED" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -103,10 +103,10 @@ public class ObservedLicenseInListConditionTypeTest
     @Test
     public void testValidateCondition_InvalidLicenseId()
     {
-        Condition condition = new Condition( ObservedLicenseInListConditionType.ID, "in list", "abc" );
+        Condition condition = new Condition( ObservedLicenseConditionType.ID, "is", "abc" );
         try
         {
-            new ObservedLicenseInListConditionType().validateCondition( condition );
+            new ObservedLicenseConditionType().validateCondition( condition );
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )

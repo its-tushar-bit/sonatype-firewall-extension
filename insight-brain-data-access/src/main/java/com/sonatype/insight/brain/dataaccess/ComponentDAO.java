@@ -41,12 +41,6 @@ public class ComponentDAO
                     final String groupId = artifactLicenseJson.get( "groupId" ).asText();
                     final String artifactId = artifactLicenseJson.get( "artifactId" ).asText();
                     final String version = artifactLicenseJson.get( "version" ).asText();
-                    final String licenseCategory = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
-                    final String overriddenLicenseCategory =
-                        JsonUtils.getNullableString( artifactLicenseJson.get( "overriddenLicenseThreat" ) );
-                    final String statusString = JsonUtils.getNullableString( artifactLicenseJson.get( "status" ) );
-                    final LicenseStatus status = LicenseStatus.getByName( statusString );
-                    final long catalogDate = artifactLicenseJson.get( "catalogDate" ).asLong();
 
                     final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
@@ -58,10 +52,18 @@ public class ComponentDAO
                         component.setVersion( version );
                         componentsByGAV.put( key, component );
                     }
+
+                    final String licenseCategory = artifactLicenseJson.get( "effectiveLicenseThreat" ).asText();
+                    final String overriddenLicenseCategory =
+                        JsonUtils.getNullableString( artifactLicenseJson.get( "overriddenLicenseThreat" ) );
+                    final String statusString = JsonUtils.getNullableString( artifactLicenseJson.get( "status" ) );
+                    final LicenseStatus status = LicenseStatus.getByName( statusString );
+                    final long catalogDate = artifactLicenseJson.get( "catalogDate" ).asLong();
                     component.setLicenseCategoryId( licenseCategory );
                     component.setOverriddenLicenseCategoryId( overriddenLicenseCategory );
                     component.setDeclaredLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "declaredLicenses" ) ) );
                     component.setObservedLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) ) );
+                    component.setOverriddenLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "overriddenLicenses" ) ) );
                     // TODO Load effective license data too?
                     component.setLicenseStatus( status );
                     component.setCatalogDate( catalogDate );

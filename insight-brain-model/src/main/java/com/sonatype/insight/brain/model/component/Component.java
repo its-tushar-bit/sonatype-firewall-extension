@@ -35,6 +35,8 @@ public class Component
 
     private List<String> observedLicenseNames = new ArrayList<String>();
 
+    private List<String> overriddenLicenseNames = new ArrayList<String>();
+
     private LicenseStatus licenseStatus;
 
     private List<SecurityVulnerability> securityVulnerabilities;
@@ -222,93 +224,60 @@ public class Component
         observedLicenseNames.add( licenseName );
     }
 
-    public boolean hasDeclaredLicenseInList( String[] licenseIds )
+    public List<String> getOverriddenLicenseNames()
     {
-        return hasLicenseInList( declaredLicenseNames, licenseIds );
+        return overriddenLicenseNames;
     }
 
-    public boolean hasObservedLicenseInList( String[] licenseIds )
+    public void setOverriddenLicenseNames( List<String> overriddenLicenseNames )
     {
-        return hasLicenseInList( observedLicenseNames, licenseIds );
-    }
+        this.overriddenLicenseNames.clear();
 
-    private boolean hasLicenseInList( List<String> componentLicenseNames, String[] licenseIds )
-    {
-        if ( licenseIds == null )
+        if ( overriddenLicenseNames == null )
         {
+            return;
+        }
+
+        this.overriddenLicenseNames.addAll( overriddenLicenseNames );
+    }
+
+    public void addOverriddenLicenseName( String licenseName )
+    {
+        overriddenLicenseNames.add( licenseName );
+    }
+
+    public boolean hasDeclaredLicenseId( String licenseId )
+    {
+        return hasLicenseId( declaredLicenseNames, licenseId );
+    }
+
+    public boolean hasObservedLicenseId( String licenseId )
+    {
+        return hasLicenseId( observedLicenseNames, licenseId );
+    }
+
+    private boolean hasLicenseId( List<String> componentLicenseNames, String licenseId )
+    {
+        License license = LicenseValueType.getLicenseById( licenseId );
+        if ( license == null )
+        {
+            log.warn( "Unknown license id {}", licenseId );
             return false;
         }
-
-        for ( String licenseId : licenseIds )
-        {
-            License license = LicenseValueType.getLicenseById( licenseId );
-            if (license == null)
-            {
-                log.warn( "Unknown license id {}", licenseId );
-                continue;
-            }
-            if ( componentLicenseNames.contains( license.getShortDisplayName() ) )
-            {
-                return true;
-            }
-        }
-        return false;
+        return componentLicenseNames.contains( license.getShortDisplayName() );
     }
 
-    public boolean hasDeclaredLicenseNotInList( String[] licenseIds )
+    public boolean hasLicenseId( String licenseId )
     {
-        return hasLicenseNotInList( declaredLicenseNames, licenseIds );
-    }
-
-    public boolean hasObservedLicenseNotInList( String[] licenseIds )
-    {
-        return hasLicenseNotInList( observedLicenseNames, licenseIds );
-    }
-
-    private boolean hasLicenseNotInList( List<String> componentLicenseNames, String[] licenseIds )
-    {
-        if ( licenseIds == null )
+        if ( !overriddenLicenseNames.isEmpty() )
         {
-            return false;
+            return hasLicenseId( overriddenLicenseNames, licenseId );
         }
-
-        List<String> licenseNames = new ArrayList<String>();
-        for ( String licenseId : licenseIds )
-        {
-            License license = LicenseValueType.getLicenseById( licenseId );
-            if ( license == null )
-            {
-                log.warn( "Unknown license id {}", licenseId );
-                continue;
-            }
-            licenseNames.add( license.getShortDisplayName() );
-        }
-        for ( String componentLicenseName : componentLicenseNames )
-        {
-            if ( !licenseNames.contains( componentLicenseName ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasLicenseInList( String[] licenseIds )
-    {
-        if ( hasDeclaredLicenseInList( licenseIds ) )
+        if ( hasDeclaredLicenseId( licenseId ) )
         {
             return true;
         }
-        return hasObservedLicenseInList( licenseIds );
-    }
-
-    public boolean hasLicenseNotInList( String[] licenseIds )
-    {
-        if ( hasDeclaredLicenseNotInList( licenseIds ) )
-        {
-            return true;
-        }
-        return hasObservedLicenseNotInList( licenseIds );
+        return hasObservedLicenseId( licenseId );
     }
 
     public int getRelativePopularity()

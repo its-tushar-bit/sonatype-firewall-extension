@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
-public class ObservedLicenseInListConditionType
+public class ObservedLicenseConditionType
     extends AbstractLicenseInListConditionType
     implements ConditionType
 {
-    public static final String ID = "ObservedLicenseInList";
+    public static final String ID = "ObservedLicense";
 
     @Override
     public String getId()
@@ -30,22 +29,7 @@ public class ObservedLicenseInListConditionType
     @Override
     public String generateDroolsCode( Condition condition )
     {
-        String methodName;
-        if ("in list".equals( condition.getOperator() ))
-        {
-            methodName = "hasObservedLicenseInList";
-        }
-        else
-        {
-            methodName = "hasObservedLicenseNotInList";
-        }
-        
-        return methodName + "( \"" + condition.getValue() + "\".split(\",\") )";
-    }
-
-    @Override
-    public String getValueTypeId()
-    {
-        return LicenseValueType.ID;
+        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasObservedLicenseId( \""
+            + condition.getValue() + "\" )";
     }
 }

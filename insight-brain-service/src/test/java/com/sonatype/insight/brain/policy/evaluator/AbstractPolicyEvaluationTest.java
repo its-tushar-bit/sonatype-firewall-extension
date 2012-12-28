@@ -83,7 +83,17 @@ public abstract class AbstractPolicyEvaluationTest
             }
         }
 
-        Assert.fail();
+        Assert.fail( toString( actual ) );
+    }
+
+    private static String toString( List<PolicyAlert> policyAlerts )
+    {
+        StringBuilder result = new StringBuilder();
+        for ( PolicyAlert policyAlert : policyAlerts )
+        {
+            result.append( policyAlert.getTrigger().toString() );
+        }
+        return result.toString();
     }
 
     private static boolean policyAlertContainsAction( PolicyAlert actualPolicyAlert, String actionTypeId )

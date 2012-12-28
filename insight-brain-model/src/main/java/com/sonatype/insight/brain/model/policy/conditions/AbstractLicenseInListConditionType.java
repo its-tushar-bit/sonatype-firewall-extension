@@ -21,8 +21,8 @@ public abstract class AbstractLicenseInListConditionType
 
     static
     {
-        supportedOperators.add( "in list" );
-        supportedOperators.add( "not in list" );
+        supportedOperators.add( "is" );
+        supportedOperators.add( "is not" );
     }
 
     @Override
@@ -43,13 +43,10 @@ public abstract class AbstractLicenseInListConditionType
     {
         super.validateCondition( condition );
         
-        String[] licenseIds = condition.getValue().split( "," );
-        for (String licenseId : licenseIds)
+        String licenseId = condition.getValue();
+        if ( LicenseValueType.getLicenseById( licenseId ) == null )
         {
-            if ( LicenseValueType.getLicenseById( licenseId ) == null )
-            {
-                throw new InvalidConditionException( condition, "Invalid license id: " + licenseId );
-            }
+            throw new InvalidConditionException( condition, "Invalid license id: " + licenseId );
         }
     }
 }

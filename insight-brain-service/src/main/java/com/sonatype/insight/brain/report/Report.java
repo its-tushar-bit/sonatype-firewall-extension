@@ -54,6 +54,12 @@ public final class Report
         cache( getCacheFile( reportFile, name ), buf );
     }
 
+    public static void putEntry( final File reportFile, final String name, final String text )
+        throws IOException
+    {
+        putEntry( reportFile, name, text.getBytes( "UTF-8" ) );
+    }
+
     public static String toEntryName( final String path )
     {
         if ( null == path || path.length() == 0 )

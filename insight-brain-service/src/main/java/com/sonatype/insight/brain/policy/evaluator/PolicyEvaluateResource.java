@@ -19,6 +19,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,11 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sun.jersey.api.NotFoundException;
+
+import freemarker.template.Template;
 
 @Path( PolicyEvaluateResource.SERVICE_PATH )
 public class PolicyEvaluateResource
@@ -49,11 +53,16 @@ public class PolicyEvaluateResource
 
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
+    private static Template policyThreatsTemplate;
+
     @Context
     private InsightWork work;
 
     @Context
     private InsightProxy proxy;
+
+    @Context
+    private UriInfo uriInfo;
 
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
@@ -86,6 +95,7 @@ public class PolicyEvaluateResource
         final List<PolicyAlert> result = new PolicyEvaluator().evaluate( stage, policies, components );
 
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( result ) ) );
+        Report.putEntry( reportFile, "policythreats.html", summarizeThreats( appId, scanId, result ) );
 
         return result;
     }
@@ -123,5 +133,28 @@ public class PolicyEvaluateResource
         final ObjectNode threats = JsonUtils.objectNode( null );
         threats.withArray( "aaData" ).addAll( componentThreats.values() );
         return threats;
+    }
+
+    private String summarizeThreats( final String appId, final String scanId, final List<PolicyAlert> policyAlerts )
+        throws IOException
+    {
+        final Map<String, Object> model = new HashMap<String, Object>();
+
+        model.put( "detailedReportUrl", uriInfo.getBaseUri()
+            + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId ) + "/embedReport/" );
+
+        model.put( "policyAlerts", policyAlerts );
+
+        return TemplateUtils.render( getPolicyThreatsTemplate(), model );
+    }
+
+    private synchronized static Template getPolicyThreatsTemplate()
+        throws IOException
+    {
+        if ( policyThreatsTemplate == null )
+        {
+            policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate( "policythreats.ftl" );
+        }
+        return policyThreatsTemplate;
     }
 }

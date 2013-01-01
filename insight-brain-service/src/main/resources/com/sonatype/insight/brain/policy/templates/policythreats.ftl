@@ -21,6 +21,14 @@
     <td colspan="2">&nbsp;</td>
   </tr>
   <tr>
+    <td style="padding-right: 25px; vertical-align: top;">
+      <!-- badge details? -->
+    </td>
+    <td style="text-align:right;vertical-align:bottom;padding-bottom:5px">
+      <a href="${detailedReportUrl}" style="border: 0;">See Your Report</a>
+    </td>
+  </tr>
+  <tr>
     <td colspan="2" style="border-top:1px solid #eaeaea;">&nbsp;</td>
   </tr>
   <tr>

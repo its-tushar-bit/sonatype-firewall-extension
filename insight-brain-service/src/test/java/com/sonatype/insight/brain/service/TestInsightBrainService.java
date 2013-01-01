@@ -40,6 +40,11 @@ public class TestInsightBrainService
         testSaasAddress = saasAddress;
     }
 
+    public File getWorkDir()
+    {
+        return new File( "target/test-brain-work" );
+    }
+
     public Configuration getClientConfiguration()
     {
         final Configuration configuration = new Configuration();
@@ -128,7 +133,7 @@ public class TestInsightBrainService
     {
         config.getHttpConfiguration().setPort( testPort );
         config.getHttpConfiguration().setAdminPort( testPort );
-        config.setSonatypeWork( "target/test-brain-work" );
+        config.setSonatypeWork( getWorkDir().getPath() );
         config.setSaasAddress( testSaasAddress );
 
         FileUtils.deleteDirectory( config.getSonatypeWork() );

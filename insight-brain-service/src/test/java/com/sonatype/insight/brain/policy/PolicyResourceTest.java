@@ -29,7 +29,7 @@ public class PolicyResourceTest
     {
         final String appId = "PolicyResourceTest";
 
-        final JsonStore store = JsonUtils.fileStore( new File( "target/test-brain-work/policy/" + appId ) );
+        final JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + appId ) );
 
         Assert.assertEquals( 0, store.modificationCount() );
 

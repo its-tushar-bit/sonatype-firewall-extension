@@ -270,7 +270,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.reset = function() {
 		$scope.resetConstraint();
 		delete $scope.state.currentPolicy;
-		delete $scope.state.currentPolicyRef;
 		delete $scope.state.showAddPolicyScreen;
 		if ($scope.constraintGrid) {
 			$scope.constraintGrid.setSelectedRows([]);
@@ -298,17 +297,23 @@ function InsightPolicyController($scope, global, $http, $location) {
 		var item = angular.copy($scope.state.currentPolicy);
 		composeConditionValues(item);
 		//edit
-		if ($scope.state.currentPolicyRef) {		    
+		if ($scope.state.currentPolicy.id) {		    
 			$http.put(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
-				angular.copy($scope.state.currentPolicy, $scope.state.currentPolicyRef);
-				updatePolicySummary($scope.state.currentPolicyRef);
+				updatePolicySummary(data);
+        		parseConditionValues(data);
+				for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ){
+					if ($scope.state.policyList[i].id === data.id){
+						angular.copy(data, $scope.state.policyList[i]);
+						break;
+					}
+            	}
 				$scope.reset();
 			});
 		} else {		   			
 			$http.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
-				$scope.state.currentPolicy.id = data.id;
-				$scope.state.policyList.push($scope.state.currentPolicy);
-				updatePolicySummary($scope.state.currentPolicy);
+				updatePolicySummary(data);
+        		parseConditionValues(data);
+				$scope.state.policyList.push(data);
 				$scope.reset();
 			});
 		}
@@ -568,7 +573,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
 			if ( $scope.state.policyList[i].id === $(this).attr('id')) {
 				$scope.state.currentPolicy = angular.copy($scope.state.policyList[i]);
-				$scope.state.currentPolicyRef = $scope.state.policyList[i];
 				$scope.state.showAddPolicyScreen = true;
 				$scope.resetActions();
 				$scope.validatePolicy();

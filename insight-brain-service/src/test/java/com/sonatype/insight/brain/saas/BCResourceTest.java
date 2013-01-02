@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.saas;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -92,7 +94,11 @@ public class BCResourceTest
         response = RestAccess.get( response.getHeader( "Location" ) );
         assertResponseStatus( 200, response );
 
-        assertThat( response.getResponseBody(), equalTo( query ) );
+        assertThat( response.getResponseBody(), stringContainsInOrder( Arrays.asList( "\"groupId\"",
+                                                                                      "\"org.springframework\"",
+                                                                                      "\"artifactId\"",
+                                                                                      "\"spring-core\"", "\"version\"",
+                                                                                      "\"2.5.6\"" ) ) );
     }
 
     private String getServiceURL()

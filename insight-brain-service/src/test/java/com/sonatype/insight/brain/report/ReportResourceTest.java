@@ -142,7 +142,11 @@ public class ReportResourceTest
         final Response response = RestAccess.get( resourcePrefix + "/artifactDetails" + query );
         assertResponseStatus( 200, response );
 
-        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( scanId + query ) );
+        assertThat( response.getResponseBody(), stringContainsInOrder( Arrays.asList( "\"groupId\"",
+                                                                                      "\"org.springframework\"",
+                                                                                      "\"artifactId\"",
+                                                                                      "\"spring-core\"", "\"version\"",
+                                                                                      "\"2.5.6\"" ) ) );
     }
 
     @Test

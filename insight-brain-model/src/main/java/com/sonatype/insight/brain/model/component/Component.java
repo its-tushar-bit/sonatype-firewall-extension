@@ -47,6 +47,8 @@ public class Component
 
     private Long catalogDate;
 
+    private List<Integer> dependencyDepths = new ArrayList<Integer>();
+
     public Component()
     {
     }
@@ -351,5 +353,27 @@ public class Component
             return licenseCategoryId.equals( overriddenLicenseCategoryId );
         }
         return licenseCategoryId.equals( this.licenseCategoryId );
+    }
+
+    public List<Integer> getDependencyDepths()
+    {
+        return dependencyDepths;
+    }
+
+    public void setDependencyDepths( List<Integer> dependencyDepths )
+    {
+        this.dependencyDepths.clear();
+
+        if ( dependencyDepths == null )
+        {
+            return;
+        }
+
+        this.dependencyDepths.addAll( dependencyDepths );
+    }
+
+    public void addDependencyDepth( int dependencyDepth )
+    {
+        dependencyDepths.add( dependencyDepth );
     }
 }

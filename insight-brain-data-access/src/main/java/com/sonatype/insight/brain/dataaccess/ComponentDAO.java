@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
 {
-    public List<Component> getAll( final byte[] licenseData, final byte[] securityData, final byte[] bomData )
+    public List<Component> getAll( final byte[] licenseData, final byte[] securityData, final byte[] bomData,
+                                   final byte[] dependencyData )
     {
         final Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
 
@@ -155,6 +157,37 @@ public class ComponentDAO
                         unknownComponents.add( component );
                     }
                     component.setMatchState( matchState );
+                }
+            }
+        }
+
+        // Load dependency data
+        JsonNode dependencyJson = loadJson( dependencyData );
+        if ( dependencyJson != null )
+        {
+            dependencyJson = dependencyJson.get( "gavDepths" );
+            Iterator<String> dependencyJsonIter = dependencyJson.fieldNames();
+            while ( dependencyJsonIter.hasNext() )
+            {
+                String gav = dependencyJsonIter.next();
+                Component component = componentsByGAV.get( gav );
+                if ( component == null )
+                {
+                    // Is it possible?
+                    component = new Component();
+                    String[] coordinates = gav.split( ":" );
+                    component.setGroupId( coordinates[0] );
+                    component.setArtifactId( coordinates[1] );
+                    component.setVersion( coordinates[2] );
+                    componentsByGAV.put( gav, component );
+                }
+
+                ArrayNode depthJsonArray = (ArrayNode) dependencyJson.get( gav );
+                for ( int i = 0; i < depthJsonArray.size(); i++ )
+                {
+                    JsonNode depthJson = depthJsonArray.get( i );
+                    int dependencyDepth = depthJson.asInt();
+                    component.addDependencyDepth( dependencyDepth );
                 }
             }
         }

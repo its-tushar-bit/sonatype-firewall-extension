@@ -49,6 +49,7 @@ import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDataRequest;
 import com.sonatype.insight.scan.upload.ReportDataResult;
 import com.sonatype.insight.scan.upload.ReportDownloader;
+import com.sun.jersey.api.NotFoundException;
 
 @Path( ReportResource.SERVICE_PATH )
 public class ReportResource
@@ -73,11 +74,7 @@ public class ReportResource
                                  @PathParam( "path" ) final String path )
     {
         final String name = Report.toEntryName( path );
-        final File reportFile = work.getReportFile( appId, scanId );
-        if ( name.endsWith( ".json" ) || !reportFile.exists() )
-        {
-            refreshCache( appId, scanId );
-        }
+        final File reportFile = fetchReport( work, proxy, appId, scanId );
         ReportEntry entry = null;
         try
         {
@@ -102,15 +99,7 @@ public class ReportResource
                                  @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
-        final File reportFile = work.getReportFile( appId, scanId );
-        if ( !reportFile.exists() )
-        {
-            refreshCache( appId, scanId );
-            if ( !reportFile.exists() )
-            {
-                return Response.status( Status.NOT_FOUND ).build();
-            }
-        }
+        final File reportFile = fetchReport( work, proxy, appId, scanId );
 
         final ResponseBuilder response = Response.ok();
 
@@ -214,24 +203,25 @@ public class ReportResource
         return Response.ok().build();
     }
 
-    private void refreshCache( final String appId, final String scanId )
+    public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String appId,
+                                    final String scanId )
     {
-        try
+        final File reportFile = work.getReportFile( appId, scanId );
+        if ( !reportFile.exists() )
         {
-            final File reportFile = work.getReportFile( appId, scanId );
-            if ( !reportFile.exists() )
+            if ( !downloadReport( proxy, appId, scanId, reportFile ) )
             {
-                if ( !downloadReport( proxy, appId, scanId, reportFile ) )
-                {
-                    return;
-                }
+                throw new NotFoundException( "Could not download the report for scan id " + scanId );
             }
+        }
 
-            final File auditDir = work.getAuditDir( appId );
-            final int newCount = JsonUtils.fileStore( auditDir ).modificationCount();
-            final Integer oldCount = MODIFICATION_COUNTS.get( appId + '-' + scanId );
+        final File auditDir = work.getAuditDir( appId );
+        final int newCount = JsonUtils.fileStore( auditDir ).modificationCount();
+        final Integer oldCount = MODIFICATION_COUNTS.get( appId + '-' + scanId );
 
-            if ( oldCount == null || oldCount < newCount )
+        if ( oldCount == null || oldCount < newCount )
+        {
+            try
             {
                 Report.deletePdf( reportFile );
 
@@ -239,15 +229,17 @@ public class ReportResource
 
                 MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
             }
+            catch ( final IOException e )
+            {
+                log.warn( "Could not apply latest data edits to Insight report", e );
+            }
         }
-        catch ( final Exception e )
-        {
-            log.warn( "Could not apply latest data edits to Insight report", e );
-        }
+
+        return reportFile;
     }
 
-    public static boolean downloadReport( final InsightProxy proxy, final String appId, final String scanId,
-                                          final File reportFile )
+    private static boolean downloadReport( final InsightProxy proxy, final String appId, final String scanId,
+                                           final File reportFile )
     {
         final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
 
@@ -277,7 +269,7 @@ public class ReportResource
         return false;
     }
 
-    public static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
+    private static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
         throws IOException
     {
         byte[] augmentedDetailData = detailData;

@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sun.jersey.api.NotFoundException;
 
 import freemarker.template.Template;
 
@@ -77,14 +76,7 @@ public class PolicyEvaluateResource
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         final List<Policy> policies = policyDAO.getByApplicationId( appId );
 
-        final File reportFile = work.getReportFile( appId, scanId );
-        if ( !reportFile.exists() )
-        {
-            if ( !ReportResource.downloadReport( proxy, appId, scanId, reportFile ) )
-            {
-                throw new NotFoundException( "Could not download the report for scan id " + scanId );
-            }
-        }
+        final File reportFile = ReportResource.fetchReport( work, proxy, appId, scanId );
 
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );

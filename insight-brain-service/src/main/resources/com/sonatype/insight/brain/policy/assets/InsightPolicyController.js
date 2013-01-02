@@ -467,55 +467,61 @@ function InsightPolicyController($scope, global, $http, $location) {
 		$scope.actionGrid.invalidate();
 	}
 	
-	$scope.pushActionDataToModel = function() {
-		if ($scope.state.actionEditMode){
-			$scope.state.actionTableData = [];
+	$scope.pushActionDataToModel = function(newData) {
+		if ($scope.state.actionEditMode){			
+			if (newData) {
+				$scope.state.actionTableData = newData;
+			} else {
+				$scope.state.actionTableData = [];
+				
+				angular.forEach($scope.state.actionStageList, function(value,key){
+					$scope.state.actionTableData.push({
+						id: value.id,
+						fail: $('#actionField-' + value.id + '-fail').is(":checked"),
+						warn: $('#actionField-' + value.id + '-warn').is(":checked"),
+						notify: $('#actionField-' + value.id + '-notify').val()
+					});
+				});	
+			}
 			
-			angular.forEach($scope.state.actionStageList, function(value,key){
-				$scope.state.actionTableData.push({
-					id: value.id,
-					fail: $('#actionField-' + value.id + '-fail').is(":checked"),
-					warn: $('#actionField-' + value.id + '-warn').is(":checked"),
-					notify: $('#actionField-' + value.id + '-notify').val()
+			if ($scope.state.currentPolicy) {
+				var handleAction = function(id){
+					var result = [];
+					
+					for ( var i = 0 ; i < $scope.state.actionTableData.length ; i++ ) {
+						if ($scope.state.actionTableData[i].id === id) {
+							if ($scope.state.actionTableData[i].warn) {
+								result.push({
+									actionTypeId: 'warn'
+								});
+							}
+							if ($scope.state.actionTableData[i].fail) {
+								result.push({
+									actionTypeId: 'fail'
+								});
+							}
+							if ($scope.state.actionTableData[i].notify) {
+								result.push({
+									actionTypeId: 'notify',
+									target: $scope.state.actionTableData[i].notify
+								});
+							}
+							break;
+						}
+					}
+					
+					return result;
+				};
+				
+				angular.forEach($scope.state.actionStageList, function(value, key) {
+					$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
 				});
-			});
+			}
 		}
 	}
 	
 	$scope.$watch('state.actionTableData',function(newScopeData){
-		if ($scope.state.currentPolicy) {
-			var handleAction = function(id){
-				var result = [];
-				
-				for ( var i = 0 ; i < newScopeData.length ; i++ ) {
-					if (newScopeData[i].id === id) {
-						if (newScopeData[i].warn) {
-							result.push({
-								actionTypeId: 'warn'
-							});
-						}
-						if (newScopeData[i].fail) {
-							result.push({
-								actionTypeId: 'fail'
-							});
-						}
-						if (newScopeData[i].notify) {
-							result.push({
-								actionTypeId: 'notify',
-								target: newScopeData[i].notify
-							});
-						}
-						break;
-					}
-				}
-				
-				return result;
-			};
-			
-			angular.forEach($scope.state.actionStageList, function(value, key) {
-				$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
-			});
-		}
+		$scope.pushActionDataToModel(newScopeData);
 	},true);
 	
 	insightApp.appId = $location.search().appId;

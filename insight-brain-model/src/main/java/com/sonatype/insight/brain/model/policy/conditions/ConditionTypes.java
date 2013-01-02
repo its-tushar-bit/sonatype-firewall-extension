@@ -18,7 +18,6 @@ public class ConditionTypes
     static
     {
         // Note: The order condition types are added here determines the order they are displayed in the UI
-        add( new LicenseCategoryConditionType() );
         add( new LicenseConditionType() );
         add( new LicenseStatusConditionType() );
         add( new SecurityVulnerabilityConditionType() );

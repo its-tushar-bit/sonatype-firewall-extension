@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -41,9 +41,9 @@ public class DroolsGeneratorTest
         condition1.setOperator( "present" );
         constraint1.addCondition( condition1 );
         Condition condition2 = new Condition();
-        condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
+        condition2.setConditionTypeId( LicenseConditionType.ID );
         condition2.setOperator( "is" );
-        condition2.setValue( "COPYLEFT" );
+        condition2.setValue( "Apache-2.0" );
         constraint1.addCondition( condition2 );
         constraints.add( constraint1 );
         final Constraint constraint2 = new Constraint();
@@ -55,9 +55,9 @@ public class DroolsGeneratorTest
         condition1.setOperator( "absent" );
         constraint2.addCondition( condition1 );
         condition2 = new Condition();
-        condition2.setConditionTypeId( LicenseCategoryConditionType.ID );
+        condition2.setConditionTypeId( LicenseConditionType.ID );
         condition2.setOperator( "is not" );
-        condition2.setValue( "WEAKCOPYLEFT" );
+        condition2.setValue( "GPL-2.0" );
         constraint2.addCondition( condition2 );
         constraints.add( constraint2 );
 

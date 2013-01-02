@@ -21,7 +21,6 @@ public class ConditionValueTypes
         add( new AgeInDaysValueType() );
         add( new CoordinatesValueType() );
         add( new FloatValueType() );
-        add( new LicenseCategoryValueType() );
         add( new LicenseStatusValueType() );
         add( new LicenseValueType() );
         add( new MatchStateValueType() );

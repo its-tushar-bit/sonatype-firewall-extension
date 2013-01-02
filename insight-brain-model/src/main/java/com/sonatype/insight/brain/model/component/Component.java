@@ -248,16 +248,6 @@ public class Component
         overriddenLicenseNames.add( licenseName );
     }
 
-    public boolean hasDeclaredLicenseId( String licenseId )
-    {
-        return hasLicenseId( declaredLicenseNames, licenseId );
-    }
-
-    public boolean hasObservedLicenseId( String licenseId )
-    {
-        return hasLicenseId( observedLicenseNames, licenseId );
-    }
-
     private boolean hasLicenseId( List<String> componentLicenseNames, String licenseId )
     {
         License license = LicenseValueType.getLicenseById( licenseId );
@@ -275,11 +265,11 @@ public class Component
         {
             return hasLicenseId( overriddenLicenseNames, licenseId );
         }
-        if ( hasDeclaredLicenseId( licenseId ) )
+        if ( hasLicenseId( declaredLicenseNames, licenseId ) )
         {
             return true;
         }
-        return hasObservedLicenseId( licenseId );
+        return hasLicenseId( observedLicenseNames, licenseId );
     }
 
     public int getRelativePopularity()

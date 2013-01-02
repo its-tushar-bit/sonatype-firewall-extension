@@ -20,8 +20,6 @@ public class ConditionTypes
         // Note: The order condition types are added here determines the order they are displayed in the UI
         add( new LicenseCategoryConditionType() );
         add( new LicenseConditionType() );
-        add( new DeclaredLicenseConditionType() );
-        add( new ObservedLicenseConditionType() );
         add( new LicenseStatusConditionType() );
         add( new SecurityVulnerabilityConditionType() );
         add( new SecurityVulnerabilitySeverityConditionType() );

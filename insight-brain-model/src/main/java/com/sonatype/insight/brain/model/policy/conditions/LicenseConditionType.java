@@ -5,14 +5,52 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
 public class LicenseConditionType
-    extends AbstractLicenseInListConditionType
+    extends AbstractConditionType
     implements ConditionType
 {
     public static final String ID = "License";
+
+    private static List<String> supportedOperators = new ArrayList<String>();
+
+    static
+    {
+        supportedOperators.add( "is" );
+        supportedOperators.add( "is not" );
+    }
+
+    @Override
+    public List<String> getSupportedOperators()
+    {
+        return supportedOperators;
+    }
+
+    @Override
+    public String getValueTypeId()
+    {
+        return LicenseValueType.ID;
+    }
+
+    @Override
+    public void validateCondition( Condition condition )
+        throws InvalidConditionException
+    {
+        super.validateCondition( condition );
+
+        String licenseId = condition.getValue();
+        if ( LicenseValueType.getLicenseById( licenseId ) == null )
+        {
+            throw new InvalidConditionException( condition, "Invalid license id: " + licenseId );
+        }
+    }
 
     @Override
     public String getId()

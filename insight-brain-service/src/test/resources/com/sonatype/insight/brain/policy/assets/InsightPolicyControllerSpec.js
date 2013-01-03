@@ -1,10 +1,8 @@
 describe('InsightPolicyController tests', function() {
-	var scope, $httpBackend, $location;
+	var scope, $httpBackend;
 	
 	//setup our http backend to return what we want
-	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller, _$location_) {
-	  $location = _$location_;
-	  $location.search('appId','myAppId');
+	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
 	  insightApp.appId = 'myAppId';
       $httpBackend = _$httpBackend_;
       
@@ -241,7 +239,6 @@ describe('InsightPolicyController tests', function() {
 	
 	it('initial state of the controller should be applied', function() {
 		expect(scope.state.currentPolicy).not.toBeDefined();
-		expect(scope.state.currentPolicyRef).not.toBeDefined();
 		expect(scope.state.showAddPolicyScreen).not.toBeDefined();
 		expect(scope.state.addConstraintFormValid).not.toBeDefined();
 		expect(scope.state.addConstraintConditionFormValid).not.toBeDefined();

@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.model.policy;
 
 @SuppressWarnings( "serial" )
-public class InvalidConditionException
+public class InvalidPolicyException
     extends RuntimeException
 {
-    public InvalidConditionException( Condition condition, String message )
+    public InvalidPolicyException( ValidationResult validationResult )
     {
-        super( "Invalid condition: " + condition.toString() + ": " + message );
+        super( ValidationResult.toMessageString( validationResult.getErrors() ) );
     }
 }

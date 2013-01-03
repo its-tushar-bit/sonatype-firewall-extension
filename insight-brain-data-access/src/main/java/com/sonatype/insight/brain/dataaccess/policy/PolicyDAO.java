@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -58,6 +60,12 @@ public class PolicyDAO
 
     public Policy insert( final String appId, final Policy policy )
     {
+        ValidationResult validationResult = policy.validate();
+        if ( validationResult != null && !validationResult.isValid() )
+        {
+            throw new InvalidPolicyException( validationResult );
+        }
+
         final JsonStore store = policyStore( appId );
         try
         {
@@ -83,6 +91,12 @@ public class PolicyDAO
 
     public Policy update( final String appId, final Policy policy )
     {
+        ValidationResult validationResult = policy.validate();
+        if ( validationResult != null && !validationResult.isValid() )
+        {
+            throw new InvalidPolicyException( validationResult );
+        }
+
         final JsonStore store = policyStore( appId );
         try
         {

@@ -10,8 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Policy
 {
+    private static final Logger log = LoggerFactory.getLogger( Policy.class );
+
     private String id;
 
     private String name;
@@ -125,6 +130,35 @@ public class Policy
             setActions( stageTypeId, stageActions = new ArrayList<Action>() );
         }
         stageActions.add( action );
+    }
+
+    public ValidationResult validate()
+    {
+        log.debug( "Validating " + this.toString() );
+
+        ValidationResult result = new ValidationResult();
+        if ( name == null || name.trim().isEmpty() )
+        {
+            result.addError( "The policy name must not be null or empty" );
+        }
+        if ( constraints == null || constraints.isEmpty() )
+        {
+            result.addError( "The '" + name + "' policy does not have any constraints" );
+        }
+        else
+        {
+            for ( Constraint constraint : constraints )
+            {
+                result.merge( constraint.validate() );
+            }
+        }
+
+        if ( !result.isValid() )
+        {
+            log.debug( "Validation result: " + result.toMessageString() );
+        }
+
+        return result;
     }
 
     @Override

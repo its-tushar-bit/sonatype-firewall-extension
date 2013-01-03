@@ -28,7 +28,10 @@ public class Constraint
     {
         this.id = id;
         this.name = name;
-        this.operator = operator;
+        if ( operator != null )
+        {
+            this.operator = operator;
+        }
     }
 
     public String getId()
@@ -68,7 +71,10 @@ public class Constraint
 
     public void setOperator( final LogicalOperator operator )
     {
-        this.operator = operator;
+        if ( operator != null )
+        {
+            this.operator = operator;
+        }
     }
 
     public List<Condition> getConditions()
@@ -88,6 +94,26 @@ public class Constraint
             conditions = new ArrayList<Condition>();
         }
         conditions.add( condition );
+    }
+    
+    public ValidationResult validate()
+    {
+        ValidationResult result = new ValidationResult();
+        if ( name == null || name.trim().isEmpty() )
+        {
+            result.addError( "The constraint name must not be null or empty" );
+        }
+        if ( conditions == null || conditions.isEmpty() )
+        {
+            result.addError( "The '" + name + "' constraint does not have any conditions" );
+            return result;
+        }
+
+        for ( Condition condition : conditions )
+        {
+            result.merge( condition.validate() );
+        }
+        return result;
     }
 
     @Override

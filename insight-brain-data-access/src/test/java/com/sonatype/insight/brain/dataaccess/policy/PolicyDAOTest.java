@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -15,8 +14,10 @@ import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 
 public class PolicyDAOTest
 {
@@ -34,16 +35,8 @@ public class PolicyDAOTest
         // Add a policy
         final Policy policy1 = new Policy();
         policy1.setName( "PolicyDAOTest new policy 1" );
-        final Constraint constraint1 = new Constraint();
-        constraint1.setName( "PolicyDAOTest new constraint 1" );
-        constraint1.setOperator( LogicalOperator.OR );
-        List<Condition> conditions = new ArrayList<Condition>();
-        Condition condition = new Condition();
-        // TODO condition.setConditionType( conditionType )
-        condition.setOperator( "<" );
-        condition.setValue( "5" );
-        conditions.add( condition );
-        constraint1.setConditions( conditions );
+        final Constraint constraint1 = new Constraint( null, "PolicyDAOTest new constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy1.addConstraint( constraint1 );
         policyDAO.insert( applicationId, policy1 );
 
@@ -55,16 +48,8 @@ public class PolicyDAOTest
         // Add another policy
         final Policy policy2 = new Policy();
         policy2.setName( "PolicyDAOTest new policy 2" );
-        final Constraint constraint2 = new Constraint();
-        constraint2.setName( "PolicyDAOTest new constraint 2" );
-        constraint2.setOperator( LogicalOperator.OR );
-        conditions = new ArrayList<Condition>();
-        condition = new Condition();
-        // TODO condition.setConditionType( conditionType )
-        condition.setOperator( ">" );
-        condition.setValue( "7" );
-        conditions.add( condition );
-        constraint2.setConditions( conditions );
+        final Constraint constraint2 = new Constraint( null, "PolicyDAOTest new constraint 2", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy2.addConstraint( constraint2 );
         policyDAO.insert( applicationId, policy2 );
 
@@ -108,6 +93,57 @@ public class PolicyDAOTest
         policies = policyDAO.getByApplicationId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 0, policies.size() );
+    }
+
+    @Test
+    public void testValidateOnInsert()
+        throws Exception
+    {
+        File dataStoreDir = tempDir.newFolder( "PolicyDAOTest" );
+        PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        String applicationId = "PolicyDAOTest_AppId";
+
+        // Policy without name
+        Policy policy = new Policy();
+        Constraint constraint1 = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint1 );
+        try
+        {
+            policyDAO.insert( applicationId, policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+        }
+    }
+
+    @Test
+    public void testValidateOnUpdate()
+        throws Exception
+    {
+        File dataStoreDir = tempDir.newFolder( "PolicyDAOTest" );
+        PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        String applicationId = "PolicyDAOTest_AppId";
+
+        // Add a policy
+        Policy policy = new Policy();
+        policy.setName( "PolicyDAOTest Policy Name" );
+        Constraint constraint1 = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint1 );
+        policyDAO.insert( applicationId, policy );
+
+        // Update the policy
+        policy.setName( null );
+        try
+        {
+            policyDAO.update( applicationId, policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+        }
     }
 
     private static void assertPolicy( final Policy expected, final Policy actual )

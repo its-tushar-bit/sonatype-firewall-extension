@@ -13,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class DroolsGenerator
@@ -41,6 +43,12 @@ public class DroolsGenerator
             if ( !policy.isEnabled() )
             {
                 continue;
+            }
+
+            ValidationResult validationResult = policy.validate();
+            if ( validationResult != null && !validationResult.isValid() )
+            {
+                throw new InvalidPolicyException( validationResult );
             }
 
             droolsCode.append( '\n' );
@@ -76,7 +84,6 @@ public class DroolsGenerator
                     }
                     droolsCode.append( INDENT ).append( INDENT ).append( "( " );
                     final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
-                    conditionType.validateCondition( condition );
                     droolsCode.append( conditionType.generateDroolsCode( condition ) );
                     droolsCode.append( " )\n" );
                     conditionIndex++;

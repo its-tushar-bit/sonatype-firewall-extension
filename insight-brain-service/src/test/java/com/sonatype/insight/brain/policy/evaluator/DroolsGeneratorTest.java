@@ -20,7 +20,7 @@ import org.junit.Test;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -102,9 +102,9 @@ public class DroolsGeneratorTest
         try
         {
             generator.generate( Arrays.asList( policy ) );
-            Assert.fail( "Expected InvalidConditionException" );
+            Assert.fail( "Expected InvalidPolicyException" );
         }
-        catch ( InvalidConditionException expected )
+        catch ( InvalidPolicyException expected )
         {
             if ( !expected.getMessage().endsWith( "Operator is null" ) )
             {
@@ -136,9 +136,9 @@ public class DroolsGeneratorTest
         try
         {
             generator.generate( Arrays.asList( policy ) );
-            Assert.fail( "Expected InvalidConditionException" );
+            Assert.fail( "Expected InvalidPolicyException" );
         }
-        catch ( InvalidConditionException expected )
+        catch ( InvalidPolicyException expected )
         {
             if ( !expected.getMessage().endsWith( "Operator is not supported" ) )
             {
@@ -193,9 +193,9 @@ public class DroolsGeneratorTest
         try
         {
             generator.generate( Arrays.asList( policy ) );
-            Assert.fail( "Expected InvalidConditionException" );
+            Assert.fail( "Expected InvalidPolicyException" );
         }
-        catch ( InvalidConditionException expected )
+        catch ( InvalidPolicyException expected )
         {
             if ( !expected.getMessage().endsWith( "Value is null" ) )
             {

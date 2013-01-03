@@ -1,4 +1,4 @@
-function InsightPolicyController($scope, global, $http, $location) {
+function InsightPolicyController($scope, global, $http) {
 	function updatePolicySummary(data) {
 		data.summary = {
 			constraints: data.constraints.length + ' Constraint(s) to be evaluated',
@@ -528,8 +528,6 @@ function InsightPolicyController($scope, global, $http, $location) {
 	$scope.$watch('state.actionTableData',function(newScopeData){
 		$scope.pushActionDataToModel(newScopeData);
 	},true);
-	
-	insightApp.appId = $location.search().appId;
 	
 	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {
     	$scope.state.conditionTypeList = conditionTypeData;

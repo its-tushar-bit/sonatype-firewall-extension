@@ -13,7 +13,10 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.Response;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -36,6 +39,10 @@ public class PolicyResourceTest
         // Add a policy
         Policy policy = new Policy();
         policy.setName( "PolicyResourceTest new policy" );
+        Constraint constraint = new Constraint();
+        constraint.setName( "PolicyResourceTest new constraint" );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
         Response response = RestAccess.post( getServiceURL( appId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         final Policy policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );

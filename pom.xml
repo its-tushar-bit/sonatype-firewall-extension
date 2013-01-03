@@ -108,6 +108,12 @@
 
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-error-handling</artifactId>
+        <version>${insight-saas.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-test</artifactId>
         <version>${insight-saas.version}</version>
       </dependency>

@@ -24,6 +24,10 @@
     </dependency>
 
     <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-error-handling</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
       <version>0.1-SNAPSHOT</version>

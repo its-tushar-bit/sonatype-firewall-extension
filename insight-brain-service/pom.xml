@@ -52,6 +52,10 @@
       <artifactId>insight-scanner-upload</artifactId>
       <version>${insight-scanner.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-error-handling</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.freemarker</groupId>

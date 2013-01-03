@@ -122,6 +122,51 @@ public class PolicyResourceTest
         Assert.assertEquals( JsonUtils.asTree( policy1 ), json );
     }
 
+    @Test
+    public void testCreateInvalidPolicy()
+        throws Exception
+    {
+        String appId = "PolicyResourceTest_testCreateInvalidPolicy";
+        JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + appId ) );
+        Assert.assertEquals( 0, store.modificationCount() );
+
+        Policy policy = new Policy();
+        policy.setName( null );
+        Constraint constraint = new Constraint();
+        constraint.setName( "PolicyResourceTest new constraint" );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        Response response = RestAccess.post( getServiceURL( appId ), JsonHelpers.asJson( policy ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
+    }
+
+    @Test
+    public void testUpdateInvalidPolicy()
+        throws Exception
+    {
+        String appId = "PolicyResourceTest_testUpdateInvalidPolicy";
+        JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + appId ) );
+        Assert.assertEquals( 0, store.modificationCount() );
+
+        // Create a valid policy
+        Policy policy = new Policy();
+        policy.setName( "PolicyResourceTest_testUpdateInvalidPolicy" );
+        Constraint constraint = new Constraint();
+        constraint.setName( "PolicyResourceTest new constraint" );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        Response response = RestAccess.post( getServiceURL( appId ), JsonHelpers.asJson( policy ) );
+        assertResponseStatus( 200, response );
+        policy = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+
+        // Update invalid policy
+        policy.setName( null );
+        response = RestAccess.put( getServiceURL( appId ), JsonHelpers.asJson( policy ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
+    }
+
     private String getServiceURL( final String appId )
     {
         return getRestBaseUrl() + PolicyResource.SERVICE_PATH.replace( "{appId}", appId );

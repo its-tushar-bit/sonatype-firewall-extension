@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
@@ -53,23 +53,35 @@ public class PolicyEvaluateResourceTest
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        final Constraint constraint =
+        final Constraint constraint1 =
             new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
         final Condition condition1 = new Condition();
         condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
         condition1.setOperator( "present" );
-        constraint.addCondition( condition1 );
+        constraint1.addCondition( condition1 );
 
         final Action action = new Action();
-        action.setActionTypeId( FailActionType.ID );
+        action.setActionTypeId( NotifyActionType.ID );
 
-        final Policy policy = new Policy();
-        policy.setId( "P1" );
-        policy.setName( "PolicyEvaluateResourceTest policy" );
-        policy.setThreatLevel( 8 );
-        policy.addConstraint( constraint );
-        policy.addAction( BuildStageType.ID, action );
-        addPolicy( appId, policy );
+        final Policy policy1 = new Policy();
+        policy1.setId( "P1" );
+        policy1.setName( "PolicyEvaluateResourceTest policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        addPolicy( appId, policy1 );
+
+        final Constraint constraint2 =
+            new Constraint( "C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND );
+        constraint2.addCondition( condition1 );
+
+        // same conditions, but lower threat-level => analysis should show highest threat-level
+        final Policy policy2 = new Policy();
+        policy2.setId( "P2" );
+        policy2.setName( "PolicyEvaluateResourceTest policy2" );
+        policy2.setThreatLevel( 3 );
+        policy2.addConstraint( constraint2 );
+        policy1.addAction( BuildStageType.ID, action );
+        addPolicy( appId, policy2 );
 
         final Stage stage = new Stage( BuildStageType.ID );
 
@@ -84,7 +96,7 @@ public class PolicyEvaluateResourceTest
         assertResponseStatus( 200, response );
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.length );
+        Assert.assertEquals( 2, policyAlerts.length );
         SecurityVulnerabilityConditionTypeTest.assertFactCounts( 1, 6, policyAlerts[0] );
 
         // check the calculated policy threat

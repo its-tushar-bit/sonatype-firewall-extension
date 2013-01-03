@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
@@ -14,7 +13,7 @@ public class PolicyAlert
 {
     private PolicyFact trigger;
 
-    private List<Action> actions;
+    private Action[] actions;
 
     public PolicyAlert()
     {
@@ -23,7 +22,7 @@ public class PolicyAlert
     public PolicyAlert( final PolicyFact trigger, final List<Action> actions )
     {
         this.trigger = trigger;
-        this.actions = actions;
+        this.actions = actions != null ? actions.toArray( new Action[actions.size()] ) : new Action[0];
     }
 
     public PolicyFact getTrigger()
@@ -31,17 +30,8 @@ public class PolicyAlert
         return trigger;
     }
 
-    public List<Action> getActions()
+    public Action[] getActions()
     {
         return actions;
-    }
-
-    public void addAction( final Action action )
-    {
-        if ( actions == null )
-        {
-            actions = new ArrayList<Action>();
-        }
-        actions.add( action );
     }
 }

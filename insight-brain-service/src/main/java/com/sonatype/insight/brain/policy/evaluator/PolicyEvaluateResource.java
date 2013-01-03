@@ -112,7 +112,7 @@ public class PolicyEvaluateResource
                         threat = JsonUtils.asTree( component );
                         componentThreats.put( gav, threat );
                     }
-                    if ( threatLevel > threat.path( "threatLevel" ).asInt( -1 ) )
+                    if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
                     {
                         threat.put( "constraintId", constraint.getConstraintId() );
                         threat.put( "constraintName", constraint.getConstraintName() );

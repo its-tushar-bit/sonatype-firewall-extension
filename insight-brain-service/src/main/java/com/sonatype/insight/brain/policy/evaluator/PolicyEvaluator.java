@@ -113,11 +113,7 @@ public class PolicyEvaluator
             }
             if ( policyFact.getConstraintFacts() != null )
             {
-                final List<Action> actions = policy.getActions( stage.getStageTypeId() );
-                if ( actions != null )
-                {
-                    result.add( new PolicyAlert( policyFact, new ArrayList<Action>( actions ) ) );
-                }
+                result.add( new PolicyAlert( policyFact, policy.getActions( stage.getStageTypeId() ) ) );
             }
         }
 

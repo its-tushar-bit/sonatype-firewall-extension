@@ -28,11 +28,11 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
-    private String saasAddress = "https://insight-staging.sonatype.com/";
+    private String saasAddress = "https://insight.sonatype.com/";
 
     @NotNull
     @JsonProperty
-    private String sonatypeWork = "target/sonatype-work";
+    private String sonatypeWork = "sonatype-work/clm-server";
 
     public String getSaasAddress()
     {

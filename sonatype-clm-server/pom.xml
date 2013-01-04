@@ -10,22 +10,22 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.sonatype.insight.brain</groupId>
-		<artifactId>insight-brain</artifactId>
-		<version>0.1-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>0.1-SNAPSHOT</version>
+  </parent>
 
   <artifactId>sonatype-clm-server</artifactId>
   <packaging>pom</packaging>
 
   <dependencies>
-	<dependency>
-		<groupId>${project.groupId}</groupId>
-		<artifactId>insight-brain-service</artifactId>
-		<version>${project.version}</version>
-		<classifier>server</classifier>
-	</dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <version>${project.version}</version>
+      <classifier>server</classifier>
+    </dependency>
   </dependencies>
 
   <build>
@@ -46,29 +46,29 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-			  <excludeTransitive>true</excludeTransitive>
+              <excludeTransitive>true</excludeTransitive>
             </configuration>
           </execution>
         </executions>
       </plugin>
-		<plugin>
-		  <groupId>org.apache.maven.plugins</groupId>
-		  <artifactId>maven-assembly-plugin</artifactId>
-		  <executions>
-			<execution>
-			  <id>create-distro</id>
-			  <phase>package</phase>
-			  <goals>
-				<goal>single</goal>
-			  </goals>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/sonatype-clm-server.xml</descriptor>
-					</descriptors>
-				</configuration>
-			</execution>
-		  </executions>
-		</plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>create-distro</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/sonatype-clm-server.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   

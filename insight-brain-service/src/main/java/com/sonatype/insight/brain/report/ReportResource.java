@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.cache.CacheBuilder;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
@@ -58,7 +58,8 @@ public class ReportResource
 
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
 
-    static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = new ConcurrentHashMap<String, Integer>();
+    static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS =
+        CacheBuilder.newBuilder().maximumSize( 8192 ).<String, Integer> build().asMap();
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 

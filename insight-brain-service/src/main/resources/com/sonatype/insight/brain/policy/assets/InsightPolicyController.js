@@ -113,10 +113,7 @@ function InsightPolicyController($scope, global, $http) {
 				} else {
 					return "<div class='masked-cell' title='This stage is under development'>" + text + "</div>";
 				}
-			},
-			styleFn : function(row, cell, value, columnDef, dataContext) {
-                return 'nopad';
-            }
+			}
 		},{
 			id : "fail",
 			name : "Fail",
@@ -138,10 +135,7 @@ function InsightPolicyController($scope, global, $http) {
 				} else {
 					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
 				}
-			},
-			styleFn : function(row, cell, value, columnDef, dataContext) {
-                return 'nopad';
-            }
+			}
 		},{
 			id : "warn",
 			name : "Warn",
@@ -163,10 +157,7 @@ function InsightPolicyController($scope, global, $http) {
 				} else {
 					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
 				}
-			},
-			styleFn : function(row, cell, value, columnDef, dataContext) {
-                return 'nopad';
-            }
+			}
 		}/*,{
 			id : "notify",
 			name : "Notify",

@@ -82,6 +82,10 @@ function InsightPolicyController($scope, global, $http) {
 		return null;
 	}
 	
+	function isAvailableStage(id) {
+		return id === 'build';
+	}
+	
 	$scope.state = global;
 	
 	var checkboxSelector = new Slick.CheckboxSelectColumn({
@@ -103,35 +107,67 @@ function InsightPolicyController($scope, global, $http) {
 					}
 					return true;
 				});
-				return text;
-			}
+				
+				if (isAvailableStage(value)){
+					return text;
+				} else {
+					return "<div class='masked-cell' title='This stage is under development'>" + text + "</div>";
+				}
+			},
+			styleFn : function(row, cell, value, columnDef, dataContext) {
+                return 'nopad';
+            }
 		},{
 			id : "fail",
 			name : "Fail",
 			field : "fail",
 			width : 50,
 			cssClass: "checkbox-edit-cell",
+			headerCssClass: "header-centered",
 			formatter: function(row,cell,value,columnDef,dataContext){
-				if ($scope.state.actionEditMode){
-					return "<input id='actionField-" + dataContext.id + "-fail' class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>";
-				} else {
-					return value ? "<img src='img/tick.png'>" : "";
+				var prefix = '';
+				var suffix = '';
+				
+				if (!isAvailableStage(dataContext.id)){
+					prefix = "<div class='masked-cell' title='This stage is under development'>";
+					suffix = "</div>";
 				}
-			}
+				
+				if ($scope.state.actionEditMode){
+					return prefix + "<input id='actionField-" + dataContext.id + "-fail' " + (prefix.length ? 'disabled' : '') + " class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
+				} else {
+					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
+				}
+			},
+			styleFn : function(row, cell, value, columnDef, dataContext) {
+                return 'nopad';
+            }
 		},{
 			id : "warn",
 			name : "Warn",
 			field : "warn",
 			width : 50,
 			cssClass: "checkbox-edit-cell",
+			headerCssClass: "header-centered",
 			formatter: function(row,cell,value,columnDef,dataContext){
-				if ($scope.state.actionEditMode){
-					return "<input id='actionField-" + dataContext.id + "-warn' class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>";
-				} else {
-					return value ? "<img src='img/tick.png'>" : "";
+				var prefix = '';
+				var suffix = '';
+				
+				if (!isAvailableStage(dataContext.id)){
+					prefix = "<div class='masked-cell' title='This stage is under development'>";
+					suffix = "</div>";
 				}
-			}
-		},{
+				
+				if ($scope.state.actionEditMode){
+					return prefix + "<input id='actionField-" + dataContext.id + "-warn' " + (prefix.length ? 'disabled' : '') + " class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
+				} else {
+					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
+				}
+			},
+			styleFn : function(row, cell, value, columnDef, dataContext) {
+                return 'nopad';
+            }
+		}/*,{
 			id : "notify",
 			name : "Notify",
 			field : "notify",
@@ -143,9 +179,8 @@ function InsightPolicyController($scope, global, $http) {
 					return value;
 				}
 			}
-		}],
+		}*/],
 		options : {
-			height : 200,
 			forceFitColumns : true,
 			fullWidthRows : true
 		},

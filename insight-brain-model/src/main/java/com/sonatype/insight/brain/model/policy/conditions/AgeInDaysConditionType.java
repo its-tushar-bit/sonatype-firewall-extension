@@ -85,4 +85,10 @@ public class AgeInDaysConditionType
                 + condition.getValue() );
         }
     }
+
+    @Override
+    public String getValueHint()
+    {
+        return "Enter number of days";
+    }
 }

@@ -29,4 +29,10 @@ public abstract class AbstractConditionType
             throw new InvalidConditionException( condition, "Value is null" );
         }
     }
+
+    @Override
+    public String getValueHint()
+    {
+        return null;
+    }
 }

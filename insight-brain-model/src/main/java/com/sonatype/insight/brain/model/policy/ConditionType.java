@@ -21,6 +21,8 @@ public interface ConditionType
      */
     String getValueTypeId();
 
+    String getValueHint();
+
     String generateDroolsCode( Condition condition );
     
     void validateCondition( Condition condition )

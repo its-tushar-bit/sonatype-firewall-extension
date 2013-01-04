@@ -69,4 +69,10 @@ public class RelativePopularityConditionType
                 + condition.getValue() );
         }
     }
+
+    @Override
+    public String getValueHint()
+    {
+        return "Enter percent value, 1 to 100";
+    }
 }

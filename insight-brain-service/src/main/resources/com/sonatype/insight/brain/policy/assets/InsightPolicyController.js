@@ -160,22 +160,16 @@ function InsightPolicyController($scope, global, $http) {
 		}
 	};
 	$scope.state.constraintTableDefinition = {
-		columns : [ checkboxSelector.getColumnDefinition(), {
+		columns : [ {
 			id : "name",
 			name : "Constraint Name",
 			field : "name",
 			width : 400,
-			cssClass : 'edit-click'
-		}, {
-			id : "enabled",
-			name : "Status",
-			field : "enabled",
-			width : 100,
+			cssClass : 'edit-click',
 			formatter : function(row, cell, value, columnDef, dataContext) {
-				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? 'enabled' : 'disabled') + '</td>'
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + value + '</td>'
+					+ '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-add slick-row-hover-button" title="Add Constraint"><i class="icon-plus-sign" style="margin-top:0px;"></i></button></td>'
 				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Constraint"><i class="icon-pencil" style="margin-top:0px;"></i></button></td>'
-				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-enable slick-row-hover-button" title="Enable Constraint"><i class="icon-ok-circle" style="margin-top:0px;"></i></button></td>'
-				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-disable slick-row-hover-button" title="Disable Constraint"><i class="icon-remove-circle" style="margin-top:0px;"></i></button></td>'
 				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Constraint"><i class="icon-trash" style="margin-top:0px;"></i></button></td>'
 				    + '</tr></table>';
 			}
@@ -185,7 +179,6 @@ function InsightPolicyController($scope, global, $http) {
 			forceFitColumns : true,
 			fullWidthRows : true
 		},
-		plugins : [checkboxSelector],
 		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
 		emptyMessage : "No Constraints have been defined.<br><a href='#editConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
 	};
@@ -342,27 +335,6 @@ function InsightPolicyController($scope, global, $http) {
 		}
 	}
 	
-	$scope.enableConstraint = function() {
-		$scope.updateStatus(true);
-	}
-	
-	$scope.disableConstraint = function() {
-		$scope.updateStatus(false);
-	}
-	
-	$scope.updateStatus = function(enabled) {
-		var rows = $scope.constraintGrid.getSelectedRows();
-		
-		if (!rows.length > 0){
-			delete rows;
-			return;
-		}
-		
-		angular.forEach(rows, function(value, key){
-			$scope.constraintGrid.getDataItem(value).enabled = enabled;
-		});
-	}
-	
 	$scope.removeConstraint = function() {		
 		var rows = $scope.constraintGrid.getSelectedRows();
 		
@@ -377,11 +349,6 @@ function InsightPolicyController($scope, global, $http) {
 		});
 		
 		$scope.validatePolicy();
-	}
-	
-	$scope.createConstraintClick = function() {
-		$scope.resetConstraint();
-		$('#editConstraintModal').modal('show');
 	}
 	
 	$scope.cancelConstraintClick = function() {
@@ -419,6 +386,12 @@ function InsightPolicyController($scope, global, $http) {
 		$('#editConstraintModal').modal('hide');
 		
 		$scope.validatePolicy();
+	}
+	
+	$scope.deleteConstraintClick = function(){
+		$scope.constraintGrid.dataView.deleteItem($scope.state.constraintToDelete.id);
+    	$scope.validatePolicy();
+    	$('#deleteConstraintConfirmationModal').modal('hide');
 	}
 	
 	$scope.addConstraintCondition = function() {
@@ -606,6 +579,16 @@ function InsightPolicyController($scope, global, $http) {
         }
     });
 	
+	$('#constraintGrid .slick-row .btn-add').live('click', function(){
+		$scope.resetConstraint();
+    	
+        //since this event is called outside of angular, we need to force
+        //an apply to get everything mapped up properly
+        $scope.$apply();
+        
+        $('#editConstraintModal').modal('show');
+    });
+	
     $('#constraintGrid .slick-row .btn-edit').live('click', function(){
     	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
     	
@@ -620,32 +603,14 @@ function InsightPolicyController($scope, global, $http) {
         $('#editConstraintModal').modal('show');
     });
     
-    $('#constraintGrid .slick-row .btn-enable').live('click', function(){
-    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
-    	constraint.enabled = true;
-    	
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
-    });
-    
-    $('#constraintGrid .slick-row .btn-disable').live('click', function(){
-    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
-    	constraint.enabled = false;
-    	
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
-    });
-    
     $('#constraintGrid .slick-row .btn-delete').live('click', function(){
-    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
-    	$scope.constraintGrid.dataView.deleteItem(constraint.id);
-    	$scope.validatePolicy();
+    	$scope.state.constraintToDelete = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
     	
         //since this event is called outside of angular, we need to force
         //an apply to get everything mapped up properly
         $scope.$apply();
+        
+        $('#deleteConstraintConfirmationModal').modal('show');
     });
     
     $('#constraintConditionsGrid .slick-row').live('mouseover mouseout', function (event) {

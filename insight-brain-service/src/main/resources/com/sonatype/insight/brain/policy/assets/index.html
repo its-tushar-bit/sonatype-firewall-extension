@@ -82,12 +82,6 @@
 					    	<label class="control-label">Constraints</label>
 					    	<div class="controls">
 					    	    <div style="width:100%;">
-					    	    	<div class="btn-group btn-group-vertical" style="float:left;">
-						    	    	<button class="btn" ng-click="createConstraintClick()" title="Add new Constraint"><i class="icon-plus-sign"></i></button>
-						    	    	<button class="btn" ng-click="enableConstraint()" title="Enable selected Constraint(s)"><i class="icon-ok-circle"></i></button>
-									    <button class="btn" ng-click="disableConstraint()" title="Disable selected Constraint(s)"><i class="icon-remove-circle"></i></button>
-									    <button class="btn" ng-click="removeConstraint()" title="Delete selected Constraint(s)"><i class="icon-trash"></i></button>
-					    	    	</div>
 									<slickgrid id="constraintGrid" style="height:200px;" class="borderedTable" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
 					            </div>
 					    	</div>
@@ -178,6 +172,19 @@
 					<div class="modal-footer">
 						<button class="btn" data-dismiss="modal">Cancel</button>
 					    <button class="btn btn-primary" ng-click="deletePolicyClick()">Delete</button>
+					</div>
+				</div>
+				<div id="deleteConstraintConfirmationModal" data-backdrop="static" class="modal hide">
+					<div class="modal-header">
+					    <button type="button" class="close" data-dismiss="modal">×</button>
+					    <h3>Delete Constraint?</h3>
+					</div>
+					<div class="modal-body">
+						<p>Are you sure you want to delete the Constraint named '{{state.constraintToDelete.name}}'?</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn" data-dismiss="modal">Cancel</button>
+					    <button class="btn btn-primary" ng-click="deleteConstraintClick()">Delete</button>
 					</div>
 				</div>
 			</div>

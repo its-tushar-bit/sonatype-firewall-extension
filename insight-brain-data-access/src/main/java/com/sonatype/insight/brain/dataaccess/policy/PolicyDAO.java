@@ -15,7 +15,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
@@ -70,14 +72,18 @@ public class PolicyDAO
         try
         {
             final ArrayNode policies = loadPolicies( store );
-            if ( policy.getId() == null || policy.getId().trim().isEmpty() )
-            {
-                policy.setId( newUUID() );
-            }
-            else
+            if ( policy.getId() != null )
             {
                 // TODO Throw an exception if the policy exists already
             }
+
+            // Allocate unique ids to the policy and its constraints
+            policy.setId( newUUID() );
+            for ( Constraint constraint : policy.getConstraints() )
+            {
+                constraint.setId( newUUID() );
+            }
+
             policies.add( JsonUtils.asTree( policy ) );
             savePolicies( store, policies );
         }
@@ -103,8 +109,20 @@ public class PolicyDAO
             final ArrayNode policies = loadPolicies( store );
             for ( int i = 0; i < policies.size(); i++ )
             {
-                if ( policy.getId().equals( policies.get( i ).get( "id" ).asText() ) )
+                JsonNode oldPolicyJson = policies.get( i );
+                if ( policy.getId().equals( oldPolicyJson.get( "id" ).asText() ) )
                 {
+                    // Allocate ids to new constraints
+                    Policy oldPolicy = JsonUtils.asPojo( oldPolicyJson, Policy.class );
+                    for ( Constraint constraint : policy.getConstraints() )
+                    {
+                        if ( oldPolicy.getConstraintById( constraint.getId() ) == null )
+                        {
+                            // This is a new constraint
+                            constraint.setId( newUUID() );
+                        }
+                    }
+
                     policies.set( i, JsonUtils.asTree( policy ) );
                     savePolicies( store, policies );
                     break;

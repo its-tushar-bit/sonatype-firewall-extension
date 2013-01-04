@@ -25,6 +25,98 @@ public class PolicyDAOTest
     public TemporaryFolder tempDir = new TemporaryFolder();
 
     @Test
+    public void testAllocateIdsOnInsertAndUpdate()
+        throws Exception
+    {
+        final File dataStoreDir = tempDir.newFolder( "PolicyDAOTest" );
+        final PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        final String applicationId = "PolicyDAOTest_AppId";
+
+        // Add a policy
+        Policy policy = new Policy();
+        policy.setName( "PolicyDAOTest new policy" );
+        final Constraint constraint1 = new Constraint( null, "PolicyDAOTest new constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint1 );
+        Assert.assertNull( policy.getId() );
+        Assert.assertNull( constraint1.getId() );
+
+        policyDAO.insert( applicationId, policy );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        String constraintId1 = constraint1.getId();
+
+        List<Policy> policies = policyDAO.getByApplicationId( applicationId );
+        Assert.assertNotNull( policies );
+        Assert.assertEquals( 1, policies.size() );
+        assertPolicy( policy, policies.get( 0 ) );
+        policy = policies.get( 0 );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+
+        // Update the policy - new constraint without id
+        policy.setName( "PolicyDAOTest updated policy" );
+        Constraint constraint2 = new Constraint( null, "PolicyDAOTest new constraint 2", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint2 );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        Assert.assertNull( constraint2.getId() );
+
+        policyDAO.update( applicationId, policy );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        Assert.assertEquals( constraintId1, constraint1.getId() );
+        Assert.assertNotNull( constraint2.getId() );
+        String constraintId2 = constraint2.getId();
+
+        policies = policyDAO.getByApplicationId( applicationId );
+        Assert.assertNotNull( policies );
+        Assert.assertEquals( 1, policies.size() );
+        assertPolicy( policy, policies.get( 0 ) );
+        policy = policies.get( 0 );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        Assert.assertEquals( constraintId1, constraint1.getId() );
+        Assert.assertNotNull( constraint2.getId() );
+        Assert.assertEquals( constraintId2, constraint2.getId() );
+
+        // Update the policy - new constraint with id - the id should be reallocated during the update
+        policy.setName( "PolicyDAOTest updated again policy" );
+        String constraintId3 = "Constraint Id 3";
+        Constraint constraint3 = new Constraint( constraintId3, "PolicyDAOTest new constraint 3", LogicalOperator.AND );
+        constraint3.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint3 );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        Assert.assertNotNull( constraint2.getId() );
+        Assert.assertNotNull( constraint3.getId() );
+
+        policyDAO.update( applicationId, policy );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        Assert.assertEquals( constraintId1, constraint1.getId() );
+        Assert.assertNotNull( constraint2.getId() );
+        Assert.assertEquals( constraintId2, constraint2.getId() );
+        Assert.assertNotNull( constraint3.getId() );
+        Assert.assertNotEquals( constraintId3, constraint3.getId() );
+        constraintId3 = constraint3.getId();
+
+        policies = policyDAO.getByApplicationId( applicationId );
+        Assert.assertNotNull( policies );
+        Assert.assertEquals( 1, policies.size() );
+        assertPolicy( policy, policies.get( 0 ) );
+        policy = policies.get( 0 );
+        Assert.assertNotNull( policy.getId() );
+        Assert.assertNotNull( constraint1.getId() );
+        Assert.assertEquals( constraintId1, constraint1.getId() );
+        Assert.assertNotNull( constraint2.getId() );
+        Assert.assertEquals( constraintId2, constraint2.getId() );
+        Assert.assertNotNull( constraint3.getId() );
+        Assert.assertEquals( constraintId3, constraint3.getId() );
+    }
+
+    @Test
     public void testCRUD()
         throws Exception
     {

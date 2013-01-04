@@ -83,22 +83,15 @@ public class InsightBrainService
     {
         // DW has an exception mapper that turns exceptions into 500. Boo for us.
         // Remove it so that our mapper will always be used to handle exceptions.
-        Object offender = null;
         final Set<Object> singletons = environment.getJerseyResourceConfig().getSingletons();
         for ( Object candidate : singletons )
         {
             if ( candidate instanceof LoggingExceptionMapper )
             {
-                log.debug( "Found LoggingExceptionMapper" );
-                offender = candidate;
+                log.debug( "Removing LoggingExceptionMapper" );
+                singletons.remove( candidate );
                 break;
             }
-        }
-
-        if ( null != offender )
-        {
-            log.debug( "Removing LoggingExceptionMapper" );
-            singletons.remove( offender );
         }
 
         // Add our own mapper for exceptions.

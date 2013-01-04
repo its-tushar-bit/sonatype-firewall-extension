@@ -357,8 +357,41 @@ public class PolicyDAOTest
     private static void assertPolicy( final Policy expected, final Policy actual )
     {
         Assert.assertEquals( expected.getId(), actual.getId() );
-        Assert.assertEquals( expected.getConstraints().get( 0 ).getOperator(),
-                             actual.getConstraints().get( 0 ).getOperator() );
-        // TODO assert all fields
+        Assert.assertEquals( expected.getName(), actual.getName() );
+        Assert.assertEquals( expected.isEnabled(), actual.isEnabled() );
+        Assert.assertEquals( expected.getThreatLevel(), actual.getThreatLevel() );
+
+        List<Constraint> expectedConstraints = expected.getConstraints();
+        List<Constraint> actualConstraints = actual.getConstraints();
+        Assert.assertEquals( expectedConstraints.size(), actualConstraints.size() );
+
+        for ( int i = 0; i < expectedConstraints.size(); i++ )
+        {
+            assertConstraint( expectedConstraints.get( i ), actualConstraints.get( i ) );
+        }
+    }
+
+    private static void assertConstraint( Constraint expected, Constraint actual )
+    {
+        Assert.assertEquals( expected.getId(), actual.getId() );
+        Assert.assertEquals( expected.getName(), actual.getName() );
+        Assert.assertEquals( expected.isEnabled(), actual.isEnabled() );
+        Assert.assertEquals( expected.getOperator(), actual.getOperator() );
+
+        List<Condition> expectedConditions = expected.getConditions();
+        List<Condition> actualConditions = actual.getConditions();
+        Assert.assertEquals( expectedConditions.size(), actualConditions.size() );
+
+        for ( int i = 0; i < expectedConditions.size(); i++ )
+        {
+            assertCondition( expectedConditions.get( i ), actualConditions.get( i ) );
+        }
+    }
+
+    private static void assertCondition( Condition expected, Condition actual )
+    {
+        Assert.assertEquals( expected.getConditionTypeId(), actual.getConditionTypeId() );
+        Assert.assertEquals( expected.getOperator(), actual.getOperator() );
+        Assert.assertEquals( expected.getValue(), actual.getValue() );
     }
 }

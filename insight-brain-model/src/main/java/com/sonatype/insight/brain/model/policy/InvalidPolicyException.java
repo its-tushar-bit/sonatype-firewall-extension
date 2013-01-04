@@ -12,6 +12,11 @@ import com.sonatype.insight.error.HttpStatusCode;
 public class InvalidPolicyException
     extends RuntimeException
 {
+    public InvalidPolicyException( String message )
+    {
+        super( message );
+    }
+
     public InvalidPolicyException( ValidationResult validationResult )
     {
         super( ValidationResult.toMessageString( validationResult.getErrors() ) );

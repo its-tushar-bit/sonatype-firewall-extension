@@ -71,10 +71,14 @@ public class PolicyDAO
         final JsonStore store = policyStore( appId );
         try
         {
-            final ArrayNode policies = loadPolicies( store );
-            if ( policy.getId() != null )
+            final ArrayNode policiesJson = loadPolicies( store );
+            Policy[] existingPolicies = JsonUtils.asPojo( policiesJson, Policy[].class );
+            for ( Policy existingPolicy : existingPolicies )
             {
-                // TODO Throw an exception if the policy exists already
+                if ( policy.getName().equals( existingPolicy.getName() ) )
+                {
+                    throw new InvalidPolicyException( "A policy with name '" + policy.getName() + "' exists already" );
+                }
             }
 
             // Allocate unique ids to the policy and its constraints
@@ -84,8 +88,8 @@ public class PolicyDAO
                 constraint.setId( newUUID() );
             }
 
-            policies.add( JsonUtils.asTree( policy ) );
-            savePolicies( store, policies );
+            policiesJson.add( JsonUtils.asTree( policy ) );
+            savePolicies( store, policiesJson );
         }
         catch ( final IOException e )
         {
@@ -106,29 +110,44 @@ public class PolicyDAO
         final JsonStore store = policyStore( appId );
         try
         {
-            final ArrayNode policies = loadPolicies( store );
-            for ( int i = 0; i < policies.size(); i++ )
+            boolean updated = false;
+            final ArrayNode policiesJson = loadPolicies( store );
+            for ( int i = 0; i < policiesJson.size(); i++ )
             {
-                JsonNode oldPolicyJson = policies.get( i );
-                if ( policy.getId().equals( oldPolicyJson.get( "id" ).asText() ) )
+                JsonNode oldPolicyJson = policiesJson.get( i );
+                Policy existingPolicy = JsonUtils.asPojo( oldPolicyJson, Policy.class );
+                if ( policy.getId().equals( existingPolicy.getId() ) )
                 {
                     // Allocate ids to new constraints
-                    Policy oldPolicy = JsonUtils.asPojo( oldPolicyJson, Policy.class );
                     for ( Constraint constraint : policy.getConstraints() )
                     {
-                        if ( oldPolicy.getConstraintById( constraint.getId() ) == null )
+                        if ( existingPolicy.getConstraintById( constraint.getId() ) == null )
                         {
                             // This is a new constraint
                             constraint.setId( newUUID() );
                         }
                     }
 
-                    policies.set( i, JsonUtils.asTree( policy ) );
-                    savePolicies( store, policies );
-                    break;
+                    // Update the policy
+                    policiesJson.set( i, JsonUtils.asTree( policy ) );
+                    updated = true;
+                }
+                else
+                {
+                    if ( policy.getName().equals( existingPolicy.getName() ) )
+                    {
+                        throw new InvalidPolicyException( "A policy with name '" + policy.getName()
+                            + "' exists already" );
+                    }
                 }
             }
-            // TODO Throw an exception if the policy does not exist
+
+            if ( !updated )
+            {
+                throw new InvalidPolicyException( "The policy does not exist" );
+            }
+
+            savePolicies( store, policiesJson );
         }
         catch ( final IOException e )
         {

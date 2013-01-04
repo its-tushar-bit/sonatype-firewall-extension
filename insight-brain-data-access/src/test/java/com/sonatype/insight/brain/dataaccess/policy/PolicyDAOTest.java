@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -21,8 +22,123 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 
 public class PolicyDAOTest
 {
-    @org.junit.Rule
+    @Rule
     public TemporaryFolder tempDir = new TemporaryFolder();
+
+    @Test
+    public void testUpdatePolicyDoesNotExist()
+        throws Exception
+    {
+        final File dataStoreDir = tempDir.newFolder( "PolicyDAOTest_testInsertNameNotUnique" );
+        final PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        final String applicationId = "PolicyDAOTest_AppId";
+
+        // Add a policy
+        String policyName = "PolicyDAOTest new policy";
+        Policy policy = new Policy();
+        policy.setName( policyName );
+        Constraint constraint = new Constraint( null, "PolicyDAOTest new constraint", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        policyDAO.insert( applicationId, policy );
+
+        // Delete the policy
+        policyDAO.delete( applicationId, policy.getId() );
+
+        // Update the policy
+        try
+        {
+            policyDAO.update( applicationId, policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            if ( !"The policy does not exist".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testInsertNameNotUnique()
+        throws Exception
+    {
+        final File dataStoreDir = tempDir.newFolder( "PolicyDAOTest_testInsertNameNotUnique" );
+        final PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        final String applicationId = "PolicyDAOTest_AppId";
+
+        // Add a policy
+        String policyName = "PolicyDAOTest new policy";
+        Policy policy = new Policy();
+        policy.setName( policyName );
+        Constraint constraint = new Constraint( null, "PolicyDAOTest new constraint", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        policyDAO.insert( applicationId, policy );
+
+        // Add another policy with the same name
+        policy = new Policy();
+        policy.setName( policyName );
+        constraint = new Constraint( null, "PolicyDAOTest new constraint", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        try
+        {
+            policyDAO.insert( applicationId, policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            if ( !"A policy with name 'PolicyDAOTest new policy' exists already".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testUpdateNameNotUnique()
+        throws Exception
+    {
+        final File dataStoreDir = tempDir.newFolder( "PolicyDAOTest_testInsertNameNotUnique" );
+        final PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        final String applicationId = "PolicyDAOTest_AppId";
+
+        // Add two policies
+        String policyName1 = "PolicyDAOTest new policy 1";
+        Policy policy1 = new Policy();
+        policy1.setName( policyName1 );
+        Constraint constraint = new Constraint( null, "PolicyDAOTest new constraint", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy1.addConstraint( constraint );
+        policyDAO.insert( applicationId, policy1 );
+        String policyName2 = "PolicyDAOTest new policy 2";
+        Policy policy2 = new Policy();
+        policy2.setName( policyName2 );
+        constraint = new Constraint( null, "PolicyDAOTest new constraint", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy2.addConstraint( constraint );
+        policyDAO.insert( applicationId, policy2 );
+
+        // Update a policy with the same name
+        policyDAO.update( applicationId, policy1 );
+
+        // Update a policy with a duplicate name
+        policy1.setName( policyName2 );
+        try
+        {
+            policyDAO.update( applicationId, policy1 );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            if ( !"A policy with name 'PolicyDAOTest new policy 2' exists already".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
 
     @Test
     public void testAllocateIdsOnInsertAndUpdate()

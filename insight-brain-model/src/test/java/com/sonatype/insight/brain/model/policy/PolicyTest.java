@@ -67,6 +67,20 @@ public class PolicyTest
     }
 
     @Test
+    public void testValidate_ConstraintNameDuplicate()
+    {
+        Policy policy = new Policy( "PolicyId", "Policy Name" );
+        Constraint constraint1 = new Constraint( "Constraint Id 1", "Constraint Name", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint1 );
+        Constraint constraint2 = new Constraint( "Constraint Id 2", "Constraint Name", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint2 );
+        ValidationResult result = policy.validate();
+        assertValidationResult( "Duplicate constraint name 'Constraint Name'", result );
+    }
+
+    @Test
     public void testValidate_ConstraintNoConditions()
     {
         Policy policy = new Policy( "PolicyId", "Policy Name" );

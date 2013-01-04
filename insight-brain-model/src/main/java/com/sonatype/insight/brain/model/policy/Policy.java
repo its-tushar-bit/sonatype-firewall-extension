@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,8 +151,21 @@ public class Policy
         }
         else
         {
+            Set<String> constraintNames = new LinkedHashSet<String>();
             for ( Constraint constraint : constraints )
             {
+                String constraintName = constraint.getName();
+                if ( constraintName != null && !constraintName.trim().isEmpty() )
+                {
+                    if ( constraintNames.contains( constraintName ) )
+                    {
+                        result.addError( "Duplicate constraint name '" + constraintName + "'" );
+                    }
+                    else
+                    {
+                        constraintNames.add( constraintName );
+                    }
+                }
                 result.merge( constraint.validate() );
             }
         }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-2012 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/insight/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<assembly>
+  <id>bundle</id>
+  <baseDirectory>${project.artifactId}-${project.version}-bundle</baseDirectory>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <formats>
+    <format>zip</format>
+    <format>tar.gz</format>
+  </formats>
+  <files>
+    <file>
+      <source>${project.build.directory}/insight-brain-service-${project.version}-server.jar</source>
+      <outputDirectory>.</outputDirectory>
+      <destName>sonatype-clm-server-${project.version}.jar</destName>
+    </file>
+    <file>
+      <source>${project.basedir}/src/main/resources/README</source>
+      <outputDirectory>.</outputDirectory>
+      <destName>README</destName>
+    </file>
+  </files>
+</assembly>

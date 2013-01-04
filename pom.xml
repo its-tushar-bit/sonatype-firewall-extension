@@ -48,6 +48,7 @@
     <module>insight-brain-data-access</module>
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>
+	<module>sonatype-clm-server</module>
   </modules>
 
   <dependencyManagement>

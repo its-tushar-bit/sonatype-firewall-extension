@@ -37,6 +37,7 @@
 <script type='text/javascript' src='SlickGridComponent.js'></script>
 <script type='text/javascript' src='InsightApp.js'></script>
 <script type='text/javascript' src='InsightPolicyController.js'></script>
+<script type='text/javascript' src='LabelController.js'></script>
 </head>
 <body style="height: 100%; padding-top: 60px;">
 	<div class="container">
@@ -222,8 +223,57 @@
 					</div>
 				</div>
 			</div>
-			<div class="tab-pane" id="label">
-			    <div class="span6 offset4 no-content">Label content is under development..</div>
+			<div class="tab-pane" id="label" ng-controller="LabelController">
+                <div>
+                    <table class='table table-striped' style='width:30%;min-width:300px;border:1px solid #DDD;border-radius:4px'>
+                        <thead><tr><th colspan='2'>Label</th></tr></thead>
+                        <tr ng-repeat="label in labels">
+                            <td style='line-height:24px'><span class="clmLabel {{label.color}}Label">{{label.label}}</span></td>
+                            <td style='width:60px'><button ng-click='editLabel(label)' class="btn btn-mini btn-edit hover-vis" title="Edit Label"><i class="icon-pencil" style="margin-top:0px;"></i></button> <button ng-click='confirmDeleteLabel(label)' class="btn btn-mini btn-delete hover-vis" title="Delete Label"><i class="icon-trash" style="margin-top:0px;"></i></button></td>
+                        </tr>
+                        <tfoot>
+                            <tr>
+                                <td colspan='2' style='text-align:right;'><button class='btn btn-add btn-info' ng-click='editLabel()'><i class='icon-white icon-plus-sign'> </i> Add Label</button></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+				<div id="labelEditModal" data-backdrop="static" class="modal hide">
+					<div class="modal-header">
+					    <button type="button" class="close" data-dismiss="modal">×</button>
+                        <h3 ng-show='selectedLabel.id == null'>Add Label</h3>
+                        <h3 ng-show='selectedLabel.id != null'>Edit Label</h3>
+					</div>
+                    <form name='labelEditor'>
+                        <div class="modal-body">
+                            <p>
+                                <label for='labelEditorLabel'>Label:</label> <input type='text' name='label' id='labelEditorLabel' ng-model='selectedLabel.label' required>
+                            </p>
+                            <div>
+                                <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
+                                    <span class="clmLabel {{color}}Label" style='height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary" ng-click="saveLabelClick()" ng-disabled='canSaveLabelEditor(labelEditor.$valid);'>Save</button>
+                        </div>
+				</div>
+				<div id="deleteLabelModal" data-backdrop="static" class="modal hide">
+					<div class="modal-header">
+					    <button type="button" class="close" data-dismiss="modal">×</button>
+					    <h3>Delete Label?</h3>
+					</div>
+					<div class="modal-body">
+						<p>Are you sure you want to delete the label <span class="clmLabel {{selectedLabel.color}}Label">{{selectedLabel.label}}</span>?</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn" data-dismiss="modal">Cancel</button>
+					    <button class="btn btn-primary" ng-disabled='!deletedEnabled' ng-click="deleteLabel()">Delete</button>
+					</div>
+				</div>
 			</div>
 			<div class="tab-pane" id="licenseGroup">
 			    <div class="span6 offset4 no-content">License Group content is under development..</div>

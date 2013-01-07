@@ -110,6 +110,75 @@ input.editor-checkbox {
   text-align: center;
 }
 
+.clmLabel {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border-style: solid;
+  border-width: 1px;
+  font-size: 12px;
+  overflow: hidden;
+  margin: 0;
+  padding: 1px 3px;
+  text-align: center;
+  vertical-align: middle;
+  border-color: #AFBFCF;
+  white-space: nowrap;
+}
+
+.whiteLabel {
+  background-color: #EEEEEE;
+  color : black;
+}
+
+.greyLabel {
+  background-color: #BFBFBF;
+  color : black;
+}
+
+.blackLabel {
+  background-color: #444444;
+  color : white;
+}
+
+.greenLabel {
+  background-color: #46A546;
+  color : white;
+}
+
+.yellowLabel {
+  background-color: #FAF20F;
+  color : black;
+}
+
+.orangeLabel {
+  background-color: #F89406;
+  color : white;
+}
+
+.redLabel {
+  background-color: #C43C35;
+  color : white;
+}
+
+.blueLabel {
+  background-color: #0080FF;
+  color : white;
+}
+
+.labelContainer {
+	padding: 2px;
+    margin: 2px;
+    display:inline-block;
+    cursor: pointer;
+    border-radius : 3px;
+    border : 1px solid lightgrey;
+}
+
+.labelContainer.active {
+    border : 1px dashed black;
+}
+
 .navbar .brand {
 	margin-left:0px;
 }
@@ -127,4 +196,11 @@ div.nopad {
 .masked-cell {
 	width:100%;
 	height:25px;
+}
+
+tr:hover .hover-vis {
+    display: inline;
+}
+tr .hover-vis {
+    display: none;
 }

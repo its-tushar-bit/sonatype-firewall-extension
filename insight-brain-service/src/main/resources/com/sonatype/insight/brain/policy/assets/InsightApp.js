@@ -58,6 +58,14 @@ insightApp.getBaseUrl = function(){
 	return insightApp.baseUrl;
 }
 
+insightApp.getLabelsUrl = function (){
+	return insightApp.getBaseUrl() + '/rest/label/application/' + insightApp.getAppId();
+};
+
+insightApp.getDeleteLabelsUrl = function (label){
+	return insightApp.getBaseUrl() + '/rest/label/application/' + insightApp.getAppId() + '/' + label.id;
+};
+
 insightApp.getConditionTypeUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/conditionType';
 }

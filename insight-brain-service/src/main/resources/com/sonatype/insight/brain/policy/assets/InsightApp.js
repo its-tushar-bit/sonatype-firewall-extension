@@ -50,6 +50,14 @@ insightApp.getActionTypeUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/actionType';
 }
 
+insightApp.getLabelsUrl = function (){
+	return insightApp.getBaseUrl() + '/rest/label/application/' + insightApp.getAppId();
+};
+
+insightApp.getDeleteLabelsUrl = function (label){
+	return insightApp.getBaseUrl() + '/rest/label/application/' + insightApp.getAppId() + '/' + label.id;
+};
+
 insightApp.getActionStageUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/stageType';
 }

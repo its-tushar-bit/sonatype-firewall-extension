@@ -36,6 +36,7 @@
 <script type='text/javascript' src='SlickGridComponent.js'></script>
 <script type='text/javascript' src='InsightApp.js'></script>
 <script type='text/javascript' src='InsightPolicyController.js'></script>
+<script type='text/javascript' src='LabelController.js'></script>
 </head>
 <body style="height: 100%; padding-top: 60px;">
 	<div class="container">
@@ -201,8 +202,55 @@
 					</div>
 				</div>
 			</div>
-			<div class="tab-pane" id="label">
-			    <div class="span6 offset4 no-content">Label content is under development..</div>
+			<div class="tab-pane" id="label" ng-controller="LabelController">
+                <div>
+                    <table class='table table-bordered table-striped' style='width:30%;min-width:300px'>
+                        <thead><tr><th>Label</th></tr></thead>
+                        <tr ng-repeat="label in labels">
+                            <td><span class="label {{label.color}}Label">{{label.label}}</span></td>
+                            <td style='width:60px'><button ng-click='editLabel(label)' class="btn btn-mini btn-edit" title="Edit Label"><i class="icon-pencil" style="margin-top:0px;"></i></button> <button ng-click='confirmDeleteLabel(label)' class="btn btn-mini btn-delete" title="Delete Label"><i class="icon-trash" style="margin-top:0px;"></i></button></td>
+                        </tr>
+                        <tfoot>
+                            <tr>
+                                <td colspan='2' style='text-align:right;'><button class='btn btn-add btn-info' ng-click='editLabel()'><i class='icon-white icon-plus-sign'> </i> Add Label</button></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+				<div id="labelEditModal" data-backdrop="static" class="modal hide">
+					<div class="modal-header">
+					    <button type="button" class="close" data-dismiss="modal">×</button>
+                        <h3 ng-show='selectedLabel.id == null'>Add Label</h3>
+                        <h3 ng-show='selectedLabel.id != null'>Edit Label</h3>
+					</div>
+					<div class="modal-body">
+                        <form name='labelEditor'>
+                            <p>
+                                <input type='text' name='label' ng-model='selectedLabel.label' required>
+                            </p>
+                            <div ng-show='selectedLabel.label.length > 0'>
+                                <span ng-repeat="color in colors"> <input type='radio' ng-model='selectedLabel.color' ng-value='color' name='color'><span class="label {{color}}Label">{{selectedLabel.label}}</span> </span>
+                            </div>
+                        </form>
+					</div>
+					<div class="modal-footer">
+						<button class="btn" data-dismiss="modal">Cancel</button>
+					    <button class="btn btn-primary" ng-click="saveLabelClick()" ng-disabled='!{{editSave}} && selectedLabel.label && selectedLabel.label != ""'>Save</button>
+					</div>
+				</div>
+				<div id="deleteLabelModal" data-backdrop="static" class="modal hide">
+					<div class="modal-header">
+					    <button type="button" class="close" data-dismiss="modal">×</button>
+					    <h3>Delete Label?</h3>
+					</div>
+					<div class="modal-body">
+						<p>Are you sure you want to delete the label <span class="label {{selectedLabel.color}}Label">{{selectedLabel.label}}</span>?</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn" data-dismiss="modal">Cancel</button>
+					    <button class="btn btn-primary" ng-click="deleteLabel()">Delete</button>
+					</div>
+				</div>
 			</div>
 			<div class="tab-pane" id="licenseGroup">
 			    <div class="span6 offset4 no-content">License Group content is under development..</div>

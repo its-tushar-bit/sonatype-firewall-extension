@@ -392,6 +392,7 @@ function InsightPolicyController($scope, global, $http) {
 	}
 	
 	$scope.cancelPolicyClick = function(){
+		$('#cancelPolicyConfirmationModal').modal('hide');
 		$scope.reset();
 	}
 	

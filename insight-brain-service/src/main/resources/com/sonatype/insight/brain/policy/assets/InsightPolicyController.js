@@ -39,13 +39,40 @@ function InsightPolicyController($scope, global, $http) {
 		data.summary.actions = actionNames;
 	}
 	
+	function parseConditionValue(conditionTypeId, valueId, valueDataType){
+		var conditionValueObject = getConditionValue(conditionTypeId, valueId);
+		if (conditionValueObject){
+			switch (valueDataType){
+			case 'License':
+				return conditionValueObject.shortDisplayName;
+			case 'MatchState':
+			case 'LicenseStatus':
+			case 'SecurityVulnerabilityStatus':
+				return conditionValueObject.name;
+			}
+			
+			return valueId;
+		}
+	}
+	
 	function parseConditionValues(data) {
 		angular.forEach(data.constraints, function(constraint,constraintIndex){
 			angular.forEach(constraint.conditions, function(condition, conditionIndex){
 				if ( condition.value ){
+					var conditionValueType = getConditionValueType(getConditionType(condition.conditionTypeId).valueTypeId);
+					condition.valueText = '';
 					var parts = condition.value.split(',');
 					if ( parts.length > 1 ){
 						condition.value = parts;
+						for ( var i = 0 ; i < condition.value.length ; i++ ){
+							var valueText = parseConditionValue(condition.conditionTypeId, condition.value[i], conditionValueType.dataType);
+							if (condition.valueText){
+								condition.valueText += ', ';
+							}
+							condition.valueText += valueText;
+						}
+					} else {
+						condition.valueText = parseConditionValue(condition.conditionTypeId, condition.value, conditionValueType.dataType);
 					}
 				}
 			});
@@ -76,6 +103,22 @@ function InsightPolicyController($scope, global, $http) {
 		for ( var i = 0 ; i < $scope.state.conditionValueTypeList.length ; i++ ){
 			if ( $scope.state.conditionValueTypeList[i].id == id ){
 				return $scope.state.conditionValueTypeList[i];
+			}
+		}
+		
+		return null;
+	}
+	
+	function getConditionValue(conditionTypeId, valueId){
+		var conditionValueType = getConditionValueType(getConditionType(conditionTypeId).valueTypeId);
+		
+		if (!conditionValueType.availableValues){
+			return valueId;
+		}
+		
+		for ( var i = 0 ; i < conditionValueType.availableValues.length ; i++ ){
+			if ( conditionValueType.availableValues[i].id === valueId ){
+				return conditionValueType.availableValues[i];
 			}
 		}
 		
@@ -228,7 +271,7 @@ function InsightPolicyController($scope, global, $http) {
     		field : "value",
     		width : 100,
 			formatter : function(row, cell, value, columnDef, dataContext) {
-				return '<table><tr><td style="padding: 0px;width: 99%;">' + (value ? value : '') + '</td>'
+				return '<table><tr><td style="padding: 0px;width: 99%;">' + (dataContext.valueText ? dataContext.valueText : (value ? value : '')) + '</td>'
 				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'
 				    + '</tr></table>';
 			}
@@ -420,7 +463,25 @@ function InsightPolicyController($scope, global, $http) {
     	$('#deleteConstraintConfirmationModal').modal('hide');
 	}
 	
-	$scope.addConstraintCondition = function() {
+	$scope.addConstraintCondition = function() {		
+		if ( $scope.state.currentCondition.value ){
+			var conditionValueType = getConditionValueType(getConditionType($scope.state.currentCondition.conditionTypeId).valueTypeId);
+			$scope.state.currentCondition.valueText = '';
+			var parts = $scope.state.currentCondition.value.split(',');
+			if ( parts.length > 1 ){
+				$scope.state.currentCondition.value = parts;
+				for ( var i = 0 ; i < $scope.state.currentCondition.value.length ; i++ ){
+					var valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value[i], conditionValueType.dataType);
+					if ($scope.state.currentCondition.valueText){
+						$scope.state.currentCondition.valueText += ', ';
+					}
+					$scope.state.currentCondition.valueText += valueText;
+				}
+			} else {
+				$scope.state.currentCondition.valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value, conditionValueType.dataType);
+			}
+		}
+		
 		$scope.state.currentConstraint.conditions.push($scope.state.currentCondition);
 		
 		$scope.state.currentCondition = {};

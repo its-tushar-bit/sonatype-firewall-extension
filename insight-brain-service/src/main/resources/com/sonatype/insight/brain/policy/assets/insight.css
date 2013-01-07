@@ -110,64 +110,10 @@ input.editor-checkbox {
   text-align: center;
 }
 
-.label {
-  -moz-border-radius: 3px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-  border-style: solid;
-  border-width: 1px;
-  font-size: 12px;
-  overflow: hidden;
-  margin: 0;
-  padding: 1px 3px;
-  text-align: center;
-  vertical-align: middle;
-  border-color: #AFBFCF;
-  white-space: nowrap;
-}
-
-.whiteLabel {
-  background-color: #EEEEEE;
-  color : black;
-}
-
-.greyLabel {
-  background-color: #BFBFBF;
-  color : black;
-}
-
-.blackLabel {
-  background-color: #444444;
-  color : white;
-}
-
-.greenLabel {
-  background-color: #46A546;
-  color : white;
-}
-
-.yellowLabel {
-  background-color: #FAF20F;
-  color : black;
-}
-
-.orangeLabel {
-  background-color: #F89406;
-  color : white;
-}
-
-.redLabel {
-  background-color: #C43C35;
-  color : white;
-}
-
-.blueLabel {
-  background-color: #0080FF;
-  color : white;
-}
 .navbar .brand {
 	margin-left:0px;
 }
+
 .header-centered {
 	text-align:center;
 }

@@ -129,6 +129,22 @@ function InsightPolicyController($scope, global, $http) {
 		return id === 'build';
 	}
 	
+	function showHttpMask(bodyText){
+		$scope.state.httpMaskBody = bodyText;
+		$('#httpMaskModal').modal('show');
+	}
+	
+	function hideHttpMask(){
+		$('#httpMaskModal').modal('hide');
+	}
+	
+	function handleHttpError(headerText, bodyText, status) {
+		hideHttpMask();
+		$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
+		$scope.state.httpErrorHeader = headerText;
+		$('#httpErrorModal').modal('show');
+	}
+	
 	$scope.state = global;
 	
 	var checkboxSelector = new Slick.CheckboxSelectColumn({
@@ -358,6 +374,7 @@ function InsightPolicyController($scope, global, $http) {
 		//I copy the item here as I don't want to dirty the UI data with changes needed for the server
 		var item = angular.copy($scope.state.currentPolicy);
 		composeConditionValues(item);
+		showHttpMask('Saving policy...');
 		//edit
 		if ($scope.state.currentPolicy.id) {		    
 			$http.put(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
@@ -370,6 +387,9 @@ function InsightPolicyController($scope, global, $http) {
 					}
             	}
 				$scope.reset();
+				hideHttpMask();
+			}).error(function(data, status, headers, config){
+				handleHttpError('Policy Save Error', data, status);
 			});
 		} else {		   			
 			$http.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
@@ -377,17 +397,24 @@ function InsightPolicyController($scope, global, $http) {
         		parseConditionValues(data);
 				$scope.state.policyList.push(data);
 				$scope.reset();
+				hideHttpMask();
+			}).error(function(data, status, headers, config){
+				handleHttpError('Policy Save Error', data, status);
 			});
 		}
 	}
 	
 	$scope.deletePolicyClick = function(){
+		$('#deletePolicyConfirmationModal').modal('hide');
+		showHttpMask('Deleting policy...');
 		$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyToDelete.id).success(function(data, status, headers, config){
 			var idx = $scope.state.policyList.indexOf($scope.state.policyToDelete);
 			if (idx >= 0){
 				$scope.state.policyList.splice(idx,1);
-				$('#deletePolicyConfirmationModal').modal('hide');
 			}
+			hideHttpMask();
+		}).error(function(data, status, headers, config){
+			handleHttpError('Policy Delete Error', data, status);
 		});
 	}
 	
@@ -395,7 +422,7 @@ function InsightPolicyController($scope, global, $http) {
 		$('#cancelPolicyConfirmationModal').modal('hide');
 		$scope.reset();
 	}
-	
+
 	$scope.validatePolicy = function() {
 		delete $scope.state.policyValid;
 		if ($scope.state.currentPolicy.name
@@ -590,6 +617,7 @@ function InsightPolicyController($scope, global, $http) {
 		$scope.pushActionDataToModel(newScopeData);
 	},true);
 	
+	showHttpMask('Loading data from server...');
 	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {
     	$scope.state.conditionTypeList = conditionTypeData;
     	$http.get(insightApp.getActionTypeUrl()).success(function(actionTypeData, status, headers, config) {
@@ -607,11 +635,22 @@ function InsightPolicyController($scope, global, $http) {
 	                	}
 	                	
 	                	$scope.reset();
-	                });
+	                	hideHttpMask();
+	                }).error(function(data, status, headers, config){
+	                	handleHttpError('Policy Initialization Error', data, status);
+	            	});
+        		}).error(function(data, status, headers, config){
+        			handleHttpError('Condition Value Type Initialization Error', data, status);
         		});
+        	}).error(function(data, status, headers, config){
+        		handleHttpError('Action Stage Initialization Error', data, status);
         	});
+    	}).error(function(data, status, headers, config){
+    		handleHttpError('Action Type Initialization Error', data, status);
     	});
-    });
+    }).error(function(data, status, headers, config){
+    	handleHttpError('Condition Type Initialization Error', data, status);
+	});
 	
 	$('#editConstraintModal').live('show', function (event) {
 		setTimeout(function(){

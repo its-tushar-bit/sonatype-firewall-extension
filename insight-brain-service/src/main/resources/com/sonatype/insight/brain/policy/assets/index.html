@@ -200,6 +200,23 @@
 					    <button class="btn btn-primary" ng-click="cancelPolicyClick()">Yes</button>
 					</div>
 				</div>
+				<div id="httpMaskModal" data-backdrop="static" class="modal hide">
+					<div class="modal-body">
+						<p>{{state.httpMaskBody}}</p>
+					</div>
+				</div>
+				<div id="httpErrorModal" data-backdrop="static" class="modal hide">
+					<div class="modal-header">
+					    <button type="button" class="close" data-dismiss="modal">×</button>
+					    <h3>{{state.httpErrorHeader}}</h3>
+					</div>
+					<div class="modal-body">
+						<p>{{state.httpErrorBody}}</p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-primary" data-dismiss="modal">OK</button>
+					</div>
+				</div>
 			</div>
 			<div class="tab-pane" id="label">
 			    <div class="span6 offset4 no-content">Label content is under development..</div>

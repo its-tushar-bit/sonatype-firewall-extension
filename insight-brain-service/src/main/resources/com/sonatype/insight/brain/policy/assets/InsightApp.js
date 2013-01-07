@@ -6,8 +6,9 @@ insightApp.factory('global', function($rootScope) {
 });
 
 insightApp.getQueryString = function(key) {
-    var vars = [], hash;
-    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    var vars = [],
+        hashes = window.location.search.slice(1).split('&'),
+        hash;
     for(var i = 0; i < hashes.length; i++){
         hash = hashes[i].split('=');
         vars.push(hash[0]);

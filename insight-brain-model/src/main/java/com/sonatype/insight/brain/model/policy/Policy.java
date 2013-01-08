@@ -147,7 +147,7 @@ public class Policy
         }
         if ( constraints == null || constraints.isEmpty() )
         {
-            result.addError( "The '" + name + "' policy does not have any constraints" );
+            result.addError( "Policy '" + name + "' has no constraints" );
         }
         else
         {

@@ -95,7 +95,7 @@ public class Constraint
         }
         conditions.add( condition );
     }
-    
+
     public ValidationResult validate()
     {
         ValidationResult result = new ValidationResult();
@@ -105,14 +105,22 @@ public class Constraint
         }
         if ( conditions == null || conditions.isEmpty() )
         {
-            result.addError( "The '" + name + "' constraint does not have any conditions" );
+            result.addError( "Constraint '" + name + "' has no conditions" );
             return result;
         }
 
+        ValidationResult conditionsResult = new ValidationResult();
         for ( Condition condition : conditions )
         {
-            result.merge( condition.validate() );
+            conditionsResult.merge( condition.validate() );
         }
+
+        if ( !conditionsResult.isValid() )
+        {
+            result.addError( "Constraint '" + name + "' has invalid conditions:" );
+            result.merge( conditionsResult );
+        }
+
         return result;
     }
 

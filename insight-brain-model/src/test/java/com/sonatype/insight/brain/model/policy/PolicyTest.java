@@ -41,7 +41,7 @@ public class PolicyTest
         Policy policy = new Policy();
         policy.setName( "Policy Name" );
         ValidationResult result = policy.validate();
-        assertValidationResult( "The 'Policy Name' policy does not have any constraints", result );
+        assertValidationResult( "Policy 'Policy Name' has no constraints", result );
     }
 
     @Test
@@ -87,7 +87,7 @@ public class PolicyTest
         Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate();
-        assertValidationResult( "The 'Constraint Name' constraint does not have any conditions", result );
+        assertValidationResult( "Constraint 'Constraint Name' has no conditions", result );
     }
 
     @Test
@@ -98,7 +98,7 @@ public class PolicyTest
         constraint.addCondition( new Condition( null /* conditionTypeId */, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate();
-        assertValidationResult( "Invalid condition type id: 'null'", result );
+        assertConditionValidationResult( "Invalid condition type id: 'null'", result );
     }
 
     @Test
@@ -109,7 +109,7 @@ public class PolicyTest
         constraint.addCondition( new Condition( " " /* conditionTypeId */, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate();
-        assertValidationResult( "Invalid condition type id: ' '", result );
+        assertConditionValidationResult( "Invalid condition type id: ' '", result );
     }
 
     @Test
@@ -120,7 +120,7 @@ public class PolicyTest
         constraint.addCondition( new Condition( "abc" /* conditionTypeId */, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate();
-        assertValidationResult( "Invalid condition type id: 'abc'", result );
+        assertConditionValidationResult( "Invalid condition type id: 'abc'", result );
     }
 
     @Test
@@ -131,8 +131,8 @@ public class PolicyTest
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, null /* operator */) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate();
-        assertValidationResult( "Invalid condition: Condition [conditionTypeId=SecurityVulnerability, operator=null, value=null]: Operator is null",
-                                result );
+        assertConditionValidationResult( "Invalid condition 'SecurityVulnerability null null', Operator is null",
+                                         result );
     }
 
     private void assertValidationResult( String error, ValidationResult result )
@@ -141,5 +141,14 @@ public class PolicyTest
         Assert.assertFalse( result.isValid() );
         Assert.assertEquals( 1, result.getErrors().size() );
         Assert.assertEquals( error, result.getErrors().get( 0 ) );
+    }
+
+    private void assertConditionValidationResult( String error, ValidationResult result )
+    {
+        Assert.assertNotNull( result );
+        Assert.assertFalse( result.isValid() );
+        Assert.assertEquals( 2, result.getErrors().size() );
+        Assert.assertEquals( "Constraint 'Constraint Name' has invalid conditions:", result.getErrors().get( 0 ) );
+        Assert.assertEquals( error, result.getErrors().get( 1 ) );
     }
 }

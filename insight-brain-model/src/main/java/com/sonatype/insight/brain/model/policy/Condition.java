@@ -82,6 +82,11 @@ public class Condition
         return null;
     }
 
+    public String toMessageString()
+    {
+        return conditionTypeId + ' ' + operator + ' ' + value;
+    }
+
     @Override
     public String toString()
     {

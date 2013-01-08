@@ -1,4 +1,4 @@
-var insightApp = angular.module('insightApp', [], function(){
+var insightApp = angular.module('insightApp', ['ngSanitize'], function(){
 });
 
 insightApp.factory('global', function($rootScope) {

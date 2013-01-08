@@ -11,6 +11,6 @@ public class InvalidConditionException
 {
     public InvalidConditionException( Condition condition, String message )
     {
-        super( "Invalid condition: " + condition.toString() + ": " + message );
+        super( "Invalid condition '" + condition.toMessageString() + "', " + message );
     }
 }

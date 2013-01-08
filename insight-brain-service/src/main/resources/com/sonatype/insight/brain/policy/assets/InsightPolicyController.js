@@ -140,7 +140,7 @@ function InsightPolicyController($scope, global, $http) {
 	
 	function handleHttpError(headerText, bodyText, status) {
 		hideHttpMask();
-		$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText.replace(/\n/g, '<br/>');
+		$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
 		$scope.state.httpErrorHeader = headerText;
 		$('#httpErrorModal').modal('show');
 	}

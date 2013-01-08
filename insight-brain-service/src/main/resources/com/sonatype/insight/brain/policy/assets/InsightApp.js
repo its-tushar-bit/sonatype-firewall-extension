@@ -1,6 +1,16 @@
 var insightApp = angular.module('insightApp', ['ngSanitize'], function(){
 });
 
+insightApp.filter('escape', function() {
+  return function(input) {
+    if (input.indexOf('<html>') >= 0) {
+      return input
+    } else {
+      return input.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
+    }
+  }
+});
+
 insightApp.factory('global', function($rootScope) {
     return {};
 });

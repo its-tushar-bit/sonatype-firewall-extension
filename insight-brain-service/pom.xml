@@ -362,18 +362,18 @@
             <include>slickgrid/slick.cellrangeselector.js</include>
             <include>slickgrid/slick.cellrangedecorator.js</include>
             <include>slickgrid/slick.checkboxselectcolumn.js</include>
-            <include>angular/angular-1.0.2.js</include>
+            <include>angular/angular-1.0.3.js</include>
             <include>SlickGridComponent.js</include>
             <include>InsightApp.js</include>
-	        <include>InsightPolicyController.js</include>
+            <include>InsightPolicyController.js</include>
           </sourceIncludes>
           <specIncludes>
-            <include>angular-mocks-1.0.2.js</include>
+            <include>angular-mocks-1.0.3.js</include>
             <include>InsightPolicyControllerSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/policy/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/policy/assets</jsTestSrcDir>
-	    </configuration>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

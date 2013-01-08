@@ -174,7 +174,7 @@ public class TestInsightBrainService
         public boolean check()
             throws Exception
         {
-            return path( "rest/bc/validate/freemium" ).get().status() == 200;
+            return path( "rest/ci/validate/freemium" ).get().status() == 200;
         }
     }
 }

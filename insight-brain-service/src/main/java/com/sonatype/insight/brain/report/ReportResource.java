@@ -132,7 +132,7 @@ public class ReportResource
             }
         }
 
-        final ReportDataRequest request = new ReportDataRequest( "rest/bc/artifact/" + scanId + //
+        final ReportDataRequest request = new ReportDataRequest( "rest/ci/artifact/" + scanId + //
             "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
 
         final ReportDataResult result = downloader.fetch( proxy.contextualize( request ) );

@@ -177,7 +177,7 @@ function InsightPolicyController($scope, global, $http) {
 			id : "fail",
 			name : "Fail",
 			field : "fail",
-			width : 50,
+			width : 60,
 			cssClass: "checkbox-edit-cell",
 			headerCssClass: "header-centered",
 			formatter: function(row,cell,value,columnDef,dataContext){
@@ -190,7 +190,7 @@ function InsightPolicyController($scope, global, $http) {
 				}
 				
 				if ($scope.state.actionEditMode){
-					return prefix + "<input id='actionField-" + dataContext.id + "-fail' " + (prefix.length ? 'disabled' : '') + " class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
+					return prefix + "<input id='actionField-" + dataContext.id + "-fail' name='actionField-" + dataContext.id + "' " + (prefix.length ? 'disabled' : '') + " type='radio'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
 				} else {
 					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
 				}
@@ -199,7 +199,7 @@ function InsightPolicyController($scope, global, $http) {
 			id : "warn",
 			name : "Warn",
 			field : "warn",
-			width : 50,
+			width : 60,
 			cssClass: "checkbox-edit-cell",
 			headerCssClass: "header-centered",
 			formatter: function(row,cell,value,columnDef,dataContext){
@@ -212,24 +212,34 @@ function InsightPolicyController($scope, global, $http) {
 				}
 				
 				if ($scope.state.actionEditMode){
-					return prefix + "<input id='actionField-" + dataContext.id + "-warn' " + (prefix.length ? 'disabled' : '') + " class='editor-checkbox' type='checkbox'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
+					return prefix + "<input id='actionField-" + dataContext.id + "-warn' name='actionField-" + dataContext.id + "' " + (prefix.length ? 'disabled' : '') + " type='radio'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
 				} else {
 					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
 				}
 			}
-		}/*,{
-			id : "notify",
-			name : "Notify",
-			field : "notify",
-			width : 800,
+		},{
+			id : "none",
+			name : "Do Nothing",
+			field : "none",
+			width : 75,
+			cssClass: "checkbox-edit-cell",
+			headerCssClass: "header-centered",
 			formatter: function(row,cell,value,columnDef,dataContext){
+				var prefix = '';
+				var suffix = '';
+				
+				if (!isAvailableStage(dataContext.id)){
+					prefix = "<div class='masked-cell' title='This stage is under development'>";
+					suffix = "</div>";
+				}
+				
 				if ($scope.state.actionEditMode){
-					return "<input id='actionField-" + dataContext.id + "-notify' class='editor-text' type='text' value='" + (value ? value : "") + "'></input>";
+					return prefix + "<input id='actionField-" + dataContext.id + "-none' name='actionField-" + dataContext.id + "' " + (prefix.length ? 'disabled' : '') + " type='radio'" + (!dataContext.warn && !dataContext.fail ? ' checked ' : '') + "'></input>" + suffix;
 				} else {
-					return value;
+					return prefix + (!dataContext.warn && !dataContext.fail ? "<img src='img/tick.png'>" : "") + suffix;
 				}
 			}
-		}*/],
+		}],
 		options : {
 			forceFitColumns : true,
 			fullWidthRows : true

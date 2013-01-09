@@ -63,7 +63,6 @@ public class ComponentLabelDAOTest
     @Test
     public void testSetComponentLabels_None()
     {
-        String hash = "ababababab";
         Set<String> noLabels = Collections.emptySet();
         ComponentLabelDAO dao = new ComponentLabelDAO();
         List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
@@ -89,7 +88,6 @@ public class ComponentLabelDAOTest
     @Test
     public void testSetComponentLabels_One()
     {
-        String hash = "ababababab";
         Set<String> newLabels = toLabelSet( "Label" );
         ComponentLabelDAO dao = new ComponentLabelDAO();
         List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
@@ -111,7 +109,6 @@ public class ComponentLabelDAOTest
     @Test
     public void testSetComponentLabels_Two()
     {
-        String hash = "ababababab";
         Set<String> newLabels = toLabelSet( "Label1", "Label2" );
         ComponentLabelDAO dao = new ComponentLabelDAO();
         List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );

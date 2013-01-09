@@ -204,6 +204,17 @@ public class ReportResource
         return Response.ok().build();
     }
 
+    private static final String[] FEATURE_FLAGS = { "policy" }; // hard-coded for now
+
+    @GET
+    @Path( "features" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public Response features()
+        throws IOException
+    {
+        return Response.ok( JsonUtils.generate( FEATURE_FLAGS ) ).build();
+    }
+
     public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String appId,
                                     final String scanId )
     {

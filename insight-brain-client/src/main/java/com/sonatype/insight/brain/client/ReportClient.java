@@ -63,4 +63,10 @@ public final class ReportClient
         final String[] params = { "key", jsonKey };
         return path( "rest/report", appId, scanId, "auditLog", path ).query( params ).get();
     }
+
+    public ServletResult features()
+        throws IOException
+    {
+        return path( "rest/report", appId, scanId, "features" ).get();
+    }
 }

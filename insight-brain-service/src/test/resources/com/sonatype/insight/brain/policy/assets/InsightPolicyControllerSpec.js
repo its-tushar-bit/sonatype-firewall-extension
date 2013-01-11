@@ -244,7 +244,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.addConstraintConditionFormValid).not.toBeDefined();
 		expect(scope.state.currentConstraint.conditions.length).toBe(0);
 		expect(scope.state.currentConstraint.operator).toBe('OR');
-		expect(scope.state.currentCondition).toEqual({});
+		expect(scope.state.currentCondition).toEqual({valueModifier:'y'});
 		expect(scope.state.conditionTypeList[0].name).toBe('License Category');
 		expect(scope.state.conditionTypeList[0].id).toBe('LicenseCategory');
 		expect(scope.state.conditionTypeList[0].supportedOperators).toEqual(['is','is not']);

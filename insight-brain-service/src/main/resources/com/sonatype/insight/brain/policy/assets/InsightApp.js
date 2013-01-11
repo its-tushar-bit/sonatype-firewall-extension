@@ -1,6 +1,17 @@
 var insightApp = angular.module('insightApp', ['ngSanitize'], function(){
 });
 
+insightApp.run(['$http', '$rootScope', function($http, $rootScope) {
+	$rootScope.features = {};
+	$http.get('features').success(function(data) {
+		angular.forEach(data, function (value, key) {
+			$rootScope.features[value] = true;
+		});
+	}).error(function () {
+		console.log('Failed to load features, some features may not be available');
+	});
+}]);
+
 insightApp.filter('escape', function() {
 	return function(input) {
 		if (!input) {

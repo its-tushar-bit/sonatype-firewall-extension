@@ -212,7 +212,7 @@ public class ComponentDAO
 
     private List<String> jsonStringArrayToList( JsonNode jsonNode )
     {
-        if ( jsonNode == null )
+        if ( JsonUtils.isNull( jsonNode ) )
         {
             return null;
         }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JsonUtils
@@ -197,7 +198,7 @@ public final class JsonUtils
 
     public static Float getNullableFloat( JsonNode jsonNode )
     {
-        if ( jsonNode == null )
+        if ( isNull( jsonNode ) )
         {
             return null;
         }
@@ -206,10 +207,15 @@ public final class JsonUtils
 
     public static String getNullableString( JsonNode jsonNode )
     {
-        if ( jsonNode == null )
+        if ( isNull( jsonNode ) )
         {
             return null;
         }
         return jsonNode.asText();
+    }
+
+    public static boolean isNull( JsonNode jsonNode )
+    {
+        return jsonNode == null || jsonNode instanceof NullNode;
     }
 }

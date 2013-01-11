@@ -14,6 +14,8 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -58,6 +60,9 @@ public class ReportResource
 
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
 
+    private static final ConcurrentMap<String, Lock> LOCK_TABLE =
+        CacheBuilder.newBuilder().weakValues().<String, Lock> build().asMap();
+
     static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS =
         CacheBuilder.newBuilder().maximumSize( 8192 ).<String, Integer> build().asMap();
 
@@ -75,7 +80,7 @@ public class ReportResource
                                  @PathParam( "path" ) final String path )
     {
         final String name = Report.toEntryName( path );
-        final File reportFile = fetchReport( work, proxy, appId, scanId );
+        final File reportFile = fetchReport( work, proxy, appId, scanId, false );
         ReportEntry entry = null;
         try
         {
@@ -100,7 +105,7 @@ public class ReportResource
                                  @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
-        final File reportFile = fetchReport( work, proxy, appId, scanId );
+        final File reportFile = fetchReport( work, proxy, appId, scanId, true );
 
         final ResponseBuilder response = Response.ok();
 
@@ -121,15 +126,19 @@ public class ReportResource
         throws Exception
     {
         ReportEntry reportEntry = null;
-        final File reportFile = work.getReportFile( appId, scanId );
-        if ( reportFile.exists() )
+        try
         {
+            final File reportFile = fetchReport( work, proxy, appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
             final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
             {
                 return Response.status( 304 ).build();
             }
+        }
+        catch ( final Exception e )
+        {
+            log.debug( "No report available, details will not be augmented", e );
         }
 
         final ReportDataRequest request = new ReportDataRequest( "rest/ci/artifact/" + scanId + //
@@ -216,47 +225,71 @@ public class ReportResource
     }
 
     public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String appId,
-                                    final String scanId )
+                                    final String scanId, final boolean waitForReport )
     {
-        final File reportFile = work.getReportFile( appId, scanId );
-        if ( !reportFile.exists() )
+        final Lock lock = lockFor( appId, scanId );
+        if ( waitForReport )
         {
-            if ( !downloadReport( proxy, appId, scanId, reportFile ) )
-            {
-                throw new NotFoundException( "Could not download the report for scan id " + scanId );
-            }
+            lock.lock();
         }
-
-        final File auditDir = work.getAuditDir( appId );
-        final int newCount = JsonUtils.fileStore( auditDir ).modificationCount();
-        final Integer oldCount = MODIFICATION_COUNTS.get( appId + '-' + scanId );
-
-        if ( oldCount == null || oldCount < newCount )
+        else if ( !lock.tryLock() )
         {
-            try
-            {
-                Report.deletePdf( reportFile );
-
-                Report.applyChanges( reportFile, auditDir );
-
-                MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
-            }
-            catch ( final IOException e )
-            {
-                log.warn( "Could not apply latest data edits to Insight report", e );
-            }
+            throw new NotFoundException( "The report for scan id " + scanId + " is still being downloaded" );
         }
+        try
+        {
+            final File reportFile = work.getReportFile( appId, scanId );
+            if ( !reportFile.exists() )
+            {
+                if ( !downloadReport( proxy, appId, scanId, reportFile, waitForReport ) )
+                {
+                    throw new NotFoundException( "Could not download the report for scan id " + scanId );
+                }
+            }
 
-        return reportFile;
+            final File auditDir = work.getAuditDir( appId );
+            final int newCount = JsonUtils.fileStore( auditDir ).modificationCount();
+            final Integer oldCount = MODIFICATION_COUNTS.get( appId + '-' + scanId );
+
+            if ( oldCount == null || oldCount < newCount )
+            {
+                try
+                {
+                    Report.deletePdf( reportFile );
+
+                    Report.applyChanges( reportFile, auditDir );
+
+                    MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
+                }
+                catch ( final IOException e )
+                {
+                    log.warn( "Could not apply latest data edits to Insight report", e );
+                }
+            }
+
+            return reportFile;
+        }
+        finally
+        {
+            lock.unlock();
+        }
     }
 
     private static boolean downloadReport( final InsightProxy proxy, final String appId, final String scanId,
-                                           final File reportFile )
+                                           final File reportFile, final boolean waitForReport )
     {
         final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
 
-        request.setRetryAttempts( 30 );
-        request.setRetryInterval( 30 );
+        if ( waitForReport )
+        {
+            request.setRetryAttempts( 30 );
+            request.setRetryInterval( 30 );
+        }
+        else
+        {
+            request.setRetryAttempts( 0 );
+            request.setRetryInterval( 10 );
+        }
 
         reportFile.getAbsoluteFile().getParentFile().mkdirs();
         try
@@ -317,5 +350,20 @@ public class ReportResource
             }
         }
         return null;
+    }
+
+    private static Lock lockFor( final String appId, final String scanId )
+    {
+        Lock lock = LOCK_TABLE.get( appId + '-' + scanId );
+        if ( lock == null )
+        {
+            final Lock newLock = new ReentrantLock();
+            lock = LOCK_TABLE.putIfAbsent( appId + '-' + scanId, newLock );
+            if ( lock == null )
+            {
+                lock = newLock;
+            }
+        }
+        return lock;
     }
 }

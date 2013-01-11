@@ -76,7 +76,7 @@ public class PolicyEvaluateResource
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         final List<Policy> policies = policyDAO.getByApplicationId( appId );
 
-        final File reportFile = ReportResource.fetchReport( work, proxy, appId, scanId );
+        final File reportFile = ReportResource.fetchReport( work, proxy, appId, scanId, true );
 
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );

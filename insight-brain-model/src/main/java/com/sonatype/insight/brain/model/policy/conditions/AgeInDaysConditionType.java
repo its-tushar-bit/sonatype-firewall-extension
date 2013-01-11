@@ -89,6 +89,6 @@ public class AgeInDaysConditionType
     @Override
     public String getValueHint()
     {
-        return "Enter number of days";
+        return "Enter term";
     }
 }

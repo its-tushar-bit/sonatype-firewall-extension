@@ -39,20 +39,30 @@ function InsightPolicyController($scope, global, $http) {
 		data.summary.actions = actionNames;
 	}
 	
-	function parseConditionValue(conditionTypeId, valueId, valueDataType){
+	function parseConditionValue(conditionTypeId, valueId, conditionValueType, valueModifier){
 		var conditionValueObject = getConditionValue(conditionTypeId, valueId);
 		if (conditionValueObject){
-			switch (valueDataType){
+			switch (conditionValueType.dataType){
 			case 'License':
 				return conditionValueObject.shortDisplayName;
 			case 'MatchState':
 			case 'LicenseStatus':
 			case 'SecurityVulnerabilityStatus':
 				return conditionValueObject.name;
-			}
-			
-			return valueId;
+			}			
 		}
+		
+		if (conditionValueType.id === 'AgeInDaysValueType'){			
+			if ( valueId > 365 ) {
+				return (valueId / 365).toFixed( valueId % 365 ? 1 : 0 ) + ' years';
+			} else if ( valueId > 30 ) {
+				return (valueId / 30).toFixed(0) + ' months';
+			} else {
+				return valueId + ' days';
+			}
+		}
+		
+		return valueId;
 	}
 	
 	function parseConditionValues(data) {
@@ -65,14 +75,14 @@ function InsightPolicyController($scope, global, $http) {
 					if ( parts.length > 1 ){
 						condition.value = parts;
 						for ( var i = 0 ; i < condition.value.length ; i++ ){
-							var valueText = parseConditionValue(condition.conditionTypeId, condition.value[i], conditionValueType.dataType);
+							var valueText = parseConditionValue(condition.conditionTypeId, condition.value[i], conditionValueType, condition.valueModifier);
 							if (condition.valueText){
 								condition.valueText += ', ';
 							}
 							condition.valueText += valueText;
 						}
 					} else {
-						condition.valueText = parseConditionValue(condition.conditionTypeId, condition.value, conditionValueType.dataType);
+						condition.valueText = parseConditionValue(condition.conditionTypeId, condition.value, conditionValueType, condition.valueModifier);
 					}
 				}
 			});
@@ -123,6 +133,19 @@ function InsightPolicyController($scope, global, $http) {
 		}
 		
 		return null;
+	}
+	
+	function applyConditionValueModifier(valueTypeId, value, modifier) {
+		if ( valueTypeId === 'AgeInDaysValueType' ){
+			switch(modifier){
+			case 'y':
+				return value * 365;
+			case 'm':
+				return value * 30;
+			}
+		}
+		
+		return value;
 	}
 	
 	function isAvailableStage(id) {
@@ -319,7 +342,9 @@ function InsightPolicyController($scope, global, $http) {
 			conditions: [],
 			operator: 'OR'
 		};
-		$scope.state.currentCondition = {};
+		$scope.state.currentCondition = {
+			valueModifier: 'y'
+		};
 		delete $scope.state.currentConditionType;
 		delete $scope.state.currentConditionValueType;
 		delete $scope.state.actionEditMode;
@@ -509,14 +534,16 @@ function InsightPolicyController($scope, global, $http) {
 			if ( parts.length > 1 ){
 				$scope.state.currentCondition.value = parts;
 				for ( var i = 0 ; i < $scope.state.currentCondition.value.length ; i++ ){
-					var valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value[i], conditionValueType.dataType);
+					$scope.state.currentCondition.value[i] = applyConditionValueModifier(conditionValueType.id, $scope.state.currentCondition.value[i], $scope.state.currentCondition.valueModifier);
+					var valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value[i], conditionValueType, $scope.state.currentCondition.valueModifier);
 					if ($scope.state.currentCondition.valueText){
 						$scope.state.currentCondition.valueText += ', ';
 					}
 					$scope.state.currentCondition.valueText += valueText;
 				}
 			} else {
-				$scope.state.currentCondition.valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value, conditionValueType.dataType);
+				$scope.state.currentCondition.value = applyConditionValueModifier(conditionValueType.id, $scope.state.currentCondition.value, $scope.state.currentCondition.valueModifier);
+				$scope.state.currentCondition.valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value, conditionValueType, $scope.state.currentCondition.valueModifier);
 			}
 		}
 		

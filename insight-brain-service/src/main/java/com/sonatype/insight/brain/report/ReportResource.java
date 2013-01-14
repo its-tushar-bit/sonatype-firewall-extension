@@ -94,7 +94,7 @@ public class ReportResource
         }
         catch ( final Exception e )
         {
-            log.warn( "Embedding error", e );
+            log.warn( "Problem embedding report: " + e.getMessage(), e );
         }
         if ( entry != null )
         {
@@ -291,7 +291,7 @@ public class ReportResource
                 }
                 catch ( final IOException e )
                 {
-                    log.warn( "Could not apply latest data edits to Insight report", e );
+                    log.warn( "Problem applying changes to report: " + e.getMessage(), e );
                 }
             }
 

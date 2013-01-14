@@ -25,6 +25,10 @@ public final class ReportClient
     {
         super( config );
 
+        if ( scanId == null || scanId.trim().isEmpty() )
+        {
+            throw new IllegalArgumentException( "Cannot create a ReportClient without a scanId" );
+        }
         this.appId = UrlUtils.encodeUrlComponent( appId );
         this.scanId = UrlUtils.encodeUrlComponent( scanId );
     }

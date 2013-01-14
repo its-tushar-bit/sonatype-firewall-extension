@@ -19,6 +19,34 @@ public class ReportClientTest
     extends AbstractBrainServiceTest
 {
     @Test
+    public void testScanIdNull()
+    {
+        final String appId = "ReportClientTest_AppId";
+        try
+        {
+            new ReportClient( brain.getClientConfiguration(), appId, null /* scanId */);
+            Assert.fail( "Expected IllegalArgumentException" );
+        }
+        catch ( IllegalArgumentException expected )
+        {
+        }
+    }
+
+    @Test
+    public void testScanIdEmpty()
+    {
+        final String appId = "ReportClientTest_AppId";
+        try
+        {
+            new ReportClient( brain.getClientConfiguration(), appId, " " /* scanId */);
+            Assert.fail( "Expected IllegalArgumentException" );
+        }
+        catch ( IllegalArgumentException expected )
+        {
+        }
+    }
+
+    @Test
     public void testEmbedReport()
         throws Exception
     {

@@ -18,8 +18,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -29,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -73,6 +76,9 @@ public class ReportResource
 
     @Context
     InsightProxy proxy;
+
+    @Context
+    UriInfo uriInfo;
 
     @GET
     @Path( "embedReport/{path:.*}" )
@@ -211,6 +217,39 @@ public class ReportResource
             }
         }
         return Response.ok().build();
+    }
+
+    @GET
+    @Path( "brain/{path:.*}" )
+    public Response brainGet( final @PathParam( "path" ) String path )
+    {
+        return redirectToBrain( uriInfo, path );
+    }
+
+    @POST
+    @Path( "brain/{path:.*}" )
+    public Response brainPost( final @PathParam( "path" ) String path )
+    {
+        return redirectToBrain( uriInfo, path );
+    }
+
+    @PUT
+    @Path( "brain/{path:.*}" )
+    public Response brainPut( final @PathParam( "path" ) String path )
+    {
+        return redirectToBrain( uriInfo, path );
+    }
+
+    @DELETE
+    @Path( "brain/{path:.*}" )
+    public Response brainDelete( final @PathParam( "path" ) String path )
+    {
+        return redirectToBrain( uriInfo, path );
+    }
+
+    private static Response redirectToBrain( final UriInfo uriInfo, final String path )
+    {
+        return Response.temporaryRedirect( uriInfo.getRequestUriBuilder().replacePath( path ).build() ).build();
     }
 
     public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String appId,

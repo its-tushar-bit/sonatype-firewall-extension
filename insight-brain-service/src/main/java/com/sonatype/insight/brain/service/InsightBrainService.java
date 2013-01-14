@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
 import com.sonatype.insight.brain.policy.ActionTypeResource;
@@ -66,6 +67,7 @@ public class InsightBrainService
         DatabaseConfig databaseConfig = new DatabaseConfig( config.getConfigDir() );
         OperationalDataStoreProvider.init( databaseConfig );
 
+        env.addResource( FeaturesResource.class );
         env.addResource( ComponentLabelResource.class );
         env.addResource( LabelResource.class );
         env.addResource( ActionTypeResource.class );

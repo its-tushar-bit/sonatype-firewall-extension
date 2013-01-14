@@ -3,7 +3,7 @@ var insightApp = angular.module('insightApp', ['ngSanitize'], function(){
 
 insightApp.run(['$http', '$rootScope', function($http, $rootScope) {
 	$rootScope.features = {};
-	$http.get('features').success(function(data) {
+	$http.get('../rest/features').success(function(data) {
 		angular.forEach(data, function (value, key) {
 			$rootScope.features[value] = true;
 		});

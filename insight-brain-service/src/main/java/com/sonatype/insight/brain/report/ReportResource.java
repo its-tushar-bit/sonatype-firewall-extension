@@ -83,22 +83,30 @@ public class ReportResource
     @GET
     @Path( "embedReport/{path:.*}" )
     public Response embedReport( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
-                                 @PathParam( "path" ) final String path )
+                                 @PathParam( "path" ) final String path, @Context final HttpServletRequest httpRequest )
     {
         final String name = Report.toEntryName( path );
         final File reportFile = fetchReport( work, proxy, appId, scanId, false );
-        ReportEntry entry = null;
+        ReportEntry reportEntry = null;
         try
         {
-            entry = Report.getEntry( reportFile, name );
+            reportEntry = Report.getEntry( reportFile, name );
         }
         catch ( final Exception e )
         {
             log.warn( "Problem embedding report: " + e.getMessage(), e );
         }
-        if ( entry != null )
+        if ( reportEntry != null )
         {
-            return Response.ok( entry.buf, MediaTypeUtils.byName( name ) ).build();
+            final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+            if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
+            {
+                return Response.status( 304 ).build();
+            }
+            final ResponseBuilder response = Response.ok( reportEntry.buf );
+            response.lastModified( new Date( reportEntry.time ) );
+            response.type( MediaTypeUtils.byName( name ) );
+            return response.build();
         }
         return Response.status( Status.NOT_FOUND ).build();
     }

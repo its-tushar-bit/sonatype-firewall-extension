@@ -41,21 +41,25 @@
     border: 1px solid #6185B7;
     background-color: #6E99D0;
     font-weight: bold;
+    color: #DDD;
 }
 .policy-threat-level-1, .policy-threat-color-1, #policyThreatLevel option[value="9"], .policy-threat-level-2, .policy-threat-color-2, #policyThreatLevel option[value="8"], .policy-threat-level-3, .policy-threat-color-3, #policyThreatLevel option[value="7"] {
     border: 1px solid #DDBE18;
     background-color: #FEDF15;
     font-weight: bold;
+    color: #555;
 }
 .policy-threat-level-4, .policy-threat-color-4, #policyThreatLevel option[value="6"], .policy-threat-level-5, .policy-threat-color-5, #policyThreatLevel option[value="5"], .policy-threat-level-6, .policy-threat-color-6, #policyThreatLevel option[value="4"], .policy-threat-level-7, .policy-threat-color-7, #policyThreatLevel option[value="3"] {
     border: 1px solid #C67A22;
     background-color: #F7941D;
     font-weight: bold;
+    color: #DDD;
 }
 .policy-threat-level-8, .policy-threat-color-8, #policyThreatLevel option[value="2"], .policy-threat-level-9, .policy-threat-color-9, #policyThreatLevel option[value="1"], .policy-threat-level-10, .policy-threat-color-10, #policyThreatLevel option[value="0"] {
     border: 1px solid #B71218;
     background-color: #EE1B24;
     font-weight: bold;
+    color: #DDD;
 }
 #constraintConditionsGrid .slick-header-columns {
 	height: 0px;
@@ -77,7 +81,7 @@
 	border: 1px solid #999;
 	border: 1px solid rgba(0, 0, 0, 0.3);
 	margin: 10px;
-	padding: 5px;
+	padding: 10px;
 	height: 140px;
 	*border: 1px solid #999;
 	-webkit-border-radius: 6px;

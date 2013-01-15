@@ -40,6 +40,7 @@
 <style>
 html, body, .page-content {
 	height:100%;
+	box-sizing:border-box;
 }
 body {
 	background-color:rgb(85,85,85);
@@ -55,11 +56,21 @@ body {
 	vertical-align: middle;
 }
 .page-content {
-	background-image: url(img/page-content-bg.png);
-	background-repeat: repeat-y;
-	background-position: center;
 	padding-top: 60px;
 	width:100%;
+}
+.content-container {
+    background-color: rgba(255, 255, 255, 0.85);
+	border: 1px solid #999;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    margin: 10px;
+	-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+.content-container .page-header {
+	padding-left:20px;
 }
 </style>
 </head>
@@ -76,7 +87,7 @@ body {
 			</div>
 		</div>
 	</div>
-<div class='page-content'>
+<div class='page-content' ng-cloak>
 	<div class="container">
 		<div class="tab-content">
 			<div class="tab-pane active" id="policy" ng-controller="InsightPolicyController">
@@ -88,14 +99,14 @@ body {
 				        <span><b>{{policy.name}}</b><br>Threat Level: <div class="policy-threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
 				    </div>
 				</div>
-				<div ng-show="state.showAddPolicyScreen">
-					<div class="page-header">Create a new Policy</div>
-					<div class="form-horizontal" style="width:600px; padding-left:50px;">
+				<div ng-show="state.showAddPolicyScreen" class='content-container'>
+					<div class="page-header"><h4>Create a New Policy</h4></div>
+					<form class="form-horizontal" style="width:600px; padding-left:50px;">
 					    <div class="control-group">
 					        <label class="control-label" for="policyName">Name</label>
 					    	<div class="controls form-inline">
-						        <input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name">
-						        <label style="padding-left:10px;">Threat Level
+						        <input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
+						        <label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
 						    		<select 
 						    			id="policyThreatLevel" 
 						    			style="width:100px;"
@@ -104,7 +115,6 @@ body {
 						    			ng-change="validatePolicy()"
 						    			ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
 						    		</select>
-					    		</label>
 					    	</div>
 					    </div>
 					    <div class="control-group">
@@ -120,7 +130,7 @@ body {
 					    	<div class="controls">
 					    	    <div style="width:100%;">
 					    	    	<div class="btn-group btn-group-vertical" style="float:left;">
-						    	    	<button class="btn" ng-click="editActionsClick()" title="Edit Actions"><i class="icon-pencil"></i></button>
+										<button class="btn btn-small" ng-click="editActionsClick()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button>
 					    	    	</div>
 					    	        <slickgrid id="actionGrid" style="height:151px;" class="borderedTable" data="state.actionTableData" table-def="state.actionTableDefinition" ignore-click="true"></slickgrid>
 					    	    </div>
@@ -130,7 +140,7 @@ body {
 					    	<button type='none' class='btn' data-toggle="modal" data-target="#cancelPolicyConfirmationModal">Cancel</button>
 						    <button type='none' class='btn btn-primary' ng-click="savePolicyClick()" ng-disabled="!state.policyValid">Save</button>
 						</div>
-					</div>
+					</form>
 					<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 950px;margin: -250px 0 0 -475px;">
 						<div class="modal-header">
 						    <button type="button" class="close" data-dismiss="modal">×</button>
@@ -252,8 +262,8 @@ body {
 			</div>
 			<div class="tab-pane" id="label" ng-controller="LabelController">
 				<div ng-show='!features.labels' class="span6 offset4 no-content">Label content is under development..</div>
-                <div ng-show='features.labels'>
-                    <table class='table table-striped' style='width:30%;min-width:300px;border:1px solid #DDD;border-radius:4px'>
+                <div ng-show='features.labels' class='span4 content-container'>
+                    <table class='table table-striped' style='margin-bottom:0px'>
                         <thead><tr><th colspan='2'>Label</th></tr></thead>
                         <tr ng-repeat="label in labels">
                             <td style='line-height:24px'><span class="clmLabel {{label.color}}Label">{{label.label}}</span></td>

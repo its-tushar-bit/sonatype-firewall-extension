@@ -131,11 +131,11 @@ public class ComponentLabelDAO
                     label.setLabel( stringLabel );
                     labelDAO.insert( em, label );
                 }
-                ComponentLabel ComponentLabel = new ComponentLabel();
-                ComponentLabel.setApplicationId( applicationId );
-                ComponentLabel.setHash( hash );
-                ComponentLabel.setLabelId( label.getId() );
-                insert( em, ComponentLabel );
+                ComponentLabel componentLabel = new ComponentLabel();
+                componentLabel.setApplicationId( applicationId );
+                componentLabel.setHash( hash );
+                componentLabel.setLabelId( label.getId() );
+                insert( em, componentLabel );
             }
 
             em.getTransaction().commit();

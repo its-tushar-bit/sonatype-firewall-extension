@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
@@ -66,6 +67,7 @@ public class InsightBrainService
 
         DatabaseConfig databaseConfig = new DatabaseConfig( config.getConfigDir() );
         OperationalDataStoreProvider.init( databaseConfig );
+        loadDatabase();
 
         env.addResource( FeaturesResource.class );
         env.addResource( ComponentLabelResource.class );
@@ -78,6 +80,12 @@ public class InsightBrainService
         env.addResource( PolicyResource.class );
         env.addResource( ReportResource.class );
         env.addResource( CIResource.class );
+    }
+
+    private void loadDatabase()
+    {
+        // not very nice, but good enough for now
+        new ApplicationDAO().getById( "not a real id" );
     }
 
     // Copied from IdeScanService

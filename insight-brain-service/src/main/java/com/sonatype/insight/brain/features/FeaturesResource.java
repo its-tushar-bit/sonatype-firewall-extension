@@ -22,6 +22,6 @@ public class FeaturesResource
     @Produces( MediaType.APPLICATION_JSON )
     public List<String> getFeatures()
     {
-        return Arrays.asList( "policy" );
+        return Arrays.asList( "policy", "labels" );
     }
 }

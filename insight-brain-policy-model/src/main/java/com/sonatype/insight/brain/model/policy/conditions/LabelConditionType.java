@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -73,7 +74,9 @@ public class LabelConditionType
     @Override
     public String generateDroolsCode( Condition condition )
     {
-        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLabelId( \"" + condition.getValue()
-            + "\" )";
+        String labelId = condition.getValue();
+        Label label = new LabelDAO().getById( labelId );
+        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLabelId( \"" + labelId + "\" ) /* label: "
+            + label.getLabel() + " */";
     }
 }

@@ -47,10 +47,10 @@ public class ComponentLabelResource
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<Label> getComponentLabels( @PathParam( "appId" ) String applicationPublicId,
+    public List<Label> getComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
                                            @PathParam( "hash" ) String hash )
     {
-        Application application = applicationDAO.getOrInsertByPublicId( applicationPublicId );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         List<ComponentLabel> labelIds = componentLabelDAO.getByApplicationIdAndHash( application.getId(), hash );
         List<Label> labels = new ArrayList<Label>( labelIds.size() );
         for ( ComponentLabel labelId : labelIds )

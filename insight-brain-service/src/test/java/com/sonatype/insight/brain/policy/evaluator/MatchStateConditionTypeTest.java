@@ -59,7 +59,8 @@ public class MatchStateConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
@@ -93,7 +94,8 @@ public class MatchStateConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 2, policyAlerts.get( 0 ) );
@@ -109,7 +111,7 @@ public class MatchStateConditionTypeTest
         Condition condition = new Condition( MatchStateConditionType.ID, "is", "abc" );
         try
         {
-            new MatchStateConditionType().validateCondition( condition );
+            new MatchStateConditionType().validateCondition( condition, null /* applicationId */);
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )

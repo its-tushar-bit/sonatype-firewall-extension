@@ -94,6 +94,6 @@ public class LabelResourceTest
 
     private String getServiceURL( final String appId )
     {
-        return getRestBaseUrl() + LabelResource.SERVICE_PATH.replace( "{appId}", appId );
+        return getRestBaseUrl() + LabelResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
     }
 }

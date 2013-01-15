@@ -55,7 +55,8 @@ public class LicenseConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -88,7 +89,8 @@ public class LicenseConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -121,7 +123,8 @@ public class LicenseConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -154,7 +157,8 @@ public class LicenseConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -191,7 +195,8 @@ public class LicenseConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -207,7 +212,7 @@ public class LicenseConditionTypeTest
         Condition condition = new Condition( LicenseConditionType.ID, "is", "abc" );
         try
         {
-            new LicenseConditionType().validateCondition( condition );
+            new LicenseConditionType().validateCondition( condition, null /* applicationId */);
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )

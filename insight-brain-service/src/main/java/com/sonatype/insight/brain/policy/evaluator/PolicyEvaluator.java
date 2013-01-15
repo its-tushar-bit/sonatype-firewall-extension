@@ -37,11 +37,12 @@ public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
-    public List<PolicyAlert> evaluate( final Stage stage, final List<Policy> policies, final List<Component> components )
+    public List<PolicyAlert> evaluate( final String applicationId, final Stage stage, final List<Policy> policies,
+                                       final List<Component> components )
     {
         long start = System.currentTimeMillis();
 
-        final String droolsCode = new DroolsGenerator().generate( policies );
+        final String droolsCode = new DroolsGenerator().generate( applicationId, policies );
         // Most probably this is too much logging, but it's good for debugging for now
         log.debug( "Generated drools code:\n{}", droolsCode );
 

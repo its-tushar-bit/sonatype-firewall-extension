@@ -14,17 +14,19 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.LicenseStatus;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
 {
-    public List<Component> getAll( final byte[] licenseData, final byte[] securityData, final byte[] bomData,
-                                   final byte[] dependencyData )
+    public List<Component> getAll( String applicationId, final byte[] licenseData, final byte[] securityData,
+                                   final byte[] bomData, final byte[] dependencyData )
     {
         final Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
 
@@ -146,11 +148,11 @@ public class ComponentDAO
                     else
                     {
                         // Unknown component
-                        String hash = componentJson.get( "hash" ).asText();
                         component = new Component();
-                        component.setHash( hash );
                         unknownComponents.add( component );
                     }
+                    String hash = componentJson.get( "hash" ).asText();
+                    component.setHash( hash );
                     component.setMatchState( matchState );
                 }
             }
@@ -190,6 +192,18 @@ public class ComponentDAO
         final List<Component> result = new ArrayList<Component>();
         result.addAll( componentsByGAV.values() );
         result.addAll( unknownComponents );
+
+        // Load label data
+        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+        for ( Component component : result )
+        {
+            List<ComponentLabel> componentLabels =
+                componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
+            for ( ComponentLabel componentLabel : componentLabels )
+            {
+                component.addLabelId( componentLabel.getId() );
+            }
+        }
         return result;
     }
 

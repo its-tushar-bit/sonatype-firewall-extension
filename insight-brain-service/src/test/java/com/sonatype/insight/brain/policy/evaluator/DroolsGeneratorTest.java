@@ -70,7 +70,7 @@ public class DroolsGeneratorTest
         policy.addAction( BuildStageType.ID, action );
 
         final DroolsGenerator generator = new DroolsGenerator();
-        final String droolsCode = generator.generate( Arrays.asList( policy ) );
+        final String droolsCode = generator.generate( null /* applicationId */, Arrays.asList( policy ) );
         System.out.println( droolsCode );
         // TODO Add asserts - for now it's good if we get no exceptions :)
 
@@ -101,7 +101,7 @@ public class DroolsGeneratorTest
         final DroolsGenerator generator = new DroolsGenerator();
         try
         {
-            generator.generate( Arrays.asList( policy ) );
+            generator.generate( null /* applicationId */, Arrays.asList( policy ) );
             Assert.fail( "Expected InvalidPolicyException" );
         }
         catch ( InvalidPolicyException expected )
@@ -135,7 +135,7 @@ public class DroolsGeneratorTest
         final DroolsGenerator generator = new DroolsGenerator();
         try
         {
-            generator.generate( Arrays.asList( policy ) );
+            generator.generate( null /* applicationId */, Arrays.asList( policy ) );
             Assert.fail( "Expected InvalidPolicyException" );
         }
         catch ( InvalidPolicyException expected )
@@ -167,7 +167,7 @@ public class DroolsGeneratorTest
         policy.addAction( BuildStageType.ID, action );
 
         final DroolsGenerator generator = new DroolsGenerator();
-        generator.generate( Arrays.asList( policy ) );
+        generator.generate( null /* applicationId */, Arrays.asList( policy ) );
     }
 
     @Test
@@ -192,7 +192,7 @@ public class DroolsGeneratorTest
         final DroolsGenerator generator = new DroolsGenerator();
         try
         {
-            generator.generate( Arrays.asList( policy ) );
+            generator.generate( null /* applicationId */, Arrays.asList( policy ) );
             Assert.fail( "Expected InvalidPolicyException" );
         }
         catch ( InvalidPolicyException expected )

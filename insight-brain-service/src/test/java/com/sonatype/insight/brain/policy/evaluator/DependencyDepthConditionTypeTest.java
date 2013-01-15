@@ -56,7 +56,8 @@ public class DependencyDepthConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );

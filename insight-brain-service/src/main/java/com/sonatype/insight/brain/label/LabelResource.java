@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.label.Label;
 @Path( LabelResource.SERVICE_PATH )
 public class LabelResource
 {
-    public static final String SERVICE_PATH = "rest/label/application/{appId}";
+    public static final String SERVICE_PATH = "rest/label/application/{applicationPublicId}";
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -33,9 +33,9 @@ public class LabelResource
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<Label> getLabels( @PathParam( "appId" ) String applicationPublicId )
+    public List<Label> getLabels( @PathParam( "applicationPublicId" ) String applicationPublicId )
     {
-        Application application = applicationDAO.getOrInsertByPublicId( applicationPublicId );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         return labelDAO.getByApplicationId( application.getId() );
     }
@@ -43,9 +43,9 @@ public class LabelResource
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Label addLabel( @PathParam( "appId" ) String applicationPublicId, Label label )
+    public Label addLabel( @PathParam( "applicationPublicId" ) String applicationPublicId, Label label )
     {
-        Application application = applicationDAO.getOrInsertByPublicId( applicationPublicId );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         label.setId( null );
         label.setApplicationId( application.getId() );
@@ -58,9 +58,9 @@ public class LabelResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Label updateLabel( @PathParam( "appId" ) String applicationPublicId, Label label )
+    public Label updateLabel( @PathParam( "applicationPublicId" ) String applicationPublicId, Label label )
     {
-        applicationDAO.getOrInsertByPublicId( applicationPublicId );
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         label.fixLabelLowercase();
         labelDAO.update( label );
@@ -70,9 +70,10 @@ public class LabelResource
 
     @DELETE
     @Path( "{labelId}" )
-    public void deleteLabel( @PathParam( "appId" ) String applicationPublicId, @PathParam( "labelId" ) String labelId )
+    public void deleteLabel( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                             @PathParam( "labelId" ) String labelId )
     {
-        applicationDAO.getOrInsertByPublicId( applicationPublicId );
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         Label label = labelDAO.getById( labelId );
         labelDAO.delete( label );

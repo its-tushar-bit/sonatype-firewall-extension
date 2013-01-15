@@ -36,6 +36,17 @@ public class Label
     @Enumerated( EnumType.STRING )
     private Color color;
 
+    public Label()
+    {
+    }
+
+    public Label( String applicationId, String label, Color color )
+    {
+        this.applicationId = applicationId;
+        setLabel( label );
+        this.color = color;
+    }
+
     @Override
     public String getId()
     {

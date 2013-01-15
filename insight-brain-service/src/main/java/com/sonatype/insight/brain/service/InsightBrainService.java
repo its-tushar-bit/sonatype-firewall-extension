@@ -36,6 +36,8 @@ public class InsightBrainService
 {
     private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
 
+    private InsightWork insightWork;
+
     public static void main( final String[] args )
         throws Exception
     {
@@ -61,7 +63,8 @@ public class InsightBrainService
 
         env.addHealthCheck( new InsightHealth( config ) );
 
-        env.addProvider( new InsightWork( config ) );
+        insightWork = new InsightWork( config );
+        env.addProvider( insightWork );
         env.addProvider( new InsightProxy( config ) );
 
         DatabaseConfig databaseConfig = new DatabaseConfig( config.getConfigDir() );
@@ -98,5 +101,10 @@ public class InsightBrainService
 
         // Add our own mapper for exceptions.
         environment.addProvider( new JaxRsExceptionMapper() );
+    }
+
+    public InsightWork getInsightWork()
+    {
+        return insightWork;
     }
 }

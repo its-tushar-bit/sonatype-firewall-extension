@@ -25,7 +25,7 @@ public class DroolsGenerator
 
     private static final String INDENT = "    ";
 
-    public String generate( final List<Policy> policies )
+    public String generate( final String applicationId, final List<Policy> policies )
     {
         long start = System.currentTimeMillis();
 
@@ -45,7 +45,7 @@ public class DroolsGenerator
                 continue;
             }
 
-            ValidationResult validationResult = policy.validate();
+            ValidationResult validationResult = policy.validate( applicationId );
             if ( validationResult != null && !validationResult.isValid() )
             {
                 throw new InvalidPolicyException( validationResult );

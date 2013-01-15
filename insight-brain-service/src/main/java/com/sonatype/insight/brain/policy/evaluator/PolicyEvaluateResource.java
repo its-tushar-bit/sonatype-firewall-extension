@@ -26,8 +26,10 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
@@ -48,7 +50,7 @@ import freemarker.template.Template;
 @Path( PolicyEvaluateResource.SERVICE_PATH )
 public class PolicyEvaluateResource
 {
-    public static final String SERVICE_PATH = "rest/policy/{appId}/evaluate";
+    public static final String SERVICE_PATH = "rest/policy/{applicationPublicId}/evaluate";
 
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
@@ -63,20 +65,25 @@ public class PolicyEvaluateResource
     @Context
     private UriInfo uriInfo;
 
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
+
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public List<PolicyAlert> evaluate( @PathParam( "appId" ) final String appId,
+    public List<PolicyAlert> evaluate( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                        @QueryParam( "scanId" ) final String scanId, final Stage stage )
         throws IOException
     {
-        log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", appId, scanId,
-                   stage.getStageTypeId() );
+        log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}",
+                   applicationPublicId, scanId, stage.getStageTypeId() );
+
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         final List<Policy> policies = policyDAO.getByApplicationId( appId );
 
-        final File reportFile = ReportResource.fetchReport( work, proxy, appId, scanId, true );
+        final File reportFile = ReportResource.fetchReport( work, proxy, applicationPublicId, appId, scanId, true );
 
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
@@ -84,9 +91,9 @@ public class PolicyEvaluateResource
         final ReportEntry dependenciesReportEntry = Report.getEntry( reportFile, "dependencies.json" );
 
         final List<Component> components =
-            new ComponentDAO().getAll( licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
+            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
                                        dependenciesReportEntry.buf );
-        final List<PolicyAlert> result = new PolicyEvaluator().evaluate( stage, policies, components );
+        final List<PolicyAlert> result = new PolicyEvaluator().evaluate( appId, stage, policies, components );
 
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( result ) ) );
         Report.putEntry( reportFile, "policythreats.html", summarizeThreats( appId, scanId, result ) );
@@ -134,8 +141,11 @@ public class PolicyEvaluateResource
     {
         final Map<String, Object> model = new HashMap<String, Object>();
 
-        model.put( "detailedReportUrl", uriInfo.getBaseUri()
-            + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId ) + "/embedReport/" );
+        model.put( "detailedReportUrl",
+                   uriInfo.getBaseUri()
+                       + ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", appId ).replace( "{scanId}",
+                                                                                                        scanId )
+                       + "/embedReport/" );
 
         model.put( "policyAlerts", policyAlerts );
 

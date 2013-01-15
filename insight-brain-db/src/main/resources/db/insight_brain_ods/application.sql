@@ -1,0 +1,1 @@
+INSERT INTO application (application_id, public_id) VALUES ('bom1-12345678_ID', 'bom1-12345678');

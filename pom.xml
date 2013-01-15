@@ -44,8 +44,10 @@
   <modules>
     <module>insight-json-store</module>
     <module>insight-brain-model</module>
+    <module>insight-brain-policy-model</module>
     <module>insight-brain-db</module>
     <module>insight-brain-data-access</module>
+    <module>insight-brain-policy-data-access</module>
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>
 	<module>sonatype-clm-server</module>

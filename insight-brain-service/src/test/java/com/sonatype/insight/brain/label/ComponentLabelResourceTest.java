@@ -82,6 +82,6 @@ public class ComponentLabelResourceTest
 
     private String getServiceURL( final String appId )
     {
-        return getRestBaseUrl() + ComponentLabelResource.SERVICE_PATH.replace( "{appId}", appId );
+        return getRestBaseUrl() + ComponentLabelResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
     }
 }

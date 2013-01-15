@@ -93,7 +93,7 @@ insightApp.getActionStageUrl = function(){
 }
 
 insightApp.getConditionValueTypeUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/policy/conditionValueType';
+	return insightApp.getBaseUrl() + '/rest/conditionValueType/' + insightApp.getAppId();
 }
 
 insightApp.getPolicyUrl = function(){

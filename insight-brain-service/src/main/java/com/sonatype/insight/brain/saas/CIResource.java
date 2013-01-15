@@ -29,6 +29,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
@@ -56,28 +58,45 @@ public class CIResource
     @Context
     InsightProxy proxy;
 
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
+
     @GET
-    @Path( "validate/{appId}" )
+    @Path( "validate/{applicationPublicId}" )
     @Produces( MediaType.TEXT_PLAIN )
-    public String validateToken( @PathParam( "appId" ) final String appId )
+    public String validateToken( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws Exception
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( appId, null, null );
+        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
 
         String result = uploader.validateToken( proxy.contextualize( request ) );
-        log.debug( "validateToken({}) result:{}", appId, result );
+        log.debug( "validateToken({}) result:{}", applicationPublicId, result );
+
+        if ( "OK".equals( result ) )
+        {
+            // The token is valid. Create an application object for it if it doesn't exist already.
+            if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
+            {
+                Application application = new Application();
+                application.setPublicId( applicationPublicId );
+                applicationDAO.insert( application );
+            }
+        }
+
         return result;
     }
 
     @PUT
-    @Path( "scan/{appId}" )
+    @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response putScan( @PathParam( "appId" ) final String appId,
+    public Response putScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                              @QueryParam( "instanceId" ) final String instanceId,
                              @QueryParam( "jobId" ) final String jobId, final InputStream data )
         throws Exception
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( appId, null, null );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
+        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
         final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", work.getScanDir( appId ) );
         final File scanDir = scanFile.getParentFile();
 
@@ -106,12 +125,15 @@ public class CIResource
     }
 
     @GET
-    @Path( "report/{appId}" )
+    @Path( "report/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_OCTET_STREAM )
-    public StreamingOutput getReport( @PathParam( "appId" ) final String appId,
+    public StreamingOutput getReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                       @QueryParam( "scanId" ) final String scanId )
     {
-        final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
+
+        final BOMCheckReportDownloadRequest request =
+            new BOMCheckReportDownloadRequest( applicationPublicId, scanId, null );
 
         return new StreamingOutput()
         {
@@ -139,7 +161,9 @@ public class CIResource
                                      @QueryParam( "artifactId" ) final String artifactId,
                                      @QueryParam( "version" ) final String version )
     {
-        return Response.temporaryRedirect( URI.create( "rest/report/" + work.findOwningAppId( scanId ) + '/' + scanId //
+        String appId = work.findOwningAppId( scanId );
+        Application application = applicationDAO.getByIdNotNull( appId );
+        return Response.temporaryRedirect( URI.create( "rest/report/" + application.getPublicId() + '/' + scanId //
             + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
     }
 }

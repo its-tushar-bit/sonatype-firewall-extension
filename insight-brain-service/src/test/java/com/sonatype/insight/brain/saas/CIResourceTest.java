@@ -16,9 +16,12 @@ import java.util.Arrays;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -29,16 +32,22 @@ public class CIResourceTest
     public void testValidate()
         throws Exception
     {
+<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
         final String appId = "CIResourceTest_AppId";
+=======
+        final String applicationPublicId = "BCResourceTest_AppId";
+        Application application = new ApplicationDAO().getByPublicId( applicationPublicId );
+        Assert.assertNull( application );
+>>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
 
-        Response response = RestAccess.get( getServiceURL() + "/validate/" + appId );
+        Response response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "OK" ) );
 
-        invalidateAppId( appId, "Expired" );
+        invalidateAppId( applicationPublicId, "Expired" );
 
         // validate service always returns 200, the actual result is in the response body
-        response = RestAccess.get( getServiceURL() + "/validate/" + appId );
+        response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "Expired" ) );
     }
@@ -47,14 +56,20 @@ public class CIResourceTest
     public void testScan()
         throws Exception
     {
+<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
         final String appId = "CIResourceTest_AppId";
         final File saasScanFile = getScanResponseFile( appId );
+=======
+        final String applicationPublicId = "BCResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final File saasScanFile = getScanResponseFile( applicationPublicId );
+>>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
         saasScanFile.delete();
 
         final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
         FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
 
-        final Response response = RestAccess.put( getServiceURL() + "/scan/" + appId, "" );
+        final Response response = RestAccess.put( getServiceURL() + "/scan/" + applicationPublicId, "" );
 
         assertResponseStatus( 200, response );
 
@@ -65,15 +80,23 @@ public class CIResourceTest
     public void testReport()
         throws Exception
     {
+<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
         final String appId = "CIResourceTest_AppId";
         final String scanId = "CIResourceTest_ScanId";
         final File saasReportFile = getReportResponseFile( appId, scanId );
+=======
+        final String applicationPublicId = "BCResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "BCResourceTest_ScanId";
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+>>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/CIResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
-        final Response response = RestAccess.get( getServiceURL() + "/report/" + appId + "?scanId=" + scanId );
+        final Response response =
+            RestAccess.get( getServiceURL() + "/report/" + applicationPublicId + "?scanId=" + scanId );
 
         assertResponseStatus( 200, response );
 
@@ -85,7 +108,16 @@ public class CIResourceTest
     public void testArtifact()
         throws Exception
     {
+<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
         final String scanId = "CIResourceTest_ScanId";
+=======
+        final String applicationPublicId = "BCResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+        String appId = application.getId();
+        final String scanId = "BCResourceTest_ScanId";
+        File scanDir = brain.getInsightWork().getReportDir( appId, scanId );
+        scanDir.mkdirs();
+>>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
 
         final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         Response response = RestAccess.get( getServiceURL() + "/artifact/" + query );

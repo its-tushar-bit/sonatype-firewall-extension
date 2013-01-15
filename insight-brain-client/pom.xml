@@ -46,6 +46,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-policy-model</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.openjpa</groupId>
       <artifactId>openjpa-kernel</artifactId>
       <version>${openjpa.version}</version>

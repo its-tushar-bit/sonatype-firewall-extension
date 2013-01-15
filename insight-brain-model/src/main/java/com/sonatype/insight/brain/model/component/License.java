@@ -5,6 +5,17 @@
  */
 package com.sonatype.insight.brain.model.component;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.codehaus.plexus.util.IOUtil;
+
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class License
 {
@@ -23,6 +34,24 @@ public class License
     private String licenseUrl;
 
     private String licenseCategoryId;
+
+    private static List<License> licenses;
+
+    private static Map<String, License> licensesById;
+
+    static
+    {
+        // TODO Return a list of all known licenses from the datamart db
+        License[] licenseArray = loadJson();
+        licenses = Arrays.asList( licenseArray );
+        licenses = Collections.unmodifiableList( licenses );
+
+        licensesById = new LinkedHashMap<String, License>();
+        for ( License license : licenses )
+        {
+            licensesById.put( license.getId(), license );
+        }
+    }
 
     public String getId()
     {
@@ -117,5 +146,38 @@ public class License
     public String toString()
     {
         return id;
+    }
+
+    private static License[] loadJson()
+    {
+        InputStream is = License.class.getClassLoader().getResourceAsStream( "licenses.json" );
+        if ( is == null )
+        {
+            throw new RuntimeException( "Cannot find resource file: licenses.json" );
+        }
+
+        try
+        {
+            byte[] licenseData = IOUtil.toByteArray( is );
+            return JsonUtils.parse( licenseData, License[].class );
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+    }
+
+    public static List<License> getAll()
+    {
+        return licenses;
+    }
+
+    public static License getById( String licenseId )
+    {
+        return licensesById.get( licenseId );
     }
 }

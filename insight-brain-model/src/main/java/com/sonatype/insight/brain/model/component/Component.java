@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
 public class Component
 {
@@ -44,6 +43,8 @@ public class Component
     private Long catalogDate;
 
     private List<Integer> dependencyDepths = new ArrayList<Integer>();
+
+    private List<String> labelIds = new ArrayList<String>();
 
     public Component()
     {
@@ -236,7 +237,7 @@ public class Component
 
     private boolean hasLicenseId( List<String> componentLicenseNames, String licenseId )
     {
-        License license = LicenseValueType.getLicenseById( licenseId );
+        License license = License.getById( licenseId );
         if ( license == null )
         {
             log.warn( "Unknown license id {}", licenseId );
@@ -332,5 +333,15 @@ public class Component
     public void addDependencyDepth( int dependencyDepth )
     {
         dependencyDepths.add( dependencyDepth );
+    }
+
+    public void addLabelId( String labelId )
+    {
+        labelIds.add( labelId );
+    }
+
+    public boolean hasLabelId( String labelId )
+    {
+        return labelIds.contains( labelId );
     }
 }

@@ -34,11 +34,12 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
-    private Response addPolicy( final String appId, final Policy policy )
+    private Response addPolicy( final String applicationPublicId, final Policy policy )
         throws Exception
     {
         final Response response =
-            RestAccess.post( getRestBaseUrl() + PolicyResource.SERVICE_PATH.replace( "{appId}", appId ),
+            RestAccess.post( getRestBaseUrl()
+                                 + PolicyResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ),
                              JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         return response;
@@ -48,9 +49,10 @@ public class PolicyEvaluateResourceTest
     public void testEvaluate()
         throws Exception
     {
-        final String appId = "PolicyEvaluateResourceTest_AppId";
+        final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
+        createApplication( applicationPublicId );
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
-        final File saasReportFile = getReportResponseFile( appId, scanId );
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
 
         final Constraint constraint1 =
@@ -68,7 +70,7 @@ public class PolicyEvaluateResourceTest
         policy1.setName( "PolicyEvaluateResourceTest policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
-        addPolicy( appId, policy1 );
+        addPolicy( applicationPublicId, policy1 );
 
         final Constraint constraint2 =
             new Constraint( "C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND );
@@ -81,18 +83,18 @@ public class PolicyEvaluateResourceTest
         policy2.setThreatLevel( 3 );
         policy2.addConstraint( constraint2 );
         policy1.addAction( BuildStageType.ID, action );
-        addPolicy( appId, policy2 );
+        addPolicy( applicationPublicId, policy2 );
 
         final Stage stage = new Stage( BuildStageType.ID );
 
         // The report file is not available yet
-        Response response = RestAccess.post( getServiceURL( appId, scanId ), JsonHelpers.asJson( stage ) );
+        Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 404, response );
 
         // Simulate that the report is available
         final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
-        response = RestAccess.post( getServiceURL( appId, scanId ), JsonHelpers.asJson( stage ) );
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
@@ -100,7 +102,7 @@ public class PolicyEvaluateResourceTest
         SecurityVulnerabilityConditionTypeTest.assertFactCounts( 1, 6, policyAlerts[0] );
 
         // check the calculated policy threat
-        response = RestAccess.get( getThreatsURL( appId, scanId ) );
+        response = RestAccess.get( getThreatsURL( applicationPublicId, scanId ) );
         assertResponseStatus( 200, response );
         final JsonNode policyThreats = JsonUtils.parse( response.getResponseBody() ).get( "aaData" );
         Assert.assertNotNull( policyThreats );
@@ -110,13 +112,15 @@ public class PolicyEvaluateResourceTest
 
     private String getServiceURL( final String appId, final String scanId )
     {
-        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{appId}", appId ) + "?scanId=" + scanId
-            + "&stageTypeId=" + BuildStageType.ID;
+        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}", appId )
+            + "?scanId=" + scanId + "&stageTypeId=" + BuildStageType.ID;
     }
 
-    private String getThreatsURL( final String appId, final String scanId )
+    private String getThreatsURL( final String applicationPublicId, final String scanId )
     {
-        return getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId )
+        return getRestBaseUrl()
+            + ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ).replace( "{scanId}",
+                                                                                                           scanId )
             + "/embedReport/policythreats.json";
     }
 }

@@ -59,7 +59,8 @@ public class AgeInDaysConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
@@ -94,7 +95,8 @@ public class AgeInDaysConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
@@ -108,7 +110,7 @@ public class AgeInDaysConditionTypeTest
         Condition condition = new Condition( AgeInDaysConditionType.ID, "older than", "abc" );
         try
         {
-            new AgeInDaysConditionType().validateCondition( condition );
+            new AgeInDaysConditionType().validateCondition( condition, null /* applicationId */);
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )

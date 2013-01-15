@@ -26,6 +26,7 @@ import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -41,13 +42,13 @@ public class ReportResourceTest
     public void testEmbedReport()
         throws Exception
     {
-        final String appId = "ReportResourceTest_AppId";
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
 
-        final String resourcePrefix =
-            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( appId, scanId );
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -97,13 +98,13 @@ public class ReportResourceTest
     public void testPrintReport()
         throws Exception
     {
-        final String appId = "ReportResourceTest_AppId";
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
 
-        final String resourcePrefix =
-            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( appId, scanId );
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -132,12 +133,11 @@ public class ReportResourceTest
     public void testArtifactDetails()
         throws Exception
     {
-        final String appId = "ReportResourceTest_AppId";
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
 
-        final String resourcePrefix =
-            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
-
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
         final String query = "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         final Response response = RestAccess.get( resourcePrefix + "/artifactDetails" + query );
         assertResponseStatus( 200, response );
@@ -153,13 +153,13 @@ public class ReportResourceTest
     public void testAugmentDataAndAuditLog()
         throws Exception
     {
-        final String appId = "ReportResourceTest_AppId";
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
 
-        final String resourcePrefix =
-            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( appId, scanId );
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -203,13 +203,14 @@ public class ReportResourceTest
     public void testRefreshOnlyOnChange()
         throws Exception
     {
-        final String appId = "ReportResourceTest_AppId";
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+        String appId = application.getId();
         final String scanId = "ReportResourceTest_ScanId";
 
-        final String resourcePrefix =
-            getRestBaseUrl() + ReportResource.SERVICE_PATH.replace( "{appId}", appId ).replace( "{scanId}", scanId );
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( appId, scanId );
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -254,5 +255,11 @@ public class ReportResourceTest
         response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), containsString( "\"state\" : \"accepted\"" ) );
+    }
+
+    private String getServiceURL( final String appId, final String scanId )
+    {
+        return getRestBaseUrl()
+            + ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", appId ).replace( "{scanId}", scanId );
     }
 }

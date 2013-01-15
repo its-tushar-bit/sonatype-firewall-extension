@@ -57,7 +57,8 @@ public class RelativePopularityConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
@@ -90,7 +91,8 @@ public class RelativePopularityConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
@@ -123,7 +125,8 @@ public class RelativePopularityConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 2, policyAlerts.get( 0 ) );
@@ -158,7 +161,8 @@ public class RelativePopularityConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
@@ -191,7 +195,8 @@ public class RelativePopularityConditionTypeTest
         components.add( component3 );
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         assertFactCounts( 1, 2, policyAlerts.get( 0 ) );
@@ -207,7 +212,7 @@ public class RelativePopularityConditionTypeTest
         Condition condition = new Condition( RelativePopularityConditionType.ID, "=", "abc" );
         try
         {
-            new RelativePopularityConditionType().validateCondition( condition );
+            new RelativePopularityConditionType().validateCondition( condition, null /* applicationId */);
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )
@@ -225,7 +230,7 @@ public class RelativePopularityConditionTypeTest
         Condition condition = new Condition( RelativePopularityConditionType.ID, "=", "-1" );
         try
         {
-            new RelativePopularityConditionType().validateCondition( condition );
+            new RelativePopularityConditionType().validateCondition( condition, null /* applicationId */);
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )
@@ -243,7 +248,7 @@ public class RelativePopularityConditionTypeTest
         Condition condition = new Condition( RelativePopularityConditionType.ID, "=", "101" );
         try
         {
-            new RelativePopularityConditionType().validateCondition( condition );
+            new RelativePopularityConditionType().validateCondition( condition, null /* applicationId */);
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )

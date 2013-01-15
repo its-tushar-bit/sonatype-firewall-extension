@@ -43,6 +43,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
@@ -59,7 +61,7 @@ import com.sun.jersey.api.NotFoundException;
 @Path( ReportResource.SERVICE_PATH )
 public class ReportResource
 {
-    public static final String SERVICE_PATH = "rest/report/{appId}/{scanId}";
+    public static final String SERVICE_PATH = "rest/report/{applicationPublicId}/{scanId}";
 
     private static final Logger log = LoggerFactory.getLogger( ReportResource.class );
 
@@ -80,14 +82,30 @@ public class ReportResource
     @Context
     UriInfo uriInfo;
 
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
+
     @GET
     @Path( "embedReport/{path:.*}" )
+<<<<<<< HEAD
     public Response embedReport( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
                                  @PathParam( "path" ) final String path, @Context final HttpServletRequest httpRequest )
+=======
+    public Response embedReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                 @PathParam( "scanId" ) final String scanId,
+                                 @PathParam( "path" ) final String path )
+>>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048
     {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
         final String name = Report.toEntryName( path );
+<<<<<<< HEAD
         final File reportFile = fetchReport( work, proxy, appId, scanId, false );
         ReportEntry reportEntry = null;
+=======
+        final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, false );
+        ReportEntry entry = null;
+>>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048
         try
         {
             reportEntry = Report.getEntry( reportFile, name );
@@ -114,12 +132,16 @@ public class ReportResource
     @GET
     @Path( "printReport" )
     @Produces( "application/pdf" )
-    public Response printReport( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
+    public Response printReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                 @PathParam( "scanId" ) final String scanId,
                                  @QueryParam( "projectName" ) final String projectName,
                                  @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {
-        final File reportFile = fetchReport( work, proxy, appId, scanId, true );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
+        final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, true );
 
         final ResponseBuilder response = Response.ok();
 
@@ -131,7 +153,7 @@ public class ReportResource
     @GET
     @Path( "artifactDetails{ignore:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response artifactDetails( @PathParam( "appId" ) final String appId,
+    public Response artifactDetails( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                      @PathParam( "scanId" ) final String scanId,
                                      @QueryParam( "groupId" ) final String groupId,
                                      @QueryParam( "artifactId" ) final String artifactId,
@@ -139,10 +161,13 @@ public class ReportResource
                                      @Context final HttpServletRequest httpRequest )
         throws Exception
     {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
         ReportEntry reportEntry = null;
         try
         {
-            final File reportFile = fetchReport( work, proxy, appId, scanId, false );
+            final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
             final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
@@ -184,11 +209,15 @@ public class ReportResource
 
     @POST
     @Path( "augmentData/{path}" )
-    public Response augmentData( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
+    public Response augmentData( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                 @PathParam( "path" ) final String path,
                                  @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
                                  @Context final HttpServletRequest request, final InputStream stream )
         throws IOException
     {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
         if ( path.endsWith( ".json" ) && request.getContentLength() > 0 )
         {
             final ContainerNode<?> data;
@@ -210,10 +239,14 @@ public class ReportResource
     @GET
     @Path( "auditLog/{path}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response auditLog( @PathParam( "appId" ) final String appId, @PathParam( "path" ) final String path,
+    public Response auditLog( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                              @PathParam( "path" ) final String path,
                               @QueryParam( "key" ) final String encodedKey )
         throws IOException
     {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
         if ( StringUtils.isNotBlank( encodedKey ) )
         {
             final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
@@ -260,8 +293,8 @@ public class ReportResource
         return Response.temporaryRedirect( uriInfo.getRequestUriBuilder().replacePath( path ).build() ).build();
     }
 
-    public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String appId,
-                                    final String scanId, final boolean waitForReport )
+    public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String applicationPublicId,
+                                    final String appId, final String scanId, final boolean waitForReport )
     {
         final Lock lock = lockFor( appId, scanId );
         if ( waitForReport )
@@ -277,7 +310,7 @@ public class ReportResource
             final File reportFile = work.getReportFile( appId, scanId );
             if ( !reportFile.exists() )
             {
-                if ( !downloadReport( proxy, appId, scanId, reportFile, waitForReport ) )
+                if ( !downloadReport( proxy, applicationPublicId, scanId, reportFile, waitForReport ) )
                 {
                     throw new NotFoundException( "Could not download the report for scan id " + scanId );
                 }
@@ -311,10 +344,12 @@ public class ReportResource
         }
     }
 
-    private static boolean downloadReport( final InsightProxy proxy, final String appId, final String scanId,
+    private static boolean downloadReport( final InsightProxy proxy, final String applicationPublicId,
+                                           final String scanId,
                                            final File reportFile, final boolean waitForReport )
     {
-        final BOMCheckReportDownloadRequest request = new BOMCheckReportDownloadRequest( appId, scanId, null );
+        final BOMCheckReportDownloadRequest request =
+            new BOMCheckReportDownloadRequest( applicationPublicId, scanId, null );
 
         if ( waitForReport )
         {

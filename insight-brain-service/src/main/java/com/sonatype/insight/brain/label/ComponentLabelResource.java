@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.model.label.Label;
 @Path( ComponentLabelResource.SERVICE_PATH )
 public class ComponentLabelResource
 {
-    public static final String SERVICE_PATH = "rest/label/component/{appId}/{hash}";
+    public static final String SERVICE_PATH = "rest/label/component/{applicationPublicId}/{hash}";
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -37,10 +37,10 @@ public class ComponentLabelResource
 
     @PUT
     @Consumes( { MediaType.APPLICATION_JSON } )
-    public void setComponentLabels( @PathParam( "appId" ) String applicationPublicId, @PathParam( "hash" ) String hash,
-                                    Set<String> stringLabels )
+    public void setComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                    @PathParam( "hash" ) String hash, Set<String> stringLabels )
     {
-        Application application = applicationDAO.getOrInsertByPublicId( applicationPublicId );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         componentLabelDAO.setComponentLabels( application.getId(), hash, stringLabels );
     }

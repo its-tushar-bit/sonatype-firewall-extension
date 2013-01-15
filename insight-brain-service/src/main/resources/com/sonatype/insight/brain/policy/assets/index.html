@@ -291,7 +291,7 @@ body {
                             </p>
                             <div>
                                 <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
-                                    <span class="clmLabel {{color}}Label" style='height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
+                                    <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
                                 </div>
                             </div>
                         </div>

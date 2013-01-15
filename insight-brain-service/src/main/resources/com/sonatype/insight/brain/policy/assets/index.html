@@ -101,44 +101,46 @@ body {
 				</div>
 				<div ng-show="state.showAddPolicyScreen" class='content-container'>
 					<div class="page-header"><h4>Create a New Policy</h4></div>
-					<form class="form-horizontal" style="width:600px; padding-left:50px;">
-					    <div class="control-group">
-					        <label class="control-label" for="policyName">Name</label>
-					    	<div class="controls form-inline">
-						        <input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
-						        <label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
-						    		<select 
-						    			id="policyThreatLevel" 
-						    			style="width:100px;"
-						    			class="policy-threat-color-{{state.currentPolicy.threatLevel}}" 
-						    			ng-model="state.currentPolicy.threatLevel" 
-						    			ng-change="validatePolicy()"
-						    			ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
-						    		</select>
-					    	</div>
-					    </div>
-					    <div class="control-group">
-					    	<label class="control-label">Constraints</label>
-					    	<div class="controls">
-					    	    <div style="width:100%;">
-									<slickgrid id="constraintGrid" style="height:200px;" class="borderedTable" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
-					            </div>
-					    	</div>
-					    </div>
-					    <div class="control-group">
-					    	<label class="control-label" for="policyActions">Actions</label>
-					    	<div class="controls">
-					    	    <div style="width:100%;">
-					    	    	<div class="btn-group btn-group-vertical" style="float:left;">
-										<button class="btn btn-small" ng-click="editActionsClick()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button>
-					    	    	</div>
-					    	        <slickgrid id="actionGrid" style="height:151px;" class="borderedTable" data="state.actionTableData" table-def="state.actionTableDefinition" ignore-click="true"></slickgrid>
-					    	    </div>
-					    	</div>
-					    </div>
-					    <div style='text-align:right'>
-					    	<button type='none' class='btn' data-toggle="modal" data-target="#cancelPolicyConfirmationModal">Cancel</button>
-						    <button type='none' class='btn btn-primary' ng-click="savePolicyClick()" ng-disabled="!state.policyValid">Save</button>
+					<form class="form-horizontal" style='margin-bottom:0px'>
+						<div style="width:600px; padding-left:50px;">
+							<div class="control-group">
+								<label class="control-label" for="policyName">Name</label>
+								<div class="controls form-inline">
+									<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
+									<label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
+										<select
+											id="policyThreatLevel"
+											style="width:100px;"
+											class="policy-threat-color-{{state.currentPolicy.threatLevel}}"
+											ng-model="state.currentPolicy.threatLevel"
+											ng-change="validatePolicy()"
+											ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
+										</select>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label">Constraints</label>
+								<div class="controls">
+									<div style="width:100%;">
+										<slickgrid id="constraintGrid" style="height:200px;" class="borderedTable" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
+									</div>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="policyActions">Actions</label>
+								<div class="controls">
+									<div style="width:100%;">
+										<div class="btn-group btn-group-vertical" style="float:left;">
+											<button class="btn btn-small" ng-click="editActionsClick()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button>
+										</div>
+										<slickgrid id="actionGrid" style="height:151px;" class="borderedTable" data="state.actionTableData" table-def="state.actionTableDefinition" ignore-click="true"></slickgrid>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class='form-actions' style='text-align:right;padding-right:275px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
+							<button type='none' class='btn' data-toggle="modal" data-target="#cancelPolicyConfirmationModal">Cancel</button>
+							<button type='none' class='btn btn-primary' ng-click="savePolicyClick()" ng-disabled="!state.policyValid">Save</button>
 						</div>
 					</form>
 					<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 950px;margin: -250px 0 0 -475px;">

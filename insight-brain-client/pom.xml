@@ -24,6 +24,12 @@
 
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-model</artifactId>
       <version>0.1-SNAPSHOT</version>
       <exclusions>
@@ -52,7 +58,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.openjpa</groupId>
-      <artifactId>openjpa-kernel</artifactId>
+      <artifactId>openjpa</artifactId>
       <version>${openjpa.version}</version>
       <optional>true</optional>
     </dependency>

@@ -68,6 +68,6 @@ public class InsightWork
                 log.error( "Problem scanning directory: " + rootDir + " for scanId: " + scanId, e );
             }
         }
-        return "unknown";
+        return null;
     }
 }

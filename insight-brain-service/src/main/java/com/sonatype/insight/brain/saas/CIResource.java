@@ -161,9 +161,13 @@ public class CIResource
                                      @QueryParam( "artifactId" ) final String artifactId,
                                      @QueryParam( "version" ) final String version )
     {
+        String applicationPublicId = "unknown";
         String appId = work.findOwningAppId( scanId );
-        Application application = applicationDAO.getByIdNotNull( appId );
-        return Response.temporaryRedirect( URI.create( "rest/report/" + application.getPublicId() + '/' + scanId //
+        if ( appId != null )
+        {
+            applicationPublicId = applicationDAO.getByIdNotNull( appId ).getPublicId();
+        }
+        return Response.temporaryRedirect( URI.create( "rest/report/" + applicationPublicId + '/' + scanId //
             + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
     }
 }

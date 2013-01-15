@@ -87,8 +87,8 @@ public class ReportResource
     @GET
     @Path( "embedReport/{path:.*}" )
     public Response embedReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                 @PathParam( "scanId" ) final String scanId,
-                                 @PathParam( "path" ) final String path, @Context final HttpServletRequest httpRequest )
+                                 @PathParam( "scanId" ) final String scanId, @PathParam( "path" ) final String path,
+                                 @Context final HttpServletRequest httpRequest )
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
@@ -151,12 +151,12 @@ public class ReportResource
                                      @Context final HttpServletRequest httpRequest )
         throws Exception
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
-
         ReportEntry reportEntry = null;
         try
         {
+            Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+            String appId = application.getId();
+
             final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
             final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
@@ -200,9 +200,9 @@ public class ReportResource
     @POST
     @Path( "augmentData/{path}" )
     public Response augmentData( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                 @PathParam( "path" ) final String path,
-                                 @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
-                                 @Context final HttpServletRequest request, final InputStream stream )
+                                 @PathParam( "path" ) final String path, @QueryParam( "user" ) final String user,
+                                 @QueryParam( "where" ) final String where, @Context final HttpServletRequest request,
+                                 final InputStream stream )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -230,8 +230,7 @@ public class ReportResource
     @Path( "auditLog/{path}" )
     @Produces( MediaType.APPLICATION_JSON )
     public Response auditLog( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                              @PathParam( "path" ) final String path,
-                              @QueryParam( "key" ) final String encodedKey )
+                              @PathParam( "path" ) final String path, @QueryParam( "key" ) final String encodedKey )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -335,8 +334,7 @@ public class ReportResource
     }
 
     private static boolean downloadReport( final InsightProxy proxy, final String applicationPublicId,
-                                           final String scanId,
-                                           final File reportFile, final boolean waitForReport )
+                                           final String scanId, final File reportFile, final boolean waitForReport )
     {
         final BOMCheckReportDownloadRequest request =
             new BOMCheckReportDownloadRequest( applicationPublicId, scanId, null );

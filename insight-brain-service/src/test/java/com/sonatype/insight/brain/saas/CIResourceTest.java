@@ -93,12 +93,7 @@ public class CIResourceTest
     public void testArtifact()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest_AppId";
-        Application application = createApplication( applicationPublicId );
-        String appId = application.getId();
         final String scanId = "CIResourceTest_ScanId";
-        File scanDir = brain.getInsightWork().getReportDir( appId, scanId );
-        scanDir.mkdirs();
 
         final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         Response response = RestAccess.get( getServiceURL() + "/artifact/" + query );

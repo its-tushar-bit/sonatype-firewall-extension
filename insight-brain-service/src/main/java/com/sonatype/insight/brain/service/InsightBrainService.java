@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.report.ReportResource;
-import com.sonatype.insight.brain.saas.BCResource;
+import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 import com.sun.jersey.api.core.ResourceConfig;
@@ -77,7 +77,7 @@ public class InsightBrainService
         env.addResource( PolicyEvaluateResource.class );
         env.addResource( PolicyResource.class );
         env.addResource( ReportResource.class );
-        env.addResource( BCResource.class );
+        env.addResource( CIResource.class );
     }
 
     // Copied from IdeScanService

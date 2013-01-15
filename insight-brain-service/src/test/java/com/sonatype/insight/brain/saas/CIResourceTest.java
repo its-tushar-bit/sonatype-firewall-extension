@@ -22,14 +22,14 @@ import com.ning.http.client.Response;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
-public class BCResourceTest
+public class CIResourceTest
     extends AbstractResourceTest
 {
     @Test
     public void testValidate()
         throws Exception
     {
-        final String appId = "BCResourceTest_AppId";
+        final String appId = "CIResourceTest_AppId";
 
         Response response = RestAccess.get( getServiceURL() + "/validate/" + appId );
         assertResponseStatus( 200, response );
@@ -47,11 +47,11 @@ public class BCResourceTest
     public void testScan()
         throws Exception
     {
-        final String appId = "BCResourceTest_AppId";
+        final String appId = "CIResourceTest_AppId";
         final File saasScanFile = getScanResponseFile( appId );
         saasScanFile.delete();
 
-        final URL testScanResultUrl = getClass().getResource( "/BCResourceTest/scan.json" );
+        final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
         FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
 
         final Response response = RestAccess.put( getServiceURL() + "/scan/" + appId, "" );
@@ -65,12 +65,12 @@ public class BCResourceTest
     public void testReport()
         throws Exception
     {
-        final String appId = "BCResourceTest_AppId";
-        final String scanId = "BCResourceTest_ScanId";
+        final String appId = "CIResourceTest_AppId";
+        final String scanId = "CIResourceTest_ScanId";
         final File saasReportFile = getReportResponseFile( appId, scanId );
         saasReportFile.delete();
 
-        final URL testReportResultUrl = getClass().getResource( "/BCResourceTest/report.zip" );
+        final URL testReportResultUrl = getClass().getResource( "/CIResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
         final Response response = RestAccess.get( getServiceURL() + "/report/" + appId + "?scanId=" + scanId );
@@ -85,7 +85,7 @@ public class BCResourceTest
     public void testArtifact()
         throws Exception
     {
-        final String scanId = "BCResourceTest_ScanId";
+        final String scanId = "CIResourceTest_ScanId";
 
         final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         Response response = RestAccess.get( getServiceURL() + "/artifact/" + query );
@@ -103,6 +103,6 @@ public class BCResourceTest
 
     private String getServiceURL()
     {
-        return getRestBaseUrl() + BCResource.SERVICE_PATH;
+        return getRestBaseUrl() + CIResource.SERVICE_PATH;
     }
 }

@@ -32,13 +32,9 @@ public class CIResourceTest
     public void testValidate()
         throws Exception
     {
-<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
-        final String appId = "CIResourceTest_AppId";
-=======
-        final String applicationPublicId = "BCResourceTest_AppId";
+        final String applicationPublicId = "CIResourceTest_AppId";
         Application application = new ApplicationDAO().getByPublicId( applicationPublicId );
         Assert.assertNull( application );
->>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
 
         Response response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
         assertResponseStatus( 200, response );
@@ -56,14 +52,9 @@ public class CIResourceTest
     public void testScan()
         throws Exception
     {
-<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
-        final String appId = "CIResourceTest_AppId";
-        final File saasScanFile = getScanResponseFile( appId );
-=======
-        final String applicationPublicId = "BCResourceTest_AppId";
+        final String applicationPublicId = "CIResourceTest_AppId";
         createApplication( applicationPublicId );
         final File saasScanFile = getScanResponseFile( applicationPublicId );
->>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
         saasScanFile.delete();
 
         final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
@@ -80,16 +71,10 @@ public class CIResourceTest
     public void testReport()
         throws Exception
     {
-<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
-        final String appId = "CIResourceTest_AppId";
-        final String scanId = "CIResourceTest_ScanId";
-        final File saasReportFile = getReportResponseFile( appId, scanId );
-=======
-        final String applicationPublicId = "BCResourceTest_AppId";
+        final String applicationPublicId = "CIResourceTest_AppId";
         createApplication( applicationPublicId );
-        final String scanId = "BCResourceTest_ScanId";
+        final String scanId = "CIResourceTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
->>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/CIResourceTest/report.zip" );
@@ -108,16 +93,12 @@ public class CIResourceTest
     public void testArtifact()
         throws Exception
     {
-<<<<<<< HEAD:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/CIResourceTest.java
-        final String scanId = "CIResourceTest_ScanId";
-=======
-        final String applicationPublicId = "BCResourceTest_AppId";
+        final String applicationPublicId = "CIResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
         String appId = application.getId();
-        final String scanId = "BCResourceTest_ScanId";
+        final String scanId = "CIResourceTest_ScanId";
         File scanDir = brain.getInsightWork().getReportDir( appId, scanId );
         scanDir.mkdirs();
->>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048:insight-brain-service/src/test/java/com/sonatype/insight/brain/saas/BCResourceTest.java
 
         final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
         Response response = RestAccess.get( getServiceURL() + "/artifact/" + query );

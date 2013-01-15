@@ -86,26 +86,16 @@ public class ReportResource
 
     @GET
     @Path( "embedReport/{path:.*}" )
-<<<<<<< HEAD
-    public Response embedReport( @PathParam( "appId" ) final String appId, @PathParam( "scanId" ) final String scanId,
-                                 @PathParam( "path" ) final String path, @Context final HttpServletRequest httpRequest )
-=======
     public Response embedReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                  @PathParam( "scanId" ) final String scanId,
-                                 @PathParam( "path" ) final String path )
->>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048
+                                 @PathParam( "path" ) final String path, @Context final HttpServletRequest httpRequest )
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
         final String name = Report.toEntryName( path );
-<<<<<<< HEAD
-        final File reportFile = fetchReport( work, proxy, appId, scanId, false );
-        ReportEntry reportEntry = null;
-=======
         final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, false );
-        ReportEntry entry = null;
->>>>>>> Added condition type for labels INSIGHT-4046 INSIGHT-4048
+        ReportEntry reportEntry = null;
         try
         {
             reportEntry = Report.getEntry( reportFile, name );

@@ -201,7 +201,7 @@ public class ComponentDAO
                 componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
             for ( ComponentLabel componentLabel : componentLabels )
             {
-                component.addLabelId( componentLabel.getId() );
+                component.addLabelId( componentLabel.getLabelId() );
             }
         }
         return result;

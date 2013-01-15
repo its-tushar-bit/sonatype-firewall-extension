@@ -1,3 +1,6 @@
+$(document).ready(function(){
+	$('[data-title]').tooltip();
+});
 var insightApp = angular.module('insightApp', ['ngSanitize'], function(){
 });
 

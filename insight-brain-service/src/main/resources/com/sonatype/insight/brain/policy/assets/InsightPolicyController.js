@@ -390,7 +390,8 @@ function InsightPolicyController($scope, global, $http) {
 		$scope.resetActions();
 	}
 	
-	$scope.createPolicyClick = function(){
+	$scope.createPolicyClick = function($event){
+		$event.preventDefault();
 		$scope.state.currentPolicy = {
 			constraints: [],
 			actions: {},

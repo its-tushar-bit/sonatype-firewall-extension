@@ -1,8 +1,26 @@
 $(document).ready(function(){
 	$('[data-title]').tooltip();
 });
-var insightApp = angular.module('insightApp', ['ngSanitize'], function(){
-});
+var insightApp = angular.module('insightApp', ['Labels', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+	$routeProvider.when('/policy', {
+		templateUrl : 'components/policy.html',
+		controller : 'InsightPolicyController'
+	});
+	$routeProvider.when('/labels', {
+		templateUrl : 'components/labels.html',
+		controller : 'LabelController'
+	});
+	$routeProvider.when('/license-group', {
+		templateUrl : 'components/license-group.html'
+	});
+	$routeProvider.otherwise({redirectTo : '/policy'});
+}]);
+
+insightApp.controller('TabController', ['$scope', '$location', function ($scope, $location) {
+	$scope.$watch(function(){return $location.path();}, function(){
+		$scope.tabUrl = $location.path();
+	});
+}]);
 
 insightApp.run(['$http', '$rootScope', function($http, $rootScope) {
 	$rootScope.features = {};

@@ -5,10 +5,20 @@
 	var labelModule = angular.module('Labels', []);
 
 	labelModule.controller('LabelController', ['$scope', '$http', function ($scope, $http) {
+		function errorFn (data, status, headersFn, config) {
+			var header = headersFn();
+			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+			    $scope.errorResponse = 'Server Error';
+			} else {
+			    $scope.errorResponse = data;
+			}
+			$('#labelErrorModal').modal('show');
+		}
+
 		// TODO Failure?
 		$http.get(insightApp.getLabelsUrl()).success(function (data) {
 			$scope.labels = data;
-		});
+		}).error(errorFn);
 
 		$scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
@@ -54,7 +64,7 @@
 		        });
 		        $scope.labels.splice(index, 1);
 		        $('#deleteLabelModal').modal('hide');
-		    });
+		    }).error(errorFn);
 		};
 	}]);
 

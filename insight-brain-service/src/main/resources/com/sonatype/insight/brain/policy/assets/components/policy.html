@@ -80,7 +80,7 @@
 					</div>
 					<div class='control-group'>
 						<label class='control-label'>Conditions</label>
-						<div class='controls' style="min-height:120px;max-height:120px;overflow:auto;">
+						<div class='controls' style="width:740px;min-height:120px;max-height:120px;overflow:auto;">
 							<div style="text-align:left;" ng-repeat="condition in state.currentConstraint.conditions">
 								<select class="condition-field" ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged()" ng-options="c.id as c.name for c in state.conditionTypeList" style="vertical-align:top;">
 								</select>

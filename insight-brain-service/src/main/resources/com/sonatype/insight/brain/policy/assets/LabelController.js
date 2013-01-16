@@ -13,9 +13,16 @@
 		$scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
 		$('#labelEditModal').on('hide', function () {
-			$scope.$apply(function () {
+			// AngularJS barfs if $apply is made unnecessarily, however hide may or may not be called within scope
+			// $scope.$$phase is "$digest" while processing, null otherwise, this is undocumented
+			// https://groups.google.com/forum/#!topic/angular/FJwxJ-XbJaE
+			if ($scope.$$phase) {
 			    $scope.editorUrl = ''; // unloads form, resets state
-			});
+			} else {
+				$scope.$apply(function () {
+				    $scope.editorUrl = ''; // unloads form, resets state
+				});
+			}
 		});
 
 		$scope.editLabel = function (label) {

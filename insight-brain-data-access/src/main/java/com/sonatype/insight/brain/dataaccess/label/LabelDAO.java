@@ -46,7 +46,7 @@ public class LabelDAO
         }
     }
 
-    Label getByApplicationIdAndLowercaseLabel( EntityManager em, String applicationId, String labelLowercase )
+    public Label getByApplicationIdAndLowercaseLabel( EntityManager em, String applicationId, String labelLowercase )
     {
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE  label.applicationId=?1 AND label.labelLowercase=?2";

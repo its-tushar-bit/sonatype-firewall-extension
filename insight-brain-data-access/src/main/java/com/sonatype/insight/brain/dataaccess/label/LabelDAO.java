@@ -65,7 +65,7 @@ public class LabelDAO
     public void delete( EntityManager em, Label label )
     {
         ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId( label.getId() );
+        List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId( em, label.getId() );
         for ( ComponentLabel componentLabel : componentLabels )
         {
             componentLabelDAO.delete( em, componentLabel );

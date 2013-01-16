@@ -16,18 +16,30 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 @Path( LabelResource.SERVICE_PATH )
 public class LabelResource
 {
     public static final String SERVICE_PATH = "rest/label/application/{applicationPublicId}";
+
+    @Context
+    private InsightWork work;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -103,9 +115,38 @@ public class LabelResource
     public void deleteLabel( @PathParam( "applicationPublicId" ) String applicationPublicId,
                              @PathParam( "labelId" ) String labelId )
     {
-        applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
 
         Label label = labelDAO.getById( labelId );
+        if ( label == null )
+        {
+            throw new NotFoundException( "Cannot find a label with id " + labelId );
+        }
+        if ( !appId.equals( label.getApplicationId() ) )
+        {
+            throw new NotFoundException( "Cannot find a label with id " + labelId + " for application id "
+                + applicationPublicId );
+        }
+
+        // Verify that the label is not used in a policy condition
+        PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
+        for ( Policy policy : policyDAO.getByApplicationId( appId ) )
+        {
+            for ( Constraint constraint : policy.getConstraints() )
+            {
+                for ( Condition condition : constraint.getConditions() )
+                {
+                    if ( LabelConditionType.ID.equals( condition.getConditionTypeId() )
+                        && labelId.equals( condition.getValue() ) )
+                    {
+                        // The label is used in a policy condition
+                        throw new BadRequestException( "Cannot delete a label used in a policy condition" );
+                    }
+                }
+            }
+        }
+
         labelDAO.delete( label );
     }
 }

@@ -62,8 +62,13 @@
 
 		function errorFn (data, status, headers, config) {
             $scope.submitActive = false;
+			var header = headersFn();
 			if ($scope.labelEditor) {
-				$scope.labelEditor.editErrorResponse = data;
+			    if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+			        $scope.labelEditor.editErrorResponse = 'Server Error';
+			    } else {
+					$scope.labelEditor.editErrorResponse = data;
+			    }
 			}
 		}
 

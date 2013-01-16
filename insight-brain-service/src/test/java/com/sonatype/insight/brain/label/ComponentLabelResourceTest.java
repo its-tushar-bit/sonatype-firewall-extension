@@ -12,10 +12,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -26,15 +24,9 @@ public class ComponentLabelResourceTest
 {
     private LabelDAO labelDAO = new LabelDAO();
 
-    private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-
     @Override
     protected void cleanupApplication( Application application )
     {
-        for ( ComponentLabel componentLabel : componentLabelDAO.getByApplicationId( application.getId() ) )
-        {
-            componentLabelDAO.delete( componentLabel );
-        }
         for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
         {
             labelDAO.delete( label );

@@ -80,32 +80,34 @@
 					</div>
 					<div class='control-group'>
 						<label class='control-label'>Conditions</label>
-						<div class='controls' style='text-align:left' ng-repeat="condition in state.currentConstraint.conditions">
-							<select class="condition-field" ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged()" ng-options="c.id as c.name for c in state.conditionTypeList" style="vertical-align:top;">
-							</select>
-							<select class="condition-field" ng-model="condition.operator" ng-change="validateConstraint()" ng-options="c for c in condition.conditionType.supportedOperators" style="vertical-align:top;">
-							</select>
-							<input class="condition-field" type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-show="condition.valueType && !condition.valueType.availableValues && condition.valueType.id != 'AgeInDaysValueType'" ng-change="validateConstraint()" style="vertical-align:top;" required></input>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'FloatValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseCategoryValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.shortDisplayName for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseStatusValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'MatchStateValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'SecurityVulnerabilityStatusValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LabelValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.label for c in condition.valueType.availableValues" style="vertical-align:top;" required>
-							</select>
-							<input type="text" style="width:100px;" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-show="condition.valueType.id == 'AgeInDaysValueType'" ng-change="validateConstraint()" style="vertical-align:top;" required></input>
-							<select style="width:100px;" ng-model="condition.valueModifier" ng-show="condition.valueType.id == 'AgeInDaysValueType'" ng-change="validateConstraint()" ng-options="timeSpan.value as timeSpan.name for timeSpan in [{'value':'d', 'name':'Days'},{'value':'m', 'name':'Months'},{'value':'y', 'name':'Years'}]"" style="vertical-align:top;" required>
-							</select>
-							<div class="btn-group">
-								<button class="btn" ng-click="removeCondition()" title="Remove Condition"><i class="icon-minus-sign" ng-disabled="state.currentConditions.length <= 1"></i></button>
-								<button class="btn" ng-click="addCondition()" title="Add Condition"><i class="icon-plus-sign"></i></button>
+						<div class='controls' style="min-height:120px;max-height:120px;overflow:auto;">
+							<div style="text-align:left;" ng-repeat="condition in state.currentConstraint.conditions">
+								<select class="condition-field" ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged()" ng-options="c.id as c.name for c in state.conditionTypeList" style="vertical-align:top;">
+								</select>
+								<select class="condition-field" ng-model="condition.operator" ng-change="validateConstraint()" ng-options="c for c in condition.conditionType.supportedOperators" style="vertical-align:top;">
+								</select>
+								<input class="condition-field" type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-show="condition.valueType && !condition.valueType.availableValues && condition.valueType.id != 'AgeInDaysValueType'" ng-change="validateConstraint()" style="vertical-align:top;" required></input>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'FloatValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseCategoryValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.shortDisplayName for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseStatusValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'MatchStateValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'SecurityVulnerabilityStatusValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select class="condition-field" ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LabelValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.label for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<input type="text" style="width:86px;" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-show="condition.valueType.id == 'AgeInDaysValueType'" ng-change="validateConstraint()" style="vertical-align:top;" required></input>
+								<select style="width:100px;" ng-model="condition.valueModifier" ng-show="condition.valueType.id == 'AgeInDaysValueType'" ng-change="validateConstraint()" ng-options="timeSpan.value as timeSpan.name for timeSpan in [{'value':'d', 'name':'Days'},{'value':'m', 'name':'Months'},{'value':'y', 'name':'Years'}]"" style="vertical-align:top;" required>
+								</select>
+								<div class="btn-group" style="float:right; padding-right:10px;">
+									<button class="btn" ng-click="removeCondition()" title="Remove Condition" ng-disabled="state.currentConstraint.conditions.length <= 1"><i class="icon-minus-sign"></i></button>
+									<button class="btn" ng-click="addCondition()" title="Add Condition"><i class="icon-plus-sign"></i></button>
+								</div>
 							</div>
 						</div>
 					</div>

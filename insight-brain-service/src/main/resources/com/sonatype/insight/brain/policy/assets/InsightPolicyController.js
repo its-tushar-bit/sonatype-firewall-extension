@@ -470,6 +470,10 @@ function InsightPolicyController($scope, global, $http) {
 		condition.operator = condition.conditionType.supportedOperators[0];
 		
 		delete condition.value;
+		
+		condition.valueModifier = 'y';
+		
+		$scope.validateConstraint();
 	}
 	
 	$scope.addCondition = function() {

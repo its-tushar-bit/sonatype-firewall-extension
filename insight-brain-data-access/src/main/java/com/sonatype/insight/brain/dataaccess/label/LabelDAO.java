@@ -24,6 +24,15 @@ public class LabelDAO
         return getList( sQuery, applicationId );
     }
 
+    public List<Label> getByApplicationIdAndHash( String applicationId, String hash )
+    {
+        String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
+            " WHERE label.id=componentLabel.labelId AND label.applicationId=componentLabel.applicationId" + //
+            " AND label.applicationId=?1 AND componentLabel.hash=?2" + //
+            " ORDER BY label.labelLowercase";
+        return getList( sQuery, applicationId, hash );
+    }
+
     public Label getByApplicationIdAndLowercaseLabel( String applicationId, String labelLowercase )
     {
         EntityManager em = createEntityManager();

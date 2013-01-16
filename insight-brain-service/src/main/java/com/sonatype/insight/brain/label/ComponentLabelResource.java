@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.label;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
 @Path( ComponentLabelResource.SERVICE_PATH )
@@ -36,13 +34,16 @@ public class ComponentLabelResource
     private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
     @PUT
-    @Consumes( { MediaType.APPLICATION_JSON } )
-    public void setComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    @Consumes( MediaType.APPLICATION_JSON )
+    @Produces( MediaType.APPLICATION_JSON )
+    public List<Label> setComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
                                     @PathParam( "hash" ) String hash, Set<String> stringLabels )
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         componentLabelDAO.setComponentLabels( application.getId(), hash, stringLabels );
+
+        return labelDAO.getByApplicationIdAndHash( application.getId(), hash );
     }
 
     @GET
@@ -51,16 +52,6 @@ public class ComponentLabelResource
                                            @PathParam( "hash" ) String hash )
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        List<ComponentLabel> labelIds = componentLabelDAO.getByApplicationIdAndHash( application.getId(), hash );
-        List<Label> labels = new ArrayList<Label>( labelIds.size() );
-        for ( ComponentLabel labelId : labelIds )
-        {
-            Label label = labelDAO.getById( labelId.getLabelId() );
-            if ( label != null )
-            {
-                labels.add( label );
-            }
-        }
-        return labels;
+        return labelDAO.getByApplicationIdAndHash( application.getId(), hash );
     }
 }

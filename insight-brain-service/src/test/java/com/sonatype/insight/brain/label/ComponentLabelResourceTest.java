@@ -6,15 +6,12 @@
 package com.sonatype.insight.brain.label;
 
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -27,47 +24,47 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ComponentLabelResourceTest
     extends AbstractResourceTest
 {
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    private LabelDAO labelDAO = new LabelDAO();
 
     private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
+    @Override
+    protected void cleanupApplication( Application application )
+    {
+        for ( ComponentLabel componentLabel : componentLabelDAO.getByApplicationId( application.getId() ) )
+        {
+            componentLabelDAO.delete( componentLabel );
+        }
+        for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
+        {
+            labelDAO.delete( label );
+        }
+        super.cleanupApplication( application );
+    }
+
     @Test
-    public void testSetComponentLabels()
+    public void testSetGetComponentLabels()
         throws Exception
     {
         // Create an application
         String appPublicId = "ComponentLabelResourceTest_AppId";
-        Application application = new Application();
-        application.setPublicId( appPublicId );
-        applicationDAO.insert( application );
+        createApplication( appPublicId );
 
         String hash = "bababababa";
         Set<String> labels = toLabelSet( "LabelY", "LabelX" );
-        Response response =
-            RestAccess.put( getServiceURL( appPublicId ).replace( "{hash}", hash ), JsonHelpers.asJson( labels ) );
-        assertResponseStatus( 204, response );
+        Response response = RestAccess.put( getServiceURL( appPublicId, hash ), JsonHelpers.asJson( labels ) );
+        assertResponseStatus( 200, response );
+        Label[] componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
+        Assert.assertEquals( 2, componentLabels.length );
+        Assert.assertEquals( "LabelX", componentLabels[0].getLabel() );
+        Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
 
-        List<ComponentLabel> componentLabels = componentLabelDAO.getByApplicationIdAndHash( application.getId(), hash );
-        assertComponentLabels( labels, componentLabels );
-    }
-
-    private void assertComponentLabels( Set<String> expectedLabels, List<ComponentLabel> actualLabels )
-    {
-        Assert.assertEquals( expectedLabels.size(), actualLabels.size() );
-
-        LabelDAO labelDAO = new LabelDAO();
-        Set<String> actualStringLabels = new LinkedHashSet<String>();
-        for ( ComponentLabel componentLabel : actualLabels )
-        {
-            Label label = labelDAO.getById( componentLabel.getLabelId() );
-            actualStringLabels.add( label.getLabelLowercase() );
-        }
-
-        for ( String expectedLabel : expectedLabels )
-        {
-            Assert.assertTrue( "Expected label " + expectedLabel,
-                               actualStringLabels.contains( expectedLabel.toLowerCase( Locale.ENGLISH ) ) );
-        }
+        response = RestAccess.get( getServiceURL( appPublicId, hash ) );
+        assertResponseStatus( 200, response );
+        componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
+        Assert.assertEquals( 2, componentLabels.length );
+        Assert.assertEquals( "LabelX", componentLabels[0].getLabel() );
+        Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
     }
 
     private Set<String> toLabelSet( String... labels )
@@ -80,8 +77,10 @@ public class ComponentLabelResourceTest
         return labelSet;
     }
 
-    private String getServiceURL( final String appId )
+    private String getServiceURL( String applicationPublicId, String hash )
     {
-        return getRestBaseUrl() + ComponentLabelResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
+        return getRestBaseUrl()
+            + ComponentLabelResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ).replace( "{hash}",
+                                                                                                                   hash );
     }
 }

@@ -27,9 +27,14 @@ public abstract class AbstractResourceTest
         ApplicationDAO applicationDAO = new ApplicationDAO();
         for ( Application application : applicationsToDelete )
         {
+            cleanupApplication( application );
             applicationDAO.delete( application );
         }
         applicationsToDelete.clear();
+    }
+
+    protected void cleanupApplication( Application application )
+    {
     }
 
     protected static void assertResponseStatus( final int expectedStatus, final Response response )

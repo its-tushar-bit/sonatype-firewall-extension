@@ -3,7 +3,7 @@
     <div ng-show='features.labels' class='span4 content-container'>
         <table class='table table-striped' style='margin-bottom:0px'>
             <thead><tr><th colspan='2'>Label</th></tr></thead>
-            <tr ng-repeat="label in labels">
+            <tr ng-repeat="label in labels | orderBy:'label'">
                 <td style='line-height:24px'><span class="clmLabel {{label.color}}Label">{{label.label}}</span></td>
                 <td style='width:60px'><button ng-click='editLabel(label)' class="btn btn-mini btn-edit hover-vis" title="Edit Label"><i class="icon-pencil" style="margin-top:0px;"></i></button> <button ng-click='confirmDeleteLabel(label)' class="btn btn-mini btn-delete hover-vis" title="Delete Label"><i class="icon-trash" style="margin-top:0px;"></i></button></td>
             </tr>
@@ -20,22 +20,8 @@
             <h3 ng-show='selectedLabel.id == null'>Add Label</h3>
             <h3 ng-show='selectedLabel.id != null'>Edit Label</h3>
 		</div>
-        <form name='labelEditor'>
-            <div class="modal-body">
-                <p>
-                    <label for='labelEditorLabel'>Label:</label> <input type='text' name='label' id='labelEditorLabel' ng-model='selectedLabel.label' required>
-                </p>
-                <div>
-                    <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
-                        <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
-                    </div>
-                </div>
-            </div>
-        </form>
-            <div class="modal-footer">
-                <button class="btn" data-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" ng-click="saveLabelClick()" ng-disabled='canSaveLabelEditor(labelEditor.$valid);'>Save</button>
-            </div>
+		<div ng-include='editorUrl'>
+		</div>
 	</div>
 	<div id="deleteLabelModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">

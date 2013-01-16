@@ -208,3 +208,11 @@ tr:hover .hover-vis {
 tr .hover-vis {
     display: none;
 }
+
+input.condition-field {
+  width: 190px;
+}
+
+select.condition-field {
+  width: 204px;
+}

@@ -39,62 +39,47 @@ function InsightPolicyController($scope, global, $http) {
 		data.summary.actions = actionNames;
 	}
 	
-	function parseConditionValue(conditionTypeId, valueId, conditionValueType, valueModifier){
-		var conditionValueObject = getConditionValue(conditionTypeId, valueId);
-		if (conditionValueObject){
-			switch (conditionValueType.dataType){
-			case 'License':
-				return conditionValueObject.shortDisplayName;
-			case 'MatchState':
-			case 'LicenseStatus':
-			case 'SecurityVulnerabilityStatus':
-				return conditionValueObject.name;
-			}			
-		}
-		
-		if (conditionValueType.id === 'AgeInDaysValueType'){			
-			if ( valueId > 365 ) {
-				return (valueId / 365).toFixed( valueId % 365 ? 1 : 0 ) + ' years';
-			} else if ( valueId > 30 ) {
-				return (valueId / 30).toFixed(0) + ' months';
-			} else {
-				return valueId + ' days';
-			}
-		}
-		
-		return valueId;
-	}
-	
-	function parseConditionValues(data) {
+	function addUIConditionData(data) {
 		angular.forEach(data.constraints, function(constraint,constraintIndex){
 			angular.forEach(constraint.conditions, function(condition, conditionIndex){
+				condition.conditionType = getConditionType(condition.conditionTypeId);
+				condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
 				if ( condition.value ){
-					var conditionValueType = getConditionValueType(getConditionType(condition.conditionTypeId).valueTypeId);
-					condition.valueText = '';
 					var parts = condition.value.split(',');
 					if ( parts.length > 1 ){
 						condition.value = parts;
-						for ( var i = 0 ; i < condition.value.length ; i++ ){
-							var valueText = parseConditionValue(condition.conditionTypeId, condition.value[i], conditionValueType, condition.valueModifier);
-							if (condition.valueText){
-								condition.valueText += ', ';
-							}
-							condition.valueText += valueText;
+					} else if (condition.valueType && condition.valueType.id === 'AgeInDaysValueType'){			
+						if (condition.value > 365 && condition.value % 365 === 0) {
+							condition.value = condition.value / 365;
+							condition.valueModifier = 'y';
+						} else if (condition.value > 30 && condition.value & 30 === 0) {
+							condition.value = condition.value / 30;
+							condition.valueModifier = 'm';
+						} else {
+							condition.valueModifier = 'd';
 						}
-					} else {
-						condition.valueText = parseConditionValue(condition.conditionTypeId, condition.value, conditionValueType, condition.valueModifier);
 					}
 				}
 			});
 		});
 	}
 	
-	function composeConditionValues(data) {
+	function removeUIConditionData(data) {
 		angular.forEach(data.constraints, function(constraint,constraintIndex){
 			angular.forEach(constraint.conditions, function(condition, conditionIndex){
 				if ( angular.isArray(condition.value) ){
 					condition.value = condition.value.join();
+				} else if (condition.valueType && condition.valueType.id === 'AgeInDaysValueType'){
+					if (condition.valueModifier === 'y'){
+						condition.value = condition.value * 365;
+					} else if (condition.valueModifier === 'm'){
+						condition.value = condition.value * 30;
+					}
 				}
+				
+				delete condition.valueModifier;
+				delete condition.conditionType;
+				delete condition.valueType;
 			});
 		});
 	}
@@ -117,35 +102,6 @@ function InsightPolicyController($scope, global, $http) {
 		}
 		
 		return null;
-	}
-	
-	function getConditionValue(conditionTypeId, valueId){
-		var conditionValueType = getConditionValueType(getConditionType(conditionTypeId).valueTypeId);
-		
-		if (!conditionValueType.availableValues){
-			return valueId;
-		}
-		
-		for ( var i = 0 ; i < conditionValueType.availableValues.length ; i++ ){
-			if ( conditionValueType.availableValues[i].id === valueId ){
-				return conditionValueType.availableValues[i];
-			}
-		}
-		
-		return null;
-	}
-	
-	function applyConditionValueModifier(valueTypeId, value, modifier) {
-		if ( valueTypeId === 'AgeInDaysValueType' ){
-			switch(modifier){
-			case 'y':
-				return value * 365;
-			case 'm':
-				return value * 30;
-			}
-		}
-		
-		return value;
 	}
 	
 	function isAvailableStage(id) {
@@ -300,53 +256,14 @@ function InsightPolicyController($scope, global, $http) {
 		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
 		emptyMessage : "No Constraints have been defined.<br><a href='#editConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
 	};
-	$scope.state.constraintConditionsTableDefinition = {
-    	columns : [{
-    		id : "conditionTypeId",
-    		name : "Operand",
-    		field : "conditionTypeId",
-    		width : 100,
-    		formatter : function(row, cell, value, columnDef, dataContext) {
-    			return getConditionType(value).name;
-    		}
-    	},{
-    		id : "operator",
-    		name : "Operator",
-    		field : "operator",
-    		width : 100
-    	},{
-    		id : "value",
-    		name : "Value",
-    		field : "value",
-    		width : 100,
-			formatter : function(row, cell, value, columnDef, dataContext) {
-				return '<table><tr><td style="padding: 0px;width: 99%;">' + (dataContext.valueText ? dataContext.valueText : (value ? value : '')) + '</td>'
-				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Condition"><i class="icon-trash"></i></button></td>'
-				    + '</tr></table>';
-			}
-    	}],
-    	options : {
-    		height : 125,
-    		forceFitColumns : true,
-			fullWidthRows : true
-		},
-		plugins : [],
-		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
-		emptyMessage : "Add one or more Conditions to define the Constraint."
-    };
 	
 	$scope.resetConstraint = function() {
 		delete $scope.state.addConstraintFormValid;
-		delete $scope.state.addConstraintConditionFormValid;
 		$scope.state.currentConstraint = {
 			conditions: [],
 			operator: 'OR'
 		};
-		$scope.state.currentCondition = {
-			valueModifier: 'y'
-		};
-		delete $scope.state.currentConditionType;
-		delete $scope.state.currentConditionValueType;
+		$scope.addCondition();
 		delete $scope.state.actionEditMode;
 	}
 	
@@ -409,13 +326,13 @@ function InsightPolicyController($scope, global, $http) {
 		
 		//I copy the item here as I don't want to dirty the UI data with changes needed for the server
 		var item = angular.copy($scope.state.currentPolicy);
-		composeConditionValues(item);
+		removeUIConditionData(item);
 		showHttpMask('Saving policy...');
 		//edit
 		if ($scope.state.currentPolicy.id) {		    
 			$http.put(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
 				updatePolicySummary(data);
-        		parseConditionValues(data);
+				addUIConditionData(data);
 				for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ){
 					if ($scope.state.policyList[i].id === data.id){
 						angular.copy(data, $scope.state.policyList[i]);
@@ -430,7 +347,7 @@ function InsightPolicyController($scope, global, $http) {
 		} else {		   			
 			$http.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
 				updatePolicySummary(data);
-        		parseConditionValues(data);
+				addUIConditionData(data);
 				$scope.state.policyList.push(data);
 				$scope.reset();
 				hideHttpMask();
@@ -527,69 +444,49 @@ function InsightPolicyController($scope, global, $http) {
     	$('#deleteConstraintConfirmationModal').modal('hide');
 	}
 	
-	$scope.addConstraintCondition = function() {		
-		if ( $scope.state.currentCondition.value ){
-			var conditionValueType = getConditionValueType(getConditionType($scope.state.currentCondition.conditionTypeId).valueTypeId);
-			$scope.state.currentCondition.valueText = '';
-			var parts = $scope.state.currentCondition.value.split(',');
-			if ( parts.length > 1 ){
-				$scope.state.currentCondition.value = parts;
-				for ( var i = 0 ; i < $scope.state.currentCondition.value.length ; i++ ){
-					$scope.state.currentCondition.value[i] = applyConditionValueModifier(conditionValueType.id, $scope.state.currentCondition.value[i], $scope.state.currentCondition.valueModifier);
-					var valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value[i], conditionValueType, $scope.state.currentCondition.valueModifier);
-					if ($scope.state.currentCondition.valueText){
-						$scope.state.currentCondition.valueText += ', ';
-					}
-					$scope.state.currentCondition.valueText += valueText;
-				}
-			} else {
-				$scope.state.currentCondition.value = applyConditionValueModifier(conditionValueType.id, $scope.state.currentCondition.value, $scope.state.currentCondition.valueModifier);
-				$scope.state.currentCondition.valueText = parseConditionValue($scope.state.currentCondition.conditionTypeId, $scope.state.currentCondition.value, conditionValueType, $scope.state.currentCondition.valueModifier);
+	$scope.validateConstraint = function() {
+		delete $scope.state.addConstraintFormValid;
+		delete $scope.state.conditionsValid;
+		
+		for (var i = 0 ; i < $scope.state.currentConstraint.conditions.length ; i++){
+			if ($scope.state.currentConstraint.conditions[i].valueType && !$scope.state.currentConstraint.conditions[i].value){
+				return;
 			}
 		}
 		
-		$scope.state.currentConstraint.conditions.push($scope.state.currentCondition);
+		$scope.state.conditionsValid = true;
 		
-		$scope.state.currentCondition = {};
-		
-		$scope.validateConstraint();
-		$scope.validateConstraintCondition();
-	}
-	
-	$scope.removeConstraintCondition = function() {
-		var grid = $scope.constraintConditionsGrid;
-		var rows = grid.getSelectedRows();
-		for ( var i = rows.length - 1 ; i >= 0 ; i-- ) {
-			grid.dataView.deleteItem(grid.dataView.getItemByIdx(rows[i]).id);
-		}
-		$scope.state.currentConstraint.conditions = grid.getData().getItems();
-		$scope.validateConstraint();
-	}
-	
-	$scope.validateConstraint = function() {
-		delete $scope.state.addConstraintFormValid;
-		if ($scope.state.currentConstraint.conditions.length > 0
-				&& $scope.state.currentConstraint.name
-				&& $scope.state.currentConstraint.operator) {
+		if ($scope.state.currentConstraint.name
+			&& $scope.state.currentConstraint.operator) {
 			$scope.state.addConstraintFormValid = true;
 		}
 	}
 	
-	$scope.validateConstraintCondition = function() {
-		delete $scope.state.addConstraintConditionFormValid;
-		if ($scope.state.currentCondition.conditionTypeId
-				&& $scope.state.currentCondition.operator
-				&& (!getConditionType($scope.state.currentCondition.conditionTypeId).valueTypeId || $scope.state.currentCondition.value)) {
-			$scope.state.addConstraintConditionFormValid = true;
-		}
+	$scope.conditionTypeChanged = function() {
+		var condition = $scope.state.currentConstraint.conditions[this.$index];
+		condition.conditionType = getConditionType(condition.conditionTypeId);
+		condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
+		
+		condition.operator = condition.conditionType.supportedOperators[0];
+		
+		delete condition.value;
 	}
 	
-	$scope.constraintOperandChanged = function() {
-		delete $scope.state.currentCondition.operator;
-		delete $scope.state.currentCondition.value;
-		$scope.state.currentConditionType = getConditionType($scope.state.currentCondition.conditionTypeId);
-		$scope.state.currentConditionValueType = getConditionValueType($scope.state.currentConditionType.valueTypeId);
-		$scope.validateConstraintCondition();
+	$scope.addCondition = function() {
+		var conditionType = getConditionType($scope.state.conditionTypeList[0].id);
+		var valueType = getConditionValueType(conditionType.valueTypeId);
+		
+		$scope.state.currentConstraint.conditions.push({
+			conditionTypeId: conditionType.id,
+			conditionType: conditionType,
+			operator: conditionType.supportedOperators[0],
+			valueType: valueType,
+			valueModifier: 'y'
+		});
+	}
+	
+	$scope.removeCondition = function() {
+		$scope.state.currentConstraint.conditions.splice(this.$index, 1);
 	}
 	
 	$scope.editActionsClick = function() {
@@ -669,7 +566,7 @@ function InsightPolicyController($scope, global, $http) {
 	                	for ( var i = 0 ; i < data.length ; i++ ){
 	                		$scope.state.policyList.push(data[i]);
 	                		updatePolicySummary(data[i]);
-	                		parseConditionValues(data[i]);
+	                		addUIConditionData(data[i]);
 	                	}
 	                	
 	                	$scope.reset();
@@ -689,12 +586,6 @@ function InsightPolicyController($scope, global, $http) {
     }).error(function(data, status, headers, config){
     	handleHttpError('Condition Type Initialization Error', data, status);
 	});
-	
-	$('#editConstraintModal').live('show', function (event) {
-		setTimeout(function(){
-			$scope.constraintConditionsGrid.redraw();
-		},100);
-    });
 	
 	$('.policy-item').live('mouseover mouseout', function (event) {
         if (event.type == 'mouseover') {
@@ -776,23 +667,5 @@ function InsightPolicyController($scope, global, $http) {
         $scope.$apply();
         
         $('#deleteConstraintConfirmationModal').modal('show');
-    });
-    
-    $('#constraintConditionsGrid .slick-row').live('mouseover mouseout', function (event) {
-        if (event.type == 'mouseover') {
-            $(this).find(".btn").show(); 
-        } else {
-
-             $(this).find(".btn").hide();
-        }
-    });
-    
-    $('#constraintConditionsGrid .slick-row .btn-delete').live('click', function(){
-		$scope.constraintConditionsGrid.dataView.deleteItem($(this).attr('id'));
-		$scope.validateConstraint();
-		
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
     });
 }

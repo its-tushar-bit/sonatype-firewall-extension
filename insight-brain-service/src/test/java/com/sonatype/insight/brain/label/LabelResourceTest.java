@@ -72,6 +72,14 @@ public class LabelResourceTest
         label2 = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
         assertLabel( application.getId(), "My label 2", Color.blue, label2 );
 
+        // Update without changing the name
+        label2.setColor( Color.red );
+        response = RestAccess.put( getServiceURL( appPublicId ), JsonHelpers.asJson( label2 ) );
+        assertResponseStatus( 200, response );
+        label2 = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
+        assertLabel( application.getId(), "My label 2", Color.red, label2 );
+
+        // Update with a conflicting name
         label2.setLabel( label1.getLabel() );
         response = RestAccess.put( getServiceURL( appPublicId ), JsonHelpers.asJson( label2 ) );
         assertResponseStatus( 409, response );

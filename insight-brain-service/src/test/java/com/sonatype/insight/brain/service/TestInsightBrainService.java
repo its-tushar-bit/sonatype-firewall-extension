@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 
@@ -176,5 +177,12 @@ public class TestInsightBrainService
         {
             return path( "rest/ci/validate/freemium" ).get().status() == 200;
         }
+    }
+
+    @Override
+    protected DatabaseConfig getDatabaseConfig( File databaseDir )
+    {
+        // Use in memory db
+        return null;
     }
 }

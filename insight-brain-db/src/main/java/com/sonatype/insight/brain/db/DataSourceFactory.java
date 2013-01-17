@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.db;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.AbstractDataSourceFactory;
+import com.sonatype.insight.db.DatabaseConfig;
 
 public class DataSourceFactory
     extends AbstractDataSourceFactory
@@ -25,9 +25,9 @@ public class DataSourceFactory
     }
 
     @Override
-    protected DataSource loadDataSource( File dbConfigFile, String databaseName )
+    protected DataSource loadDataSource( DatabaseConfig databaseConfig, String databaseName )
     {
-        DataSource dataSource = super.loadDataSource( dbConfigFile, databaseName );
+        DataSource dataSource = super.loadDataSource( databaseConfig, databaseName );
         populateDatabaseSchema( dataSource, databaseName );
 
         return dataSource;

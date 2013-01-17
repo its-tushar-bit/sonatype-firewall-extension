@@ -39,38 +39,38 @@ public class OperationalDataStoreProviderTest
     public void verifyDatabaseCreation_InMemory()
         throws Exception
     {
-        verifyDatabaseCreation( null /* configDir */);
+        verifyDatabaseCreation( null /* databaseConfig */);
     }
 
     @Test
     public void verifyDatabaseCreation_OnDisk()
         throws Exception
     {
+        DatabaseConfig databaseConfig = new DatabaseConfig();
+        databaseConfig.setDriverClassName( "org.h2.Driver" );
+        databaseConfig.setUrl( "jdbc:h2:target/OperationalDataStoreProviderTest/test" );
+        databaseConfig.setUsername( "sa" );
+        databaseConfig.setPassword( "" );
+        databaseConfig.setMaxConnections( 50 );
         File databaseDir = new File( "target/OperationalDataStoreProviderTest" );
-        File configDir = new File( "target/test-classes/OperationalDataStoreProviderTest" );
         FileUtils.deleteDirectory( databaseDir );
 
         // New database
-        verifyDatabaseCreation( configDir );
+        verifyDatabaseCreation( databaseConfig );
         Assert.assertTrue( databaseDir.exists() );
         Assert.assertTrue( new File( databaseDir, "test.h2.db" ).exists() );
 
         // Existing database
         DataSourceFactory.unloadAll();
-        verifyDatabaseCreation( configDir );
+        verifyDatabaseCreation( databaseConfig );
         Assert.assertTrue( databaseDir.exists() );
         Assert.assertTrue( new File( databaseDir, "test.h2.db" ).exists() );
     }
 
-    private void verifyDatabaseCreation( File configDir )
+    private void verifyDatabaseCreation( DatabaseConfig databaseConfig )
         throws Exception
     {
-        if ( configDir != null )
-        {
-            File configFileName = new File( configDir, "dbconfig.xml" );
-            Assert.assertTrue( configFileName.getAbsolutePath() + " does not exist", configFileName.exists() );
-        }
-        OperationalDataStoreProvider.init( new DatabaseConfig( configDir ) );
+        OperationalDataStoreProvider.init( databaseConfig );
         DataSource dataSource = OperationalDataStoreProvider.get();
         Assert.assertNotNull( dataSource );
         Connection conn = dataSource.getConnection();

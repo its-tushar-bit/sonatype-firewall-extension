@@ -10,9 +10,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.db.DatabaseConfig;
 
 public abstract class AbstractDbDAOTest
 {
@@ -21,9 +19,6 @@ public abstract class AbstractDbDAOTest
     @BeforeClass
     public static void setUp()
     {
-        DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
-        OperationalDataStoreProvider.init( databaseConfig );
-
         // Create an application
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();

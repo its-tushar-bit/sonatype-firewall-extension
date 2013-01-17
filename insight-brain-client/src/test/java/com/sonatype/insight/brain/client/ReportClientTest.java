@@ -14,28 +14,18 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.ServletResult;
-import com.sonatype.insight.db.DatabaseConfig;
 
 public class ReportClientTest
     extends AbstractBrainServiceTest
 {
     private Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
-
-    @BeforeClass
-    public static void beforeClass()
-    {
-        DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
-        OperationalDataStoreProvider.init( databaseConfig );
-    }
 
     @AfterClass
     public static void afterClass()

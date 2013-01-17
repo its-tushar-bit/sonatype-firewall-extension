@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -49,6 +50,17 @@ public class InsightBrainService
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", "/policy-assets/" ) );
     }
 
+    protected DatabaseConfig getDatabaseConfig( File databaseDir )
+    {
+        DatabaseConfig databaseConfig = new DatabaseConfig();
+        databaseConfig.setDriverClassName( "org.h2.Driver" );
+        databaseConfig.setUrl( "jdbc:h2:" + databaseDir.getAbsolutePath() + "/ods" );
+        databaseConfig.setUsername( "sa" );
+        databaseConfig.setPassword( "" );
+        databaseConfig.setMaxConnections( 50 );
+        return databaseConfig;
+    }
+
     @Override
     public void run( final InsightConfig config, final Environment env )
         throws Exception
@@ -65,7 +77,8 @@ public class InsightBrainService
         env.addProvider( new InsightWork( config ) );
         env.addProvider( new InsightProxy( config ) );
 
-        DatabaseConfig databaseConfig = new DatabaseConfig( config.getConfigDir() );
+        File databaseDir = new File( config.getSonatypeWork(), "data" );
+        DatabaseConfig databaseConfig = getDatabaseConfig( databaseDir );
         OperationalDataStoreProvider.init( databaseConfig );
         loadDatabase();
 

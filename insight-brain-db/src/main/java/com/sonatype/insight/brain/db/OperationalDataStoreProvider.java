@@ -28,6 +28,6 @@ public class OperationalDataStoreProvider
 
     public static synchronized DataSource get()
     {
-        return factory.newDataSource( config.getConfigFile(), ID );
+        return factory.newDataSource( config, ID );
     }
 }

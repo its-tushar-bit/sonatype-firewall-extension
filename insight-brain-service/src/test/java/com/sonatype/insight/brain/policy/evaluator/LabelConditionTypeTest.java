@@ -14,13 +14,11 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.label.Color;
@@ -35,19 +33,11 @@ import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.db.DatabaseConfig;
 
 public class LabelConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
     private Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
-
-    @BeforeClass
-    public static void beforeClass()
-    {
-        DatabaseConfig databaseConfig = new DatabaseConfig( null /* configDir */);
-        OperationalDataStoreProvider.init( databaseConfig );
-    }
 
     @AfterClass
     public static void afterClass()

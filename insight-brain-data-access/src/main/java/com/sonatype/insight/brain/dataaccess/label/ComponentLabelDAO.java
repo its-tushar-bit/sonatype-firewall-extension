@@ -15,6 +15,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
+import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
@@ -74,7 +75,7 @@ public class ComponentLabelDAO
         throw new UnsupportedOperationException();
     }
 
-    public void setComponentLabels( String applicationId, String hash, Set<String> stringLabels )
+    public void setComponentLabels( String applicationId, String hash, Set<String> stringLabels, Color defaultColor )
     {
         if ( stringLabels == null )
         {
@@ -142,6 +143,7 @@ public class ComponentLabelDAO
                     label = new Label();
                     label.setApplicationId( applicationId );
                     label.setLabel( stringLabel );
+                    label.setColor( defaultColor );
                     labelDAO.insert( em, label );
                 }
                 ComponentLabel componentLabel = new ComponentLabel();

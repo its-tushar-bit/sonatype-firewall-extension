@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.label;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -37,11 +36,11 @@ public class ComponentLabelResource
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
     public List<Label> setComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                    @PathParam( "hash" ) String hash, Set<String> stringLabels )
+                                           @PathParam( "hash" ) String hash, ComponentLabelState data )
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
-        componentLabelDAO.setComponentLabels( application.getId(), hash, stringLabels );
+        componentLabelDAO.setComponentLabels( application.getId(), hash, data.getLabels(), data.getColor() );
 
         return labelDAO.getByApplicationIdAndHash( application.getId(), hash );
     }

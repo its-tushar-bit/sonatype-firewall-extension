@@ -44,17 +44,17 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels );
+        dao.setComponentLabels( applicationId, hash, noLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ) );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 2, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels );
+        dao.setComponentLabels( applicationId, hash, noLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
@@ -69,17 +69,17 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels );
+        dao.setComponentLabels( applicationId, hash, noLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ) );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 2, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels );
+        dao.setComponentLabels( applicationId, hash, noLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
@@ -94,13 +94,13 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, newLabels );
+        dao.setComponentLabels( applicationId, hash, newLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
 
         newLabels = toLabelSet( "New Label" );
-        dao.setComponentLabels( applicationId, hash, newLabels );
+        dao.setComponentLabels( applicationId, hash, newLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
@@ -115,13 +115,13 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, newLabels );
+        dao.setComponentLabels( applicationId, hash, newLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
 
         newLabels = toLabelSet( "New Label1", "New Label2" );
-        dao.setComponentLabels( applicationId, hash, newLabels );
+        dao.setComponentLabels( applicationId, hash, newLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );

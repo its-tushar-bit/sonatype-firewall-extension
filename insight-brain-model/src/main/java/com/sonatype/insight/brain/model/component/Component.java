@@ -116,23 +116,29 @@ public class Component
         List<SecurityVulnerability> result = new ArrayList<SecurityVulnerability>();
         for ( SecurityVulnerability securityVulnerability : securityVulnerabilities )
         {
-            if ( "=".equals( operator ) && ( securityVulnerability.getSeverity() == severity ) )
+            float securityVulnerabilitySeverity = 0;
+            if ( securityVulnerability.getSeverity() != null )
+            {
+                securityVulnerabilitySeverity = securityVulnerability.getSeverity();
+            }
+
+            if ( "=".equals( operator ) && ( securityVulnerabilitySeverity == severity ) )
             {
                 result.add( securityVulnerability );
             }
-            else if ( ">".equals( operator ) && ( securityVulnerability.getSeverity() > severity ) )
+            else if ( ">".equals( operator ) && ( securityVulnerabilitySeverity > severity ) )
             {
                 result.add( securityVulnerability );
             }
-            else if ( ">=".equals( operator ) && ( securityVulnerability.getSeverity() >= severity ) )
+            else if ( ">=".equals( operator ) && ( securityVulnerabilitySeverity >= severity ) )
             {
                 result.add( securityVulnerability );
             }
-            else if ( "<".equals( operator ) && ( securityVulnerability.getSeverity() < severity ) )
+            else if ( "<".equals( operator ) && ( securityVulnerabilitySeverity < severity ) )
             {
                 result.add( securityVulnerability );
             }
-            else if ( "<=".equals( operator ) && ( securityVulnerability.getSeverity() <= severity ) )
+            else if ( "<=".equals( operator ) && ( securityVulnerabilitySeverity <= severity ) )
             {
                 result.add( securityVulnerability );
             }

@@ -58,19 +58,27 @@
 			</div>
 			<div class="modal-body">
 			    <div class='form-horizontal'>
-			    	<div class='control-group'>
-					    <label class='control-label'>Name</label>
-						<div class='controls' style='text-align:left'>
-							<input type="text" ng-model="state.currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...'></input>
-						</div>
-					</div>
-					<div class='control-group'>
-					    <label class='control-label'>Include</label>
-						<div class='controls' style='text-align:left'>
-							<select ng-model="state.currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]"" style="vertical-align:top;" required>
-							</select>
-						</div>
-					</div>
+			    	<table>
+			    		<tr>
+			    			<td>
+						    	<div class='control-group' style="padding-right:10px;margin-bottom:10px;">
+								    <label class='control-label' style="width:40px;">Name</label>
+									<div class='controls' style='text-align:left;margin-left:50px;'>
+										<input type="text" ng-model="state.currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...'></input>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div class='control-group' style="margin-bottom:10px;">
+								    <label class='control-label' style="width:40px;">Include</label>
+									<div class='controls' style='text-align:left;margin-left:50px;'>
+										<select ng-model="state.currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]"" style="vertical-align:top;" required>
+										</select>
+									</div>
+								</div>
+							</td>
+						</tr>
+					</table>
 					<div class='control-group' style="margin-bottom:0px;">
 						<div class='well' style="width:790px;min-height:120px;max-height:120px;overflow:auto;">
 							<div style="text-align:left;" ng-repeat="condition in state.currentConstraint.conditions">
@@ -107,7 +115,7 @@
 			</div>
 			<div class="modal-footer">
 				<div>
-					<div style="padding-left:500px; padding-top:5px; float:left;"ng-show="!state.conditionsValid">
+					<div style="padding-left:410px; padding-top:5px; float:left;"ng-show="!state.conditionsValid">
 						<span>There is an invalid condition, please correct!</span>
 					</div>
 					<button class="btn" ng-click="cancelConstraintClick()">Cancel</button>

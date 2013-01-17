@@ -487,10 +487,13 @@ function InsightPolicyController($scope, global, $http) {
 			valueType: valueType,
 			valueModifier: 'y'
 		});
+		
+		$scope.validateConstraint();
 	}
 	
 	$scope.removeCondition = function() {
 		$scope.state.currentConstraint.conditions.splice(this.$index, 1);
+		$scope.validateConstraint();
 	}
 	
 	$scope.editActionsClick = function() {

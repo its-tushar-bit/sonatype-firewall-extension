@@ -65,18 +65,11 @@
 						</div>
 					</div>
 					<div class='control-group'>
-					    <div class='controls'>
-					    	<div style="width:100%">
-						        <label class="radio inline">
-								    <input type="radio" ng-model="state.currentConstraint.operator" value="OR" ng-change="validateConstraint()">
-								    Any one Condition met
-								</label>
-								<label class="radio inline">
-								    <input type="radio" ng-model="state.currentConstraint.operator" value="AND" ng-change="validateConstraint()">
-								    All Conditions met
-								</label>
-							</div>
-					    </div>
+					    <label class='control-label'>Include</label>
+						<div class='controls' style='text-align:left'>
+							<select ng-model="state.currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]"" style="vertical-align:top;" required>
+							</select>
+						</div>
 					</div>
 					<div class='control-group'>
 						<label class='control-label'>Conditions</label>

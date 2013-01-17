@@ -53,16 +53,11 @@ insightApp.factory('global', function($rootScope) {
 });
 
 insightApp.getQueryString = function(key) {
-    var vars = [],
-        hash,
-        hashes = window.location.search.slice(1).split('&');
-    for(var i = 0; i < hashes.length; i++)
+	var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
+    if (results)
     {
-        hash = hashes[i].split('=');
-        vars.push(hash[0]);
-        vars[hash[0]] = hash[1];
+    	return results[1];
     }
-    return vars[key];
 }
 
 insightApp.getAppId = function(){

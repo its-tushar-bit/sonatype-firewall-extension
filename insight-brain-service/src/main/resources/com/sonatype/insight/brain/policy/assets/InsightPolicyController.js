@@ -258,7 +258,6 @@ function InsightPolicyController($scope, global, $http) {
 	};
 	
 	$scope.resetConstraint = function() {
-		delete $scope.state.addConstraintFormValid;
 		$scope.state.currentConstraint = {
 			conditions: [],
 			operator: 'OR'
@@ -445,20 +444,18 @@ function InsightPolicyController($scope, global, $http) {
 	}
 	
 	$scope.validateConstraint = function() {
-		delete $scope.state.addConstraintFormValid;
-		delete $scope.state.conditionsValid;
+		delete $scope.state.constraintValidationMsg;
+		
+		if (!$scope.state.currentConstraint.name){
+			$scope.state.constraintValidationMsg = 'Please enter a name for this constraint';
+			return;
+		}
 		
 		for (var i = 0 ; i < $scope.state.currentConstraint.conditions.length ; i++){
 			if ($scope.state.currentConstraint.conditions[i].valueType && !$scope.state.currentConstraint.conditions[i].value){
+				$scope.state.constraintValidationMsg = 'There is an invalid condition, please correct!';
 				return;
 			}
-		}
-		
-		$scope.state.conditionsValid = true;
-		
-		if ($scope.state.currentConstraint.name
-			&& $scope.state.currentConstraint.operator) {
-			$scope.state.addConstraintFormValid = true;
 		}
 	}
 	

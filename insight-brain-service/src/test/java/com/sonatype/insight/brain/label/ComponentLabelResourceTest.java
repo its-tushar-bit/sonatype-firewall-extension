@@ -44,7 +44,9 @@ public class ComponentLabelResourceTest
 
         String hash = "bababababa";
         Set<String> labels = toLabelSet( "LabelY", "LabelX" );
-        Response response = RestAccess.put( getServiceURL( appPublicId, hash ), JsonHelpers.asJson( labels ) );
+        ComponentLabelState state = new ComponentLabelState();
+        state.setLabels( labels );
+        Response response = RestAccess.put( getServiceURL( appPublicId, hash ), JsonHelpers.asJson( state ) );
         assertResponseStatus( 200, response );
         Label[] componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertEquals( 2, componentLabels.length );

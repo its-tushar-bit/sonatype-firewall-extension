@@ -4,7 +4,7 @@
 		<div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty }'>
 			<label class="control-label" for="labelEditorLabel">Label:</label>
 			<div class="controls">
-				<input id="labelEditorLabel" name='label' type="text" ng-model='selectedLabel.label' item-label>
+				<input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
 				<span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
 				<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
 			</div>

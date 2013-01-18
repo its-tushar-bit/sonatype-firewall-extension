@@ -1,4 +1,5 @@
 saasAddress: "https://insight-staging.sonatype.com/"
+#saasAddress: "http://localhost:8080/insight-portal"
 
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.

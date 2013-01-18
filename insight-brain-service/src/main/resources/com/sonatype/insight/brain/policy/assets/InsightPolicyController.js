@@ -132,137 +132,6 @@
 	
 	$scope.state = global;
 	
-	var checkboxSelector = new Slick.CheckboxSelectColumn({
-        cssClass: "slick-cell-checkboxsel"
-	})
-	
-	$scope.state.actionTableDefinition = {
-		columns : [{
-			id : "id",
-			name : "Stage",
-			field : "id",
-			width : 200,
-			formatter : function(row, cell, value, columnDef, dataContext) {
-				var text = '';
-				$.each($scope.state.actionStageList, function(index,actionStage) {
-					if (actionStage.id === value) {
-						text = actionStage.name;
-						return false;
-					}
-					return true;
-				});
-				
-				if (isAvailableStage(value)){
-					return text;
-				} else {
-					return "<div class='masked-cell' title='This stage is under development'>" + text + "</div>";
-				}
-			}
-		},{
-			id : "fail",
-			name : "Fail",
-			field : "fail",
-			width : 60,
-			cssClass: "checkbox-edit-cell",
-			headerCssClass: "header-centered",
-			formatter: function(row,cell,value,columnDef,dataContext){
-				var prefix = '';
-				var suffix = '';
-				
-				if (!isAvailableStage(dataContext.id)){
-					prefix = "<div class='masked-cell' title='This stage is under development'>";
-					suffix = "</div>";
-				}
-				
-				if ($scope.state.actionEditMode){
-					return prefix + "<input id='actionField-" + dataContext.id + "-fail' name='actionField-" + dataContext.id + "' " + (prefix.length ? 'disabled' : '') + " type='radio'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
-				} else {
-					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
-				}
-			}
-		},{
-			id : "warn",
-			name : "Warn",
-			field : "warn",
-			width : 60,
-			cssClass: "checkbox-edit-cell",
-			headerCssClass: "header-centered",
-			formatter: function(row,cell,value,columnDef,dataContext){
-				var prefix = '';
-				var suffix = '';
-				
-				if (!isAvailableStage(dataContext.id)){
-					prefix = "<div class='masked-cell' title='This stage is under development'>";
-					suffix = "</div>";
-				}
-				
-				if ($scope.state.actionEditMode){
-					return prefix + "<input id='actionField-" + dataContext.id + "-warn' name='actionField-" + dataContext.id + "' " + (prefix.length ? 'disabled' : '') + " type='radio'" + (value === true ? ' checked ' : '') + "'></input>" + suffix;
-				} else {
-					return prefix + (value ? "<img src='img/tick.png'>" : "") + suffix;
-				}
-			}
-		},{
-			id : "none",
-			name : "Do Nothing",
-			field : "none",
-			width : 75,
-			cssClass: "checkbox-edit-cell",
-			headerCssClass: "header-centered",
-			formatter: function(row,cell,value,columnDef,dataContext){
-				var prefix = '';
-				var suffix = '';
-				
-				if (!isAvailableStage(dataContext.id)){
-					prefix = "<div class='masked-cell' title='This stage is under development'>";
-					suffix = "</div>";
-				}
-				
-				if ($scope.state.actionEditMode){
-					return prefix + "<input id='actionField-" + dataContext.id + "-none' name='actionField-" + dataContext.id + "' " + (prefix.length ? 'disabled' : '') + " type='radio'" + (!dataContext.warn && !dataContext.fail ? ' checked ' : '') + "'></input>" + suffix;
-				} else {
-					return prefix + (!dataContext.warn && !dataContext.fail ? "<img src='img/tick.png'>" : "") + suffix;
-				}
-			}
-		}],
-		options : {
-			forceFitColumns : true,
-			fullWidthRows : true
-		},
-		selectionModel : {
-			destroy: function(){},
-			init: function(){},
-			setSelectedRanges: function(){},
-			onSelectedRangesChanged: {
-				unsubscribe: function(){},
-				subscribe: function(){}
-			}
-		}
-	};
-	$scope.state.constraintTableDefinition = {
-		columns : [ {
-			id : "name",
-			name : "Constraint Name",
-			field : "name",
-			width : 400,
-			cssClass : 'edit-click',
-			formatter : function(row, cell, value, columnDef, dataContext) {
-				return '<table><tr><td style="padding: 0px;width: 99%;">' + value + '</td>'
-					+ '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-add slick-row-hover-button" title="Add Constraint"><i class="icon-plus-sign" style="margin-top:0px;"></i></button></td>'
-				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Constraint"><i class="icon-pencil" style="margin-top:0px;"></i></button></td>'
-				    + '<td style="padding: 0px;padding-right:2px;"><button id="' + dataContext.id + '" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Constraint"><i class="icon-trash" style="margin-top:0px;"></i></button></td>'
-				    + '</tr></table>';
-			}
-		} ],
-		options : {
-			height : 200,
-			forceFitColumns : true,
-			fullWidthRows : true
-		},
-		selectionModel : new Slick.RowSelectionModel({selectActiveRow: false}),
-		emptyMessage : "No Constraints have been defined.<br><a href='#editConstraintModal' data-toggle='modal'>Create</a> a new Constraint?"
-	};
-	
 	$scope.resetConstraint = function() {
 		$scope.state.currentConstraint = {
 			conditions: [],
@@ -278,20 +147,20 @@
 		if ($scope.state.currentPolicy) {
 			for ( var i = 0 ; i < $scope.state.actionStageList.length ; i++ ) {
 				var item = {
-					id: $scope.state.actionStageList[i].id
+					id: $scope.state.actionStageList[i].id,
+					name: $scope.state.actionStageList[i].name,
+					available: isAvailableStage($scope.state.actionStageList[i].id),
+					action: 'none'
 				};
 				
 				if ($scope.state.currentPolicy.actions[item.id]) {
 					for ( var j = 0 ; j < $scope.state.currentPolicy.actions[item.id].length ; j++ ){
 						switch ($scope.state.currentPolicy.actions[item.id][j].actionTypeId) {
 						case 'fail':
-							item.fail = true;
+							item.action = 'fail';
 							break;
 						case 'warn':
-							item.warn = true;
-							break;
-						case 'notify':
-							item.notify = $scope.state.currentPolicy.actions[item.id][j].target;
+							item.action = 'warn';
 							break;
 						}
 					}
@@ -306,9 +175,6 @@
 		$scope.resetConstraint();
 		delete $scope.state.currentPolicy;
 		delete $scope.state.showAddPolicyScreen;
-		if ($scope.constraintGrid) {
-			$scope.constraintGrid.setSelectedRows([]);
-		}
 		$scope.resetActions();
 	}
 	
@@ -321,14 +187,9 @@
 		}
 		$scope.state.showAddPolicyScreen = true;
 		$scope.resetActions();
-		setTimeout(function(){
-			$scope.constraintGrid.redraw();
-		},50);
 	}
 	
-	$scope.savePolicyClick = function() {
-		$scope.pushActionDataToModel();
-		
+	$scope.savePolicyClick = function() {		
 		//I copy the item here as I don't want to dirty the UI data with changes needed for the server
 		var item = angular.copy($scope.state.currentPolicy);
 		removeUIConditionData(item);
@@ -391,19 +252,20 @@
 	}
 	
 	$scope.removeConstraint = function() {		
-		var rows = $scope.constraintGrid.getSelectedRows();
-		
-		if (!rows.length > 0){
-			return;
-		}
-		
-		rows.reverse();
-		
-		angular.forEach(rows, function(value, key){
-			$scope.constraintGrid.dataView.deleteItem($scope.constraintGrid.getDataItem(value).id);
-		});
-		
-		$scope.validatePolicy();
+		$scope.state.deleteConstraintIndex = this.$index;
+        $('#deleteConstraintConfirmationModal').modal('show');
+	}
+	
+	$scope.addConstraint = function() {
+		$scope.resetConstraint();        
+        $('#editConstraintModal').modal('show');
+	}
+	
+	$scope.editConstraint = function() {
+    	//copy so we dont update data in the current list
+		$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[this.$index]);
+    	$scope.validateConstraint();
+        $('#editConstraintModal').modal('show');
 	}
 	
 	$scope.cancelConstraintClick = function() {
@@ -444,7 +306,7 @@
 	}
 	
 	$scope.deleteConstraintClick = function(){
-		$scope.constraintGrid.dataView.deleteItem($scope.state.constraintToDelete.id);
+		$scope.state.currentPolicy.constraints.splice($scope.state.deleteConstraintIndex,1);
     	$scope.validatePolicy();
     	$('#deleteConstraintConfirmationModal').modal('hide');
 	}
@@ -500,49 +362,31 @@
 	}
 	
 	$scope.editActionsClick = function() {
-		$scope.pushActionDataToModel();
+		if ($scope.state.actionEditMode){
+			$scope.pushActionDataToModel();
+		}
 		$scope.state.actionEditMode = !$scope.state.actionEditMode;
-		$scope.actionGrid.invalidate();
 	}
 	
-	$scope.pushActionDataToModel = function(newData) {
+	$scope.pushActionDataToModel = function() {
 		if ($scope.state.actionEditMode){			
-			if (newData) {
-				$scope.state.actionTableData = newData;
-			} else {
-				$scope.state.actionTableData = [];
-				
-				angular.forEach($scope.state.actionStageList, function(value,key){
-					$scope.state.actionTableData.push({
-						id: value.id,
-						fail: $('#actionField-' + value.id + '-fail').is(":checked"),
-						warn: $('#actionField-' + value.id + '-warn').is(":checked"),
-						notify: $('#actionField-' + value.id + '-notify').val()
-					});
-				});	
-			}
-			
 			if ($scope.state.currentPolicy) {
 				var handleAction = function(id){
 					var result = [];
 					
 					for ( var i = 0 ; i < $scope.state.actionTableData.length ; i++ ) {
 						if ($scope.state.actionTableData[i].id === id) {
-							if ($scope.state.actionTableData[i].warn) {
-								result.push({
-									actionTypeId: 'warn'
-								});
-							}
-							if ($scope.state.actionTableData[i].fail) {
+							switch ($scope.state.actionTableData[i].action){
+							case 'fail':
 								result.push({
 									actionTypeId: 'fail'
 								});
-							}
-							if ($scope.state.actionTableData[i].notify) {
+								break;
+							case 'warn':
 								result.push({
-									actionTypeId: 'notify',
-									target: $scope.state.actionTableData[i].notify
+									actionTypeId: 'warn'
 								});
+								break;
 							}
 							break;
 						}
@@ -559,7 +403,7 @@
 	}
 	
 	$scope.$watch('state.actionTableData',function(newScopeData){
-		$scope.pushActionDataToModel(newScopeData);
+		$scope.pushActionDataToModel();
 	},true);
 	
 	showHttpMask('Loading data from server...');
@@ -613,10 +457,6 @@
 				$scope.state.showAddPolicyScreen = true;
 				$scope.resetActions();
 				$scope.validatePolicy();
-				setTimeout(function(){
-					$scope.actionGrid.invalidate();
-					$scope.constraintGrid.redraw();
-				},50);
 
 		        //since this event is called outside of angular, we need to force
 		        //an apply to get everything mapped up properly
@@ -634,49 +474,6 @@
 				break;
 			}
 		}
-    });
-	
-	$('#constraintGrid .slick-row').live('mouseover mouseout', function (event) {
-        if (event.type == 'mouseover') {
-            $(this).find(".btn").show(); 
-        } else {
-
-             $(this).find(".btn").hide();
-        }
-    });
-	
-	$('#constraintGrid .slick-row .btn-add').live('click', function(){
-		$scope.resetConstraint();
-    	
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
-        
-        $('#editConstraintModal').modal('show');
-    });
-	
-    $('#constraintGrid .slick-row .btn-edit').live('click', function(){
-    	var constraint = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
-    	
-    	//copy so we dont update data in the current list
-    	$scope.state.currentConstraint = angular.copy(constraint);
-		$scope.validateConstraint();
-
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
-        
-        $('#editConstraintModal').modal('show');
-    });
-    
-    $('#constraintGrid .slick-row .btn-delete').live('click', function(){
-    	$scope.state.constraintToDelete = $scope.constraintGrid.dataView.getItem($scope.constraintGrid.dataView.getIdxById($(this).attr('id')));
-    	
-        //since this event is called outside of angular, we need to force
-        //an apply to get everything mapped up properly
-        $scope.$apply();
-        
-        $('#deleteConstraintConfirmationModal').modal('show');
     });
 	}]);
 }());

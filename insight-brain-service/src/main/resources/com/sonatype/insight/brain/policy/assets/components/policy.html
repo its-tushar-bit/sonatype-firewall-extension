@@ -28,21 +28,61 @@
 				</div>
 				<div class="control-group">
 					<label class="control-label">Constraints</label>
-					<div class="controls">
-						<div style="width:100%;">
-							<slickgrid id="constraintGrid" style="height:200px;" class="borderedTable" data="state.currentPolicy.constraints" table-def="state.constraintTableDefinition"></slickgrid>
+					<div class='controls'>
+						<div ng-show="state.currentPolicy.constraints.length > 0">
+							<div style="min-height:120px;max-height:120px;overflow:auto;">
+								<table class="table table-striped table-bordered table-condensed">
+									<tr style="text-align:left;" ng-repeat="constraint in state.currentPolicy.constraints">
+										<td width="99%">{{constraint.name}}</td>
+										<td>
+											<div class="btn-group">
+												<button class="btn" ng-click="removeConstraint()" title="Remove Constraint"><i class="icon-minus-sign"></i></button>
+												<button class="btn" ng-click="addConstraint()" title="Add Constraint"><i class="icon-plus-sign"></i></button>
+												<button class="btn" ng-click="editConstraint()" title="Edit Constraint"><i class="icon-pencil"></i></button>
+											</div>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+						<div ng-show="state.currentPolicy.constraints.length < 1">
+							<div class="alert alert-info" style="text-align: center;">
+								Create a <a href='#editConstraintModal' data-toggle='modal'><strong>New Constraint</strong></a> for the Policy.
+							</div>
 						</div>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="policyActions">Actions</label>
 					<div class="controls">
-						<div style="width:100%;">
-							<div class="btn-group btn-group-vertical" style="float:left;">
-								<button class="btn btn-small" ng-click="editActionsClick()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button>
-							</div>
-							<slickgrid id="actionGrid" style="height:151px;" class="borderedTable" data="state.actionTableData" table-def="state.actionTableDefinition" ignore-click="true"></slickgrid>
-						</div>
+						<table class="table table-striped table-bordered table-condensed">
+							<thead>
+								<tr>
+									<th style="vertical-align:bottom;"><div style="margin:auto;display:inline;">Stage</div><button class="btn btn-mini" style="float:right;" ng-click="editActionsClick()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button></th>
+									<th style="text-align:center;">Fail</th>
+									<th style="text-align:center;">Warn</th>
+									<th style="text-align:center;">Do Nothing</th>
+								</tr>
+							</thead>
+							<tr ng-repeat="actionData in state.actionTableData">
+								<td style="width:25%;">{{actionData.name}}</td>
+								<td style="width:25%;text-align:center;">
+									<input ng-model="actionData.action" value="fail" name="{{actionData.id}}" ng-show="state.actionEditMode" ng-disabled="!actionData.available" type="radio">
+									</input>
+									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'fail'">
+								</td>
+								<td style="width:25%;text-align:center;">
+									<input ng-model="actionData.action" value="warn" name="{{actionData.id}}" ng-show="state.actionEditMode" ng-disabled="!actionData.available" type="radio">
+									</input>
+									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'warn'">
+								</td>
+								<td style="width:25%;text-align:center;">
+									<input ng-model="actionData.action" value="none" name="{{actionData.id}}" ng-show="state.actionEditMode" ng-disabled="!actionData.available" type="radio">
+									</input>
+									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'none'">
+								</td>
+							</tr>
+						</table>
 					</div>
 				</div>
 			</div>
@@ -53,7 +93,6 @@
 		</form>
 		<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 860px;margin: -250px 0 0 -431px;">
 			<div class="modal-header">
-			    <button type="button" class="close" data-dismiss="modal">×</button>
 			    <h3>Policy Constraint</h3>
 			</div>
 			<div class="modal-body">
@@ -126,7 +165,6 @@
 	</div>
 	<div id="deletePolicyConfirmationModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">
-		    <button type="button" class="close" data-dismiss="modal">×</button>
 		    <h3>Delete Policy?</h3>
 		</div>
 		<div class="modal-body">
@@ -139,11 +177,10 @@
 	</div>
 	<div id="deleteConstraintConfirmationModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">
-		    <button type="button" class="close" data-dismiss="modal">×</button>
 		    <h3>Delete Constraint?</h3>
 		</div>
 		<div class="modal-body">
-			<p>Are you sure you want to delete the Constraint named '{{state.constraintToDelete.name}}'?</p>
+			<p>Are you sure you want to delete the Constraint named '{{state.currentPolicy.constraints[state.deleteConstraintIndex].name}}'?</p>
 		</div>
 		<div class="modal-footer">
 			<button class="btn" data-dismiss="modal">Cancel</button>
@@ -152,7 +189,6 @@
 	</div>
 	<div id="cancelPolicyConfirmationModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">
-		    <button type="button" class="close" data-dismiss="modal">×</button>
 		    <h3>Cancel Policy Changes?</h3>
 		</div>
 		<div class="modal-body">
@@ -170,7 +206,6 @@
 	</div>
 	<div id="httpErrorModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">
-		    <button type="button" class="close" data-dismiss="modal">×</button>
 		    <h3>{{state.httpErrorHeader}}</h3>
 		</div>
 		<div class="modal-body">

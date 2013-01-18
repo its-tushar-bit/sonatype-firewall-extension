@@ -441,15 +441,6 @@
     	handleHttpError('Condition Type Initialization Error', data, status);
 	});
 	
-	$('.policy-item').live('mouseover mouseout', function (event) {
-        if (event.type == 'mouseover') {
-            $(this).find(".btn").show(); 
-        } else {
-
-             $(this).find(".btn").hide();
-        }
-    });
-	
 	$('.policy-item .btn-edit').live('click', function(){
 		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
 			if ( $scope.state.policyList[i].id === $(this).attr('id')) {

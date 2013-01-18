@@ -1,6 +1,12 @@
 describe('InsightPolicyController tests', function() {
 	var scope, $httpBackend;
-	
+
+	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+		return $http;
+	}]);
+
+
+	beforeEach(module('Policy', 'Hudson'));
 	//setup our http backend to return what we want
 	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
 	  insightApp.appId = 'myAppId';
@@ -228,7 +234,7 @@ describe('InsightPolicyController tests', function() {
       //inject the controller
       scope = $rootScope.$new();
 	  
-      $controller(InsightPolicyController, {$scope: scope, global: {}});
+      $controller('InsightPolicyController', {$scope: scope, global: {}});
       $httpBackend.flush();
     }));
 	

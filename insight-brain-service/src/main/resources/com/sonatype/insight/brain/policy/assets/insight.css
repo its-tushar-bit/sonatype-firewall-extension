@@ -2,25 +2,10 @@
 	padding-top: 100px;
 }
 
-.message {
-	position: absolute;
-	border: 1px solid black;
-	border-radius: 3px;
-	padding: 30px 45px;
-	background-color: white;
-}
-
-.slick-cell-checkboxsel {
-	background: #f0f0f0;
-	border-right-color: silver;
-	border-right-style: solid;
-}
-
-.slick-row-hover-button {
+.policy-button {
 	height: 22px;
 	width: 22px;
 	padding: 0px;
-	display: none;
 	margin-top: -4px;
 }
 
@@ -60,17 +45,6 @@
     background-color: #EE1B24;
     font-weight: bold;
     color: #DDD;
-}
-#constraintConditionsGrid .slick-header-columns {
-	height: 0px;
-}
-
-#constraintConditionsGrid .slick-header.ui-state-default {
-	border: none;
-}
-
-#constraintConditionsGrid .slick-header-columns {
-	display: none;
 }
 
 .policy-item {
@@ -207,12 +181,4 @@ tr:hover .hover-vis {
 }
 tr .hover-vis {
     display: none;
-}
-
-input.condition-field {
-  width: 190px;
-}
-
-select.condition-field {
-  width: 204px;
 }

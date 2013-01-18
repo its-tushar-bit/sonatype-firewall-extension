@@ -227,11 +227,6 @@ describe('InsightPolicyController tests', function() {
       
       //inject the controller
       scope = $rootScope.$new();
-      //slickgrid mock
-	  scope.constraintGrid = {
-	  	  redraw: function(){},
-	  	  setSelectedRows: function(){}
-	  };
 	  
       $controller(InsightPolicyController, {$scope: scope, global: {}});
       $httpBackend.flush();

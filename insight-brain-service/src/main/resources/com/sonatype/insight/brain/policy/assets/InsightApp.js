@@ -114,5 +114,3 @@ insightApp.getConditionValueTypeUrl = function(){
 insightApp.getPolicyUrl = function(){
 	return insightApp.getBaseUrl() + '/rest/policy/' + insightApp.getAppId();
 }
-
-insightApp.directive('slickgrid', SlickGridComponent);

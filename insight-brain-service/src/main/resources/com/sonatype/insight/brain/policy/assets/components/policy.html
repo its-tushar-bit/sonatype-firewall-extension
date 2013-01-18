@@ -3,7 +3,7 @@
 	<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="createPolicyClick($event)">Create</a> a new Policy.</div>
 	<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 	    <div class="policy-item" ng-repeat="policy in state.policyList">
-	    	<div style="float:right;"><button id="{{policy.id}}" class="btn btn-mini btn-edit slick-row-hover-button" title="Edit Policy"><i class="icon-pencil" style="margin-top:0px;"></i></button><button id="{{policy.id}}" class="btn btn-mini btn-delete slick-row-hover-button" title="Delete Policy"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
+	    	<div style="float:right;"><button id="{{policy.id}}" class="btn btn-mini btn-edit policy-button" title="Edit Policy"><i class="icon-pencil" style="margin-top:0px;"></i></button><button id="{{policy.id}}" class="btn btn-mini btn-delete policy-button" title="Delete Policy"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
 	        <span><b>{{policy.name}}</b><br>Threat Level: <div class="policy-threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
 	    </div>
 	</div>

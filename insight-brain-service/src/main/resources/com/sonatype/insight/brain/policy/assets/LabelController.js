@@ -70,7 +70,7 @@
 
 	labelModule.controller('LabelEditorController', ['$scope', '$http', function ($scope, $http) {
 
-		function errorFn (data, status, headers, config) {
+		function errorFn (data, status, headersFn, config) {
             $scope.submitActive = false;
 			var header = headersFn();
 			if ($scope.labelEditor) {

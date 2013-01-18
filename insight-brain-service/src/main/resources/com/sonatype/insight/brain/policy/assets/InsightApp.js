@@ -19,6 +19,7 @@ var insightApp = angular.module('insightApp', ['Labels', 'ngSanitize'], ['$route
 insightApp.controller('TabController', ['$scope', '$location', function ($scope, $location) {
 	$scope.$watch(function(){return $location.path();}, function(){
 		$scope.tabUrl = $location.path();
+		angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
 	});
 }]);
 

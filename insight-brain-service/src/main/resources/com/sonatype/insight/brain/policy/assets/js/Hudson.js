@@ -1,6 +1,18 @@
 (function(){
 	'use strict';
-	function foo($http, method, args) {
+
+	var hudson = false;
+
+	// This is a bit of a hack, but AngularJS won't inject the $http service early
+	$.get(insightApp.getBaseUrl() + '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)').success(function(){
+		hudson = true;
+	}).error(function(xhr, msg){
+		if (xhr && xhr.status !== 404) {
+			console.log('Got (' + xhr.status + ') while checking for Hudson API');
+		}
+	});
+
+	function wrap($http, method, args) {
 		var success = [],
 			error = [],
 			result = {
@@ -43,7 +55,10 @@
 	angular.module('Hudson', []).service('hudson', ['$http', function($http){
 		return {
 			post : function() {
-				return foo($http, $http.post, angular.copy(arguments, []));
+				if (!hudson) {
+					return $http.post.apply($http, angular.copy(arguments, []));
+				}
+				return wrap($http, $http.post, angular.copy(arguments, []));
 			}/*,  It seems put isn't monitored for XSRF
 			put : function() {
 				return foo($http, $http.put, angular.copy(arguments, []));

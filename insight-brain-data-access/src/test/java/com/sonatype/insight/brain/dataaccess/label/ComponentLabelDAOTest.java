@@ -127,6 +127,39 @@ public class ComponentLabelDAOTest
         assertComponentLabels( newLabels, componentLabels );
     }
 
+    @Test
+    public void testSetComponentLabels_Duplicate()
+    {
+        ComponentLabelDAO dao = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        Assert.assertEquals( 0, componentLabels.size() );
+
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label", "label" ), null );
+        componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        assertComponentLabels( toLabelSet( "Label" ), componentLabels );
+    }
+
+    @Test
+    public void testSetComponentLabels_LabelAlreadyExists()
+    {
+        ComponentLabelDAO dao = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        Assert.assertEquals( 0, componentLabels.size() );
+
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label" ), null );
+        componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        assertComponentLabels( toLabelSet( "Label" ), componentLabels );
+
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "label" ), null );
+        componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        assertComponentLabels( toLabelSet( "Label" ), componentLabels );
+    }
+
     private void assertComponentLabels( Set<String> expectedLabels, List<ComponentLabel> actualLabels )
     {
         Assert.assertEquals( expectedLabels.size(), actualLabels.size() );

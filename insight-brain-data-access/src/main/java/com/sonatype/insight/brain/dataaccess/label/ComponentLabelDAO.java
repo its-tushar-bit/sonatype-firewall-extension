@@ -122,6 +122,7 @@ public class ComponentLabelDAO
                         // This label already exists
                         iterStringLabels.remove();
                         deleteOldLabel = false;
+                        break;
                     }
                 }
 

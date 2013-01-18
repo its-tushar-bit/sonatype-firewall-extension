@@ -1,7 +1,7 @@
 $(document).ready(function(){
 	$('[data-title]').tooltip();
 });
-var insightApp = angular.module('insightApp', ['Labels', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
 	$routeProvider.when('/policy', {
 		templateUrl : 'components/policy.html',
 		controller : 'InsightPolicyController'

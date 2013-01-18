@@ -2,7 +2,7 @@
 (function () {
 	'use strict';
 
-	var labelModule = angular.module('Labels', []);
+	var labelModule = angular.module('Labels', ['Hudson']);
 
 	labelModule.controller('LabelController', ['$scope', '$http', function ($scope, $http) {
 		function errorFn (data, status, headersFn, config) {
@@ -68,7 +68,7 @@
 		};
 	}]);
 
-	labelModule.controller('LabelEditorController', ['$scope', '$http', function ($scope, $http) {
+	labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', function ($scope, $http, hudson) {
 
 		function errorFn (data, status, headersFn, config) {
             $scope.submitActive = false;
@@ -99,12 +99,12 @@
 			var label = $scope.selectedLabel;
 		    $scope.submitActive = true;
 		    if (label.id == null) {
-		        $http.post(insightApp.getLabelsUrl(), label).success(function (data) {
+				hudson.post(insightApp.getLabelsUrl(), label).success(function (data) {
 		            $scope.labels.push(data);
 		            $('#labelEditModal').modal('hide');
 		        }).error(errorFn);
 		    } else {
-		        $http.put(insightApp.getLabelsUrl(), label).success(function (data) {
+				$http.put(insightApp.getLabelsUrl(), label).success(function (data) {
 		            angular.forEach($scope.labels, function (labelCandidate, key) {
 		                if (data.id === labelCandidate.id) {
 		                    $scope.labels[key] = data;

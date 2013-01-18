@@ -1,4 +1,10 @@
-function InsightPolicyController($scope, global, $http) {
+(function () {
+	'use strict';
+
+	var policyModule = angular.module('Policy', ['Hudson']);
+
+	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', function ($scope, global, $http, hudson) {
+
 	function updatePolicySummary(data) {
 		data.summary = {
 			constraints: data.constraints.length + ' Constraint(s) to be evaluated',
@@ -344,7 +350,7 @@ function InsightPolicyController($scope, global, $http) {
 				handleHttpError('Policy Save Error', data, status);
 			});
 		} else {		   			
-			$http.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
+			hudson.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
 				updatePolicySummary(data);
 				addUIConditionData(data);
 				$scope.state.policyList.push(data);
@@ -672,4 +678,5 @@ function InsightPolicyController($scope, global, $http) {
         
         $('#deleteConstraintConfirmationModal').modal('show');
     });
-}
+	}]);
+}());

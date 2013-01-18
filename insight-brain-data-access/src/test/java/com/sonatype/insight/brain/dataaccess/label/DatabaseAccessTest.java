@@ -114,6 +114,6 @@ public class DatabaseAccessTest
                     System.err.println( getName() + "iteration=" + i + " " + e.getMessage() );
                 }
             }
+        }
     }
-}
 }

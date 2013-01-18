@@ -141,7 +141,9 @@ public class LabelResource
                         && labelId.equals( condition.getValue() ) )
                     {
                         // The label is used in a policy condition
-                        throw new BadRequestException( "Cannot delete a label used in a policy condition" );
+                        throw new BadRequestException(
+                                                       "Cannot delete the label because it is used in a condition for the '"
+                                                           + policy.getName() + "' policy" );
                     }
                 }
             }

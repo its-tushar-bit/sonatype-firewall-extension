@@ -130,6 +130,42 @@
 		$('#httpErrorModal').modal('show');
 	}
 	
+	function httpGet(url, errorText, successFn){
+		httpRequest(url, 'get', null, errorText, null, successFn);
+	}
+	
+	function httpPost(url, maskText, errorText, item, successFn){
+		httpRequest(url, 'post', maskText, errorText, item, successFn);
+	}
+	
+	function httpPut(url, maskText, errorText, item, successFn){
+		httpRequest(url, 'put', maskText, errorText, item, successFn);
+	}
+	
+	function httpDelete(url, maskText, errorText, successFn){
+		httpRequest(url, 'delete', maskText, errorText, null, successFn);
+	}
+	
+	function httpRequest(url, method, maskText, errorText, item, successFn){
+		if (maskText){
+			showHttpMask(maskText);
+		}
+		
+		var _http = $http;
+		if (method === 'post') {
+			_http = hudson;
+		}
+		
+		_http[method](url,item).success(function(data, status, headers, config){
+			successFn(data,status,headers,config);
+			if (maskText){
+				hideHttpMask();
+			}
+		}).error(function(data, status, headers, config){
+			handleHttpError(errorText, data, status);
+		});
+	}
+	
 	function isDoneLoading(){
 		return $scope.state.conditionTypeList !== undefined
 			&& $scope.state.actionTypeList !== undefined
@@ -144,25 +180,21 @@
     		addUIConditionData(policy);
 		});
     	
-    	$scope.reset();
+    	reset();
     	hideHttpMask();
 	}
 	
 	function loadList(url, stateVar, errorText){
 		delete $scope.state[stateVar];
-		$http.get(url).success(function(data, status, headers, config) {
-	    	$scope.state[stateVar] = data;
+		httpGet(url, errorText, function(data, status, headers, config){
+			$scope.state[stateVar] = data;
 	    	if (isDoneLoading()){
 	    		postLoad();
 	    	}
-	    }).error(function(data, status, headers, config){
-	    	handleHttpError(errorText, data, status);
 		});
 	}
 	
-	$scope.state = global;
-	
-	$scope.resetConstraint = function() {
+	function resetConstraint() {
 		$scope.state.currentConstraint = {
 			conditions: [],
 			operator: 'OR'
@@ -171,7 +203,7 @@
 		delete $scope.state.actionEditMode;
 	}
 	
-	$scope.resetActions = function() {
+	function resetActions() {
 		$scope.state.actionTableData = [];
 		
 		if ($scope.state.currentPolicy) {
@@ -201,26 +233,63 @@
 		}
 	}
 	
-	$scope.reset = function() {
-		$scope.resetConstraint();
+	function reset() {
+		resetConstraint();
 		delete $scope.state.currentPolicy;
 		delete $scope.state.showAddPolicyScreen;
-		$scope.resetActions();
+		resetActions();
 	}
 	
-	$scope.editPolicy = function(){
+	function pushActionDataToModel() {
+		if ($scope.state.actionEditMode){			
+			if ($scope.state.currentPolicy) {
+				var handleAction = function(id){
+					var result = [];
+					
+					for ( var i = 0 ; i < $scope.state.actionTableData.length ; i++ ) {
+						if ($scope.state.actionTableData[i].id === id) {
+							switch ($scope.state.actionTableData[i].action){
+							case 'fail':
+								result.push({
+									actionTypeId: 'fail'
+								});
+								break;
+							case 'warn':
+								result.push({
+									actionTypeId: 'warn'
+								});
+								break;
+							}
+							break;
+						}
+					}
+					
+					return result;
+				};
+				
+				angular.forEach($scope.state.actionStageList, function(value, key) {
+					$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
+				});
+			}
+		}
+	}
+	
+	$scope.state = global;
+	
+	$scope.viewEditPolicy = function(){
 		$scope.state.currentPolicy = angular.copy($scope.state.policyList[this.$index]);
 		$scope.state.showAddPolicyScreen = true;
-		$scope.resetActions();
+		$scope.state.addPolicyTitle = 'Edit Policy';
+		resetActions();
 		$scope.validatePolicy();
 	}
 	
-	$scope.removePolicy = function(){
+	$scope.viewRemovePolicy = function(){
 		$scope.state.deletePolicyIndex = this.$index;
 		$('#deletePolicyConfirmationModal').modal('show');
 	}
 	
-	$scope.createPolicyClick = function($event){
+	$scope.viewCreatePolicy = function($event){
 		$event.preventDefault();
 		$scope.state.currentPolicy = {
 			constraints: [],
@@ -228,17 +297,18 @@
 			threatLevel: 5
 		}
 		$scope.state.showAddPolicyScreen = true;
-		$scope.resetActions();
+		$scope.state.addPolicyTitle = 'Create a New Policy';
+		resetActions();
 	}
 	
-	$scope.savePolicyClick = function() {		
+	$scope.savePolicy = function() {		
 		//I copy the item here as I don't want to dirty the UI data with changes needed for the server
 		var item = angular.copy($scope.state.currentPolicy);
 		removeUIConditionData(item);
 		showHttpMask('Saving policy...');
 		//edit
 		if ($scope.state.currentPolicy.id) {		    
-			$http.put(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
+			httpPut(insightApp.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
 				updatePolicySummary(data);
 				addUIConditionData(data);
 				for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ){
@@ -247,38 +317,28 @@
 						break;
 					}
             	}
-				$scope.reset();
-				hideHttpMask();
-			}).error(function(data, status, headers, config){
-				handleHttpError('Policy Save Error', data, status);
+				reset();
 			});
-		} else {		   			
-			hudson.post(insightApp.getPolicyUrl(),item).success(function(data, status, headers, config){
+		} else {
+			httpPost(insightApp.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
 				updatePolicySummary(data);
 				addUIConditionData(data);
 				$scope.state.policyList.push(data);
-				$scope.reset();
-				hideHttpMask();
-			}).error(function(data, status, headers, config){
-				handleHttpError('Policy Save Error', data, status);
+				reset();
 			});
 		}
 	}
 	
-	$scope.deletePolicyClick = function(){
+	$scope.deletePolicy = function(){
 		$('#deletePolicyConfirmationModal').modal('hide');
-		showHttpMask('Deleting policy...');
-		$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id).success(function(data, status, headers, config){
+		httpDelete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...','Policy Delete Error', function(){
 			$scope.state.policyList.splice($scope.state.deletePolicyIndex,1);
-			hideHttpMask();
-		}).error(function(data, status, headers, config){
-			handleHttpError('Policy Delete Error', data, status);
 		});
 	}
 	
-	$scope.cancelPolicyClick = function(){
+	$scope.cancelPolicy = function(){
 		$('#cancelPolicyConfirmationModal').modal('hide');
-		$scope.reset();
+		reset();
 	}
 
 	$scope.validatePolicy = function() {
@@ -290,29 +350,29 @@
 		}
 	}
 	
-	$scope.removeConstraint = function() {		
+	$scope.viewRemoveConstraint = function() {		
 		$scope.state.deleteConstraintIndex = this.$index;
         $('#deleteConstraintConfirmationModal').modal('show');
 	}
 	
-	$scope.addConstraint = function() {
-		$scope.resetConstraint();        
+	$scope.viewAddConstraint = function() {
+		resetConstraint();        
         $('#editConstraintModal').modal('show');
 	}
 	
-	$scope.editConstraint = function() {
+	$scope.viewEditConstraint = function() {
     	//copy so we dont update data in the current list
 		$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[this.$index]);
     	$scope.validateConstraint();
         $('#editConstraintModal').modal('show');
 	}
 	
-	$scope.cancelConstraintClick = function() {
+	$scope.cancelConstraint = function() {
 		$('#editConstraintModal').modal('hide');
-		$scope.resetConstraint();
+		resetConstraint();
 	}
 	
-	$scope.addConstraintClick = function() {
+	$scope.addConstraint = function() {
 		var constraintObj = {
 			name: $scope.state.currentConstraint.name,
 		    conditions: $scope.state.currentConstraint.conditions,
@@ -336,7 +396,7 @@
 			$scope.state.currentPolicy.constraints.push(constraintObj);		
 		}
 		
-		$scope.resetConstraint();
+		resetConstraint();
 		
 		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element
 		$('#editConstraintModal').modal('hide');
@@ -344,7 +404,7 @@
 		$scope.validatePolicy();
 	}
 	
-	$scope.deleteConstraintClick = function(){
+	$scope.deleteConstraint = function(){
 		$scope.state.currentPolicy.constraints.splice($scope.state.deleteConstraintIndex,1);
     	$scope.validatePolicy();
     	$('#deleteConstraintConfirmationModal').modal('hide');
@@ -400,49 +460,15 @@
 		$scope.validateConstraint();
 	}
 	
-	$scope.editActionsClick = function() {
+	$scope.editActions = function() {
 		if ($scope.state.actionEditMode){
-			$scope.pushActionDataToModel();
+			pushActionDataToModel();
 		}
 		$scope.state.actionEditMode = !$scope.state.actionEditMode;
 	}
 	
-	$scope.pushActionDataToModel = function() {
-		if ($scope.state.actionEditMode){			
-			if ($scope.state.currentPolicy) {
-				var handleAction = function(id){
-					var result = [];
-					
-					for ( var i = 0 ; i < $scope.state.actionTableData.length ; i++ ) {
-						if ($scope.state.actionTableData[i].id === id) {
-							switch ($scope.state.actionTableData[i].action){
-							case 'fail':
-								result.push({
-									actionTypeId: 'fail'
-								});
-								break;
-							case 'warn':
-								result.push({
-									actionTypeId: 'warn'
-								});
-								break;
-							}
-							break;
-						}
-					}
-					
-					return result;
-				};
-				
-				angular.forEach($scope.state.actionStageList, function(value, key) {
-					$scope.state.currentPolicy.actions[value.id] = handleAction(value.id);
-				});
-			}
-		}
-	}
-	
-	$scope.$watch('state.actionTableData',function(newScopeData){
-		$scope.pushActionDataToModel();
+	$scope.$watch('state.actionTableData',function(){
+		pushActionDataToModel();
 	},true);
 	
 	showHttpMask('Loading data from server...');

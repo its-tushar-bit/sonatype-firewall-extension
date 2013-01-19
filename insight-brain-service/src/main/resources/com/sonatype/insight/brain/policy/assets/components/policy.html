@@ -1,14 +1,14 @@
 <div id="policy">
-	<div ng-show="!state.showAddPolicyScreen && !state.policyList.length" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="createPolicyClick($event)">Create</a> a new Policy.</div>
-	<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="createPolicyClick($event)">Create</a> a new Policy.</div>
+	<div ng-show="!state.showAddPolicyScreen && !state.policyList.length" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</div>
+	<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</div>
 	<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 	    <div class="policy-item" ng-repeat="policy in state.policyList">
-	    	<div style="float:right;"><button class="btn btn-mini policy-button" title="Edit Policy" ng-click="editPolicy()"><i class="icon-pencil" style="margin-top:0px;"></i></button><button class="btn btn-mini policy-button" title="Remove Policy" ng-click="removePolicy()"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
+	    	<div style="float:right;"><button class="btn btn-mini policy-button" title="Edit Policy" ng-click="viewEditPolicy()"><i class="icon-pencil" style="margin-top:0px;"></i></button><button class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy()"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
 	        <span><b>{{policy.name}}</b><br>Threat Level: <div class="policy-threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
 	    </div>
 	</div>
 	<div ng-show="state.showAddPolicyScreen" class='content-container' style="width:625px;margin: 0 auto;">
-		<div class="page-header"><h4>Create a New Policy</h4></div>
+		<div class="page-header"><h4>{{state.addPolicyTitle}}</h4></div>
 		<form class="form-horizontal" style='margin-bottom:0px'>
 			<div style="width:600px;">
 				<div class="control-group">
@@ -36,9 +36,9 @@
 									<td width="99%">{{constraint.name}}</td>
 										<td>
 											<div class="btn-group">
-												<button class="btn" ng-click="removeConstraint()" title="Remove Constraint"><i class="icon-minus-sign"></i></button>
-												<button class="btn" ng-click="addConstraint()" title="Add Constraint"><i class="icon-plus-sign"></i></button>
-												<button class="btn" ng-click="editConstraint()" title="Edit Constraint"><i class="icon-pencil"></i></button>
+												<button class="btn" ng-click="viewRemoveConstraint()" title="Remove Constraint"><i class="icon-minus-sign"></i></button>
+												<button class="btn" ng-click="viewAddConstraint()" title="Add Constraint"><i class="icon-plus-sign"></i></button>
+												<button class="btn" ng-click="viewEditConstraint()" title="Edit Constraint"><i class="icon-pencil"></i></button>
 											</div>
 										</td>
 									</tr>
@@ -58,7 +58,7 @@
 						<table class="table table-striped table-bordered table-condensed">
 							<thead>
 								<tr>
-									<th style="vertical-align:bottom;"><div style="margin:auto;display:inline;">Stage</div><button class="btn btn-mini" style="float:right;" ng-click="editActionsClick()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button></th>
+									<th style="vertical-align:bottom;"><div style="margin:auto;display:inline;">Stage</div><button class="btn btn-mini" style="float:right;" ng-click="editActions()" title="Edit Actions" data-toggle="button"><i class="icon-pencil"></i></button></th>
 									<th style="text-align:center;">Fail</th>
 									<th style="text-align:center;">Warn</th>
 									<th style="text-align:center;">Do Nothing</th>
@@ -88,7 +88,7 @@
 			</div>
 			<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
 				<button type='none' class='btn' data-toggle="modal" data-target="#cancelPolicyConfirmationModal">Cancel</button>
-				<button type='none' class='btn btn-primary' ng-click="savePolicyClick()" ng-disabled="!state.policyValid">Save</button>
+				<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="!state.policyValid">Save</button>
 			</div>
 		</form>
 		<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 860px;margin: -250px 0 0 -431px;">
@@ -157,8 +157,8 @@
 					<div style="padding-left:410px; padding-top:5px; float:left;"ng-show="state.constraintValidationMsg">
 						<span style="color: #b94a48;">{{state.constraintValidationMsg}}</span>
 					</div>
-					<button class="btn" ng-click="cancelConstraintClick()">Cancel</button>
-				    <button class="btn btn-primary" ng-click="addConstraintClick()" ng-disabled="state.constraintValidationMsg">Add</button>
+					<button class="btn" ng-click="cancelConstraint()">Cancel</button>
+				    <button class="btn btn-primary" ng-click="addConstraint()" ng-disabled="state.constraintValidationMsg">Done</button>
 				</div>
 			</div>
 		</div>
@@ -172,7 +172,7 @@
 		</div>
 		<div class="modal-footer">
 			<button class="btn" data-dismiss="modal">Cancel</button>
-		    <button class="btn btn-primary" ng-click="deletePolicyClick()">Delete</button>
+		    <button class="btn btn-primary" ng-click="deletePolicy()">Delete</button>
 		</div>
 	</div>
 	<div id="deleteConstraintConfirmationModal" data-backdrop="static" class="modal hide">
@@ -184,7 +184,7 @@
 		</div>
 		<div class="modal-footer">
 			<button class="btn" data-dismiss="modal">Cancel</button>
-		    <button class="btn btn-primary" ng-click="deleteConstraintClick()">Delete</button>
+		    <button class="btn btn-primary" ng-click="deleteConstraint()">Delete</button>
 		</div>
 	</div>
 	<div id="cancelPolicyConfirmationModal" data-backdrop="static" class="modal hide">
@@ -196,7 +196,7 @@
 		</div>
 		<div class="modal-footer">
 			<button class="btn" data-dismiss="modal">No</button>
-		    <button class="btn btn-primary" ng-click="cancelPolicyClick()">Yes</button>
+		    <button class="btn btn-primary" ng-click="cancelPolicy()">Yes</button>
 		</div>
 	</div>
 	<div id="httpMaskModal" data-backdrop="static" class="modal hide">

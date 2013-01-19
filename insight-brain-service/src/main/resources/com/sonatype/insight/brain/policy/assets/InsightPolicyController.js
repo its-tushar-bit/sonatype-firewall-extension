@@ -131,11 +131,11 @@
 	}
 	
 	function isDoneLoading(){
-		return $scope.state.conditionTypeListLoaded
-			&& $scope.state.actionTypeListLoaded
-			&& $scope.state.actionStageListLoaded
-			&& $scope.state.conditionValueTypeListLoaded
-			&& $scope.state.policyListLoaded;
+		return $scope.state.conditionTypeList !== undefined
+			&& $scope.state.actionTypeList !== undefined
+			&& $scope.state.actionStageList !== undefined
+			&& $scope.state.conditionValueTypeList !== undefined
+			&& $scope.state.policyList !== undefined;
 	}
 	
 	function waitForLoad(){
@@ -441,39 +441,40 @@
 		$scope.pushActionDataToModel();
 	},true);
 	
-	showHttpMask('Loading data from server...');	
+	showHttpMask('Loading data from server...');
+	
+	delete $scope.state.conditionTypeList;
+	delete $scope.state.actionTypeList;
+	delete $scope.state.actionStageList;
+	delete $scope.state.conditionValueTypeList;
+	delete $scope.state.policyList;
 	
 	$http.get(insightApp.getConditionTypeUrl()).success(function(data, status, headers, config) {
     	$scope.state.conditionTypeList = data;
-    	$scope.state.conditionTypeListLoaded = true;
     }).error(function(data, status, headers, config){
     	handleHttpError('Condition Type Initialization Error', data, status);
 	});
 	
 	$http.get(insightApp.getActionTypeUrl()).success(function(data, status, headers, config) {
     	$scope.state.actionTypeList = data;
-		$scope.state.actionTypeListLoaded = true;
 	}).error(function(data, status, headers, config){
 		handleHttpError('Action Type Initialization Error', data, status);
 	});
 	
 	$http.get(insightApp.getActionStageUrl()).success(function(data, status, headers, config) {
 		$scope.state.actionStageList = data;
-		$scope.state.actionStageListLoaded = true;
 	}).error(function(data, status, headers, config){
 		handleHttpError('Action Stage Initialization Error', data, status);
 	});
 	
 	$http.get(insightApp.getConditionValueTypeUrl()).success(function(data, status, headers, config) {
 		$scope.state.conditionValueTypeList = data;
-		$scope.state.conditionValueTypeListLoaded = true;
 	}).error(function(data, status, headers, config){
 		handleHttpError('Condition Value Type Initialization Error', data, status);
 	});
 	
 	$http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
     	$scope.state.policyList = data;
-		$scope.state.policyListLoaded = true;
     }).error(function(data, status, headers, config){
     	handleHttpError('Policy Initialization Error', data, status);
 	});

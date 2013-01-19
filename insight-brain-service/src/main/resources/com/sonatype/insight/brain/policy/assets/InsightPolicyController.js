@@ -178,6 +178,18 @@
 		$scope.resetActions();
 	}
 	
+	$scope.editPolicy = function(){
+		$scope.state.currentPolicy = angular.copy($scope.state.policyList[this.$index]);
+		$scope.state.showAddPolicyScreen = true;
+		$scope.resetActions();
+		$scope.validatePolicy();
+	}
+	
+	$scope.removePolicy = function(){
+		$scope.state.deletePolicyIndex = this.$index;
+		$('#deletePolicyConfirmationModal').modal('show');
+	}
+	
 	$scope.createPolicyClick = function($event){
 		$event.preventDefault();
 		$scope.state.currentPolicy = {
@@ -226,11 +238,8 @@
 	$scope.deletePolicyClick = function(){
 		$('#deletePolicyConfirmationModal').modal('hide');
 		showHttpMask('Deleting policy...');
-		$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyToDelete.id).success(function(data, status, headers, config){
-			var idx = $scope.state.policyList.indexOf($scope.state.policyToDelete);
-			if (idx >= 0){
-				$scope.state.policyList.splice(idx,1);
-			}
+		$http.delete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id).success(function(data, status, headers, config){
+			$scope.state.policyList.splice($scope.state.deletePolicyIndex,1);
 			hideHttpMask();
 		}).error(function(data, status, headers, config){
 			handleHttpError('Policy Delete Error', data, status);
@@ -440,31 +449,5 @@
     }).error(function(data, status, headers, config){
     	handleHttpError('Condition Type Initialization Error', data, status);
 	});
-	
-	$('.policy-item .btn-edit').live('click', function(){
-		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
-			if ( $scope.state.policyList[i].id === $(this).attr('id')) {
-				$scope.state.currentPolicy = angular.copy($scope.state.policyList[i]);
-				$scope.state.showAddPolicyScreen = true;
-				$scope.resetActions();
-				$scope.validatePolicy();
-
-		        //since this event is called outside of angular, we need to force
-		        //an apply to get everything mapped up properly
-		        $scope.$apply();
-			}
-		}
-    });
-	
-	$('.policy-item .btn-delete').live('click', function(){
-		for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ) {
-			if ( $scope.state.policyList[i].id === $(this).attr('id')) {
-				$scope.state.policyToDelete = $scope.state.policyList[i];
-				$scope.$apply();
-				$('#deletePolicyConfirmationModal').modal('show');
-				break;
-			}
-		}
-    });
 	}]);
 }());

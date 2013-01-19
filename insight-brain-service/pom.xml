@@ -363,15 +363,6 @@
             <include>jquery/jquery.ui.selectmenu.min.js</include>
             <include>jquery/jquery.event.drag-2.0.min.js</include>
             <include>bootstrap/bootstrap.min.js</include>
-            <include>slickgrid/slick.core.js</include>
-            <include>slickgrid/slick.grid.js</include>
-            <include>slickgrid/slick.editors.js</include>
-            <include>slickgrid/slick.dataview.js</include>
-            <include>slickgrid/slick.rowselectionmodel.js</include>
-            <include>slickgrid/slick.cellselectionmodel.js</include>
-            <include>slickgrid/slick.cellrangeselector.js</include>
-            <include>slickgrid/slick.cellrangedecorator.js</include>
-            <include>slickgrid/slick.checkboxselectcolumn.js</include>
             <include>angular/angular-1.0.3.js</include>
             <include>SlickGridComponent.js</include>
             <include>InsightApp.js</include>

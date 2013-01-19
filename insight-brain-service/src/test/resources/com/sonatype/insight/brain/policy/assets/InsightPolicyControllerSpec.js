@@ -378,7 +378,7 @@ describe('InsightPolicyController tests', function() {
 	});
 	
 	it('validate state when create policy is clicked', function() {
-		scope.createPolicyClick({ preventDefault : angular.noop });
+		scope.viewCreatePolicy({ preventDefault : angular.noop });
 		
 		expect(scope.state.currentPolicy.constraints).toEqual([]);
 		expect(scope.state.currentPolicy.actions).toEqual({});
@@ -446,7 +446,7 @@ describe('InsightPolicyController tests', function() {
 		
 		$httpBackend.expectPOST(insightApp.getPolicyUrl(), data).respond(dataWithId);
 		
-		scope.savePolicyClick();
+		scope.savePolicy();
 		
 		$httpBackend.flush();
 		

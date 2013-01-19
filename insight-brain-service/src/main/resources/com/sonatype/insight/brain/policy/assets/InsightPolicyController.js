@@ -3,7 +3,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson']);
 
-	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', function ($scope, global, $http, hudson) {
+	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', function ($scope, global, $http, hudson, $timeout) {
 
 	function updatePolicySummary(data) {
 		data.summary = {
@@ -128,6 +128,32 @@
 		$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
 		$scope.state.httpErrorHeader = headerText;
 		$('#httpErrorModal').modal('show');
+	}
+	
+	function isDoneLoading(){
+		return $scope.state.conditionTypeListLoaded
+			&& $scope.state.actionTypeListLoaded
+			&& $scope.state.actionStageListLoaded
+			&& $scope.state.conditionValueTypeListLoaded
+			&& $scope.state.policyListLoaded;
+	}
+	
+	function waitForLoad(){
+		if (!isDoneLoading()) {
+			$timeout(waitForLoad, 250);
+		} else {
+			postLoad();
+		}
+	}
+	
+	function postLoad(){
+		angular.forEach($scope.state.policyList, function(policy, key) {
+			updatePolicySummary(policy);
+    		addUIConditionData(policy);
+		});
+    	
+    	$scope.reset();
+    	hideHttpMask();
 	}
 	
 	$scope.state = global;
@@ -415,39 +441,44 @@
 		$scope.pushActionDataToModel();
 	},true);
 	
-	showHttpMask('Loading data from server...');
-	$http.get(insightApp.getConditionTypeUrl()).success(function(conditionTypeData, status, headers, config) {
-    	$scope.state.conditionTypeList = conditionTypeData;
-    	$http.get(insightApp.getActionTypeUrl()).success(function(actionTypeData, status, headers, config) {
-        	$scope.state.actionTypeList = actionTypeData;
-        	$http.get(insightApp.getActionStageUrl()).success(function(actionStageData, status, headers, config) {
-        		$scope.state.actionStageList = actionStageData;
-        		$http.get(insightApp.getConditionValueTypeUrl()).success(function(conditionValueTypeData, status, headers, config) {
-        			$scope.state.conditionValueTypeList = conditionValueTypeData;
-	        		$scope.state.policyList = [];
-	                $http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
-	                	for ( var i = 0 ; i < data.length ; i++ ){
-	                		$scope.state.policyList.push(data[i]);
-	                		updatePolicySummary(data[i]);
-	                		addUIConditionData(data[i]);
-	                	}
-	                	
-	                	$scope.reset();
-	                	hideHttpMask();
-	                }).error(function(data, status, headers, config){
-	                	handleHttpError('Policy Initialization Error', data, status);
-	            	});
-        		}).error(function(data, status, headers, config){
-        			handleHttpError('Condition Value Type Initialization Error', data, status);
-        		});
-        	}).error(function(data, status, headers, config){
-        		handleHttpError('Action Stage Initialization Error', data, status);
-        	});
-    	}).error(function(data, status, headers, config){
-    		handleHttpError('Action Type Initialization Error', data, status);
-    	});
+	showHttpMask('Loading data from server...');	
+	
+	$http.get(insightApp.getConditionTypeUrl()).success(function(data, status, headers, config) {
+    	$scope.state.conditionTypeList = data;
+    	$scope.state.conditionTypeListLoaded = true;
     }).error(function(data, status, headers, config){
     	handleHttpError('Condition Type Initialization Error', data, status);
 	});
+	
+	$http.get(insightApp.getActionTypeUrl()).success(function(data, status, headers, config) {
+    	$scope.state.actionTypeList = data;
+		$scope.state.actionTypeListLoaded = true;
+	}).error(function(data, status, headers, config){
+		handleHttpError('Action Type Initialization Error', data, status);
+	});
+	
+	$http.get(insightApp.getActionStageUrl()).success(function(data, status, headers, config) {
+		$scope.state.actionStageList = data;
+		$scope.state.actionStageListLoaded = true;
+	}).error(function(data, status, headers, config){
+		handleHttpError('Action Stage Initialization Error', data, status);
+	});
+	
+	$http.get(insightApp.getConditionValueTypeUrl()).success(function(data, status, headers, config) {
+		$scope.state.conditionValueTypeList = data;
+		$scope.state.conditionValueTypeListLoaded = true;
+	}).error(function(data, status, headers, config){
+		handleHttpError('Condition Value Type Initialization Error', data, status);
+	});
+	
+	$http.get(insightApp.getPolicyUrl()).success(function(data, status, headers, config) {
+    	$scope.state.policyList = data;
+		$scope.state.policyListLoaded = true;
+    }).error(function(data, status, headers, config){
+    	handleHttpError('Policy Initialization Error', data, status);
+	});
+	
+	waitForLoad();
+	
 	}]);
 }());

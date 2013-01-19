@@ -274,6 +274,15 @@
 		}
 	}
 	
+	function viewConfirmation(header, body, declineText, acceptText, acceptFn){
+		$scope.state.confirmationHeader = header;
+		$scope.state.confirmationBody = body;
+		$scope.state.confirmationDeclineText = declineText;
+		$scope.state.confirmationAcceptText = acceptText;
+		$scope.state.confirmationAcceptFn = acceptFn;
+		$('#confirmationModal').modal('show');
+	}
+	
 	$scope.state = global;
 	
 	$scope.viewEditPolicy = function(){
@@ -286,7 +295,7 @@
 	
 	$scope.viewRemovePolicy = function(){
 		$scope.state.deletePolicyIndex = this.$index;
-		$('#deletePolicyConfirmationModal').modal('show');
+		viewConfirmation("Delete Policy?", "Are you sure you want to delete the Policy named '" + $scope.state.policyList[$scope.state.deletePolicyIndex].name + "'?  This action is not reversible.", 'Cancel', 'Delete', $scope.deletePolicy);
 	}
 	
 	$scope.viewCreatePolicy = function($event){
@@ -329,15 +338,23 @@
 		}
 	}
 	
+	$scope.confirmationAccept = function(){
+		$scope.state.confirmationAcceptFn();
+	}
+	
 	$scope.deletePolicy = function(){
-		$('#deletePolicyConfirmationModal').modal('hide');
+		$('#confirmationModal').modal('hide');
 		httpDelete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...','Policy Delete Error', function(){
 			$scope.state.policyList.splice($scope.state.deletePolicyIndex,1);
 		});
 	}
 	
+	$scope.viewCancelPolicy = function(){
+		viewConfirmation("Cancel Policy Changes?", "Are you sure you want to cancel?  Any changes made to the Policy will be lost.", 'No', 'Yes', $scope.cancelPolicy);
+	}
+	
 	$scope.cancelPolicy = function(){
-		$('#cancelPolicyConfirmationModal').modal('hide');
+		$('#confirmationModal').modal('hide');
 		reset();
 	}
 
@@ -352,7 +369,7 @@
 	
 	$scope.viewRemoveConstraint = function() {		
 		$scope.state.deleteConstraintIndex = this.$index;
-        $('#deleteConstraintConfirmationModal').modal('show');
+		viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', $scope.deleteConstraint);
 	}
 	
 	$scope.viewAddConstraint = function() {
@@ -407,7 +424,7 @@
 	$scope.deleteConstraint = function(){
 		$scope.state.currentPolicy.constraints.splice($scope.state.deleteConstraintIndex,1);
     	$scope.validatePolicy();
-    	$('#deleteConstraintConfirmationModal').modal('hide');
+    	$('#confirmationModal').modal('hide');
 	}
 	
 	$scope.validateConstraint = function() {

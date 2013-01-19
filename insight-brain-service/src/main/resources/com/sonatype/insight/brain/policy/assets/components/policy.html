@@ -87,7 +87,7 @@
 				</div>
 			</div>
 			<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
-				<button type='none' class='btn' data-toggle="modal" data-target="#cancelPolicyConfirmationModal">Cancel</button>
+				<button type='none' class='btn' ng-click="viewCancelPolicy()">Cancel</button>
 				<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="!state.policyValid">Save</button>
 			</div>
 		</form>
@@ -163,40 +163,16 @@
 			</div>
 		</div>
 	</div>
-	<div id="deletePolicyConfirmationModal" data-backdrop="static" class="modal hide">
+	<div id="confirmationModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">
-		    <h3>Delete Policy?</h3>
+			<h3>{{state.confirmationHeader}}</h3>
 		</div>
 		<div class="modal-body">
-			<p>Are you sure you want to delete the Policy named '{{state.policyList[state.deletePolicyIndex].name}}'?  This action is not reversible.</p>
+			<p>{{state.confirmationBody}}</p>
 		</div>
 		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal">Cancel</button>
-		    <button class="btn btn-primary" ng-click="deletePolicy()">Delete</button>
-		</div>
-	</div>
-	<div id="deleteConstraintConfirmationModal" data-backdrop="static" class="modal hide">
-		<div class="modal-header">
-		    <h3>Delete Constraint?</h3>
-		</div>
-		<div class="modal-body">
-			<p>Are you sure you want to delete the Constraint named '{{state.currentPolicy.constraints[state.deleteConstraintIndex].name}}'?</p>
-		</div>
-		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal">Cancel</button>
-		    <button class="btn btn-primary" ng-click="deleteConstraint()">Delete</button>
-		</div>
-	</div>
-	<div id="cancelPolicyConfirmationModal" data-backdrop="static" class="modal hide">
-		<div class="modal-header">
-		    <h3>Cancel Policy Changes?</h3>
-		</div>
-		<div class="modal-body">
-			<p>Are you sure you want to cancel?  Any changes made to the Policy will be lost.</p>
-		</div>
-		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal">No</button>
-		    <button class="btn btn-primary" ng-click="cancelPolicy()">Yes</button>
+			<button class="btn" data-dismiss="modal">{{state.confirmationDeclineText}}</button>
+		    <button class="btn btn-primary" ng-click="confirmationAccept()">{{state.confirmationAcceptText}}</button>
 		</div>
 	</div>
 	<div id="httpMaskModal" data-backdrop="static" class="modal hide">

@@ -98,10 +98,12 @@ input.editor-checkbox {
   overflow: hidden;
   margin: 0;
   padding: 1px 3px;
-  text-align: center;
   vertical-align: middle;
   border-color: #AFBFCF;
-  white-space: nowrap;
+  line-height: 13px;
+  max-width: 200px;
+  display:inline-block;
+  word-break: break-all;
 }
 
 .whiteLabel {

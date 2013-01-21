@@ -55,10 +55,10 @@
 					if ( parts.length > 1 ){
 						condition.value = parts;
 					} else if (condition.valueType && condition.valueType.id === 'AgeInDaysValueType'){			
-						if (condition.value > 365 && condition.value % 365 === 0) {
+						if (condition.value >= 365 && condition.value % 365 === 0) {
 							condition.value = condition.value / 365;
 							condition.valueModifier = 'y';
-						} else if (condition.value > 30 && condition.value % 30 === 0) {
+						} else if (condition.value >= 30 && condition.value % 30 === 0) {
 							condition.value = condition.value / 30;
 							condition.valueModifier = 'm';
 						} else {

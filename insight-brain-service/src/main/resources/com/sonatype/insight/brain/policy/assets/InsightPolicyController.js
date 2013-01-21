@@ -234,6 +234,8 @@
 	}
 	
 	function reset() {
+		delete $scope.state.policyChanged;
+		delete $scope.state.policyWatchStopFn;
 		resetConstraint();
 		delete $scope.state.currentPolicy;
 		delete $scope.state.showAddPolicyScreen;
@@ -283,6 +285,14 @@
 		$('#confirmationModal').modal('show');
 	}
 	
+	function hidePolicy() {
+		if ($scope.state.policyWatchStopFn){
+			$scope.state.policyWatchStopFn();
+		}
+		$('#confirmationModal').modal('hide');
+		reset();
+	}
+	
 	$scope.state = global;
 	
 	$scope.viewEditPolicy = function(){
@@ -291,6 +301,13 @@
 		$scope.state.addPolicyTitle = 'Edit Policy';
 		resetActions();
 		$scope.validatePolicy();
+		
+		//this is simply to wait on doing this until after the current digest
+		setTimeout(function(){
+			$scope.state.policyWatchStopFn = $scope.$watch('state.currentPolicy',function(){
+				$scope.state.policyChanged = true;
+			},true);
+		},50);
 	}
 	
 	$scope.viewRemovePolicy = function(){
@@ -300,6 +317,7 @@
 	
 	$scope.viewCreatePolicy = function($event){
 		$event.preventDefault();
+		$scope.state.policyChanged = true;
 		$scope.state.currentPolicy = {
 			constraints: [],
 			actions: {},
@@ -326,14 +344,14 @@
 						break;
 					}
             	}
-				reset();
+				hidePolicy();
 			});
 		} else {
 			httpPost(insightApp.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
 				updatePolicySummary(data);
 				addUIConditionData(data);
 				$scope.state.policyList.push(data);
-				reset();
+				hidePolicy();
 			});
 		}
 	}
@@ -350,12 +368,11 @@
 	}
 	
 	$scope.viewCancelPolicy = function(){
-		viewConfirmation("Cancel Policy Changes?", "Are you sure you want to cancel?  Any changes made to the Policy will be lost.", 'No', 'Yes', $scope.cancelPolicy);
-	}
-	
-	$scope.cancelPolicy = function(){
-		$('#confirmationModal').modal('hide');
-		reset();
+		if ($scope.state.policyChanged){
+			viewConfirmation("Cancel Policy Changes?", "Are you sure you want to cancel?  Any changes made to the Policy will be lost.", 'No', 'Yes', hidePolicy);
+		} else {
+			hidePolicy();
+		}
 	}
 
 	$scope.validatePolicy = function() {
@@ -418,7 +435,6 @@
 		
 		resetConstraint();
 		
-		//not a fan, but data-dismiss doesn't work when ng-click is also defined on an element
 		$('#editConstraintModal').modal('hide');
 		
 		$scope.validatePolicy();

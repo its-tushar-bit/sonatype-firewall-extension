@@ -15,7 +15,6 @@
 			$('#labelErrorModal').modal('show');
 		}
 
-		// TODO Failure?
 		$http.get(insightApp.getLabelsUrl()).success(function (data) {
 			$scope.labels = data;
 		}).error(errorFn);

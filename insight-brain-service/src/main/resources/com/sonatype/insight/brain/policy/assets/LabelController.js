@@ -35,7 +35,7 @@
 		});
 
 		$scope.editLabel = function (label) {
-			$scope.editorUrl = 'components/labels-editor.html'; // loads form
+			$scope.editorUrl = 'components/labels-editor.html?' + clmBuildTimestamp; // loads form
 
 	        $scope.selectedLabel = {id : null, applicationId : null, label : '', labelLowercase : null, color : null};
 		    if (label) {

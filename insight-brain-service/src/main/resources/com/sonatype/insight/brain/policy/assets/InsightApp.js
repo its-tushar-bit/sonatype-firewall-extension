@@ -3,15 +3,15 @@ $(document).ready(function(){
 });
 var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
 	$routeProvider.when('/policy', {
-		templateUrl : 'components/policy.html',
+		templateUrl : 'components/policy.html?' + clmBuildTimestamp,
 		controller : 'InsightPolicyController'
 	});
 	$routeProvider.when('/labels', {
-		templateUrl : 'components/labels.html',
+		templateUrl : 'components/labels.html?' + clmBuildTimestamp,
 		controller : 'LabelController'
 	});
 	$routeProvider.when('/license-group', {
-		templateUrl : 'components/license-group.html'
+		templateUrl : 'components/license-group.html?' + clmBuildTimestamp
 	});
 	$routeProvider.otherwise({redirectTo : '/policy'});
 }]);

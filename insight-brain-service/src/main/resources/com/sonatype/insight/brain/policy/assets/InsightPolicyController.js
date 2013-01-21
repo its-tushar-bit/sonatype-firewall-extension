@@ -7,7 +7,7 @@
 
 	function updatePolicySummary(data) {
 		data.summary = {
-			constraints: data.constraints.length + ' Constraint(s) to be evaluated',
+			constraints: data.constraints.length + ' Constraint(s) to be evaluated'
 		}
 		
 		var actionCount = 0;

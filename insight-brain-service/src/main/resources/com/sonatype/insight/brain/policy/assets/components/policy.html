@@ -121,9 +121,9 @@
 					<div class='control-group' style="margin-bottom:0px;">
 						<div class='well' style="width:790px;min-height:120px;max-height:120px;overflow:auto;">
 							<div style="text-align:left;" ng-repeat="condition in state.currentConstraint.conditions">
-								<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged()" ng-options="c.id as c.name for c in state.conditionTypeList" style="vertical-align:top;">
+								<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged()" ng-options="conditionType.id as conditionType.name for conditionType in state.conditionTypeList" style="vertical-align:top;">
 								</select>
-								<select ng-model="condition.operator" ng-change="validateConstraint()" ng-options="c for c in condition.conditionType.supportedOperators" style="vertical-align:top;">
+								<select ng-model="condition.operator" ng-change="validateConstraint()" ng-show="conditionType.id == condition.conditionType.id" ng-repeat="conditionType in state.conditionTypeList" ng-options="operator for operator in conditionType.supportedOperators" style="vertical-align:top;">
 								</select>
 								<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-show="condition.valueType && !condition.valueType.availableValues && condition.valueType.id != 'AgeInDaysValueType'" ng-change="validateConstraint()" style="vertical-align:top;" required></input>
 								<select ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'FloatValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c for c in condition.valueType.availableValues" style="vertical-align:top;" required>

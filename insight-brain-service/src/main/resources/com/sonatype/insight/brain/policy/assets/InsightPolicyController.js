@@ -372,7 +372,10 @@
 		viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', $scope.deleteConstraint);
 	}
 	
-	$scope.viewAddConstraint = function() {
+	$scope.viewAddConstraint = function($event) {
+		if ($event){
+			$event.preventDefault();
+		}
 		resetConstraint();        
         $('#editConstraintModal').modal('show');
 	}

@@ -54,7 +54,7 @@
 
 		$scope.deleteLabel = function () {
 		    $scope.deletedEnabled = false;
-		    $http.delete(insightApp.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
+		    $http['delete'](insightApp.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
 		        var index = null;
 		        angular.forEach($scope.labels, function (candidate, key) {
 		            if (candidate.id === $scope.selectedLabel.id) {

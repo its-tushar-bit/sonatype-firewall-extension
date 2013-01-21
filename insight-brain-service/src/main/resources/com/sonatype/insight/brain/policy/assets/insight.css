@@ -159,6 +159,7 @@ input.editor-checkbox {
 
 .navbar .brand {
 	margin-left:0px;
+	white-space: nowrap;
 }
 
 .header-centered {

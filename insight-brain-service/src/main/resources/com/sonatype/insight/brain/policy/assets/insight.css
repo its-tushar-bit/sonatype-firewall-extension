@@ -185,3 +185,40 @@ tr:hover .hover-vis {
 tr .hover-vis {
     display: none;
 }
+
+// Page content
+html, body, .page-content {
+	height:100%;
+	box-sizing:border-box;
+}
+body {
+	background-color:rgb(85,85,85);
+	background-image: url(img/margin-bg.png);
+}
+.brand-header {
+	line-height: 32px;
+	vertical-align: middle;
+}
+.navbar .title {
+	padding : 6px 0px 6px 5px;
+	line-height: 24px;
+	vertical-align: middle;
+}
+.page-content {
+	padding-top: 60px;
+	width:100%;
+}
+.content-container {
+    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.85);
+	border: 1px solid #999;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    margin: 10px;
+	-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+.content-container .page-header {
+	padding-left:20px;
+}

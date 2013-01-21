@@ -22,6 +22,8 @@
   <name>Insight Brain Parent POM</name>
 
   <properties>
+    <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    <build.timestamp>${maven.build.timestamp}</build.timestamp>
     <insight-scanner.version>1.22.1-SNAPSHOT</insight-scanner.version>
     <insight-saas.version>1.0.0-SNAPSHOT</insight-saas.version>
     <slf4j.version>1.7.2</slf4j.version>
@@ -248,6 +250,18 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>m2e</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <properties>
+        <!-- m2e doesn't provide a timestamp and Hudson will fail to proxy the assets if the property remains uninterpolated in the URL -->
+        <build.timestamp>m2e</build.timestamp>
+      </properties>
     </profile>
   </profiles>
 

@@ -15,7 +15,7 @@
 			$('#labelErrorModal').modal('show');
 		}
 
-		$http.get(insightApp.getLabelsUrl()).success(function (data) {
+		$http.get(insightApp.getLabelsUrl(), { headers : { 'Cache-Control' : 'no-store', 'Pragma' : 'no-cache'} }).success(function (data) {
 			$scope.labels = data;
 		}).error(errorFn);
 

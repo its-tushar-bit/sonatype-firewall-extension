@@ -31,7 +31,7 @@
 				});
 			};
 
-		$http.get(insightApp.getBaseUrl() + '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)').success(function (data) {
+		$http.get(insightApp.getBaseUrl() + '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)', { headers : { 'Cache-Control' : 'no-store', 'Pragma' : 'no-cache'} }).success(function (data) {
 			var header = data.split(':'),
 				config = { headers : {  } };
 				config.headers[header[0]] = header[1];

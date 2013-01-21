@@ -67,6 +67,34 @@ public class CoordinatesConditionTypeTest
     }
 
     @Test
+    public void testEvaluateMatchGavWithSpaces()
+    {
+        // Create policy constraints
+        Constraint constraint = createConstraint( CoordinatesConditionType.ID, "match", "g1 : a1 : v1" );
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( constraint );
+
+        // Create policy
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1" );
+        components.add( component1 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
+    }
+
+    @Test
     public void testEvaluateMatchWildcard()
     {
         // Create policy constraints

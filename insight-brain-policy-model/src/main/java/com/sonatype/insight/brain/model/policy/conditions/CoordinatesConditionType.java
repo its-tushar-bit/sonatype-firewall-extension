@@ -58,15 +58,15 @@ public class CoordinatesConditionType
             String[] coordinates = condition.getValue().split( ":" );
             if ( coordinates.length >= 1 )
             {
-                groupId = coordinates[0];
+                groupId = coordinates[0].trim();
             }
             if ( coordinates.length >= 2 )
             {
-                artifactId = coordinates[1];
+                artifactId = coordinates[1].trim();
             }
             if ( coordinates.length >= 3 )
             {
-                version = coordinates[2];
+                version = coordinates[2].trim();
             }
         }
 

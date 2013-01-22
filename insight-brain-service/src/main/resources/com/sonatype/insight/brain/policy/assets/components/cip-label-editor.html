@@ -1,22 +1,6 @@
 <div ng-controller="LabelsController" style='padding:5px' class='labelEditor'>
 	<style type='text/css'>
 
-	span.clmLabel {
-		-moz-border-radius: 3px;
-		-webkit-border-radius: 3px;
-		border-radius: 3px;
-		border-style: solid;
-		border-width: 1px;
-		font-size: 12px;
-		overflow: hidden;
-		margin: 0;
-		padding: 1px 3px;
-		text-align: center;
-		vertical-align: top;
-		border-color: #AFBFCF;
-		display: inline-block;
-	}
-
 	.clmLabel {
 		-moz-border-radius: 3px;
 		-webkit-border-radius: 3px;
@@ -27,6 +11,13 @@
 		overflow: hidden;
 		text-align: center;
 		border-color: #AFBFCF;
+	}
+
+	span.clmLabel {
+		margin: 0;
+		padding: 1px 3px;
+		vertical-align: top;
+		display: inline-block;
 	}
 
 	.clmLabel > option[value="0"] {
@@ -80,20 +71,20 @@
 		.appliedContainer {height:60px;margin-bottom:5px}
 		.availableContainer {height:94px}
 		.labelEditor .clmLabel {margin-right:5px}
-		.labelEditor .icon-refresh, .clmLabel > .icon-plus-sign, .clmLabel > .icon-minus-sign {cursor:pointer;opacity:0.5;vertical-align:top;margin-top:1px }
-		.labelEditor .icon-refresh:hover, .clmLabel > .icon-plus-sign:hover, .clmLabel > .icon-minus-sign:hover {opacity:1.0}
-		.clmLabel > span {max-width:60px;word-break:break-all;display:inline-block}
+		.labelEditor .icon-refresh, .clmLabel > .icon-plus-sign, .clmLabel > .icon-minus-sign {cursor:pointer;opacity:0.5;filter:alpha(opacity=50)vertical-align:top;margin-top:1px }
+		.labelEditor .icon-refresh:hover, .clmLabel > .icon-plus-sign:hover, .clmLabel > .icon-minus-sign:hover {opacity:1.0; filter:alpha(opacity=100)}
+		.clmLabel > span {max-width:380px;overflow:hidden;text-overflow:ellipsis;display:inline-block}
 	</style>
 	<div style='float:right;width:49.5%;margin-bottom:10px'>
 		<h5>Available <i class='icon-refresh' ng-click='reloadAppLabels($event)'></i></h5>
 		<div class='availableContainer'>
-			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'><span>{{label.label}}</span>&nbsp;<i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i></span>
+			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label' title='{{label.label}}'><span>{{label.label}}</span>&nbsp;<i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i></span>
 		</div>
 	</div>
 	<div style='width:49.5%;margin-bottom:10px'>
 		<h5>Applied <i class='icon-refresh' ng-click='reloadLabels($event)'></i></h5>
 		<div class='appliedContainer'>
-			<span ng-repeat='label in itemLabels | orderBy:"label"' class='clmLabel {{label.color}}Label'><span>{{label.label}}</span>&nbsp;<i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i></span>
+			<span ng-repeat='label in itemLabels | orderBy:"label"' class='clmLabel {{label.color}}Label' title='{{label.label}}'><span>{{label.label}}</span>&nbsp;<i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i></span>
 		</div>
 		<div>
 			<form class='form-inline' ng-submit='addLabels($event);' >

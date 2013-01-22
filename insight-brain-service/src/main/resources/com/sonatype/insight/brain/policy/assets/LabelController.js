@@ -16,8 +16,7 @@
 		}
 
 		$http.get(insightApp.getLabelsUrl(), {
-						params : { timestamp : new Date().getTime() },
-						headers : { 'Cache-Control' : 'no-store', 'Pragma' : 'no-cache'}
+						params : { timestamp : new Date().getTime() }
 		}).success(function (data) {
 			$scope.labels = data;
 		}).error(errorFn);

@@ -36,10 +36,6 @@
 						params : {
 							timestamp : new Date().getTime(),
 							xpath : 'concat(//crumbRequestField,":",//crumb)'
-						},
-						headers : {
-						   'Cache-Control' : 'no-store',
-						   'Pragma' : 'no-cache'
 						}
 					}).success(function (data) {
 			var header = data.split(':'),

@@ -361,8 +361,10 @@
             <include>jquery/jquery-1.7.2.min.js</include>
             <include>bootstrap/bootstrap-2.2.2.min.js</include>
             <include>angular/angular-1.0.3.js</include>
+			<include>angular/angular-sanitize-1.0.3.js</include>
             <include>InsightApp.js</include>
             <include>InsightPolicyController.js</include>
+            <include>LabelController.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>angular-mocks-1.0.3.js</include>

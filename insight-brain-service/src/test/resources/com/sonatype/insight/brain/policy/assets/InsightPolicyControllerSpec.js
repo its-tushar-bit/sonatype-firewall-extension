@@ -1,3 +1,5 @@
+var clmBuildTimestamp = '';
+
 describe('InsightPolicyController tests', function() {
 	var scope, $httpBackend;
 
@@ -6,13 +8,13 @@ describe('InsightPolicyController tests', function() {
 	}]);
 
 
-	beforeEach(module('Policy', 'Hudson'));
+	beforeEach(module('Policy', 'Hudson', 'CLMLocation'));
 	//setup our http backend to return what we want
-	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
-	  insightApp.appId = 'myAppId';
+	beforeEach(inject(function(_$httpBackend_, $rootScope, $controller, CLMLocations) {
+	  CLMLocations.appId = 'myAppId';
       $httpBackend = _$httpBackend_;
-      
-      $httpBackend.expectGET(insightApp.getConditionTypeUrl()).
+
+      $httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).
       respond([{
     	  name: 'License Category',
     	  id: 'LicenseCategory',
@@ -25,7 +27,7 @@ describe('InsightPolicyController tests', function() {
     	  valueTypeId: null
       }]);
       
-      $httpBackend.expectGET(insightApp.getActionTypeUrl()).
+      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).
       respond([{
     	  name: 'Fail',
     	  id: 'fail',
@@ -43,7 +45,7 @@ describe('InsightPolicyController tests', function() {
     	  requiresTarget: true
       }]);
       
-      $httpBackend.expectGET(insightApp.getActionStageUrl()).
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).
       respond([{
     	  name: 'Procure',
     	  id: 'procure'
@@ -61,7 +63,7 @@ describe('InsightPolicyController tests', function() {
     	  id: 'operate'
       }]);
       
-      $httpBackend.expectGET(insightApp.getConditionValueTypeUrl()).
+      $httpBackend.expectGET(CLMLocations.getConditionValueTypeUrl()).
       respond([{
     	  id:"FloatValueType",
     	  availableValues:null,
@@ -100,7 +102,7 @@ describe('InsightPolicyController tests', function() {
     	  allowMultiple:false
       }]);
       
-      $httpBackend.expectGET(insightApp.getPolicyUrl()).
+      $httpBackend.expectGET(CLMLocations.getPolicyUrl()).
       respond([{
     	  id: '1de8469ae4604d67a86a676c0819d109',
     	  name: 'policy1',
@@ -385,7 +387,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.showAddPolicyScreen).toBe(true);
 	});
 	
-	it('validate state and messaging when save policy is clicked', function() {
+	it('validate state and messaging when save policy is clicked', inject(function(CLMLocations) {
 		scope.state.currentPolicy = {
     	    name: 'policy3',
     	    enabled: true,
@@ -444,7 +446,7 @@ describe('InsightPolicyController tests', function() {
 		var dataWithId = angular.copy(data);
 		dataWithId.id = 'anid';
 		
-		$httpBackend.expectPOST(insightApp.getPolicyUrl(), data).respond(dataWithId);
+		$httpBackend.expectPOST(CLMLocations.getPolicyUrl(), data).respond(dataWithId);
 		
 		scope.savePolicy();
 		
@@ -481,5 +483,5 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.policyList[2].actions.operate[0].target).toBe(null);
 		expect(scope.state.policyList[2].actions.operate[1].actionTypeId).toBe('notify');
 		expect(scope.state.policyList[2].actions.operate[1].target).toBe('mail15');
-	});
+	}));
 });

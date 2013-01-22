@@ -1,10 +1,10 @@
-/*global insightApp, angular, $ */
+/*global angular, $ */
 (function () {
 	'use strict';
 
-	var labelModule = angular.module('Labels', ['Hudson']);
+	var labelModule = angular.module('Labels', ['Hudson', 'CLMLocation']);
 
-	labelModule.controller('LabelController', ['$scope', '$http', function ($scope, $http) {
+	labelModule.controller('LabelController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
 		function errorFn (data, status, headersFn, config) {
 			var header = headersFn();
 			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
@@ -15,8 +15,8 @@
 			$('#labelErrorModal').modal('show');
 		}
 
-		$http.get(insightApp.getLabelsUrl(), {
-						params : { timestamp : new Date().getTime() }
+		$http.get(clmLocations.getLabelsUrl(), {
+						params : { timestamp : new Date().getTime() },
 		}).success(function (data) {
 			$scope.labels = data;
 		}).error(errorFn);
@@ -55,7 +55,7 @@
 
 		$scope.deleteLabel = function () {
 		    $scope.deletedEnabled = false;
-		    $http['delete'](insightApp.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
+		    $http['delete'](clmLocations.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
 		        var index = null;
 		        angular.forEach($scope.labels, function (candidate, key) {
 		            if (candidate.id === $scope.selectedLabel.id) {
@@ -69,7 +69,7 @@
 		};
 	}]);
 
-	labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', function ($scope, $http, hudson) {
+	labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 
 		function errorFn (data, status, headersFn, config) {
             $scope.submitActive = false;
@@ -100,12 +100,12 @@
 			var label = $scope.selectedLabel;
 		    $scope.submitActive = true;
 		    if (label.id == null) {
-				hudson.post(insightApp.getLabelsUrl(), label).success(function (data) {
+				hudson.post(clmLocations.getLabelsUrl(), label).success(function (data) {
 		            $scope.labels.push(data);
 		            $('#labelEditModal').modal('hide');
 		        }).error(errorFn);
 		    } else {
-				$http.put(insightApp.getLabelsUrl(), label).success(function (data) {
+				$http.put(clmLocations.getLabelsUrl(), label).success(function (data) {
 		            angular.forEach($scope.labels, function (labelCandidate, key) {
 		                if (data.id === labelCandidate.id) {
 		                    $scope.labels[key] = data;

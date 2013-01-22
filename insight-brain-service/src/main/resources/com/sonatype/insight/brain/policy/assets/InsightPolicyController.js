@@ -3,7 +3,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson']);
 
-	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', function ($scope, global, $http, hudson, $timeout) {
+	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', 'CLMLocations', function ($scope, global, $http, hudson, $timeout, clmLocations) {
 
 	function updatePolicySummary(data) {
 		data.summary = {
@@ -335,7 +335,7 @@
 		showHttpMask('Saving policy...');
 		//edit
 		if ($scope.state.currentPolicy.id) {		    
-			httpPut(insightApp.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
+			httpPut(clmLocations.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
 				updatePolicySummary(data);
 				addUIConditionData(data);
 				for ( var i = 0 ; i < $scope.state.policyList.length ; i++ ){
@@ -347,7 +347,7 @@
 				hidePolicy();
 			});
 		} else {
-			httpPost(insightApp.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
+			httpPost(clmLocations.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function(data, status, headers, config){
 				updatePolicySummary(data);
 				addUIConditionData(data);
 				$scope.state.policyList.push(data);
@@ -362,7 +362,7 @@
 	
 	$scope.deletePolicy = function(){
 		$('#confirmationModal').modal('hide');
-		httpDelete(insightApp.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...','Policy Delete Error', function(){
+		httpDelete(clmLocations.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...','Policy Delete Error', function(){
 			$scope.state.policyList.splice($scope.state.deletePolicyIndex,1);
 		});
 	}
@@ -509,10 +509,10 @@
 	
 	showHttpMask('Loading data from server...');
 	
-	loadList(insightApp.getConditionTypeUrl(), 'conditionTypeList', 'Condition Type Initialization Error');
-	loadList(insightApp.getActionTypeUrl(), 'actionTypeList', 'Action Type Initialization Error');
-	loadList(insightApp.getActionStageUrl(), 'actionStageList', 'Action Stage Initialization Error');
-	loadList(insightApp.getConditionValueTypeUrl(), 'conditionValueTypeList', 'Condition Value Type Initialization Error');
-	loadList(insightApp.getPolicyUrl(), 'policyList', 'Policy Initialization Error');
+	loadList(clmLocations.getConditionTypeUrl(), 'conditionTypeList', 'Condition Type Initialization Error');
+	loadList(clmLocations.getActionTypeUrl(), 'actionTypeList', 'Action Type Initialization Error');
+	loadList(clmLocations.getActionStageUrl(), 'actionStageList', 'Action Stage Initialization Error');
+	loadList(clmLocations.getConditionValueTypeUrl(), 'conditionValueTypeList', 'Condition Value Type Initialization Error');
+	loadList(clmLocations.getPolicyUrl(), 'policyList', 'Policy Initialization Error');
 	}]);
 }());

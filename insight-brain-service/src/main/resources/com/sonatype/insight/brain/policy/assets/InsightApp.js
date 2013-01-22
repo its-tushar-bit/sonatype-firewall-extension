@@ -1,6 +1,73 @@
 $(document).ready(function(){
 	$('[data-title]').tooltip();
 });
+
+angular.module('CLMLocation', []).factory('CLMLocations', function() {
+	return {
+		getQueryString : function(key) {
+			var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
+		    if (results)
+		    {
+				return results[1];
+		    }
+		},
+
+		getAppId : function () {
+			if (this.appId){
+				return this.appId;
+			}
+
+			this.appId = this.getQueryString('appId');
+
+			return this.appId;
+		},
+
+		getBaseUrl : function () {
+			if (this.baseUrl){
+				return this.baseUrl;
+			}
+
+			this.baseUrl = '';
+
+			var idx = location.href.indexOf('/policy-assets/');
+
+			if (idx > -1) {
+				this.baseUrl = location.href.substring(0,idx);
+			}
+
+			return this.baseUrl;
+		},
+
+		getLabelsUrl : function () {
+			return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
+		},
+
+		getDeleteLabelsUrl : function (label){
+			return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
+		},
+
+		getConditionTypeUrl : function () {
+			return this.getBaseUrl() + '/rest/policy/conditionType';
+		},
+
+		getActionTypeUrl : function () {
+			return this.getBaseUrl() + '/rest/policy/actionType';
+		},
+
+		getActionStageUrl : function () {
+			return this.getBaseUrl() + '/rest/policy/stageType';
+		},
+
+		getConditionValueTypeUrl : function () {
+			return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
+		},
+
+		getPolicyUrl : function () {
+			return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
+		}
+	};
+});
+
 var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
 	$routeProvider.when('/policy', {
 		templateUrl : 'components/policy.html?' + clmBuildTimestamp,
@@ -53,64 +120,3 @@ insightApp.factory('global', function($rootScope) {
     return {};
 });
 
-insightApp.getQueryString = function(key) {
-	var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
-    if (results)
-    {
-    	return results[1];
-    }
-}
-
-insightApp.getAppId = function(){
-	if (insightApp.appId){
-		return insightApp.appId;
-	}
-	
-	insightApp.appId = insightApp.getQueryString('appId');
-	
-	return insightApp.appId;
-}
-
-insightApp.getBaseUrl = function(){
-	if (insightApp.baseUrl){
-		return insightApp.baseUrl;
-	}
-	
-	insightApp.baseUrl = '';
-	
-	var idx = location.href.indexOf('/policy-assets/');
-	
-	if (idx > -1) {
-		insightApp.baseUrl = location.href.substring(0,idx);
-	}
-	
-	return insightApp.baseUrl;
-}
-
-insightApp.getLabelsUrl = function (){
-	return insightApp.getBaseUrl() + '/rest/label/application/' + insightApp.getAppId();
-};
-
-insightApp.getDeleteLabelsUrl = function (label){
-	return insightApp.getBaseUrl() + '/rest/label/application/' + insightApp.getAppId() + '/' + label.id;
-};
-
-insightApp.getConditionTypeUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/policy/conditionType';
-}
-
-insightApp.getActionTypeUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/policy/actionType';
-}
-
-insightApp.getActionStageUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/policy/stageType';
-}
-
-insightApp.getConditionValueTypeUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/conditionValueType/' + insightApp.getAppId();
-}
-
-insightApp.getPolicyUrl = function(){
-	return insightApp.getBaseUrl() + '/rest/policy/' + insightApp.getAppId();
-}

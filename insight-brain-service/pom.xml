@@ -365,10 +365,12 @@
             <include>InsightApp.js</include>
             <include>InsightPolicyController.js</include>
             <include>LabelController.js</include>
+            <include>js/cip-label-editor.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>angular-mocks-1.0.3.js</include>
             <include>InsightPolicyControllerSpec.js</include>
+            <include>CIPLabelEditorSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/policy/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/policy/assets</jsTestSrcDir>

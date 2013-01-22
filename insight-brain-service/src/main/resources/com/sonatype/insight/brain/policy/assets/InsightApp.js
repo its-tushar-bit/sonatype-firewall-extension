@@ -1,7 +1,3 @@
-$(document).ready(function(){
-	$('[data-title]').tooltip();
-});
-
 angular.module('CLMLocation', []).factory('CLMLocations', function() {
 	return {
 		getQueryString : function(key) {
@@ -89,6 +85,12 @@ insightApp.controller('TabController', ['$scope', '$location', function ($scope,
 		angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
 	});
 }]);
+
+insightApp.directive('tip', function () {
+	return function (scope, element, attrs) {
+		$(element).tooltip();
+	};
+});
 
 insightApp.run(['$http', '$rootScope', function($http, $rootScope) {
 	$rootScope.features = {};

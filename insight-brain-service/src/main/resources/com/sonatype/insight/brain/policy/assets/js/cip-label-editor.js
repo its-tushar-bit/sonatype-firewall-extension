@@ -1,5 +1,7 @@
-/*global angular, CLM */
+/*global angular, $, window, CLM */
 (function () {
+    'use strict';
+
 	$.extend(true, window, {
 	    'Insight' : {
 			'LabelEditor' : function (node, applicationId, hash) {
@@ -35,14 +37,7 @@
 	labelsApp.controller('LabelsController', ['$http', '$scope', 'ComponentLabelEditorGAV', function ($http, $scope, componentLabelEditorGAV) {
 	    var componentLabelsUrl = CLM.path + 'rest/label/component/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash;
 
-	    function persist(labelArr, color) {
-			$http.put(componentLabelsUrl, { labels : labelArr, color : color}).success(function (data) {
-				$scope.itemLabels = data;
-				$scope.reloadAppLabels(); // Only really necessary if someone adds a brand new label, and removes it in the same session
-			}).error(errorFn);
-		}
-
-		function errorFn (data, status, headersFn, config) {
+		function errorFn(data, status, headersFn, config) {
 			var header = headersFn();
 			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 			    $scope.editErrorResponse = 'Server Error';
@@ -51,26 +46,33 @@
 			}
 		}
 
+	    function persist(labelArr, color) {
+			$http.put(componentLabelsUrl, { labels : labelArr, color : color}).success(function (data) {
+				$scope.itemLabels = data;
+				$scope.reloadAppLabels(); // Only really necessary if someone adds a brand new label, and removes it in the same session
+			}).error(errorFn);
+		}
+
 		var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
 		function setElement(element, value) {
-			angular.forEach(properties, function(prop, key){
+			angular.forEach(properties, function (prop, key) {
 				element.css(prop, value);
 			});
 			return element;
 		}
 
-		function rotate ($event) {
+		function rotate($event) {
 			if ($event) {
 				setElement($($event.target), '').prop('rotate', null).animate({ rotate : '+360'}, {
-					step : function(now,fx) {
+					step : function (now, fx) {
 					    now = now % 360;
-					    setElement($(this), 'rotate('+now+'deg)');
+					    setElement($(this), 'rotate(' + now + 'deg)');
 					}
 				});
 			}
 		}
 
-		$scope.reloadLabels = function($event) {
+		$scope.reloadLabels = function ($event) {
 			rotate($event);
 			$http.get(componentLabelsUrl, { params : { timestamp : new Date().getTime() } }).success(function (data) {
 				$scope.itemLabels = data;
@@ -78,7 +80,7 @@
 		};
 		$scope.reloadLabels();
 
-		$scope.reloadAppLabels = function($event) {
+		$scope.reloadAppLabels = function ($event) {
 			rotate($event);
 			$http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId, { params : { timestamp : new Date().getTime() } }).success(function (data) {
 				$scope.availableLabels = data;
@@ -99,7 +101,7 @@
 
 		$scope.removeLabel = function (label) {
 			var updatedLabels = [];
-			angular.forEach($scope.itemLabels, function(candidate, key) {
+			angular.forEach($scope.itemLabels, function (candidate, key) {
 				if (candidate.label !== label.label) {
 					updatedLabels.push(candidate.label);
 				}
@@ -119,7 +121,7 @@
 
 			$scope.labelInput = '';
 
-			angular.forEach($scope.itemLabels, function(candidate, key) {
+			angular.forEach($scope.itemLabels, function (candidate, key) {
 				updatedLabels.push(candidate.label);
 			});
 
@@ -149,14 +151,14 @@
 			var updatedLabels = [],
 			    duplicate = false;
 
-			angular.forEach($scope.itemLabels, function(candidate, key) {
+			angular.forEach($scope.itemLabels, function (candidate, key) {
 				if (candidate.label.toLowerCase() === label.label.toLowerCase()) {
 					duplicate = true;
 				}
 				updatedLabels.push(candidate.label);
 			});
 
-			if(!duplicate) {
+			if (!duplicate) {
 				updatedLabels.push(label.label);
 				persist(updatedLabels);
 			}
@@ -168,7 +170,7 @@
 
 		$scope.isApplied = function (label) {
 			var duplicate = false;
-			angular.forEach($scope.itemLabels, function(candidate, key) {
+			angular.forEach($scope.itemLabels, function (candidate, key) {
 				duplicate = duplicate || (candidate.label === label.label);
 				return !duplicate;
 			});

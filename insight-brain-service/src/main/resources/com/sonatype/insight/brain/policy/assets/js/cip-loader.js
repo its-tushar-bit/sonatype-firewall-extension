@@ -1,4 +1,4 @@
-/*global $ */
+/*global $, window, CLM */
 (function () {
 	'use strict';
 

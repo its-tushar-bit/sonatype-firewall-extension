@@ -21,6 +21,13 @@
       -->
       <property name="openjpa.Log" value="DefaultLevel=WARN, Tool=INFO"/>
       <property name="openjpa.jdbc.Schema" value="insight_brain_ods"/>
+      <!--
+      By default, when doing an update using an object that was not retrieved from the database, openjpa will not update fields that are null.
+      Setting openjpa.DetachState=all causes openjpa to update all fields, null or not null.
+      For more details:
+      http://openjpa.apache.org/builds/2.2.1/apache-openjpa/docs/ref_guide_remote.html#ref_guide_detach_graph
+      -->
+      <property name="openjpa.DetachState" value="all"/>
       <!-- To log queries and query parameter values:
       <property name="openjpa.ConnectionFactoryProperties" value="PrintParameters=True"/>      
       <property name="openjpa.Log" value="DefaultLevel=TRACE, Runtime=INFO, Tool=INFO, SQL=TRACE"/>

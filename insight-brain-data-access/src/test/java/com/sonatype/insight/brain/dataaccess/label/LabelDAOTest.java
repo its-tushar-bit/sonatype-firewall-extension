@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
+import java.util.List;
 import java.util.Locale;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,6 +20,46 @@ import com.sonatype.insight.brain.model.label.Label;
 public class LabelDAOTest
     extends AbstractDbDAOTest
 {
+    @After
+    public void cleanUp()
+    {
+        LabelDAO dao = new LabelDAO();
+        List<Label> labels = dao.getByApplicationId( applicationId );
+        for ( Label label : labels )
+        {
+            dao.delete( label );
+        }
+    }
+
+    @Test
+    public void testSetColorBackToNull()
+        throws Exception
+    {
+        LabelDAO dao = new LabelDAO();
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( "My label" );
+        label.setColor( Color.blue );
+        dao.insert( label );
+        Assert.assertNotNull( label.getId() );
+        label = dao.getById( label.getId() );
+        Assert.assertNotNull( label );
+        assertLabel( applicationId, "My label", Color.blue, label );
+
+        // Update the color using a new Label instance. This is important because an instance that was not retrieved
+        // from the db was never marked as attached/detached by openjpa.
+        Label updatedLabel = new Label();
+        updatedLabel.setId( label.getId() );
+        updatedLabel.setApplicationId( label.getApplicationId() );
+        updatedLabel.setLabel( label.getLabel() );
+        updatedLabel.setColor( null );
+        dao.update( updatedLabel );
+        Assert.assertNull( updatedLabel.getColor() );
+        updatedLabel = dao.getById( updatedLabel.getId() );
+        Assert.assertNotNull( updatedLabel );
+        Assert.assertNull( updatedLabel.getColor() );
+    }
+
     @Test
     public void testCRUD()
         throws Exception

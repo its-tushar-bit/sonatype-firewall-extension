@@ -1,68 +1,71 @@
-angular.module('CLMLocation', []).factory('CLMLocations', function() {
-	return {
-		getQueryString : function(key) {
-			var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
-		    if (results)
-		    {
-				return results[1];
-		    }
-		},
+/*global angular, $, window, console, clmBuildTimestamp */
+(function () {
+    "use strict";
+    angular.module('CLMLocation', []).factory('CLMLocations', function () {
+        return {
+            getQueryString : function (key) {
+                var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
+                if (results) {
+                    return results[1];
+                }
+            },
 
-		getAppId : function () {
-			if (this.appId){
-				return this.appId;
-			}
+            getAppId : function () {
+                if (this.appId) {
+                    return this.appId;
+                }
 
-			this.appId = this.getQueryString('appId');
+                this.appId = this.getQueryString('appId');
 
-			return this.appId;
-		},
+                return this.appId;
+            },
 
-		getBaseUrl : function () {
-			if (this.baseUrl){
-				return this.baseUrl;
-			}
+            getBaseUrl : function () {
+                if (this.baseUrl) {
+                    return this.baseUrl;
+                }
 
-			this.baseUrl = '';
+                this.baseUrl = '';
 
-			var idx = location.href.indexOf('/policy-assets/');
+                var idx = window.location.href.indexOf('/policy-assets/');
 
-			if (idx > -1) {
-				this.baseUrl = location.href.substring(0,idx);
-			}
+                if (idx > -1) {
+                    this.baseUrl = window.location.href.substring(0, idx);
+                }
 
-			return this.baseUrl;
-		},
+                return this.baseUrl;
+            },
 
-		getLabelsUrl : function () {
-			return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
-		},
+            getLabelsUrl : function () {
+                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
+            },
 
-		getDeleteLabelsUrl : function (label){
-			return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
-		},
+            getDeleteLabelsUrl : function (label) {
+                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
+            },
 
-		getConditionTypeUrl : function () {
-			return this.getBaseUrl() + '/rest/policy/conditionType';
-		},
+            getConditionTypeUrl : function () {
+                return this.getBaseUrl() + '/rest/policy/conditionType';
+            },
 
-		getActionTypeUrl : function () {
-			return this.getBaseUrl() + '/rest/policy/actionType';
-		},
+            getActionTypeUrl : function () {
+                return this.getBaseUrl() + '/rest/policy/actionType';
+            },
 
-		getActionStageUrl : function () {
-			return this.getBaseUrl() + '/rest/policy/stageType';
-		},
+            getActionStageUrl : function () {
+                return this.getBaseUrl() + '/rest/policy/stageType';
+            },
 
-		getConditionValueTypeUrl : function () {
-			return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
-		},
+            getConditionValueTypeUrl : function () {
+                return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
+            },
 
-		getPolicyUrl : function () {
-			return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
-		}
-	};
-});
+            getPolicyUrl : function () {
+                return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
+            }
+        };
+    });
+}());
 
 var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
 	$routeProvider.when('/policy', {
@@ -80,7 +83,7 @@ var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize']
 }]);
 
 insightApp.controller('TabController', ['$scope', '$location', function ($scope, $location) {
-	$scope.$watch(function(){return $location.path();}, function(){
+	$scope.$watch(function () {return $location.path(); }, function () {
 		$scope.tabUrl = $location.path();
 		angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
 	});
@@ -92,19 +95,21 @@ insightApp.directive('tip', function () {
 	};
 });
 
-insightApp.run(['$http', '$rootScope', function($http, $rootScope) {
+insightApp.run(['$http', '$rootScope', function ($http, $rootScope) {
 	$rootScope.features = {};
-	$http.get('../rest/features').success(function(data) {
+	$http.get('../rest/features').success(function (data) {
 		angular.forEach(data, function (value, key) {
 			$rootScope.features[value] = true;
 		});
 	}).error(function () {
-		console.log('Failed to load features, some features may not be available');
+		if (console) {
+			console.log('Failed to load features, some features may not be available');
+		}
 	});
 }]);
 
-insightApp.filter('escape', function() {
-	return function(input) {
+insightApp.filter('escape', function () {
+	return function (input) {
 		if (!input) {
 			return input;
 		}
@@ -115,10 +120,9 @@ insightApp.filter('escape', function() {
 			return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 					/>/g, '&gt;').replace(/\n/g, '<br/>');
 		}
-	}
+	};
 });
 
-insightApp.factory('global', function($rootScope) {
+insightApp.factory('global', function ($rootScope) {
     return {};
 });
-

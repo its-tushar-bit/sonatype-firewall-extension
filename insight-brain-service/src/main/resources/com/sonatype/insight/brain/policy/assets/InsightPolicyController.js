@@ -1,3 +1,4 @@
+/*global angular, $, clmBuildTimestamp */
 (function () {
 	'use strict';
 

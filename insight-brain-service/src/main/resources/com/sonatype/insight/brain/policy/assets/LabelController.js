@@ -1,11 +1,11 @@
-/*global angular, $ */
+/*global angular, $, clmBuildTimestamp */
 (function () {
 	'use strict';
 
 	var labelModule = angular.module('Labels', ['Hudson', 'CLMLocation']);
 
 	labelModule.controller('LabelController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
-		function errorFn (data, status, headersFn, config) {
+		function errorFn(data, status, headersFn, config) {
 			var header = headersFn();
 			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 			    $scope.errorResponse = 'Server Error';
@@ -16,7 +16,7 @@
 		}
 
 		$http.get(clmLocations.getLabelsUrl(), {
-						params : { timestamp : new Date().getTime() },
+            params : { timestamp : new Date().getTime() }
 		}).success(function (data) {
 			$scope.labels = data;
 		}).error(errorFn);
@@ -71,7 +71,7 @@
 
 	labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 
-		function errorFn (data, status, headersFn, config) {
+		function errorFn(data, status, headersFn, config) {
             $scope.submitActive = false;
 			var header = headersFn();
 			if ($scope.labelEditor) {
@@ -94,8 +94,9 @@
 		};
 
 		$scope.saveLabelClick = function () {
-			if (!$scope.canSaveEdit($scope.labelEditor.$valid))
+			if (!$scope.canSaveEdit($scope.labelEditor.$valid)) {
 				return;
+            }
 
 			var label = $scope.selectedLabel;
 		    $scope.submitActive = true;
@@ -117,7 +118,7 @@
 		    }
 		};
 
-		$scope.clearEditError = function() {
+		$scope.clearEditError = function () {
 			if ($scope.labelEditor) {
 				$scope.labelEditor.editErrorResponse = null;
 			}
@@ -131,11 +132,11 @@
 				ctrl.$parsers.unshift(function (newValue) {
 					var nonDuplicate = true,
 						notEmpty = newValue.length !== 0;
-					ctrl.$setValidity('empty', notEmpty)
+					ctrl.$setValidity('empty', notEmpty);
 
 					angular.forEach(scope.labels, function (item, key) {
 						if (item.id !== scope.selectedLabel.id) {
-							nonDuplicate = nonDuplicate && (item.label.toLowerCase() != newValue.toLowerCase());
+							nonDuplicate = nonDuplicate && (item.label.toLowerCase() !== newValue.toLowerCase());
 						}
 					});
 					ctrl.$setValidity('duplicate', nonDuplicate);

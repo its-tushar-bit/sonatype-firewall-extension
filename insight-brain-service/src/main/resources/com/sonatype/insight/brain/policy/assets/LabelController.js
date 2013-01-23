@@ -70,7 +70,10 @@
 		        });
 		        $scope.labels.splice(index, 1);
 		        $('#deleteLabelModal').modal('hide');
-		    }).error(errorFn);
+		    }).error(function() {
+				$('#deleteLabelModal').modal('hide');
+				errorFn.apply(this, arguments);
+		    });
 		};
 	}]);
 

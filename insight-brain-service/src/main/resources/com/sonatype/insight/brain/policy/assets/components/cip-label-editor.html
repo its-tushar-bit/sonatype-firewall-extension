@@ -90,10 +90,10 @@
 			<span ng-repeat='label in itemLabels | orderBy:"label"' class='clmLabel {{label.color}}Label'><span title='{{label.label}}'>{{label.label}}</span>&nbsp;<i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i></span>
 		</div>
 		<div>
-			<form class='form-inline' ng-submit='addLabels($event);' >
-				<input type='text' style='width:64%' ng-model='labelInput' ng-change='checkLength()' placeholder='Space separated list of labels' disablenav />&nbsp;
+			<form class='form-inline' ng-submit='addLabels($event);'>
+				<input type='text' style='width:64%' ng-model='labelInput' ng-change='checkLength()' placeholder='Space separated list of labels' disablenav entersubmit />&nbsp;
 				<select style='width:20%' class='clmLabel {{color}}Label' ng-model='color' ng-options='c.color as c.text for c in colors' disablenav />
-				<button type='submit' class='btn btn-small btn-inverse'> Add </button>
+				<button class='btn btn-small btn-inverse'> Add </button>
 			</form>
 		</div>
 	</div>

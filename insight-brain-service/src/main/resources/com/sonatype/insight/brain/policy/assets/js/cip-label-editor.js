@@ -181,6 +181,18 @@
 		};
 	});
 
+	labelsApp.directive('entersubmit', function () {
+		return function(scope, element, attrs) {
+			element.bind('keydown', function(e) {
+				if (e.keyCode === 13) { // Enter
+					e.preventDefault();
+					console.log('triggering submit');
+					element.trigger('submit');
+				}
+			});
+		};
+	});
+
 	labelsApp.directive('spinner', function () {
 		var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
 

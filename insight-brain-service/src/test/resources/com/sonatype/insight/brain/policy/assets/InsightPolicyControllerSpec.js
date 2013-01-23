@@ -14,7 +14,11 @@ describe('InsightPolicyController tests', function() {
 	  CLMLocations.appId = 'myAppId';
       $httpBackend = _$httpBackend_;
 
-      $httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).
+      function toRegExp( getUrl ) {
+          return new RegExp( getUrl + '\\?timestamp=[0-9]+' );
+      }
+
+      $httpBackend.expectGET(toRegExp(CLMLocations.getConditionTypeUrl())).
       respond([{
     	  name: 'License Category',
     	  id: 'LicenseCategory',
@@ -27,7 +31,7 @@ describe('InsightPolicyController tests', function() {
     	  valueTypeId: null
       }]);
       
-      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).
+      $httpBackend.expectGET(toRegExp(CLMLocations.getActionTypeUrl())).
       respond([{
     	  name: 'Fail',
     	  id: 'fail',
@@ -45,7 +49,7 @@ describe('InsightPolicyController tests', function() {
     	  requiresTarget: true
       }]);
       
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).
+      $httpBackend.expectGET(toRegExp(CLMLocations.getActionStageUrl())).
       respond([{
     	  name: 'Procure',
     	  id: 'procure'
@@ -63,7 +67,7 @@ describe('InsightPolicyController tests', function() {
     	  id: 'operate'
       }]);
       
-      $httpBackend.expectGET(CLMLocations.getConditionValueTypeUrl()).
+      $httpBackend.expectGET(toRegExp(CLMLocations.getConditionValueTypeUrl())).
       respond([{
     	  id:"FloatValueType",
     	  availableValues:null,
@@ -102,7 +106,7 @@ describe('InsightPolicyController tests', function() {
     	  allowMultiple:false
       }]);
       
-      $httpBackend.expectGET(CLMLocations.getPolicyUrl()).
+      $httpBackend.expectGET(toRegExp(CLMLocations.getPolicyUrl())).
       respond([{
     	  id: '1de8469ae4604d67a86a676c0819d109',
     	  name: 'policy1',

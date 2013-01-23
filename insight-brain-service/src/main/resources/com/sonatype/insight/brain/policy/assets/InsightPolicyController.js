@@ -475,7 +475,7 @@
 
 			for (i = 0; i < $scope.state.currentConstraint.conditions.length; i++) {
 				if ($scope.state.currentConstraint.conditions[i].valueType && !$scope.state.currentConstraint.conditions[i].value) {
-					$scope.state.constraintValidationMsg = 'There is an invalid condition, please correct!';
+					$scope.state.constraintValidationMsg = 'Please enter a value for condition #' + (i + 1);
 					return;
 				}
 			}

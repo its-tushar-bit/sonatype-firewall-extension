@@ -1,6 +1,8 @@
 <div id="policy">
-	<div ng-show="!state.showAddPolicyScreen && !state.policyList.length" class="span6 offset4 no-content">No Policies have been defined.<br><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</div>
-	<div ng-show="!state.showAddPolicyScreen && state.policyList.length" class="span6 offset4"><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</div>
+	<div ng-show="!state.showAddPolicyScreen" class="span11" style='text-align:center'>
+		<p ng-show='!state.policyList.length' class='no-content'>No Policies have been defined.</p>
+		<p><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</p>
+	</div>
 	<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 	    <div class="policy-item" ng-repeat="policy in state.policyList">
 	    	<div style="float:right;"><button class="btn btn-mini policy-button" title="Edit Policy" ng-click="viewEditPolicy()"><i class="icon-pencil" style="margin-top:0px;"></i></button><button class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy()"><i class="icon-trash" style="margin-top:0px;"></i></button></div>

@@ -5,152 +5,159 @@
  */
 /*global angular, $, window, console, clmBuildTimestamp */
 (function () {
-    "use strict";
-    angular.module('CLMLocation', []).factory('CLMLocations', function () {
-        return {
-            getQueryString : function (key) {
-                var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
-                if (results) {
-                    return results[1];
-                }
-            },
+	"use strict";
+	angular.module('CLMLocation', []).factory('CLMLocations', function () {
+		return {
+			getQueryString : function (key) {
+				var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
+				if (results) {
+					return results[1];
+				}
+			},
 
-            getAppId : function () {
-                if (this.appId) {
-                    return this.appId;
-                }
+			getAppId : function () {
+				if (this.appId) {
+					return this.appId;
+				}
 
-                this.appId = this.getQueryString('appId');
+				this.appId = this.getQueryString('appId');
 
-                return this.appId;
-            },
+				return this.appId;
+			},
 
-            getBaseUrl : function () {
-                if (this.baseUrl) {
-                    return this.baseUrl;
-                }
+			getBaseUrl : function () {
+				if (this.baseUrl) {
+					return this.baseUrl;
+				}
 
-                this.baseUrl = '';
+				this.baseUrl = '';
 
-                var idx = window.location.href.indexOf('/policy-assets/');
+				var idx = window.location.href.indexOf('/policy-assets/');
 
-                if (idx > -1) {
-                    this.baseUrl = window.location.href.substring(0, idx);
-                }
+				if (idx > -1) {
+					this.baseUrl = window.location.href.substring(0, idx);
+				}
 
-                return this.baseUrl;
-            },
+				return this.baseUrl;
+			},
 
-            getLabelsUrl : function () {
-                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
-            },
+			getLabelsUrl : function () {
+				return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
+			},
 
-            getDeleteLabelsUrl : function (label) {
-                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
-            },
+			getDeleteLabelsUrl : function (label) {
+				return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
+			},
 
-            getConditionTypeUrl : function () {
-                return this.getBaseUrl() + '/rest/policy/conditionType';
-            },
+			getConditionTypeUrl : function () {
+				return this.getBaseUrl() + '/rest/policy/conditionType';
+			},
 
-            getActionTypeUrl : function () {
-                return this.getBaseUrl() + '/rest/policy/actionType';
-            },
+			getActionTypeUrl : function () {
+				return this.getBaseUrl() + '/rest/policy/actionType';
+			},
 
-            getActionStageUrl : function () {
-                return this.getBaseUrl() + '/rest/policy/stageType';
-            },
+			getActionStageUrl : function () {
+				return this.getBaseUrl() + '/rest/policy/stageType';
+			},
 
-            getConditionValueTypeUrl : function () {
-                return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
-            },
+			getConditionValueTypeUrl : function () {
+				return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
+			},
 
-            getPolicyUrl : function () {
-                return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
-            }
-        };
-    });
+			getPolicyUrl : function () {
+				return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
+			}
+		};
+	});
 }());
 
-var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
-	$routeProvider.when('/policy', {
-		templateUrl : 'components/policy.html?' + clmBuildTimestamp,
-		controller : 'InsightPolicyController'
-	});
-	$routeProvider.when('/labels', {
-		templateUrl : 'components/labels.html?' + clmBuildTimestamp,
-		controller : 'LabelController'
-	});
-	$routeProvider.when('/license-group', {
-		templateUrl : 'components/license-group.html?' + clmBuildTimestamp
-	});
-	$routeProvider.otherwise({redirectTo : '/policy'});
-}]);
+var insightApp;
+(function () {
+	"use strict";
 
-insightApp.controller('TabController', ['$scope', '$location', '$rootScope', function ($scope, $location, $rootScope) {
-	function handleTabClick(path, $event){
-		$event.preventDefault();
-		function doTabChange() {
-			$location.path(path);
-		}
-		var tabChangeEvent = $rootScope.$emit('tabChange', [$location.path(), doTabChange]);
-		if (!tabChangeEvent.defaultPrevented){
-			doTabChange();
-		}
-	}
-	
-	$scope.policyTabClick = function($event){
-		handleTabClick('/policy', $event);
-	}
-	
-	$scope.labelTabClick = function($event){
-		handleTabClick('/labels', $event);
-	}
-	
-	$scope.licenseGroupTabClick = function($event){
-		handleTabClick('/license-group', $event);
-	}
-	
-	$scope.$watch(function () {return $location.path(); }, function () {
-		$scope.tabUrl = $location.path();
-		angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
-	});
-}]);
-
-insightApp.directive('tip', function () {
-	return function (scope, element, attrs) {
-		$(element).tooltip();
-	};
-});
-
-insightApp.run(['$http', '$rootScope', function ($http, $rootScope) {
-	$rootScope.features = {};
-	$http.get('../rest/features').success(function (data) {
-		angular.forEach(data, function (value, key) {
-			$rootScope.features[value] = true;
+	insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+		$routeProvider.when('/policy', {
+			templateUrl : 'components/policy.html?' + clmBuildTimestamp,
+			controller : 'InsightPolicyController'
 		});
-	}).error(function () {
-		if (console) {
-			console.log('Failed to load features, some features may not be available');
+		$routeProvider.when('/labels', {
+			templateUrl : 'components/labels.html?' + clmBuildTimestamp,
+			controller : 'LabelController'
+		});
+		$routeProvider.when('/license-group', {
+			templateUrl : 'components/license-group.html?' + clmBuildTimestamp
+		});
+		$routeProvider.otherwise({redirectTo : '/policy'});
+	}]);
+
+	insightApp.controller('TabController', ['$scope', '$location', '$rootScope', function ($scope, $location, $rootScope) {
+		function handleTabClick(path, $event) {
+			$event.preventDefault();
+			function doTabChange() {
+				$location.path(path);
+			}
+			var tabChangeEvent = $rootScope.$emit('tabChange', [$location.path(), doTabChange]);
+			if (!tabChangeEvent.defaultPrevented) {
+				doTabChange();
+			}
 		}
+
+		$scope.policyTabClick = function ($event) {
+			handleTabClick('/policy', $event);
+		};
+
+		$scope.labelTabClick = function ($event) {
+			handleTabClick('/labels', $event);
+		};
+
+		$scope.licenseGroupTabClick = function ($event) {
+			handleTabClick('/license-group', $event);
+		};
+
+		$scope.$watch(function () {return $location.path(); }, function () {
+			$scope.tabUrl = $location.path();
+			angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
+		});
+	}]);
+
+	insightApp.directive('tip', function () {
+		return function (scope, element, attrs) {
+			$(element).tooltip();
+		};
 	});
-}]);
 
-insightApp.filter('escape', function () {
-	return function (input) {
-		if (!input) {
-			return input;
-		}
+	insightApp.run(['$http', '$rootScope', function ($http, $rootScope) {
+		$rootScope.features = {};
+		$http.get('../rest/features').success(function (data) {
+			angular.forEach(data, function (value, key) {
+				$rootScope.features[value] = true;
+			});
+		}).error(function () {
+			if (console) {
+				console.log('Failed to load features, some features may not be available');
+			}
+		});
+	}]);
 
-		if (input.indexOf('<html>') >= 0) {
-			return input;
-		} else {
-			return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
-					/>/g, '&gt;').replace(/\n/g, '<br/>');
-		}
-	};
-});
+	insightApp.filter('escape', function () {
+		return function (input) {
+			if (!input) {
+				return input;
+			}
 
-insightApp.factory('global', function ($rootScope) {
-    return {};
-});
+			if (input.indexOf('<html>') >= 0) {
+				return input;
+			} else {
+				return input.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/\n/g, '<br/>');
+			}
+		};
+	});
+
+	insightApp.factory('global', function ($rootScope) {
+		return {};
+	});
+}());

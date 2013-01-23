@@ -1,0 +1,9 @@
+Run with default configuration from the command line with:
+	java -jar sonatype-clm-server-0.1.jar
+
+This will start the Sonatype CLM Server on port 8070 and log to the console.  This is useful for a short evaluation.
+
+Optionally provide a configuration file and run as:
+	java -jar sonatype-clm-server-0.1.jar server config.yml
+
+Refer to the example config.yml in this bundle for options.

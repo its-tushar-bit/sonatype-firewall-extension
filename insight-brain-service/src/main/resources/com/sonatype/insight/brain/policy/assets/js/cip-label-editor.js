@@ -58,35 +58,14 @@
 			}).error(errorFn);
 		}
 
-		var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
-		function setElement(element, value) {
-			angular.forEach(properties, function (prop, key) {
-				element.css(prop, value);
-			});
-			return element;
-		}
-
-		function rotate($event) {
-			if ($event) {
-				setElement($($event.target), '').prop('rotate', null).animate({ rotate : '+360'}, {
-					step : function (now, fx) {
-					    now = now % 360;
-					    setElement($(this), 'rotate(' + now + 'deg)');
-					}
-				});
-			}
-		}
-
-		$scope.reloadLabels = function ($event) {
-			rotate($event);
+		$scope.reloadLabels = function () {
 			$http.get(componentLabelsUrl, { params : { timestamp : new Date().getTime() } }).success(function (data) {
 				$scope.itemLabels = data;
 			}).error(errorFn);
 		};
 		$scope.reloadLabels();
 
-		$scope.reloadAppLabels = function ($event) {
-			rotate($event);
+		$scope.reloadAppLabels = function () {
 			$http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId, { params : { timestamp : new Date().getTime() } }).success(function (data) {
 				$scope.availableLabels = data;
 			}).error(errorFn);
@@ -194,10 +173,32 @@
 
 	labelsApp.directive('disablenav', function () {
 		return function (scope, element, attrs) {
-			$(element).bind("keydown.nav", function (e) {
+			element.bind("keydown.nav", function (e) {
 				if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT || e.keyCode === $.ui.keyCode.DOWN || e.keyCode === $.ui.keyCode.UP) {
 					e.stopImmediatePropagation();
 				}
+			});
+		};
+	});
+
+	labelsApp.directive('spinner', function () {
+		var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
+
+		function setElement(element, value) {
+			angular.forEach(properties, function (prop, key) {
+				element.css(prop, value);
+			});
+			return element;
+		}
+
+		return function (scope, element, attrs) {
+			element.bind('click', function (e) {
+				setElement(element, '').prop('rotate', null).animate({ rotate : '+360'}, {
+					step : function (now, fx) {
+					    now = now % 360;
+					    setElement(element, 'rotate(' + now + 'deg)');
+					}
+				});
 			});
 		};
 	});

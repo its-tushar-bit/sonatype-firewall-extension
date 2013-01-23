@@ -95,10 +95,15 @@
 		}
 		return {
 			post : function () {
-				if (!hudson && tested === true) {
-					return $http.post.apply($http, angular.copy(arguments, []));
+				//note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
+				var argArray = [],i;
+				for (i = 0; i < arguments.length; i++){
+					argArray.push(arguments[i]);
 				}
-				return wrap($http, $http.post, angular.copy(arguments, []), clmLocations);
+				if (!hudson && tested === true) {
+					return $http.post.apply($http, argArray);
+				}
+				return wrap($http, $http.post, argArray, clmLocations);
 			}
 		};
 	}]);

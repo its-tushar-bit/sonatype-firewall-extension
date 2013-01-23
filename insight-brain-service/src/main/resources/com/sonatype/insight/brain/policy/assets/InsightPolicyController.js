@@ -527,9 +527,9 @@
 			event.stopPropagation();
 			viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?", 'Yes', 'No', function(){
 				$('#confirmationModal').modal('hide');
-				args[1]();
 			}, function(){
 				$('#confirmationModal').modal('hide');
+				args[1]();
 			});
 		}
 	});

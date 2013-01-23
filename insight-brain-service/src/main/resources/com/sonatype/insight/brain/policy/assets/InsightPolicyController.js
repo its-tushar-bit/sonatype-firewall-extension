@@ -525,7 +525,7 @@
 		if (args[0].indexOf('policy') >= 0 && $scope.state.policyChanged){
 			event.preventDefault();
 			event.stopPropagation();
-			viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?.", 'No', 'Yes', function(){
+			viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?", 'Yes', 'No', function(){
 				$('#confirmationModal').modal('hide');
 				args[1]();
 			}, function(){

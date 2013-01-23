@@ -14,16 +14,17 @@
     <format>zip</format>
     <format>tar.gz</format>
   </formats>
+  <fileSets>
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <outputDirectory>.</outputDirectory>
+    </fileSet>
+  </fileSets>
   <files>
     <file>
       <source>${project.build.directory}/insight-brain-service-${project.version}-server.jar</source>
       <outputDirectory>.</outputDirectory>
       <destName>sonatype-clm-server-${project.version}.jar</destName>
-    </file>
-    <file>
-      <source>${project.basedir}/src/main/resources/README</source>
-      <outputDirectory>.</outputDirectory>
-      <destName>README</destName>
     </file>
   </files>
 </assembly>

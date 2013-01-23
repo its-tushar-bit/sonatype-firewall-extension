@@ -87,7 +87,30 @@ var insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize']
 	$routeProvider.otherwise({redirectTo : '/policy'});
 }]);
 
-insightApp.controller('TabController', ['$scope', '$location', function ($scope, $location) {
+insightApp.controller('TabController', ['$scope', '$location', '$rootScope', function ($scope, $location, $rootScope) {
+	function handleTabClick(path, $event){
+		$event.preventDefault();
+		function doTabChange() {
+			$location.path(path);
+		}
+		var tabChangeEvent = $rootScope.$emit('tabChange', [$location.path(), doTabChange]);
+		if (!tabChangeEvent.defaultPrevented){
+			doTabChange();
+		}
+	}
+	
+	$scope.policyTabClick = function($event){
+		handleTabClick('/policy', $event);
+	}
+	
+	$scope.labelTabClick = function($event){
+		handleTabClick('/labels', $event);
+	}
+	
+	$scope.licenseGroupTabClick = function($event){
+		handleTabClick('/license-group', $event);
+	}
+	
 	$scope.$watch(function () {return $location.path(); }, function () {
 		$scope.tabUrl = $location.path();
 		angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root

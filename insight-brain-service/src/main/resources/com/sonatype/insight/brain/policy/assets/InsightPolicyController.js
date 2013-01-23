@@ -9,7 +9,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson']);
 
-	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', 'CLMLocations', function ($scope, global, $http, hudson, $timeout, clmLocations) {
+	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', 'CLMLocations', '$rootScope', function ($scope, global, $http, hudson, $timeout, clmLocations, $rootScope) {
 
 	function updatePolicySummary(data) {
 		data.summary = {
@@ -282,12 +282,13 @@
 		}
 	}
 	
-	function viewConfirmation(header, body, declineText, acceptText, acceptFn){
+	function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn){
 		$scope.state.confirmationHeader = header;
 		$scope.state.confirmationBody = body;
 		$scope.state.confirmationDeclineText = declineText;
 		$scope.state.confirmationAcceptText = acceptText;
 		$scope.state.confirmationAcceptFn = acceptFn;
+		$scope.state.confirmationDeclineFn = declineFn;
 		$('#confirmationModal').modal('show');
 	}
 	
@@ -364,6 +365,13 @@
 	
 	$scope.confirmationAccept = function(){
 		$scope.state.confirmationAcceptFn();
+	}
+	
+	$scope.confirmationDecline = function(){
+		if ($scope.state.confirmationDeclineFn){
+			$scope.state.confirmationDeclineFn();
+		}
+		$('#confirmationModal').modal('hide');
 	}
 	
 	$scope.deletePolicy = function(){
@@ -512,6 +520,19 @@
 	$scope.$watch('state.actionTableData',function(){
 		pushActionDataToModel();
 	},true);
+	
+	$rootScope.$on('tabChange', function(event, args) {
+		if (args[0].indexOf('policy') >= 0 && $scope.state.policyChanged){
+			event.preventDefault();
+			event.stopPropagation();
+			viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?.", 'No', 'Yes', function(){
+				$('#confirmationModal').modal('hide');
+				args[1]();
+			}, function(){
+				$('#confirmationModal').modal('hide');
+			});
+		}
+	});
 	
 	showHttpMask('Loading data from server...');
 	

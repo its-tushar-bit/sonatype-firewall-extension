@@ -18,6 +18,7 @@
 
   <artifactId>sonatype-clm-server</artifactId>
   <packaging>pom</packaging>
+  <name>Sonatype CLM Server distribution bundle</name>
 
   <dependencies>
     <dependency>

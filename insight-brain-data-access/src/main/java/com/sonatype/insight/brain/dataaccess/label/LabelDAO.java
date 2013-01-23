@@ -72,4 +72,34 @@ public class LabelDAO
         }
         super.delete( em, label );
     }
+
+    private void validateLabelText( String label )
+    {
+        if ( label == null || label.isEmpty() )
+        {
+            throw new InvalidLabelException( "The label text cannot be null or empty" );
+        }
+        if ( label.contains( " " ) )
+        {
+            throw new InvalidLabelException( "The label text cannot contain spaces" );
+        }
+        if ( label.contains( "\t" ) )
+        {
+            throw new InvalidLabelException( "The label text cannot contain tabs" );
+        }
+    }
+
+    @Override
+    public void insert( EntityManager em, Label label )
+    {
+        validateLabelText( label.getLabel() );
+        super.insert( em, label );
+    }
+
+    @Override
+    public void update( EntityManager em, Label label )
+    {
+        validateLabelText( label.getLabel() );
+        super.update( em, label );
+    }
 }

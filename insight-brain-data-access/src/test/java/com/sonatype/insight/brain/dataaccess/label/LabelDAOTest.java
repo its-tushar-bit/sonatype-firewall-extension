@@ -32,19 +32,183 @@ public class LabelDAOTest
     }
 
     @Test
-    public void testSetColorBackToNull()
+    public void testLabelWithSpaces()
         throws Exception
     {
         LabelDAO dao = new LabelDAO();
         Label label = new Label();
         label.setApplicationId( applicationId );
         label.setLabel( "My label" );
+
+        // Insert
+        try
+        {
+            dao.insert( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot contain spaces".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+
+        // Update
+        label.setLabel( "MyLabel" );
+        dao.insert( label );
+        label.setLabel( "My UpdatedLabel" );
+        try
+        {
+            dao.update( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot contain spaces".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testLabelWithTabs()
+        throws Exception
+    {
+        LabelDAO dao = new LabelDAO();
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( "My\tlabel" );
+
+        // Insert
+        try
+        {
+            dao.insert( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot contain tabs".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+
+        // Update
+        label.setLabel( "MyLabel" );
+        dao.insert( label );
+        label.setLabel( "My\tUpdatedLabel" );
+        try
+        {
+            dao.update( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot contain tabs".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testLabelNull()
+        throws Exception
+    {
+        LabelDAO dao = new LabelDAO();
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( null );
+
+        // Insert
+        try
+        {
+            dao.insert( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot be null or empty".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+
+        // Update
+        label.setLabel( "MyLabel" );
+        dao.insert( label );
+        label.setLabel( null );
+        try
+        {
+            dao.update( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot be null or empty".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testLabelEmpty()
+        throws Exception
+    {
+        LabelDAO dao = new LabelDAO();
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( " " );
+
+        // Insert
+        try
+        {
+            dao.insert( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot be null or empty".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+
+        // Update
+        label.setLabel( "MyLabel" );
+        dao.insert( label );
+        label.setLabel( " " );
+        try
+        {
+            dao.update( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"The label text cannot be null or empty".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testSetColorBackToNull()
+        throws Exception
+    {
+        LabelDAO dao = new LabelDAO();
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         dao.insert( label );
         Assert.assertNotNull( label.getId() );
         label = dao.getById( label.getId() );
         Assert.assertNotNull( label );
-        assertLabel( applicationId, "My label", Color.blue, label );
+        assertLabel( applicationId, "MyLabel", Color.blue, label );
 
         // Update the color using a new Label instance. This is important because an instance that was not retrieved
         // from the db was never marked as attached/detached by openjpa.
@@ -69,22 +233,22 @@ public class LabelDAOTest
         // Create
         Label label = new Label();
         label.setApplicationId( applicationId );
-        label.setLabel( "My label" );
+        label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         dao.insert( label );
         Assert.assertNotNull( label.getId() );
 
         label = dao.getById( label.getId() );
         Assert.assertNotNull( label );
-        assertLabel( applicationId, "My label", Color.blue, label );
+        assertLabel( applicationId, "MyLabel", Color.blue, label );
 
         // Update
-        label.setLabel( "My updated label" );
+        label.setLabel( "MyUpdatedLabel" );
         dao.update( label );
 
         label = dao.getById( label.getId() );
         Assert.assertNotNull( label );
-        assertLabel( applicationId, "My updated label", Color.blue, label );
+        assertLabel( applicationId, "MyUpdatedLabel", Color.blue, label );
 
         // Delete
         dao.delete( label );
@@ -102,7 +266,7 @@ public class LabelDAOTest
         // Create
         Label label = new Label();
         label.setApplicationId( applicationId );
-        label.setLabel( "My label" );
+        label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         labelDAO.insert( label );
         Assert.assertNotNull( label.getId() );

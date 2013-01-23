@@ -99,7 +99,7 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
 
-        newLabels = toLabelSet( "New Label" );
+        newLabels = toLabelSet( "NewLabel" );
         dao.setComponentLabels( applicationId, hash, newLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
@@ -120,7 +120,7 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
 
-        newLabels = toLabelSet( "New Label1", "New Label2" );
+        newLabels = toLabelSet( "NewLabel1", "NewLabel2" );
         dao.setComponentLabels( applicationId, hash, newLabels, null );
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );

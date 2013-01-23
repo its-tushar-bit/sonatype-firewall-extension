@@ -76,15 +76,16 @@ public class Label
 
     public void setLabel( String label )
     {
-        this.label = label;
-        if ( label == null )
+        if ( label != null )
         {
-            labelLowercase = null;
+            label = label.trim();
+            labelLowercase = label.toLowerCase();
         }
         else
         {
-            labelLowercase = label.toLowerCase();
+            labelLowercase = null;
         }
+        this.label = label;
     }
 
     public String getLabelLowercase()

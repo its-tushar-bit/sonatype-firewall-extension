@@ -38,6 +38,8 @@ public class InsightBrainService
 {
     private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
 
+    private static final String ASSET_PATH = "/policy-assets/";
+
     public static void main( final String[] args )
         throws Exception
     {
@@ -47,7 +49,7 @@ public class InsightBrainService
     @Override
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
-        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", "/policy-assets/" ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", ASSET_PATH ) );
     }
 
     protected DatabaseConfig getDatabaseConfig( File databaseDir )
@@ -93,6 +95,8 @@ public class InsightBrainService
         env.addResource( PolicyResource.class );
         env.addResource( ReportResource.class );
         env.addResource( CIResource.class );
+
+        env.addFilter( new FavIconFilter( ASSET_PATH ), "*/favicon.ico" );
     }
 
     private void loadDatabase()

@@ -1,7 +1,11 @@
 <div id="policy">
-	<div ng-show="!state.showAddPolicyScreen" class="span11" style='text-align:center'>
-		<p ng-show='!state.policyList.length' class='no-content'>No Policies have been defined.</p>
-		<p><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</p>
+	<div class='row' ng-show="!state.showAddPolicyScreen">
+		<div class='span4 offset4'>
+			<div class="content-container" style='text-align:center; padding-top:10px'>
+				<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
+				<p><a href="#" ng-click="viewCreatePolicy($event)">Create</a> a new Policy.</p>
+			</div>
+		</div>
 	</div>
 	<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 	    <div class="policy-item" ng-repeat="policy in state.policyList">

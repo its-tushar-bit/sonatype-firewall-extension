@@ -174,7 +174,7 @@
 	labelsApp.directive('disablenav', function () {
 		return function (scope, element, attrs) {
 			element.bind("keydown.nav", function (e) {
-				if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT || e.keyCode === $.ui.keyCode.DOWN || e.keyCode === $.ui.keyCode.UP) {
+				if (e.keyCode >= 37 && e.keyCode <= 40) {
 					e.stopImmediatePropagation();
 				}
 			});

@@ -242,7 +242,7 @@
 
 		function loadList(url, stateVar, errorText) {
 			delete $scope.state[stateVar];
-			httpGet(url, errorText, function (data, status, headers, config) {
+			httpGet(url + '?timestamp=' + new Date().getTime(), errorText, function (data, status, headers, config) {
 				$scope.state[stateVar] = data;
 				if (isDoneLoading()) {
 					postLoad();

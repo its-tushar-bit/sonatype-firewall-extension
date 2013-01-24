@@ -302,6 +302,24 @@
 			$('#confirmationModal').modal('hide');
 			reset();
 		}
+		
+		function watchPolicyChange(){
+			//this is simply to wait on doing this until after the current digest
+			setTimeout(function () {
+				$scope.state.policyWatchStopFn = $scope.$watch('state.currentPolicy', function () {
+					$scope.state.policyChanged = true;
+				}, true);
+				
+				$('#policyName').focus();
+			}, 100);
+		}
+		
+		function setConstraintFormFocus(){
+			//this is simply to wait on doing this until after the current digest
+			setTimeout(function () {
+				$('#constraintName').focus();
+			}, 100);
+		}
 
 		$scope.state = global;
 
@@ -312,12 +330,7 @@
 			resetActions();
 			$scope.validatePolicy();
 
-			//this is simply to wait on doing this until after the current digest
-			setTimeout(function () {
-				$scope.state.policyWatchStopFn = $scope.$watch('state.currentPolicy', function () {
-					$scope.state.policyChanged = true;
-				}, true);
-			}, 50);
+			watchPolicyChange();
 		};
 
 		$scope.viewRemovePolicy = function () {
@@ -327,7 +340,6 @@
 
 		$scope.viewCreatePolicy = function ($event) {
 			$event.preventDefault();
-			$scope.state.policyChanged = true;
 			$scope.state.currentPolicy = {
 				constraints: [],
 				actions: {},
@@ -336,6 +348,8 @@
 			$scope.state.showAddPolicyScreen = true;
 			$scope.state.addPolicyTitle = 'Create a New Policy';
 			resetActions();
+			
+			watchPolicyChange();
 		};
 
 		$scope.savePolicy = function () {
@@ -413,6 +427,7 @@
 			}
 			resetConstraint();
 			$('#editConstraintModal').modal('show');
+			setConstraintFormFocus();
 		};
 
 		$scope.viewEditConstraint = function () {
@@ -420,6 +435,7 @@
 			$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[this.$index]);
 			$scope.validateConstraint();
 			$('#editConstraintModal').modal('show');
+			setConstraintFormFocus();
 		};
 
 		$scope.cancelConstraint = function () {

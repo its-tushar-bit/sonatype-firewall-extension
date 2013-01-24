@@ -16,7 +16,7 @@
 
   <groupId>com.sonatype.insight.brain</groupId>
   <artifactId>insight-brain</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Insight Brain Parent POM</name>

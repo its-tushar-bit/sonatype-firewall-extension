@@ -95,8 +95,6 @@ public class InsightBrainService
         env.addResource( PolicyResource.class );
         env.addResource( ReportResource.class );
         env.addResource( CIResource.class );
-
-        env.addFilter( new FavIconFilter( ASSET_PATH ), "*/favicon.ico" );
     }
 
     private void loadDatabase()

@@ -16,7 +16,7 @@
 
   <groupId>com.sonatype.insight.brain</groupId>
   <artifactId>insight-brain</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Insight Brain Parent POM</name>
@@ -76,7 +76,7 @@
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-db-common</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.1-SNAPSHOT</version>
         <exclusions>
           <exclusion>
             <groupId>commons-logging</groupId>
@@ -114,13 +114,13 @@
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-error-handling</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.1-SNAPSHOT</version>
       </dependency>
       
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-test</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>

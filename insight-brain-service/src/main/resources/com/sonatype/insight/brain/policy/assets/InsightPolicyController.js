@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/rhc/pro/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp, setTimeout */
+/*global angular, $, clmBuildTimestamp */
 /*jslint plusplus: true */
 (function () {
 	'use strict';
@@ -305,7 +305,7 @@
 		
 		function watchPolicyChange(){
 			//this is simply to wait on doing this until after the current digest
-			setTimeout(function () {
+			$timeout(function () {
 				$scope.state.policyWatchStopFn = $scope.$watch('state.currentPolicy', function () {
 					$scope.state.policyChanged = true;
 				}, true);
@@ -316,9 +316,10 @@
 		
 		function setConstraintFormFocus(){
 			//this is simply to wait on doing this until after the current digest
-			setTimeout(function () {
+			//note im passing in false as there is no need to run angulars $apply, we aren't touching anything
+			$timeout(function () {
 				$('#constraintName').focus();
-			}, 100);
+			}, 100, false);
 		}
 
 		$scope.state = global;

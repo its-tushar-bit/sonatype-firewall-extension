@@ -1,6 +1,8 @@
 Running the CLM Server
 ======================
 
+NOTE: Java Runtime 6+ is required
+
 Run with default configuration from the command line with:
     java -jar sonatype-clm-server-0.1.jar
 

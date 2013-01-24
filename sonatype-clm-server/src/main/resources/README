@@ -6,7 +6,10 @@ NOTE: Java Runtime 6+ is required
 Run with default configuration from the command line with:
     java -jar sonatype-clm-server-*.jar
 
-This will start the Sonatype CLM Server on port 8070 and log to the console.  This is useful for a short evaluation.
+This will start the Sonatype CLM Server in a mode that is useful for a short evaluation.  The following default settings are used:
+- listening on port 8070
+- log to the console
+- data stored in ./sonatype-work/clm-server
 
 Optionally provide a configuration file and run as:
     java -jar sonatype-clm-server-*.jar server config.yml

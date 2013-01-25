@@ -284,6 +284,79 @@ public class LabelDAOTest
         Assert.assertNull( label );
     }
 
+    @Test
+    public void testAddDuplicateLabel()
+        throws Exception
+    {
+        LabelDAO labelDAO = new LabelDAO();
+
+        // Add a label
+        Label label = new Label();
+        label.setApplicationId( applicationId );
+        label.setLabel( "MyLabel" );
+        label.setColor( Color.blue );
+        labelDAO.insert( label );
+
+        // Add another label with the same name
+        label = new Label();
+        label.setApplicationId( applicationId );
+        label.setColor( Color.blue );
+        label.setLabel( "MyLabel" );
+        try
+        {
+            labelDAO.insert( label );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"A label with the same name already exists".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    @Test
+    public void testUpdateDuplicateLabel()
+        throws Exception
+    {
+        LabelDAO labelDAO = new LabelDAO();
+
+        // Add a label
+        Label label1 = new Label();
+        label1.setApplicationId( applicationId );
+        label1.setLabel( "MyLabel1" );
+        label1.setColor( Color.blue );
+        labelDAO.insert( label1 );
+
+        // Add another label
+        Label label2 = new Label();
+        label2.setApplicationId( applicationId );
+        label2.setColor( Color.blue );
+        label2.setLabel( "MyLabel2" );
+        labelDAO.insert( label2 );
+
+        // Update without changing the name
+        label2.setColor( Color.red );
+        labelDAO.update( label2 );
+        assertLabel( applicationId, "MyLabel2", Color.red, label2 );
+
+        // Update with a conflicting name
+        label2.setLabel( label1.getLabel() );
+        try
+        {
+            labelDAO.update( label2 );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !"A label with the same name already exists".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
     private void assertLabel( String applicationId, String label, Color color, Label actual )
     {
         Assert.assertEquals( applicationId, actual.getApplicationId() );

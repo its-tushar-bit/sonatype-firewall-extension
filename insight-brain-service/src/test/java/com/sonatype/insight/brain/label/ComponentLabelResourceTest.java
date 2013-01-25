@@ -62,24 +62,6 @@ public class ComponentLabelResourceTest
         Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
     }
 
-    @Test
-    public void testSetComponentLabels_TooLong()
-        throws Exception
-    {
-        String appPublicId = "ComponentLabelResourceTest_AppId";
-        createApplication( appPublicId );
-
-        String hash = "bababababa";
-        Set<String> labels = toLabelSet( "A_very_long_label_that_exceeds_our_maximum_label_length_and_cannot_be_added" );
-        ComponentLabelState state = new ComponentLabelState();
-        state.setLabels( labels );
-        Response response = RestAccess.put( getServiceURL( appPublicId, hash ), JsonHelpers.asJson( state ) );
-        assertResponseStatus( 400, response );
-        String msg = response.getResponseBody();
-        Assert.assertNotNull( msg );
-        Assert.assertTrue( msg, msg.contains( "exceeds the maximum length" ) );
-    }
-
     private Set<String> toLabelSet( String... labels )
     {
         Set<String> labelSet = new LinkedHashSet<String>();

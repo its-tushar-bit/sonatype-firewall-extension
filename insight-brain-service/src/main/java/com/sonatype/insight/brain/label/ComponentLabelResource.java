@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 @Path( ComponentLabelResource.SERVICE_PATH )
 public class ComponentLabelResource
@@ -40,18 +39,6 @@ public class ComponentLabelResource
                                            @PathParam( "hash" ) String hash, ComponentLabelState data )
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-
-        if ( data.getLabels() != null )
-        {
-            for ( String label : data.getLabels() )
-            {
-                if ( label.length() > 50 )
-                {
-                    throw new BadRequestException( "The label '" + label
-                        + "' exceeds the maximum length of 50 characters" );
-                }
-            }
-        }
 
         componentLabelDAO.setComponentLabels( application.getId(), hash, data.getLabels(), data.getColor() );
 

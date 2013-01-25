@@ -82,6 +82,15 @@ public class ComponentLabelDAO
             stringLabels = new LinkedHashSet<String>();
         }
 
+        for ( String label : stringLabels )
+        {
+            if ( label.length() > 50 )
+            {
+                throw new InvalidLabelException( "The label '" + label
+                    + "' exceeds the maximum length of 50 characters" );
+            }
+        }
+
         // Check labels are unique case insensitive
         Set<String> labelsLowercase = new LinkedHashSet<String>();
         Iterator<String> stringLabelsIter = stringLabels.iterator();

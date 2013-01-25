@@ -120,69 +120,6 @@ public class LabelResourceTest
     }
 
     @Test
-    public void testAddDuplicateLabel()
-        throws Exception
-    {
-        String appPublicId = "LabelResourceTest_AppId";
-        Application application = createApplication( appPublicId );
-
-        // Add a label
-        Label label = new Label();
-        label.setColor( Color.blue );
-        label.setLabel( "MyLabel" );
-        Response response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( label ) );
-        assertResponseStatus( 200, response );
-        label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
-        assertLabel( application.getId(), "MyLabel", Color.blue, label );
-
-        // Add another label with the same name
-        label = new Label();
-        label.setColor( Color.blue );
-        label.setLabel( "MyLabel" );
-        response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( label ) );
-        assertResponseStatus( 409, response );
-        String message = response.getResponseBody();
-        Assert.assertEquals( "A label with the same name already exists", message );
-    }
-
-    @Test
-    public void testUpdateLabel_Duplicate()
-        throws Exception
-    {
-        String appPublicId = "LabelResourceTest_AppId";
-        Application application = createApplication( appPublicId );
-
-        Label label1 = new Label();
-        label1.setColor( Color.blue );
-        label1.setLabel( "MyLabel1" );
-        Response response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( label1 ) );
-        assertResponseStatus( 200, response );
-        label1 = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
-        assertLabel( application.getId(), "MyLabel1", Color.blue, label1 );
-        Label label2 = new Label();
-        label2.setColor( Color.blue );
-        label2.setLabel( "MyLabel2" );
-        response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( label2 ) );
-        assertResponseStatus( 200, response );
-        label2 = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
-        assertLabel( application.getId(), "MyLabel2", Color.blue, label2 );
-
-        // Update without changing the name
-        label2.setColor( Color.red );
-        response = RestAccess.put( getServiceURL( appPublicId ), JsonHelpers.asJson( label2 ) );
-        assertResponseStatus( 200, response );
-        label2 = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
-        assertLabel( application.getId(), "MyLabel2", Color.red, label2 );
-
-        // Update with a conflicting name
-        label2.setLabel( label1.getLabel() );
-        response = RestAccess.put( getServiceURL( appPublicId ), JsonHelpers.asJson( label2 ) );
-        assertResponseStatus( 409, response );
-        String message = response.getResponseBody();
-        Assert.assertEquals( "A label with the same name already exists", message );
-    }
-
-    @Test
     public void testCRUD()
         throws Exception
     {

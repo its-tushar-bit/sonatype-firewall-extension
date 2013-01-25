@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.label;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 @Path( LabelResource.SERVICE_PATH )
@@ -65,19 +63,7 @@ public class LabelResource
         label.setId( null );
         label.setApplicationId( appId );
         label.fixLabelLowercase();
-        EntityManager em = labelDAO.createEntityManager();
-        try
-        {
-            if ( labelDAO.getByApplicationIdAndLowercaseLabel( em, appId, label.getLabelLowercase() ) != null )
-            {
-                throw new ConflictException( "A label with the same name already exists" );
-            }
-            labelDAO.insert( label );
-        }
-        finally
-        {
-            LabelDAO.close( em );
-        }
+        labelDAO.insert( label );
 
         return label;
     }
@@ -92,20 +78,7 @@ public class LabelResource
 
         label.setApplicationId( appId );
         label.fixLabelLowercase();
-        EntityManager em = labelDAO.createEntityManager();
-        try
-        {
-            Label otherLabel = labelDAO.getByApplicationIdAndLowercaseLabel( em, appId, label.getLabelLowercase() );
-            if ( otherLabel != null && !otherLabel.getId().equals( label.getId() ) )
-            {
-                throw new ConflictException( "A label with the same name already exists" );
-            }
-            labelDAO.update( label );
-        }
-        finally
-        {
-            LabelDAO.close( em );
-        }
+        labelDAO.update( label );
 
         return label;
     }

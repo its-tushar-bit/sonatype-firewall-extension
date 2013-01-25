@@ -93,6 +93,10 @@ public class LabelDAO
     public void insert( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
+        if ( getByApplicationIdAndLowercaseLabel( em, label.getApplicationId(), label.getLabelLowercase() ) != null )
+        {
+            throw new InvalidLabelException( "A label with the same name already exists" );
+        }
         super.insert( em, label );
     }
 
@@ -100,6 +104,12 @@ public class LabelDAO
     public void update( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
+        Label otherLabel =
+            getByApplicationIdAndLowercaseLabel( em, label.getApplicationId(), label.getLabelLowercase() );
+        if ( otherLabel != null && !otherLabel.getId().equals( label.getId() ) )
+        {
+            throw new InvalidLabelException( "A label with the same name already exists" );
+        }
         super.update( em, label );
     }
 }

@@ -160,6 +160,30 @@ public class ComponentLabelDAOTest
         assertComponentLabels( toLabelSet( "Label" ), componentLabels );
     }
 
+    @Test
+    public void testSetComponentLabels_TooLong()
+        throws Exception
+    {
+        ComponentLabelDAO dao = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        Assert.assertEquals( 0, componentLabels.size() );
+
+        Set<String> labels = toLabelSet( "A_very_long_label_that_exceeds_our_maximum_label_length_and_cannot_be_added" );
+        try
+        {
+            dao.setComponentLabels( applicationId, hash, labels, null );
+            Assert.fail( "Expected InvalidLabelException" );
+        }
+        catch ( InvalidLabelException expected )
+        {
+            if ( !expected.getMessage().contains( "exceeds the maximum length" ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
     private void assertComponentLabels( Set<String> expectedLabels, List<ComponentLabel> actualLabels )
     {
         Assert.assertEquals( expectedLabels.size(), actualLabels.size() );

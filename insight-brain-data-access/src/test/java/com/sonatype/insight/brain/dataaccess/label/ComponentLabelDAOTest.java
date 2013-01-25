@@ -16,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
@@ -104,6 +105,35 @@ public class ComponentLabelDAOTest
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
+    }
+
+    @Test
+    public void testSetComponentLabels_DefaultColor()
+    {
+        Set<String> newLabels = toLabelSet( "Label" );
+        ComponentLabelDAO dao = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        Assert.assertEquals( 0, componentLabels.size() );
+
+        // Not null default color
+        dao.setComponentLabels( applicationId, hash, newLabels, Color.orange );
+        componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        assertComponentLabels( newLabels, componentLabels );
+
+        LabelDAO labelDAO = new LabelDAO();
+        List<Label> appLabels = labelDAO.getByApplicationId( applicationId );
+        Assert.assertEquals( 1, appLabels.size() );
+        Label appLabel = appLabels.get( 0 );
+        Assert.assertEquals( Color.orange, appLabel.getColor() );
+
+        // Null default color
+        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
+        appLabels = labelDAO.getByApplicationId( applicationId );
+        Assert.assertEquals( 1, appLabels.size() );
+        appLabel = appLabels.get( 0 );
+        Assert.assertEquals( Color.orange, appLabel.getColor() );
     }
 
     @Test

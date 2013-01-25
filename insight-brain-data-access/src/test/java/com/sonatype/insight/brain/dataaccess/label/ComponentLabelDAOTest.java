@@ -44,17 +44,17 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels, null );
+        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 2, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels, null );
+        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
@@ -69,17 +69,17 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels, null );
+        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 2, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, noLabels, null );
+        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
@@ -94,13 +94,13 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, newLabels, null );
+        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
 
         newLabels = toLabelSet( "NewLabel" );
-        dao.setComponentLabels( applicationId, hash, newLabels, null );
+        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
@@ -115,13 +115,13 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, newLabels, null );
+        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
 
         newLabels = toLabelSet( "NewLabel1", "NewLabel2" );
-        dao.setComponentLabels( applicationId, hash, newLabels, null );
+        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( newLabels, componentLabels );
@@ -135,7 +135,7 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label", "label" ), null );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label", "label" ), null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( toLabelSet( "Label" ), componentLabels );
@@ -149,12 +149,12 @@ public class ComponentLabelDAOTest
         Assert.assertNotNull( componentLabels );
         Assert.assertEquals( 0, componentLabels.size() );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label" ), null );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label" ), null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( toLabelSet( "Label" ), componentLabels );
 
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "label" ), null );
+        dao.setComponentLabels( applicationId, hash, toLabelSet( "label" ), null /* defaultColor */);
         componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
         Assert.assertNotNull( componentLabels );
         assertComponentLabels( toLabelSet( "Label" ), componentLabels );
@@ -172,7 +172,7 @@ public class ComponentLabelDAOTest
         Set<String> labels = toLabelSet( "A_very_long_label_that_exceeds_our_maximum_label_length_and_cannot_be_added" );
         try
         {
-            dao.setComponentLabels( applicationId, hash, labels, null );
+            dao.setComponentLabels( applicationId, hash, labels, null /* defaultColor */);
             Assert.fail( "Expected InvalidLabelException" );
         }
         catch ( InvalidLabelException expected )

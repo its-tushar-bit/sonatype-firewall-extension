@@ -299,7 +299,6 @@
 			if ($scope.state.policyWatchStopFn) {
 				$scope.state.policyWatchStopFn();
 			}
-			$('#confirmationModal').modal('hide');
 			reset();
 		}
 		
@@ -329,6 +328,22 @@
 			
 			return $scope.$index;
 		}
+		
+		function deletePolicy() {
+			httpDelete(clmLocations.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...', 'Policy Delete Error', function () {
+				$scope.state.policyList.splice($scope.state.deletePolicyIndex, 1);
+				delete $scope.state.deletePolicyIndex;
+			});
+		};
+		
+		function cancelDeletePolicy() {
+			delete $scope.state.deletePolicyIndex;
+		}
+		
+		function deleteConstraint() {
+			$scope.state.currentPolicy.constraints.splice($scope.state.deleteConstraintIndex, 1);
+			$scope.validatePolicy();
+		};
 
 		$scope.state = global;
 
@@ -344,7 +359,7 @@
 
 		$scope.viewRemovePolicy = function () {
 			$scope.state.deletePolicyIndex = getIndex(this);
-			viewConfirmation("Delete Policy?", "Are you sure you want to delete the Policy named '" + $scope.state.policyList[$scope.state.deletePolicyIndex].name + "'?  This action is not reversible.", 'Cancel', 'Delete', $scope.deletePolicy);
+			viewConfirmation("Delete Policy?", "Are you sure you want to delete the Policy named '" + $scope.state.policyList[$scope.state.deletePolicyIndex].name + "'?  This action is not reversible.", 'Cancel', 'Delete', deletePolicy, cancelDeletePolicy);
 		};
 
 		$scope.viewCreatePolicy = function ($event) {
@@ -391,7 +406,10 @@
 		};
 
 		$scope.confirmationAccept = function () {
-			$scope.state.confirmationAcceptFn();
+			if ($scope.state.confirmationAcceptFn) {
+				$scope.state.confirmationAcceptFn();
+			}
+			$('#confirmationModal').modal('hide');
 		};
 
 		$scope.confirmationDecline = function () {
@@ -399,13 +417,6 @@
 				$scope.state.confirmationDeclineFn();
 			}
 			$('#confirmationModal').modal('hide');
-		};
-
-		$scope.deletePolicy = function () {
-			$('#confirmationModal').modal('hide');
-			httpDelete(clmLocations.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...', 'Policy Delete Error', function () {
-				$scope.state.policyList.splice($scope.state.deletePolicyIndex, 1);
-			});
 		};
 
 		$scope.viewCancelPolicy = function () {
@@ -427,7 +438,7 @@
 
 		$scope.viewRemoveConstraint = function () {
 			$scope.state.deleteConstraintIndex = getIndex(this);
-			viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', $scope.deleteConstraint);
+			viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', deleteConstraint);
 		};
 
 		$scope.viewAddConstraint = function ($event) {
@@ -481,12 +492,6 @@
 			$('#editConstraintModal').modal('hide');
 
 			$scope.validatePolicy();
-		};
-
-		$scope.deleteConstraint = function () {
-			$scope.state.currentPolicy.constraints.splice($scope.state.deleteConstraintIndex, 1);
-			$scope.validatePolicy();
-			$('#confirmationModal').modal('hide');
 		};
 
 		$scope.validateConstraint = function () {
@@ -555,10 +560,7 @@
 			if (args[0].indexOf('policy') >= 0 && $scope.state.policyChanged) {
 				event.preventDefault();
 				event.stopPropagation();
-				viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?", 'Yes', 'No', function () {
-					$('#confirmationModal').modal('hide');
-				}, function () {
-					$('#confirmationModal').modal('hide');
+				viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?", 'Yes', 'No', null, function () {
 					args[1]();
 				});
 			}

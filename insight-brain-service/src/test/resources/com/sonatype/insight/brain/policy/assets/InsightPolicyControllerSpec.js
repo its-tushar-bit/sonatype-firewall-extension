@@ -134,6 +134,46 @@ describe('InsightPolicyController tests', function() {
         expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', available : false, action : 'none' }, { id : 'develop', name : 'Develop', available : false, action : 'none' }, { id : 'build', name : 'Build', available : true, action : 'none' }, { id : 'release', name : 'Release', available : false, action : 'none' }, { id : 'operate', name : 'Operate', available : false, action : 'none' } ]); 
     });
 	
+	it('Test remove policy', inject(function(CLMLocations) {
+	    expect(scope.state.deletePolicyIndex).toBeUndefined();
+	    
+	    scope.$index = 0;
+	    scope.viewRemovePolicy();
+	    
+	    expect(scope.state.deletePolicyIndex).toEqual(0);	    
+	    expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
+	    expect(scope.state.confirmationHeader).toEqual('Delete Policy?');
+	    expect(scope.state.confirmationBody).toEqual('Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.');
+	    expect(scope.state.confirmationDeclineText).toEqual('Cancel');
+	    expect(scope.state.confirmationAcceptText).toEqual('Delete');
+	    expect(scope.state.confirmationAcceptFn).not.toBeNull();
+	    expect(scope.state.confirmationDeclineFn).not.toBeNull();
+	    
+	    scope.confirmationDecline();
+
+	    expect(scope.state.deletePolicyIndex).toBeUndefined();
+	    expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
+        
+	    scope.viewRemovePolicy();
+	    
+	    expect(scope.state.deletePolicyIndex).toEqual(0);      
+        expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
+        expect(scope.state.confirmationHeader).toEqual('Delete Policy?');
+        expect(scope.state.confirmationBody).toEqual('Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.');
+        expect(scope.state.confirmationDeclineText).toEqual('Cancel');
+        expect(scope.state.confirmationAcceptText).toEqual('Delete');
+        expect(scope.state.confirmationAcceptFn).not.toBeNull();
+        expect(scope.state.confirmationDeclineFn).not.toBeNull();
+        
+        $httpBackend.expectDELETE(CLMLocations.getPolicyUrl() + '/' + scope.state.policyList[0].id).respond(200);
+        
+        scope.confirmationAccept();
+        
+        $httpBackend.flush();
+        
+        expect(scope.state.policyList[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
+	}));
+	
 	it('validate state and messaging when save policy is clicked', inject(function(CLMLocations) {
 		scope.state.currentPolicy = JSONData.getNewPolicy();
 		var data = angular.copy(scope.state.currentPolicy);

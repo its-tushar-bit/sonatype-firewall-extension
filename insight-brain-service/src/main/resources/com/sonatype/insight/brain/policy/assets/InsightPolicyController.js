@@ -52,6 +52,10 @@
 			data.summary.actionCount = actionCount;
 			data.summary.actions = actionNames;
 		}
+		
+		function removePolicySummary(data) {
+			delete data.summary;
+		}
 
 		function getConditionType(id) {
 			var i;
@@ -381,6 +385,7 @@
 			var item = angular.copy($scope.state.currentPolicy),
 				i;
 			removeUIConditionData(item);
+			removePolicySummary(item);
 			showHttpMask('Saving policy...');
 			//edit
 			if ($scope.state.currentPolicy.id) {

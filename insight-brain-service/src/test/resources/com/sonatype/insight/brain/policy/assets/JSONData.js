@@ -347,6 +347,43 @@ JSONData = {
           "actions" : {}
         }];
   },
+  getCreateTestPolicy : function() {
+    return {
+      "constraints" : [{
+            "name" : "createPolicyTest_constraint",
+            "conditions" : [{
+                  "conditionTypeId" : "SecurityVulnerability",
+                  "operator" : "present"
+                }],
+            "operator" : "AND",
+            "enabled" : true,
+            "id" : "createPolicyTest_constraint"
+          }],
+      "actions" : {},
+      "threatLevel" : 5,
+      "name" : "createPolicyTest"
+    }
+  },
+  getEditTestPolicy : function() {
+    return {
+      "id" : "03bf6717cbbf49b8a177c3004668875a",
+      "name" : "5555",
+      "enabled" : true,
+      "threatLevel" : 5,
+      "constraints" : [{
+            "id" : "d68c0fda6269459ab81524079a4bc6a8",
+            "name" : "sd",
+            "enabled" : true,
+            "operator" : "OR",
+            "conditions" : [{
+                  "conditionTypeId" : "SecurityVulnerability",
+                  "operator" : "present",
+                  "value" : null
+                }]
+          }],
+      "actions" : {}
+    };
+  },
   getNewPolicy : function() {
     return {
       "name" : "policy3",

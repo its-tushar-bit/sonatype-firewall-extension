@@ -25,7 +25,7 @@ describe('InsightPolicyController tests', function() {
       
       // inject the controller
       scope = $rootScope.$new();
-	  
+
       $controller('InsightPolicyController', {$scope: scope, global: {}});
       $httpBackend.flush();
     }));
@@ -218,21 +218,5 @@ describe('InsightPolicyController tests', function() {
         $httpBackend.flush();
         
         expect(scope.state.policyList[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
-	}));
-	
-	it('validate state and messaging when save policy is clicked', inject(function(CLMLocations, $httpBackend) {
-		scope.state.currentPolicy = JSONData.getNewPolicy();
-		var data = angular.copy(scope.state.currentPolicy);
-		var dataWithId = angular.copy(data);
-		dataWithId.id = 'anid';
-		
-		$httpBackend.expectPOST(CLMLocations.getPolicyUrl(), data).respond(dataWithId);
-		
-		scope.savePolicy();
-		
-		$httpBackend.flush();
-		
-		expect(scope.state.policyList[5].id).toBe('anid');
-		expect(scope.state.policyList[5].name).toBe('policy3');
 	}));
 });

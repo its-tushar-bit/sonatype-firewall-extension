@@ -321,6 +321,14 @@
 				$('#constraintName').focus();
 			}, 100, false);
 		}
+		
+		function getIndex() {
+			if (this.$index) {
+				return this.$index;
+			}
+			
+			return $scope.$index;
+		}
 
 		$scope.state = global;
 
@@ -335,7 +343,7 @@
 		};
 
 		$scope.viewRemovePolicy = function () {
-			$scope.state.deletePolicyIndex = this.$index;
+			$scope.state.deletePolicyIndex = getIndex();
 			viewConfirmation("Delete Policy?", "Are you sure you want to delete the Policy named '" + $scope.state.policyList[$scope.state.deletePolicyIndex].name + "'?  This action is not reversible.", 'Cancel', 'Delete', $scope.deletePolicy);
 		};
 
@@ -418,7 +426,7 @@
 		};
 
 		$scope.viewRemoveConstraint = function () {
-			$scope.state.deleteConstraintIndex = this.$index;
+			$scope.state.deleteConstraintIndex = getIndex();
 			viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', $scope.deleteConstraint);
 		};
 
@@ -433,7 +441,7 @@
 
 		$scope.viewEditConstraint = function () {
 			//copy so we dont update data in the current list
-			$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[this.$index]);
+			$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[getIndex()]);
 			$scope.validateConstraint();
 			$('#editConstraintModal').modal('show');
 			setConstraintFormFocus();
@@ -499,7 +507,7 @@
 		};
 
 		$scope.conditionTypeChanged = function () {
-			var condition = $scope.state.currentConstraint.conditions[this.$index];
+			var condition = $scope.state.currentConstraint.conditions[getIndex()];
 			condition.conditionType = getConditionType(condition.conditionTypeId);
 			condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
 
@@ -528,7 +536,7 @@
 		};
 
 		$scope.removeCondition = function () {
-			$scope.state.currentConstraint.conditions.splice(this.$index, 1);
+			$scope.state.currentConstraint.conditions.splice(getIndex(), 1);
 			$scope.validateConstraint();
 		};
 

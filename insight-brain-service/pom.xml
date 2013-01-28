@@ -369,6 +369,7 @@
           </sourceIncludes>
           <specIncludes>
             <include>angular-mocks-1.0.3.js</include>
+            <include>JSONData.js</include>
             <include>InsightPolicyControllerSpec.js</include>
             <include>CIPLabelEditorSpec.js</include>
           </specIncludes>

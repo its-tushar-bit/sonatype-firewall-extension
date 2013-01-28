@@ -322,9 +322,9 @@
 			}, 100, false);
 		}
 		
-		function getIndex() {
-			if (this.$index) {
-				return this.$index;
+		function getIndex(obj) {
+			if (obj && obj.$index >= 0) {
+				return obj.$index;
 			}
 			
 			return $scope.$index;
@@ -333,7 +333,7 @@
 		$scope.state = global;
 
 		$scope.viewEditPolicy = function () {
-			$scope.state.currentPolicy = angular.copy($scope.state.policyList[this.$index]);
+			$scope.state.currentPolicy = angular.copy($scope.state.policyList[getIndex(this)]);
 			$scope.state.showAddPolicyScreen = true;
 			$scope.state.addPolicyTitle = 'Edit Policy';
 			resetActions();
@@ -343,7 +343,7 @@
 		};
 
 		$scope.viewRemovePolicy = function () {
-			$scope.state.deletePolicyIndex = getIndex();
+			$scope.state.deletePolicyIndex = getIndex(this);
 			viewConfirmation("Delete Policy?", "Are you sure you want to delete the Policy named '" + $scope.state.policyList[$scope.state.deletePolicyIndex].name + "'?  This action is not reversible.", 'Cancel', 'Delete', $scope.deletePolicy);
 		};
 
@@ -426,7 +426,7 @@
 		};
 
 		$scope.viewRemoveConstraint = function () {
-			$scope.state.deleteConstraintIndex = getIndex();
+			$scope.state.deleteConstraintIndex = getIndex(this);
 			viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', $scope.deleteConstraint);
 		};
 
@@ -441,7 +441,7 @@
 
 		$scope.viewEditConstraint = function () {
 			//copy so we dont update data in the current list
-			$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[getIndex()]);
+			$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[getIndex(this)]);
 			$scope.validateConstraint();
 			$('#editConstraintModal').modal('show');
 			setConstraintFormFocus();
@@ -507,7 +507,7 @@
 		};
 
 		$scope.conditionTypeChanged = function () {
-			var condition = $scope.state.currentConstraint.conditions[getIndex()];
+			var condition = $scope.state.currentConstraint.conditions[getIndex(this)];
 			condition.conditionType = getConditionType(condition.conditionTypeId);
 			condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
 
@@ -536,7 +536,7 @@
 		};
 
 		$scope.removeCondition = function () {
-			$scope.state.currentConstraint.conditions.splice(getIndex(), 1);
+			$scope.state.currentConstraint.conditions.splice(getIndex(this), 1);
 			$scope.validateConstraint();
 		};
 

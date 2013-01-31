@@ -116,7 +116,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.showAddPolicyScreen).toBe(true);
 		expect(scope.state.addPolicyTitle).toEqual('Create a New Policy');
 		expect(scope.state.policyWatchStopFn).not.toBeUndefined();
-		expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', available : false, action : 'none' }, { id : 'develop', name : 'Develop', available : false, action : 'none' }, { id : 'build', name : 'Build', available : true, action : 'none' }, { id : 'release', name : 'Release', available : false, action : 'none' }, { id : 'operate', name : 'Operate', available : false, action : 'none' } ]); 
+		expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', action : 'none' }, { id : 'develop', name : 'Develop', action : 'none' }, { id : 'build', name : 'Build', action : 'none' }, { id : 'release', name : 'Release', action : 'none' }, { id : 'operate', name : 'Operate', action : 'none' } ]); 
 		
 		scope.validatePolicy();
 		expect(scope.state.policyValid).toBeUndefined();
@@ -167,7 +167,7 @@ describe('InsightPolicyController tests', function() {
         expect(scope.state.policyValid).toBe(true);
         expect(scope.state.addPolicyTitle).toEqual('Edit Policy');
         expect(scope.state.policyWatchStopFn).not.toBeUndefined();
-        expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', available : false, action : 'none' }, { id : 'develop', name : 'Develop', available : false, action : 'none' }, { id : 'build', name : 'Build', available : true, action : 'none' }, { id : 'release', name : 'Release', available : false, action : 'none' }, { id : 'operate', name : 'Operate', available : false, action : 'none' } ]); 
+        expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', action : 'none' }, { id : 'develop', name : 'Develop', action : 'none' }, { id : 'build', name : 'Build', action : 'none' }, { id : 'release', name : 'Release', action : 'none' }, { id : 'operate', name : 'Operate', action : 'none' } ]); 
         
         scope.state.currentPolicy.name = '5555';
         

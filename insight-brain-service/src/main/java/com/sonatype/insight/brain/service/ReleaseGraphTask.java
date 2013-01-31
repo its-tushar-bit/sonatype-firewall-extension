@@ -14,7 +14,7 @@ public class ReleaseGraphTask
 
     public ReleaseGraphTask( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
-        super( "Clear Release Graph Cache" );
+        super( "clearReleaseGraphCache" );
         this.cache = cache;
     }
 
@@ -24,6 +24,6 @@ public class ReleaseGraphTask
     {
         output.write( "Starting cache size: " + cache.size() );
         cache.invalidateAll();
-        output.write( "Final cache size: " + cache.size() );
+        output.write( "\nFinal cache size: " + cache.size() );
     }
 }

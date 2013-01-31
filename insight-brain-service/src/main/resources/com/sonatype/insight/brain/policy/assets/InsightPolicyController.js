@@ -406,17 +406,17 @@
 		};
 
 		$scope.confirmationAccept = function () {
+			$('#confirmationModal').modal('hide');
 			if ($scope.state.confirmationAcceptFn) {
 				$scope.state.confirmationAcceptFn();
 			}
-			$('#confirmationModal').modal('hide');
 		};
 
 		$scope.confirmationDecline = function () {
+			$('#confirmationModal').modal('hide');
 			if ($scope.state.confirmationDeclineFn) {
 				$scope.state.confirmationDeclineFn();
 			}
-			$('#confirmationModal').modal('hide');
 		};
 
 		$scope.viewCancelPolicy = function () {

@@ -285,60 +285,52 @@ public final class Report
             {
                 final JsonNode svNode = sourceFinding.get( "sv" );
 
-                // if svNode is null we are dealing with a freemium report, so simply add the key finding text
-                if ( svNode == null )
-                {
-                    textSet.add( text );
-                }
-                else
-                {
-                    boolean foundMatch = false;
+                boolean foundMatch = false;
 
-                    // need to compare against each row in the security data to find a match, and decide if the match is
-                    // applicable
-                    for ( final JsonNode row : security.get( "aaData" ) )
+                // need to compare against each row in the security data to find a match, and decide if the match is
+                // applicable
+                for ( final JsonNode row : security.get( "aaData" ) )
+                {
+                    final Iterator<String> iter = svNode.fieldNames();
+
+                    boolean recordMatch = true;
+
+                    // simple agnostic means to check the coordinates
+                    while ( iter.hasNext() )
                     {
-                        final Iterator<String> iter = svNode.fieldNames();
+                        final String key = iter.next();
 
-                        boolean recordMatch = true;
+                        final String sourceVal = asText( svNode.get( key ) );
+                        final String targetVal = asText( row.get( key ) );
 
-                        // simple agnostic means to check the coordinates
-                        while ( iter.hasNext() )
+                        if ( !( sourceVal == null && targetVal == null || sourceVal != null
+                            && sourceVal.equals( targetVal ) ) )
                         {
-                            final String key = iter.next();
-
-                            final String sourceVal = asText( svNode.get( key ) );
-                            final String targetVal = asText( row.get( key ) );
-
-                            if ( !( sourceVal == null && targetVal == null || sourceVal != null
-                                && sourceVal.equals( targetVal ) ) )
-                            {
-                                recordMatch = false;
-                                break;
-                            }
-                        }
-
-                        foundMatch = recordMatch;
-
-                        // if we found a match, check the status, if not applicable, junk it
-                        if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
-                        {
-                            sourceIter.remove();
-                            break;
-                        }
-                        else if ( recordMatch )
-                        {
-                            textSet.add( text );
+                            recordMatch = false;
                             break;
                         }
                     }
 
-                    // This is a case that shouldn't be hit besides in dev, if no match
-                    // found in the security table, dump it
-                    if ( !foundMatch )
+                    foundMatch = recordMatch;
+
+                    // if we found a match, check the status, if not applicable, junk it
+                    if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
                     {
                         sourceIter.remove();
+                        break;
                     }
+                    else if ( recordMatch )
+                    {
+                        textSet.add( text );
+                        break;
+                    }
+                }
+
+                // This is a case that shouldn't be hit besides in dev, if no match
+                // found in the security table, dump it
+                if ( !foundMatch )
+                {
+                    sourceIter.remove();
                 }
             }
         }

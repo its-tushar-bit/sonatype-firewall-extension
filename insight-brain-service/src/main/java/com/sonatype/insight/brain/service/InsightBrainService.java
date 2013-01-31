@@ -11,6 +11,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
@@ -22,6 +24,8 @@ import com.sonatype.insight.brain.policy.ConditionValueTypeResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
+import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -95,6 +99,12 @@ public class InsightBrainService
         env.addResource( PolicyResource.class );
         env.addResource( ReportResource.class );
         env.addResource( CIResource.class );
+
+        LoadingCache<ReleaseGraphKey, byte[]> cache =
+            CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build( new ReleaseGraphCacheLoader() );
+        env.addResource( new ReleaseGraphService( cache ) );
+        env.addHealthCheck( new ReleaseGraphHealthCheck( cache ) );
+        env.addTask( new ReleaseGraphTask( cache ) );
     }
 
     private void loadDatabase()

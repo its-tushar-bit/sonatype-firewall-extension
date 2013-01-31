@@ -34,6 +34,15 @@ public class InsightConfig
     @JsonProperty
     private String sonatypeWork = "sonatype-work/clm-server";
 
+    @NotNull
+    @JsonProperty
+    private int releaseGraphCacheSize = 1000;
+
+    public int getReleaseGraphCacheSize()
+    {
+        return releaseGraphCacheSize;
+    }
+
     public String getSaasAddress()
     {
         return saasAddress;
@@ -47,6 +56,11 @@ public class InsightConfig
     public File getConfigDir()
     {
         return new File( sonatypeWork, "config" );
+    }
+
+    public void setReleaseGraphCacheSize( int releaseGraphCacheSize )
+    {
+        this.releaseGraphCacheSize = releaseGraphCacheSize;
     }
 
     public void setSaasAddress( final String saasAddress )

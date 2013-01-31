@@ -285,52 +285,60 @@ public final class Report
             {
                 final JsonNode svNode = sourceFinding.get( "sv" );
 
-                boolean foundMatch = false;
-
-                // need to compare against each row in the security data to find a match, and decide if the match is
-                // applicable
-                for ( final JsonNode row : security.get( "aaData" ) )
+                // if svNode is null we are dealing with a freemium report, so simply add the key finding text
+                if ( svNode == null )
                 {
-                    final Iterator<String> iter = svNode.fieldNames();
+                    textSet.add( text );
+                }
+                else
+                {
+                    boolean foundMatch = false;
 
-                    boolean recordMatch = true;
-
-                    // simple agnostic means to check the coordinates
-                    while ( iter.hasNext() )
+                    // need to compare against each row in the security data to find a match, and decide if the match is
+                    // applicable
+                    for ( final JsonNode row : security.get( "aaData" ) )
                     {
-                        final String key = iter.next();
+                        final Iterator<String> iter = svNode.fieldNames();
 
-                        final String sourceVal = asText( svNode.get( key ) );
-                        final String targetVal = asText( row.get( key ) );
+                        boolean recordMatch = true;
 
-                        if ( !( sourceVal == null && targetVal == null || sourceVal != null
-                            && sourceVal.equals( targetVal ) ) )
+                        // simple agnostic means to check the coordinates
+                        while ( iter.hasNext() )
                         {
-                            recordMatch = false;
+                            final String key = iter.next();
+
+                            final String sourceVal = asText( svNode.get( key ) );
+                            final String targetVal = asText( row.get( key ) );
+
+                            if ( !( sourceVal == null && targetVal == null || sourceVal != null
+                                && sourceVal.equals( targetVal ) ) )
+                            {
+                                recordMatch = false;
+                                break;
+                            }
+                        }
+
+                        foundMatch = recordMatch;
+
+                        // if we found a match, check the status, if not applicable, junk it
+                        if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
+                        {
+                            sourceIter.remove();
+                            break;
+                        }
+                        else if ( recordMatch )
+                        {
+                            textSet.add( text );
                             break;
                         }
                     }
 
-                    foundMatch = recordMatch;
-
-                    // if we found a match, check the status, if not applicable, junk it
-                    if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
+                    // This is a case that shouldn't be hit besides in dev, if no match
+                    // found in the security table, dump it
+                    if ( !foundMatch )
                     {
                         sourceIter.remove();
-                        break;
                     }
-                    else if ( recordMatch )
-                    {
-                        textSet.add( text );
-                        break;
-                    }
-                }
-
-                // This is a case that shouldn't be hit besides in dev, if no match
-                // found in the security table, dump it
-                if ( !foundMatch )
-                {
-                    sourceIter.remove();
                 }
             }
         }

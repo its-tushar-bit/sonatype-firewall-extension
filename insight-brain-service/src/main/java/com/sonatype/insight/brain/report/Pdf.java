@@ -216,6 +216,8 @@ final class Pdf
                 task.setRenderOption( options );
                 task.setLocale( Locale.ENGLISH );
                 task.setParameterValue( "reportDir", templateDir.getAbsolutePath() );
+                task.setParameterValue( "paid", false );
+                task.setParameterValue( "freemium", sample );
 
                 task.run();
 

@@ -122,10 +122,6 @@
 			});
 		}
 
-		function isAvailableStage(id) {
-			return id === 'build';
-		}
-
 		function showHttpMask(bodyText) {
 			$scope.state.httpMaskBody = bodyText;
 			$('#httpMaskModal').modal('show');
@@ -204,7 +200,6 @@
 					item = {
 						id: $scope.state.actionStageList[i].id,
 						name: $scope.state.actionStageList[i].name,
-						available: isAvailableStage($scope.state.actionStageList[i].id),
 						action: 'none'
 					};
 

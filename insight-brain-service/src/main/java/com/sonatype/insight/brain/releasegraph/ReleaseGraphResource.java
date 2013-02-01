@@ -15,9 +15,9 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 
 @Path( "rest/report/releaseGraph" )
-public class ReleaseGraphReport
+public class ReleaseGraphResource
 {
-    private static final Logger log = LoggerFactory.getLogger( ReleaseGraphReport.class );
+    private static final Logger log = LoggerFactory.getLogger( ReleaseGraphResource.class );
 
     @Context
     private InsightWork work;
@@ -27,7 +27,7 @@ public class ReleaseGraphReport
 
     private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-    public ReleaseGraphReport( LoadingCache<ReleaseGraphKey, byte[]> cache )
+    public ReleaseGraphResource( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         this.cache = cache;
     }

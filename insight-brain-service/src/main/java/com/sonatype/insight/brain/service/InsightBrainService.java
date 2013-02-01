@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphHealthCheck;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphReport;
+import com.sonatype.insight.brain.releasegraph.ReleaseGraphResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphTask;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.saas.CIResource;
@@ -105,7 +105,7 @@ public class InsightBrainService
 
         LoadingCache<ReleaseGraphKey, byte[]> cache =
             CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build( new ReleaseGraphCacheLoader() );
-        env.addResource( new ReleaseGraphReport( cache ) );
+        env.addResource( new ReleaseGraphResource( cache ) );
         env.addHealthCheck( new ReleaseGraphHealthCheck( cache ) );
         env.addTask( new ReleaseGraphTask( cache ) );
     }

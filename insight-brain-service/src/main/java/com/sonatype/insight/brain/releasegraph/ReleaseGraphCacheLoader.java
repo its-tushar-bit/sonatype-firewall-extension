@@ -100,13 +100,13 @@ public class ReleaseGraphCacheLoader
         }
         catch ( final Exception e )
         {
-            log.warn( "Problem embedding report: " + e.getMessage(), e );
+            log.warn( "Problem embedding report: {}", e.getMessage(), e );
             throw e;
         }
 
         if ( reportEntry == null )
         {
-            log.error( "popularity.json file is missing from report for scan: " + key.scanId );
+            log.error( "popularity.json file is missing from report for scan {}", key.scanId );
             throw new IllegalStateException( "popularity.json is missing from report" );
         }
         ReportPopularity reportPopularity = JsonUtils.parse( reportEntry.buf, ReportPopularity.class );

@@ -1,4 +1,4 @@
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.releasegraph;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
+import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.InsightWork;
 
 @Path( "rest/report/releaseGraph" )
-public class ReleaseGraphService
+public class ReleaseGraphReport
 {
 
 
@@ -27,7 +29,7 @@ public class ReleaseGraphService
 
     private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-    public ReleaseGraphService( LoadingCache<ReleaseGraphKey, byte[]> cache )
+    public ReleaseGraphReport( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         this.cache = cache;
     }

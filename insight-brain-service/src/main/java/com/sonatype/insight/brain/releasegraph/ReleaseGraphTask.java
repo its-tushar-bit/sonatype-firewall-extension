@@ -1,4 +1,4 @@
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.releasegraph;
 
 import java.io.PrintWriter;
 

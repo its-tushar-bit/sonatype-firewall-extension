@@ -1,4 +1,4 @@
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.releasegraph;
 
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
@@ -9,7 +9,7 @@ public class ReleaseGraphHealthCheck
 {
     private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-    protected ReleaseGraphHealthCheck( LoadingCache<ReleaseGraphKey, byte[]> cache )
+    public ReleaseGraphHealthCheck( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         super( "Release Graph" );
         this.cache = cache;

@@ -9,15 +9,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Component
 {
-    private static final Logger log = LoggerFactory.getLogger( Component.class );
-
     private String groupId;
 
     private String artifactId;
@@ -26,11 +21,11 @@ public class Component
 
     private String hash;
 
-    private List<String> declaredLicenseNames = new ArrayList<String>();
+    private List<String> declaredLicenseIds = new ArrayList<String>();
 
-    private List<String> observedLicenseNames = new ArrayList<String>();
+    private List<String> observedLicenseIds = new ArrayList<String>();
 
-    private List<String> overriddenLicenseNames = new ArrayList<String>();
+    private List<String> overriddenLicenseIds = new ArrayList<String>();
 
     private LicenseStatus licenseStatus;
 
@@ -175,94 +170,83 @@ public class Component
         return groupId + ':' + artifactId + ':' + version;
     }
 
-    public List<String> getDeclaredLicenseNames()
+    public List<String> getDeclaredLicenseIds()
     {
-        return declaredLicenseNames;
+        return declaredLicenseIds;
     }
 
-    public void setDeclaredLicenseNames( List<String> declaredLicenseNames )
+    public void setDeclaredLicenseIds( List<String> declaredLicenseIds )
     {
-        this.declaredLicenseNames.clear();
+        this.declaredLicenseIds.clear();
 
-        if ( declaredLicenseNames == null )
+        if ( declaredLicenseIds == null )
         {
             return;
         }
 
-        this.declaredLicenseNames.addAll( declaredLicenseNames );
+        this.declaredLicenseIds.addAll( declaredLicenseIds );
     }
 
-    public void addDeclaredLicenseName( String licenseName )
+    public void addDeclaredLicenseId( String licenseId )
     {
-        declaredLicenseNames.add( licenseName );
+        declaredLicenseIds.add( licenseId );
     }
 
-    public List<String> getObservedLicenseNames()
+    public List<String> getObservedLicenseIds()
     {
-        return observedLicenseNames;
+        return observedLicenseIds;
     }
 
-    public void setObservedLicenseNames( List<String> observedLicenseNames )
+    public void setObservedLicenseIds( List<String> observedLicenseIds )
     {
-        this.observedLicenseNames.clear();
+        this.observedLicenseIds.clear();
 
-        if ( observedLicenseNames == null )
+        if ( observedLicenseIds == null )
         {
             return;
         }
 
-        this.observedLicenseNames.addAll( observedLicenseNames );
+        this.observedLicenseIds.addAll( observedLicenseIds );
     }
 
-    public void addObservedLicenseName( String licenseName )
+    public void addObservedLicenseId( String licenseId )
     {
-        observedLicenseNames.add( licenseName );
+        observedLicenseIds.add( licenseId );
     }
 
-    public List<String> getOverriddenLicenseNames()
+    public List<String> getOverriddenLicenseIds()
     {
-        return overriddenLicenseNames;
+        return overriddenLicenseIds;
     }
 
-    public void setOverriddenLicenseNames( List<String> overriddenLicenseNames )
+    public void setOverriddenLicenseIds( List<String> overriddenLicenseIds )
     {
-        this.overriddenLicenseNames.clear();
+        this.overriddenLicenseIds.clear();
 
-        if ( overriddenLicenseNames == null )
+        if ( overriddenLicenseIds == null )
         {
             return;
         }
 
-        this.overriddenLicenseNames.addAll( overriddenLicenseNames );
+        this.overriddenLicenseIds.addAll( overriddenLicenseIds );
     }
 
-    public void addOverriddenLicenseName( String licenseName )
+    public void addOverriddenLicenseId( String licenseId )
     {
-        overriddenLicenseNames.add( licenseName );
-    }
-
-    private boolean hasLicenseId( List<String> componentLicenseNames, String licenseId )
-    {
-        License license = License.getById( licenseId );
-        if ( license == null )
-        {
-            log.warn( "Unknown license id {}", licenseId );
-            return false;
-        }
-        return componentLicenseNames.contains( license.getShortDisplayName() );
+        overriddenLicenseIds.add( licenseId );
     }
 
     public boolean hasLicenseId( String licenseId )
     {
-        if ( !overriddenLicenseNames.isEmpty() )
+        if ( !overriddenLicenseIds.isEmpty() )
         {
-            return hasLicenseId( overriddenLicenseNames, licenseId );
+            return overriddenLicenseIds.contains( licenseId );
         }
-        if ( hasLicenseId( declaredLicenseNames, licenseId ) )
+        if ( declaredLicenseIds.contains( licenseId ) )
         {
             return true;
         }
-        return hasLicenseId( observedLicenseNames, licenseId );
+        return observedLicenseIds.contains( licenseId );
     }
 
     public int getRelativePopularity()

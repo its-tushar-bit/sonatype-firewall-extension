@@ -47,10 +47,10 @@ public class LicenseConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1" );
-        component1.addDeclaredLicenseName( "Not Provided" );
+        component1.addDeclaredLicenseId( "UNSPECIFIED" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2" );
-        component2.addDeclaredLicenseName( "AFL-1.2" );
+        component2.addDeclaredLicenseId( "AFL-1.2" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -81,10 +81,10 @@ public class LicenseConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1" );
-        component1.addDeclaredLicenseName( "Not Provided" );
+        component1.addDeclaredLicenseId( "UNSPECIFIED" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2" );
-        component2.addDeclaredLicenseName( "AFL-1.2,Apache-2.0" );
+        component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -115,10 +115,10 @@ public class LicenseConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1" );
-        component1.addObservedLicenseName( "Not Provided" );
+        component1.addObservedLicenseId( "UNSPECIFIED" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2" );
-        component2.addObservedLicenseName( "AFL-1.2" );
+        component2.addObservedLicenseId( "AFL-1.2" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -149,10 +149,10 @@ public class LicenseConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1" );
-        component1.addObservedLicenseName( "Not Provided" );
+        component1.addObservedLicenseId( "UNSPECIFIED" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2" );
-        component2.addObservedLicenseName( "AFL-1.2,Apache-2.0" );
+        component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -183,14 +183,14 @@ public class LicenseConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1" );
-        component1.addDeclaredLicenseName( "Not Provided" );
-        component1.addObservedLicenseName( "Not Provided" );
-        component1.addOverriddenLicenseName( "Apache-2.0" );
+        component1.addDeclaredLicenseId( "UNSPECIFIED" );
+        component1.addObservedLicenseId( "UNSPECIFIED" );
+        component1.addOverriddenLicenseId( "Apache-2.0" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2" );
-        component2.addDeclaredLicenseName( "AFL-1.2,Apache-2.0" );
-        component2.addObservedLicenseName( "AFL-1.2,Apache-2.0" );
-        component2.addOverriddenLicenseName( "Not Provided" );
+        component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
+        component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
+        component2.addOverriddenLicenseId( "UNSPECIFIED" );
         components.add( component2 );
 
         // Evaluate the policy

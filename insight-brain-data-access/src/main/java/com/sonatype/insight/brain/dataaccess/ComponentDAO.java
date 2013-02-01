@@ -15,6 +15,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.LicenseStatus;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -28,6 +29,8 @@ public class ComponentDAO
     public List<Component> getAll( String applicationId, final byte[] licenseData, final byte[] securityData,
                                    final byte[] bomData, final byte[] dependencyData )
     {
+        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+
         final Map<String, Component> componentsByGAV = new LinkedHashMap<String, Component>();
 
         // Load license data. This is a little bit misleading since license data contains data that is not related to
@@ -60,9 +63,15 @@ public class ComponentDAO
                     final String statusString = JsonUtils.getNullableString( artifactLicenseJson.get( "status" ) );
                     final LicenseStatus status = LicenseStatus.getByName( statusString );
                     final long catalogDate = artifactLicenseJson.get( "catalogDate" ).asLong();
-                    component.setDeclaredLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "declaredLicenses" ) ) );
-                    component.setObservedLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) ) );
-                    component.setOverriddenLicenseNames( jsonStringArrayToList( artifactLicenseJson.get( "overriddenLicenses" ) ) );
+                    List<String> declaredLicenseNames =
+                        jsonStringArrayToList( artifactLicenseJson.get( "declaredLicenses" ) );
+                    component.setDeclaredLicenseIds( licenseNamesToIds( multiLicenseDAO, declaredLicenseNames ) );
+                    List<String> observedLicenseNames =
+                        jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) );
+                    component.setObservedLicenseIds( licenseNamesToIds( multiLicenseDAO, observedLicenseNames ) );
+                    List<String> overriddenLicenseNames =
+                        jsonStringArrayToList( artifactLicenseJson.get( "overriddenLicenses" ) );
+                    component.setOverriddenLicenseIds( licenseNamesToIds( multiLicenseDAO, overriddenLicenseNames ) );
                     // TODO Load effective license data too?
                     component.setLicenseStatus( status );
                     component.setCatalogDate( catalogDate );
@@ -205,6 +214,21 @@ public class ComponentDAO
             }
         }
         return result;
+    }
+
+    private List<String> licenseNamesToIds( MultiLicenseDAO multiLicenseDAO, List<String> licenseNames )
+    {
+        if ( licenseNames == null )
+        {
+            return null;
+        }
+        List<String> licenseIds = new ArrayList<String>();
+        for ( String licenseName : licenseNames )
+        {
+            String licenseId = multiLicenseDAO.getByNameNotNull( licenseName ).getId();
+            licenseIds.add( licenseId );
+        }
+        return licenseIds;
     }
 
     private static String getComponentKey( final String groupId, final String artifactId, final String version )

@@ -39,19 +39,19 @@ public class ReleaseGraphService
     public Response getImage( @QueryParam( "applicationId" ) final String applicationPublicId,
                               @QueryParam( "scanId" ) final String scanId, @QueryParam( "groupId" ) String groupId,
                               @QueryParam( "artifactId" ) String artifactId, @QueryParam( "version" ) String version )
+        throws Exception
     {
         log.debug( "Creating popularity graph for " + groupId + ":" + artifactId + ":" + version + " for report "
             + scanId );
         try
         {
             return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version, applicationPublicId,
-                                                              scanId, work, proxy ) ), "image/png" ).build();
+                                                                scanId, work, proxy ) ), "image/png" ).build();
         }
-        catch ( ExecutionException e )
+        catch ( Exception e )
         {
-            log.error( "Error creating popularity graph for " + groupId + ":" + artifactId + ":" + version
+            throw new Exception( "Error creating popularity graph for " + groupId + ":" + artifactId + ":" + version
                 + " for report " + scanId, e );
-            return Response.status( Status.INTERNAL_SERVER_ERROR ).build();
         }
     }
 }

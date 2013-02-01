@@ -12,6 +12,8 @@
     <class>com.sonatype.insight.brain.model.Application</class>
     <class>com.sonatype.insight.brain.model.label.Label</class>
     <class>com.sonatype.insight.brain.model.label.ComponentLabel</class>
+    <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>
+    <class>com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense</class>
     <properties>
       <!-- 
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

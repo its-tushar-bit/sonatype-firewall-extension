@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.component.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class LicenseStatusValueType

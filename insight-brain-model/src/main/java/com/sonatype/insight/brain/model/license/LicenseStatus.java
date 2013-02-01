@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.component;
+package com.sonatype.insight.brain.model.license;
 
 import java.util.ArrayList;
 import java.util.Collections;

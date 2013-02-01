@@ -17,11 +17,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.LicenseStatus;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO

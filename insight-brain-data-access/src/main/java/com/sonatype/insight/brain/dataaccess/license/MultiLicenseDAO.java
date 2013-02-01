@@ -14,7 +14,7 @@ import java.util.Map;
 
 import org.codehaus.plexus.util.IOUtil;
 
-import com.sonatype.insight.brain.model.component.MultiLicense;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -72,6 +72,16 @@ public class MultiLicenseDAO
     public MultiLicense getById( String licenseId )
     {
         return multiLicensesById.get( licenseId );
+    }
+
+    public MultiLicense getByIdNotNull( String licenseName )
+    {
+        MultiLicense license = multiLicensesById.get( licenseName );
+        if ( license == null )
+        {
+            throw new NotFoundException( "A license with id '" + licenseName + "' does not exist." );
+        }
+        return license;
     }
 
     public MultiLicense getByNameNotNull( String licenseName )

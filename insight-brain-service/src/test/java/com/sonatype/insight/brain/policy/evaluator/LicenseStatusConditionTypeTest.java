@@ -13,7 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;

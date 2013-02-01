@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sonatype.insight.brain.model.license.LicenseStatus;
 
 public class Component
 {

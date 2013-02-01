@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.model.component.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;

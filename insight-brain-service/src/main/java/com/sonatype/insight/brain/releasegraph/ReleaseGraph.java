@@ -51,7 +51,7 @@ public class ReleaseGraph
         {
             if ( slotIndices[i] != -1 )
             {
-                double height = ( (double) HEIGHT - 1.0 ) * popularityData[slotIndices[i]] / 100.0 + 1.0;
+                double height = ( HEIGHT - 1.0 ) * popularityData[slotIndices[i]] / 100.0 + 1.0;
                 if ( slotIndices[i] == model.getCurrentVersionIndex() )
                 {
                     g.setColor( CURRENT_VER_COLOR );
@@ -73,7 +73,7 @@ public class ReleaseGraph
                     g.setPaint( OTHER_VER_COLOR );
                 }
                 g.fill( new Rectangle( i * ( barWidth + SPACER ), (int) Math.round( HEIGHT - height ),
-                                       (int) Math.round( barWidth ), (int) Math.round( height ) ) );
+                                       Math.round( barWidth ), (int) Math.round( height ) ) );
             }
         }
     }

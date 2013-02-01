@@ -41,7 +41,6 @@ public class ReleaseGraphCacheLoader
         public ReleaseGraphKey( String groupId, String artifactId, String version,
                               String applicationPublicId, String scanId, InsightWork work, InsightProxy proxy )
         {
-            super();
             this.artifactId = artifactId;
             this.groupId = groupId;
             this.version = version;

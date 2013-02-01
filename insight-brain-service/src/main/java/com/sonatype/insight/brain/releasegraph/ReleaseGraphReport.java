@@ -17,15 +17,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 @Path( "rest/report/releaseGraph" )
 public class ReleaseGraphReport
 {
-
-
-    private Logger log = LoggerFactory.getLogger( getClass() );
+    private static final Logger log = LoggerFactory.getLogger( ReleaseGraphReport.class );
 
     @Context
-    InsightWork work;
+    private InsightWork work;
 
     @Context
-    InsightProxy proxy;
+    private InsightProxy proxy;
 
     private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
@@ -38,7 +36,6 @@ public class ReleaseGraphReport
     public Response getImage( @QueryParam( "applicationId" ) final String applicationPublicId,
                               @QueryParam( "scanId" ) final String scanId, @QueryParam( "groupId" ) String groupId,
                               @QueryParam( "artifactId" ) String artifactId, @QueryParam( "version" ) String version )
-        throws Exception
     {
         log.debug( "Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId );
         try
@@ -48,7 +45,8 @@ public class ReleaseGraphReport
         }
         catch ( Exception e )
         {
-            throw new Exception( "Error creating popularity graph for " + groupId + ":" + artifactId + ":" + version
+            throw new RuntimeException( "Error creating popularity graph for " + groupId + ":" + artifactId + ":"
+                + version
                 + " for report " + scanId, e );
         }
     }

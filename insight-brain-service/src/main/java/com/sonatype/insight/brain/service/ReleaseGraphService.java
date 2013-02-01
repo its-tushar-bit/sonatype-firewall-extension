@@ -1,13 +1,10 @@
 package com.sonatype.insight.brain.service;
 
-import java.util.concurrent.ExecutionException;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +38,7 @@ public class ReleaseGraphService
                               @QueryParam( "artifactId" ) String artifactId, @QueryParam( "version" ) String version )
         throws Exception
     {
-        log.debug( "Creating popularity graph for " + groupId + ":" + artifactId + ":" + version + " for report "
-            + scanId );
+        log.debug( "Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId );
         try
         {
             return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version, applicationPublicId,

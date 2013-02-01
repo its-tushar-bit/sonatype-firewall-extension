@@ -1,3 +1,5 @@
+SET SCHEMA insight_brain_ods;
+
 CREATE TABLE license_threat_group (
   license_threat_group_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,

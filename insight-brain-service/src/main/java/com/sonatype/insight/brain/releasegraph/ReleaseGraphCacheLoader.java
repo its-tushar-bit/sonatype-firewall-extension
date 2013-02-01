@@ -67,13 +67,28 @@ public class ReleaseGraphCacheLoader
         @Override
         public boolean equals( Object obj )
         {
-            return obj instanceof ReleaseGraphKey && obj.hashCode() == this.hashCode();
+            if ( obj == this )
+            {
+                return true;
+            }
+            if ( !( obj instanceof ReleaseGraphKey ) )
+            {
+                return false;
+            }
+            ReleaseGraphKey that = (ReleaseGraphKey) obj;
+            return eq( scanId, that.scanId ) && eq( applicationPublicId, that.applicationPublicId )
+                && eq( artifactId, that.artifactId ) && eq( groupId, that.groupId ) && eq( version, that.version );
         }
 
         private boolean isMatch( GAVPopularity gav )
         {
-            return artifactId.equals( gav.getArtifactId() ) && groupId.equals( gav.getGroupId() )
-                && version.equals( gav.getVersion() );
+            return eq( artifactId, gav.getArtifactId() ) && eq( groupId, gav.getGroupId() )
+                && eq( version, gav.getVersion() );
+        }
+
+        private static <T> boolean eq( T o1, T o2 )
+        {
+            return ( o1 != null ) ? o1.equals( o2 ) : o2 == null;
         }
     }
 

@@ -9,9 +9,7 @@ import com.sonatype.insight.brain.model.GAVPopularity;
 
 public class ReleaseGraphModel
 {
-    public static final int NUM_NB = 3;
-    // 3 important versions
-    public static final int SLOTS = 50 - ( ReleaseGraph.NB_MULTIPLIER * NUM_NB ) + NUM_NB;
+    public static final int SLOTS = 50;
 
     private final int[] slotIndices;
 

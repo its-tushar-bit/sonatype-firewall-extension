@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 
 public class ReleaseGraph
 {
+    public static final int NB_MULTIPLIER = 3;
+
     private BufferedImage image;
 
     private ReleaseGraphModel model;
@@ -19,8 +21,6 @@ public class ReleaseGraph
     private static final int WIDTH = 400;
 
     private static final int HEIGHT = 25;
-
-    private static final int SPACER = 1;
 
     private static final double MIN_HEIGHT = 2.0;
 
@@ -46,11 +46,13 @@ public class ReleaseGraph
         g.setBackground( Color.WHITE );
         g.clearRect( 0, 0, WIDTH, HEIGHT );
 
-        int barWidth = WIDTH / slots - SPACER;
+        final int barWidth = WIDTH / ( slots + ReleaseGraphModel.NUM_NB * NB_MULTIPLIER + ReleaseGraphModel.NUM_NB );
         int[] slotIndices = model.getSlotIndices();
         int[] popularityData = model.getPopularity();
+        int x = 0;
         for ( int i = 0; i < slotIndices.length; i++ )
         {
+            int width = barWidth;
             if ( slotIndices[i] != -1 )
             {
                 double height = ( HEIGHT - MIN_HEIGHT ) * popularityData[slotIndices[i]] / 100.0 + MIN_HEIGHT;
@@ -58,25 +60,29 @@ public class ReleaseGraph
                 {
                     g.setColor( CURRENT_VER_COLOR );
                     g.setPaint( CURRENT_VER_COLOR );
+                    width *= NB_MULTIPLIER;
                 }
                 else if ( slotIndices[i] == model.getMostPopularVersionIndex() )
                 {
                     g.setColor( POPULAR_VER_COLOR );
                     g.setPaint( POPULAR_VER_COLOR );
+                    width *= NB_MULTIPLIER;
                 }
                 else if ( slotIndices[i] == model.getMostRecentVersionIndex() )
                 {
                     g.setColor( RECENT_VER_COLOR );
                     g.setPaint( RECENT_VER_COLOR );
+                    width *= NB_MULTIPLIER;
                 }
                 else
                 {
                     g.setColor( OTHER_VER_COLOR );
                     g.setPaint( OTHER_VER_COLOR );
                 }
-                g.fill( new Rectangle( i * ( barWidth + SPACER ), (int) Math.round( HEIGHT - height ),
-                                       Math.round( barWidth ), (int) Math.round( height ) ) );
+                g.fill( new Rectangle( x, (int) Math.round( HEIGHT - height ), Math.round( width ),
+                                       (int) Math.round( height ) ) );
             }
+            x += width;
         }
     }
 

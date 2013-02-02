@@ -1,11 +1,18 @@
 package com.sonatype.insight.brain.releasegraph;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.sonatype.insight.brain.model.GAVPopularity;
 
 public class ReleaseGraphModel
 {
+    public static final int NUM_NB = 3;
+    // 3 important versions
+    public static final int SLOTS = 50 - ( ReleaseGraph.NB_MULTIPLIER * NUM_NB ) + NUM_NB;
+
     private final int[] slotIndices;
 
     private final int[] popularity;
@@ -48,49 +55,195 @@ public class ReleaseGraphModel
         return popularity;
     }
 
+    /*
+     * Slots should be >=3
+     */
     public static ReleaseGraphModel build( GAVPopularity model, long startTime, long endTime, int slots )
     {
-        final long period = endTime - startTime;
-        final long minDiff = period / slots;
-        int[] slotIndces = new int[slots];
+        final long period = endTime - startTime + 1;
+        final double minDiff = ( (double) period ) / slots;
+        int[] slotIndices = new int[slots];
+        Arrays.fill( slotIndices, -1 );
 
         ReleaseGraphModel pop =
-            new ReleaseGraphModel( slotIndces, model.getPopularity(), model.getCurrentVersionIndex(),
-                                      getMostPopularIndex( model.getPopularity() ) );
+            new ReleaseGraphModel( slotIndices, model.getPopularity(), model.getCurrentVersionIndex(),
+                                   getMostPopularIndex( model.getPopularity() ) );
 
-        Arrays.fill( slotIndces, -1 );
-        int[] popularity = model.getPopularity();
+        List<Integer>[] buckets = createArray( slots );
         long[] catalogDates = model.getCatalogDates();
-        for ( int i = 0; i < popularity.length; i++ )
+        for ( int i = 0; i < catalogDates.length; i++ )
         {
-            int slotIndex = (int) ( ( catalogDates[i] - startTime ) / minDiff );
-            if ( slotIndces[slotIndex] == -1 || doPushDown( slotIndex, slotIndces ) )
-            {
-                slotIndces[slotIndex] = i;
-            }
-            else if ( !fillUpwards( i, slotIndex, slotIndces ) )
-            {
-                doBump( i, getLastFilledIndex( slotIndex, slotIndces ), pop );
-            }
+            add( i, (int) ( ( (double) catalogDates[i] - startTime ) / minDiff ), buckets );
         }
 
+        for ( int i = 0; i < buckets.length; i++ )
+        {
+            if ( buckets[i] == null )
+            {
+                continue;
+            }
+            if ( buckets[i].size() > 1 )
+            {
+                if ( i == 0 ) // first bucket
+                {
+                    Iterator<Integer> iter = buckets[i].iterator();
+                    int mostPopulous = -1;
+                    while ( iter.hasNext() )
+                    {
+                        Integer candidate = iter.next();
+                        if ( isImportant( candidate, pop ) )
+                        {
+                            mostPopulous = candidate;
+                            // bump upward
+                            int counter = 0;
+                            while ( iter.hasNext() )
+                            {
+                                candidate = iter.next();
+                                if ( isImportant( candidate, pop ) )
+                                {
+                                    add( candidate, counter++, i + 1, buckets );
+                                }
+                            }
+                        }
+                        else
+                        {
+                            mostPopulous =
+                                mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate] ? mostPopulous
+                                                : candidate;
+                        }
+                    }
+                    slotIndices[i] = mostPopulous;
+                }
+                else if ( i == buckets.length - 1 ) // last bucket
+                {
+                    int[] importantVersions = findImportantVersions( buckets[i], pop );
+                    if ( importantVersions[1] == -1 ) // 0-1 important version
+                    {
+                        // choose important or most populous
+                        slotIndices[i] = getMostPopulousOrImportant( buckets[i].iterator(), pop );
+                    }
+                    else if ( importantVersions[2] == -1 ) // 2 important versions
+                    {
+                        if ( isImportant( slotIndices[i - 1], pop ) )
+                        {
+                            // previous slot is also important, push it down
+                            slotIndices[i - 2] = slotIndices[i - 1];
+                        }
+                        slotIndices[i - 1] = importantVersions[0];
+                        slotIndices[i] = importantVersions[1];
+                    }
+                    else
+                    {
+                        // 3 important versions
+                        slotIndices[i - 2] = importantVersions[0];
+                        slotIndices[i - 1] = importantVersions[1];
+                        slotIndices[i] = importantVersions[2];
+                    }
+                }
+                else
+                {
+                    int[] importantVersions = findImportantVersions( buckets[i], pop );
+                    if ( importantVersions[1] == -1 ) // 0-1 important version
+                    {
+                        // choose important or most populous
+                        slotIndices[i] = getMostPopulousOrImportant( buckets[i].iterator(), pop );
+                    }
+                    else if ( importantVersions[2] == -1 ) // 2 important versions
+                    {
+                        // contains 2, if either side already contains important, push other direction
+                        // Next pile already contains an important item, or the previous pile does not contain an
+                        // important item and the second important item i
+                        if ( containsImportant( buckets[i + 1], pop )
+                            || ( importantVersions[1] == pop.currentVersionIndex && !containsImportant( buckets[i - 1],
+                                                                                                        pop ) ) )
+                        {
+                            // push first down
+                            slotIndices[i - 1] = importantVersions[0];
+                            slotIndices[i] = importantVersions[1];
+                        }
+                        else
+                        {
+                            // push second up
+                            slotIndices[i] = importantVersions[0];
+                            add( importantVersions[1], 0, i + 1, buckets );
+                        }
+                    }
+                    else
+                    {
+                        // 3 important versions
+                        slotIndices[i - 1] = importantVersions[0];
+                        slotIndices[i] = importantVersions[1];
+                        slotIndices[i + 1] = importantVersions[2];
+                    }
+                }
+            }
+            else if ( buckets[i].size() == 1 )
+            {
+                slotIndices[i] = buckets[i].get( 0 );
+            }
+        }
         return pop;
     }
 
-    /*
-     * Attempt to fill the points upwards
-     */
-    private static boolean fillUpwards( int popularityIndex, int currentSlotIndex, int[] slotIndces )
+    private static void add( Integer item, int bucketIndex, List<Integer>[] buckets )
     {
-        for ( int i = currentSlotIndex; i < slotIndces.length; i++ )
+        if ( buckets[bucketIndex] == null )
         {
-            if ( slotIndces[i] == -1 )
+            buckets[bucketIndex] = new LinkedList<Integer>();
+        }
+        buckets[bucketIndex].add( item );
+    }
+
+    private static void add( Integer item, int position, int bucketIndex, List<Integer>[] buckets )
+    {
+        if ( buckets[bucketIndex] == null )
+        {
+            buckets[bucketIndex] = new LinkedList<Integer>();
+        }
+        buckets[bucketIndex].add( position, item );
+    }
+
+    private static int getMostPopulousOrImportant( Iterator<Integer> iter, ReleaseGraphModel pop )
+    {
+        int mostPopulous = -1;
+        while ( iter.hasNext() )
+        {
+            Integer candidate = iter.next();
+            if ( isImportant( candidate, pop ) )
             {
-                slotIndces[i] = popularityIndex;
+                return candidate;
+            }
+            else
+            {
+                mostPopulous =
+                    mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate] ? mostPopulous
+                                    : candidate;
+            }
+        }
+        return mostPopulous;
+    }
+
+    private static boolean containsImportant( List<Integer> bucket, ReleaseGraphModel model )
+    {
+        for ( Integer i : bucket )
+        {
+            if ( isImportant( i, model ) )
+            {
                 return true;
             }
         }
         return false;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private static List<Integer>[] createArray( int size )
+    {
+        List<Integer>[] array = new List[size];
+        for ( int i = 0; i < array.length; i++ )
+        {
+            array[i] = new LinkedList<Integer>();
+        }
+        return array;
     }
 
     /*
@@ -111,46 +264,23 @@ public class ReleaseGraphModel
         return mostPopularIndex;
     }
 
-    /*
-     * Attempt to push values down
-     */
-    private static boolean doPushDown( int currentIndex, int[] slotIndices )
+    private static int[] findImportantVersions( List<Integer> bucket, ReleaseGraphModel model )
     {
-        if ( currentIndex > 0 )
+        int[] importantVersions = new int[3];
+        Arrays.fill( importantVersions, -1 );
+        int index = 0;
+        for ( Integer candidate : bucket )
         {
-            if ( slotIndices[currentIndex - 1] == -1 || doPushDown( currentIndex - 1, slotIndices ) )
+            if ( isImportant( candidate, model ) )
             {
-                // move
-                slotIndices[currentIndex - 1] = slotIndices[currentIndex];
-                return true;
+                importantVersions[index++] = candidate;
+                if ( index == 3 )
+                {
+                    break;
+                }
             }
         }
-        return false;
-    }
-
-    /*
-     * Bump values down
-     */
-    private static void doBump( int popularityIndex, int currentSlotIndex, ReleaseGraphModel pop )
-    {
-        int[] slotIndices = pop.getSlotIndices();
-        int prevPopIndex = slotIndices[currentSlotIndex - 1];
-        if ( isImportant( popularityIndex, pop ) )
-        {
-            if ( isImportant( prevPopIndex, pop ) )
-            {
-                doBump( prevPopIndex, currentSlotIndex - 1, pop );
-            }
-            slotIndices[currentSlotIndex] = popularityIndex;
-        }
-        else if ( !isImportant( prevPopIndex, pop ) )
-        {
-            // TODO merge should probably be more sophisticated because of up filling
-            int[] popularitydata = pop.getPopularity();
-            popularitydata[prevPopIndex] =
-                (int) Math.ceil( ( (double) popularitydata[prevPopIndex] + popularitydata[popularityIndex] ) / 2.0 );
-        }
-        // Dropping this release as the preceding one was an important release
+        return importantVersions;
     }
 
     /*
@@ -160,17 +290,5 @@ public class ReleaseGraphModel
     {
         return index == pop.getCurrentVersionIndex() || index == pop.getMostPopularVersionIndex()
             || index == pop.getMostRecentVersionIndex();
-    }
-
-    private static int getLastFilledIndex( int startIndex, int[] slotIndices )
-    {
-        for ( int i = startIndex; i < slotIndices.length; i++ )
-        {
-            if ( slotIndices[i] == -1 )
-            {
-                return i - 1;
-            }
-        }
-        return slotIndices.length - 1;
     }
 }

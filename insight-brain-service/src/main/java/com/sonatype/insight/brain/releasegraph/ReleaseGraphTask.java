@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMultimap;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
 import com.yammer.dropwizard.tasks.Task;
 
 public class ReleaseGraphTask

@@ -1,7 +1,6 @@
 package com.sonatype.insight.brain.releasegraph;
 
 import com.google.common.cache.LoadingCache;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
 import com.yammer.metrics.core.HealthCheck;
 
 public class ReleaseGraphHealthCheck

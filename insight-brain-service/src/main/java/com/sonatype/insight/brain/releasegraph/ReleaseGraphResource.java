@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.LoadingCache;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader.ReleaseGraphKey;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -40,8 +39,9 @@ public class ReleaseGraphResource
         log.debug( "Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId );
         try
         {
-            return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version, applicationPublicId,
-                                                                scanId, work, proxy ) ), "image/png" ).build();
+            return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version,
+                                                                new ReportItemKey( applicationPublicId, scanId, work,
+                                                                                   proxy ) ) ), "image/png" ).build();
         }
         catch ( Exception e )
         {

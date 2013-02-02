@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -32,11 +33,21 @@ public class ReleaseGraph
 
     private static final Color CURRENT_VER_COLOR = Color.BLACK;
 
+    private static final IndexColorModel COLOR_MODEL;
+
+    static
+    {
+        byte[] r = new byte[] { 0, (byte) 255, (byte) 145, (byte) 189, (byte) 110 };
+        byte[] g = new byte[] { 0, (byte) 255, (byte) 196, (byte) 189, (byte) 156 };
+        byte[] b = new byte[] { 0, (byte) 255, (byte) 74, (byte) 189, (byte) 206 };
+        COLOR_MODEL = new IndexColorModel( /* r.length < 2^3 */3, r.length, r, g, b );
+    }
+
     // TODO This is missing an offset at the start, and possibly some extra width information for the bars
     public ReleaseGraph( ReleaseGraphModel model, int slots )
     {
         this.model = model;
-        image = new BufferedImage( WIDTH, HEIGHT, BufferedImage.TYPE_INT_BGR );
+        image = new BufferedImage( WIDTH, HEIGHT, BufferedImage.TYPE_BYTE_INDEXED, COLOR_MODEL );
         create( image.createGraphics(), slots );
     }
 

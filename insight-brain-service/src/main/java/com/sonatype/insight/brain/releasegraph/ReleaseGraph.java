@@ -22,6 +22,8 @@ public class ReleaseGraph
 
     private static final int SPACER = 1;
 
+    private static final double MIN_HEIGHT = 2.0;
+
     private static final Color POPULAR_VER_COLOR = new Color( 145, 196, 74 );
 
     private static final Color OTHER_VER_COLOR = new Color( 189, 189, 189 );
@@ -51,7 +53,7 @@ public class ReleaseGraph
         {
             if ( slotIndices[i] != -1 )
             {
-                double height = ( HEIGHT - 1.0 ) * popularityData[slotIndices[i]] / 100.0 + 1.0;
+                double height = ( HEIGHT - MIN_HEIGHT ) * popularityData[slotIndices[i]] / 100.0 + MIN_HEIGHT;
                 if ( slotIndices[i] == model.getCurrentVersionIndex() )
                 {
                     g.setColor( CURRENT_VER_COLOR );

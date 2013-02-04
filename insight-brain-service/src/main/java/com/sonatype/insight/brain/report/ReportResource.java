@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
@@ -57,7 +58,6 @@ import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDataRequest;
 import com.sonatype.insight.scan.upload.ReportDataResult;
 import com.sonatype.insight.scan.upload.ReportDownloader;
-import com.sun.jersey.api.NotFoundException;
 
 @Path( ReportResource.SERVICE_PATH )
 public class ReportResource

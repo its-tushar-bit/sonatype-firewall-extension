@@ -152,7 +152,7 @@ public class ReleaseGraphModelTest
             ReleaseGraphModel.build( buildGavPopularity( catalogDates, popularity, 0 ), 0, 100, SLOTS );
         Assert.assertEquals( 1, model.getMostPopularVersionIndex() );
         Assert.assertEquals( 4, model.getMostRecentVersionIndex() );
-        Assert.assertEquals( 2, model.getSlotIndices()[21] );
+        Assert.assertEquals( 2, model.getSlotIndices()[24] );
     }
 
     private static GAVPopularity buildGavPopularity( long[] catalogDates, int[] popularity, int currentVersionIndex )

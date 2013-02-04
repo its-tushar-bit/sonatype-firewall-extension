@@ -67,7 +67,8 @@ public class ReleaseGraphModel
             new ReleaseGraphModel( slotIndices, model.getPopularity(), model.getCurrentVersionIndex(),
                                    getMostPopularIndex( model.getPopularity() ) );
 
-        List<Integer>[] buckets = createArray( slots );
+        @SuppressWarnings( "unchecked" )
+        List<Integer>[] buckets = (List<Integer>[]) new List[slots];
         long[] catalogDates = model.getCatalogDates();
         for ( int i = 0; i < catalogDates.length; i++ )
         {
@@ -223,6 +224,10 @@ public class ReleaseGraphModel
 
     private static boolean containsImportant( List<Integer> bucket, ReleaseGraphModel model )
     {
+        if ( bucket == null )
+        {
+            return false;
+        }
         for ( Integer i : bucket )
         {
             if ( isImportant( i, model ) )
@@ -231,17 +236,6 @@ public class ReleaseGraphModel
             }
         }
         return false;
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private static List<Integer>[] createArray( int size )
-    {
-        List<Integer>[] array = new List[size];
-        for ( int i = 0; i < array.length; i++ )
-        {
-            array[i] = new LinkedList<Integer>();
-        }
-        return array;
     }
 
     /*

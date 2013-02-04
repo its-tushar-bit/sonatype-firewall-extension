@@ -90,6 +90,7 @@ public class ReportResource
     public Response embedReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                  @PathParam( "scanId" ) final String scanId, @PathParam( "path" ) final String path,
                                  @Context final HttpServletRequest httpRequest )
+        throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
@@ -285,6 +286,7 @@ public class ReportResource
 
     public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String applicationPublicId,
                                     final String appId, final String scanId, final boolean waitForReport )
+        throws IOException
     {
         final Lock lock = lockFor( appId, scanId );
         final File reportFile = work.getReportFile( appId, scanId );
@@ -305,14 +307,7 @@ public class ReportResource
                 {
                     throw new NotFoundException( "Could not download the report for scan id " + scanId );
                 }
-                try
-                {
-                    FileUtils.rename( tempFile, reportFile );
-                }
-                catch ( final IOException e )
-                {
-                    throw new NotFoundException( "Could not save the report for scan id " + scanId );
-                }
+                FileUtils.rename( tempFile, reportFile );
             }
 
             final File auditDir = work.getAuditDir( appId );
@@ -321,18 +316,11 @@ public class ReportResource
 
             if ( oldCount == null || oldCount < newCount )
             {
-                try
-                {
-                    Report.deletePdf( reportFile );
+                Report.deletePdf( reportFile );
 
-                    Report.applyChanges( reportFile, auditDir );
+                Report.applyChanges( reportFile, auditDir );
 
-                    MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
-                }
-                catch ( final IOException e )
-                {
-                    log.warn( "Problem applying changes to report: " + e.getMessage(), e );
-                }
+                MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
             }
 
             return reportFile;

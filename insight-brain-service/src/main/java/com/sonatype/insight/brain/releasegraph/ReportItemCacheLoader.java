@@ -2,9 +2,6 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.io.File;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.cache.CacheLoader;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -20,8 +17,6 @@ public class ReportItemCacheLoader
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private Logger log = LoggerFactory.getLogger( getClass() );
-
     @Override
     public ReportPopularity load( ReportItemKey key )
         throws Exception
@@ -33,21 +28,11 @@ public class ReportItemCacheLoader
         final File reportFile =
             ReportResource.fetchReport( key.getWork(), key.getProxy(), key.getApplicationPublicId(), appId,
                                         key.getScanId(), false );
-        ReportEntry reportEntry = null;
-        try
-        {
-            reportEntry = Report.getEntry( reportFile, name );
-        }
-        catch ( final Exception e )
-        {
-            log.warn( "Problem embedding report: {}", e.getMessage(), e );
-            throw e;
-        }
+        ReportEntry reportEntry = Report.getEntry( reportFile, name );
 
         if ( reportEntry == null )
         {
-            log.error( "popularity.json file is missing from report for scan {}", key.getScanId() );
-            throw new IllegalStateException( "popularity.json is missing from report" );
+            throw new IllegalStateException( "popularity.json is missing from report for scan " + key.getScanId() );
         }
         return JsonUtils.parse( reportEntry.buf, ReportPopularity.class );
     }

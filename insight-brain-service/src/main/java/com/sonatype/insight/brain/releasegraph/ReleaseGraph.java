@@ -17,7 +17,7 @@ public class ReleaseGraph
 
     private ReleaseGraphModel model;
 
-    private static final int WIDTH = 400;
+    private static final int WIDTH = 200;
 
     private static final int HEIGHT = 25;
 

@@ -68,7 +68,7 @@ public class ReleaseGraphModel
                                    getMostPopularIndex( model.getPopularity() ) );
 
         @SuppressWarnings( "unchecked" )
-        List<Integer>[] buckets = (List<Integer>[]) new List[slots];
+        List<Integer>[] buckets = new List[slots];
         long[] catalogDates = model.getCatalogDates();
         for ( int i = 0; i < catalogDates.length; i++ )
         {

@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -286,9 +287,10 @@ public class ReportResource
                                     final String appId, final String scanId, final boolean waitForReport )
     {
         final Lock lock = lockFor( appId, scanId );
-        if ( waitForReport )
+        final File reportFile = work.getReportFile( appId, scanId );
+        if ( waitForReport || reportFile.exists() )
         {
-            lock.lock();
+            lock.lock(); // protect against concurrent download as well as concurrent editing of the report
         }
         else if ( !lock.tryLock() )
         {
@@ -296,12 +298,20 @@ public class ReportResource
         }
         try
         {
-            final File reportFile = work.getReportFile( appId, scanId );
             if ( !reportFile.exists() )
             {
-                if ( !downloadReport( proxy, applicationPublicId, scanId, reportFile, waitForReport ) )
+                final File tempFile = FileUtils.createTempFile( "temp-", ".zip", reportFile.getParentFile() );
+                if ( !downloadReport( proxy, applicationPublicId, scanId, tempFile, waitForReport ) )
                 {
                     throw new NotFoundException( "Could not download the report for scan id " + scanId );
+                }
+                try
+                {
+                    FileUtils.rename( tempFile, reportFile );
+                }
+                catch ( final IOException e )
+                {
+                    throw new NotFoundException( "Could not save the report for scan id " + scanId );
                 }
             }
 

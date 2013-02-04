@@ -381,7 +381,6 @@
 				i;
 			removeUIConditionData(item);
 			removePolicySummary(item);
-			showHttpMask('Saving policy...');
 			//edit
 			if ($scope.state.currentPolicy.id) {
 				httpPut(clmLocations.getPolicyUrl(), 'Saving policy...', 'Policy Save Error', item, function (data, status, headers, config) {

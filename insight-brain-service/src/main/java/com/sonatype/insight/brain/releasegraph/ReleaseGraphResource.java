@@ -3,6 +3,7 @@ package com.sonatype.insight.brain.releasegraph;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.HttpStatusCode;
 
 @Path( "rest/report/releaseGraph" )
 public class ReleaseGraphResource
@@ -45,6 +47,15 @@ public class ReleaseGraphResource
         }
         catch ( Exception e )
         {
+            // undo any wrapping of resource exceptions introduced by Guava caches
+            for ( Throwable t = e; t instanceof RuntimeException; t = t.getCause() )
+            {
+                if ( t.getClass().isAnnotationPresent( HttpStatusCode.class ) || t instanceof WebApplicationException )
+                {
+                    throw (RuntimeException) t;
+                }
+            }
+
             throw new RuntimeException( "Error creating popularity graph for " + groupId + ":" + artifactId + ":"
                 + version
                 + " for report " + scanId, e );

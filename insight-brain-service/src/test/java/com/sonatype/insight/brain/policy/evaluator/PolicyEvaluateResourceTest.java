@@ -61,32 +61,22 @@ public class PolicyEvaluateResourceTest
 
         final Constraint constraint1 =
             new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
-        final Condition condition1 = new Condition();
-        condition1.setConditionTypeId( SecurityVulnerabilityConditionType.ID );
-        condition1.setOperator( "present" );
+        final Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
         constraint1.addCondition( condition1 );
-
-        final Action action = new Action();
-        action.setActionTypeId( NotifyActionType.ID );
-
-        final Policy policy1 = new Policy();
-        policy1.setId( "P1" );
-        policy1.setName( "PolicyEvaluateResourceTest policy1" );
+        final Policy policy1 = new Policy( "P1", "PolicyEvaluateResourceTest policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, new Action( NotifyActionType.ID ) );
         addPolicy( applicationPublicId, policy1 );
 
         final Constraint constraint2 =
             new Constraint( "C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND );
-        constraint2.addCondition( condition1 );
-
+        final Condition condition2 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        constraint2.addCondition( condition2 );
         // same conditions, but lower threat-level => analysis should show highest threat-level
-        final Policy policy2 = new Policy();
-        policy2.setId( "P2" );
-        policy2.setName( "PolicyEvaluateResourceTest policy2" );
+        final Policy policy2 = new Policy( "P2", "PolicyEvaluateResourceTest policy2" );
         policy2.setThreatLevel( 3 );
         policy2.addConstraint( constraint2 );
-        policy1.addAction( BuildStageType.ID, action );
         addPolicy( applicationPublicId, policy2 );
 
         final Stage stage = new Stage( BuildStageType.ID );
@@ -103,7 +93,7 @@ public class PolicyEvaluateResourceTest
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 2, policyAlerts.length );
-        SecurityVulnerabilityConditionTypeTest.assertFactCounts( 1, 7, policyAlerts[0] );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts[0] );
 
         // check the calculated policy threat
         response = RestAccess.get( getThreatsURL( applicationPublicId, scanId ) );
@@ -135,7 +125,6 @@ public class PolicyEvaluateResourceTest
         policy1.addConstraint( constraint1 );
         policy1.addAction( BuildStageType.ID, action );
         Response response = addPolicy( applicationPublicId, policy1 );
-        assertResponseStatus( 200, response );
         policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
         constraint1 = policy1.getConstraints().get( 0 );
 

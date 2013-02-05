@@ -7,18 +7,18 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class LicenseValueType
-    implements ConditionValueType<MultiLicense>
+    implements ConditionValueType<License>
 {
     public static final String ID = "LicenseValueType";
 
-    public static MultiLicense getLicenseById( String licenseId )
+    public static License getLicenseById( String licenseId )
     {
-        return new MultiLicenseDAO().getById( licenseId );
+        return new LicenseDAO().getById( licenseId );
     }
 
     @Override
@@ -40,8 +40,8 @@ public class LicenseValueType
     }
 
     @Override
-    public List<MultiLicense> getAvailableValues()
+    public List<License> getAvailableValues()
     {
-        return new MultiLicenseDAO().getAll();
+        return new LicenseDAO().getAll();
     }
 }

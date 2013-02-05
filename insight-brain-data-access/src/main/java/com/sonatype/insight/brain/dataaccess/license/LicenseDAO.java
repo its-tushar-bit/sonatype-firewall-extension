@@ -19,6 +19,8 @@ public class LicenseDAO
 {
     private static final Logger log = LoggerFactory.getLogger( LicenseDAO.class );
 
+    private static volatile List<License> licenses;
+
     private static volatile Map<String, License> licensesById = null;
 
     @Override
@@ -56,7 +58,7 @@ public class LicenseDAO
 
         String sQuery = "SELECT license FROM License license" + //
             " ORDER BY license.shortDisplayName";
-        List<License> licenses = getList( sQuery );
+        licenses = getList( sQuery );
 
         Map<String, License> _licensesById = new LinkedHashMap<String, License>();
         for ( License license : licenses )
@@ -88,4 +90,8 @@ public class LicenseDAO
         load();
     }
 
+    public List<License> getAll()
+    {
+        return licenses;
+    }
 }

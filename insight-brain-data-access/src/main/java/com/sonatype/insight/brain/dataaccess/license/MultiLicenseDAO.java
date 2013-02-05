@@ -28,8 +28,6 @@ public class MultiLicenseDAO
     extends AbstractDatamartSqlDAO<MultiLicense>
     implements LicenseMXBean
 {
-    private static List<MultiLicense> multiLicenses;
-
     private static final Logger log = LoggerFactory.getLogger( MultiLicenseDAO.class );
 
     private static volatile Map<String, MultiLicense> multiLicensesById = null;
@@ -155,7 +153,7 @@ public class MultiLicenseDAO
 
         String sQuery = "SELECT license FROM MultiLicense license" + //
             " ORDER BY license.shortDisplayName";
-        multiLicenses = getList( sQuery );
+        List<MultiLicense> multiLicenses = getList( sQuery );
 
         sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
         @SuppressWarnings( { "unchecked", "rawtypes" } )
@@ -215,10 +213,4 @@ public class MultiLicenseDAO
         new LicenseDAO().reloadCache();
         load();
     }
-
-    public List<MultiLicense> getAll()
-    {
-        return multiLicenses;
-    }
-
 }

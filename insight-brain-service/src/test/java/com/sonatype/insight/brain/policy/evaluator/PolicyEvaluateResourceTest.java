@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
@@ -14,6 +15,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -21,7 +23,9 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
@@ -99,7 +103,7 @@ public class PolicyEvaluateResourceTest
         final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 2, policyAlerts.length );
-        SecurityVulnerabilityConditionTypeTest.assertFactCounts( 1, 6, policyAlerts[0] );
+        SecurityVulnerabilityConditionTypeTest.assertFactCounts( 1, 7, policyAlerts[0] );
 
         // check the calculated policy threat
         response = RestAccess.get( getThreatsURL( applicationPublicId, scanId ) );
@@ -108,6 +112,53 @@ public class PolicyEvaluateResourceTest
         Assert.assertNotNull( policyThreats );
         Assert.assertTrue( policyThreats.size() > 0 );
         Assert.assertEquals( 8, policyThreats.get( 0 ).get( "policyThreatLevel" ).asInt() );
+    }
+
+    @Test
+    public void testEvaluate_MultiLicense()
+        throws Exception
+    {
+        String applicationPublicId = "testEvaluate_MultiLicense_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testEvaluate_MultiLicense_ScanId";
+        File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        saasReportFile.delete();
+
+        Constraint constraint1 = new Constraint( null /* constyraintId */, "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( LicenseConditionType.ID, "is", "GPL-2.0" );
+        constraint1.addCondition( condition1 );
+
+        Action action = new Action( FailActionType.ID );
+
+        Policy policy1 = new Policy( null /* policyId */, "Policy 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, action );
+        Response response = addPolicy( applicationPublicId, policy1 );
+        assertResponseStatus( 200, response );
+        policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+        constraint1 = policy1.getConstraints().get( 0 );
+
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // The report file is not available yet
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 404, response );
+
+        // Simulate that the report is available
+        URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.length );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 3, policyAlerts[0] );
+        Component expectedComponent = new Component( "org.webjars", "select2", "3.2" );
+        expectedComponent.setHash( "f2e35e4a21f07d25710f" );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponent, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraint1.getId(), "Constraint 1",
+                                                                Arrays.asList( policyAlerts ) );
     }
 
     private String getServiceURL( final String appId, final String scanId )

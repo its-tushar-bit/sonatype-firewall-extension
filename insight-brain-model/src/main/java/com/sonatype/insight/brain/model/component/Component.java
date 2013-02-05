@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.model.component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
@@ -22,11 +24,11 @@ public class Component
 
     private String hash;
 
-    private List<String> declaredLicenseIds = new ArrayList<String>();
+    private Set<String> declaredLicenseIds = new LinkedHashSet<String>();
 
-    private List<String> observedLicenseIds = new ArrayList<String>();
+    private Set<String> observedLicenseIds = new LinkedHashSet<String>();
 
-    private List<String> overriddenLicenseIds = new ArrayList<String>();
+    private Set<String> overriddenLicenseIds = new LinkedHashSet<String>();
 
     private LicenseStatus licenseStatus;
 
@@ -171,12 +173,12 @@ public class Component
         return groupId + ':' + artifactId + ':' + version;
     }
 
-    public List<String> getDeclaredLicenseIds()
+    public Set<String> getDeclaredLicenseIds()
     {
         return declaredLicenseIds;
     }
 
-    public void setDeclaredLicenseIds( List<String> declaredLicenseIds )
+    public void setDeclaredLicenseIds( Set<String> declaredLicenseIds )
     {
         this.declaredLicenseIds.clear();
 
@@ -193,12 +195,12 @@ public class Component
         declaredLicenseIds.add( licenseId );
     }
 
-    public List<String> getObservedLicenseIds()
+    public Set<String> getObservedLicenseIds()
     {
         return observedLicenseIds;
     }
 
-    public void setObservedLicenseIds( List<String> observedLicenseIds )
+    public void setObservedLicenseIds( Set<String> observedLicenseIds )
     {
         this.observedLicenseIds.clear();
 
@@ -215,12 +217,12 @@ public class Component
         observedLicenseIds.add( licenseId );
     }
 
-    public List<String> getOverriddenLicenseIds()
+    public Set<String> getOverriddenLicenseIds()
     {
         return overriddenLicenseIds;
     }
 
-    public void setOverriddenLicenseIds( List<String> overriddenLicenseIds )
+    public void setOverriddenLicenseIds( Set<String> overriddenLicenseIds )
     {
         this.overriddenLicenseIds.clear();
 

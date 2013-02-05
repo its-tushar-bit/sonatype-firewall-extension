@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess;
+
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+
+public class ApplicationDAOTest
+    extends AbstractDbDAOTest
+{
+    @Test
+    public void testCRUD()
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+
+        // Create
+        // The super class creates an application by default
+        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( applicationId );
+        Assert.assertEquals( 4, licenseThreatGroups.size() );
+        Assert.assertEquals( "Copyleft", licenseThreatGroups.get( 0 ).getName() );
+        Assert.assertEquals( "Liberal", licenseThreatGroups.get( 1 ).getName() );
+        Assert.assertEquals( "Non Standard", licenseThreatGroups.get( 2 ).getName() );
+        Assert.assertEquals( "Weak Copyleft", licenseThreatGroups.get( 3 ).getName() );
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        {
+            Assert.assertTrue( licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() ).size() > 0 );
+        }
+
+        // Update
+        Application application = applicationDAO.getById( applicationId );
+        application.setPublicId( "ApplicationDAOTest New public id" );
+        applicationDAO.update( application );
+        application = applicationDAO.getById( applicationId );
+        Assert.assertEquals( "ApplicationDAOTest New public id", application.getPublicId() );
+
+        // Delete
+        applicationDAO.delete( application );
+        application = applicationDAO.getById( applicationId );
+        Assert.assertNull( application );
+    }
+}

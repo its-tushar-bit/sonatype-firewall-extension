@@ -69,6 +69,8 @@ public class ReportResource
     private static final ConcurrentMap<String, Lock> LOCK_TABLE =
         CacheBuilder.newBuilder().weakValues().<String, Lock> build().asMap();
 
+    private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
+
     static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS =
         CacheBuilder.newBuilder().maximumSize( 8192 ).<String, Integer> build().asMap();
 
@@ -116,6 +118,10 @@ public class ReportResource
             final ResponseBuilder response = Response.ok( reportEntry.buf );
             response.lastModified( new Date( reportEntry.time ) );
             response.type( MediaTypeUtils.byName( name ) );
+            if ( !name.endsWith( ".json" ) )
+            {
+                response.expires( new Date( System.currentTimeMillis() + YEAR ) );
+            }
             return response.build();
         }
         return Response.status( Status.NOT_FOUND ).build();

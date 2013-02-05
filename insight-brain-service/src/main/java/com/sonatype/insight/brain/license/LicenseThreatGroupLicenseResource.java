@@ -25,7 +25,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Path( LicenseThreatGroupLicenseResource.SERVICE_PATH )
 public class LicenseThreatGroupLicenseResource
 {
-    public static final String SERVICE_PATH = "rest/licensethreatgrouplicense/application/{applicationPublicId}";
+    public static final String SERVICE_PATH = "rest/licenseThreatGroupLicense/application/{applicationPublicId}";
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 

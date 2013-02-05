@@ -50,5 +50,6 @@ CREATE TABLE license_threat_group_license (
   multi_license_id varchar(50) NOT NULL,
   CONSTRAINT license_threat_group_license_pk PRIMARY KEY (license_threat_group_license_id),
   CONSTRAINT license_threat_group_license_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
+  CONSTRAINT license_threat_group_license_group_fk FOREIGN KEY (license_threat_group_id) REFERENCES license_threat_group(license_threat_group_id),
   CONSTRAINT license_threat_group_license_uk UNIQUE KEY (application_id, multi_license_id)
 );

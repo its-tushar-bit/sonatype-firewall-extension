@@ -25,11 +25,13 @@ public class ReleaseGraph
 
     private static final int SPACER = 1;
 
-    private static final Color POPULAR_VER_COLOR = new Color( 145, 196, 74 );
+    private static final Color POPULAR_VER_COLOR = new Color( 145, 196, 74, 255 );
 
-    private static final Color OTHER_VER_COLOR = new Color( 189, 189, 189 );
+    private static final Color OTHER_VER_COLOR = new Color( 189, 189, 189, 255 );
 
-    private static final Color RECENT_VER_COLOR = new Color( 110, 156, 206 );
+    private static final Color RECENT_VER_COLOR = new Color( 110, 156, 206, 255 );
+
+    private static final Color BG_COLOR = new Color( 255, 255, 255, 0 );
 
     private static final Color CURRENT_VER_COLOR = Color.BLACK;
 
@@ -40,7 +42,8 @@ public class ReleaseGraph
         byte[] r = new byte[] { 0, (byte) 255, (byte) 145, (byte) 189, (byte) 110 };
         byte[] g = new byte[] { 0, (byte) 255, (byte) 196, (byte) 189, (byte) 156 };
         byte[] b = new byte[] { 0, (byte) 255, (byte) 74, (byte) 189, (byte) 206 };
-        COLOR_MODEL = new IndexColorModel( /* r.length < 2^3 */3, r.length, r, g, b );
+        byte[] a = new byte[] { (byte) 255, (byte) 0.0, (byte) 255, (byte) 255, (byte) 255 };
+        COLOR_MODEL = new IndexColorModel( /* r.length < 2^3 */3, r.length, r, g, b, a );
     }
 
     // TODO This is missing an offset at the start, and possibly some extra width information for the bars
@@ -53,8 +56,8 @@ public class ReleaseGraph
 
     private void create( Graphics2D g, int slots )
     {
-        g.setPaint( Color.WHITE );
-        g.setBackground( Color.WHITE );
+        g.setPaint( BG_COLOR );
+        g.setBackground( BG_COLOR );
         g.clearRect( 0, 0, WIDTH, HEIGHT );
 
         final int barWidth = WIDTH / ( slots ) - SPACER;

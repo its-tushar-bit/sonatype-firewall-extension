@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationDAO
-    extends AbstractSqlDAO<Application>
+    extends AbstractOperationalSqlDAO<Application>
 {
     @Override
     protected Application getById( EntityManager em, String id )

@@ -36,4 +36,32 @@
       -->
     </properties>
   </persistence-unit>
+  <persistence-unit name="InsightBrainDM" transaction-type="RESOURCE_LOCAL">
+    <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
+    <class>com.sonatype.insight.brain.model.license.License</class>
+    <class>com.sonatype.insight.brain.model.license.LicenseCategory</class>
+    <class>com.sonatype.insight.brain.model.license.MultiLicense</class>
+    <class>com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal</class>
+    <properties>
+      <!-- 
+      <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>
+      <property name="openjpa.ConnectionDriverName" value="org.hsqldb.jdbcDriver"/>
+      <property name="openjpa.ConnectionUserName" value="sa"/>
+      <property name="openjpa.ConnectionPassword" value=""/>
+      -->
+      <property name="openjpa.Log" value="DefaultLevel=WARN, Tool=INFO"/>
+      <property name="openjpa.jdbc.Schema" value="insight_brain_dm"/>
+      <!--
+      By default, when doing an update using an object that was not retrieved from the database, openjpa will not update fields that are null.
+      Setting openjpa.DetachState=all causes openjpa to update all fields, null or not null.
+      For more details:
+      http://openjpa.apache.org/builds/2.2.1/apache-openjpa/docs/ref_guide_remote.html#ref_guide_detach_graph
+      -->
+      <property name="openjpa.DetachState" value="all"/>
+      <!-- To log queries and query parameter values:
+      <property name="openjpa.ConnectionFactoryProperties" value="PrintParameters=True"/>      
+      <property name="openjpa.Log" value="DefaultLevel=TRACE, Runtime=INFO, Tool=INFO, SQL=TRACE"/>
+      -->
+    </properties>
+  </persistence-unit>
 </persistence>

@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.sql.DataSource;
+
+import com.sonatype.insight.brain.db.DatamartProvider;
+
+public class DatamartEntityManagerFactoryProvider
+{
+    private static final EntityManagerFactory entityManagerFactory;
+
+    private static final DataSource dataSource;
+
+    private DatamartEntityManagerFactoryProvider()
+    {
+    }
+
+    static
+    {
+        dataSource = DatamartProvider.get();
+        Map<String, Object> props = new LinkedHashMap<String, Object>();
+        props.put( "openjpa.ConnectionFactory", dataSource );
+        entityManagerFactory = Persistence.createEntityManagerFactory( "InsightBrainDM", props );
+    }
+
+    public static EntityManagerFactory get()
+    {
+        return entityManagerFactory;
+    }
+}

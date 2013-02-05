@@ -9,12 +9,12 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
 public class LicenseThreatGroupLicenseDAO
-    extends AbstractSqlDAO<LicenseThreatGroupLicense>
+    extends AbstractOperationalSqlDAO<LicenseThreatGroupLicense>
 {
     @Override
     protected LicenseThreatGroupLicense getById( EntityManager em, String id )

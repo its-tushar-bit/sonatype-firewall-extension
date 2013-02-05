@@ -9,12 +9,12 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
 public class LabelDAO
-    extends AbstractSqlDAO<Label>
+    extends AbstractOperationalSqlDAO<Label>
 {
     public List<Label> getByApplicationId( String applicationId )
     {

@@ -1,0 +1,86 @@
+package com.sonatype.insight.brain.model.license;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+
+@Entity
+@IdClass( MultiLicenseLicenseInternal.ID.class )
+@Table( name = "multi_license_license" )
+public class MultiLicenseLicenseInternal
+{
+    @Id
+    @Column( name = "multi_license_id" )
+    private String multiLicenseId;
+
+    @Id
+    @Column( name = "license_id" )
+    private String licenseId;
+
+    public MultiLicenseLicenseInternal()
+    {
+    }
+
+    public static class ID
+    {
+        private String multiLicenseId;
+
+        private String licenseId;
+
+        @Override
+        public boolean equals( Object obj )
+        {
+            if ( this == obj )
+            {
+                return true;
+            }
+            if ( obj == null || !getClass().equals( obj.getClass() ) )
+            {
+                return false;
+            }
+            ID that = (ID) obj;
+            return eq( multiLicenseId, that.multiLicenseId ) && eq( licenseId, that.licenseId );
+        }
+
+        private static <T> boolean eq( T obj1, T obj2 )
+        {
+            return ( obj1 == null ) ? obj2 == null : obj1.equals( obj2 );
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int result = 1;
+            result = 31 * result + hash( multiLicenseId );
+            result = 31 * result + hash( licenseId );
+            return result;
+        }
+
+        private static int hash( Object obj )
+        {
+            return ( obj == null ) ? 0 : obj.hashCode();
+        }
+    }
+
+    public String getMultiLicenseId()
+    {
+        return multiLicenseId;
+    }
+
+    public void setMultiLicenseId( String multiLicenseId )
+    {
+        this.multiLicenseId = multiLicenseId;
+    }
+
+    public String getLicenseId()
+    {
+        return licenseId;
+    }
+
+    public void setLicenseId( String licenseId )
+    {
+        this.licenseId = licenseId;
+    }
+}

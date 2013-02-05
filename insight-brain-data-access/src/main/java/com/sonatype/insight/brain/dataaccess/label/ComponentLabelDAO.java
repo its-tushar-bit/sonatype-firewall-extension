@@ -14,13 +14,13 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
-import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
 public class ComponentLabelDAO
-    extends AbstractSqlDAO<ComponentLabel>
+    extends AbstractOperationalSqlDAO<ComponentLabel>
 {
     List<ComponentLabel> getByLabelId( EntityManager em, String labelId )
     {

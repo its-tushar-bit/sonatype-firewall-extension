@@ -1,9 +1,5 @@
 package com.sonatype.insight.brain.model.license;
 
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -11,15 +7,18 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
-// Copied from com.sonatype.insight.model.datamart.dto.MultiLicense
+// Copied from com.sonatype.insight.model.datamart.dto.License
 @Entity
-@Table( name = "multi_license" )
-public class MultiLicense
+@Table( name = "license" )
+public class License
     implements HasStringId
 {
+    public static final String UNSPECIFIED_ID = "UNSPECIFIED";
+
+    public static final String UNKNOWN_ID = "UNKNOWN";
 
     @Id
-    @Column( name = "multi_license_id" )
+    @Column( name = "license_id" )
     private String id;
 
     @Column( name = "shortDisplayName" )
@@ -33,6 +32,9 @@ public class MultiLicense
 
     @Column( name = "licenseUrl" )
     private String licenseUrl;
+
+    @Column( name = "license_category_id" )
+    private String licenseCategoryId;
 
     @Override
     public String getId()
@@ -86,6 +88,16 @@ public class MultiLicense
         this.licenseUrl = licenseUrl;
     }
 
+    public String getLicenseCategoryId()
+    {
+        return licenseCategoryId;
+    }
+
+    public void setLicenseCategoryId( String licenseCategoryId )
+    {
+        this.licenseCategoryId = licenseCategoryId;
+    }
+
     @Override
     public int hashCode()
     {
@@ -104,7 +116,7 @@ public class MultiLicense
             return false;
         if ( getClass() != obj.getClass() )
             return false;
-        MultiLicense other = (MultiLicense) obj;
+        License other = (License) obj;
         if ( id == null )
         {
             if ( other.id != null )
@@ -117,12 +129,12 @@ public class MultiLicense
 
     public boolean isUnspecified()
     {
-        return License.UNSPECIFIED_ID.equals( id );
+        return UNSPECIFIED_ID.equals( id );
     }
 
     public boolean isUnknown()
     {
-        return License.UNKNOWN_ID.equals( id );
+        return UNKNOWN_ID.equals( id );
     }
 
     @Override
@@ -130,36 +142,4 @@ public class MultiLicense
     {
         return id;
     }
-
-    public static void prunePreciseLicenses( Set<MultiLicense> licenses )
-    {
-        for ( Iterator<MultiLicense> it = licenses.iterator(); it.hasNext(); )
-        {
-            String licenseId = it.next().getId();
-            for ( MultiLicense license : licenses )
-            {
-                String id = license.getId();
-                if ( id.equals( licenseId ) )
-                {
-                    // keep current
-                }
-                else if ( id.endsWith( "-UNSPECIFIED" ) && licenseId.regionMatches( true, 0, id, 0, id.length() - 12 ) )
-                {
-                    it.remove();
-                    break;
-                }
-            }
-        }
-    }
-
-    public static class ByNameComparator
-        implements Comparator<MultiLicense>
-    {
-        @Override
-        public int compare( MultiLicense l1, MultiLicense l2 )
-        {
-            return l1.getShortDisplayName().compareTo( l2.getShortDisplayName() );
-        }
-    }
-
 }

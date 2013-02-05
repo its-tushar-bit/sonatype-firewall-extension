@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
@@ -61,11 +63,11 @@ public class InsightBrainService
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", ASSET_PATH ) );
     }
 
-    protected DatabaseConfig getDatabaseConfig( File databaseDir )
+    protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )
     {
         DatabaseConfig databaseConfig = new DatabaseConfig();
         databaseConfig.setDriverClassName( "org.h2.Driver" );
-        databaseConfig.setUrl( "jdbc:h2:" + databaseDir.getAbsolutePath() + "/ods" );
+        databaseConfig.setUrl( "jdbc:h2:" + databaseDir.getAbsolutePath() + '/' + databaseName );
         databaseConfig.setUsername( "sa" );
         databaseConfig.setPassword( "" );
         databaseConfig.setMaxConnections( 50 );
@@ -89,8 +91,10 @@ public class InsightBrainService
         env.addProvider( new InsightProxy( config ) );
 
         File databaseDir = new File( config.getSonatypeWork(), "data" );
-        DatabaseConfig databaseConfig = getDatabaseConfig( databaseDir );
-        OperationalDataStoreProvider.init( databaseConfig );
+        DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );
+        DatamartProvider.init( dmDatabaseConfig );
+        DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
+        OperationalDataStoreProvider.init( odsDatabaseConfig );
         loadDatabase();
 
         env.addResource( FeaturesResource.class );
@@ -117,6 +121,9 @@ public class InsightBrainService
     private void loadDatabase()
     {
         // not very nice, but good enough for now
+        // Load the datamart db:
+        new LicenseDAO().getById( "UNSPECIFIED" );
+        // Load the ODS db:
         new ApplicationDAO().getById( "not a real id" );
     }
 

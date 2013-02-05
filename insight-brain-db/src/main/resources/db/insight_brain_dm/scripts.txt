@@ -1,0 +1,9 @@
+schema.sql
+
+license_category.sql
+license_spdx.sql
+license_sonatype.sql
+license_category_update.sql
+multi_license_spdx.sql
+multi_license_sonatype.sql
+multi_license_license.sql

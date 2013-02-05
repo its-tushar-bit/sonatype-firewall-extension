@@ -1,67 +1,219 @@
-/*
- * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
- * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
- * "Sonatype" is a trademark of Sonatype, Inc.
- */
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
+import java.lang.management.ManagementFactory;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-import org.codehaus.plexus.util.IOUtil;
+import javax.management.ObjectName;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
 
+// Copied from com.sonatype.insight.datamart.dao.MultiLicenseDAO
 public class MultiLicenseDAO
+    extends AbstractDatamartSqlDAO<MultiLicense>
+    implements LicenseMXBean
 {
     private static List<MultiLicense> multiLicenses;
 
-    private static Map<String, MultiLicense> multiLicensesById;
+    private static final Logger log = LoggerFactory.getLogger( MultiLicenseDAO.class );
 
-    private static Map<String, MultiLicense> multiLicensesByName;
+    private static volatile Map<String, MultiLicense> multiLicensesById = null;
 
-    static
+    private static volatile Map<String, MultiLicense> multiLicensesByName = null;
+
+    private static volatile Map<String, Set<License>> licenseSetsById = null;
+
+    public MultiLicenseDAO()
     {
-        // TODO Return a list of all known licenses from the datamart db
-        MultiLicense[] licenseArray = loadJson();
-        multiLicenses = Arrays.asList( licenseArray );
-
-        multiLicensesById = new LinkedHashMap<String, MultiLicense>();
-        multiLicensesByName = new LinkedHashMap<String, MultiLicense>();
-        for ( MultiLicense license : multiLicenses )
+        try
         {
-            multiLicensesById.put( license.getId(), license );
-            multiLicensesByName.put( license.getShortDisplayName(), license );
+            String hash = String.format( "0x%08X", new Integer( System.identityHashCode( this ) ) );
+            Hashtable<String, String> props = new Hashtable<String, String>();
+            props.put( "type", getClass().getSimpleName() );
+            props.put( "hash", hash );
+            ObjectName jmxName = ObjectName.getInstance( "com.sonatype.insight", props );
+            ManagementFactory.getPlatformMBeanServer().registerMBean( this, jmxName );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Could not register LicenseMXBean", e );
         }
     }
 
-    private static MultiLicense[] loadJson()
+    @Override
+    public MultiLicense getById( String id )
     {
-        InputStream is = MultiLicense.class.getClassLoader().getResourceAsStream( "multi-licenses.json" );
-        if ( is == null )
+        if ( multiLicensesById == null )
         {
-            throw new RuntimeException( "Cannot find resource: multi-licenses.json" );
+            load();
+        }
+        return multiLicensesById.get( id );
+    }
+
+    public MultiLicense getByIdNotNull( String id )
+    {
+        MultiLicense license = getById( id );
+        if ( license == null )
+        {
+            // most probably, a new license was added to the DB so reload the caches and try again
+            log.debug( "Reloading license caches after miss for {}", id );
+            reloadCache();
+
+            license = getById( id );
+            if ( license == null )
+            {
+                throw new NotFoundException( "A license with id '" + id + "' does not exist." );
+            }
+        }
+        return license;
+    }
+
+    public MultiLicense getByName( String name )
+    {
+        if ( multiLicensesByName == null )
+        {
+            load();
+        }
+        return multiLicensesByName.get( name );
+    }
+
+    public MultiLicense getByNameNotNull( String name )
+    {
+        MultiLicense license = getByName( name );
+        if ( license == null )
+        {
+            throw new NotFoundException( "A license with name '" + name + "' does not exist." );
+        }
+        return license;
+    }
+
+    public Set<License> getLicensesById( String id )
+    {
+        if ( licenseSetsById == null )
+        {
+            load();
+        }
+        return licenseSetsById.get( id );
+    }
+
+    public LicenseCategory getSafestLicenseCategoryById( String id )
+    {
+        LicenseCategory safestCategory = null;
+        Set<License> licenses = getLicensesById( id );
+        for ( License license : licenses )
+        {
+            LicenseCategory category = new LicenseCategoryDAO().getById( license.getLicenseCategoryId() );
+            if ( category != null )
+            {
+                if ( safestCategory == null || safestCategory.getSeverity() > category.getSeverity() )
+                {
+                    safestCategory = category;
+                }
+            }
+        }
+        return safestCategory;
+    }
+
+    public Map<String, Set<String>> getMultiLicenseMappings()
+    {
+        if ( licenseSetsById == null )
+        {
+            load();
         }
 
-        try
+        Map<String, Set<String>> result = new HashMap<String, Set<String>>( 512 );
+        for ( Map.Entry<String, Set<License>> entry : licenseSetsById.entrySet() )
         {
-            byte[] licenseData = IOUtil.toByteArray( is );
-            return JsonUtils.parse( licenseData, MultiLicense[].class );
+            Set<String> ids = new LinkedHashSet<String>();
+            for ( License license : entry.getValue() )
+            {
+                ids.add( license.getId() );
+            }
+            result.put( entry.getKey(), ids );
         }
-        catch ( IOException e )
+        return result;
+    }
+
+    private synchronized void load()
+    {
+        long start = System.currentTimeMillis();
+
+        String sQuery = "SELECT license FROM MultiLicense license" + //
+            " ORDER BY license.shortDisplayName";
+        multiLicenses = getList( sQuery );
+
+        sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
+        @SuppressWarnings( { "unchecked", "rawtypes" } )
+        List<MultiLicenseLicenseInternal> mappings = (List) getList( sQuery );
+
+        Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<String, Set<License>>();
+
+        Map<String, MultiLicense> _licensesById = new LinkedHashMap<String, MultiLicense>();
+        for ( MultiLicense license : multiLicenses )
         {
-            throw new RuntimeException( e );
+            _licensesById.put( license.getId(), license );
+            _licenseSetsById.put( license.getId(), new LinkedHashSet<License>() );
         }
-        finally
+        multiLicensesById = _licensesById;
+
+        Map<String, MultiLicense> _licensesByName = new TreeMap<String, MultiLicense>( String.CASE_INSENSITIVE_ORDER );
+        for ( MultiLicense license : multiLicenses )
         {
-            IOUtil.close( is );
+            _licensesByName.put( license.getShortDisplayName(), license );
         }
+        multiLicensesByName = _licensesByName;
+
+        LicenseDAO licenseDAO = new LicenseDAO();
+        for ( MultiLicenseLicenseInternal mapping : mappings )
+        {
+            License license = licenseDAO.getByIdNotNull( mapping.getLicenseId() );
+            _licenseSetsById.get( mapping.getMultiLicenseId() ).add( license );
+        }
+
+        for ( Map.Entry<String, Set<License>> entry : _licenseSetsById.entrySet() )
+        {
+            entry.setValue( Collections.unmodifiableSet( entry.getValue() ) );
+        }
+        licenseSetsById = _licenseSetsById;
+
+        log.debug( "Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start );
+    }
+
+    @Override
+    public void insert( MultiLicense license )
+    {
+        super.insert( license );
+        load();
+    }
+
+    @Override
+    public void delete( MultiLicense license )
+    {
+        super.delete( license );
+        load();
+    }
+
+    @Override
+    public void reloadCache()
+    {
+        new LicenseCategoryDAO().reloadCache();
+        new LicenseDAO().reloadCache();
+        load();
     }
 
     public List<MultiLicense> getAll()
@@ -69,28 +221,4 @@ public class MultiLicenseDAO
         return multiLicenses;
     }
 
-    public MultiLicense getById( String licenseId )
-    {
-        return multiLicensesById.get( licenseId );
-    }
-
-    public MultiLicense getByIdNotNull( String licenseName )
-    {
-        MultiLicense license = multiLicensesById.get( licenseName );
-        if ( license == null )
-        {
-            throw new NotFoundException( "A license with id '" + licenseName + "' does not exist." );
-        }
-        return license;
-    }
-
-    public MultiLicense getByNameNotNull( String licenseName )
-    {
-        MultiLicense license = multiLicensesByName.get( licenseName );
-        if ( license == null )
-        {
-            throw new NotFoundException( "A license with name '" + licenseName + "' does not exist." );
-        }
-        return license;
-    }
 }

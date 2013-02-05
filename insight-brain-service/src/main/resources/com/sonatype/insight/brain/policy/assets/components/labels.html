@@ -2,7 +2,7 @@
 	<div ng-show='!features.labels' class="span6 offset4 no-content">Label content is under development..</div>
     <div ng-show='features.labels' class='span4 content-container'>
         <table class='table table-striped' style='margin-bottom:0px'>
-            <thead><tr><th colspan='2'>Label</th></tr></thead>
+            <thead><tr><th colspan='2'>Labels</th></tr></thead>
             <tr ng-repeat="label in labels | orderBy:'label'">
                 <td style='height:24px'><span class="clmLabel {{label.color}}Label">{{label.label}}</span></td>
                 <td style='width:60px'><button ng-click='editLabel(label)' class="btn btn-mini btn-edit hover-vis" title="Edit Label"><i class="icon-pencil" style="margin-top:0px;"></i></button> <button ng-click='confirmDeleteLabel(label)' class="btn btn-mini btn-delete hover-vis" title="Delete Label"><i class="icon-trash" style="margin-top:0px;"></i></button></td>

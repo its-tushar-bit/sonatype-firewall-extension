@@ -37,7 +37,7 @@ public class LicenseThreatGroupLicenseResourceTest
 
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "UNSPECIFIED" );
+        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         Response response =
             RestAccess.post( getServiceURL( appPublicId1 ), JsonHelpers.asJson( licenseThreatGroupLicense ) );
         assertResponseStatus( 200, response );
@@ -83,7 +83,7 @@ public class LicenseThreatGroupLicenseResourceTest
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setApplicationId( application.getId() );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "UNSPECIFIED" );
+        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( licenseThreatGroupLicense ) );
         assertResponseStatus( 200, response );
         licenseThreatGroupLicense = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense.class );
@@ -117,7 +117,7 @@ public class LicenseThreatGroupLicenseResourceTest
     {
         Assert.assertEquals( applicationId, actual.getApplicationId() );
         Assert.assertEquals( licenseThreatGroupId, actual.getLicenseThreatGroupId() );
-        Assert.assertEquals( multiLicenseId, actual.getMultiLicenseId() );
+        Assert.assertEquals( multiLicenseId, actual.getLicenseId() );
     }
 
     private String getServiceURL( final String appId )

@@ -30,8 +30,8 @@ public class LicenseThreatGroupLicense
     @Column( name = "license_threat_group_id" )
     private String licenseThreatGroupId;
 
-    @Column( name = "multi_license_id" )
-    private String multiLicenseId;
+    @Column( name = "license_id" )
+    private String licenseId;
 
     @Override
     public String getId()
@@ -65,13 +65,13 @@ public class LicenseThreatGroupLicense
         this.licenseThreatGroupId = licenseThreatGroupId;
     }
 
-    public String getMultiLicenseId()
+    public String getLicenseId()
     {
-        return multiLicenseId;
+        return licenseId;
     }
 
-    public void setMultiLicenseId( String multiLicenseId )
+    public void setLicenseId( String licenseId )
     {
-        this.multiLicenseId = multiLicenseId;
+        this.licenseId = licenseId;
     }
 }

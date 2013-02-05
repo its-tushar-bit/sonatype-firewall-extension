@@ -24,20 +24,19 @@ public class LicenseThreatGroupLicenseDAO
         return get( em, sQuery, id );
     }
 
-    private LicenseThreatGroupLicense getByApplicationIdAndMultiLicenseId( EntityManager em,
-                                                                                 String applicationId,
-                                                                                 String multiLicenseId )
+    private LicenseThreatGroupLicense getByApplicationIdAndLicenseId( EntityManager em, String applicationId,
+                                                                      String licenseId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-            " WHERE entity.applicationId=?1 AND entity.multiLicenseId=?2";
-        return get( em, sQuery, applicationId, multiLicenseId );
+            " WHERE entity.applicationId=?1 AND entity.licenseId=?2";
+        return get( em, sQuery, applicationId, licenseId );
     }
 
     List<LicenseThreatGroupLicense> getByLicenseThreatGroupId( EntityManager em, String licenseThreatGroupId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
             " WHERE entity.licenseThreatGroupId=?1" + //
-            " ORDER BY entity.multiLicenseId";
+            " ORDER BY entity.licenseId";
         return getList( em, sQuery, licenseThreatGroupId );
     }
 
@@ -63,10 +62,10 @@ public class LicenseThreatGroupLicenseDAO
     @Override
     public void insert( EntityManager em, LicenseThreatGroupLicense entity )
     {
-        new MultiLicenseDAO().getByIdNotNull( entity.getMultiLicenseId() );
+        new LicenseDAO().getByIdNotNull( entity.getLicenseId() );
 
         LicenseThreatGroupLicense other =
-            getByApplicationIdAndMultiLicenseId( em, entity.getApplicationId(), entity.getMultiLicenseId() );
+            getByApplicationIdAndLicenseId( em, entity.getApplicationId(), entity.getLicenseId() );
         if ( other != null )
         {
             LicenseThreatGroup licenseThreatGroup =

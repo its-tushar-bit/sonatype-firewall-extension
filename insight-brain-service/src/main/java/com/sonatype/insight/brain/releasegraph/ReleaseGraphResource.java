@@ -1,5 +1,7 @@
 package com.sonatype.insight.brain.releasegraph;
 
+import java.util.Date;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
@@ -28,6 +30,8 @@ public class ReleaseGraphResource
 
     private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
+    private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
+
     public ReleaseGraphResource( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         this.cache = cache;
@@ -43,7 +47,9 @@ public class ReleaseGraphResource
         {
             return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version,
                                                                 new ReportItemKey( applicationPublicId, scanId, work,
-                                                                                   proxy ) ) ), "image/png" ).build();
+                                                                                   proxy ) ) ), "image/png" ).expires( new Date(
+                                                                                                                                 System.currentTimeMillis()
+                                                                                                                                     + YEAR ) ).build();
         }
         catch ( Exception e )
         {

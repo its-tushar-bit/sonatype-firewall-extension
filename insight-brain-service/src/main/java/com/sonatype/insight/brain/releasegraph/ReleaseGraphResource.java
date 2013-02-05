@@ -58,6 +58,8 @@ public class ReleaseGraphResource
             {
                 if ( t.getClass().isAnnotationPresent( HttpStatusCode.class ) || t instanceof WebApplicationException )
                 {
+                    // Log the original exception so we don't lose error details
+                    log.error( e.getMessage(), e );
                     throw (RuntimeException) t;
                 }
             }

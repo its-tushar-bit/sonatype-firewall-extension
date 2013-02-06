@@ -11,6 +11,9 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
@@ -20,6 +23,8 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
+    private static final Logger log = LoggerFactory.getLogger( LicenseThreatGroupDAO.class );
+
     public List<LicenseThreatGroup> getByApplicationId( String applicationId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
@@ -90,6 +95,8 @@ public class LicenseThreatGroupDAO
 
     public void createDefaultGroups( EntityManager em, String applicationId )
     {
+        long start = System.currentTimeMillis();
+
         LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
         Map<String, LicenseThreatGroup> licenseThreatGroupsByName = new LinkedHashMap<String, LicenseThreatGroup>();
@@ -143,5 +150,8 @@ public class LicenseThreatGroupDAO
             licenseThreatGroupLicense.setLicenseId( license.getId() );
             licenseThreatGroupLicenseDAO.insert( em, licenseThreatGroupLicense );
         }
+
+        log.debug( "Created default license threat groups for application id {} in {} ms.", applicationId,
+                   System.currentTimeMillis() - start );
     }
 }

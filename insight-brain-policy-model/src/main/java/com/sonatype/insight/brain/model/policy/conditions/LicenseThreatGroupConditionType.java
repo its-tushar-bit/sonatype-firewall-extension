@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -73,7 +74,9 @@ public class LicenseThreatGroupConditionType
     @Override
     public String generateDroolsCode( Condition condition )
     {
+        LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getById( condition.getValue() );
         return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLicenseInLicenseThreatGroup( \""
-            + condition.getValue() + "\" )";
+            + condition.getValue() + "\" )" + //
+            " /* License threat group name: " + licenseThreatGroup.getName().replace( "*/", "" ) + " */";
     }
 }

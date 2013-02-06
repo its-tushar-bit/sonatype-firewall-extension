@@ -213,7 +213,7 @@ public class ComponentDAO
         {
             loadLicenseThreatGroups( applicationId, component );
         }
-        
+
         // Load label data
         ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
         for ( Component component : result )

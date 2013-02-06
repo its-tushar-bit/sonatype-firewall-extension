@@ -69,10 +69,10 @@ public abstract class AbstractPolicyEvaluationTest
                     {
                         for ( ComponentFact componentFact : constraintFact.getComponentFacts() )
                         {
-                            if ( StringUtils.equals(expectedComponent.getGroupId(), componentFact.getGroupId() )
-                                && StringUtils.equals(expectedComponent.getArtifactId(), componentFact.getArtifactId() )
-                                && StringUtils.equals(expectedComponent.getVersion(), componentFact.getVersion() )
-                                && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash() )
+                            if ( StringUtils.equals( expectedComponent.getGroupId(), componentFact.getGroupId() )
+                                && StringUtils.equals( expectedComponent.getArtifactId(), componentFact.getArtifactId() )
+                                && StringUtils.equals( expectedComponent.getVersion(), componentFact.getVersion() )
+                                && StringUtils.equals( expectedComponent.getHash(), componentFact.getHash() )
                                 && expectedConstraintId.equals( componentFact.getConstraintId() ) )
                             {
                                 return;

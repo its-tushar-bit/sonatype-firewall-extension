@@ -19,8 +19,7 @@ public class ReleaseGraphModel
 
     private final int mostPopularVersionIndex;
 
-    public ReleaseGraphModel( int[] slotIndices, int[] popularity, int currentVersionIndex,
-                                 int mostPopularVersionIndex )
+    public ReleaseGraphModel( int[] slotIndices, int[] popularity, int currentVersionIndex, int mostPopularVersionIndex )
     {
         this.slotIndices = slotIndices;
         this.popularity = popularity;

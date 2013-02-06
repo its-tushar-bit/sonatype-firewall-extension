@@ -40,8 +40,7 @@ public class LicenseThreatGroupResourceTest
         response = RestAccess.delete( getServiceURL( appPublicId2 ) + "/" + group.getId() );
         assertResponseStatus( 404, response );
         Assert.assertEquals( "Cannot find a license threat group with id " + group.getId() + " for application id "
-            + appPublicId2,
-                             response.getResponseBody() );
+            + appPublicId2, response.getResponseBody() );
         // Verify that the group was not deleted
         response = RestAccess.get( getServiceURL( appPublicId1 ) );
         assertResponseStatus( 200, response );

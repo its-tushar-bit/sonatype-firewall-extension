@@ -259,8 +259,9 @@ public class ReleaseGraphPerformance
         String scanId = UUID.randomUUID().toString().replace( "-", "" );
         // create report structure
         File reportDir = new File( work.getWorkDir(), "report/" + testApplication.getId() + "/" + scanId );
-        if (!reportDir.mkdirs()) {
-            throw new IllegalStateException("Failed to create Report directory");
+        if ( !reportDir.mkdirs() )
+        {
+            throw new IllegalStateException( "Failed to create Report directory" );
         }
         // copy zip
         FileUtils.copyFile( srcFile, new File( reportDir, "report.zip" ) );

@@ -111,8 +111,7 @@ public class LabelConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( appId, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( appId, new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );

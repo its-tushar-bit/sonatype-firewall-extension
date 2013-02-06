@@ -65,8 +65,7 @@ public class RelativePopularityConditionType
         }
         catch ( NumberFormatException e )
         {
-            throw new InvalidConditionException( condition, "Invalid relative popularity: "
-                + condition.getValue() );
+            throw new InvalidConditionException( condition, "Invalid relative popularity: " + condition.getValue() );
         }
     }
 

@@ -81,8 +81,7 @@ public class AgeInDaysConditionType
         }
         catch ( NumberFormatException e )
         {
-            throw new InvalidConditionException( condition, "Invalid age (in days): "
-                + condition.getValue() );
+            throw new InvalidConditionException( condition, "Invalid age (in days): " + condition.getValue() );
         }
     }
 

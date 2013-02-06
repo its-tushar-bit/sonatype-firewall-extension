@@ -29,7 +29,7 @@ public class ConditionValueTypeResourceTest
         Application application = new Application();
         application.setPublicId( appPublicId );
         applicationDAO.insert( application );
-        
+
         final Response response = RestAccess.get( getServiceURL( appPublicId ) );
         assertResponseStatus( 200, response );
         final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );

@@ -24,7 +24,7 @@ public interface ConditionType
     String getValueHint();
 
     String generateDroolsCode( Condition condition );
-    
+
     void validateCondition( Condition condition, String applicationId )
         throws InvalidConditionException;
 }

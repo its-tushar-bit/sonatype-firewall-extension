@@ -51,6 +51,7 @@ public class ReportClientTest
         applicationsToDelete.add( application );
         return application;
     }
+
     @Test
     public void testScanIdNull()
     {

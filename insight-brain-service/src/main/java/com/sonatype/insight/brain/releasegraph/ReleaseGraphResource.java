@@ -65,8 +65,7 @@ public class ReleaseGraphResource
             }
 
             throw new RuntimeException( "Error creating popularity graph for " + groupId + ":" + artifactId + ":"
-                + version
-                + " for report " + scanId, e );
+                + version + " for report " + scanId, e );
         }
     }
 }

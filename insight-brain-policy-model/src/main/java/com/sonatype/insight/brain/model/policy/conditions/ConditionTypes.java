@@ -21,6 +21,7 @@ public class ConditionTypes
         add( new LabelConditionType() );
         add( new LicenseConditionType() );
         add( new LicenseStatusConditionType() );
+        add( new LicenseThreatGroupConditionType() );
         add( new SecurityVulnerabilityConditionType() );
         add( new SecurityVulnerabilitySeverityConditionType() );
         add( new SecurityVulnerabilityStatusConditionType() );

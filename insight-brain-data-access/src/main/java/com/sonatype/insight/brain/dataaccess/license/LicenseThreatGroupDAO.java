@@ -33,6 +33,15 @@ public class LicenseThreatGroupDAO
         return getList( sQuery, applicationId );
     }
 
+    public LicenseThreatGroup getByApplicationIdAndLicenseId( String applicationId, String licenseId )
+    {
+        String sQuery = "SELECT licenseThreatGroup" + //
+            " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
+            " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
+            " AND licenseThreatGroup.applicationId=?1 AND licenseThreatGroupLicense.licenseId=?2";
+        return get( sQuery, applicationId, licenseId );
+    }
+
     @Override
     protected LicenseThreatGroup getById( EntityManager em, String id )
     {

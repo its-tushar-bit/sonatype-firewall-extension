@@ -7,12 +7,15 @@ package com.sonatype.insight.brain.model.component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 public class Component
 {
@@ -29,6 +32,8 @@ public class Component
     private Set<String> observedLicenseIds = new LinkedHashSet<String>();
 
     private Set<String> overriddenLicenseIds = new LinkedHashSet<String>();
+
+    private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<String, LicenseThreatGroup>();
 
     private LicenseStatus licenseStatus;
 
@@ -336,5 +341,19 @@ public class Component
     public boolean hasLabelId( String labelId )
     {
         return labelIds.contains( labelId );
+    }
+
+    public void addLicenseThreatGroup( LicenseThreatGroup licenseThreatGroup )
+    {
+        if ( licenseThreatGroup == null )
+        {
+            return;
+        }
+        licenseThreatGroupsById.put( licenseThreatGroup.getId(), licenseThreatGroup );
+    }
+
+    public boolean hasLicenseInLicenseThreatGroup( String licenseThreatGroupId )
+    {
+        return licenseThreatGroupsById.keySet().contains( licenseThreatGroupId );
     }
 }

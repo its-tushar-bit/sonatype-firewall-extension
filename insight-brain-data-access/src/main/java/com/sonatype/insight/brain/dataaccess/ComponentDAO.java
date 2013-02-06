@@ -17,6 +17,7 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -30,6 +31,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class ComponentDAO
 {
     private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+
+    private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
     public List<Component> getAll( String applicationId, final byte[] licenseData, final byte[] securityData,
                                    final byte[] bomData, final byte[] dependencyData )
@@ -205,6 +208,12 @@ public class ComponentDAO
         result.addAll( componentsByGAV.values() );
         result.addAll( unknownComponents );
 
+        // Load license threat group data
+        for ( Component component : result )
+        {
+            loadLicenseThreatGroups( applicationId, component );
+        }
+        
         // Load label data
         ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
         for ( Component component : result )
@@ -217,6 +226,22 @@ public class ComponentDAO
             }
         }
         return result;
+    }
+
+    public void loadLicenseThreatGroups( String applicationId, Component component )
+    {
+        Set<String> licenseIds = new LinkedHashSet<String>();
+        licenseIds.addAll( component.getOverriddenLicenseIds() );
+        if ( licenseIds.isEmpty() )
+        {
+            licenseIds.addAll( component.getDeclaredLicenseIds() );
+            licenseIds.addAll( component.getObservedLicenseIds() );
+        }
+        for ( String licenseId : licenseIds )
+        {
+            component.addLicenseThreatGroup( licenseThreatGroupDAO.getByApplicationIdAndLicenseId( applicationId,
+                                                                                                   licenseId ) );
+        }
     }
 
     private Set<String> multiLicenseNamesToLicenseIds( List<String> multiLicenseNames )

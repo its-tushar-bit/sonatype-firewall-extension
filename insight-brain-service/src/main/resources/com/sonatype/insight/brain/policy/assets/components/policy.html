@@ -138,6 +138,8 @@
 								</select>
 								<select ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.shortDisplayName for c in condition.valueType.availableValues" style="vertical-align:top;" required>
 								</select>
+								<select ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseThreatGroupValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
+								</select>
 								<select ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'LicenseStatusValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>
 								</select>
 								<select ng-model="condition.value" ng-show="condition.valueType.availableValues && condition.valueType.id == 'MatchStateValueType'" ng-multiple="condition.valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in condition.valueType.availableValues" style="vertical-align:top;" required>

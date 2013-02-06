@@ -21,6 +21,7 @@ public class ConditionValueTypes
         allConditionValueTypes.add( new FloatValueType() );
         allConditionValueTypes.add( new LabelValueType( applicationId ) );
         allConditionValueTypes.add( new LicenseStatusValueType() );
+        allConditionValueTypes.add( new LicenseThreatGroupValueType( applicationId ) );
         allConditionValueTypes.add( new LicenseValueType() );
         allConditionValueTypes.add( new MatchStateValueType() );
         allConditionValueTypes.add( new PercentageValueType() );

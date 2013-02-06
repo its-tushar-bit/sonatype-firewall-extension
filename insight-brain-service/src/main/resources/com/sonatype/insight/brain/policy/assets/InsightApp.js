@@ -76,7 +76,7 @@ var insightApp;
 (function () {
 	"use strict";
 
-	insightApp = angular.module('insightApp', ['Labels', 'Policy', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+	insightApp = angular.module('insightApp', ['Labels', 'Policy', 'LicenseGroup', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
 		$routeProvider.when('/policy', {
 			templateUrl : 'components/policy.html?' + clmBuildTimestamp,
 			controller : 'InsightPolicyController'
@@ -86,7 +86,8 @@ var insightApp;
 			controller : 'LabelController'
 		});
 		$routeProvider.when('/license-group', {
-			templateUrl : 'components/license-group.html?' + clmBuildTimestamp
+			templateUrl : 'components/license-group.html?' + clmBuildTimestamp,
+			controller : 'InsightLicenseGroupController'
 		});
 		$routeProvider.otherwise({redirectTo : '/policy'});
 	}]);

@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -51,6 +53,11 @@ public class TestInsightBrainService
         final Configuration configuration = new Configuration();
         configuration.setServerUrl( "http://localhost:" + testPort );
         return configuration;
+    }
+
+    public Application createApplicationID( String applicationPublicId )
+    {
+        return new ApplicationDAO().getOrInsertByPublicId( applicationPublicId );
     }
 
     public void start()

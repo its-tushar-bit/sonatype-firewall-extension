@@ -100,6 +100,7 @@ public class ReleaseGraphPerformance
             String scanId = createReport( work );
             for ( int u = 0; u < usersPerReport; u++ )
             {
+                @SuppressWarnings( "unchecked" )
                 List<GAVPopularity>[] connections = new LinkedList[connectionsPerUser];
                 int c = 0;
                 for ( GAVPopularity gav : gavs )
@@ -267,7 +268,6 @@ public class ReleaseGraphPerformance
     }
 
     private UserCallable createUser( String scanId, List<GAVPopularity> gavs )
-        throws IOException
     {
         return new UserCallable( scanId, reportResource, gavs );
     }

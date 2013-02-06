@@ -25,6 +25,7 @@ import org.codehaus.plexus.util.IOUtil;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.GAVPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -38,6 +39,8 @@ public class ReleaseGraphPerformance
     private List<UserCallable> callables;
 
     private File srcFile = new File( "src/test/resources/report.popularity.json.zip" ).getAbsoluteFile();
+
+    private Application testApplication;
 
     private ReleaseGraphResource reportResource;
 
@@ -56,8 +59,9 @@ public class ReleaseGraphPerformance
         Field field = ReleaseGraphResource.class.getDeclaredField( "work" );
         field.setAccessible( true );
         field.set( reportResource, work );
+
         // trigger db
-        new ApplicationDAO().getById( "bom1-12345678" );
+        testApplication = new ApplicationDAO().getOrInsertByPublicId( "bom1-12345678" );
     }
 
     ReleaseGraphPerformance( int reports, int users, InsightWork work )
@@ -253,7 +257,7 @@ public class ReleaseGraphPerformance
     {
         String scanId = UUID.randomUUID().toString().replace( "-", "" );
         // create report structure
-        File reportDir = new File( work.getWorkDir(), "report/bom1-12345678_ID/" + scanId );
+        File reportDir = new File( work.getWorkDir(), "report/" + testApplication.getId() + "/" + scanId );
         if (!reportDir.mkdirs()) {
             throw new IllegalStateException("Failed to create Report directory");
         }

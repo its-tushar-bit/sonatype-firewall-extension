@@ -10,7 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class PercentageValueType
-    implements ConditionValueType<Float>
+    implements ConditionValueType<Integer>
 {
     public static final String ID = "PercentageValueType";
 
@@ -33,7 +33,7 @@ public class PercentageValueType
     }
 
     @Override
-    public List<Float> getAvailableValues()
+    public List<Integer> getAvailableValues()
     {
         return null;
     }

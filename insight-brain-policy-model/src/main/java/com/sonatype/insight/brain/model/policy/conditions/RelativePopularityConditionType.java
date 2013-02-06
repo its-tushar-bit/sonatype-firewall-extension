@@ -10,7 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
-import com.sonatype.insight.brain.model.policy.conditions.valuetype.FloatValueType;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageValueType;
 
 public class RelativePopularityConditionType
     extends AbstractConditionType
@@ -46,7 +46,7 @@ public class RelativePopularityConditionType
     @Override
     public String getValueTypeId()
     {
-        return FloatValueType.ID;
+        return PercentageValueType.ID;
     }
 
     @Override

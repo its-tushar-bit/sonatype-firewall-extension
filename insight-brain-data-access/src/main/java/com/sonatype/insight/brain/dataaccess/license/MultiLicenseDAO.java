@@ -100,7 +100,7 @@ public class MultiLicenseDAO
         return license;
     }
 
-    public Set<License> getLicensesById( String id )
+    public Set<License> getLicensesByMultiLicenseId( String id )
     {
         if ( licenseSetsById == null )
         {
@@ -112,7 +112,7 @@ public class MultiLicenseDAO
     public LicenseCategory getSafestLicenseCategoryById( String id )
     {
         LicenseCategory safestCategory = null;
-        Set<License> licenses = getLicensesById( id );
+        Set<License> licenses = getLicensesByMultiLicenseId( id );
         for ( License license : licenses )
         {
             LicenseCategory category = new LicenseCategoryDAO().getById( license.getLicenseCategoryId() );

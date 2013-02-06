@@ -47,7 +47,7 @@ public class LicenseThreatGroupLicenseDAOTest
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setApplicationId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "UNSPECIFIED" );
+        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         dao.insert( licenseThreatGroupLicense );
         Assert.assertNotNull( licenseThreatGroupLicense.getId() );
 
@@ -90,13 +90,13 @@ public class LicenseThreatGroupLicenseDAOTest
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setApplicationId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group1.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "UNSPECIFIED" );
+        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         dao.insert( licenseThreatGroupLicense );
 
         licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setApplicationId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group2.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "UNSPECIFIED" );
+        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         try
         {
             dao.insert( licenseThreatGroupLicense );
@@ -128,7 +128,7 @@ public class LicenseThreatGroupLicenseDAOTest
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setApplicationId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "BAZINGAAA" );
+        licenseThreatGroupLicense.setLicenseId( "BAZINGAAA" );
         try
         {
             dao.insert( licenseThreatGroupLicense );
@@ -148,6 +148,6 @@ public class LicenseThreatGroupLicenseDAOTest
     {
         Assert.assertEquals( applicationId, actual.getApplicationId() );
         Assert.assertEquals( licenseThreatGroupId, actual.getLicenseThreatGroupId() );
-        Assert.assertEquals( multiLicenseId, actual.getMultiLicenseId() );
+        Assert.assertEquals( multiLicenseId, actual.getLicenseId() );
     }
 }

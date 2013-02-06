@@ -80,7 +80,7 @@ public class LicenseThreatGroupDAOTest
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setApplicationId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setMultiLicenseId( "UNSPECIFIED" );
+        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         licenseThreatGroupLicenseDAO.insert( licenseThreatGroupLicense );
 
         // Delete

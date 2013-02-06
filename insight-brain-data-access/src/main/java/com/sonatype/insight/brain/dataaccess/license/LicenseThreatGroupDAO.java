@@ -5,17 +5,26 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
+    private static final Logger log = LoggerFactory.getLogger( LicenseThreatGroupDAO.class );
+
     public List<LicenseThreatGroup> getByApplicationId( String applicationId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
@@ -82,5 +91,67 @@ public class LicenseThreatGroupDAO
             licenseThreatGroupLicenseDAO.delete( em, licenseThreatGroupLicense );
         }
         super.delete( em, licenseThreatGroup );
+    }
+
+    public void createDefaultGroups( EntityManager em, String applicationId )
+    {
+        long start = System.currentTimeMillis();
+
+        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+
+        Map<String, LicenseThreatGroup> licenseThreatGroupsByName = new LinkedHashMap<String, LicenseThreatGroup>();
+        List<License> allLicenses = new LicenseDAO().getAll();
+        for ( License license : allLicenses )
+        {
+            String licenseCategoryId = license.getLicenseCategoryId();
+            if ( licenseCategoryId == null )
+            {
+                continue;
+            }
+            String licenseThreatGroupName = null;
+            int threatLevel = 0;
+            if ( LicenseCategory.COPYLEFT_ID.equals( licenseCategoryId ) )
+            {
+                licenseThreatGroupName = "Copyleft";
+                threatLevel = 9;
+            }
+            else if ( LicenseCategory.NON_STANDARD_ID.equals( licenseCategoryId ) )
+            {
+                licenseThreatGroupName = "Non Standard";
+                threatLevel = 6;
+            }
+            else if ( LicenseCategory.WEAKCOPYLEFT_ID.equals( licenseCategoryId ) )
+            {
+                licenseThreatGroupName = "Weak Copyleft";
+                threatLevel = 2;
+            }
+            else if ( LicenseCategory.LIBERAL_ID.equals( licenseCategoryId ) )
+            {
+                licenseThreatGroupName = "Liberal";
+                threatLevel = 0;
+            }
+            else
+            {
+                throw new IllegalStateException( "Unknown license category id: " + licenseCategoryId );
+            }
+            LicenseThreatGroup licenseThreatGroup = licenseThreatGroupsByName.get( licenseThreatGroupName );
+            if ( licenseThreatGroup == null )
+            {
+                licenseThreatGroup = new LicenseThreatGroup();
+                licenseThreatGroup.setApplicationId( applicationId );
+                licenseThreatGroup.setName( licenseThreatGroupName );
+                licenseThreatGroup.setThreatLevel( threatLevel );
+                insert( em, licenseThreatGroup );
+                licenseThreatGroupsByName.put( licenseThreatGroupName, licenseThreatGroup );
+            }
+            LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
+            licenseThreatGroupLicense.setApplicationId( applicationId );
+            licenseThreatGroupLicense.setLicenseThreatGroupId( licenseThreatGroup.getId() );
+            licenseThreatGroupLicense.setLicenseId( license.getId() );
+            licenseThreatGroupLicenseDAO.insert( em, licenseThreatGroupLicense );
+        }
+
+        log.debug( "Created default license threat groups for application id {} in {} ms.", applicationId,
+                   System.currentTimeMillis() - start );
     }
 }

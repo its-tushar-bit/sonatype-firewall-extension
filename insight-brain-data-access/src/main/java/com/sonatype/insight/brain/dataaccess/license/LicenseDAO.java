@@ -1,6 +1,6 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +23,17 @@ public class LicenseDAO
 
     private static volatile Map<String, License> licensesById = null;
 
-    @Override
-    public License getById( String id )
+    public LicenseDAO()
     {
-        if ( licensesById == null )
+        if ( licenses == null )
         {
             load();
         }
+    }
+
+    @Override
+    public License getById( String id )
+    {
         return licensesById.get( id );
     }
 
@@ -43,15 +47,6 @@ public class LicenseDAO
         return license;
     }
 
-    public Collection<License> getAllLicenses()
-    {
-        if ( licensesById == null )
-        {
-            load();
-        }
-        return licensesById.values();
-    }
-
     private synchronized void load()
     {
         long start = System.currentTimeMillis();
@@ -59,6 +54,7 @@ public class LicenseDAO
         String sQuery = "SELECT license FROM License license" + //
             " ORDER BY license.shortDisplayName";
         licenses = getList( sQuery );
+        licenses = Collections.unmodifiableList( licenses );
 
         Map<String, License> _licensesById = new LinkedHashMap<String, License>();
         for ( License license : licenses )

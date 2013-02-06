@@ -1,3 +1,1 @@
 schema.sql
-
-application.sql

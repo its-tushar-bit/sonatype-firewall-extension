@@ -9,7 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 
 public class ReleaseGraph
 {
@@ -93,13 +93,15 @@ public class ReleaseGraph
                                        Math.round( width ), (int) Math.round( height ) ) );
             }
         }
+
+        g.dispose();
     }
 
     public byte[] getBytes()
         throws IOException
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream( 1024 );
-        ImageIO.write( image, "png", out );
+        ImageIO.write( image, "png", new MemoryCacheImageOutputStream( out ) );
         return out.toByteArray();
     }
 }

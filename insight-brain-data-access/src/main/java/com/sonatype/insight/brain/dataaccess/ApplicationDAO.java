@@ -39,17 +39,27 @@ public class ApplicationDAO
 
     public Application getOrInsertByPublicId( String publicId )
     {
-        Application application = getByPublicId( publicId );
-        if ( application == null )
+        EntityManager em = createEntityManager();
+        try
         {
-            application = new Application();
-            application.setPublicId( publicId );
-            insert( application );
+            em.getTransaction().begin();
+            Application application = getByPublicId( em, publicId );
+            if ( application == null )
+            {
+                application = new Application();
+                application.setPublicId( publicId );
+                insert( em, application );
+            }
+            em.getTransaction().commit();
+            return application;
         }
-        return application;
+        finally
+        {
+            close( em );
+        }
     }
 
-    public Application getByPublicId( String publicId )
+    private Application getByPublicId( EntityManager em, String publicId )
     {
         if ( publicId == null || publicId.trim().isEmpty() )
         {
@@ -59,7 +69,20 @@ public class ApplicationDAO
         publicId = publicId.trim();
         String sQuery = "SELECT entity FROM Application entity" + //
             " WHERE entity.publicId=?1";
-        return get( sQuery, publicId );
+        return get( em, sQuery, publicId );
+    }
+
+    public Application getByPublicId( String publicId )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByPublicId( em, publicId );
+        }
+        finally
+        {
+            close( em );
+        }
     }
 
     public Application getByPublicIdNotNull( String publicId )

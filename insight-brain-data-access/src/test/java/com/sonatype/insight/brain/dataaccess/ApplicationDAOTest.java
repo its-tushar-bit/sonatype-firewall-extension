@@ -30,9 +30,13 @@ public class ApplicationDAOTest
         List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( applicationId );
         Assert.assertEquals( 4, licenseThreatGroups.size() );
         Assert.assertEquals( "Copyleft", licenseThreatGroups.get( 0 ).getName() );
+        Assert.assertEquals( 9, licenseThreatGroups.get( 0 ).getThreatLevel() );
         Assert.assertEquals( "Liberal", licenseThreatGroups.get( 1 ).getName() );
+        Assert.assertEquals( 0, licenseThreatGroups.get( 1 ).getThreatLevel() );
         Assert.assertEquals( "Non Standard", licenseThreatGroups.get( 2 ).getName() );
+        Assert.assertEquals( 6, licenseThreatGroups.get( 2 ).getThreatLevel() );
         Assert.assertEquals( "Weak Copyleft", licenseThreatGroups.get( 3 ).getName() );
+        Assert.assertEquals( 2, licenseThreatGroups.get( 3 ).getThreatLevel() );
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
             Assert.assertTrue( licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() ).size() > 0 );

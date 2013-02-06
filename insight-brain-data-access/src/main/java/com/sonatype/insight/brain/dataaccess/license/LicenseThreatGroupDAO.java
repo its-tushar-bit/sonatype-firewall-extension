@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
@@ -126,7 +125,7 @@ public class LicenseThreatGroupDAO
             }
             else
             {
-                throw new NotFoundException( "Unknown license category id: " + licenseCategoryId );
+                throw new IllegalStateException( "Unknown license category id: " + licenseCategoryId );
             }
             LicenseThreatGroup licenseThreatGroup = licenseThreatGroupsByName.get( licenseThreatGroupName );
             if ( licenseThreatGroup == null )

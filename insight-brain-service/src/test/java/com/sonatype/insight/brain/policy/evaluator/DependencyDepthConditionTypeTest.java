@@ -25,16 +25,16 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class DependencyDepthConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", DependencyDepthConditionType.ID, operator, value );
     }
 
     @Test
     public void testEvaluate()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( DependencyDepthConditionType.ID, "is direct dependency", null );
+        Constraint constraint = createConstraint( "is direct dependency", null );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

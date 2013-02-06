@@ -27,16 +27,16 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class AgeInDaysConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", AgeInDaysConditionType.ID, operator, value );
     }
 
     @Test
     public void testEvaluateOlderThan()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( AgeInDaysConditionType.ID, "older than", "11" );
+        Constraint constraint = createConstraint( "older than", "11" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -72,7 +72,7 @@ public class AgeInDaysConditionTypeTest
     public void testEvaluateYoungerThan()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( AgeInDaysConditionType.ID, "younger than", "11" );
+        Constraint constraint = createConstraint( "younger than", "11" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

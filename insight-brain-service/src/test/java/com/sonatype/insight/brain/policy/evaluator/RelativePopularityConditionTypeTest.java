@@ -27,16 +27,17 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class RelativePopularityConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", RelativePopularityConditionType.ID, operator,
+                                 value );
     }
 
     @Test
     public void testEvaluateEquals()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( RelativePopularityConditionType.ID, "=", "30" );
+        Constraint constraint = createConstraint( "=", "30" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -70,7 +71,7 @@ public class RelativePopularityConditionTypeTest
     public void testEvaluateLess()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( RelativePopularityConditionType.ID, "<", "30" );
+        Constraint constraint = createConstraint( "<", "30" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -104,7 +105,7 @@ public class RelativePopularityConditionTypeTest
     public void testEvaluateLessOrEqual()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( RelativePopularityConditionType.ID, "<=", "30" );
+        Constraint constraint = createConstraint( "<=", "30" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -140,7 +141,7 @@ public class RelativePopularityConditionTypeTest
     public void testEvaluateGreater()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( RelativePopularityConditionType.ID, ">", "30" );
+        Constraint constraint = createConstraint( ">", "30" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -174,7 +175,7 @@ public class RelativePopularityConditionTypeTest
     public void testEvaluateGreaterOrEqual()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( RelativePopularityConditionType.ID, ">=", "30" );
+        Constraint constraint = createConstraint( ">=", "30" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

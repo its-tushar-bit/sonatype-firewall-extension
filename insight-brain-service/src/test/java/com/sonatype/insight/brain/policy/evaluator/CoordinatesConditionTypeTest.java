@@ -26,16 +26,16 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class CoordinatesConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", CoordinatesConditionType.ID, operator, value );
     }
 
     @Test
     public void testEvaluateMatchExact()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( CoordinatesConditionType.ID, "match", "g2:a2:v2" );
+        Constraint constraint = createConstraint( "match", "g2:a2:v2" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -70,7 +70,7 @@ public class CoordinatesConditionTypeTest
     public void testEvaluateMatchGavWithSpaces()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( CoordinatesConditionType.ID, "match", "g1 : a1 : v1" );
+        Constraint constraint = createConstraint( "match", "g1 : a1 : v1" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -98,7 +98,7 @@ public class CoordinatesConditionTypeTest
     public void testEvaluateMatchWildcard()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( CoordinatesConditionType.ID, "match", "g2:a*:v2" );
+        Constraint constraint = createConstraint( "match", "g2:a*:v2" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -133,7 +133,7 @@ public class CoordinatesConditionTypeTest
     public void testEvaluateDoNotMatchExact()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( CoordinatesConditionType.ID, "do not match", "g2:a2:v2" );
+        Constraint constraint = createConstraint( "do not match", "g2:a2:v2" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -168,7 +168,7 @@ public class CoordinatesConditionTypeTest
     public void testEvaluateDoNotMatchWildcard()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( CoordinatesConditionType.ID, "do not match", "g2:a*:v2" );
+        Constraint constraint = createConstraint( "do not match", "g2:a*:v2" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

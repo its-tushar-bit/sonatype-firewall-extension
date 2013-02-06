@@ -28,16 +28,16 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class LicenseStatusConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", LicenseStatusConditionType.ID, operator, value );
     }
 
     @Test
     public void testEvaluateIs()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( LicenseStatusConditionType.ID, "is", "OPEN" );
+        Constraint constraint = createConstraint( "is", "OPEN" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -70,7 +70,7 @@ public class LicenseStatusConditionTypeTest
     public void testEvaluateIsNot()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( LicenseStatusConditionType.ID, "is not", "OPEN" );
+        Constraint constraint = createConstraint( "is not", "OPEN" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

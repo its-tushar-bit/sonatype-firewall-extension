@@ -68,9 +68,9 @@ public class LabelConditionTypeTest
         return application;
     }
 
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", LabelConditionType.ID, operator, value );
     }
 
     private LabelDAO labelDAO = new LabelDAO();
@@ -90,7 +90,7 @@ public class LabelConditionTypeTest
         String labelId2 = label2.getId();
 
         // Create policy constraints
-        Constraint constraint = createConstraint( LabelConditionType.ID, "is", labelId1 );
+        Constraint constraint = createConstraint( "is", labelId1 );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -137,7 +137,7 @@ public class LabelConditionTypeTest
         String labelId2 = label2.getId();
 
         // Create policy constraints
-        Constraint constraint = createConstraint( LabelConditionType.ID, "is not", labelId1 );
+        Constraint constraint = createConstraint( "is not", labelId1 );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

@@ -28,16 +28,16 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class MatchStateConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String conditionTypeId, String operator, String value )
+    private Constraint createConstraint( String operator, String value )
     {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", conditionTypeId, operator, value );
+        return createConstraint( "ConstraintId1", "Constraint Name 1", MatchStateConditionType.ID, operator, value );
     }
 
     @Test
     public void testEvaluateIs()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( MatchStateConditionType.ID, "is", "similar" );
+        Constraint constraint = createConstraint( "is", "similar" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 
@@ -72,7 +72,7 @@ public class MatchStateConditionTypeTest
     public void testEvaluateIsNot()
     {
         // Create policy constraints
-        Constraint constraint = createConstraint( MatchStateConditionType.ID, "is not", "similar" );
+        Constraint constraint = createConstraint( "is not", "similar" );
         List<Constraint> constraints = new ArrayList<Constraint>();
         constraints.add( constraint );
 

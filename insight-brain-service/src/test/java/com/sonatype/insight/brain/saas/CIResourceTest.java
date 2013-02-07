@@ -32,8 +32,9 @@ public class CIResourceTest
     public void testValidate()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest_AppId";
-        Application application = new ApplicationDAO().getByPublicId( applicationPublicId );
+        final String applicationPublicId = "CIResourceTest_testValidate_AppId";
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
 
         Response response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
@@ -46,6 +47,9 @@ public class CIResourceTest
         response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "Expired" ) );
+
+        application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        applicationDAO.delete( application );
     }
 
     @Test

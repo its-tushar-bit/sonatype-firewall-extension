@@ -37,28 +37,6 @@ public class ApplicationDAO
         return application;
     }
 
-    public Application getOrInsertByPublicId( String publicId )
-    {
-        EntityManager em = createEntityManager();
-        try
-        {
-            em.getTransaction().begin();
-            Application application = getByPublicId( em, publicId );
-            if ( application == null )
-            {
-                application = new Application();
-                application.setPublicId( publicId );
-                insert( em, application );
-            }
-            em.getTransaction().commit();
-            return application;
-        }
-        finally
-        {
-            close( em );
-        }
-    }
-
     private Application getByPublicId( EntityManager em, String publicId )
     {
         if ( publicId == null || publicId.trim().isEmpty() )

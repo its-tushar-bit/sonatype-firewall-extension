@@ -19,6 +19,7 @@ import org.junit.Test;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.db.DatabaseConfig;
 
 public class DatabaseAccessTest
@@ -109,7 +110,9 @@ public class DatabaseAccessTest
             long before = System.currentTimeMillis();
             try
             {
-                applicationDAO.getOrInsertByPublicId( appPublicId );
+                Application application = new Application();
+                application.setPublicId( appPublicId );
+                applicationDAO.insert( application );
             }
             catch ( Exception e )
             {

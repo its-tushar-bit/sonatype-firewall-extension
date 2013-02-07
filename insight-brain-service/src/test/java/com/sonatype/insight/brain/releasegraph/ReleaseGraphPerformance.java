@@ -61,7 +61,9 @@ public class ReleaseGraphPerformance
         field.set( reportResource, work );
 
         // trigger db
-        testApplication = new ApplicationDAO().getOrInsertByPublicId( "bom1-12345678" );
+        testApplication = new Application();
+        testApplication.setPublicId( "ReleaseGraphPerformance_AppId" );
+        new ApplicationDAO().insert( testApplication );
     }
 
     ReleaseGraphPerformance( int reports, int users, InsightWork work )
@@ -142,7 +144,7 @@ public class ReleaseGraphPerformance
             {
                 try
                 {
-                    reportResource.getImage( "bom1-12345678", scanId, "fake", "fake", "fake" );
+                    reportResource.getImage( "ReleaseGraphPerformance_AppId", scanId, "fake", "fake", "fake" );
                 }
                 catch ( Exception e )
                 {
@@ -316,7 +318,8 @@ public class ReleaseGraphPerformance
             for ( GAVPopularity gav : gavs )
             {
                 long start = System.currentTimeMillis();
-                resource.getImage( "bom1-12345678", scanId, gav.getGroupId(), gav.getArtifactId(), gav.getVersion() );
+                resource.getImage( "ReleaseGraphPerformance_AppId", scanId, gav.getGroupId(), gav.getArtifactId(),
+                                   gav.getVersion() );
                 results.put( gav, System.currentTimeMillis() - start );
             }
             return results;

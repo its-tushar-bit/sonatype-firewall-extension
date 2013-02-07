@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -37,7 +36,9 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class LabelConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
+    private static String applicationPublicId = "LabelConditionTypeTest";
+
+    private static String applicationId;
 
     @AfterClass
     public static void afterClass()
@@ -48,24 +49,20 @@ public class LabelConditionTypeTest
     @After
     public void cleanup()
     {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        for ( Application application : applicationsToDelete )
+        for ( Label label : labelDAO.getByApplicationId( applicationId ) )
         {
-            for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
-            {
-                labelDAO.delete( label );
-            }
-            applicationDAO.delete( application );
+            labelDAO.delete( label );
         }
-        applicationsToDelete.clear();
     }
 
-    private Application createApplication( String publicId )
+    @BeforeClass
+    public static void createApplication()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getOrInsertByPublicId( publicId );
-        applicationsToDelete.add( application );
-        return application;
+        Application application = new Application();
+        application.setPublicId( applicationPublicId );
+        applicationDAO.insert( application );
+        applicationId = application.getId();
     }
 
     private Constraint createConstraint( String operator, String value )
@@ -78,14 +75,11 @@ public class LabelConditionTypeTest
     @Test
     public void testEvaluateIs()
     {
-        // Create an application and some labels
-        String applicationPublicId = "LabelConditionTypeTest";
-        Application application = createApplication( applicationPublicId );
-        String appId = application.getId();
-        Label label1 = new Label( appId, "Good", Color.green );
+        // Create some labels
+        Label label1 = new Label( applicationId, "Good", Color.green );
         labelDAO.insert( label1 );
         String labelId1 = label1.getId();
-        Label label2 = new Label( appId, "Bad", Color.red );
+        Label label2 = new Label( applicationId, "Bad", Color.red );
         labelDAO.insert( label2 );
         String labelId2 = label2.getId();
 
@@ -111,7 +105,8 @@ public class LabelConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( appId, new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( applicationId, new Stage( BuildStageType.ID ), Arrays.asList( policy ),
+                                            components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -124,14 +119,11 @@ public class LabelConditionTypeTest
     @Test
     public void testEvaluateIsNot()
     {
-        // Create an application and some labels
-        String applicationPublicId = "LabelConditionTypeTest";
-        Application application = createApplication( applicationPublicId );
-        String appId = application.getId();
-        Label label1 = new Label( appId, "Good", Color.green );
+        // Create some labels
+        Label label1 = new Label( applicationId, "Good", Color.green );
         labelDAO.insert( label1 );
         String labelId1 = label1.getId();
-        Label label2 = new Label( appId, "Bad", Color.red );
+        Label label2 = new Label( applicationId, "Bad", Color.red );
         labelDAO.insert( label2 );
         String labelId2 = label2.getId();
 
@@ -157,7 +149,8 @@ public class LabelConditionTypeTest
 
         // Evaluate the policy
         List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( appId, new Stage( BuildStageType.ID ), Arrays.asList( policy ), components );
+            new PolicyEvaluator().evaluate( applicationId, new Stage( BuildStageType.ID ), Arrays.asList( policy ),
+                                            components );
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
@@ -172,13 +165,10 @@ public class LabelConditionTypeTest
     @Test
     public void testValidateCondition_InvalidLabelId()
     {
-        String applicationPublicId = "LabelConditionTypeTest";
-        Application application = createApplication( applicationPublicId );
-        String appId = application.getId();
         Condition condition = new Condition( LabelConditionType.ID, "is", "abc" );
         try
         {
-            new LabelConditionType().validateCondition( condition, appId );
+            new LabelConditionType().validateCondition( condition, applicationId );
             Assert.fail( "Expected InvalidConditionException" );
         }
         catch ( InvalidConditionException expected )

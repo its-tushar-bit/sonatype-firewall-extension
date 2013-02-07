@@ -48,7 +48,9 @@ public abstract class AbstractResourceTest
     protected Application createApplication( String publicId )
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getOrInsertByPublicId( publicId );
+        Application application = new Application();
+        application.setPublicId( publicId );
+        applicationDAO.insert( application );
         applicationsToDelete.add( application );
         return application;
     }

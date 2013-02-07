@@ -55,9 +55,12 @@ public class TestInsightBrainService
         return configuration;
     }
 
-    public Application createApplicationID( String applicationPublicId )
+    public Application createApplication( String applicationPublicId )
     {
-        return new ApplicationDAO().getOrInsertByPublicId( applicationPublicId );
+        Application application = new Application();
+        application.setPublicId( applicationPublicId );
+        new ApplicationDAO().insert( application );
+        return application;
     }
 
     public void start()

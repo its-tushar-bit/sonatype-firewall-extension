@@ -7,13 +7,11 @@ package com.sonatype.insight.brain.client;
 
 import java.io.File;
 import java.net.URL;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -25,7 +23,7 @@ import com.sonatype.insight.client.utils.ServletResult;
 public class ReportClientTest
     extends AbstractBrainServiceTest
 {
-    private Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
+    private static String applicationPublicId = "ReportClientTest_AppId";
 
     @AfterClass
     public static void afterClass()
@@ -33,23 +31,13 @@ public class ReportClientTest
         DataSourceFactory.unloadAll();
     }
 
-    @After
-    public void cleanup()
+    @BeforeClass
+    public static void createApplication()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        for ( Application application : applicationsToDelete )
-        {
-            applicationDAO.delete( application );
-        }
-        applicationsToDelete.clear();
-    }
-
-    private Application createApplication( String publicId )
-    {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getOrInsertByPublicId( publicId );
-        applicationsToDelete.add( application );
-        return application;
+        Application application = new Application();
+        application.setPublicId( applicationPublicId );
+        applicationDAO.insert( application );
     }
 
     @Test
@@ -84,8 +72,6 @@ public class ReportClientTest
     public void testEmbedReport()
         throws Exception
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
-        createApplication( applicationPublicId );
         final String scanId = "ReportClientTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
@@ -114,8 +100,6 @@ public class ReportClientTest
     public void testPrintReport()
         throws Exception
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
-        createApplication( applicationPublicId );
         final String scanId = "ReportClientTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
@@ -139,8 +123,6 @@ public class ReportClientTest
     public void testAugmentData()
         throws Exception
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
-        createApplication( applicationPublicId );
         final String scanId = "ReportClientTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
@@ -157,8 +139,6 @@ public class ReportClientTest
     public void testAuditLog()
         throws Exception
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
-        createApplication( applicationPublicId );
         final String scanId = "ReportClientTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
@@ -190,8 +170,6 @@ public class ReportClientTest
     public void testArtifactDetails()
         throws Exception
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
-        createApplication( applicationPublicId );
         final String scanId = "ReportClientTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();

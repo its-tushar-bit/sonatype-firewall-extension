@@ -1,0 +1,102 @@
+<div style="border:1px solid black;width:600px;padding:1px;">
+	<table style="width:100%;border-left:2px solid black;border-right:2px solid black;border-top:2px solid black;border-bottom:2px solid black;vertical-align:middle;">
+		<tr>
+			<td><img src="../assets/img/sonatype-32.png" style="vertical-align:middle;"/><span style="vertical-align:middle;padding-left:3px;">Sonatype CLM</span></td>
+			<td style="text-align:right;">Policy Violation Alerts</td>
+		</tr>
+	</table>
+	<table style="width:100%;border-left:2px solid black;border-right:2px solid black;font-size:12px;" >
+		<tr>
+			<td>Stage:</td>
+			<td>Build</td>
+			<td>My App:</td>
+			<td>Foo</td>
+		</tr>
+		<tr>
+			<td>When:</td>
+			<td>January 10, 2013</td>
+			<td>Where:</td>
+			<td>Hudson-10</td>
+		</tr>
+	</table>
+	<table style="width:100%;border:2px dashed black;">
+		<tr>
+			<td>New Alerts:</td>
+			<td>
+				<div style="width:30px;height:30px;line-height:30px;text-align:center;display:inline;background-color:#EE1B24;margin:2px;">2</div>
+				<div style="width:30px;height:30px;line-height:30px;text-align:center;display:inline;background-color:#F7941D;margin:2px;">2</div>
+				<div style="width:30px;height:30px;line-height:30px;text-align:center;display:inline;background-color:#FEDF15;margin:2px;">0</div>
+				<div style="width:30px;height:30px;line-height:30px;text-align:center;display:inline;background-color:#6E99D0;margin:2px;">0</div>
+			</td>
+			<td>Last Action:</td>
+			<td style="color:red;font-style:italic;font-weight:bold;">Build was failed.</td>
+		</tr>
+	</table>
+	<table style="width: 100%;border-left:2px solid black;border-right:2px solid black;font-size: 12px;border-collapse: collapse;">
+		<tr>
+			<td style="width:50%;vertical-align:top;border-bottom:2px solid black;padding:4px;">	
+				<div style="width:30px;height:30px;display:inline;background-color:#EE1B24;display:inline;vertical-align:middle;"></div><div style="display:inline;vertical-align:middle;padding-left:3px;"><b>Policy 1</b></div>
+			</td>
+			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
+				<div><b>GAV:</b></div>
+				<div>Component1:Components:3.1</div>
+				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+				<div style="padding-left:20px;">- Foo</div>
+				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+				<div style="padding-left:40px;">- License is GPL</div>
+				<div style="padding-left:20px;"><b>Action</b></div>
+				<div style="padding-left:20px;">- Build was failed</div>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%;vertical-align:top;border-bottom:2px solid black;padding:4px;">	
+				<div style="width:30px;height:30px;display:inline;background-color:#EE1B24;display:inline;vertical-align:middle;"></div><div style="display:inline;vertical-align:middle;padding-left:3px;"><b>Policy 1</b></div>
+			</td>
+			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
+				<div><b>GAV:</b></div>
+				<div>Component2:Components:3.1</div>
+				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+				<div style="padding-left:20px;">- Foo</div>
+				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+				<div style="padding-left:40px;">- Component Match State is Unknown</div>
+				<div style="padding-left:20px;"><b>Action</b></div>
+				<div style="padding-left:20px;">- Build was failed</div>
+				<div style="padding-left:20px;">- Notification sent</div>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%;vertical-align:top;border-bottom:2px solid black;padding:4px;">	
+				<div style="width:30px;height:30px;display:inline;background-color:#F7941D;display:inline;vertical-align:middle;"></div><div style="display:inline;vertical-align:middle;padding-left:3px;"><b>Policy 2</b></div>
+			</td>
+			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
+				<div><b>GAV:</b></div>
+				<div>Component1:Components:3.1</div>
+				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+				<div style="padding-left:20px;">- Stop</div>
+				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+				<div style="padding-left:40px;">- Age is greater than 3 years</div>
+				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+				<div style="padding-left:20px;">- Borked</div>
+				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+				<div style="padding-left:40px;">- Security Vulnerability is Present</div>
+				<div style="padding-left:20px;"><b>Action</b></div>
+				<div style="padding-left:20px;">- Build warning</div>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%;vertical-align:top;border-bottom:2px solid black;padding:4px;">	
+				<div style="width:30px;height:30px;display:inline;background-color:#F7941D;display:inline;vertical-align:middle;"></div><div style="display:inline;vertical-align:middle;padding-left:3px;"><b>Policy 2</b></div>
+			</td>
+			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
+				<div><b>GAV:</b></div>
+				<div>Component2:Components:3.1</div>
+				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+				<div style="padding-left:20px;">- Borked</div>
+				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+				<div style="padding-left:40px;">- Security Vulnerability is Present</div>
+				<div style="padding-left:20px;"><b>Action</b></div>
+				<div style="padding-left:20px;">- Notification sent</div>
+			</td>
+		</tr>
+	</table>
+</div>

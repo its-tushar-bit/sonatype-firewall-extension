@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -17,7 +18,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.HttpStatusCode;
 
-@Path( "rest/report/releaseGraph" )
+@Path( "rest/report/{applicationId}/{scanId}/releaseGraph" )
 public class ReleaseGraphResource
 {
     private static final Logger log = LoggerFactory.getLogger( ReleaseGraphResource.class );
@@ -38,8 +39,8 @@ public class ReleaseGraphResource
     }
 
     @GET
-    public Response getImage( @QueryParam( "applicationId" ) final String applicationPublicId,
-                              @QueryParam( "scanId" ) final String scanId, @QueryParam( "groupId" ) String groupId,
+    public Response getImage( @PathParam( "applicationId" ) final String applicationPublicId,
+                              @PathParam( "scanId" ) final String scanId, @QueryParam( "groupId" ) String groupId,
                               @QueryParam( "artifactId" ) String artifactId, @QueryParam( "version" ) String version )
     {
         log.debug( "Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId );

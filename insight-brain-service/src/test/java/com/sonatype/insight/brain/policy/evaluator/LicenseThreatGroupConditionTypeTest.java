@@ -304,7 +304,7 @@ public class LicenseThreatGroupConditionTypeTest
     }
 
     @Test
-    public void testValidateCondition_InvalidLicenseId()
+    public void testValidateCondition_InvalidLicenseThreatGroupId()
     {
         Condition condition = new Condition( LicenseThreatGroupConditionType.ID, "is", "abc" );
         try

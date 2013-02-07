@@ -34,6 +34,13 @@ public class ComponentLabelDAOTest
         {
             dao.delete( componentLabel );
         }
+
+        LabelDAO labelDAO = new LabelDAO();
+        List<Label> labels = labelDAO.getByApplicationId( applicationId );
+        for ( Label label : labels )
+        {
+            labelDAO.delete( label );
+        }
     }
 
     @Test

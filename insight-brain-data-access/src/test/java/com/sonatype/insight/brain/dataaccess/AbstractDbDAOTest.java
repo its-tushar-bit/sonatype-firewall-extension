@@ -31,6 +31,13 @@ public abstract class AbstractDbDAOTest
     @AfterClass
     public static void tearDown()
     {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getById( applicationId );
+        if ( application != null )
+        {
+            applicationDAO.delete( application );
+        }
+
         DataSourceFactory.unloadAll();
     }
 }

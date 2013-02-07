@@ -19,6 +19,7 @@ public class ConditionValueTypes
         allConditionValueTypes.add( new AgeInDaysValueType() );
         allConditionValueTypes.add( new CoordinatesValueType() );
         allConditionValueTypes.add( new FloatValueType() );
+        allConditionValueTypes.add( new IntegerValueType() );
         allConditionValueTypes.add( new LabelValueType( applicationId ) );
         allConditionValueTypes.add( new LicenseStatusValueType() );
         allConditionValueTypes.add( new LicenseThreatGroupValueType( applicationId ) );

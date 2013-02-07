@@ -30,6 +30,17 @@ public class LicenseThreatGroup
     @Column( name = "threat_level" )
     private int threatLevel;
 
+    public LicenseThreatGroup()
+    {
+    }
+
+    public LicenseThreatGroup( String applicationId, String name, int threatLevel )
+    {
+        this.applicationId = applicationId;
+        this.name = name;
+        this.threatLevel = threatLevel;
+    }
+
     @Override
     public String getId()
     {

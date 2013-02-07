@@ -149,6 +149,28 @@ public class Component
         return result;
     }
 
+    public List<LicenseThreatGroup> getLicenseThreatGroupsByLevel( int threatLevel, String operator )
+    {
+        if ( licenseThreatGroupsById.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+
+        List<LicenseThreatGroup> result = new ArrayList<LicenseThreatGroup>();
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroupsById.values() )
+        {
+            if ( ">=".equals( operator ) && ( licenseThreatGroup.getThreatLevel() >= threatLevel ) )
+            {
+                result.add( licenseThreatGroup );
+            }
+            else if ( "<=".equals( operator ) && ( licenseThreatGroup.getThreatLevel() <= threatLevel ) )
+            {
+                result.add( licenseThreatGroup );
+            }
+        }
+        return result;
+    }
+
     public List<SecurityVulnerability> getSecurityVulnerabilities()
     {
         if ( securityVulnerabilities == null )

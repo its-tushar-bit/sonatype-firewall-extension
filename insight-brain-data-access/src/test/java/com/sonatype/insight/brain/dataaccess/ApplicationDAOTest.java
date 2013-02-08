@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,22 +68,22 @@ public class ApplicationDAOTest
         String applicationId = application.getId();
 
         Assert.assertEquals( appPublicId, application.getPublicId() );
-        Assert.assertEquals( appPublicId.toLowerCase(), application.getPublicIdLowercase() );
+        Assert.assertEquals( appPublicId.toLowerCase( Locale.ENGLISH ), application.getPublicIdLowercase() );
 
         application = applicationDAO.getById( applicationId );
         Assert.assertNotNull( application );
         Assert.assertEquals( appPublicId, application.getPublicId() );
-        Assert.assertEquals( appPublicId.toLowerCase(), application.getPublicIdLowercase() );
+        Assert.assertEquals( appPublicId.toLowerCase( Locale.ENGLISH ), application.getPublicIdLowercase() );
 
         application = applicationDAO.getByPublicId( appPublicId );
         Assert.assertNotNull( application );
         Assert.assertEquals( applicationId, application.getId() );
 
-        application = applicationDAO.getByPublicId( appPublicId.toLowerCase() );
+        application = applicationDAO.getByPublicId( appPublicId.toLowerCase( Locale.ENGLISH ) );
         Assert.assertNotNull( application );
         Assert.assertEquals( applicationId, application.getId() );
 
-        application = applicationDAO.getByPublicId( appPublicId.toUpperCase() );
+        application = applicationDAO.getByPublicId( appPublicId.toUpperCase( Locale.ENGLISH ) );
         Assert.assertNotNull( application );
         Assert.assertEquals( applicationId, application.getId() );
     }

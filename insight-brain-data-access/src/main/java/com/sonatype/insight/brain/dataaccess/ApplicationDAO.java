@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import java.util.Locale;
 
 import javax.persistence.EntityManager;
 
@@ -44,7 +45,7 @@ public class ApplicationDAO
             throw new DataAccessException( "The application public ID cannot be null or empty." );
         }
 
-        publicId = publicId.trim().toLowerCase();
+        publicId = publicId.trim().toLowerCase( Locale.ENGLISH );
         String sQuery = "SELECT entity FROM Application entity" + //
             " WHERE entity.publicIdLowercase=?1";
         return get( em, sQuery, publicId );

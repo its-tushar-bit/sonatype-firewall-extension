@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.label;
 
+import java.util.Locale;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -79,7 +81,7 @@ public class Label
         if ( label != null )
         {
             label = label.trim();
-            labelLowercase = label.toLowerCase();
+            labelLowercase = label.toLowerCase( Locale.ENGLISH );
         }
         else
         {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model;
 
+import java.util.Locale;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -49,7 +51,7 @@ public class Application
         if ( publicId != null )
         {
             publicId = publicId.trim();
-            publicIdLowercase = publicId.toLowerCase();
+            publicIdLowercase = publicId.toLowerCase( Locale.ENGLISH );
         }
         else
         {

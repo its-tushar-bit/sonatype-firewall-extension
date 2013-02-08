@@ -24,6 +24,9 @@ public class Application
     @Column( name = "public_id" )
     private String publicId;
 
+    @Column( name = "public_id_lowercase" )
+    private String publicIdLowercase;
+
     @Override
     public String getId()
     {
@@ -43,6 +46,31 @@ public class Application
 
     public void setPublicId( String publicId )
     {
+        if ( publicId != null )
+        {
+            publicId = publicId.trim();
+            publicIdLowercase = publicId.toLowerCase();
+        }
+        else
+        {
+            publicIdLowercase = null;
+        }
         this.publicId = publicId;
+    }
+
+    public String getPublicIdLowercase()
+    {
+        return publicIdLowercase;
+    }
+
+    /**
+     * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+     * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
+     * directly via reflection, possibly setting it to an incorrect value.
+     * 
+     * @deprecated This method should not be used explicitly.
+     */
+    public void setPublicIdLowercase( String publicIdLowercase )
+    {
     }
 }

@@ -54,4 +54,36 @@ public class ApplicationDAOTest
         application = applicationDAO.getById( applicationId );
         Assert.assertNull( application );
     }
+
+    @Test
+    public void testPublicIdIsCaseInsensitive()
+    {
+        String appPublicId = "testPublicIdIsCaseInsensitive";
+
+        Application application = new Application();
+        application.setPublicId( appPublicId );
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        applicationDAO.insert( application );
+        String applicationId = application.getId();
+
+        Assert.assertEquals( appPublicId, application.getPublicId() );
+        Assert.assertEquals( appPublicId.toLowerCase(), application.getPublicIdLowercase() );
+
+        application = applicationDAO.getById( applicationId );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( appPublicId, application.getPublicId() );
+        Assert.assertEquals( appPublicId.toLowerCase(), application.getPublicIdLowercase() );
+
+        application = applicationDAO.getByPublicId( appPublicId );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( applicationId, application.getId() );
+
+        application = applicationDAO.getByPublicId( appPublicId.toLowerCase() );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( applicationId, application.getId() );
+
+        application = applicationDAO.getByPublicId( appPublicId.toUpperCase() );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( applicationId, application.getId() );
+    }
 }

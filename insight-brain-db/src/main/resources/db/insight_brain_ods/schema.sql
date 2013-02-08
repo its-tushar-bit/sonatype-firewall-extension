@@ -7,7 +7,8 @@ CREATE TABLE test_table (
 -- The public_id column is what we expose as AppID to the user
 CREATE TABLE application (
   application_id varchar(50) NOT NULL,
-  public_id varchar(50) NOT NULL,
+  public_id varchar(60) NOT NULL,
+  public_id_lowercase varchar(60) NOT NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE KEY (public_id)
 );

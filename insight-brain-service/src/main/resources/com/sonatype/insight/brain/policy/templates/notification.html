@@ -21,7 +21,7 @@
 	</table>
 	<table style="width:100%;border:2px dashed black;">
 		<tr>
-			<td>New Alerts:</td>
+			<td style="white-space: nowrap;width:5%;">New Alerts:</td>
 			<td>
 				<table>
 					<tr>
@@ -32,8 +32,6 @@
 					</tr>
 				</table>
 			</td>
-			<td>Last Action:</td>
-			<td style="color:red;font-style:italic;font-weight:bold;">Build was failed.</td>
 		</tr>
 	</table>
 	<table style="width: 100%;border-left:2px solid black;border-right:2px solid black;font-size: 12px;border-collapse: collapse;">
@@ -44,17 +42,24 @@
 						<td style="width:30px;height:30px;background-color:#EE1B24;"></td>
 						<td style="vertical-align:middle;"><b>Policy 1</b></td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<div><b>GAV:</b></div>
+							<div>Component1:Components:3.1</div>
+						</td>
+					</tr>
 				</table>
 			</td>
 			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
-				<div><b>GAV:</b></div>
-				<div>Component1:Components:3.1</div>
-				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
-				<div style="padding-left:20px;">- Foo</div>
-				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
-				<div style="padding-left:40px;">- License is GPL</div>
-				<div style="padding-left:20px;"><b>Action</b></div>
-				<div style="padding-left:20px;">- Build was failed</div>
+				<div style="background-color:#E6E6E6;">
+					<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+					<div style="padding-left:20px;">- Foo</div>
+					<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+					<div style="padding-left:40px;">- License is GPL</div>
+					<div style="padding-left:20px;"><b>Action</b></div>
+					<div style="padding-left:20px;">- Build was failed</div>
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -64,18 +69,25 @@
 						<td style="width:30px;height:30px;background-color:#EE1B24;"></td>
 						<td style="vertical-align:middle;"><b>Policy 1</b></td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<div><b>GAV:</b></div>
+							<div>Component2:Components:3.1</div>
+						</td>
+					</tr>
 				</table>
 			</td>
 			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
-				<div><b>GAV:</b></div>
-				<div>Component2:Components:3.1</div>
-				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
-				<div style="padding-left:20px;">- Foo</div>
-				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
-				<div style="padding-left:40px;">- Component Match State is Unknown</div>
-				<div style="padding-left:20px;"><b>Action</b></div>
-				<div style="padding-left:20px;">- Build was failed</div>
-				<div style="padding-left:20px;">- Notification sent</div>
+				<div style="background-color:#E6E6E6;">
+					<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+					<div style="padding-left:20px;">- Foo</div>
+					<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+					<div style="padding-left:40px;">- Component Match State is Unknown</div>
+					<div style="padding-left:20px;"><b>Action</b></div>
+					<div style="padding-left:20px;">- Build was failed</div>
+					<div style="padding-left:20px;">- Notification sent</div>
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -85,21 +97,28 @@
 						<td style="width:30px;height:30px;background-color:#F7941D;"></td>
 						<td style="vertical-align:middle;"><b>Policy 2</b></td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<div><b>GAV:</b></div>
+							<div>Component1:Components:3.1</div>
+						</td>
+					</tr>
 				</table>
 			</td>
 			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
-				<div><b>GAV:</b></div>
-				<div>Component1:Components:3.1</div>
-				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
-				<div style="padding-left:20px;">- Stop</div>
-				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
-				<div style="padding-left:40px;">- Age is greater than 3 years</div>
-				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
-				<div style="padding-left:20px;">- Borked</div>
-				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
-				<div style="padding-left:40px;">- Security Vulnerability is Present</div>
-				<div style="padding-left:20px;"><b>Action</b></div>
-				<div style="padding-left:20px;">- Build warning</div>
+				<div style="background-color:#E6E6E6;">
+					<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+					<div style="padding-left:20px;">- Stop</div>
+					<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+					<div style="padding-left:40px;">- Age is greater than 3 years</div>
+					<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+					<div style="padding-left:20px;">- Borked</div>
+					<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+					<div style="padding-left:40px;">- Security Vulnerability is Present</div>
+					<div style="padding-left:20px;"><b>Action</b></div>
+					<div style="padding-left:20px;">- Build warning</div>
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -109,17 +128,24 @@
 						<td style="width:30px;height:30px;background-color:#F7941D;"></td>
 						<td style="vertical-align:middle;"><b>Policy 2</b></td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<div><b>GAV:</b></div>
+							<div>Component2:Components:3.1</div>
+						</td>
+					</tr>
 				</table>
 			</td>
 			<td style="width:50%;border-bottom:2px solid black;padding:4px;">
-				<div><b>GAV:</b></div>
-				<div>Component2:Components:3.1</div>
-				<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
-				<div style="padding-left:20px;">- Borked</div>
-				<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
-				<div style="padding-left:40px;">- Security Vulnerability is Present</div>
-				<div style="padding-left:20px;"><b>Action</b></div>
-				<div style="padding-left:20px;">- Notification sent</div>
+				<div style="background-color:#E6E6E6;">
+					<div style="padding-left:20px;"><b>Constraint Violated:</b></div>
+					<div style="padding-left:20px;">- Borked</div>
+					<div style="padding-left:40px;"><b>Condition(s) Violated:</b></div>
+					<div style="padding-left:40px;">- Security Vulnerability is Present</div>
+					<div style="padding-left:20px;"><b>Action</b></div>
+					<div style="padding-left:20px;">- Notification sent</div>
+				</div>
 			</td>
 		</tr>
 	</table>

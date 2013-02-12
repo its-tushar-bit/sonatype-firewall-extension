@@ -127,6 +127,10 @@ public class SaasClient
         StringBuilder uri = new StringBuilder( config.getServerUrl() );
         for ( String path : paths )
         {
+            if ( path.length() == 0 )
+            {
+                continue;
+            }
             if ( uri.charAt( uri.length() - 1 ) == '/' )
             {
                 if ( path.charAt( 0 ) == '/' )
@@ -135,7 +139,7 @@ public class SaasClient
                 }
                 else
                 {
-                    uri.append( path, 1, path.length() - 1 );
+                    uri.append( path );
                 }
             }
             else

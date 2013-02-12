@@ -47,23 +47,23 @@ public class SaasClient
         HttpUriRequest cloudReq;
         if ( "GET".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpGet( buildUri( paths ) );
+            cloudReq = new HttpGet( buildUri( request.getQueryString(), paths ) );
         }
         else if ( "POST".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPost( buildUri( paths ) );
+            cloudReq = new HttpPost( buildUri( request.getQueryString(), paths ) );
             ( (HttpPost) cloudReq ).setEntity( new InputStreamEntity( request.getInputStream(),
                                                                       request.getContentLength() ) );
         }
         else if ( "PUT".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( paths ) );
+            cloudReq = new HttpPut( buildUri( request.getQueryString(), paths ) );
             ( (HttpPut) cloudReq ).setEntity( new InputStreamEntity( request.getInputStream(),
                                                                      request.getContentLength() ) );
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( paths ) );
+            cloudReq = new HttpPut( buildUri( request.getQueryString(), paths ) );
         }
         else
         {
@@ -122,7 +122,7 @@ public class SaasClient
         return builder.build();
     }
 
-    private String buildUri( String... paths )
+    private String buildUri( String queryString, String... paths )
     {
         StringBuilder uri = new StringBuilder( config.getServerUrl() );
         for ( String path : paths )
@@ -150,6 +150,10 @@ public class SaasClient
                 }
                 uri.append( path );
             }
+        }
+        if ( queryString != null )
+        {
+            uri.append( '?' ).append( queryString );
         }
         return uri.toString();
     }

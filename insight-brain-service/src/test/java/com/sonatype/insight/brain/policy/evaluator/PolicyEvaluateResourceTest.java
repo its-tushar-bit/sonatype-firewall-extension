@@ -8,10 +8,14 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
+
+import javax.mail.Message;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
@@ -66,7 +70,9 @@ public class PolicyEvaluateResourceTest
         final Policy policy1 = new Policy( "P1", "PolicyEvaluateResourceTest policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
-        policy1.addAction( BuildStageType.ID, new Action( NotifyActionType.ID ) );
+        final Action notifyAction = new Action( NotifyActionType.ID );
+        notifyAction.setTarget( "manager@test.corp" );
+        policy1.addAction( BuildStageType.ID, notifyAction );
         addPolicy( applicationPublicId, policy1 );
 
         final Constraint constraint2 =
@@ -102,6 +108,11 @@ public class PolicyEvaluateResourceTest
         Assert.assertNotNull( policyThreats );
         Assert.assertTrue( policyThreats.size() > 0 );
         Assert.assertEquals( 8, policyThreats.get( 0 ).get( "policyThreatLevel" ).asInt() );
+
+        // notification message should also have been sent
+        final List<Message> messages = Mailbox.get( "manager@test.corp" );
+        Assert.assertEquals( 1, messages.size() );
+        Assert.assertTrue( messages.get( 0 ).getSubject().contains( "Policy" ) );
     }
 
     @Test

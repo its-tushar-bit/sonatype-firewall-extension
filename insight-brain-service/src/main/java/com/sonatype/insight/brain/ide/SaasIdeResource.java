@@ -37,4 +37,12 @@ public class SaasIdeResource
     {
         return client.doProxy( req, path );
     }
+
+    @GET
+    @Path( "scan/{path:.*}" )
+    public Response doScan( @PathParam( "path" ) String path, @Context HttpServletRequest req )
+        throws IOException
+    {
+        return client.doProxy( req, "rest/ide/scan", path );
+    }
 }

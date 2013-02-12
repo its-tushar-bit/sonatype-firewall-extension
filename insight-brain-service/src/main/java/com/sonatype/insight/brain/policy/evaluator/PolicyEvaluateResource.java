@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.micromailer.Address;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,15 +33,18 @@ import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
 import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -61,6 +66,9 @@ public class PolicyEvaluateResource
 
     @Context
     private InsightProxy proxy;
+
+    @Context
+    private InsightMail mail;
 
     @Context
     private UriInfo uriInfo;
@@ -93,10 +101,14 @@ public class PolicyEvaluateResource
         final List<Component> components =
             new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
                                        dependenciesReportEntry.buf );
-        final List<PolicyAlert> result = new PolicyEvaluator().evaluate( appId, stage, policies, components );
 
+        final List<PolicyAlert> result = new PolicyEvaluator().evaluate( appId, stage, policies, components );
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( result ) ) );
-        Report.putEntry( reportFile, "policythreats.html", summarizeThreats( appId, scanId, result ) );
+
+        final String policyThreatsHtml = summarizeThreats( appId, scanId, result );
+        Report.putEntry( reportFile, "policythreats.html", policyThreatsHtml );
+
+        sendNotifications( "SONATYPE-CLM-" + applicationPublicId + "-" + scanId, policyThreatsHtml, result );
 
         return result;
     }
@@ -156,7 +168,7 @@ public class PolicyEvaluateResource
         model.put( "policyThreatOrangeCount", 3 );
         model.put( "policyThreatYellowCount", 2 );
         model.put( "policyThreatBlueCount", 5 );
-        
+
         //TODO: policyThreatStage
         //TODO: policyThreatApp
         //TODO: policyThreatTime
@@ -182,5 +194,31 @@ public class PolicyEvaluateResource
             policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate( "policythreats.ftl" );
         }
         return policyThreatsTemplate;
+    }
+
+    private void sendNotifications( final String mailId, final String body, final List<PolicyAlert> policyAlerts )
+    {
+        try
+        {
+            final List<Address> recipients = new ArrayList<Address>();
+            for ( final PolicyAlert policyAlert : policyAlerts )
+            {
+                for ( final Action action : policyAlert.getActions() )
+                {
+                    if ( NotifyActionType.ID.equals( action.getActionTypeId() ) )
+                    {
+                        recipients.add( new Address( action.getTarget() ) );
+                    }
+                }
+            }
+            if ( !recipients.isEmpty() )
+            {
+                mail.sendHtml( mailId, recipients, "Sonatype-CLM Policy Alert", body );
+            }
+        }
+        catch ( final Exception e )
+        {
+            log.warn( "Unable to send notifications", e );
+        }
     }
 }

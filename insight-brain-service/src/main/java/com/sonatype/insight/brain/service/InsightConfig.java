@@ -29,7 +29,13 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
-    private MailConfig mail = new MailConfig();
+    private MailConfig mail = new MailConfig()
+    {
+        {
+            setHostname( "127.0.0.1" );
+            setPort( 587 );
+        }
+    };
 
     @NotNull
     @JsonProperty

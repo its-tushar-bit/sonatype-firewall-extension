@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.sonatype.micromailer.Address;
 import org.sonatype.micromailer.EMailer;
 import org.sonatype.micromailer.MailComposer;
 import org.sonatype.micromailer.MailRequest;
-import org.sonatype.micromailer.MailRequestStatus;
 import org.sonatype.micromailer.MailSender;
 import org.sonatype.micromailer.MailStorage;
 import org.sonatype.micromailer.MailType;
@@ -33,6 +33,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.sonatype.insight.portal.mail.EmailUtil;
 import com.sonatype.insight.portal.mail.InsightMailType;
 import com.sonatype.insight.portal.mail.InsightMailer;
 
@@ -46,14 +47,15 @@ public class InsightMail
         insightMailer = new InsightMailer( buildEmailer(), config.getMailConfig() );
     }
 
-    public MailRequest compose( final String subject, final String body )
+    public void sendHtml( final String mailId, final List<Address> to, final String subject, final String body )
     {
-        return insightMailer.getDefaultMailRequest( subject, body );
-    }
+        final MailRequest message = new MailRequest( mailId, HtmlMailType.HTML_TYPE_ID );
 
-    public MailRequestStatus send( final MailRequest request )
-    {
-        return insightMailer.sendMail( request );
+        message.setToAddresses( to );
+        message.setExpandedSubject( subject );
+        message.setExpandedBody( body );
+
+        EmailUtil.waitForMailStatus( insightMailer.sendMail( message ) );
     }
 
     private static EMailer buildEmailer()

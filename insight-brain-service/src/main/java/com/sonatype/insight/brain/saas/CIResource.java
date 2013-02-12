@@ -29,6 +29,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.application.ApplicationResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -60,29 +61,16 @@ public class CIResource
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
+    /**
+     * @deprecated Use ApplicationResource.validateToken() instead.
+     */
     @GET
     @Path( "validate/{applicationPublicId}" )
     @Produces( MediaType.TEXT_PLAIN )
     public String validateToken( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws Exception
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
-
-        String result = uploader.validateToken( proxy.contextualize( request ) );
-        log.debug( "validateToken({}) result:{}", applicationPublicId, result );
-
-        if ( "OK".equals( result ) )
-        {
-            // The token is valid. Create an application object for it if it doesn't exist already.
-            if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
-            {
-                Application application = new Application();
-                application.setPublicId( applicationPublicId );
-                applicationDAO.insert( application );
-            }
-        }
-
-        return result;
+        return ApplicationResource.validateApplicationPublicId( applicationPublicId, proxy );
     }
 
     @PUT

@@ -38,11 +38,11 @@
 		<#list policyAlerts as alert>
 			<tr>
 				<td style="height:1px;width:4%;border-bottom:2px solid black;padding:4 0 4 4;">
-					<#if alert.threatLevel > 7>
+					<#if (alert.trigger.threatLevel > 7)>
 						<div style="height:100%;background-color:#EE1B24;"></div>
-					<#elseif alert.threatLevel > 3>
+					<#elseif (alert.trigger.threatLevel > 3)>
 						<div style="height:100%;background-color:#F7941D;"></div>
-					<#elseif alert.threatLevel > 0>
+					<#elseif (alert.trigger.threatLevel > 0)>
 						<div style="height:100%;background-color:#FEDF15;"></div>
 					<#else>
 						<div style="height:100%;background-color:#6E99D0;"></div>
@@ -50,24 +50,24 @@
 				</td>
 				<td style="height:1px;width:31%;vertical-align:top;border-bottom:2px solid black;padding:4 4 4 0;">	
 					<div style="height:100%;background-color:#E6E6E6;">
-						<div style="padding-left:4px;"><b>${alert.name}</b></div>
+						<div style="padding-left:4px;"><b>${alert.trigger.policyName}</b></div>
 						<div style="padding-left:40px;padding-top:5px;color:#6E99D0;">
 							<#list alert.actions as action>
-								<div><i><b>${action}</b></i></div>
+								<div><i><b>${action.actionTypeId}</b></i></div>
 							</#list>
 						</div>
 					</div>
 				</td>
 				<td style="height:1px;width:65%;border-bottom:2px solid black;padding:4 4 4 0;">
 					<div style="height:100%;background-color:#E6E6E6;">
-						<div style="border-bottom:1px solid black;"><b>GAV:</b> ${alert.coordinate}</div>
+						<div style="border-bottom:1px solid black;"><b>GAV:</b> groupId : artifactId : version</div>
 						<table style="font-size:14px;">
-							<#list alert.constraints as constraint>
+							<#list alert.trigger.constraintFacts as constraint>
 								<tr>
-									<td style="vertical-align:top;">${constraint.name}</td>
+									<td style="vertical-align:top;">${constraint.constraintName}</td>
 									<td style="padding-left:20px;">
-										<div>${constraint.conditionText}</div>
-										<div style="color:#6E99D0;">${constraint.failureText}</div>
+										<div>Condition Text</div>
+										<div style="color:#6E99D0;">Condition Failure Text</div>
 									</td>
 								</tr>
 							</#list>

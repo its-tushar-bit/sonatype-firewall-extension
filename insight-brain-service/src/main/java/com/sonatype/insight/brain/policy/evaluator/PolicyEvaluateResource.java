@@ -148,6 +148,28 @@ public class PolicyEvaluateResource
                        + "/embedReport/" );
 
         model.put( "policyAlerts", policyAlerts );
+        model.put( "policyThreatStage", "Build" );
+        model.put( "policyThreatApp", "Foo" );
+        model.put( "policyThreatTime", "January 10, 2013" );
+        model.put( "policyThreatLocation", "Hudson-10" );
+        model.put( "policyThreatRedCount", 4 );
+        model.put( "policyThreatOrangeCount", 3 );
+        model.put( "policyThreatYellowCount", 2 );
+        model.put( "policyThreatBlueCount", 5 );
+        
+        //TODO: policyThreatStage
+        //TODO: policyThreatApp
+        //TODO: policyThreatTime
+        //TODO: policyThreatLocation
+        //TODO: policyThreatRedCount
+        //TODO: policyThreatOrangeCount
+        //TODO: policyThreatYellowCount
+        //TODO: policyThreatBlueCount
+        //TODO: need to get proper action text into the DTO for display (i.e. Build failed, Notification Sent, etc.)
+        //TODO: need to get proper condition text and condition failure text into the DTO
+        //TODO: no need to have a list of ComponentFact objects in the ConstraintFact, as we are displaying 1 GAV per item
+        //seems should be rearranged to be like so policy -> constraints -> condition
+        //rather than how it is now, which doesn't seem to match what we need in the email at all
 
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }

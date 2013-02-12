@@ -27,7 +27,7 @@ public class SaasIdeResource
     public Response getCipResource( @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
-        return client.doProxy( path, req );
+        return client.doProxy( req, "ide", path );
     }
 
     @GET
@@ -35,6 +35,6 @@ public class SaasIdeResource
     public Response getDetailsResource( @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
-        return client.doProxy( path, req );
+        return client.doProxy( req, path );
     }
 }

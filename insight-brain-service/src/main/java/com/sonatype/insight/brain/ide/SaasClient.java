@@ -41,29 +41,29 @@ public class SaasClient
         // TODO Need to determine if there is additional information we should be sending to the SaaS
     }
 
-    public Response doProxy( String path, HttpServletRequest request )
+    public Response doProxy( HttpServletRequest request, String... paths )
         throws IOException
     {
         HttpUriRequest cloudReq;
         if ( "GET".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpGet( buildUri( path ) );
+            cloudReq = new HttpGet( buildUri( paths ) );
         }
         else if ( "POST".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPost( buildUri( path ) );
+            cloudReq = new HttpPost( buildUri( paths ) );
             ( (HttpPost) cloudReq ).setEntity( new InputStreamEntity( request.getInputStream(),
                                                                       request.getContentLength() ) );
         }
         else if ( "PUT".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( path ) );
+            cloudReq = new HttpPut( buildUri( paths ) );
             ( (HttpPut) cloudReq ).setEntity( new InputStreamEntity( request.getInputStream(),
                                                                      request.getContentLength() ) );
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( path ) );
+            cloudReq = new HttpPut( buildUri( paths ) );
         }
         else
         {
@@ -122,23 +122,31 @@ public class SaasClient
         return builder.build();
     }
 
-    private String buildUri( String path )
+    private String buildUri( String... paths )
     {
-        String base = config.getServerUrl();
-
-        boolean baseEnds = base.endsWith( "/" );
-        boolean pathStarts = path.startsWith( "/" );
-        if ( baseEnds && pathStarts )
+        StringBuilder uri = new StringBuilder( config.getServerUrl() );
+        for ( String path : paths )
         {
-            return base + path.substring( 1 );
+            if ( uri.charAt( uri.length() - 1 ) == '/' )
+            {
+                if ( path.charAt( 0 ) == '/' )
+                {
+                    uri.append( path, 1, path.length() - 1 );
+                }
+                else
+                {
+                    uri.append( path, 1, path.length() - 1 );
+                }
+            }
+            else
+            {
+                if ( path.charAt( 0 ) != '/' )
+                {
+                    uri.append( '/' );
+                }
+                uri.append( path );
+            }
         }
-        else if ( baseEnds || pathStarts )
-        {
-            return base + path;
-        }
-        else
-        {
-            return base + '/' + path;
-        }
+        return uri.toString();
     }
 }

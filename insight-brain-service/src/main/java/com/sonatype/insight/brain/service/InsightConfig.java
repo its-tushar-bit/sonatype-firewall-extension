@@ -10,6 +10,7 @@ import java.io.File;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sonatype.insight.portal.mail.MailConfig;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.HttpConfiguration;
 
@@ -28,6 +29,10 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
+    private MailConfig mail = new MailConfig();
+
+    @NotNull
+    @JsonProperty
     private String saasAddress = "https://insight.sonatype.com/";
 
     @NotNull
@@ -37,6 +42,11 @@ public class InsightConfig
     @NotNull
     @JsonProperty
     private int releaseGraphCacheSize = 1000;
+
+    public MailConfig getMailConfig()
+    {
+        return mail;
+    }
 
     public int getReleaseGraphCacheSize()
     {
@@ -56,6 +66,11 @@ public class InsightConfig
     public File getConfigDir()
     {
         return new File( sonatypeWork, "config" );
+    }
+
+    public void setMailConfig( final MailConfig mailConfig )
+    {
+        this.mail = mailConfig;
     }
 
     public void setReleaseGraphCacheSize( int releaseGraphCacheSize )

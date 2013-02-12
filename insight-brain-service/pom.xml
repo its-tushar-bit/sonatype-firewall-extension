@@ -65,6 +65,11 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-portal-mail</artifactId>
+      <version>${insight-saas.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-error-handling</artifactId>
     </dependency>
 

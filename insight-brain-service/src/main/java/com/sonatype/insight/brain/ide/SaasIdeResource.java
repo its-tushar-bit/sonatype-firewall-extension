@@ -31,11 +31,13 @@ public class SaasIdeResource
     }
 
     @GET
-    @Path( "details/{path:.*}" )
-    public Response getDetailsResource( @PathParam( "path" ) String path, @Context HttpServletRequest req )
+    @Path( "details/{appId}/{path:.*}" )
+    public Response getDetailsResource( @PathParam( "path" ) String path,
+                                        @PathParam( "appId" ) String applicationPublicId,
+                                        @Context HttpServletRequest req )
         throws IOException
     {
-        return client.doProxy( req, path );
+        return client.doProxy( req, "rest/ide/artifact/detail/", applicationPublicId, path );
     }
 
     @GET

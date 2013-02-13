@@ -10,7 +10,7 @@ CREATE TABLE application (
   public_id varchar(60) NOT NULL,
   public_id_lowercase varchar(60) NOT NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
-  CONSTRAINT application_uk UNIQUE KEY (public_id)
+  CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase)
 );
 
 CREATE TABLE label (

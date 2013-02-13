@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.model.policy.facts;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.component.Component;
 
@@ -18,27 +21,18 @@ public class ComponentFact
 
     private String hash;
 
-    private String constraintId;
-
-    private int conditionNumber;
+    private List<ConstraintFact> constraintFacts;
 
     public ComponentFact()
     {
     }
 
-    public ComponentFact( final Component component, final String constraintId )
-    {
-        this( component, constraintId, -1 /* indicates all conditions */);
-    }
-
-    public ComponentFact( final Component component, final String constraintId, final int conditionNumber )
+    public ComponentFact( final Component component )
     {
         this.groupId = component.getGroupId();
         this.artifactId = component.getArtifactId();
         this.version = component.getVersion();
         this.hash = component.getHash();
-        this.constraintId = constraintId;
-        this.conditionNumber = conditionNumber;
     }
 
     @JsonIgnore
@@ -62,24 +56,29 @@ public class ComponentFact
         return version;
     }
 
-    public String getConstraintId()
+    public String getHash()
     {
-        return constraintId;
+        return hash;
     }
 
-    public int getConditionNumber()
+    public List<ConstraintFact> getConstraintFacts()
     {
-        return conditionNumber;
+        return constraintFacts;
+    }
+
+    public void addConstraintFact( final ConstraintFact constraintFact )
+    {
+        if ( constraintFacts == null )
+        {
+            constraintFacts = new ArrayList<ConstraintFact>();
+        }
+        constraintFacts.add( constraintFact );
     }
 
     @Override
     public String toString()
     {
-        return "\n  Component(gav=" + groupId + ':' + artifactId + ':' + version + ", hash=" + hash + ") ";
-    }
-
-    public String getHash()
-    {
-        return hash;
+        return "\n Component(gav=" + groupId + ':' + artifactId + ':' + version + ", hash=" + hash + ") "
+            + constraintFacts;
     }
 }

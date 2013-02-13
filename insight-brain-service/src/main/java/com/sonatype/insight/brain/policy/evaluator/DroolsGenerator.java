@@ -31,12 +31,10 @@ public class DroolsGenerator
 
         final StringBuilder droolsCode = new StringBuilder();
 
-        droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.component.SecurityVulnerability\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.ComponentFact\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.ConstraintFact\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.PolicyFact\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.component.*\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.license.*\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.*\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.*\n" );
 
         for ( final Policy policy : policies )
         {
@@ -88,7 +86,8 @@ public class DroolsGenerator
 
                     droolsCode.append( INDENT ).append( ")\n" );
                     droolsCode.append( "then\n" );
-                    droolsCode.append( INDENT ).append( "insert( new ComponentFact( $component, \"" ).append( constraint.getId() ).append( "\" ) );\n" );
+                    droolsCode.append( INDENT ).append( "insert( new MatchFact( $component, \"" ).append( policy.getId() ).append( "\", \"" );
+                    droolsCode.append( constraint.getId() ).append( "\" ) );\n" );
                     droolsCode.append( "end\n" );
                 }
                 else
@@ -108,7 +107,8 @@ public class DroolsGenerator
 
                         droolsCode.append( INDENT ).append( ")\n" );
                         droolsCode.append( "then\n" );
-                        droolsCode.append( INDENT ).append( "insert( new ComponentFact( $component, \"" ).append( constraint.getId() ).append( "\", " ).append( conditionIndex ).append( " ) );\n" );
+                        droolsCode.append( INDENT ).append( "insert( new MatchFact( $component, \"" ).append( policy.getId() ).append( "\", \"" );
+                        droolsCode.append( constraint.getId() ).append( "\", " ).append( conditionIndex ).append( " ) );\n" );
                         droolsCode.append( "end\n" );
 
                         conditionIndex++;

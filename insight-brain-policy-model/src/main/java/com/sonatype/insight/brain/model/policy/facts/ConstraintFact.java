@@ -16,7 +16,7 @@ public class ConstraintFact
 
     private String constraintName;
 
-    private List<ComponentFact> componentFacts;
+    private List<ConditionFact> conditionFacts;
 
     public ConstraintFact()
     {
@@ -38,23 +38,23 @@ public class ConstraintFact
         return constraintName;
     }
 
-    public List<ComponentFact> getComponentFacts()
+    public List<ConditionFact> getConditionFacts()
     {
-        return componentFacts;
+        return conditionFacts;
     }
 
-    public void addComponentFact( final ComponentFact componentFact )
+    public void addConditionFact( final ConditionFact conditionFact )
     {
-        if ( componentFacts == null )
+        if ( conditionFacts == null )
         {
-            componentFacts = new ArrayList<ComponentFact>();
+            conditionFacts = new ArrayList<ConditionFact>();
         }
-        componentFacts.add( componentFact );
+        conditionFacts.add( conditionFact );
     }
 
     @Override
     public String toString()
     {
-        return "\n Constraint(" + constraintName + ") " + componentFacts + " ";
+        return "\n  Constraint(" + constraintName + ") " + conditionFacts + " ";
     }
 }

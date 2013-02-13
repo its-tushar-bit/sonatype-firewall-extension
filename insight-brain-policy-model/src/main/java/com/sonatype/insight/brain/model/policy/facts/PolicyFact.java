@@ -18,7 +18,7 @@ public class PolicyFact
 
     private int threatLevel;
 
-    private List<ConstraintFact> constraintFacts;
+    private List<ComponentFact> componentFacts;
 
     public PolicyFact()
     {
@@ -46,23 +46,23 @@ public class PolicyFact
         return threatLevel;
     }
 
-    public List<ConstraintFact> getConstraintFacts()
+    public List<ComponentFact> getComponentFacts()
     {
-        return constraintFacts;
+        return componentFacts;
     }
 
-    public void addConstraintFact( final ConstraintFact constraintFact )
+    public void addComponentFact( final ComponentFact componentFact )
     {
-        if ( constraintFacts == null )
+        if ( componentFacts == null )
         {
-            constraintFacts = new ArrayList<ConstraintFact>();
+            componentFacts = new ArrayList<ComponentFact>();
         }
-        constraintFacts.add( constraintFact );
+        componentFacts.add( componentFact );
     }
 
     @Override
     public String toString()
     {
-        return "\nPolicy(" + policyName + ") " + constraintFacts;
+        return "\nPolicy(" + policyName + ") " + componentFacts;
     }
 }

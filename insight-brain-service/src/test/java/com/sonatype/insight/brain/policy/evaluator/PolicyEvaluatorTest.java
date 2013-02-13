@@ -71,7 +71,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -130,7 +130,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -146,7 +146,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -182,7 +182,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -197,7 +197,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -215,7 +215,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 3, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
@@ -235,7 +235,7 @@ public class PolicyEvaluatorTest
 
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
-        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getConstraintFacts().size() );
+        Assert.assertEquals( 4, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );

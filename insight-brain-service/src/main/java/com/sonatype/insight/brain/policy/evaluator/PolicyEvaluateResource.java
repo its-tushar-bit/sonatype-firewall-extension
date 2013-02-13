@@ -120,25 +120,25 @@ public class PolicyEvaluateResource
         {
             final PolicyFact trigger = alert.getTrigger();
             final int threatLevel = trigger.getThreatLevel();
-            for ( final ConstraintFact constraint : trigger.getConstraintFacts() )
+            for ( final ComponentFact component : trigger.getComponentFacts() )
             {
-                for ( final ComponentFact component : constraint.getComponentFacts() )
+                final String gav = component.getGAV();
+                ObjectNode threat = (ObjectNode) componentThreats.get( gav );
+                if ( threat == null )
                 {
-                    final String gav = component.getGAV();
-                    ObjectNode threat = (ObjectNode) componentThreats.get( gav );
-                    if ( threat == null )
-                    {
-                        threat = JsonUtils.asTree( component );
-                        componentThreats.put( gav, threat );
-                    }
-                    if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
-                    {
-                        threat.put( "constraintId", constraint.getConstraintId() );
-                        threat.put( "constraintName", constraint.getConstraintName() );
-                        threat.put( "policyId", trigger.getPolicyId() );
-                        threat.put( "policyName", trigger.getPolicyName() );
-                        threat.put( "policyThreatLevel", threatLevel );
-                    }
+                    threat = JsonUtils.asTree( component );
+                    threat.remove( "constraintFacts" );
+                    componentThreats.put( gav, threat );
+                }
+                if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
+                {
+                    // log first constraint (must be at least one for component to be listed)
+                    final ConstraintFact constraint = component.getConstraintFacts().get( 0 );
+                    threat.put( "constraintId", constraint.getConstraintId() );
+                    threat.put( "constraintName", constraint.getConstraintName() );
+                    threat.put( "policyId", trigger.getPolicyId() );
+                    threat.put( "policyName", trigger.getPolicyName() );
+                    threat.put( "policyThreatLevel", threatLevel );
                 }
             }
         }

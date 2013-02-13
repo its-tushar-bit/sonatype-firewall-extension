@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
@@ -37,17 +39,23 @@ public abstract class AbstractPolicyEvaluationTest
     public static void assertFactCounts( int expectedConstraintFactCount, int expectedComponentFactCount,
                                          PolicyAlert actualPolicyAlert )
     {
-        List<ConstraintFact> constraintFacts = actualPolicyAlert.getTrigger().getConstraintFacts();
-        Assert.assertEquals( "Incorrect number of constraint facts", expectedConstraintFactCount,
-                             constraintFacts.size() );
+        List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
+        Assert.assertEquals( "Incorrect number of component facts", expectedComponentFactCount, componentFacts.size() );
 
-        int actualComponentFactCount = 0;
-        for ( ConstraintFact constraintFact : constraintFacts )
+        int actualConstraintFactCount = 0;
+        Set<String> observeredConstraints = new HashSet<String>();
+        for ( ComponentFact componentFact : componentFacts )
         {
-            actualComponentFactCount += constraintFact.getComponentFacts().size();
+            for ( ConstraintFact constraintFact : componentFact.getConstraintFacts() )
+            {
+                if ( observeredConstraints.add( constraintFact.getConstraintId() ) )
+                {
+                    actualConstraintFactCount++;
+                }
+            }
         }
-        Assert.assertEquals( "Incorrect number of component facts", expectedComponentFactCount,
-                             actualComponentFactCount );
+        Assert.assertEquals( "Incorrect number of constraint facts", expectedConstraintFactCount,
+                             actualConstraintFactCount );
     }
 
     public static void assertContainsPolicyAlert( Component expectedComponent, String expectedPolicyId,
@@ -62,18 +70,17 @@ public abstract class AbstractPolicyEvaluationTest
                 && expectedPolicyName.equals( policyFact.getPolicyName() )
                 && policyAlertContainsAction( actualPolicyAlert, actionTypeId ) )
             {
-                for ( ConstraintFact constraintFact : policyFact.getConstraintFacts() )
+                for ( ComponentFact componentFact : policyFact.getComponentFacts() )
                 {
-                    if ( expectedConstraintId.equals( constraintFact.getConstraintId() )
-                        && expectedConstraintName.equals( constraintFact.getConstraintName() ) )
+                    if ( StringUtils.equals( expectedComponent.getGroupId(), componentFact.getGroupId() )
+                        && StringUtils.equals( expectedComponent.getArtifactId(), componentFact.getArtifactId() )
+                        && StringUtils.equals( expectedComponent.getVersion(), componentFact.getVersion() )
+                        && StringUtils.equals( expectedComponent.getHash(), componentFact.getHash() ) )
                     {
-                        for ( ComponentFact componentFact : constraintFact.getComponentFacts() )
+                        for ( ConstraintFact constraintFact : componentFact.getConstraintFacts() )
                         {
-                            if ( StringUtils.equals( expectedComponent.getGroupId(), componentFact.getGroupId() )
-                                && StringUtils.equals( expectedComponent.getArtifactId(), componentFact.getArtifactId() )
-                                && StringUtils.equals( expectedComponent.getVersion(), componentFact.getVersion() )
-                                && StringUtils.equals( expectedComponent.getHash(), componentFact.getHash() )
-                                && expectedConstraintId.equals( componentFact.getConstraintId() ) )
+                            if ( expectedConstraintId.equals( constraintFact.getConstraintId() )
+                                && expectedConstraintName.equals( constraintFact.getConstraintName() ) )
                             {
                                 return;
                             }

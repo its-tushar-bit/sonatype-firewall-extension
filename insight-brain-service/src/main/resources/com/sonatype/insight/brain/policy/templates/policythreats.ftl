@@ -62,12 +62,19 @@
 					<div style="height:100%;background-color:#E6E6E6;">
 						<div style="border-bottom:1px solid black;"><b>GAV:</b> groupId : artifactId : version</div>
 						<table style="font-size:14px;">
-							<#list alert.trigger.constraintFacts as constraint>
+							<#list alert.trigger.componentFacts as component>
 								<tr>
-									<td style="vertical-align:top;">${constraint.constraintName}</td>
+									<td style="vertical-align:top;">${component.hash}</td>
 									<td style="padding-left:20px;">
-										<div>Condition Text</div>
-										<div style="color:#6E99D0;">Condition Failure Text</div>
+										<#list component.constraintFacts as constraint>
+											<tr>
+												<td style="vertical-align:top;">${constraint.constraintName}</td>
+												<td style="padding-left:20px;">
+													<div>Condition Text</div>
+													<div style="color:#6E99D0;">Condition Failure Text</div>
+												</td>
+											</tr>
+										</#list>
 									</td>
 								</tr>
 							</#list>

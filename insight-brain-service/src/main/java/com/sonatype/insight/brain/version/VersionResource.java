@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.version;
+
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import org.codehaus.plexus.util.IOUtil;
+
+@Path( VersionResource.SERVICE_PATH )
+public class VersionResource
+{
+    public static final String SERVICE_PATH = "rest/version";
+
+    @GET
+    @Produces( MediaType.APPLICATION_JSON )
+    public Properties getVersionInfo()
+        throws Exception
+    {
+        Properties props = new Properties();
+        InputStream is = getClass().getResourceAsStream( "version.properties" );
+        try
+        {
+            props.load( is );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+        return props;
+    }
+}

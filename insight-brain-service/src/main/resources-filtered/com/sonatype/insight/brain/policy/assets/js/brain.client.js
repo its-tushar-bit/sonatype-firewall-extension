@@ -23,6 +23,9 @@ var Brain;
 		},
 		"getVersion" : function () {
 			return "${project.version}";
-		}
+		},
+		'getArtifactInfoUrl' : function (arg) {
+		    return '/rest/ide/artifact/info/' + arg.appId + '?' + $.param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+	    }
 	};
 }());

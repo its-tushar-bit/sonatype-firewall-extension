@@ -20,17 +20,25 @@ public class ComponentFact
 
     private String constraintId;
 
+    private int conditionNumber;
+
     public ComponentFact()
     {
     }
 
     public ComponentFact( final Component component, final String constraintId )
     {
+        this( component, constraintId, -1 /* indicates all conditions */);
+    }
+
+    public ComponentFact( final Component component, final String constraintId, final int conditionNumber )
+    {
         this.groupId = component.getGroupId();
         this.artifactId = component.getArtifactId();
         this.version = component.getVersion();
         this.hash = component.getHash();
         this.constraintId = constraintId;
+        this.conditionNumber = conditionNumber;
     }
 
     @JsonIgnore
@@ -57,6 +65,11 @@ public class ComponentFact
     public String getConstraintId()
     {
         return constraintId;
+    }
+
+    public int getConditionNumber()
+    {
+        return conditionNumber;
     }
 
     @Override

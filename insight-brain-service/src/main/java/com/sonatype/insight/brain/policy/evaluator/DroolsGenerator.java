@@ -62,37 +62,58 @@ public class DroolsGenerator
                 }
 
                 droolsCode.append( "// Begin constraint: " ).append( constraint.getName() ).append( " (Id=" ).append( constraint.getId() ).append( ")\n" );
-                droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "\"\n" );
-                droolsCode.append( "when\n" );
-                droolsCode.append( INDENT ).append( "$component : Component\n" );
-                droolsCode.append( INDENT ).append( "(\n" );
 
-                int conditionIndex = 0;
-                for ( final Condition condition : constraint.getConditions() )
+                if ( constraint.getOperator() == LogicalOperator.AND )
                 {
-                    if ( conditionIndex > 0 )
-                    {
-                        droolsCode.append( INDENT ).append( INDENT );
-                        if ( constraint.getOperator() == LogicalOperator.AND )
-                        {
-                            droolsCode.append( "&&\n" );
-                        }
-                        else
-                        {
-                            droolsCode.append( "||\n" );
-                        }
-                    }
-                    droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                    final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
-                    droolsCode.append( conditionType.generateDroolsCode( condition ) );
-                    droolsCode.append( " )\n" );
-                    conditionIndex++;
-                }
+                    droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "\"\n" );
+                    droolsCode.append( "when\n" );
+                    droolsCode.append( INDENT ).append( "$component : Component\n" );
+                    droolsCode.append( INDENT ).append( "(\n" );
 
-                droolsCode.append( INDENT ).append( ")\n" );
-                droolsCode.append( "then\n" );
-                droolsCode.append( INDENT ).append( "insert( new ComponentFact( $component, \"" ).append( constraint.getId() ).append( "\" ) );\n" );
-                droolsCode.append( "end\n" );
+                    int conditionIndex = 0;
+                    for ( final Condition condition : constraint.getConditions() )
+                    {
+                        if ( conditionIndex > 0 )
+                        {
+                            droolsCode.append( INDENT ).append( INDENT ).append( "&&\n" );
+                        }
+
+                        droolsCode.append( INDENT ).append( INDENT ).append( "( " );
+                        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+                        droolsCode.append( conditionType.generateDroolsCode( condition ) );
+                        droolsCode.append( " )\n" );
+
+                        conditionIndex++;
+                    }
+
+                    droolsCode.append( INDENT ).append( ")\n" );
+                    droolsCode.append( "then\n" );
+                    droolsCode.append( INDENT ).append( "insert( new ComponentFact( $component, \"" ).append( constraint.getId() ).append( "\" ) );\n" );
+                    droolsCode.append( "end\n" );
+                }
+                else
+                {
+                    int conditionIndex = 0;
+                    for ( final Condition condition : constraint.getConditions() )
+                    {
+                        droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "#" ).append( conditionIndex ).append( "\"\n" );
+                        droolsCode.append( "when\n" );
+                        droolsCode.append( INDENT ).append( "$component : Component\n" );
+                        droolsCode.append( INDENT ).append( "(\n" );
+
+                        droolsCode.append( INDENT ).append( INDENT ).append( "( " );
+                        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+                        droolsCode.append( conditionType.generateDroolsCode( condition ) );
+                        droolsCode.append( " )\n" );
+
+                        droolsCode.append( INDENT ).append( ")\n" );
+                        droolsCode.append( "then\n" );
+                        droolsCode.append( INDENT ).append( "insert( new ComponentFact( $component, \"" ).append( constraint.getId() ).append( "\", " ).append( conditionIndex ).append( " ) );\n" );
+                        droolsCode.append( "end\n" );
+
+                        conditionIndex++;
+                    }
+                }
 
                 droolsCode.append( "// End constraint: " ).append( constraint.getName() ).append( '\n' );
             }

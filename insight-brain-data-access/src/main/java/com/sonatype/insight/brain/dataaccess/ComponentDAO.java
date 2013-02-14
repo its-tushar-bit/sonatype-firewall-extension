@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.model.ide.MatchedComponent;
+import com.sonatype.insight.model.ide.MatchedComponent.SecurityIssue;
 
 public class ComponentDAO
 {
@@ -226,6 +228,43 @@ public class ComponentDAO
             }
         }
         return result;
+    }
+
+    public Component getComponent( String applicationId, MatchedComponent matchComponent,
+                                   Set<String> overriddenLicenseIds )
+    {
+        Component component = new Component();
+        component.setArtifactId( matchComponent.getArtifactId() );
+        component.setGroupId( matchComponent.getGroupId() );
+        component.setVersion( matchComponent.getVersion() );
+        component.setOverriddenLicenseIds( overriddenLicenseIds );
+        component.setCatalogDate( matchComponent.getCatalogDate() );
+        component.setDeclaredLicenseIds( matchComponent.getDeclaredLicenseIds() );
+        component.setObservedLicenseIds( matchComponent.getObservedLicenseIds() );
+        component.setHash( matchComponent.getHash() );
+        component.setMatchState( matchComponent.isSimpleMatch() ? MatchState.EXACT : MatchState.SIMILAR );
+
+        for ( SecurityIssue issue : matchComponent.getSecurityThreats() )
+        {
+            component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefid(),
+                                                                           issue.getSeverity() ) );
+        }
+
+        loadLicenseThreatGroups( applicationId, component );
+
+        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
+
+        return component;
+    }
+
+    private void loadComponentLabels( String applicationId, Component component, ComponentLabelDAO componentLabelDAO )
+    {
+        List<ComponentLabel> componentLabels =
+            componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
+        for ( ComponentLabel componentLabel : componentLabels )
+        {
+            component.addLabelId( componentLabel.getLabelId() );
+        }
     }
 
     public void loadLicenseThreatGroups( String applicationId, Component component )

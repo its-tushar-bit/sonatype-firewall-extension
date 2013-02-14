@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.ide;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,11 +25,19 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.InputStreamEntity;
+import org.codehaus.plexus.util.IOUtil;
 
 import com.sonatype.insight.brain.service.AbstractInjectable;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.InternalServerException;
+import com.sonatype.insight.error.exception.NotAuthenticatedException;
+import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class SaasClient
     extends AbstractInjectable<InsightProxy>
@@ -41,7 +50,47 @@ public class SaasClient
         // TODO Need to determine if there is additional information we should be sending to the SaaS
     }
 
+    public <T> T get( HttpServletRequest request, Class<T> clazz, String... paths )
+        throws IOException
+    {
+        HttpResponse response = execute( request, paths );
+
+        switch ( response.getStatusLine().getStatusCode() )
+        {
+            case 200:
+                InputStream in = null;
+                try
+                {
+                    in = response.getEntity().getContent();
+                    return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
+                }
+                finally
+                {
+                    IOUtil.close( in );
+                }
+            case 400:
+                throw new BadRequestException( response.getStatusLine().getReasonPhrase() );
+            case 401:
+                throw new NotAuthenticatedException( response.getStatusLine().getReasonPhrase() );
+            case 403:
+                throw new NotAuthorizedException( response.getStatusLine().getReasonPhrase() );
+            case 404:
+                throw new NotFoundException( response.getStatusLine().getReasonPhrase() );
+            case 409:
+                throw new ConflictException( response.getStatusLine().getReasonPhrase() );
+            default:
+                throw new InternalServerException( response.getStatusLine().getReasonPhrase() );
+        }
+    }
+
     public Response doProxy( HttpServletRequest request, String... paths )
+        throws IOException
+    {
+        HttpResponse response = execute( request, paths );
+        return buildResponse( response );
+    }
+
+    private HttpResponse execute( HttpServletRequest request, String... paths )
         throws IOException
     {
         HttpUriRequest cloudReq;
@@ -69,16 +118,13 @@ public class SaasClient
         {
             throw new IllegalArgumentException( "Unknown request method" );
         }
-        return execute( cloudReq );
-    }
-
-    private Response execute( HttpUriRequest request )
-        throws IOException
-    {
         // TODO should the client be shared?
         HttpClient client = HttpClientUtils.createConfig( config );
-        final HttpResponse response = client.execute( request );
+        return client.execute( cloudReq );
+    }
 
+    private Response buildResponse( final HttpResponse response )
+    {
         ResponseBuilder builder = Response.status( response.getStatusLine().getStatusCode() );
 
         // pass-back response metadata+content to servlet

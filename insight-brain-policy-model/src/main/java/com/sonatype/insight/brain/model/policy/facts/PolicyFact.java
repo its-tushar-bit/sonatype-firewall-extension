@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.model.policy.facts;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sonatype.insight.brain.model.policy.Policy;
 
 public class PolicyFact
@@ -18,6 +20,7 @@ public class PolicyFact
 
     private int threatLevel;
 
+    @JsonInclude( Include.NON_EMPTY )
     private List<ComponentFact> componentFacts;
 
     public PolicyFact()

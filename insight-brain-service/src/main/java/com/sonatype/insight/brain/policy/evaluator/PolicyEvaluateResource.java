@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -57,6 +59,8 @@ public class PolicyEvaluateResource
 {
     public static final String SERVICE_PATH = "rest/policy/{applicationPublicId}/evaluate";
 
+    private static final Pattern CI_PLUGIN_PRE_2_6 = Pattern.compile( "Insight_CI_[A-Za-z]*/2\\.[45].*" );
+
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
     private static Template policyThreatsTemplate;
@@ -79,7 +83,8 @@ public class PolicyEvaluateResource
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
     public List<PolicyAlert> evaluate( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                       @QueryParam( "scanId" ) final String scanId, final Stage stage )
+                                       @QueryParam( "scanId" ) final String scanId, final Stage stage,
+                                       @HeaderParam( "user-agent" ) final String userAgent )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}",
@@ -109,6 +114,17 @@ public class PolicyEvaluateResource
         Report.putEntry( reportFile, "policythreats.html", policyThreatsHtml );
 
         sendNotifications( "SONATYPE-CLM-" + applicationPublicId + "-" + scanId, policyThreatsHtml, result );
+
+        if ( CI_PLUGIN_PRE_2_6.matcher( userAgent ).matches() )
+        {
+            /*
+             * Hide componentFacts list from older clients who can't deserialize it
+             */
+            for ( final PolicyAlert alert : result )
+            {
+                alert.getTrigger().getComponentFacts().clear();
+            }
+        }
 
         return result;
     }

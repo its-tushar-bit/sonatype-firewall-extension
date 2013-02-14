@@ -124,6 +124,13 @@ public class ValidationClientTest
     }
 
     @Test
+    public void testValidateApplicationId_SpecialCharacters()
+        throws Exception
+    {
+        new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "id : % &" );
+    }
+
+    @Test
     public void testValidateApplicationId_UnknownId()
         throws Exception
     {

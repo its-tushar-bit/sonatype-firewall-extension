@@ -12,6 +12,7 @@ import java.util.Map;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
+import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public final class ValidationClient
@@ -44,7 +45,7 @@ public final class ValidationClient
         }
         try
         {
-            Map<?, ?> versionInfo = JsonUtils.parse( text, Map.class );
+            final Map<?, ?> versionInfo = JsonUtils.parse( text, Map.class );
             if ( versionInfo.get( "version" ) == null && versionInfo.get( "name" ) == null )
             {
                 throw new Exception( "No CLM version information present" );
@@ -56,13 +57,13 @@ public final class ValidationClient
         }
     }
 
-    public void validateApplicationId( String applicationId )
+    public void validateApplicationId( final String appId )
         throws IOException
     {
         final Result result;
         try
         {
-            result = path( "rest/application/validate", applicationId ).get();
+            result = path( "rest/application/validate", UrlUtils.encodeUrlComponent( appId ) ).get();
         }
         catch ( UnknownHostException e )
         {

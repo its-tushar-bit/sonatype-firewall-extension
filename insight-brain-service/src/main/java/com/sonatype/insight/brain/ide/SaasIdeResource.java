@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.IdeMatchedComponent;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
@@ -86,7 +87,8 @@ public class SaasIdeResource
             client.get( req, MatchedComponent.class, "rest/ide/scan", scanType, applicationPublicId, path );
 
         IdeMatchedComponent ideComponent = getComponent( component );
-        if ( ideComponent.getWaitDelta() == null )
+        if ( ideComponent.getWaitDelta() == null
+            && !MatchState.UNKNOWN.toString().equals( ideComponent.getMatchState() ) )
         {
             List<PolicyAlert> alerts =
                 evaluator.evaluate( app.getId(),

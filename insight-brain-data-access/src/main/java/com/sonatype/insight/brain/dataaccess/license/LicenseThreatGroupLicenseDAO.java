@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -74,5 +76,58 @@ public class LicenseThreatGroupLicenseDAO
                 + licenseThreatGroup.getName() + "' license threat group" );
         }
         super.insert( em, entity );
+    }
+
+    public void setLicenses( String licenseThreatGroupId, Set<String> licenseIds )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            em.getTransaction().begin();
+
+            LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getByIdNotNull( em, licenseThreatGroupId );
+            String applicationId = licenseThreatGroup.getApplicationId();
+
+            LicenseDAO licenseDAO = new LicenseDAO();
+
+            List<LicenseThreatGroupLicense> oldLicenses = new ArrayList<LicenseThreatGroupLicense>();
+            oldLicenses.addAll( getByLicenseThreatGroupId( em, licenseThreatGroupId ) );
+            for ( String licenseId : licenseIds )
+            {
+                licenseDAO.getByIdNotNull( licenseId );
+
+                boolean alreadyInGroup = false;
+                for ( LicenseThreatGroupLicense oldLicense : oldLicenses )
+                {
+                    if ( licenseId.equals( oldLicense.getLicenseId() ) )
+                    {
+                        alreadyInGroup = true;
+                        oldLicenses.remove( oldLicense );
+                        break;
+                    }
+                }
+                if ( alreadyInGroup )
+                {
+                    continue;
+                }
+
+                LicenseThreatGroupLicense newLicense = new LicenseThreatGroupLicense();
+                newLicense.setApplicationId( applicationId );
+                newLicense.setLicenseThreatGroupId( licenseThreatGroupId );
+                newLicense.setLicenseId( licenseId );
+                insert( em, newLicense );
+            }
+
+            for ( LicenseThreatGroupLicense oldLicense : oldLicenses )
+            {
+                delete( em, oldLicense );
+            }
+
+            em.getTransaction().commit();
+        }
+        finally
+        {
+            close( em );
+        }
     }
 }

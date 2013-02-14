@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.license;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,109 +24,61 @@ public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
 {
     @Test
-    public void testDelete_ApplicationIdMismatch()
-        throws Exception
-    {
-        String appPublicId1 = "LicenseThreatGroupLicenseResourceTest_AppId1";
-        Application application1 = createApplication( appPublicId1 );
-        String appPublicId2 = "LicenseThreatGroupLicenseResourceTest_AppId2";
-        createApplication( appPublicId2 );
-
-        LicenseThreatGroup group = new LicenseThreatGroup();
-        group.setApplicationId( application1.getId() );
-        group.setName( "My group" );
-        group.setThreatLevel( 4 );
-        new LicenseThreatGroupDAO().insert( group );
-
-        LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-        licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
-        Response response =
-            RestAccess.post( getServiceURL( appPublicId1 ), JsonHelpers.asJson( licenseThreatGroupLicense ) );
-        assertResponseStatus( 200, response );
-        licenseThreatGroupLicense = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense.class );
-
-        response = RestAccess.delete( getServiceURL( appPublicId2 ) + "/" + licenseThreatGroupLicense.getId() );
-        assertResponseStatus( 404, response );
-        Assert.assertEquals( "Cannot find a license threat group license with id " + licenseThreatGroupLicense.getId()
-            + " for application id " + appPublicId2, response.getResponseBody() );
-        // Verify that the object was not deleted
-        response = RestAccess.get( getServiceURL( appPublicId1 ) + "/" + group.getId() );
-        assertResponseStatus( 200, response );
-        LicenseThreatGroupLicense[] licenseThreatGroupLicenses =
-            JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense[].class );
-        Assert.assertNotNull( licenseThreatGroupLicenses );
-        Assert.assertEquals( 1, licenseThreatGroupLicenses.length );
-        assertLicenseThreatGroupLicense( application1.getId(), group.getId(), "UNSPECIFIED",
-                                         licenseThreatGroupLicenses[0] );
-    }
-
-    @Test
-    public void testCRUD()
+    public void testSetGet()
         throws Exception
     {
         // Create an application and a group
         String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
         Application application = createApplication( appPublicId );
+        LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
+        for ( LicenseThreatGroup licenseThreatGroup : groupDAO.getByApplicationId( application.getId() ) )
+        {
+            groupDAO.delete( licenseThreatGroup );
+        }
         LicenseThreatGroup group = new LicenseThreatGroup();
         group.setApplicationId( application.getId() );
         group.setName( "My group" );
         group.setThreatLevel( 4 );
-        new LicenseThreatGroupDAO().insert( group );
+        groupDAO.insert( group );
 
-        // Get all
-        Response response = RestAccess.get( getServiceURL( appPublicId ) + "/" + group.getId() );
+        // Get
+        Response response = RestAccess.get( getServiceURL( appPublicId, group.getId() ) );
         assertResponseStatus( 200, response );
         LicenseThreatGroupLicense[] licenseThreatGroupLicenses =
             JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense[].class );
         Assert.assertNotNull( licenseThreatGroupLicenses );
         Assert.assertEquals( 0, licenseThreatGroupLicenses.length );
 
-        // Add
-        LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-        licenseThreatGroupLicense.setApplicationId( application.getId() );
-        licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
-        licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
-        response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( licenseThreatGroupLicense ) );
+        // Set
+        Set<String> licenseIds = new LinkedHashSet<String>();
+        licenseIds.add( "GPL-2.0" );
+        licenseIds.add( "Apache-2.0" );
+        response = RestAccess.put( getServiceURL( appPublicId, group.getId() ), JsonHelpers.asJson( licenseIds ) );
         assertResponseStatus( 200, response );
-        licenseThreatGroupLicense = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense.class );
-        assertLicenseThreatGroupLicense( application.getId(), group.getId(), "UNSPECIFIED", licenseThreatGroupLicense );
 
-        // Get all
-        response = RestAccess.get( getServiceURL( appPublicId ) + "/" + group.getId() );
-        assertResponseStatus( 200, response );
+        // Get
         licenseThreatGroupLicenses =
             JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense[].class );
         Assert.assertNotNull( licenseThreatGroupLicenses );
-        Assert.assertEquals( 1, licenseThreatGroupLicenses.length );
-        assertLicenseThreatGroupLicense( application.getId(), group.getId(), "UNSPECIFIED",
+        Assert.assertEquals( 2, licenseThreatGroupLicenses.length );
+        assertLicenseThreatGroupLicense( application.getId(), group.getId(), "Apache-2.0",
                                          licenseThreatGroupLicenses[0] );
-
-        // Delete
-        response = RestAccess.delete( getServiceURL( appPublicId ) + "/" + licenseThreatGroupLicense.getId() );
-        assertResponseStatus( 204, response );
-
-        // Get all
-        response = RestAccess.get( getServiceURL( appPublicId ) + "/" + group.getId() );
-        assertResponseStatus( 200, response );
-        licenseThreatGroupLicenses =
-            JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense[].class );
-        Assert.assertNotNull( licenseThreatGroupLicenses );
-        Assert.assertEquals( 0, licenseThreatGroupLicenses.length );
+        assertLicenseThreatGroupLicense( application.getId(), group.getId(), "GPL-2.0", licenseThreatGroupLicenses[1] );
     }
 
-    private void assertLicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId,
-                                                  String multiLicenseId, LicenseThreatGroupLicense actual )
+    private void assertLicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId, String licenseId,
+                                                  LicenseThreatGroupLicense actual )
     {
         Assert.assertEquals( applicationId, actual.getApplicationId() );
         Assert.assertEquals( licenseThreatGroupId, actual.getLicenseThreatGroupId() );
-        Assert.assertEquals( multiLicenseId, actual.getLicenseId() );
+        Assert.assertEquals( licenseId, actual.getLicenseId() );
     }
 
-    private String getServiceURL( final String appId )
+    private String getServiceURL( final String appId, String licenseThreatGroupId )
     {
         return getRestBaseUrl()
-            + LicenseThreatGroupLicenseResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
+            + LicenseThreatGroupLicenseResource.SERVICE_PATH.replace( "{applicationPublicId}", appId ).replace( "{licenseThreatGroupId}",
+                                                                                                                licenseThreatGroupId );
     }
 
     @Override

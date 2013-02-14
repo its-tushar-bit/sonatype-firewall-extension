@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
@@ -48,6 +49,16 @@ public class LicenseThreatGroupDAO
         String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
             " WHERE entity.id=?1";
         return get( em, sQuery, id );
+    }
+
+    LicenseThreatGroup getByIdNotNull( EntityManager em, String id )
+    {
+        LicenseThreatGroup licenseThreatGroup = getById( id );
+        if ( licenseThreatGroup == null )
+        {
+            throw new NotFoundException( "Cannot find a license threat group with id " + id );
+        }
+        return licenseThreatGroup;
     }
 
     private LicenseThreatGroup getByApplicationIdAndName( EntityManager em, String applicationId, String name )

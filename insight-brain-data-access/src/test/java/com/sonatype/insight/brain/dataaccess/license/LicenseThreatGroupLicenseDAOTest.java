@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -141,6 +143,61 @@ public class LicenseThreatGroupLicenseDAOTest
                 throw expected;
             }
         }
+    }
+
+    @Test
+    public void testSetLicenses()
+    {
+        LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
+
+        // Delete all existing groups
+        List<LicenseThreatGroup> groups = groupDAO.getByApplicationId( applicationId );
+        for ( LicenseThreatGroup group : groups )
+        {
+            groupDAO.delete( group );
+        }
+
+        // Add a new group
+        LicenseThreatGroup group = new LicenseThreatGroup();
+        group.setApplicationId( applicationId );
+        group.setName( "My group" );
+        group.setThreatLevel( 4 );
+        groupDAO.insert( group );
+        String groupId = group.getId();
+
+        LicenseThreatGroupLicenseDAO dao = new LicenseThreatGroupLicenseDAO();
+
+        // Set one license
+        Set<String> licenseIds = new LinkedHashSet<String>();
+        licenseIds.add( "Apache-2.0" );
+        dao.setLicenses( groupId, licenseIds );
+        List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId( groupId );
+        Assert.assertEquals( 1, licenseThreatGroupLicenses.size() );
+        assertLicenseThreatGroupLicense( applicationId, groupId, "Apache-2.0", licenseThreatGroupLicenses.get( 0 ) );
+
+        // Set a different license
+        licenseIds.clear();
+        licenseIds.add( "GPL-2.0" );
+        dao.setLicenses( groupId, licenseIds );
+        licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId( groupId );
+        Assert.assertEquals( 1, licenseThreatGroupLicenses.size() );
+        assertLicenseThreatGroupLicense( applicationId, groupId, "GPL-2.0", licenseThreatGroupLicenses.get( 0 ) );
+
+        // Set two licenses
+        licenseIds.clear();
+        licenseIds.add( "GPL-2.0" );
+        licenseIds.add( "Apache-2.0" );
+        dao.setLicenses( groupId, licenseIds );
+        licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId( groupId );
+        Assert.assertEquals( 2, licenseThreatGroupLicenses.size() );
+        assertLicenseThreatGroupLicense( applicationId, groupId, "Apache-2.0", licenseThreatGroupLicenses.get( 0 ) );
+        assertLicenseThreatGroupLicense( applicationId, groupId, "GPL-2.0", licenseThreatGroupLicenses.get( 1 ) );
+
+        // Set no licenses
+        licenseIds.clear();
+        dao.setLicenses( groupId, licenseIds );
+        licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId( groupId );
+        Assert.assertEquals( 0, licenseThreatGroupLicenses.size() );
     }
 
     private void assertLicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId, String licenseId,

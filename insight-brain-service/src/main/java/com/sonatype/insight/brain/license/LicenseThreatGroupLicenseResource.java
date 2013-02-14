@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.license;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -18,14 +18,13 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 @Path( LicenseThreatGroupLicenseResource.SERVICE_PATH )
 public class LicenseThreatGroupLicenseResource
 {
-    public static final String SERVICE_PATH = "rest/licenseThreatGroupLicense/application/{applicationPublicId}";
+    public static final String SERVICE_PATH =
+        "rest/licenseThreatGroupLicense/application/{applicationPublicId}/{licenseThreatGroupId}";
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -33,7 +32,6 @@ public class LicenseThreatGroupLicenseResource
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    @Path( "{licenseThreatGroupId}" )
     public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses( @PathParam( "applicationPublicId" ) String applicationPublicId,
                                                                           @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
     {
@@ -42,38 +40,17 @@ public class LicenseThreatGroupLicenseResource
         return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );
     }
 
-    @POST
+    @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public LicenseThreatGroupLicense addLicenseThreatGroupLicense( @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                                                   LicenseThreatGroupLicense licenseThreatGroupLicense )
+    public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                                                          @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId,
+                                                                          Set<String> licenseIds )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
-        licenseThreatGroupLicense.setId( null );
-        licenseThreatGroupLicense.setApplicationId( appId );
-        licenseThreatGroupLicenseDAO.insert( licenseThreatGroupLicense );
+        licenseThreatGroupLicenseDAO.setLicenses( licenseThreatGroupId, licenseIds );
 
-        return licenseThreatGroupLicense;
-    }
-
-    @DELETE
-    @Path( "{licenseThreatGroupLicenseId}" )
-    public void deleteLicenseThreatGroupLicense( @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                                 @PathParam( "licenseThreatGroupLicenseId" ) String licenseThreatGroupLicenseId )
-    {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
-
-        LicenseThreatGroupLicense licenseThreatGroupLicense =
-            licenseThreatGroupLicenseDAO.getById( licenseThreatGroupLicenseId );
-        if ( licenseThreatGroupLicense == null || !appId.equals( licenseThreatGroupLicense.getApplicationId() ) )
-        {
-            throw new NotFoundException( "Cannot find a license threat group license with id "
-                + licenseThreatGroupLicenseId + " for application id " + applicationPublicId );
-        }
-
-        licenseThreatGroupLicenseDAO.delete( licenseThreatGroupLicense );
+        return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );
     }
 }

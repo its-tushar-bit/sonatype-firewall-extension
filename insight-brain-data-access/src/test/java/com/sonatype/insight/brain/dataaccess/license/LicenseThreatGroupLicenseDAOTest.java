@@ -112,7 +112,7 @@ public class LicenseThreatGroupLicenseDAOTest
     }
 
     @Test
-    public void testInsertInvalidMultiLicenseId()
+    public void testInsertInvalidLicenseId()
         throws Exception
     {
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
@@ -143,11 +143,11 @@ public class LicenseThreatGroupLicenseDAOTest
         }
     }
 
-    private void assertLicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId,
-                                                  String multiLicenseId, LicenseThreatGroupLicense actual )
+    private void assertLicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId, String licenseId,
+                                                  LicenseThreatGroupLicense actual )
     {
         Assert.assertEquals( applicationId, actual.getApplicationId() );
         Assert.assertEquals( licenseThreatGroupId, actual.getLicenseThreatGroupId() );
-        Assert.assertEquals( multiLicenseId, actual.getLicenseId() );
+        Assert.assertEquals( licenseId, actual.getLicenseId() );
     }
 }

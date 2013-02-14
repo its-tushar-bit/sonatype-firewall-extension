@@ -53,7 +53,8 @@
     <module>insight-brain-policy-data-access</module>
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>
-	<module>sonatype-clm-server</module>
+    <module>insight-rm-common</module>
+    <module>sonatype-clm-server</module>
   </modules>
 
   <dependencyManagement>

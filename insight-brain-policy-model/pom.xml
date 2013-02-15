@@ -53,9 +53,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${project.name}</Bundle-Name>
-                        <Bundle-Version>${project.version}</Bundle-Version>
-                        <Export-Bundle>com.sonatype.insight.brain.model.policy</Export-Bundle>
+                        <Export-Package>com.sonatype.insight.brain.model.policy</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

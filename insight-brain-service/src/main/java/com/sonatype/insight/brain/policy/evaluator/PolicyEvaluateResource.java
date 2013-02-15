@@ -176,15 +176,17 @@ public class PolicyEvaluateResource
         int blue = 0;
         for ( PolicyAlert alert : policyAlerts )
         {
-            if ( alert.getTrigger().getThreatLevel() > 7 )
+            int level = alert.getTrigger().getThreatLevel();
+            
+            if ( level > 7 )
             {
                 red++;
             }
-            else if ( alert.getTrigger().getThreatLevel() > 3 )
+            else if ( level > 3 )
             {
                 orange++;
             }
-            else if ( alert.getTrigger().getThreatLevel() > 0 )
+            else if ( level > 0 )
             {
                 yellow++;
             }

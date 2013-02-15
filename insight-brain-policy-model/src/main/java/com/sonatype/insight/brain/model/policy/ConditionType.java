@@ -27,6 +27,8 @@ public interface ConditionType
 
     String generateDroolsCode( Condition condition );
 
+    String explainRule( Condition condition );
+
     String explainMatch( Condition condition, Component component );
 
     void validateCondition( Condition condition, String applicationId )

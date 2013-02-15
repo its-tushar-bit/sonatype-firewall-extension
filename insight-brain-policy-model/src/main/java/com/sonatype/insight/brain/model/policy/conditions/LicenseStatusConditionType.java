@@ -63,7 +63,7 @@ public class LicenseStatusConditionType
     @Override
     public String explainMatch( final Condition condition, final Component component )
     {
-        return "License Status was '" + component.getLicenseStatus().getId() + "'";
+        return "License Status was " + component.getLicenseStatus().getId();
     }
 
     @Override

@@ -78,7 +78,7 @@ public class CoordinatesConditionType
     @Override
     public String explainMatch( final Condition condition, final Component component )
     {
-        return "Coordinates were '" + component.getGAV() + "'";
+        return "Coordinates were " + component.getGAV();
     }
 
     @Override

@@ -8,14 +8,14 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
 
 public class LicenseThreatGroupLevelConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "License Threat Group Level";
 
@@ -78,5 +78,27 @@ public class LicenseThreatGroupLevelConditionType
     {
         return "!getLicenseThreatGroupsByLevel( " + condition.getValue() + ", \"" + condition.getOperator()
             + "\" ).isEmpty()";
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        final StringBuilder buf = new StringBuilder();
+        final List<LicenseThreatGroup> groups =
+            component.getLicenseThreatGroupsByLevel( Integer.parseInt( condition.getValue() ), condition.getOperator() );
+        if ( groups.isEmpty() )
+        {
+            buf.append( "no" );
+        }
+        for ( int i = 0, size = groups.size(); i < size; i++ )
+        {
+            if ( buf.length() > 0 )
+            {
+                buf.append( " and " );
+            }
+            buf.append( groups.get( i ).getName() );
+        }
+        return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" ) + " with Level "
+            + condition.getOperator() + " " + condition.getValue();
     }
 }

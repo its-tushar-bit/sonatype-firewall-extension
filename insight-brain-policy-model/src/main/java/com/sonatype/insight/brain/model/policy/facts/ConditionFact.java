@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy.facts;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class ConditionFact
@@ -21,8 +22,10 @@ public class ConditionFact
 
     public ConditionFact( final Condition condition, final Component component )
     {
-        summary = condition.toMessageString();
-        reason = ConditionTypes.getById( condition.getConditionTypeId() ).explainMatch( condition, component );
+        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+
+        summary = conditionType.explainRule( condition );
+        reason = conditionType.explainMatch( condition, component );
     }
 
     public String getSummary()

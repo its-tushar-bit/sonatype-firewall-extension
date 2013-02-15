@@ -63,7 +63,7 @@ public class MatchStateConditionType
     @Override
     public String explainMatch( final Condition condition, final Component component )
     {
-        return "Match State was '" + component.getMatchState().getId() + "'";
+        return "Match State was " + component.getMatchState().getId();
     }
 
     @Override

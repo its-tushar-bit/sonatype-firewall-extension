@@ -38,6 +38,13 @@ public abstract class AbstractConditionType
     }
 
     @Override
+    public String explainRule( Condition condition )
+    {
+        return getName() + ' ' + condition.getOperator()
+            + ( condition.getValue() != null ? ' ' + condition.getValue() : "" );
+    }
+
+    @Override
     public String explainMatch( Condition condition, Component component )
     {
         return "Placeholder";

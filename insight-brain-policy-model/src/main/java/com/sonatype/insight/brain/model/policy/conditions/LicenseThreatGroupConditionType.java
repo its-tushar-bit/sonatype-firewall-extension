@@ -9,15 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 
 public class LicenseThreatGroupConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "License Threat Group";
 
@@ -78,5 +77,32 @@ public class LicenseThreatGroupConditionType
         return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLicenseInLicenseThreatGroup( \""
             + condition.getValue() + "\" )" + //
             " /* License threat group name: " + licenseThreatGroup.getName().replace( "*/", "" ) + " */";
+    }
+
+    @Override
+    public String explainRule( final Condition condition )
+    {
+        return getName() + ' ' + condition.getOperator() + ' '
+            + new LicenseThreatGroupDAO().getById( condition.getValue() ).getName();
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        final StringBuilder buf = new StringBuilder();
+        final List<LicenseThreatGroup> groups = component.getLicenseThreatGroupsByLevel( 0, ">=" );
+        if ( groups.isEmpty() )
+        {
+            buf.append( "no" );
+        }
+        for ( int i = 0, size = groups.size(); i < size; i++ )
+        {
+            if ( buf.length() > 0 )
+            {
+                buf.append( " and " );
+            }
+            buf.append( groups.get( i ).getName() );
+        }
+        return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" );
     }
 }

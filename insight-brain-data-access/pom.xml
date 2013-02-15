@@ -50,7 +50,7 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-portal-model</artifactId>
+      <artifactId>com.sonatype.clm.model</artifactId>
       <version>${insight-saas.version}</version>
     </dependency>
   </dependencies>

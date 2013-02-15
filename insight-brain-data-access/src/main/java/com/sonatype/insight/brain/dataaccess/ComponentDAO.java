@@ -27,8 +27,8 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.model.ide.MatchedComponent;
-import com.sonatype.insight.model.ide.MatchedComponent.SecurityIssue;
+import com.sonatype.insight.model.brain.MatchedComponent;
+import com.sonatype.insight.model.brain.SecurityIssue;
 
 public class ComponentDAO
 {

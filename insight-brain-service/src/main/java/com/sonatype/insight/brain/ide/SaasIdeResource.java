@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.model.ide.MatchedComponent;
+import com.sonatype.insight.model.brain.MatchedComponent;
 
 @Path( SaasIdeResource.PATH )
 public class SaasIdeResource

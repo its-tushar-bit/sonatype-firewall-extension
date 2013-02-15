@@ -220,12 +220,7 @@ public class ComponentDAO
         ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
         for ( Component component : result )
         {
-            List<ComponentLabel> componentLabels =
-                componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
-            for ( ComponentLabel componentLabel : componentLabels )
-            {
-                component.addLabelId( componentLabel.getLabelId() );
-            }
+            loadComponentLabels( applicationId, component, componentLabelDAO );
         }
         return result;
     }

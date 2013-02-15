@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
+
 public interface ConditionType
 {
     String getId();
@@ -24,6 +26,8 @@ public interface ConditionType
     String getValueHint();
 
     String generateDroolsCode( Condition condition );
+
+    String explainMatch( Condition condition, Component component );
 
     void validateCondition( Condition condition, String applicationId )
         throws InvalidConditionException;

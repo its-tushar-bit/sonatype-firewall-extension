@@ -77,13 +77,14 @@ public class PolicyEvaluator
                         final int num = fact.getConditionNumber();
                         if ( num >= 0 )
                         {
-                            constraintFact.addConditionFact( new ConditionFact( constraint.getConditions().get( num ) ) );
+                            final Condition condition = constraint.getConditions().get( num );
+                            constraintFact.addConditionFact( new ConditionFact( condition, component ) );
                         }
                         else
                         {
                             for ( final Condition condition : constraint.getConditions() )
                             {
-                                constraintFact.addConditionFact( new ConditionFact( condition ) );
+                                constraintFact.addConditionFact( new ConditionFact( condition, component ) );
                             }
                         }
                     }

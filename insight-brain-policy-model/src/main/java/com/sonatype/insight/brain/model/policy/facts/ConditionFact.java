@@ -5,19 +5,24 @@
  */
 package com.sonatype.insight.brain.model.policy.facts;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class ConditionFact
 {
     private String summary;
 
+    private String reason;
+
     public ConditionFact()
     {
     }
 
-    public ConditionFact( final Condition condition )
+    public ConditionFact( final Condition condition, final Component component )
     {
         summary = condition.toMessageString();
+        reason = ConditionTypes.getById( condition.getConditionTypeId() ).explainMatch( condition, component );
     }
 
     public String getSummary()
@@ -25,9 +30,14 @@ public class ConditionFact
         return summary;
     }
 
+    public String getReason()
+    {
+        return reason;
+    }
+
     @Override
     public String toString()
     {
-        return summary;
+        return summary + " because: " + reason;
     }
 }

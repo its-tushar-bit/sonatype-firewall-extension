@@ -73,7 +73,7 @@
 									<td style="padding-left:20px;">
 										<#list constraint.conditionFacts as condition>
 											<div>${condition.summary}</div>
-											<div style="color:#6E99D0;">Condition Failure Text</div>
+											<div style="color:#6E99D0;">${condition.reason}</div>
 										</#list>
 									</td>
 								</tr>

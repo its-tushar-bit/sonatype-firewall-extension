@@ -208,15 +208,11 @@ public class PolicyEvaluateResource
         model.put( "policyThreatStage", stage.getStageTypeId() );
         model.put( "policyThreatApp", appId );
         model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy" ).format( new Date() ) );
-        model.put( "policyThreatLocation", "Hudson-10" );
         model.put( "policyThreatRedCount", red );
         model.put( "policyThreatOrangeCount", orange );
         model.put( "policyThreatYellowCount", yellow );
         model.put( "policyThreatBlueCount", blue );
         model.put( "actionTypes", ActionTypes.getAll() );
-        
-        //TODO: policyThreatLocation
-        //TODO: need to get proper condition failure detail text into the DTO (i.e. 'Component has GPL License' for a !license condition)
         
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }

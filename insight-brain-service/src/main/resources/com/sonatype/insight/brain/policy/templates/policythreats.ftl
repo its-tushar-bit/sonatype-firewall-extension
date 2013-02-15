@@ -15,8 +15,6 @@
 		<tr>
 			<td>When:</td>
 			<td>${policyThreatTime}</td>
-			<td>Where:</td>
-			<td>${policyThreatLocation}</td>
 		</tr>
 	</table>
 	<table style="width:100%;border:2px dashed black;font-size:14px;">

@@ -77,8 +77,8 @@ public class SaasIdeResource
     @Path( "scan/{scanType}/{appId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent doScan( @PathParam( "scanType" ) String scanType,
-                                @PathParam( "appId" ) String applicationPublicId,
-                            @PathParam( "path" ) String path, @Context HttpServletRequest req )
+                                       @PathParam( "appId" ) String applicationPublicId,
+                                       @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );

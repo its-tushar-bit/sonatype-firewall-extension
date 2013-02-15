@@ -9,15 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LabelValueType;
 
 public class LabelConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "Label";
 
@@ -78,5 +77,37 @@ public class LabelConditionType
         Label label = new LabelDAO().getById( labelId );
         return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLabelId( \"" + labelId + "\" ) /* label: "
             + label.getLabel() + " */";
+    }
+
+    @Override
+    public String explainRule( final Condition condition )
+    {
+        return getName() + ' ' + condition.getOperator() + " '"
+            + new LabelDAO().getById( condition.getValue() ).getLabel() + '\'';
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        final LabelDAO labelDAO = new LabelDAO();
+        final StringBuilder buf = new StringBuilder();
+        final List<String> labelIds = component.getLabelIds();
+        if ( labelIds.isEmpty() )
+        {
+            buf.append( "no" );
+        }
+        for ( final String labelId : labelIds )
+        {
+            if ( buf.length() > 0 )
+            {
+                buf.append( " and " );
+            }
+            final Label label = labelDAO.getById( labelId );
+            if ( label != null )
+            {
+                buf.append( '\'' ).append( label.getLabel() ).append( '\'' );
+            }
+        }
+        return "Found " + buf + ( labelIds.size() != 1 ? " Labels" : " Label" );
     }
 }

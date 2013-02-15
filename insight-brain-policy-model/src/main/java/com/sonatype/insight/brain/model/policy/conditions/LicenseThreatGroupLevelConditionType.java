@@ -96,7 +96,7 @@ public class LicenseThreatGroupLevelConditionType
             {
                 buf.append( " and " );
             }
-            buf.append( groups.get( i ).getName() );
+            buf.append( '\'' ).append( groups.get( i ).getName() ).append( '\'' );
         }
         return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" ) + " with Level "
             + condition.getOperator() + " " + condition.getValue();

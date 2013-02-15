@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
@@ -42,11 +41,5 @@ public abstract class AbstractConditionType
     {
         return getName() + ' ' + condition.getOperator()
             + ( condition.getValue() != null ? ' ' + condition.getValue() : "" );
-    }
-
-    @Override
-    public String explainMatch( Condition condition, Component component )
-    {
-        return "Placeholder";
     }
 }

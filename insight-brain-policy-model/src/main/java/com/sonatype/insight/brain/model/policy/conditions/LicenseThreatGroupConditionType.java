@@ -82,8 +82,8 @@ public class LicenseThreatGroupConditionType
     @Override
     public String explainRule( final Condition condition )
     {
-        return getName() + ' ' + condition.getOperator() + ' '
-            + new LicenseThreatGroupDAO().getById( condition.getValue() ).getName();
+        return getName() + ' ' + condition.getOperator() + " '"
+            + new LicenseThreatGroupDAO().getById( condition.getValue() ).getName() + '\'';
     }
 
     @Override
@@ -101,7 +101,7 @@ public class LicenseThreatGroupConditionType
             {
                 buf.append( " and " );
             }
-            buf.append( groups.get( i ).getName() );
+            buf.append( '\'' ).append( groups.get( i ).getName() ).append( '\'' );
         }
         return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" );
     }

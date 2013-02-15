@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -279,6 +280,19 @@ public class Component
         return observedLicenseIds.contains( licenseId );
     }
 
+    public Set<String> getLicenseIds()
+    {
+        if ( !overriddenLicenseIds.isEmpty() )
+        {
+            return overriddenLicenseIds;
+        }
+
+        final Set<String> licenseIds = new HashSet<String>();
+        licenseIds.addAll( declaredLicenseIds );
+        licenseIds.addAll( observedLicenseIds );
+        return licenseIds;
+    }
+
     public int getRelativePopularity()
     {
         return relativePopularity;
@@ -363,6 +377,11 @@ public class Component
     public boolean hasLabelId( String labelId )
     {
         return labelIds.contains( labelId );
+    }
+
+    public List<String> getLabelIds()
+    {
+        return labelIds;
     }
 
     public void addLicenseThreatGroup( LicenseThreatGroup licenseThreatGroup )

@@ -8,15 +8,14 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.MatchStateValueType;
 
 public class MatchStateConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "MatchState";
 
@@ -59,6 +58,12 @@ public class MatchStateConditionType
             operator = "!=";
         }
         return "getMatchState().getId() " + operator + " \"" + condition.getValue() + "\"";
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        return "Match State was " + component.getMatchState().getId();
     }
 
     @Override

@@ -7,14 +7,13 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageValueType;
 
 public class RelativePopularityConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "RelativePopularity";
 
@@ -41,6 +40,12 @@ public class RelativePopularityConditionType
     {
         return "getRelativePopularity() " + NumericOperators.getDroolsOperator( condition.getOperator() ) + " "
             + condition.getValue();
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        return "Relative Popularity was " + component.getRelativePopularity() + "%";
     }
 
     @Override

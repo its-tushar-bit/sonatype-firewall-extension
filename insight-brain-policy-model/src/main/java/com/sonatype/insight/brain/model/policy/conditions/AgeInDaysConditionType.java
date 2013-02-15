@@ -8,14 +8,13 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.AgeInDaysValueType;
 
 public class AgeInDaysConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "AgeInDays";
 
@@ -61,6 +60,18 @@ public class AgeInDaysConditionType
         }
         return "getCatalogDate() != null && ( System.currentTimeMillis() - getCatalogDate() ) / " + DAY_IN_MILLISECONDS
             + " " + operator + " " + condition.getValue();
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        String days = "unknown";
+        final Long catalogDate = component.getCatalogDate();
+        if ( catalogDate != null )
+        {
+            days = ( (double) ( System.currentTimeMillis() - catalogDate ) ) / DAY_IN_MILLISECONDS + " days old";
+        }
+        return "Age was " + days;
     }
 
     @Override

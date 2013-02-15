@@ -9,13 +9,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
 
 public class CoordinatesConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "Coordinates";
 
@@ -74,6 +73,12 @@ public class CoordinatesConditionType
         return "getGroupId() != null && " + "new ArtifactCoordinate( \"" + groupId + "\", \"" + artifactId + "\", \""
             + version + "\" ).matches( getGroupId(), getArtifactId(), getVersion() )"
             + ( "match".equals( condition.getOperator() ) ? "" : " == false" );
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        return "Coordinates were " + component.getGAV();
     }
 
     @Override

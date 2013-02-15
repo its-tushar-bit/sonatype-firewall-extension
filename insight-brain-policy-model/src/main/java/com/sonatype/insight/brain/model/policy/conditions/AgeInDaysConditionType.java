@@ -7,6 +7,12 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
+import org.joda.time.Interval;
+import org.joda.time.PeriodType;
+import org.joda.time.format.PeriodFormat;
+import org.joda.time.format.PeriodFormatter;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -19,6 +25,8 @@ public class AgeInDaysConditionType
     public static final String ID = "AgeInDays";
 
     public static final long DAY_IN_MILLISECONDS = 24L * 3600L * 1000L;
+
+    private static final PeriodFormatter AGE_FORMATTER = PeriodFormat.wordBased( Locale.ENGLISH );
 
     private static List<String> supportedOperators = new ArrayList<String>();
 
@@ -65,13 +73,14 @@ public class AgeInDaysConditionType
     @Override
     public String explainMatch( final Condition condition, final Component component )
     {
-        String days = "unknown";
+        String age = "unknown";
         final Long catalogDate = component.getCatalogDate();
         if ( catalogDate != null )
         {
-            days = ( (double) ( System.currentTimeMillis() - catalogDate ) ) / DAY_IN_MILLISECONDS + " days old";
+            final Interval interval = new Interval( catalogDate, System.currentTimeMillis() );
+            age = interval.toPeriod( PeriodType.yearMonthDay() ).toString( AGE_FORMATTER );
         }
-        return "Age was " + days;
+        return "Age was " + age;
     }
 
     @Override

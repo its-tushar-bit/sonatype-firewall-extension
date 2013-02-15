@@ -63,7 +63,13 @@
 				</td>
 				<td style="height:1px;width:65%;border-bottom:2px solid black;padding:4 4 4 0;">
 					<div style="height:100%;background-color:#E6E6E6;">
-						<div style="border-bottom:1px solid black;"><b>GAV:</b> ${component.groupId} : ${component.artifactId} : ${component.version}</div>
+						<div style="border-bottom:1px solid black;">
+							<#if component.groupId??>
+								<b>GAV:</b> ${component.groupId} : ${component.artifactId} : ${component.version}
+							<#else>
+								<b>Hash:</b> ${component.hash}
+							</#if>
+						</div>
 						<table style="font-size:14px;">
 							<#list component.constraintFacts as constraint>
 								<tr>

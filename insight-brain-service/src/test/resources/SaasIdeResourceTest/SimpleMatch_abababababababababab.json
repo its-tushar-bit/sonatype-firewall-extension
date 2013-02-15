@@ -1,0 +1,24 @@
+{
+  "simpleMatch" : true,
+  "matchState" : "exact",
+  "groupId" : "g1",
+  "artifactId" : "a1",
+  "version" : "v1",
+  "licenseThreat" : "LIBERAL",
+  "securityThreats" : [ {
+    "refid" : "36079",
+    "severity" : 3.5,
+    "source" : "osvdb"
+  }, {
+    "refid" : "62054",
+    "source" : "osvdb"
+  }, {
+    "refid" : "71557",
+    "source" : "osvdb"
+  }, {
+    "refid" : "71558",
+    "source" : "osvdb"
+  } ],
+  "securityThreat" : 3.5,
+  "securityIssues" : 4
+}

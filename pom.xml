@@ -24,7 +24,7 @@
   <properties>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     <build.timestamp>${maven.build.timestamp}</build.timestamp>
-    <insight-scanner.version>2.0.1-SNAPSHOT</insight-scanner.version>
+    <insight-scanner.version>2.0.2-SNAPSHOT</insight-scanner.version>
     <insight-saas.version>2.0.2-SNAPSHOT</insight-saas.version>
     <slf4j.version>1.7.2</slf4j.version>
     <logback-classic.version>1.0.9</logback-classic.version>

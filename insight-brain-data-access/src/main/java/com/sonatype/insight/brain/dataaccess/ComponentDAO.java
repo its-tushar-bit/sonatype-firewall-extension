@@ -225,14 +225,17 @@ public class ComponentDAO
         return result;
     }
 
-    public Component getComponent( String applicationId, MatchedComponent matchComponent,
-                                   Set<String> overriddenLicenseIds )
+    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode licenseData )
     {
         Component component = new Component();
         component.setArtifactId( matchComponent.getArtifactId() );
         component.setGroupId( matchComponent.getGroupId() );
         component.setVersion( matchComponent.getVersion() );
-        component.setOverriddenLicenseIds( overriddenLicenseIds );
+        if ( licenseData != null )
+        {
+            List<String> overriddenLicenseNames = jsonStringArrayToList( licenseData.get( "overriddenLicenses" ) );
+            component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
+        }
         component.setCatalogDate( matchComponent.getCatalogDate() );
         component.setDeclaredLicenseIds( matchComponent.getDeclaredLicenseIds() );
         component.setObservedLicenseIds( matchComponent.getObservedLicenseIds() );

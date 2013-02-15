@@ -8,12 +8,11 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 
 public class DependencyDepthConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "DependencyDepth";
 
@@ -45,7 +44,13 @@ public class DependencyDepthConditionType
     @Override
     public String generateDroolsCode( final Condition condition )
     {
-        return "getDependencyDepths().contains( 1 )";
+        return "getDependencyDepths().contains( Integer.valueOf( 1 ) )";
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        return ( component.getDependencyDepths().contains( 1 ) ? "Was" : "Not" ) + " a direct dependency";
     }
 
     @Override

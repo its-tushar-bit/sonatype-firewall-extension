@@ -8,15 +8,14 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
 
 public class LicenseStatusConditionType
     extends AbstractConditionType
-    implements ConditionType
 {
     public static final String ID = "LicenseStatus";
 
@@ -59,6 +58,12 @@ public class LicenseStatusConditionType
             operator = "!=";
         }
         return "getLicenseStatus().getId() " + operator + " \"" + condition.getValue() + "\"";
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        return "License Status was '" + component.getLicenseStatus().getId() + "'";
     }
 
     @Override

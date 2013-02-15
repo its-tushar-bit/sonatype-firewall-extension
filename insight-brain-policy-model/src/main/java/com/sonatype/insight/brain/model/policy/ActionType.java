@@ -16,4 +16,6 @@ public interface ActionType
     List<String> getAvailableTargets();
 
     boolean isRequiresTarget();
+    
+    String getSummary();
 }

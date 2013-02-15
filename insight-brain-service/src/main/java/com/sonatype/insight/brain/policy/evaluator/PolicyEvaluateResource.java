@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
 import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
@@ -110,7 +113,7 @@ public class PolicyEvaluateResource
         final List<PolicyAlert> result = new PolicyEvaluator().evaluate( appId, stage, policies, components );
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( result ) ) );
 
-        final String policyThreatsHtml = summarizeThreats( appId, scanId, result );
+        final String policyThreatsHtml = summarizeThreats( appId, scanId, stage, result );
         Report.putEntry( reportFile, "policythreats.html", policyThreatsHtml );
 
         sendNotifications( "SONATYPE-CLM-" + applicationPublicId + "-" + scanId, policyThreatsHtml, result );
@@ -164,9 +167,33 @@ public class PolicyEvaluateResource
         return threats;
     }
 
-    private String summarizeThreats( final String appId, final String scanId, final List<PolicyAlert> policyAlerts )
+    private String summarizeThreats( final String appId, final String scanId, final Stage stage, final List<PolicyAlert> policyAlerts )
         throws IOException
     {
+        int red = 0;
+        int orange = 0;
+        int yellow = 0;
+        int blue = 0;
+        for ( PolicyAlert alert : policyAlerts )
+        {
+            if ( alert.getTrigger().getThreatLevel() > 7 )
+            {
+                red++;
+            }
+            else if ( alert.getTrigger().getThreatLevel() > 3 )
+            {
+                orange++;
+            }
+            else if ( alert.getTrigger().getThreatLevel() > 0 )
+            {
+                yellow++;
+            }
+            else
+            {
+                blue++;
+            }
+        }
+        
         final Map<String, Object> model = new HashMap<String, Object>();
 
         model.put( "detailedReportUrl",
@@ -176,29 +203,19 @@ public class PolicyEvaluateResource
                        + "/embedReport/" );
 
         model.put( "policyAlerts", policyAlerts );
-        model.put( "policyThreatStage", "Build" );
-        model.put( "policyThreatApp", "Foo" );
-        model.put( "policyThreatTime", "January 10, 2013" );
+        model.put( "policyThreatStage", stage.getStageTypeId() );
+        model.put( "policyThreatApp", appId );
+        model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy" ).format( new Date() ) );
         model.put( "policyThreatLocation", "Hudson-10" );
-        model.put( "policyThreatRedCount", 4 );
-        model.put( "policyThreatOrangeCount", 3 );
-        model.put( "policyThreatYellowCount", 2 );
-        model.put( "policyThreatBlueCount", 5 );
-
-        //TODO: policyThreatStage
-        //TODO: policyThreatApp
-        //TODO: policyThreatTime
+        model.put( "policyThreatRedCount", red );
+        model.put( "policyThreatOrangeCount", orange );
+        model.put( "policyThreatYellowCount", yellow );
+        model.put( "policyThreatBlueCount", blue );
+        model.put( "actionTypes", ActionTypes.getAll() );
+        
         //TODO: policyThreatLocation
-        //TODO: policyThreatRedCount
-        //TODO: policyThreatOrangeCount
-        //TODO: policyThreatYellowCount
-        //TODO: policyThreatBlueCount
-        //TODO: need to get proper action text into the DTO for display (i.e. Build failed, Notification Sent, etc.)
-        //TODO: need to get proper condition text and condition failure text into the DTO
-        //TODO: no need to have a list of ComponentFact objects in the ConstraintFact, as we are displaying 1 GAV per item
-        //seems should be rearranged to be like so policy -> constraints -> condition
-        //rather than how it is now, which doesn't seem to match what we need in the email at all
-
+        //TODO: need to get proper condition failure detail text into the DTO (i.e. 'Component has GPL License' for a !license condition)
+        
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }
 

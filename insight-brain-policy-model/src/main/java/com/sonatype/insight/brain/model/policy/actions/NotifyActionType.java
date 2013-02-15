@@ -37,4 +37,10 @@ public class NotifyActionType
     {
         return true;
     }
+    
+    @Override
+    public String getSummary()
+    {
+        return "Notification Sent";
+    }
 }

@@ -37,4 +37,10 @@ public class FailActionType
     {
         return false;
     }
+    
+    @Override
+    public String getSummary()
+    {
+        return "Build Failed";
+    }
 }

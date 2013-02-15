@@ -37,4 +37,10 @@ public class WarnActionType
     {
         return false;
     }
+    
+    @Override
+    public String getSummary()
+    {
+        return "Build Warning";
+    }
 }

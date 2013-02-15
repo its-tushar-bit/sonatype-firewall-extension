@@ -36,6 +36,7 @@
 	</table>
 	<table style="width: 100%;border-left:2px solid black;border-right:2px solid black;border-collapse: collapse;font-size:14px;">
 		<#list policyAlerts as alert>
+			<#list alert.trigger.componentFacts as component>
 			<tr>
 				<td style="height:1px;width:4%;border-bottom:2px solid black;padding:4 0 4 4;">
 					<#if (alert.trigger.threatLevel > 7)>
@@ -53,27 +54,26 @@
 						<div style="padding-left:4px;"><b>${alert.trigger.policyName}</b></div>
 						<div style="padding-left:40px;padding-top:5px;color:#6E99D0;">
 							<#list alert.actions as action>
-								<div><i><b>${action.actionTypeId}</b></i></div>
+								<#list actionTypes as actionType>
+									<#if actionType.id == action.actionTypeId>
+										<div><i><b>${actionType.summary}</b></i></div>
+									</#if>
+								</#list>
 							</#list>
 						</div>
 					</div>
 				</td>
 				<td style="height:1px;width:65%;border-bottom:2px solid black;padding:4 4 4 0;">
 					<div style="height:100%;background-color:#E6E6E6;">
-						<div style="border-bottom:1px solid black;"><b>GAV:</b> groupId : artifactId : version</div>
+						<div style="border-bottom:1px solid black;"><b>GAV:</b> ${component.groupId} : ${component.artifactId} : ${component.version}</div>
 						<table style="font-size:14px;">
-							<#list alert.trigger.componentFacts as component>
+							<#list component.constraintFacts as constraint>
 								<tr>
-									<td style="vertical-align:top;">${component.hash}</td>
+									<td style="vertical-align:top;">${constraint.constraintName}</td>
 									<td style="padding-left:20px;">
-										<#list component.constraintFacts as constraint>
-											<tr>
-												<td style="vertical-align:top;">${constraint.constraintName}</td>
-												<td style="padding-left:20px;">
-													<div>Condition Text</div>
-													<div style="color:#6E99D0;">Condition Failure Text</div>
-												</td>
-											</tr>
+										<#list constraint.conditionFacts as condition>
+											<div>${condition.summary}</div>
+											<div style="color:#6E99D0;">Condition Failure Text</div>
 										</#list>
 									</td>
 								</tr>
@@ -82,6 +82,7 @@
 					</div>
 				</td>
 			</tr>
+			</#list>
 		</#list>
 	</table>
 </div>

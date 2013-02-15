@@ -84,7 +84,7 @@ public class Condition
 
     public String toMessageString()
     {
-        return conditionTypeId + ' ' + operator + ' ' + value;
+        return conditionTypeId + ' ' + operator + ( value != null ? ' ' + value : "" );
     }
 
     @Override

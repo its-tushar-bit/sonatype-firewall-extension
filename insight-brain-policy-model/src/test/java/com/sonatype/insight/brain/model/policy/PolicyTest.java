@@ -133,8 +133,7 @@ public class PolicyTest
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, null /* operator */) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate( applicationId );
-        assertConditionValidationResult( "Invalid condition 'SecurityVulnerability null null', Operator is null",
-                                         result );
+        assertConditionValidationResult( "Invalid condition 'SecurityVulnerability null', Operator is null", result );
     }
 
     private void assertValidationResult( String error, ValidationResult result )

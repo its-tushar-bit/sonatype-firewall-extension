@@ -10,13 +10,12 @@ import java.io.File;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -25,7 +24,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JsonUtils
 {
-    private static final JsonFactory JSON = new MappingJsonFactory().disable( Feature.INTERN_FIELD_NAMES );
+    private static final MappingJsonFactory JSON = new MappingJsonFactory();
+
+    static
+    {
+        JSON.getCodec().disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
+        JSON.disable( Feature.INTERN_FIELD_NAMES );
+    }
 
     public static JsonStore fileStore( final File folder )
     {
@@ -177,7 +182,7 @@ public final class JsonUtils
 
     public static <T extends ContainerNode<?>> T asTree( final Object pojo )
     {
-        return ( (ObjectMapper) JSON.getCodec() ).valueToTree( pojo );
+        return JSON.getCodec().valueToTree( pojo );
     }
 
     public static <T> T asPojo( final JsonNode tree, final Class<? extends T> type )

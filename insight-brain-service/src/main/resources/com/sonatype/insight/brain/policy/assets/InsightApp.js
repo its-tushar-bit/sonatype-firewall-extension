@@ -48,6 +48,22 @@
 			getDeleteLabelsUrl : function (label) {
 				return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
 			},
+			
+			getLicenseGroupsUrl : function() {
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId();
+			},
+			
+			getDeleteLicenseGroupUrl : function(group) {
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId() + '/' + group.id;
+			},
+			
+			getLicenseGroupLicensesUrl : function(group) {
+				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + this.getAppId() + '/' + group.id;
+			},
+						
+			getLicensesUrl : function() {
+				return this.getBaseUrl() + '/rest/license';
+			},
 
 			getConditionTypeUrl : function () {
 				return this.getBaseUrl() + '/rest/policy/conditionType';

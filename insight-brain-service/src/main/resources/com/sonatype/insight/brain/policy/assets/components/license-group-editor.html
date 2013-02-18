@@ -1,0 +1,68 @@
+<div ng-controller='InsightLicenseGroupEditorController'>
+	<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+		<div class='modal-body'>
+			<div class='control-group' style='float: left; width: 49.5%'
+				ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
+				<label class='control-label' for='licenseGroupEditorName'>Name:</label>
+				<div class='controls'>
+					<input id='licenseGroupEditorName' name='name' type='text'
+						class='input' maxlength='50' ng-model='selectedGroup.name'
+						item-label> <span
+						ng-show='licenseGroupEditor.name.$error.empty' class='help-inline'>Required</span>
+					<span ng-show='licenseGroupEditor.name.$error.duplicate'
+						class='help-inline'>Duplicate Label</span>
+				</div>
+			</div>
+			<div class='control-group' style='float: right; width: 49.5%'>
+				<label class='control-label' for='groupEditorThreatLevel'>Threat
+					Level:</label>
+				<div class='controls'>
+					<select id='groupEditorThreatLevel' style='width: 100px;'
+						class='license-group-threat-color-{{selectedGroup.threatLevel}}'
+						ng-model='selectedGroup.threatLevel'
+						ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
+					</select>
+				</div>
+			</div>
+			<div class='control-group'>
+				<div class='input-prepend' style='float: right; width: 100%;'>
+					<span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
+					<input type='text' style='width: 90%' placeholder='Search for license' ng-model='licenseSearch' />
+				</div>
+				<div class='controls' style='clear: both;'>
+					<div style='float: left; width: 49.5%;'>
+						<h5>Applied Licenses</h5>
+						<div style='overflow: auto; height: 200px;'>
+							<span ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'
+								class='clmLicense'><i
+								class='icon-minus-sign'
+								ng-click='setIsApplied(l, false)'></i>&nbsp;<span
+								title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span></span>
+						</div>
+					</div>
+					<div style='float: right; width: 49.5%;'>
+						<h5>Available Licenses</h5>
+						<div style='overflow:auto; height: 200px;'>
+							<span
+								ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'
+								class='clmLicense'><i
+								class='icon-plus-sign'
+								ng-click='setIsApplied(l, true)'></i>&nbsp;<span
+								title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div ng-show='licenseGroupEditor.editErrorResponse'>
+			<div class='alert alert-error'>
+				<button type='button' class='close' ng-click='clearEditError()'>&times;</button>
+				<strong>Error</strong> {{licenseGroupEditor.editErrorResponse}}
+			</div>
+		</div>
+		<div class='modal-footer'>
+			<button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+			<button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
+		</div>
+	</form>
+</div>

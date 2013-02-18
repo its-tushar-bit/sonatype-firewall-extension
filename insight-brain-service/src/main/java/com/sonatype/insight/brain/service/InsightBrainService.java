@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
+import com.sonatype.insight.brain.license.LicenseResource;
 import com.sonatype.insight.brain.license.LicenseThreatGroupLicenseResource;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource;
 import com.sonatype.insight.brain.policy.ActionTypeResource;
@@ -105,6 +106,7 @@ public class InsightBrainService
         env.addResource( FeaturesResource.class );
         env.addResource( ComponentLabelResource.class );
         env.addResource( LabelResource.class );
+        env.addResource( LicenseResource.class );
         env.addResource( LicenseThreatGroupResource.class );
         env.addResource( LicenseThreatGroupLicenseResource.class );
         env.addResource( ActionTypeResource.class );

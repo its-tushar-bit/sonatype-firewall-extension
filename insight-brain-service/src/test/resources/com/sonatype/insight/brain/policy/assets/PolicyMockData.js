@@ -1,4 +1,4 @@
-JSONData = {
+PolicyMockData = {
   getConditionTypeData : function() {
     return [{
           "name" : "Label",

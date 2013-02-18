@@ -17,11 +17,11 @@ describe('InsightPolicyController tests', function() {
           return new RegExp( getUrl + '\\?timestamp=[0-9]+' );
       }
 
-      $httpBackend.expectGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(JSONData.getConditionTypeData());
-      $httpBackend.expectGET(toRegExp(CLMLocations.getActionTypeUrl())).respond(JSONData.getActionTypeData());
-      $httpBackend.expectGET(toRegExp(CLMLocations.getActionStageUrl())).respond(JSONData.getActionStageData());
-      $httpBackend.expectGET(toRegExp(CLMLocations.getConditionValueTypeUrl())).respond(JSONData.getConditionValueTypeData());
-      $httpBackend.expectGET(toRegExp(CLMLocations.getPolicyUrl())).respond(JSONData.getPolicyData());
+      $httpBackend.expectGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+      $httpBackend.expectGET(toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+      $httpBackend.expectGET(toRegExp(CLMLocations.getActionStageUrl())).respond(PolicyMockData.getActionStageData());
+      $httpBackend.expectGET(toRegExp(CLMLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+      $httpBackend.expectGET(toRegExp(CLMLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       
       // inject the controller
       scope = $rootScope.$new();
@@ -148,7 +148,7 @@ describe('InsightPolicyController tests', function() {
         
         scope.state.actionTableData[2].action = 'fail';
         
-        $httpBackend.expectPOST(CLMLocations.getPolicyUrl(),JSONData.getCreateTestPolicy()).respond(JSONData.getCreateTestPolicy('newid'));
+        $httpBackend.expectPOST(CLMLocations.getPolicyUrl(),PolicyMockData.getCreateTestPolicy()).respond(PolicyMockData.getCreateTestPolicy('newid'));
         
         scope.savePolicy();
         
@@ -171,7 +171,7 @@ describe('InsightPolicyController tests', function() {
         
         scope.state.currentPolicy.name = '5555';
         
-        $httpBackend.expectPUT(CLMLocations.getPolicyUrl(),JSONData.getEditTestPolicy()).respond(JSONData.getEditTestPolicy());
+        $httpBackend.expectPUT(CLMLocations.getPolicyUrl(),PolicyMockData.getEditTestPolicy()).respond(PolicyMockData.getEditTestPolicy());
         
         scope.savePolicy();
         

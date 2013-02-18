@@ -22,25 +22,29 @@
 }
 
 /* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */
-.policy-threat-level-0, .policy-threat-color-0, #policyThreatLevel option[value="10"] {
+.policy-threat-level-0, .policy-threat-color-0, #policyThreatLevel option[value="10"] ,
+.license-group-threat-level-0, .license-group-threat-color-0, #groupEditorThreatLevel option[value="10"] {
     border: 1px solid #6185B7;
     background-color: #6E99D0;
     font-weight: bold;
     color: #DDD;
 }
-.policy-threat-level-1, .policy-threat-color-1, #policyThreatLevel option[value="9"], .policy-threat-level-2, .policy-threat-color-2, #policyThreatLevel option[value="8"], .policy-threat-level-3, .policy-threat-color-3, #policyThreatLevel option[value="7"] {
+.policy-threat-level-1, .policy-threat-color-1, #policyThreatLevel option[value="9"], .policy-threat-level-2, .policy-threat-color-2, #policyThreatLevel option[value="8"], .policy-threat-level-3, .policy-threat-color-3, #policyThreatLevel option[value="7"],
+.license-group-threat-level-1, .license-group-threat-color-1, #groupEditorThreatLevel option[value="9"], .license-group-threat-level-2, .license-group-threat-color-2, #groupEditorThreatLevel option[value="8"], .license-group-threat-level-3, .license-group-threat-color-3, #groupEditorThreatLevel option[value="7"] {
     border: 1px solid #DDBE18;
     background-color: #FEDF15;
     font-weight: bold;
     color: #555;
 }
-.policy-threat-level-4, .policy-threat-color-4, #policyThreatLevel option[value="6"], .policy-threat-level-5, .policy-threat-color-5, #policyThreatLevel option[value="5"], .policy-threat-level-6, .policy-threat-color-6, #policyThreatLevel option[value="4"], .policy-threat-level-7, .policy-threat-color-7, #policyThreatLevel option[value="3"] {
+.policy-threat-level-4, .policy-threat-color-4, #policyThreatLevel option[value="6"], .policy-threat-level-5, .policy-threat-color-5, #policyThreatLevel option[value="5"], .policy-threat-level-6, .policy-threat-color-6, #policyThreatLevel option[value="4"], .policy-threat-level-7, .policy-threat-color-7, #policyThreatLevel option[value="3"], 
+.license-group-threat-level-4, .license-group-threat-color-4, #groupEditorThreatLevel option[value="6"], .license-group-threat-level-5, .license-group-threat-color-5, #groupEditorThreatLevel option[value="5"], .license-group-threat-level-6, .license-group-threat-color-6, #groupEditorThreatLevel option[value="4"], .license-group-threat-level-7, .license-group-threat-color-7, #groupEditorThreatLevel option[value="3"] {
     border: 1px solid #C67A22;
     background-color: #F7941D;
     font-weight: bold;
     color: #DDD;
 }
-.policy-threat-level-8, .policy-threat-color-8, #policyThreatLevel option[value="2"], .policy-threat-level-9, .policy-threat-color-9, #policyThreatLevel option[value="1"], .policy-threat-level-10, .policy-threat-color-10, #policyThreatLevel option[value="0"] {
+.policy-threat-level-8, .policy-threat-color-8, #policyThreatLevel option[value="2"], .policy-threat-level-9, .policy-threat-color-9, #policyThreatLevel option[value="1"], .policy-threat-level-10, .policy-threat-color-10, #policyThreatLevel option[value="0"], 
+.license-group-threat-level-8, .license-group-threat-color-8, #groupEditorThreatLevel option[value="2"], .license-group-threat-level-9, .license-group-threat-color-9, #groupEditorThreatLevel option[value="1"], .license-group-threat-level-10, .license-group-threat-color-10, #groupEditorThreatLevel option[value="0"] {
     border: 1px solid #B71218;
     background-color: #EE1B24;
     font-weight: bold;
@@ -88,7 +92,7 @@ input.editor-checkbox {
   text-align: center;
 }
 
-.clmLabel {
+.clmLabel, .clmLicense {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   border-radius: 3px;
@@ -104,6 +108,11 @@ input.editor-checkbox {
   max-width: 200px;
   display:inline-block;
   word-break: break-all;
+}
+
+.clmLicense {
+	display: block;
+	border-style: none;
 }
 
 .whiteLabel {

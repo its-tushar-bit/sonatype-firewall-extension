@@ -31,10 +31,9 @@ public class DroolsGenerator
 
         final StringBuilder droolsCode = new StringBuilder();
 
-        droolsCode.append( "import com.sonatype.insight.brain.model.component.*\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.license.*\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.*\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.*\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.MatchFact\n" );
 
         for ( final Policy policy : policies )
         {

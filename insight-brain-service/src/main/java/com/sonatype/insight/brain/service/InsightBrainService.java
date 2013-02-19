@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.releasegraph.ReleaseGraphResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphTask;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.saas.CIResource;
+import com.sonatype.insight.brain.saas.RepoManResource;
 import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
@@ -121,6 +122,7 @@ public class InsightBrainService
         env.addResource( PolicyResource.class );
         env.addResource( ReportResource.class );
         env.addResource( CIResource.class );
+        env.addResource( RepoManResource.class );
         env.addResource( VersionResource.class );
         env.addResource( SaasIdeResource.class );
 

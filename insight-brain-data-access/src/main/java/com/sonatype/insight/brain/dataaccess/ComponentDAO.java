@@ -36,6 +36,20 @@ public class ComponentDAO
 
     private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
+    private void processJsonLicenseData( Component component, JsonNode jsonLicenseData )
+    {
+        final String statusString = JsonUtils.getNullableString( jsonLicenseData.get( "status" ) );
+        final LicenseStatus status = LicenseStatus.getByName( statusString );
+        List<String> declaredLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "declaredLicenses" ) );
+        component.setDeclaredLicenseIds( multiLicenseNamesToLicenseIds( declaredLicenseNames ) );
+        List<String> observedLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "observedLicenses" ) );
+        component.setObservedLicenseIds( multiLicenseNamesToLicenseIds( observedLicenseNames ) );
+        List<String> overriddenLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "overriddenLicenses" ) );
+        component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
+        // TODO Load effective license data too?
+        component.setLicenseStatus( status );
+    }
+
     public List<Component> getAll( String applicationId, final byte[] licenseData, final byte[] securityData,
                                    final byte[] bomData, final byte[] dependencyData )
     {
@@ -52,10 +66,10 @@ public class ComponentDAO
                 final ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
                 for ( int i = 0; i < licenseJsonArray.size(); i++ )
                 {
-                    final JsonNode artifactLicenseJson = licenseJsonArray.get( i );
-                    final String groupId = artifactLicenseJson.get( "groupId" ).asText();
-                    final String artifactId = artifactLicenseJson.get( "artifactId" ).asText();
-                    final String version = artifactLicenseJson.get( "version" ).asText();
+                    final JsonNode jsonLicenseNode = licenseJsonArray.get( i );
+                    final String groupId = jsonLicenseNode.get( "groupId" ).asText();
+                    final String artifactId = jsonLicenseNode.get( "artifactId" ).asText();
+                    final String version = jsonLicenseNode.get( "version" ).asText();
 
                     final String key = getComponentKey( groupId, artifactId, version );
                     Component component = componentsByGAV.get( key );
@@ -68,20 +82,9 @@ public class ComponentDAO
                         componentsByGAV.put( key, component );
                     }
 
-                    final String statusString = JsonUtils.getNullableString( artifactLicenseJson.get( "status" ) );
-                    final LicenseStatus status = LicenseStatus.getByName( statusString );
-                    final long catalogDate = artifactLicenseJson.get( "catalogDate" ).asLong();
-                    List<String> declaredLicenseNames =
-                        jsonStringArrayToList( artifactLicenseJson.get( "declaredLicenses" ) );
-                    component.setDeclaredLicenseIds( multiLicenseNamesToLicenseIds( declaredLicenseNames ) );
-                    List<String> observedLicenseNames =
-                        jsonStringArrayToList( artifactLicenseJson.get( "observedLicenses" ) );
-                    component.setObservedLicenseIds( multiLicenseNamesToLicenseIds( observedLicenseNames ) );
-                    List<String> overriddenLicenseNames =
-                        jsonStringArrayToList( artifactLicenseJson.get( "overriddenLicenses" ) );
-                    component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
-                    // TODO Load effective license data too?
-                    component.setLicenseStatus( status );
+                    processJsonLicenseData( component, jsonLicenseNode );
+
+                    final long catalogDate = jsonLicenseNode.get( "catalogDate" ).asLong();
                     component.setCatalogDate( catalogDate );
                 }
             }
@@ -225,16 +228,15 @@ public class ComponentDAO
         return result;
     }
 
-    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode licenseData )
+    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode jsonLicenseNode )
     {
         Component component = new Component();
         component.setArtifactId( matchComponent.getArtifactId() );
         component.setGroupId( matchComponent.getGroupId() );
         component.setVersion( matchComponent.getVersion() );
-        if ( licenseData != null )
+        if ( jsonLicenseNode != null )
         {
-            List<String> overriddenLicenseNames = jsonStringArrayToList( licenseData.get( "overriddenLicenses" ) );
-            component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
+            processJsonLicenseData( component, jsonLicenseNode );
         }
         component.setCatalogDate( matchComponent.getCatalogDate() );
         component.setDeclaredLicenseIds( matchComponent.getDeclaredLicenseIds() );

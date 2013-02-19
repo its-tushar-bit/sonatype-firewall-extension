@@ -78,6 +78,18 @@ public class SaasIdeResource
         return client.doProxy( req, "rest/ide/artifact/", path );
     }
 
+    private ArrayNode getAugmentedLicenseData( String applicationId, MatchedComponent matchedComponent )
+        throws IOException
+    {
+        String json =
+            "[{ \"groupId\" : \"" + matchedComponent.getGroupId() + "\", \"artifactId\" : \""
+                + matchedComponent.getArtifactId() + "\", \"version\" : \"" + matchedComponent.getVersion() + "\" }]";
+        ArrayNode licenseData = JsonUtils.parse( json );
+        File auditDir = work.getAuditDir( applicationId );
+        licenseData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
+        return licenseData;
+    }
+
     @GET
     @Path( "scan/{scanType}/{appId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
@@ -92,22 +104,11 @@ public class SaasIdeResource
         MatchedComponent matchedComponent =
             client.get( req, MatchedComponent.class, "rest/ide/scan", scanType, applicationPublicId, path );
 
-        File auditDir = work.getAuditDir( applicationId );
-
-        ArrayNode licenseData = null;
-        if ( !"unknown".equals( matchedComponent.getMatchState() ) )
-        {
-            String json =
-                "[{ \"groupId\" : \"" + matchedComponent.getGroupId() + "\", \"artifactId\" : \""
-                    + matchedComponent.getArtifactId() + "\", \"version\" : \"" + matchedComponent.getVersion()
-                    + "\" }]";
-            licenseData = JsonUtils.parse( json );
-            licenseData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
-        }
-
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
         {
+            ArrayNode licenseData = getAugmentedLicenseData( applicationId, matchedComponent );
+
             ComponentDAO componentDAO = new ComponentDAO();
             Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData.get( 0 ) );
             List<PolicyAlert> alerts =

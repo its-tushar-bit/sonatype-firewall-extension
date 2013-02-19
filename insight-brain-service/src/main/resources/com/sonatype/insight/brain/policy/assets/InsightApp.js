@@ -101,8 +101,8 @@ var insightApp;
 			templateUrl : 'components/labels.html?' + clmBuildTimestamp,
 			controller : 'LabelController'
 		});
-		$routeProvider.when('/license-group', {
-			templateUrl : 'components/license-group.html?' + clmBuildTimestamp,
+		$routeProvider.when('/license-threat-group', {
+			templateUrl : 'components/license-threat-group.html?' + clmBuildTimestamp,
 			controller : 'InsightLicenseGroupController'
 		});
 		$routeProvider.otherwise({redirectTo : '/policy'});
@@ -129,7 +129,7 @@ var insightApp;
 		};
 
 		$scope.licenseGroupTabClick = function ($event) {
-			handleTabClick('/license-group', $event);
+			handleTabClick('/license-threat-group', $event);
 		};
 
 		$scope.$watch(function () {return $location.path(); }, function () {

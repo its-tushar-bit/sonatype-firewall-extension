@@ -74,7 +74,7 @@
 		}).error(onError);
 		
 		$scope.editLicenseGroup = function(group) {
-			$scope.editorUrl = 'components/license-group-editor.html?' + new Date(); // + clmBuildTimestamp;
+			$scope.editorUrl = 'components/license-threat-group-editor.html?' + new Date(); // + clmBuildTimestamp;
 			
 			$scope.selectedGroup = { id : null, applicationId : null, licenses : [], name : '', threatLevel : 5 };
 			if (group) {

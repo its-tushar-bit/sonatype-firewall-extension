@@ -101,6 +101,35 @@ public class AuditingTest
     }
 
     @Test
+    public void testCanAugmentSimpleObject()
+        throws IOException
+    {
+        assertThat( store.modificationCount(), equalTo( 0 ) );
+
+        final String object = "{ \"id\" : \"B\" }";
+
+        final String addition1 =
+            "[ { \"id\" : \"A\", \"override\" : \"EPL\" }, { \"id\" : \"B\", \"override\" : \"APL\" } ]";
+
+        final String addition2 = "[ { \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" } ]";
+
+        final String result = "{ \"id\" : \"B\", \"override\" : \"ASL\", \"comment\" : \"Fix typo\" }";
+
+        store.commit( "sample.json", JsonUtils.parse( addition1.getBytes( "UTF-8" ) ) );
+
+        assertThat( store.modificationCount(), equalTo( 1 ) );
+
+        store.commit( "sample.json", JsonUtils.parse( addition2.getBytes( "UTF-8" ) ) );
+
+        assertThat( store.modificationCount(), equalTo( 2 ) );
+
+        final byte[] buf =
+            JsonUtils.generate( store.augment( JsonUtils.parse( object.getBytes( "UTF-8" ) ), "sample.json" ) );
+
+        assertThat( new String( buf, "UTF-8" ), equalToIgnoringWhiteSpace( result ) );
+    }
+
+    @Test
     public void testFilteredNamedAuditFeed()
         throws IOException
     {

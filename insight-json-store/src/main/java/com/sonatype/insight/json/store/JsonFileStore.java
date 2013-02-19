@@ -251,15 +251,35 @@ public final class JsonFileStore
 
         // check each row in turn against the candidate changes
         final ArrayNode rows = (ArrayNode) ( table instanceof ArrayNode ? table : table.get( "aaData" ) );
-        for ( int x = 0; x < rows.size(); x++ )
+        if ( rows != null )
         {
+            for ( int x = 0; x < rows.size(); x++ )
+            {
+                for ( int y = 0; y < changes.size(); y++ )
+                {
+                    try
+                    {
+                        // once change has been applied, remove it since it shouldn't match any other rows
+                        rows.set( x, augment( (ObjectNode) rows.get( x ), (ObjectNode) changes.get( y ) ) );
+                        changes.remove( y-- );
+                        break;
+                    }
+                    catch ( final JsonMappingException e )
+                    {
+                        // incompatible data, try next row from secondary table
+                    }
+                }
+            }
+        }
+        else
+        {
+            // treat solitary object as a single row
+            final ObjectNode row = (ObjectNode) table;
             for ( int y = 0; y < changes.size(); y++ )
             {
                 try
                 {
-                    // once change has been applied, remove it since it shouldn't match any other rows
-                    rows.set( x, augment( (ObjectNode) rows.get( x ), (ObjectNode) changes.get( y ) ) );
-                    changes.remove( y-- );
+                    row.setAll( augment( row, (ObjectNode) changes.get( y ) ) );
                     break;
                 }
                 catch ( final JsonMappingException e )

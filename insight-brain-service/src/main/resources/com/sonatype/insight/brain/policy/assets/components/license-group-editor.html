@@ -1,7 +1,7 @@
 <div ng-controller='InsightLicenseGroupEditorController'>
 	<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
 		<div class='modal-body'>
-			<div class='control-group' style='float: left; width: 49.5%'
+			<div class='control-group halfSize floatLeft'
 				ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
 				<label class='control-label' for='licenseGroupEditorName'>Name:</label>
 				<div class='controls'>
@@ -13,7 +13,7 @@
 						class='help-inline'>Duplicate Label</span>
 				</div>
 			</div>
-			<div class='control-group' style='float: right; width: 49.5%'>
+			<div class='control-group halfSize floatRight'>
 				<label class='control-label' for='groupEditorThreatLevel'>Threat
 					Level:</label>
 				<div class='controls'>
@@ -25,14 +25,14 @@
 				</div>
 			</div>
 			<div class='control-group'>
-				<div class='input-prepend' style='float: right; width: 100%;'>
+				<div class='input-prepend fullWidthPrependedTextBox'>
 					<span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
-					<input type='text' style='width: 90%' placeholder='Search for license' ng-model='licenseSearch' enter-Down="searchEnter();" prevent-Submit />
+					<input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-Down="searchEnter();" prevent-Submit />
 				</div>
 				<div class='controls' style='clear: both;'>
-					<div style='float: left; width: 49.5%;'>
+					<div class='halfSize floatLeft'>
 						<h5>Applied Licenses</h5>
-						<div style='overflow: auto; height: 200px;'>
+						<div class='licenseContainer'>
 							<span ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'
 								class='clmLicense'><i
 								class='icon-minus-sign'
@@ -40,9 +40,9 @@
 								title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span></span>
 						</div>
 					</div>
-					<div style='float: right; width: 49.5%;'>
+					<div class='halfSize floatRight'>
 						<h5>Available Licenses</h5>
-						<div style='overflow:auto; height: 200px;'>
+						<div class='licenseContainer'>
 							<span
 								ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'
 								class='clmLicense'><i

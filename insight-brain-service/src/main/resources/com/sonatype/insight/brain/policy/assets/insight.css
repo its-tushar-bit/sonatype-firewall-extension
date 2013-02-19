@@ -168,6 +168,32 @@ input.editor-checkbox {
     border : 1px dashed black;
 }
 
+.halfSize {
+	width: 49.5%;
+}
+
+.floatLeft {
+	float: left;
+}
+
+.floatRight {
+	float: right;
+}
+
+.licenseContainer {
+	overflow:auto; 
+	height: 200px;
+}
+
+.fullWidthPrependedTextBox {
+	float: right; 
+	width: 100%;
+}
+
+.fullWidthPrependedTextBox > input {
+	width: 90%;
+}
+
 .navbar .brand {
 	margin-left:0px;
 	white-space: nowrap;

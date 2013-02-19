@@ -135,4 +135,9 @@ public abstract class AbstractBrainServiceTest
         }
         return restBaseUrl;
     }
+
+    protected void setSaasResponseForURI( String uri, String body, int status )
+    {
+        saas.setResponseForURI( uri, body, status );
+    }
 }

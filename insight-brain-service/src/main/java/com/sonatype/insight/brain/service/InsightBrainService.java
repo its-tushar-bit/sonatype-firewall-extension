@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
+import com.sonatype.insight.brain.ide.SaasClient;
+import com.sonatype.insight.brain.ide.SaasIdeResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
 import com.sonatype.insight.brain.license.LicenseResource;
@@ -91,9 +93,11 @@ public class InsightBrainService
 
         env.addHealthCheck( new InsightHealth( config ) );
 
+        InsightProxy proxy = new InsightProxy( config );
         env.addProvider( new InsightWork( config ) );
-        env.addProvider( new InsightProxy( config ) );
+        env.addProvider( proxy );
         env.addProvider( new InsightMail( config ) );
+        env.addProvider( new SaasClient( proxy ) );
 
         File databaseDir = new File( config.getSonatypeWork(), "data" );
         DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );
@@ -118,6 +122,7 @@ public class InsightBrainService
         env.addResource( ReportResource.class );
         env.addResource( CIResource.class );
         env.addResource( VersionResource.class );
+        env.addResource( SaasIdeResource.class );
 
         LoadingCache<ReleaseGraphKey, byte[]> cache =
             CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build( new ReleaseGraphCacheLoader() );

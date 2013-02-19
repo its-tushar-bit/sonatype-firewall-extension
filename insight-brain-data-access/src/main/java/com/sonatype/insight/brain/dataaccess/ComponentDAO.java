@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.model.brain.MatchedComponent;
+import com.sonatype.insight.model.brain.SecurityIssue;
 
 public class ComponentDAO
 {
@@ -218,14 +220,49 @@ public class ComponentDAO
         ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
         for ( Component component : result )
         {
-            List<ComponentLabel> componentLabels =
-                componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
-            for ( ComponentLabel componentLabel : componentLabels )
-            {
-                component.addLabelId( componentLabel.getLabelId() );
-            }
+            loadComponentLabels( applicationId, component, componentLabelDAO );
         }
         return result;
+    }
+
+    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode licenseData )
+    {
+        Component component = new Component();
+        component.setArtifactId( matchComponent.getArtifactId() );
+        component.setGroupId( matchComponent.getGroupId() );
+        component.setVersion( matchComponent.getVersion() );
+        if ( licenseData != null )
+        {
+            List<String> overriddenLicenseNames = jsonStringArrayToList( licenseData.get( "overriddenLicenses" ) );
+            component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
+        }
+        component.setCatalogDate( matchComponent.getCatalogDate() );
+        component.setDeclaredLicenseIds( matchComponent.getDeclaredLicenseIds() );
+        component.setObservedLicenseIds( matchComponent.getObservedLicenseIds() );
+        component.setHash( matchComponent.getHash() );
+        component.setMatchState( matchComponent.isSimpleMatch() ? MatchState.EXACT : MatchState.SIMILAR );
+
+        for ( SecurityIssue issue : matchComponent.getSecurityThreats() )
+        {
+            component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefid(),
+                                                                           issue.getSeverity() ) );
+        }
+
+        loadLicenseThreatGroups( applicationId, component );
+
+        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
+
+        return component;
+    }
+
+    private void loadComponentLabels( String applicationId, Component component, ComponentLabelDAO componentLabelDAO )
+    {
+        List<ComponentLabel> componentLabels =
+            componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
+        for ( ComponentLabel componentLabel : componentLabels )
+        {
+            component.addLabelId( componentLabel.getLabelId() );
+        }
     }
 
     public void loadLicenseThreatGroups( String applicationId, Component component )

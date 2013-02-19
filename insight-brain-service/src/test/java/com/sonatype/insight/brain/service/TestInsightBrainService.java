@@ -195,4 +195,9 @@ public class TestInsightBrainService
         // Use in memory db
         return null;
     }
+
+    public File getAuditDir( String applicationId )
+    {
+        return new File( new File( getWorkDir(), "audit" ), applicationId );
+    }
 }

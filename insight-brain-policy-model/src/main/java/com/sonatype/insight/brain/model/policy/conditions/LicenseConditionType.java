@@ -74,7 +74,7 @@ public class LicenseConditionType
     }
 
     @Override
-    public String explainRule( final Condition condition )
+    public String explainCondition( final Condition condition )
     {
         return getName() + ' ' + condition.getOperator() + " '"
             + new LicenseDAO().getById( condition.getValue() ).getShortDisplayName() + '\'';

@@ -24,7 +24,7 @@ public class ConditionFact
     {
         final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
 
-        summary = conditionType.explainRule( condition );
+        summary = conditionType.explainCondition( condition );
         reason = conditionType.explainMatch( condition, component );
     }
 

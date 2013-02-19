@@ -80,7 +80,7 @@ public class LicenseThreatGroupConditionType
     }
 
     @Override
-    public String explainRule( final Condition condition )
+    public String explainCondition( final Condition condition )
     {
         return getName() + ' ' + condition.getOperator() + " '"
             + new LicenseThreatGroupDAO().getById( condition.getValue() ).getName() + '\'';

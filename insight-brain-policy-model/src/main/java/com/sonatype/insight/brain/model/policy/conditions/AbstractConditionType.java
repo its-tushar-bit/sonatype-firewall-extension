@@ -37,7 +37,7 @@ public abstract class AbstractConditionType
     }
 
     @Override
-    public String explainRule( Condition condition )
+    public String explainCondition( Condition condition )
     {
         return getName() + ' ' + condition.getOperator()
             + ( condition.getValue() != null ? ' ' + condition.getValue() : "" );

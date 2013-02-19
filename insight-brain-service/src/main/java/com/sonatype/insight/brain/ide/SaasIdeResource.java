@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
@@ -107,8 +106,7 @@ public class SaasIdeResource
         }
 
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
-        if ( ideComponent.getWaitDelta() == null
-            && !MatchState.UNKNOWN.toString().equals( ideComponent.getMatchState() ) )
+        if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
         {
             ComponentDAO componentDAO = new ComponentDAO();
             Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData.get( 0 ) );

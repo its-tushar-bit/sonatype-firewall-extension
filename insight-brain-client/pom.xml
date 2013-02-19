@@ -68,6 +68,11 @@
       <version>${insight-scanner.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-upload</artifactId>
+      <version>${insight-scanner.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
       <version>1.2-SNAPSHOT</version>

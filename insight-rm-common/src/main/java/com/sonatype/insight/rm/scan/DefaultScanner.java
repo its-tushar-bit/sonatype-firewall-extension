@@ -5,23 +5,64 @@
  */
 package com.sonatype.insight.rm.scan;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.ReaderFactory;
+import org.codehaus.plexus.util.xml.PrettyPrintXMLWriter;
+import org.codehaus.plexus.util.xml.pull.MXParser;
+import org.codehaus.plexus.util.xml.pull.XmlPullParser;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sonatype.insight.scan.client.ClientScanRequest;
+import com.sonatype.insight.scan.config.ScanPropertiesLoader;
+import com.sonatype.insight.scan.file.FileScanRequest;
+import com.sonatype.insight.scan.file.FileScanner;
+import com.sonatype.insight.scan.hash.SHA1;
+import com.sonatype.insight.scan.model.Repository;
+import com.sonatype.insight.scan.model.Scan;
+import com.sonatype.insight.scan.model.ScanConfiguration;
+import com.sonatype.insight.scan.model.ScanSummary;
+import com.sonatype.insight.scan.model.io.ScanWriter;
+import com.sonatype.insight.scan.util.HashUtils;
 
 class DefaultScanner
     implements Scanner
 {
 
+    private static final Logger log = LoggerFactory.getLogger( DefaultScanner.class );
+
+    private static final String CONFIGURATION_RESOURCE =
+        DefaultScanner.class.getName().replace( '.', '/' ).replace( DefaultScanner.class.getSimpleName(),
+                                                                    "configuration.properties" );
+
     private final ScannerConfiguration config;
 
-    private final List<RepositoryItem> items;
+    private final List<RepositoryItem> componentItems;
+
+    private final List<RepositoryItem> scanItems;
 
     public DefaultScanner( final ScannerConfiguration config )
     {
         this.config = config;
-        items = new ArrayList<RepositoryItem>( 128 );
+        componentItems = new ArrayList<RepositoryItem>( 128 );
+        scanItems = new ArrayList<RepositoryItem>();
     }
 
     @Override
@@ -29,15 +70,338 @@ class DefaultScanner
     {
         if ( item != null )
         {
-            items.add( item );
+            if ( isScanItem( item ) )
+            {
+                scanItems.add( item );
+            }
+            else if ( isComponentItem( item ) )
+            {
+                componentItems.add( item );
+            }
         }
+    }
+
+    private boolean isScanItem( final RepositoryItem item )
+    {
+        final String path = item.getPath();
+        if ( path.endsWith( "-sonatype-clm-scan.xml.gz" ) )
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isComponentItem( final RepositoryItem item )
+    {
+        String path = item.getPath();
+        if ( path.endsWith( ".pom" ) || path.endsWith( ".asc" ) || path.endsWith( ".sha1" ) || path.endsWith( ".md5" ) )
+        {
+            return false;
+        }
+        if ( path.endsWith( "-sources.jar" ) || path.endsWith( "-javadoc.jar" ) || path.endsWith( "-tests.jar" ) )
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public File scan()
         throws IOException
     {
-        throw new IOException( "Not yet implemented" );
+        File scanFile = File.createTempFile( "sonatype-clm-scan-", ".xml.gz", config.getWorkDir() );
+        try
+        {
+            Writer writer =
+                new OutputStreamWriter(
+                                        new GZIPOutputStream(
+                                                              new BufferedOutputStream(
+                                                                                        new FileOutputStream( scanFile ),
+                                                                                        32 * 1024 ) ), "UTF-8" );
+            try
+            {
+                scan( writer );
+            }
+            finally
+            {
+                writer.close();
+            }
+        }
+        catch ( IOException e )
+        {
+            scanFile.delete();
+            throw e;
+        }
+        catch ( RuntimeException e )
+        {
+            scanFile.delete();
+            throw e;
+        }
+        return scanFile;
+    }
+
+    private void scan( Writer writer )
+        throws IOException
+    {
+        Scan scan = new Scan();
+        scan.setConfiguration( getConfiguration() );
+        ScanSummary summary = scan.getSummary();
+        summary.setStartTime();
+
+        Bindings.clientScanner().scan( new ClientScanRequest( scan ) );
+
+        Set<String> moduleIds = new HashSet<String>();
+        Set<SHA1> componentHashes = new HashSet<SHA1>();
+        Set<SHA1> scannedHashes = new HashSet<SHA1>();
+
+        for ( int i = componentItems.size() - 1; i >= 0; i-- )
+        {
+            RepositoryItem item = componentItems.get( i );
+            moduleIds.add( item.getCoordinates().getModuleId() );
+            String sha1 = item.getSha1();
+            if ( sha1 == null || sha1.isEmpty() )
+            {
+                InputStream is = item.newInputStream();
+                try
+                {
+                    sha1 = HashUtils.hash( is, HashUtils.SHA1 );
+                }
+                finally
+                {
+                    is.close();
+                }
+                componentItems.set( i, new HashedRepositoryItem( item, sha1 ) );
+            }
+            componentHashes.add( normalizeSha1( sha1 ) );
+        }
+
+        ScanWriter scanWriter = Bindings.scanWriterFactory().newWriter( writer );
+        PrettyPrintXMLWriter xmlWriter = new PrettyPrintXMLWriter( writer );
+
+        scanWriter.openScan( scan );
+        scanWriter.writeRepository( new Repository( null, config.getRepositoryId(), config.getRepositoryName(),
+                                                    config.getRepositoryFormat(), null ) );
+        scanWriter.writeConfiguration( scan.getConfiguration() );
+
+        int archives = 0, files = 0, classFiles = 0;
+        for ( RepositoryItem item : scanItems )
+        {
+            if ( !moduleIds.contains( item.getCoordinates().getModuleId() ) )
+            {
+                // no scan-worthy component exists for that module any more, ignore its scan (especially dependencies)
+                continue;
+            }
+
+            Reader reader = ReaderFactory.newXmlReader( new GZIPInputStream( item.newInputStream() ) );
+            try
+            {
+                MXParser parser = new MXParser();
+                parser.setInput( reader );
+                for ( int event = parser.getEventType(); event != XmlPullParser.END_DOCUMENT; event = parser.next() )
+                {
+                    if ( event == XmlPullParser.START_TAG )
+                    {
+                        String tag = parser.getName();
+                        if ( parser.getDepth() == 1 )
+                        {
+                            if ( !"scan".equals( tag ) )
+                            {
+                                throw new XmlPullParserException( "Unexpected root tag: " + tag, parser, null );
+                            }
+                            String version = parser.getAttributeValue( null, "version" );
+                            if ( !scan.getVersion().equals( version ) )
+                            {
+                                log.warn( "Unexpected file format in " + item.getPath() + ", scan might be inaccurate"
+                                    + ", please ensure the employed CLM client tools are compatible" );
+                            }
+                        }
+                        else if ( parser.getDepth() == 2 && "configuration".equals( tag ) )
+                        {
+                            parser.skipSubTree();
+                        }
+                        else if ( parser.getDepth() == 2 && "summary".equals( tag ) )
+                        {
+                            parser.skipSubTree();
+                        }
+                        else if ( parser.getDepth() == 3 && "dir".equals( tag )
+                            && !Boolean.parseBoolean( parser.getAttributeValue( null, "dependency" ) )
+                            && isNotPresentInRepo( parser.getAttributeValue( null, "sha1" ), componentHashes ) )
+                        {
+                            parser.skipSubTree();
+                        }
+                        else
+                        {
+                            xmlWriter.startElement( tag );
+                            for ( int i = 0, n = parser.getAttributeCount(); i < n; i++ )
+                            {
+                                xmlWriter.addAttribute( parser.getAttributeName( i ), parser.getAttributeValue( i ) );
+                            }
+
+                            if ( "dir".equals( tag ) )
+                            {
+                                archives++;
+                                if ( !Boolean.parseBoolean( parser.getAttributeValue( null, "dependency" ) ) )
+                                {
+                                    scannedHashes.add( normalizeSha1( parser.getAttributeValue( null, "sha1" ) ) );
+                                }
+                            }
+                            else if ( "item".equals( tag ) )
+                            {
+                                files++;
+                                String path = parser.getAttributeValue( null, "path" );
+                                if ( path != null && path.endsWith( ".class" ) )
+                                {
+                                    classFiles++;
+                                }
+                            }
+                        }
+                    }
+                    else if ( event == XmlPullParser.END_TAG )
+                    {
+                        if ( parser.getDepth() > 1 )
+                        {
+                            xmlWriter.endElement();
+                        }
+                    }
+                    else if ( event == XmlPullParser.TEXT )
+                    {
+                        xmlWriter.writeText( parser.getText() );
+                    }
+                }
+            }
+            catch ( XmlPullParserException e )
+            {
+                throw new IOException( "Could not read scan file " + item.getPath(), e );
+            }
+            finally
+            {
+                reader.close();
+            }
+        }
+        summary.setArchives( archives );
+        summary.setFiles( files );
+        summary.setClassFiles( classFiles );
+
+        FileScanner fileScanner = Bindings.fileScanner();
+        for ( RepositoryItem item : componentItems )
+        {
+            if ( scannedHashes.contains( normalizeSha1( item.getSha1() ) ) )
+            {
+                continue;
+            }
+            File file = item.getFile();
+            try
+            {
+                if ( file == null )
+                {
+                    // NOTE: We need to retain the proper file extension for TrueZIP to recognize the archive type
+                    String ext = new File( item.getPath() ).getName();
+                    ext = ext.substring( ext.indexOf( '.' ) + 1 );
+                    file = File.createTempFile( "sonatype-clm-file-", "." + ext, config.getWorkDir() );
+                    InputStream is = item.newInputStream();
+                    try
+                    {
+                        FileOutputStream fos = new FileOutputStream( file );
+                        try
+                        {
+                            IOUtil.copy( is, fos );
+                        }
+                        finally
+                        {
+                            fos.close();
+                        }
+                    }
+                    finally
+                    {
+                        is.close();
+                    }
+                }
+                FileScanRequest scanRequest = new FileScanRequest();
+                scanRequest.setScan( scan );
+                scanRequest.setScanWriter( scanWriter );
+                scanRequest.addFile( file, item.getPath(), item.getCoordinates().getId() );
+                fileScanner.scan( scanRequest );
+            }
+            finally
+            {
+                if ( item.getFile() == null && !file.delete() && file.exists() )
+                {
+                    log.warn( "Failed to delete temporary file {}", file );
+                }
+            }
+        }
+
+        summary.setEndTime();
+        scanWriter.writeSummary( summary );
+        scanWriter.closeScan();
+    }
+
+    private boolean isNotPresentInRepo( String sha1, Set<SHA1> componentHashes )
+    {
+        return sha1 != null && !componentHashes.contains( normalizeSha1( sha1 ) );
+    }
+
+    private SHA1 normalizeSha1( String sha1 )
+    {
+        return ( sha1 != null ) ? SHA1.fromHexString( sha1 ) : null;
+    }
+
+    private ScanConfiguration getConfiguration()
+        throws IOException
+    {
+        final Properties properties = (Properties) config.getScanOptions().clone();
+        final ScanPropertiesLoader loader =
+            new ScanPropertiesLoader( LoggerFactory.getLogger( ScanPropertiesLoader.class ) );
+        loader.resolveAliases( properties );
+        loader.loadDefaults( properties, CONFIGURATION_RESOURCE );
+        return new ScanConfiguration( properties );
+    }
+
+    private static class HashedRepositoryItem
+        extends RepositoryItem
+    {
+
+        private final RepositoryItem delegate;
+
+        private final String sha1;
+
+        public HashedRepositoryItem( RepositoryItem delegate, String sha1 )
+        {
+            this.delegate = delegate;
+            this.sha1 = sha1;
+        }
+
+        @Override
+        public String getSha1()
+        {
+            return sha1;
+        }
+
+        @Override
+        public File getFile()
+        {
+            return delegate.getFile();
+        }
+
+        @Override
+        public String getPath()
+        {
+            return delegate.getPath();
+        }
+
+        @Override
+        public Coords getCoordinates()
+        {
+            return delegate.getCoordinates();
+        }
+
+        @Override
+        public InputStream newInputStream()
+            throws IOException
+        {
+            return delegate.newInputStream();
+        }
+
     }
 
 }

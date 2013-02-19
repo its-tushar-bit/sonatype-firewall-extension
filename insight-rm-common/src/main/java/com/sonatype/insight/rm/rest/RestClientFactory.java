@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.insight.brain.client.PolicyClient;
+import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.brain.client.ValidationClient;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
@@ -51,19 +52,19 @@ public class RestClientFactory
         @Override
         public App forApplication( final String appId )
         {
-            return new AppClient( config, appId );
+            return new AppSpecificClient( config, appId );
         }
 
     }
 
-    private static class AppClient
+    private static class AppSpecificClient
         extends BaseClient
         implements RestClient.App
     {
 
         protected final String appId;
 
-        public AppClient( final Configuration config, final String appId )
+        public AppSpecificClient( final Configuration config, final String appId )
         {
             super( config );
             this.appId = appId;
@@ -80,20 +81,19 @@ public class RestClientFactory
         public String uploadScan( File scanFile )
             throws IOException
         {
-            // TODO Auto-generated method stub
-            throw new IOException( "Not yet implemented" );
+            return new ScanClient( config, appId ).uploadRepoManScan( scanFile );
         }
 
         @Override
         public Scan forScan( String scanId )
         {
-            return new ScanClient( config, appId, scanId );
+            return new ScanSpecificClient( config, appId, scanId );
         }
 
     }
 
-    private static class ScanClient
-        extends AppClient
+    private static class ScanSpecificClient
+        extends AppSpecificClient
         implements RestClient.Scan
     {
 
@@ -101,7 +101,7 @@ public class RestClientFactory
 
         protected final String scanId;
 
-        public ScanClient( final Configuration config, final String appId, final String scanId )
+        public ScanSpecificClient( final Configuration config, final String appId, final String scanId )
         {
             super( config, appId );
             this.scanId = scanId;

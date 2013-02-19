@@ -15,10 +15,21 @@ public class ScannerConfiguration
 
     private Properties scanOptions;
 
+    private String repositoryId;
+
+    private String repositoryName;
+
+    private String repositoryFormat;
+
     public ScannerConfiguration()
     {
-        workDir = new File( System.getProperty( "java.io.tmpdir", "" ) ).getAbsoluteFile();
+        workDir = getDefaultWorkDir();
         scanOptions = new Properties();
+    }
+
+    private static File getDefaultWorkDir()
+    {
+        return new File( System.getProperty( "java.io.tmpdir", "" ) ).getAbsoluteFile();
     }
 
     public File getWorkDir()
@@ -28,7 +39,7 @@ public class ScannerConfiguration
 
     public ScannerConfiguration setWorkDir( final File workDir )
     {
-        this.workDir = workDir;
+        this.workDir = ( workDir != null ) ? workDir : getDefaultWorkDir();
         return this;
     }
 
@@ -57,6 +68,29 @@ public class ScannerConfiguration
         {
             scanOptions.setProperty( key, value );
         }
+        return this;
+    }
+
+    public String getRepositoryId()
+    {
+        return repositoryId;
+    }
+
+    public String getRepositoryName()
+    {
+        return repositoryName;
+    }
+
+    public String getRepositoryFormat()
+    {
+        return repositoryFormat;
+    }
+
+    public ScannerConfiguration setRepository( String id, String format, String name )
+    {
+        repositoryId = id;
+        repositoryFormat = format;
+        repositoryName = name;
         return this;
     }
 

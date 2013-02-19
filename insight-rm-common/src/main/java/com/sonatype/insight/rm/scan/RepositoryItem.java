@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.rm.scan;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -14,7 +15,9 @@ public abstract class RepositoryItem
     public interface Coords
     {
 
-        String toIdentifier();
+        String getId();
+
+        String getModuleId();
 
     }
 
@@ -24,12 +27,15 @@ public abstract class RepositoryItem
 
         private final String id;
 
+        private final String moduleId;
+
         public MavenCoords( final String groupId, final String artifactId, final String version,
                             final String classifier, final String extension )
         {
             final StringBuilder buffer = new StringBuilder( 128 );
             buffer.append( groupId );
             buffer.append( ':' ).append( artifactId );
+            int len = buffer.length();
             buffer.append( ':' ).append( extension );
             if ( classifier != null && !classifier.isEmpty() )
             {
@@ -37,18 +43,27 @@ public abstract class RepositoryItem
             }
             buffer.append( ':' ).append( version );
             id = buffer.toString();
+            buffer.setLength( len );
+            buffer.append( ':' ).append( version );
+            moduleId = buffer.toString();
         }
 
         @Override
-        public String toIdentifier()
+        public String getId()
         {
             return id;
         }
 
         @Override
+        public String getModuleId()
+        {
+            return moduleId;
+        }
+
+        @Override
         public String toString()
         {
-            return toIdentifier();
+            return getId();
         }
 
     }
@@ -59,6 +74,12 @@ public abstract class RepositoryItem
 
     public abstract InputStream newInputStream()
         throws IOException;
+
+    public File getFile()
+    {
+        // override if at hand, otherwise created from input stream
+        return null;
+    }
 
     public String getSha1()
     {

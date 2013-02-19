@@ -4,3 +4,4 @@
 .sonatype
 target/
 sonatype-work/
+dependency-reduced-pom.xml

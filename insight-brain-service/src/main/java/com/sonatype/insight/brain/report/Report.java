@@ -380,11 +380,13 @@ public final class Report
     private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )
         throws IOException
     {
-        ContainerNode<?> table = JsonUtils.parse( extractEntry( reportFile, name ).buf );
-
-        table = JsonUtils.fileStore( auditDir ).augment( table, name );
-        cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
-
+        ContainerNode<?> table = null;
+        final ReportEntry entry = extractEntry( reportFile, name );
+        if ( entry != null )
+        {
+            table = JsonUtils.fileStore( auditDir ).augment( JsonUtils.parse( entry.buf ), name );
+            cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
+        }
         return table;
     }
 

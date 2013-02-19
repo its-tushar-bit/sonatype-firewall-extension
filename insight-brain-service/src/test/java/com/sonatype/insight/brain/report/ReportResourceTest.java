@@ -257,6 +257,45 @@ public class ReportResourceTest
         assertThat( response.getResponseBody(), containsString( "\"state\" : \"accepted\"" ) );
     }
 
+    @Test
+    public void testCanAuditNonReportData()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "ReportResourceTest_ScanId";
+
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final String query = "extra.json?user=test&where=ReportResourceTest";
+
+        // audit non-report data
+        final String extra = "{ \"policy\" : \"TEST\", \"result\" : \"OK\" }";
+        Response response = RestAccess.post( resourcePrefix + "/augmentData/" + query, extra );
+        assertResponseStatus( 200, response );
+
+        // verify can still access report
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
+
+        // check the audit log reflects this change
+        response = RestAccess.get( resourcePrefix + "/auditLog/extra.json" );
+        assertResponseStatus( 200, response );
+
+        final String feed =
+            "{ \"aaData\" : [ { \"policy\" : \"TEST\", \"result\" : \"OK\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"extra.json\" } ] }";
+
+        assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
+                    equalToIgnoringWhiteSpace( feed ) );
+    }
+
     private String getServiceURL( final String appId, final String scanId )
     {
         return getRestBaseUrl()

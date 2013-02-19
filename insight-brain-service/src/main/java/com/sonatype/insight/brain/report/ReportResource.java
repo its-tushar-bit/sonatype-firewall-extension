@@ -244,16 +244,14 @@ public class ReportResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        if ( StringUtils.isNotBlank( encodedKey ) )
+        final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
+        final ContainerNode<?> key = encodedKey != null ? JsonUtils.parse( encodedKey.getBytes( "UTF-8" ) ) : null;
+        final ContainerNode<?> feed = store.history( key, path.split( "[+]+" ) );
+        if ( feed != null )
         {
-            final JsonStore store = JsonUtils.fileStore( work.getAuditDir( appId ) );
-            final ContainerNode<?> key = JsonUtils.parse( encodedKey.getBytes( "UTF-8" ) );
-            final ContainerNode<?> feed = store.history( key, path.split( "[+]+" ) );
-            if ( feed != null )
-            {
-                return Response.ok( JsonUtils.generate( feed ) ).build();
-            }
+            return Response.ok( JsonUtils.generate( feed ) ).build();
         }
+
         return Response.ok().build();
     }
 

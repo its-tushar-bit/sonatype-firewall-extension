@@ -49,10 +49,10 @@ public class SaasIdeResourceTest
     public void testDoScan()
         throws Exception
     {
-        String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
-        Constraint constraint1 = new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
         constraint1.addCondition( condition1 );
         Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
@@ -87,10 +87,10 @@ public class SaasIdeResourceTest
     public void testDoScan_OverriddenLicense()
         throws Exception
     {
-        String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
-        Constraint constraint1 = new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( LicenseConditionType.ID, "is", "AAL" );
         constraint1.addCondition( condition1 );
         Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );

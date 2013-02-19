@@ -1,15 +1,15 @@
 <div id='licenseGroup'>
-    <div ng-show='!features.licenseGroup' class='span6 offset4 no-content'>License Group content is under development.</div>
+    <div ng-show='!features.licenseGroup' class='span6 offset4 no-content'>License Threat Group content is under development.</div>
     <div ng-show='features.licenseGroup' class='span4 content-container'>
         <table class='table table-striped' style='margin-bottom:0px'>
-            <thead><tr><th colspan='2'>License Groups</th></tr></thead>
+            <thead><tr><th colspan='2'>License Threat Groups</th></tr></thead>
             <tr ng-repeat='group in licenseGroups | orderBy: group.name'>
                 <td style='height:24px'>{{group.name}}</td>
-                <td style='width:60px'><button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit hover-vis' title='Edit Group'><i class='icon-pencil' style='margin-top:0px;'></i></button> <button ng-click='confirmDeleteLicenseGroup(group);' class='btn btn-mini btn-delete hover-vis' title='Delete Group'><i class='icon-trash' style='margin-top:0px;'></i></button></td>
+                <td style='width:60px'><button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit hover-vis' title='Edit License Threat Group'><i class='icon-pencil' style='margin-top:0px;'></i></button> <button ng-click='confirmDeleteLicenseGroup(group);' class='btn btn-mini btn-delete hover-vis' title='Delete License Threat Group'><i class='icon-trash' style='margin-top:0px;'></i></button></td>
             </tr>
             <tfoot>
                 <tr>
-                    <td colspan='2' style='text-align:right;'><button class='btn btn-add btn-info' ng-click='editLicenseGroup();'><i class='icon-white icon-plus-sign'> </i> Add License Group</button></td>
+                    <td colspan='2' style='text-align:right;'><button class='btn btn-add btn-info' ng-click='editLicenseGroup();'><i class='icon-white icon-plus-sign'> </i> Add License Threat Group</button></td>
                 </tr>
             </tfoot>
         </table>
@@ -17,8 +17,8 @@
 	<div id='licenseGoupEditModal' data-backdrop='static' class='modal hide'>
 		<div class='modal-header'>
 		    <button type='button' class='close' data-dismiss='modal'>×</button>
-            <h3 ng-show='selectedGroup.id == null'>Add License Group</h3>
-            <h3 ng-show='selectedGroup.id != null'>Edit License Group</h3>
+            <h3 ng-show='selectedGroup.id == null'>Add License Threat Group</h3>
+            <h3 ng-show='selectedGroup.id != null'>Edit License Threat Group</h3>
 		</div>
 		<div ng-include='editorUrl'>
 		</div>
@@ -26,10 +26,10 @@
 	<div id='deleteLicenseGroupModal' data-backdrop='static' class='modal hide'>
 		<div class='modal-header'>
 		    <button type='button' class='close' data-dismiss='modal'>×</button>
-		    <h3>Delete License Group?</h3>
+		    <h3>Delete License Threat Group?</h3>
 		</div>
 		<div class='modal-body'>
-			<p>Are you sure you want to delete the license group {{selectedGroup.name}}?</p>
+			<p>Are you sure you want to delete the license threat group {{selectedGroup.name}}?</p>
 		</div>
 		<div class='modal-footer'>
 			<button class='btn' data-dismiss='modal'>Cancel</button>

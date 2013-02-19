@@ -188,7 +188,7 @@
 				
 				if (licenseGroup.id == null) {
 					hudson.post(clmLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
-						$http.put(clmLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
+						$http.put(clmLocations.getLicenseGroupLicensesUrl(group), licenseIds).success(function (licenses) {
 							group.licenses = licenses;
 							$scope.licenseGroups.push(group);
 						}).error(onError);
@@ -197,7 +197,7 @@
 			        }).error(onError);
 				} else {
 					$http.put(clmLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
-						$http.put(clmLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses){
+						$http.put(clmLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
 				            angular.forEach($scope.licenseGroups, function (licenseCandidate, key) {
 				                if (group.id === licenseCandidate.id) {
 				                    $scope.licenseGroups[key] = group;

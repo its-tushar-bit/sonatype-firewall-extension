@@ -32,6 +32,7 @@
     <jackson.version>2.1.2</jackson.version>
     <openjpa.version>2.2.1</openjpa.version>
     <sisu-guice.version>3.1.3</sisu-guice.version>
+    <clm.model.version>1.0-SNAPSHOT</clm.model.version>
   </properties>
 
   <scm>

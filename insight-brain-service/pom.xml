@@ -360,6 +360,11 @@
       <artifactId>guava</artifactId>
       <version>13.0.1</version>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
+      <version>${clm.model.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

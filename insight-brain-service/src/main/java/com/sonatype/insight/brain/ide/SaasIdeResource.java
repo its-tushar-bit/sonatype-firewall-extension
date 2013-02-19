@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.ide;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,15 +21,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.IdeMatchedComponent;
+import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -113,7 +116,7 @@ public class SaasIdeResource
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
                                     policyDAO().getByApplicationId( applicationId ),
                                     Collections.singletonList( component ) );
-            ideComponent.setAlerts( alerts );
+            ideComponent.setAlerts( toPolicyAlertsDTO( alerts ) );
         }
         return ideComponent;
     }
@@ -121,6 +124,35 @@ public class SaasIdeResource
     private PolicyDAO policyDAO()
     {
         return new PolicyDAO( work.getWorkDir() );
+    }
+
+    private static List<com.sonatype.clm.dto.model.policy.PolicyAlert> toPolicyAlertsDTO( List<PolicyAlert> alerts )
+    {
+        List<com.sonatype.clm.dto.model.policy.PolicyAlert> dtoAlerts =
+            new ArrayList<com.sonatype.clm.dto.model.policy.PolicyAlert>( alerts.size() );
+        for ( PolicyAlert alert : alerts )
+        {
+            dtoAlerts.add( new com.sonatype.clm.dto.model.policy.PolicyAlert( toDTO( alert.getTrigger() ),
+                                                                              toActionsDTO( alert.getActions() ) ) );
+        }
+        return dtoAlerts;
+    }
+
+    private static com.sonatype.clm.dto.model.policy.PolicyFact toDTO( PolicyFact fact )
+    {
+        return new com.sonatype.clm.dto.model.policy.PolicyFact( fact.getPolicyId(), fact.getPolicyName(),
+                                                                 fact.getThreatLevel() );
+    }
+
+    private static List<com.sonatype.clm.dto.model.policy.Action> toActionsDTO( Action[] actions )
+    {
+        List<com.sonatype.clm.dto.model.policy.Action> dtoActions =
+            new ArrayList<com.sonatype.clm.dto.model.policy.Action>( actions.length );
+        for ( Action action : actions )
+        {
+            dtoActions.add( new com.sonatype.clm.dto.model.policy.Action( action.getActionTypeId(), action.getTarget() ) );
+        }
+        return dtoActions;
     }
 
     private IdeMatchedComponent getComponent( MatchedComponent mComponent )

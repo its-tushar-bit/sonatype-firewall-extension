@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
@@ -99,22 +101,19 @@ public class SaasIdeResource
         {
             return null;
         }
-        String gav =
-            "\"groupId\" : \"" + matchedComponent.getGroupId() + "\", \"artifactId\" : \""
-                + matchedComponent.getArtifactId() + "\", \"version\" : \"" + matchedComponent.getVersion() + "\"";
-        StringBuilder sb = new StringBuilder( "[" );
-
+        ArrayNode svData = new ArrayNode( new JsonNodeFactory()
+        {
+        } );
         for ( SecurityIssue issue : issues )
         {
-            sb.append( '{' ).append( gav );
-            sb.append( ",\"refid\":\"" ).append( issue.getRefid() ).append( "\"" );
-            sb.append( ",\"source\":\"" ).append( issue.getSource() ).append( "\"" );
-            sb.append( "}," );
+            ObjectNode svNode = svData.objectNode();
+            svData.add( svNode );
+            svNode.put( "groupId", matchedComponent.getGroupId() );
+            svNode.put( "artifactId", matchedComponent.getArtifactId() );
+            svNode.put( "version", matchedComponent.getVersion() );
+            svNode.put( "refid", issue.getRefid() );
+            svNode.put( "source", issue.getSource() );
         }
-        sb.deleteCharAt( sb.length() - 1 );
-        sb.append( ']' );
-
-        ArrayNode svData = JsonUtils.parse( sb.toString() );
         File auditDir = work.getAuditDir( applicationId );
         svData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( svData, "security.json" );
         return svData;

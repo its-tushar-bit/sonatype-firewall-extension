@@ -230,7 +230,7 @@ public class ComponentDAO
     }
 
     public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode jsonLicenseNode,
-                                   JsonNode jsonSvNode )
+                                   ArrayNode jsonSvNode )
     {
         Component component = new Component();
         component.setArtifactId( matchComponent.getArtifactId() );
@@ -263,7 +263,7 @@ public class ComponentDAO
         return component;
     }
 
-    private void processJsonSvData( Component component, JsonNode jsonSvNode )
+    private void processJsonSvData( Component component, ArrayNode jsonSvNode )
     {
         SecurityVulnerability[] svs =
             component.getSecurityVulnerabilities().toArray( new SecurityVulnerability[component.getSecurityVulnerabilities().size()] );

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -194,6 +195,44 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+    }
+
+    @Test
+    public void testDoScan_Age()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( AgeInDaysConditionType.ID, "older than", "365" );
+        constraint1.addCondition( condition1 );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
+
+        String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        String responseBody = FileUtils.fileRead( testResponseFileUrl.getFile() );
+        setSaasResponseForURI( saasUrl, responseBody, 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
+        // TODO check why the hash is not set
+        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
+        List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
     }

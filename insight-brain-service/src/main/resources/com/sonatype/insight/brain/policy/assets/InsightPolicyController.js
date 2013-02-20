@@ -202,19 +202,17 @@
 						name: $scope.state.actionStageList[i].name,
 						action: 'none'
 					};
-
-					if ($scope.state.currentPolicy.actions[item.id]) {
-						for (j = 0; j < $scope.state.currentPolicy.actions[item.id].length; j++) {
-							switch ($scope.state.currentPolicy.actions[item.id][j].actionTypeId) {
-							case 'fail':
-								item.action = 'fail';
-								break;
-							case 'warn':
-								item.action = 'warn';
-								break;
+					
+					if ($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id] && $scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id].length > 0) {
+						angular.forEach($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id],function(value,key){
+							if (value.actionTypeId === 'notify'){
+								item.target = value.target;
+							} else {
+								item.action = value.actionTypeId;
 							}
-						}
+						});
 					}
+					
 					$scope.state.actionTableData.push(item);
 				}
 			}
@@ -258,19 +256,18 @@
 
 						for (i = 0; i < $scope.state.actionTableData.length; i++) {
 							if ($scope.state.actionTableData[i].id === id) {
-								switch ($scope.state.actionTableData[i].action) {
-								case 'fail':
+								if ($scope.state.actionTableData[i].action != 'none'){
 									result.push({
-										actionTypeId: 'fail'
+										actionTypeId: $scope.state.actionTableData[i].action
 									});
-									break;
-								case 'warn':
-									result.push({
-										actionTypeId: 'warn'
-									});
-									break;
 								}
-								break;
+								
+								if ($scope.state.actionTableData[i].target){
+									result.push({
+										actionTypeId: 'notify',
+										target: $scope.state.actionTableData[i].target
+									});
+								}
 							}
 						}
 
@@ -550,6 +547,41 @@
 			}
 			$scope.state.actionEditMode = !$scope.state.actionEditMode;
 		};
+		
+		$scope.editNotifications = function () {
+			if ($scope.state.actionEditMode) {
+				$scope.state.notificationEmailList = [];
+				$scope.state.currentActionStep = $scope.state.actionTableData[getIndex(this)];
+				if ($scope.state.currentActionStep.target){
+					$scope.state.notificationEmailList = $scope.state.currentActionStep.target.split(',');
+				}
+				$('#editNotificationsModal').modal('show');
+			}
+		}
+		
+		$scope.validateNotificationEmail = function () {
+			//TODO: make sure we have a valid email
+			return true;
+		}
+		
+		$scope.addNotificationEmail = function () {
+			if ($scope.validateNotificationEmail()) {
+				$scope.state.notificationEmailList.push($scope.state.currentNotificationEmail);
+			}
+		}
+		
+		$scope.cancelNotificationEmail = function () {
+			$('#editNotificationsModal').modal('hide');
+		}
+		
+		$scope.doneNotificationEmail = function () {
+			$('#editNotificationsModal').modal('hide');
+			$scope.state.currentActionStep.target = $scope.state.notificationEmailList.join();
+		}
+		
+		$scope.removeNotificationEmail = function () {
+			$scope.state.notificationEmailList.splice(getIndex(this), 1);
+		}
 
 		$scope.$watch('state.actionTableData', function () {
 			pushActionDataToModel();

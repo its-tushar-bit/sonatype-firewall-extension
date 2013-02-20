@@ -281,7 +281,7 @@ public class PolicyEvaluatorTest
         components.add( component2 );
 
         List<PolicyAlert> policyAlerts;
-        Action[] actions;
+        List<Action> actions;
 
         // Evaluate the policy when developing
         policyAlerts =
@@ -291,9 +291,9 @@ public class PolicyEvaluatorTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         actions = policyAlerts.get( 0 ).getActions();
-        Assert.assertEquals( 1, actions.length );
-        Assert.assertEquals( WarnActionType.ID, actions[0].getActionTypeId() );
-        Assert.assertNull( actions[0].getTarget() );
+        Assert.assertEquals( 1, actions.size() );
+        Assert.assertEquals( WarnActionType.ID, actions.get( 0 ).getActionTypeId() );
+        Assert.assertNull( actions.get( 0 ).getTarget() );
 
         // Evaluate the policy when building
         policyAlerts =
@@ -303,9 +303,9 @@ public class PolicyEvaluatorTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         actions = policyAlerts.get( 0 ).getActions();
-        Assert.assertEquals( 1, actions.length );
-        Assert.assertEquals( FailActionType.ID, actions[0].getActionTypeId() );
-        Assert.assertNull( actions[0].getTarget() );
+        Assert.assertEquals( 1, actions.size() );
+        Assert.assertEquals( FailActionType.ID, actions.get( 0 ).getActionTypeId() );
+        Assert.assertNull( actions.get( 0 ).getTarget() );
 
         // Evaluate the policy when releasing
         policyAlerts =
@@ -315,9 +315,9 @@ public class PolicyEvaluatorTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         actions = policyAlerts.get( 0 ).getActions();
-        Assert.assertEquals( 1, actions.length );
-        Assert.assertEquals( NotifyActionType.ID, actions[0].getActionTypeId() );
-        Assert.assertEquals( "manager@some.com", actions[0].getTarget() );
+        Assert.assertEquals( 1, actions.size() );
+        Assert.assertEquals( NotifyActionType.ID, actions.get( 0 ).getActionTypeId() );
+        Assert.assertEquals( "manager@some.com", actions.get( 0 ).getTarget() );
     }
 
     @Test

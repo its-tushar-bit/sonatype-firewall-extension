@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.model.policy.facts;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.component.Component;
 
 public class ComponentFact
+    implements Cloneable
 {
     private String groupId;
 
@@ -73,6 +75,28 @@ public class ComponentFact
             constraintFacts = new ArrayList<ConstraintFact>();
         }
         constraintFacts.add( constraintFact );
+    }
+
+    @JsonIgnore
+    public ComponentFact with( final List<ConstraintFact> newConstraintFacts )
+    {
+        try
+        {
+            // shallow copy (field-by-field)
+            final ComponentFact clone = (ComponentFact) this.clone();
+            clone.constraintFacts = newConstraintFacts;
+            return clone;
+        }
+        catch ( final CloneNotSupportedException e )
+        {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @JsonIgnore
+    public ComponentFact with( final ConstraintFact... newConstraintFacts )
+    {
+        return with( Arrays.asList( newConstraintFacts ) );
     }
 
     @Override

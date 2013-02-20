@@ -25,7 +25,7 @@ public class ConditionFact
         final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
 
         summary = conditionType.explainCondition( condition );
-        reason = conditionType.explainMatch( condition, component );
+        reason = component != null ? conditionType.explainMatch( condition, component ) : "Unknown";
     }
 
     public String getSummary()

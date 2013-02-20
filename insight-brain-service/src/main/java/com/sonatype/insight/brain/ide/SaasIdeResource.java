@@ -174,10 +174,10 @@ public class SaasIdeResource
                                                                  fact.getThreatLevel() );
     }
 
-    private static List<com.sonatype.clm.dto.model.policy.Action> toActionsDTO( Action[] actions )
+    private static List<com.sonatype.clm.dto.model.policy.Action> toActionsDTO( List<Action> actions )
     {
         List<com.sonatype.clm.dto.model.policy.Action> dtoActions =
-            new ArrayList<com.sonatype.clm.dto.model.policy.Action>( actions.length );
+            new ArrayList<com.sonatype.clm.dto.model.policy.Action>( actions.size() );
         for ( Action action : actions )
         {
             dtoActions.add( new com.sonatype.clm.dto.model.policy.Action( action.getActionTypeId(), action.getTarget() ) );

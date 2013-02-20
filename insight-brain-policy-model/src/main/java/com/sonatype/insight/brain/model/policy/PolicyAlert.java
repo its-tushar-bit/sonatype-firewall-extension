@@ -5,15 +5,18 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
 public class PolicyAlert
+    implements Cloneable
 {
     private PolicyFact trigger;
 
-    private Action[] actions;
+    private List<Action> actions;
 
     public PolicyAlert()
     {
@@ -22,7 +25,7 @@ public class PolicyAlert
     public PolicyAlert( final PolicyFact trigger, final List<Action> actions )
     {
         this.trigger = trigger;
-        this.actions = actions != null ? actions.toArray( new Action[actions.size()] ) : new Action[0];
+        this.actions = actions != null ? actions : Collections.<Action> emptyList();
     }
 
     public PolicyFact getTrigger()
@@ -30,8 +33,24 @@ public class PolicyAlert
         return trigger;
     }
 
-    public Action[] getActions()
+    public List<Action> getActions()
     {
         return actions;
+    }
+
+    @JsonIgnore
+    public PolicyAlert with( final PolicyFact newTrigger )
+    {
+        try
+        {
+            // shallow copy (field-by-field)
+            final PolicyAlert clone = (PolicyAlert) this.clone();
+            clone.trigger = newTrigger;
+            return clone;
+        }
+        catch ( final CloneNotSupportedException e )
+        {
+            throw new UnsupportedOperationException();
+        }
     }
 }

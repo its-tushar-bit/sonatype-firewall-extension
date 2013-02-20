@@ -6,13 +6,16 @@
 package com.sonatype.insight.brain.model.policy.facts;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sonatype.insight.brain.model.policy.Policy;
 
 public class PolicyFact
+    implements Cloneable
 {
     private String policyId;
 
@@ -61,6 +64,28 @@ public class PolicyFact
             componentFacts = new ArrayList<ComponentFact>();
         }
         componentFacts.add( componentFact );
+    }
+
+    @JsonIgnore
+    public PolicyFact with( final List<ComponentFact> newComponentFacts )
+    {
+        try
+        {
+            // shallow copy (field-by-field)
+            final PolicyFact clone = (PolicyFact) this.clone();
+            clone.componentFacts = newComponentFacts;
+            return clone;
+        }
+        catch ( final CloneNotSupportedException e )
+        {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @JsonIgnore
+    public PolicyFact with( final ComponentFact... newComponentFacts )
+    {
+        return with( Arrays.asList( newComponentFacts ) );
     }
 
     @Override

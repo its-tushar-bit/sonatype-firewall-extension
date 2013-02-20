@@ -200,13 +200,18 @@
 					item = {
 						id: $scope.state.actionStageList[i].id,
 						name: $scope.state.actionStageList[i].name,
-						action: 'none'
+						action: 'none',
+						targetCount: 0
 					};
 					
 					if ($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id] && $scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id].length > 0) {
 						angular.forEach($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id],function(value,key){
 							if (value.actionTypeId === 'notify'){
 								item.target = value.target;
+								
+								if (item.target) {
+									item.targetCount = item.target.split(/,/g).length;
+								}
 							} else {
 								item.action = value.actionTypeId;
 							}
@@ -567,6 +572,7 @@
 		$scope.addNotificationEmail = function () {
 			if ($scope.validateNotificationEmail()) {
 				$scope.state.notificationEmailList.push($scope.state.currentNotificationEmail);
+				item.targetCount = item.target.split(/,/g).length;
 			}
 		}
 		
@@ -577,6 +583,7 @@
 		$scope.doneNotificationEmail = function () {
 			$('#editNotificationsModal').modal('hide');
 			$scope.state.currentActionStep.target = $scope.state.notificationEmailList.join();
+			$scope.state.currentActionStep.targetCount = $scope.state.notificationEmailList.length;
 		}
 		
 		$scope.removeNotificationEmail = function () {

@@ -115,6 +115,10 @@ input.editor-checkbox {
 	border-style: none;
 }
 
+.clmLicense > span {
+	vertical-align: bottom;
+}
+
 .whiteLabel {
   background-color: #EEEEEE;
   color : black;

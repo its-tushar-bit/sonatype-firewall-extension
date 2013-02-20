@@ -204,7 +204,7 @@ public class SaasIdeResourceTest
         throws Exception
     {
         String applicationPublicId = "SaasIdeResourceTest_AppId";
-        Application application = createApplication( applicationPublicId );
+        createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( AgeInDaysConditionType.ID, "older than", "365" );

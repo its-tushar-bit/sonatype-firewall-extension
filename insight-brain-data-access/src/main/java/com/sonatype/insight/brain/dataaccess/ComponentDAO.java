@@ -83,9 +83,6 @@ public class ComponentDAO
                     }
 
                     processJsonLicenseData( component, jsonLicenseNode );
-
-                    final long catalogDate = jsonLicenseNode.get( "catalogDate" ).asLong();
-                    component.setCatalogDate( catalogDate );
                 }
             }
         }
@@ -164,6 +161,8 @@ public class ComponentDAO
                             componentsByGAV.put( key, component );
                         }
                         component.setRelativePopularity( relativePopularity );
+                        final long catalogDate = componentJson.get( "createTime" ).asLong();
+                        component.setCatalogDate( catalogDate );
                     }
                     else
                     {

@@ -16,6 +16,8 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -227,7 +229,8 @@ public class ComponentDAO
         return result;
     }
 
-    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode jsonLicenseNode )
+    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode jsonLicenseNode,
+                                   JsonNode jsonSvNode )
     {
         Component component = new Component();
         component.setArtifactId( matchComponent.getArtifactId() );
@@ -248,12 +251,30 @@ public class ComponentDAO
             component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefid(),
                                                                            issue.getSeverity() ) );
         }
+        if ( jsonSvNode != null )
+        {
+            processJsonSvData( component, jsonSvNode );
+        }
 
         loadLicenseThreatGroups( applicationId, component );
 
         loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
 
         return component;
+    }
+
+    private void processJsonSvData( Component component, JsonNode jsonSvNode )
+    {
+        SecurityVulnerability[] svs =
+            component.getSecurityVulnerabilities().toArray( new SecurityVulnerability[component.getSecurityVulnerabilities().size()] );
+        for ( int i = 0; i < jsonSvNode.size(); i++ )
+        {
+            ValueNode node = (ValueNode) jsonSvNode.get( i ).get( "status" );
+            if ( node != null && !( node instanceof NullNode ) )
+            {
+                svs[i].setStatus( SecurityVulnerabilityStatus.getByName( node.asText() ) );
+            }
+        }
     }
 
     private void loadComponentLabels( String applicationId, Component component, ComponentLabelDAO componentLabelDAO )

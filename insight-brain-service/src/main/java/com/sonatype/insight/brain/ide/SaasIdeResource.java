@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.brain.MatchedComponent;
+import com.sonatype.insight.model.brain.SecurityIssue;
 
 @Path( SaasIdeResource.SERVICE_PATH )
 public class SaasIdeResource
@@ -90,6 +91,35 @@ public class SaasIdeResource
         return licenseData;
     }
 
+    private ArrayNode getAugmentedSvData( String applicationId, MatchedComponent matchedComponent )
+        throws IOException
+    {
+        List<SecurityIssue> issues = matchedComponent.getSecurityThreats();
+        if ( issues == null || issues.isEmpty() )
+        {
+            return null;
+        }
+        String gav =
+            "\"groupId\" : \"" + matchedComponent.getGroupId() + "\", \"artifactId\" : \""
+                + matchedComponent.getArtifactId() + "\", \"version\" : \"" + matchedComponent.getVersion() + "\"";
+        StringBuilder sb = new StringBuilder( "[" );
+
+        for ( SecurityIssue issue : issues )
+        {
+            sb.append( '{' ).append( gav );
+            sb.append( ",\"refid\":\"" ).append( issue.getRefid() ).append( "\"" );
+            sb.append( ",\"source\":\"" ).append( issue.getSource() ).append( "\"" );
+            sb.append( "}," );
+        }
+        sb.deleteCharAt( sb.length() - 1 );
+        sb.append( ']' );
+
+        ArrayNode svData = JsonUtils.parse( sb.toString() );
+        File auditDir = work.getAuditDir( applicationId );
+        svData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( svData, "security.json" );
+        return svData;
+    }
+
     @GET
     @Path( "scan/{scanType}/{appId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
@@ -108,9 +138,11 @@ public class SaasIdeResource
         if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
         {
             ArrayNode licenseData = getAugmentedLicenseData( applicationId, matchedComponent );
+            ArrayNode svData = getAugmentedSvData( applicationId, matchedComponent );
 
             ComponentDAO componentDAO = new ComponentDAO();
-            Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData.get( 0 ) );
+            Component component =
+                componentDAO.getComponent( applicationId, matchedComponent, licenseData.get( 0 ), svData );
             List<PolicyAlert> alerts =
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
                                     policyDAO().getByApplicationId( applicationId ),

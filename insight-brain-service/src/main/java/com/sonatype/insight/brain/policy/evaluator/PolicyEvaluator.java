@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,10 +44,26 @@ public class PolicyEvaluator
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
 
+    static final Comparator<MatchFact> MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION = new Comparator<MatchFact>()
+    {
+        @Override
+        public int compare( final MatchFact lhs, final MatchFact rhs )
+        {
+            return index( lhs ).compareTo( index( rhs ) );
+        }
+
+        private String index( final MatchFact fact )
+        {
+            // doesn't have to be lexically correct, just need to impose consistent ordering
+            return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getGAV() + '|'
+                + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionNumber() : "";
+        }
+    };
+
     public List<PolicyAlert> evaluate( final String applicationId, final Stage stage, final List<Policy> policies,
                                        final List<Component> components )
     {
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
 
         final List<MatchFact> facts = evaluateFacts( applicationId, policies, components );
         final List<PolicyAlert> alerts = createAlerts( policies, facts, stage );
@@ -55,9 +73,11 @@ public class PolicyEvaluator
         return alerts;
     }
 
-    private static List<PolicyAlert> createAlerts( final List<Policy> policies, final List<MatchFact> facts,
-                                                   final Stage stage )
+    static List<PolicyAlert> createAlerts( final List<Policy> policies, final List<MatchFact> facts, final Stage stage )
     {
+        // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
+        Collections.sort( facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION );
+
         final List<PolicyAlert> alerts = new ArrayList<PolicyAlert>();
         for ( final Entry<Policy, List<MatchFact>> byPolicy : byPolicy( policies, facts ).entrySet() )
         {
@@ -104,7 +124,7 @@ public class PolicyEvaluator
         {
             policiesById.put( policy.getId(), policy );
         }
-        final Map<Policy, List<MatchFact>> byPolicy = new HashMap<Policy, List<MatchFact>>();
+        final Map<Policy, List<MatchFact>> byPolicy = new LinkedHashMap<Policy, List<MatchFact>>();
         for ( final MatchFact fact : facts )
         {
             final Policy policy = policiesById.get( fact.getPolicyId() );
@@ -126,7 +146,7 @@ public class PolicyEvaluator
         {
             constraintsById.put( constraint.getId(), constraint );
         }
-        final Map<Constraint, List<MatchFact>> byConstraint = new HashMap<Constraint, List<MatchFact>>();
+        final Map<Constraint, List<MatchFact>> byConstraint = new LinkedHashMap<Constraint, List<MatchFact>>();
         for ( final MatchFact fact : facts )
         {
             final Constraint constraint = constraintsById.get( fact.getConstraintId() );
@@ -142,7 +162,7 @@ public class PolicyEvaluator
 
     private static Map<Component, List<MatchFact>> byComponent( final List<MatchFact> facts )
     {
-        final Map<Component, List<MatchFact>> byComponent = new IdentityHashMap<Component, List<MatchFact>>();
+        final Map<Component, List<MatchFact>> byComponent = new LinkedHashMap<Component, List<MatchFact>>();
         for ( final MatchFact fact : facts )
         {
             List<MatchFact> partition = byComponent.get( fact.getComponent() );
@@ -156,8 +176,8 @@ public class PolicyEvaluator
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static List<MatchFact> evaluateFacts( final String applicationId, final List<Policy> policies,
-                                                  final List<Component> components )
+    static List<MatchFact> evaluateFacts( final String applicationId, final List<Policy> policies,
+                                          final List<Component> components )
     {
         final String droolsCode = new DroolsGenerator().generate( applicationId, policies );
         // Most probably this is too much logging, but it's good for debugging for now

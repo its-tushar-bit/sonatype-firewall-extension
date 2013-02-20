@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -315,5 +318,120 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, actions.length );
         Assert.assertEquals( NotifyActionType.ID, actions[0].getActionTypeId() );
         Assert.assertEquals( "manager@some.com", actions[0].getTarget() );
+    }
+
+    @Test
+    public void testEvaluate_SortedAlerts()
+    {
+        final List<Policy> policies = new ArrayList<Policy>();
+
+        // randomly generate a series of policies
+        for ( int i = 0; i <= 25 * Math.random(); i++ )
+        {
+            policies.add( randomPolicy() );
+        }
+
+        final List<Component> components = new ArrayList<Component>();
+
+        // A component with one security vulnerability
+        final Component component1 = new Component( "g1", "a1", "v1" );
+        component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
+        components.add( component1 );
+
+        // A component with license category "Weak Copyleft"
+        final Component component2 = new Component( "g2", "a2", "v2" );
+        component2.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component2 );
+
+        // A component with one security vulnerability and license category "Weak Copyleft"
+        final Component component3 = new Component( "g3", "a3", "v3" );
+        component3.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv2", 3F ) );
+        component3.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component3 );
+
+        // Another component with one security vulnerability and license category "Weak Copyleft"
+        final Component component4 = new Component( "g4", "a4", "v4" );
+        component4.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv4", 3F ) );
+        component4.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component4 );
+
+        // Evaluate the facts
+        final List<MatchFact> facts = PolicyEvaluator.evaluateFacts( applicationId, policies, components );
+
+        // Sort facts by policy then component then constraint then condition
+        Collections.sort( facts, PolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION );
+        final List<MatchFact> expectedFacts = new ArrayList<MatchFact>( facts );
+
+        // Check sorting is consistent
+        for ( int i = 0; i < 100; i++ )
+        {
+            Collections.shuffle( facts );
+
+            Collections.sort( facts, PolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION );
+
+            Assert.assertEquals( expectedFacts, facts );
+        }
+
+        // Slice facts into alerts
+        final List<PolicyAlert> expectedAlerts =
+            PolicyEvaluator.createAlerts( policies, facts, new Stage( BuildStageType.ID ) );
+
+        // Check slicing is consistent
+        for ( int i = 0; i < 100; i++ )
+        {
+            Collections.shuffle( facts );
+            Collections.shuffle( policies );
+
+            final List<PolicyAlert> alerts =
+                PolicyEvaluator.createAlerts( policies, facts, new Stage( BuildStageType.ID ) );
+
+            Assert.assertEquals( alertsToString( expectedAlerts ), alertsToString( alerts ) );
+        }
+    }
+
+    private static String alertsToString( final List<PolicyAlert> policyAlerts )
+    {
+        final StringBuilder buf = new StringBuilder();
+        for ( final PolicyAlert a : policyAlerts )
+        {
+            buf.append( a.getTrigger().toString() );
+        }
+        return buf.toString();
+    }
+
+    private static final AtomicInteger policyCounter = new AtomicInteger();
+
+    private static final AtomicInteger constraintCounter = new AtomicInteger();
+
+    private static Policy randomPolicy()
+    {
+        final int n = policyCounter.getAndIncrement();
+        final Policy policy = new Policy( "PolicyId" + n, "Policy Name " + n );
+        for ( int i = 0; i <= 25 * Math.random(); i++ )
+        {
+            policy.addConstraint( randomConstraint() );
+        }
+        return policy;
+    }
+
+    private static Constraint randomConstraint()
+    {
+        final int n = constraintCounter.getAndIncrement();
+        final Constraint constraint = new Constraint( "ConstraintId" + n, "Constraint Name " + n, LogicalOperator.OR );
+        final double r = Math.random();
+        if ( r <= 0.33 )
+        {
+            constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+            constraint.addCondition( new Condition( LicenseConditionType.ID, "is", "Apache-2.0" ) );
+        }
+        else if ( r >= 0.66 )
+        {
+            constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        }
+        else
+        {
+            constraint.addCondition( new Condition( LicenseConditionType.ID, "is", "Apache-2.0" ) );
+        }
+        return constraint;
     }
 }

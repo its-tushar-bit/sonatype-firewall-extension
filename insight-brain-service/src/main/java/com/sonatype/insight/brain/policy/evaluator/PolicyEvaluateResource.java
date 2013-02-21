@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
@@ -118,20 +120,21 @@ public class PolicyEvaluateResource
 
         Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( alerts ) );
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
-        final String policyThreatsHtml = summarizeThreats( appId, scanId, stage, alerts );
-        Report.putEntry( reportFile, "policythreats.html", policyThreatsHtml );
+        Report.putEntry( reportFile, "policythreats.html",
+                         summarizeThreats( applicationPublicId, appId, scanId, stage, alerts ) );
+
+        final List<PolicyAlert> oldAlerts = findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
 
         @SuppressWarnings( "unchecked" )
-        List<PolicyAlert>[] digest = new List[] { alerts, null };
-        final List<PolicyAlert> oldAlerts = findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
+        List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
         if ( oldAlerts != null && !oldAlerts.isEmpty() )
         {
             digest = PolicyDigester.digestPolicyAlerts( alerts, oldAlerts );
         }
 
-        if ( digest != null && digest[0] != null )
+        if ( digest != null )
         {
-            sendNotifications( "SONATYPE-CLM-" + applicationPublicId + "-" + scanId, policyThreatsHtml, digest[0] );
+            sendNotifications( applicationPublicId, appId, scanId, stage, digest );
         }
 
         if ( CI_PLUGIN_PRE_2_6.matcher( userAgent ).matches() )
@@ -220,8 +223,8 @@ public class PolicyEvaluateResource
         return threats;
     }
 
-    private String summarizeThreats( final String appId, final String scanId, final Stage stage,
-                                     final List<PolicyAlert> policyAlerts )
+    private String summarizeThreats( final String applicationPublicId, final String appId, final String scanId,
+                                     final Stage stage, final List<PolicyAlert> policyAlerts )
         throws IOException
     {
         int red = 0;
@@ -254,13 +257,13 @@ public class PolicyEvaluateResource
 
         model.put( "detailedReportUrl",
                    uriInfo.getBaseUri()
-                       + ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", appId ).replace( "{scanId}",
-                                                                                                        scanId )
+                       + ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ).replace( "{scanId}",
+                                                                                                                      scanId )
                        + "/embedReport/" );
 
         model.put( "policyAlerts", policyAlerts );
         model.put( "policyThreatStage", stage.getStageTypeId() );
-        model.put( "policyThreatApp", appId );
+        model.put( "policyThreatApp", applicationPublicId );
         model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy" ).format( new Date() ) );
         model.put( "policyThreatRedCount", red );
         model.put( "policyThreatOrangeCount", orange );
@@ -281,29 +284,49 @@ public class PolicyEvaluateResource
         return policyThreatsTemplate;
     }
 
-    private void sendNotifications( final String mailId, final String body, final List<PolicyAlert> alerts )
+    private void sendNotifications( final String applicationPublicId, String appId, final String scanId,
+                                    final Stage stage, final List<PolicyAlert>[] digest )
     {
-        try
+        for ( final Entry<String, List<PolicyAlert>> details : byRecipients( digest[0] ).entrySet() )
         {
-            final List<Address> recipients = new ArrayList<Address>();
-            for ( final PolicyAlert policyAlert : alerts )
+            try
             {
-                for ( final Action action : policyAlert.getActions() )
+                final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
+                final List<Address> addresses = Arrays.asList( new Address( details.getKey() ) );
+                final String body = summarizeThreats( applicationPublicId, appId, scanId, stage, details.getValue() );
+                mail.sendHtml( mailId, addresses, "Sonatype-CLM Policy Alert", body );
+            }
+            catch ( final Exception e )
+            {
+                log.error( "Unable to send notification to: " + details.getKey(), e );
+            }
+        }
+
+        // TODO: notify about cleared policy alerts...
+    }
+
+    private static Map<String, List<PolicyAlert>> byRecipients( final List<PolicyAlert> alerts )
+    {
+        final Map<String, List<PolicyAlert>> byRecipients = new HashMap<String, List<PolicyAlert>>();
+        for ( final PolicyAlert alert : alerts )
+        {
+            for ( final Action action : alert.getActions() )
+            {
+                if ( NotifyActionType.ID.equals( action.getActionTypeId() ) )
                 {
-                    if ( NotifyActionType.ID.equals( action.getActionTypeId() ) )
+                    final String address = action.getTarget();
+                    List<PolicyAlert> personalAlerts = byRecipients.get( address );
+                    if ( personalAlerts == null )
                     {
-                        recipients.add( new Address( action.getTarget() ) );
+                        byRecipients.put( address, personalAlerts = new ArrayList<PolicyAlert>() );
+                    }
+                    if ( !personalAlerts.contains( alert ) )
+                    {
+                        personalAlerts.add( alert );
                     }
                 }
             }
-            if ( !recipients.isEmpty() )
-            {
-                mail.sendHtml( mailId, recipients, "Sonatype-CLM Policy Alert", body );
-            }
         }
-        catch ( final Exception e )
-        {
-            log.error( "Unable to send notifications", e );
-        }
+        return byRecipients;
     }
 }

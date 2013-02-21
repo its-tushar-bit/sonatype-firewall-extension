@@ -9,8 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
-import com.sonatype.insight.model.brain.ScanReceipt;
 
 public interface RestClient
 {

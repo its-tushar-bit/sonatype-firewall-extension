@@ -10,12 +10,12 @@ import java.io.IOException;
 
 import org.apache.http.entity.FileEntity;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.model.brain.ScanReceipt;
 
 public final class ScanClient
     extends AbstractClient

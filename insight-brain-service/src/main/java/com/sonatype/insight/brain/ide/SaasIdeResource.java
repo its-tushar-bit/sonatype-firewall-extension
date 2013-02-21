@@ -23,6 +23,8 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.clm.dto.model.MatchedComponent;
+import com.sonatype.clm.dto.model.SecurityIssue;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
@@ -37,8 +39,6 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.model.brain.MatchedComponent;
-import com.sonatype.insight.model.brain.SecurityIssue;
 
 @Path( SaasIdeResource.SERVICE_PATH )
 public class SaasIdeResource

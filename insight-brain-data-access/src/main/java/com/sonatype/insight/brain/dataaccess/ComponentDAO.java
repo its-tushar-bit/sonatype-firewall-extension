@@ -16,6 +16,8 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.clm.dto.model.MatchedComponent;
+import com.sonatype.clm.dto.model.SecurityIssue;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -27,8 +29,6 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.model.brain.MatchedComponent;
-import com.sonatype.insight.model.brain.SecurityIssue;
 
 public class ComponentDAO
 {

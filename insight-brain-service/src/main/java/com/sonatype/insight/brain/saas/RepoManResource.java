@@ -24,12 +24,12 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.UrlUtils;
-import com.sonatype.insight.model.brain.ScanReceipt;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.RepoManScanUploadRequest;

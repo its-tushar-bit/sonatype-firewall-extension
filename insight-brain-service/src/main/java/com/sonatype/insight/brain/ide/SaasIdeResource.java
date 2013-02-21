@@ -111,7 +111,7 @@ public class SaasIdeResource
             svNode.put( "groupId", matchedComponent.getGroupId() );
             svNode.put( "artifactId", matchedComponent.getArtifactId() );
             svNode.put( "version", matchedComponent.getVersion() );
-            svNode.put( "refid", issue.getRefid() );
+            svNode.put( "reference", issue.getRefid() );
             svNode.put( "source", issue.getSource() );
         }
         File auditDir = work.getAuditDir( applicationId );

@@ -217,6 +217,7 @@ public class SaasIdeResourceTest
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
 
+        // There should be no policy alerts when none of the security vulnerabilities was overridden
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
         URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
@@ -237,8 +238,28 @@ public class SaasIdeResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 0, policyAlerts.size() );
 
-        // Override the license and evaluate the policy again
+        // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
+        // the policy again. There should be no policy alerts.
         URL testOverriddenSecurityFileUrl =
+            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
+        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
+                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+        response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
+        // TODO check why the hash is not set
+        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
+        policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 0, policyAlerts.size() );
+
+        // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
+        testOverriddenSecurityFileUrl =
             getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
         FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
                             new File( brain.getAuditDir( application.getId() ), "security.json" ) );

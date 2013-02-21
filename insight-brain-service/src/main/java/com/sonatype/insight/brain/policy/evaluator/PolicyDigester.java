@@ -26,37 +26,37 @@ public class PolicyDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldAlerts == null || i >= oldAlerts.size() )
+            if ( oldAlerts == null || j >= oldAlerts.size() )
             {
-                if ( newAlerts == null || j >= newAlerts.size() )
+                if ( newAlerts == null || i >= newAlerts.size() )
                 {
                     break; // nothing left
                 }
-                appeared.add( newAlerts.get( j++ ) );
+                appeared.add( newAlerts.get( i++ ) );
             }
-            else if ( newAlerts == null || j >= newAlerts.size() )
+            else if ( newAlerts == null || i >= newAlerts.size() )
             {
-                cleared.add( oldAlerts.get( i++ ) );
+                cleared.add( oldAlerts.get( j++ ) );
             }
             else
             {
-                final PolicyAlert oldAlert = oldAlerts.get( i );
-                final PolicyAlert newAlert = newAlerts.get( j );
+                final PolicyAlert newAlert = newAlerts.get( i );
+                final PolicyAlert oldAlert = oldAlerts.get( j );
 
-                final PolicyFact oldTrigger = oldAlert.getTrigger();
                 final PolicyFact newTrigger = newAlert.getTrigger();
+                final PolicyFact oldTrigger = oldAlert.getTrigger();
 
-                final int comparison = oldTrigger.getPolicyId().compareTo( newTrigger.getPolicyId() );
+                final int comparison = newTrigger.getPolicyId().compareTo( oldTrigger.getPolicyId() );
 
-                if ( comparison > 0 )
+                if ( comparison < 0 )
                 {
                     appeared.add( newAlert );
-                    j++;
+                    i++;
                 }
-                else if ( comparison < 0 )
+                else if ( comparison > 0 )
                 {
                     cleared.add( oldAlert );
-                    i++;
+                    j++;
                 }
                 else
                 {
@@ -99,36 +99,36 @@ public class PolicyDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldFacts == null || i >= oldFacts.size() )
+            if ( oldFacts == null || j >= oldFacts.size() )
             {
-                if ( newFacts == null || j >= newFacts.size() )
+                if ( newFacts == null || i >= newFacts.size() )
                 {
                     break; // nothing left
                 }
-                appeared.add( newFacts.get( j++ ) );
+                appeared.add( newFacts.get( i++ ) );
             }
-            else if ( newFacts == null || j >= newFacts.size() )
+            else if ( newFacts == null || i >= newFacts.size() )
             {
-                cleared.add( oldFacts.get( i++ ) );
+                cleared.add( oldFacts.get( j++ ) );
             }
             else
             {
-                final ComponentFact oldFact = oldFacts.get( i );
-                final ComponentFact newFact = newFacts.get( j );
+                final ComponentFact newFact = newFacts.get( i );
+                final ComponentFact oldFact = oldFacts.get( j );
 
                 final int comparison =
-                    ( oldFact.getGAV() + '|' + oldFact.getHash() ).compareTo( newFact.getGAV() + '|'
-                        + newFact.getHash() );
+                    ( newFact.getGAV() + '|' + newFact.getHash() ).compareTo( oldFact.getGAV() + '|'
+                        + oldFact.getHash() );
 
-                if ( comparison > 0 )
+                if ( comparison < 0 )
                 {
                     appeared.add( newFact );
-                    j++;
+                    i++;
                 }
-                else if ( comparison < 0 )
+                else if ( comparison > 0 )
                 {
                     cleared.add( oldFact );
-                    i++;
+                    j++;
                 }
                 else
                 {
@@ -171,34 +171,34 @@ public class PolicyDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldFacts == null || i >= oldFacts.size() )
+            if ( oldFacts == null || j >= oldFacts.size() )
             {
-                if ( newFacts == null || j >= newFacts.size() )
+                if ( newFacts == null || i >= newFacts.size() )
                 {
                     break; // nothing left
                 }
-                appeared.add( newFacts.get( j++ ) );
+                appeared.add( newFacts.get( i++ ) );
             }
-            else if ( newFacts == null || j >= newFacts.size() )
+            else if ( newFacts == null || i >= newFacts.size() )
             {
-                cleared.add( oldFacts.get( i++ ) );
+                cleared.add( oldFacts.get( j++ ) );
             }
             else
             {
-                final ConstraintFact oldFact = oldFacts.get( i );
-                final ConstraintFact newFact = newFacts.get( j );
+                final ConstraintFact newFact = newFacts.get( i );
+                final ConstraintFact oldFact = oldFacts.get( j );
 
-                final int comparison = ( oldFact.getConstraintId() ).compareTo( newFact.getConstraintId() );
+                final int comparison = newFact.getConstraintId().compareTo( oldFact.getConstraintId() );
 
-                if ( comparison > 0 )
+                if ( comparison < 0 )
                 {
                     appeared.add( newFact );
-                    j++;
+                    i++;
                 }
-                else if ( comparison < 0 )
+                else if ( comparison > 0 )
                 {
                     cleared.add( oldFact );
-                    i++;
+                    j++;
                 }
                 else
                 {
@@ -241,34 +241,34 @@ public class PolicyDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldFacts == null || i >= oldFacts.size() )
+            if ( oldFacts == null || j >= oldFacts.size() )
             {
-                if ( newFacts == null || j >= newFacts.size() )
+                if ( newFacts == null || i >= newFacts.size() )
                 {
                     break; // nothing left
                 }
-                appeared.add( newFacts.get( j++ ) );
+                appeared.add( newFacts.get( i++ ) );
             }
-            else if ( newFacts == null || j >= newFacts.size() )
+            else if ( newFacts == null || i >= newFacts.size() )
             {
-                cleared.add( oldFacts.get( i++ ) );
+                cleared.add( oldFacts.get( j++ ) );
             }
             else
             {
-                final ConditionFact oldFact = oldFacts.get( i );
-                final ConditionFact newFact = newFacts.get( j );
+                final ConditionFact newFact = newFacts.get( i );
+                final ConditionFact oldFact = oldFacts.get( j );
 
-                final int comparison = ( oldFact.getSummary() ).compareTo( newFact.getSummary() );
+                final int comparison = newFact.getSummary().compareTo( oldFact.getSummary() );
 
-                if ( comparison > 0 )
+                if ( comparison < 0 )
                 {
                     appeared.add( newFact );
-                    j++;
+                    i++;
                 }
-                else if ( comparison < 0 )
+                else if ( comparison > 0 )
                 {
                     cleared.add( oldFact );
-                    i++;
+                    j++;
                 }
                 else
                 {

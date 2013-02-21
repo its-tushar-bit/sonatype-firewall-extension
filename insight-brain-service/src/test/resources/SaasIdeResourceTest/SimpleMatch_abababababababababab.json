@@ -6,17 +6,17 @@
   "version" : "v1",
   "licenseThreat" : "LIBERAL",
   "securityThreats" : [ {
-    "refid" : "36079",
+    "refId" : "36079",
     "severity" : 3.5,
     "source" : "osvdb"
   }, {
-    "refid" : "62054",
+    "refId" : "62054",
     "source" : "osvdb"
   }, {
-    "refid" : "71557",
+    "refId" : "71557",
     "source" : "osvdb"
   }, {
-    "refid" : "71558",
+    "refId" : "71558",
     "source" : "osvdb"
   } ],
   "catalogDate" : 1323982380000,

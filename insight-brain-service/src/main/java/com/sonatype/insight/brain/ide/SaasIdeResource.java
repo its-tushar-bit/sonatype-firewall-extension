@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.MatchedComponent;
-import com.sonatype.clm.dto.model.SecurityIssue;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
@@ -98,21 +98,21 @@ public class SaasIdeResource
     private ArrayNode getAugmentedSVData( String applicationId, MatchedComponent matchedComponent )
         throws IOException
     {
-        List<SecurityIssue> issues = matchedComponent.getSecurityThreats();
-        if ( issues == null || issues.isEmpty() )
+        List<SecurityVulnerability> securityVulnerabilities = matchedComponent.getSecurityThreats();
+        if ( securityVulnerabilities == null || securityVulnerabilities.isEmpty() )
         {
             return null;
         }
         ArrayNode svData = new ArrayNode( JsonNodeFactory.instance );
-        for ( SecurityIssue issue : issues )
+        for ( SecurityVulnerability securityVulnerability : securityVulnerabilities )
         {
             ObjectNode svNode = svData.objectNode();
             svData.add( svNode );
             svNode.put( "groupId", matchedComponent.getGroupId() );
             svNode.put( "artifactId", matchedComponent.getArtifactId() );
             svNode.put( "version", matchedComponent.getVersion() );
-            svNode.put( "reference", issue.getRefid() );
-            svNode.put( "source", issue.getSource() );
+            svNode.put( "reference", securityVulnerability.getRefId() );
+            svNode.put( "source", securityVulnerability.getSource() );
         }
         File auditDir = work.getAuditDir( applicationId );
         svData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( svData, "security.json" );

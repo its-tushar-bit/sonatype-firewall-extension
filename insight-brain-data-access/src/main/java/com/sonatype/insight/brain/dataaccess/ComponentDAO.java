@@ -17,7 +17,6 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.clm.dto.model.MatchedComponent;
-import com.sonatype.clm.dto.model.SecurityIssue;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -244,9 +243,9 @@ public class ComponentDAO
         component.setHash( matchComponent.getHash() );
         component.setMatchState( matchComponent.isSimpleMatch() ? MatchState.EXACT : MatchState.SIMILAR );
 
-        for ( SecurityIssue issue : matchComponent.getSecurityThreats() )
+        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : matchComponent.getSecurityThreats() )
         {
-            component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefid(),
+            component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
                                                                            issue.getSeverity() ) );
         }
         if ( jsonSVNode != null )

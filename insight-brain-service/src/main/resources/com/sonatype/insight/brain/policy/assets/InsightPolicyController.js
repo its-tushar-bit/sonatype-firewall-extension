@@ -322,14 +322,6 @@
 			}, 100, false);
 		}
 		
-		function getIndex(obj) {
-			if (obj && obj.$index >= 0) {
-				return obj.$index;
-			}
-			
-			return $scope.$index;
-		}
-		
 		function deletePolicy() {
 			httpDelete(clmLocations.getPolicyUrl() + '/' + $scope.state.policyList[$scope.state.deletePolicyIndex].id, 'Deleting policy...', 'Policy Delete Error', function () {
 				$scope.state.policyList.splice($scope.state.deletePolicyIndex, 1);
@@ -348,8 +340,8 @@
 
 		$scope.state = global;
 
-		$scope.viewEditPolicy = function () {
-			$scope.state.currentPolicy = angular.copy($scope.state.policyList[getIndex(this)]);
+		$scope.viewEditPolicy = function (policy) {
+			$scope.state.currentPolicy = angular.copy(policy);
 			$scope.state.showAddPolicyScreen = true;
 			$scope.state.addPolicyTitle = 'Edit Policy';
 			resetActions();
@@ -358,8 +350,8 @@
 			watchPolicyChange();
 		};
 
-		$scope.viewRemovePolicy = function () {
-			$scope.state.deletePolicyIndex = getIndex(this);
+		$scope.viewRemovePolicy = function (policyIndex) {
+			$scope.state.deletePolicyIndex = policyIndex;
 			viewConfirmation("Delete Policy?", "Are you sure you want to delete the Policy named '" + $scope.state.policyList[$scope.state.deletePolicyIndex].name + "'?  This action is not reversible.", 'Cancel', 'Delete', deletePolicy, cancelDeletePolicy);
 		};
 
@@ -437,8 +429,8 @@
 			}
 		};
 
-		$scope.viewRemoveConstraint = function () {
-			$scope.state.deleteConstraintIndex = getIndex(this);
+		$scope.viewRemoveConstraint = function (constraintIndex) {
+			$scope.state.deleteConstraintIndex = constraintIndex;
 			viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', deleteConstraint);
 		};
 
@@ -451,9 +443,9 @@
 			setConstraintFormFocus();
 		};
 
-		$scope.viewEditConstraint = function () {
+		$scope.viewEditConstraint = function (constraint) {
 			//copy so we dont update data in the current list
-			$scope.state.currentConstraint = angular.copy($scope.state.currentPolicy.constraints[getIndex(this)]);
+			$scope.state.currentConstraint = angular.copy(constraint);
 			$scope.validateConstraint();
 			$('#editConstraintModal').modal('show');
 			setConstraintFormFocus();
@@ -512,8 +504,7 @@
 			}
 		};
 
-		$scope.conditionTypeChanged = function () {
-			var condition = $scope.state.currentConstraint.conditions[getIndex(this)];
+		$scope.conditionTypeChanged = function (condition) {
 			condition.conditionType = getConditionType(condition.conditionTypeId);
 			condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
 
@@ -541,8 +532,8 @@
 			$scope.validateConstraint();
 		};
 
-		$scope.removeCondition = function () {
-			$scope.state.currentConstraint.conditions.splice(getIndex(this), 1);
+		$scope.removeCondition = function (conditionIndex) {
+			$scope.state.currentConstraint.conditions.splice(conditionIndex, 1);
 			$scope.validateConstraint();
 		};
 

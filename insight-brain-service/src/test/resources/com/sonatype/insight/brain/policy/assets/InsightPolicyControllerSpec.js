@@ -132,8 +132,7 @@ describe('InsightPolicyController tests', function() {
         scope.state.currentConstraint.operator = 'AND';
         scope.state.currentConstraint.conditions[0].conditionTypeId = 'SecurityVulnerability';
         
-        scope.$index = 0;
-        scope.conditionTypeChanged();
+        scope.conditionTypeChanged(scope.state.currentConstraint.conditions[0]);
         
         scope.state.currentConstraint.conditions[0].operator = 'present';
         delete scope.state.currentConstraint.conditions[0].value;
@@ -158,8 +157,7 @@ describe('InsightPolicyController tests', function() {
 	}));
 	
 	it('Test edit policy', inject(function(CLMLocations, $timeout, $httpBackend) {
-	    scope.$index = 4;
-	    scope.viewEditPolicy();
+	    scope.viewEditPolicy(scope.state.policyList[4]);
 	    $timeout.flush();
         
         expect(scope.state.currentPolicy).toEqual({ id : '03bf6717cbbf49b8a177c3004668875a', name : '4444', enabled : true, threatLevel : 5, constraints : [ { id : 'd68c0fda6269459ab81524079a4bc6a8', name : 'sd', enabled : true, operator : 'OR', conditions : [ { conditionTypeId : 'SecurityVulnerability', operator : 'present', value : null, conditionType : { name : 'Security Vulnerability', id : 'SecurityVulnerability', supportedOperators : [ 'present', 'absent' ], valueTypeId : null, valueHint : null }, valueType : null } ] } ], actions : {  }, summary : { constraints : '1 Constraint(s) to be evaluated', actionCount : 0, actions : '' } });
@@ -183,8 +181,7 @@ describe('InsightPolicyController tests', function() {
 	it('Test remove policy', inject(function(CLMLocations, $httpBackend) {
 	    expect(scope.state.deletePolicyIndex).toBeUndefined();
 	    
-	    scope.$index = 0;
-	    scope.viewRemovePolicy();
+	    scope.viewRemovePolicy(0);
 	    
 	    expect(scope.state.deletePolicyIndex).toEqual(0);	    
 	    expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
@@ -200,7 +197,7 @@ describe('InsightPolicyController tests', function() {
 	    expect(scope.state.deletePolicyIndex).toBeUndefined();
 	    expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
         
-	    scope.viewRemovePolicy();
+	    scope.viewRemovePolicy(0);
 	    
 	    expect(scope.state.deletePolicyIndex).toEqual(0);      
         expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');

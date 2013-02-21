@@ -94,9 +94,15 @@ public class PolicyEvaluateResourceTest
         // Simulate that the report is available
         final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+
+        final List<Message> messages = Mailbox.get( "manager@test.corp" );
+
+        messages.clear();
+
+        // evaluate policy
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        final PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 2, policyAlerts.length );
         AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts[0] );
@@ -110,9 +116,21 @@ public class PolicyEvaluateResourceTest
         Assert.assertEquals( 8, policyThreats.get( 0 ).get( "policyThreatLevel" ).asInt() );
 
         // notification message should also have been sent
-        final List<Message> messages = Mailbox.get( "manager@test.corp" );
         Assert.assertEquals( 1, messages.size() );
         Assert.assertTrue( messages.get( 0 ).getSubject().contains( "Policy" ) );
+
+        messages.clear();
+
+        // evaluate policy again
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 2, policyAlerts.length );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts[0] );
+
+        // notification message should not have been sent since the results are the same
+        Assert.assertTrue( messages.isEmpty() );
     }
 
     @Test

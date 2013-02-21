@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.ide;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
@@ -118,9 +119,23 @@ public class SaasClient
         {
             throw new IllegalArgumentException( "Unknown request method" );
         }
+        populateRequest( request, cloudReq );
         // TODO should the client be shared?
         HttpClient client = HttpClientUtils.createConfig( config );
         return client.execute( cloudReq );
+    }
+
+    private void populateRequest( final HttpServletRequest orig, HttpUriRequest req )
+    {
+        for ( Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements(); )
+        {
+            String headerName = e.nextElement();
+            if ( !HttpHeaders.CONNECTION.equals( headerName ) && !HttpHeaders.HOST.equals( headerName )
+                && !HttpHeaders.ACCEPT_ENCODING.equals( headerName ) )
+            {
+                req.setHeader( headerName, orig.getHeader( headerName ) );
+            }
+        }
     }
 
     private Response buildResponse( final HttpResponse response )

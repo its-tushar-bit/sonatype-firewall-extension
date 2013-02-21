@@ -92,7 +92,7 @@ var insightApp;
 (function () {
 	"use strict";
 
-	insightApp = angular.module('insightApp', ['Labels', 'Policy', 'LicenseGroup', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+	insightApp = angular.module('insightApp', ['Labels', 'Policy', 'LicenseGroup','NotificationManagement', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
 		$routeProvider.when('/policy', {
 			templateUrl : 'components/policy.html?' + clmBuildTimestamp,
 			controller : 'InsightPolicyController'

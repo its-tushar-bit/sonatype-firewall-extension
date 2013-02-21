@@ -1,3 +1,4 @@
+<#escape x as x?html>
 <div style="margin: 0pt auto;border:1px solid black;width:600px;padding:1px;font-size:14px;font-family:Arial, Helvetica, sans-serif">
 	<table style="width:100%;border-left:2px solid black;border-right:2px solid black;border-top:2px solid black;border-bottom:2px solid black;vertical-align:middle;font-size:14px;">
 		<tr>
@@ -90,3 +91,4 @@
 		</#list>
 	</table>
 </div>
+</#escape>

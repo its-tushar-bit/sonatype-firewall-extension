@@ -16,8 +16,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -263,15 +261,26 @@ public class ComponentDAO
         return component;
     }
 
-    private void processJsonSVData( Component component, ArrayNode jsonSVNode )
+    private void processJsonSVData( Component component, ArrayNode jsonSVNodes )
     {
         List<SecurityVulnerability> svs = component.getSecurityVulnerabilities();
-        for ( int i = 0; i < jsonSVNode.size(); i++ )
+        for ( int i = 0; i < jsonSVNodes.size(); i++ )
         {
-            ValueNode node = (ValueNode) jsonSVNode.get( i ).get( "status" );
-            if ( node != null && !( node instanceof NullNode ) )
+            JsonNode jsonSVNode = jsonSVNodes.get( i );
+            String statusString = JsonUtils.getNullableString( jsonSVNode.get( "status" ) );
+            if ( statusString != null )
             {
-                svs.get( i ).setStatus( SecurityVulnerabilityStatus.getByName( node.asText() ) );
+                SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName( statusString );
+                String source = jsonSVNode.get( "source" ).asText();
+                String refId = jsonSVNode.get( "reference" ).asText();
+                for ( SecurityVulnerability sv : svs )
+                {
+                    if ( sv.getSource().equals( source ) && sv.getRefId().equals( refId ) )
+                    {
+                        sv.setStatus( status );
+                        break;
+                    }
+                }
             }
         }
     }

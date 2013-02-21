@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,12 +27,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.micromailer.Address;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -53,6 +56,7 @@ import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.TemplateUtils;
+import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import freemarker.template.Template;
@@ -110,26 +114,75 @@ public class PolicyEvaluateResource
             new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
                                        dependenciesReportEntry.buf );
 
-        final List<PolicyAlert> result = new PolicyEvaluator().evaluate( appId, stage, policies, components );
-        Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( result ) ) );
+        final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policies, components );
 
-        final String policyThreatsHtml = summarizeThreats( appId, scanId, stage, result );
+        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( alerts ) );
+        Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
+        final String policyThreatsHtml = summarizeThreats( appId, scanId, stage, alerts );
         Report.putEntry( reportFile, "policythreats.html", policyThreatsHtml );
 
-        sendNotifications( "SONATYPE-CLM-" + applicationPublicId + "-" + scanId, policyThreatsHtml, result );
+        @SuppressWarnings( "unchecked" )
+        List<PolicyAlert>[] digest = new List[] { alerts, null };
+        final List<PolicyAlert> oldAlerts = findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
+        if ( oldAlerts != null && !oldAlerts.isEmpty() )
+        {
+            digest = PolicyDigester.digestPolicyAlerts( alerts, oldAlerts );
+        }
+
+        if ( digest != null && digest[0] != null )
+        {
+            sendNotifications( "SONATYPE-CLM-" + applicationPublicId + "-" + scanId, policyThreatsHtml, digest[0] );
+        }
 
         if ( CI_PLUGIN_PRE_2_6.matcher( userAgent ).matches() )
         {
             /*
              * Hide componentFacts list from older clients who can't deserialize it
              */
-            for ( final PolicyAlert alert : result )
+            for ( final PolicyAlert alert : alerts )
             {
                 alert.getTrigger().getComponentFacts().clear();
             }
         }
 
-        return result;
+        return alerts;
+    }
+
+    protected List<PolicyAlert> findOldPolicyAlerts( final String applicationPublicId, String appId,
+                                                     final String scanId, final Stage stage )
+        throws IOException
+    {
+        // create log entry for current stage and use it to retrieve last known scanId
+        final ObjectNode logEntry = JsonUtils.asTree( ImmutableMap.of( "stage", stage ) );
+        final JsonStore auditStore = JsonUtils.fileStore( work.getAuditDir( appId ) );
+        auditStore.augment( logEntry, "policyevaluations.json" );
+
+        // swap current scanId into the working copy
+        final String oldScanId =
+            JsonUtils.getNullableString( logEntry.replace( "scanId", logEntry.textNode( scanId ) ) );
+
+        // commit as new entry in the rolling log (TODO: populate invoker's details)
+        auditStore.commit( "policyevaluations.json", JsonUtils.stamp( "anonymous", "127.0.0.1", "", logEntry ) );
+
+        if ( !StringUtils.isBlank( oldScanId ) )
+        {
+            try
+            {
+                final File reportFile =
+                    ReportResource.fetchReport( work, proxy, applicationPublicId, appId, oldScanId, true );
+                final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
+                if ( reportEntry != null )
+                {
+                    return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );
+                }
+            }
+            catch ( final IOException e )
+            {
+                // don't abort sending notifications if old results are corrupt, just means full digest will be sent
+                log.warn( "Cannot load previous results for app id {}, scan id {}", applicationPublicId, scanId, e );
+            }
+        }
+        return null;
     }
 
     private static ObjectNode analyzeThreats( final List<PolicyAlert> policyAlerts )
@@ -167,7 +220,8 @@ public class PolicyEvaluateResource
         return threats;
     }
 
-    private String summarizeThreats( final String appId, final String scanId, final Stage stage, final List<PolicyAlert> policyAlerts )
+    private String summarizeThreats( final String appId, final String scanId, final Stage stage,
+                                     final List<PolicyAlert> policyAlerts )
         throws IOException
     {
         int red = 0;
@@ -177,7 +231,7 @@ public class PolicyEvaluateResource
         for ( PolicyAlert alert : policyAlerts )
         {
             int level = alert.getTrigger().getThreatLevel();
-            
+
             if ( level > 7 )
             {
                 red++;
@@ -195,7 +249,7 @@ public class PolicyEvaluateResource
                 blue++;
             }
         }
-        
+
         final Map<String, Object> model = new HashMap<String, Object>();
 
         model.put( "detailedReportUrl",
@@ -213,7 +267,7 @@ public class PolicyEvaluateResource
         model.put( "policyThreatYellowCount", yellow );
         model.put( "policyThreatBlueCount", blue );
         model.put( "actionTypes", ActionTypes.getAll() );
-        
+
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }
 
@@ -227,12 +281,12 @@ public class PolicyEvaluateResource
         return policyThreatsTemplate;
     }
 
-    private void sendNotifications( final String mailId, final String body, final List<PolicyAlert> policyAlerts )
+    private void sendNotifications( final String mailId, final String body, final List<PolicyAlert> alerts )
     {
         try
         {
             final List<Address> recipients = new ArrayList<Address>();
-            for ( final PolicyAlert policyAlert : policyAlerts )
+            for ( final PolicyAlert policyAlert : alerts )
             {
                 for ( final Action action : policyAlert.getActions() )
                 {

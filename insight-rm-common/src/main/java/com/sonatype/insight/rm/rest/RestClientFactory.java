@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.model.brain.ScanReceipt;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
 
@@ -78,7 +79,7 @@ public class RestClientFactory
         }
 
         @Override
-        public String uploadScan( File scanFile )
+        public ScanReceipt uploadScan( File scanFile )
             throws IOException
         {
             return new ScanClient( config, appId ).uploadRepoManScan( scanFile );

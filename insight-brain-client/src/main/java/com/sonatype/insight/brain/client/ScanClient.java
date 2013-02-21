@@ -15,7 +15,7 @@ import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
+import com.sonatype.insight.model.brain.ScanReceipt;
 
 public final class ScanClient
     extends AbstractClient
@@ -29,21 +29,21 @@ public final class ScanClient
         this.appId = UrlUtils.encodeUrlComponent( appId );
     }
 
-    public String uploadCiScan( final File scanFile )
+    public ScanReceipt uploadCiScan( final File scanFile )
         throws IOException
     {
         final Result result = path( "rest/ci/scan", appId ).put( new FileEntity( scanFile, "application/x-gzip" ) );
         return handleUpload( result );
     }
 
-    public String uploadRepoManScan( final File scanFile )
+    public ScanReceipt uploadRepoManScan( final File scanFile )
         throws IOException
     {
         final Result result = path( "rest/rm/scan", appId ).put( new FileEntity( scanFile, "application/x-gzip" ) );
         return handleUpload( result );
     }
 
-    private String handleUpload( Result result )
+    private ScanReceipt handleUpload( Result result )
         throws IOException
     {
         final int status = result.status();
@@ -52,7 +52,6 @@ public final class ScanClient
         {
             throw new IOException( "Error code " + status + ": " + text );
         }
-        BOMCheckScanUploadResult dto = JsonUtils.parse( text, BOMCheckScanUploadResult.class );
-        return dto.getScanId();
+        return JsonUtils.parse( text, ScanReceipt.class );
     }
 }

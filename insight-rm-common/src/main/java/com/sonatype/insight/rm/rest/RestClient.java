@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
+import com.sonatype.insight.model.brain.ScanReceipt;
 
 public interface RestClient
 {
@@ -30,7 +31,7 @@ public interface RestClient
         void validateApplicationId()
             throws IOException;
 
-        String uploadScan( File scanFile )
+        ScanReceipt uploadScan( File scanFile )
             throws IOException;
 
         Scan forScan( String scanId );

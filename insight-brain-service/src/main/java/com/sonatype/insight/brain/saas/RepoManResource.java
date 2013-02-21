@@ -28,6 +28,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.model.brain.ScanReceipt;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.RepoManScanUploadRequest;
@@ -85,6 +87,12 @@ public class RepoManResource
             FileUtils.rename( scanFile, new File( scanDir, "scan-" + result.getScanId() + SCAN_EXT ) );
         }
 
-        return Response.ok( result ).build();
+        final ScanReceipt receipt = new ScanReceipt();
+        receipt.setScanId( result.getScanId() );
+        receipt.setTimeToReport( result.getTimeToReport() );
+        receipt.setReportUrl( "rest/report/" + UrlUtils.encodeUrlComponent( applicationPublicId ) + "/"
+            + UrlUtils.encodeUrlComponent( result.getScanId() ) + "/embedReport/index.html?pdf=true" );
+
+        return Response.ok( receipt ).build();
     }
 }

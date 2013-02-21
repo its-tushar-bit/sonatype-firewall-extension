@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.model.brain.ScanReceipt;
 
 public class ScanClientTest
     extends AbstractBrainServiceTest
@@ -55,8 +56,8 @@ public class ScanClientTest
         throws Exception
     {
         Configuration config = brain.getClientConfiguration();
-        String scanId = new ScanClient( config, APP_ID ).uploadCiScan( tmpDir.newFile( "scan.xml.gz" ) );
-        assertEquals( "SCAN-ID", scanId );
+        ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadCiScan( tmpDir.newFile( "scan.xml.gz" ) );
+        assertEquals( "SCAN-ID", receipt.getScanId() );
     }
 
     @Test
@@ -80,8 +81,9 @@ public class ScanClientTest
         throws Exception
     {
         Configuration config = brain.getClientConfiguration();
-        String scanId = new ScanClient( config, APP_ID ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
-        assertEquals( "SCAN-ID", scanId );
+        ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
+        assertEquals( "SCAN-ID", receipt.getScanId() );
+        assertNotNull( receipt.getReportUrl() );
     }
 
     @Test

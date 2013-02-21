@@ -61,6 +61,11 @@
       <artifactId>insight-scanner-model</artifactId>
       <version>${insight-scanner.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
+      <version>${clm.model.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

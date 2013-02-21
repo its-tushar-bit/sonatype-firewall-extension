@@ -25,17 +25,14 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-policy-model</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-db</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>

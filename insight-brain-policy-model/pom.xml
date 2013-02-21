@@ -21,12 +21,10 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-model</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data-access</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
@@ -35,7 +33,6 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>

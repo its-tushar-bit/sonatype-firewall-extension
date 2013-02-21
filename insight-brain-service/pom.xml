@@ -41,37 +41,30 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-model</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-policy-model</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data-access</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-policy-data-access</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
-      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-upload</artifactId>
-      <version>${insight-scanner.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-portal-mail</artifactId>
-      <version>${insight-saas.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.sonatype.sisu</groupId>
@@ -347,7 +340,6 @@
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-mock-server</artifactId>
-      <version>${insight-scanner.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -363,7 +355,6 @@
     <dependency>
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
-      <version>${clm.model.version}</version>
     </dependency>
   </dependencies>
 

@@ -28,7 +28,6 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-client</artifactId>
-      <version>1.2-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>com.sonatype.insight.brain</groupId>
@@ -43,28 +42,18 @@
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-archive</artifactId>
-      <version>${insight-scanner.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>javax.inject</groupId>
-          <artifactId>javax.inject</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-core</artifactId>
-      <version>${insight-scanner.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-model</artifactId>
-      <version>${insight-scanner.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
-      <version>${clm.model.version}</version>
     </dependency>
 
     <dependency>

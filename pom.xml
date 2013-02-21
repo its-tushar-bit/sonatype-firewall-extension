@@ -62,6 +62,60 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-client</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-data-access</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-db</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-model</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-policy-data-access</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-policy-model</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-service</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-service</artifactId>
+        <version>1.2-SNAPSHOT</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-json-store</artifactId>
+        <version>1.2-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sonatype.clm</groupId>
+        <artifactId>com.sonatype.clm.dto.model</artifactId>
+        <version>${clm.model.version}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
@@ -104,6 +158,22 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-error-handling</artifactId>
+        <version>${insight-saas.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-portal-mail</artifactId>
+        <version>${insight-saas.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.portal</groupId>
+        <artifactId>insight-test</artifactId>
+        <version>${insight-saas.version}</version>
+        <scope>test</scope>
+      </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -128,15 +198,41 @@
       </dependency>
 
       <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-error-handling</artifactId>
-        <version>${insight-saas.version}</version>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-scanner-archive</artifactId>
+        <version>${insight-scanner.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
-      
       <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-test</artifactId>
-        <version>${insight-saas.version}</version>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-client-utils</artifactId>
+        <version>${insight-scanner.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-scanner-core</artifactId>
+        <version>${insight-scanner.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-mock-server</artifactId>
+        <version>${insight-scanner.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-scanner-model</artifactId>
+        <version>${insight-scanner.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-scanner-upload</artifactId>
+        <version>${insight-scanner.version}</version>
       </dependency>
 
       <dependency>

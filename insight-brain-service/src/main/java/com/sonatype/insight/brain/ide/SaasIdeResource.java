@@ -101,9 +101,7 @@ public class SaasIdeResource
         {
             return null;
         }
-        ArrayNode svData = new ArrayNode( new JsonNodeFactory()
-        {
-        } );
+        ArrayNode svData = new ArrayNode( JsonNodeFactory.instance );
         for ( SecurityIssue issue : issues )
         {
             ObjectNode svNode = svData.objectNode();

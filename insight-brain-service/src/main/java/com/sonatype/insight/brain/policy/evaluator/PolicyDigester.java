@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 public class PolicyDigester
 {
     @SuppressWarnings( "unchecked" )
-    public static List<PolicyAlert>[] digestPolicyAlerts( final List<PolicyAlert> oldAlerts,
-                                                          final List<PolicyAlert> newAlerts )
+    public static List<PolicyAlert>[] digestPolicyAlerts( final List<PolicyAlert> newAlerts,
+                                                          final List<PolicyAlert> oldAlerts )
     {
         final List<PolicyAlert> appeared = new ArrayList<PolicyAlert>();
         final List<PolicyAlert> cleared = new ArrayList<PolicyAlert>();
@@ -61,7 +61,7 @@ public class PolicyDigester
                 else
                 {
                     final List<ComponentFact>[] results =
-                        digestComponentFacts( oldTrigger.getComponentFacts(), newTrigger.getComponentFacts() );
+                        digestComponentFacts( newTrigger.getComponentFacts(), oldTrigger.getComponentFacts() );
 
                     if ( results != null )
                     {
@@ -90,8 +90,8 @@ public class PolicyDigester
     }
 
     @SuppressWarnings( "unchecked" )
-    public static List<ComponentFact>[] digestComponentFacts( final List<ComponentFact> oldFacts,
-                                                              final List<ComponentFact> newFacts )
+    public static List<ComponentFact>[] digestComponentFacts( final List<ComponentFact> newFacts,
+                                                              final List<ComponentFact> oldFacts )
     {
         final List<ComponentFact> appeared = new ArrayList<ComponentFact>();
         final List<ComponentFact> cleared = new ArrayList<ComponentFact>();
@@ -133,7 +133,7 @@ public class PolicyDigester
                 else
                 {
                     final List<ConstraintFact>[] results =
-                        digestConstraintFacts( oldFact.getConstraintFacts(), newFact.getConstraintFacts() );
+                        digestConstraintFacts( newFact.getConstraintFacts(), oldFact.getConstraintFacts() );
 
                     if ( results != null )
                     {
@@ -162,8 +162,8 @@ public class PolicyDigester
     }
 
     @SuppressWarnings( "unchecked" )
-    public static List<ConstraintFact>[] digestConstraintFacts( final List<ConstraintFact> oldFacts,
-                                                                final List<ConstraintFact> newFacts )
+    public static List<ConstraintFact>[] digestConstraintFacts( final List<ConstraintFact> newFacts,
+                                                                final List<ConstraintFact> oldFacts )
     {
         final List<ConstraintFact> appeared = new ArrayList<ConstraintFact>();
         final List<ConstraintFact> cleared = new ArrayList<ConstraintFact>();
@@ -203,7 +203,7 @@ public class PolicyDigester
                 else
                 {
                     final List<ConditionFact>[] results =
-                        digestConditionFacts( oldFact.getConditionFacts(), newFact.getConditionFacts() );
+                        digestConditionFacts( newFact.getConditionFacts(), oldFact.getConditionFacts() );
 
                     if ( results != null )
                     {
@@ -232,8 +232,8 @@ public class PolicyDigester
     }
 
     @SuppressWarnings( "unchecked" )
-    public static List<ConditionFact>[] digestConditionFacts( final List<ConditionFact> oldFacts,
-                                                              final List<ConditionFact> newFacts )
+    public static List<ConditionFact>[] digestConditionFacts( final List<ConditionFact> newFacts,
+                                                              final List<ConditionFact> oldFacts )
     {
         final List<ConditionFact> appeared = new ArrayList<ConditionFact>();
         final List<ConditionFact> cleared = new ArrayList<ConditionFact>();

@@ -303,7 +303,7 @@ public class PolicyEvaluateResource
         }
         catch ( final Exception e )
         {
-            log.warn( "Unable to send notifications", e );
+            log.error( "Unable to send notifications", e );
         }
     }
 }

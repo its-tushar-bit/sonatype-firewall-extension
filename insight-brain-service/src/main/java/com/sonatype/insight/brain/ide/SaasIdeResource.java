@@ -84,16 +84,18 @@ public class SaasIdeResource
     private ArrayNode getAugmentedLicenseData( String applicationId, MatchedComponent matchedComponent )
         throws IOException
     {
-        String json =
-            "[{ \"groupId\" : \"" + matchedComponent.getGroupId() + "\", \"artifactId\" : \""
-                + matchedComponent.getArtifactId() + "\", \"version\" : \"" + matchedComponent.getVersion() + "\" }]";
-        ArrayNode licenseData = JsonUtils.parse( json );
+        ArrayNode licenseData = new ArrayNode( JsonNodeFactory.instance );
+        ObjectNode gavNode = licenseData.objectNode();
+        licenseData.add( gavNode );
+        gavNode.put( "groupId", matchedComponent.getGroupId() );
+        gavNode.put( "artifactId", matchedComponent.getArtifactId() );
+        gavNode.put( "version", matchedComponent.getVersion() );
         File auditDir = work.getAuditDir( applicationId );
         licenseData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
         return licenseData;
     }
 
-    private ArrayNode getAugmentedSvData( String applicationId, MatchedComponent matchedComponent )
+    private ArrayNode getAugmentedSVData( String applicationId, MatchedComponent matchedComponent )
         throws IOException
     {
         List<SecurityIssue> issues = matchedComponent.getSecurityThreats();
@@ -135,7 +137,7 @@ public class SaasIdeResource
         if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
         {
             ArrayNode licenseData = getAugmentedLicenseData( applicationId, matchedComponent );
-            ArrayNode svData = getAugmentedSvData( applicationId, matchedComponent );
+            ArrayNode svData = getAugmentedSVData( applicationId, matchedComponent );
 
             ComponentDAO componentDAO = new ComponentDAO();
             Component component =

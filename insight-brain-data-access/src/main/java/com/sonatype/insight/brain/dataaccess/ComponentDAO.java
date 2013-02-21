@@ -230,7 +230,7 @@ public class ComponentDAO
     }
 
     public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode jsonLicenseNode,
-                                   ArrayNode jsonSvNode )
+                                   ArrayNode jsonSVNode )
     {
         Component component = new Component();
         component.setArtifactId( matchComponent.getArtifactId() );
@@ -251,9 +251,9 @@ public class ComponentDAO
             component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefid(),
                                                                            issue.getSeverity() ) );
         }
-        if ( jsonSvNode != null )
+        if ( jsonSVNode != null )
         {
-            processJsonSvData( component, jsonSvNode );
+            processJsonSVData( component, jsonSVNode );
         }
 
         loadLicenseThreatGroups( applicationId, component );
@@ -263,16 +263,15 @@ public class ComponentDAO
         return component;
     }
 
-    private void processJsonSvData( Component component, ArrayNode jsonSvNode )
+    private void processJsonSVData( Component component, ArrayNode jsonSVNode )
     {
-        SecurityVulnerability[] svs =
-            component.getSecurityVulnerabilities().toArray( new SecurityVulnerability[component.getSecurityVulnerabilities().size()] );
-        for ( int i = 0; i < jsonSvNode.size(); i++ )
+        List<SecurityVulnerability> svs = component.getSecurityVulnerabilities();
+        for ( int i = 0; i < jsonSVNode.size(); i++ )
         {
-            ValueNode node = (ValueNode) jsonSvNode.get( i ).get( "status" );
+            ValueNode node = (ValueNode) jsonSVNode.get( i ).get( "status" );
             if ( node != null && !( node instanceof NullNode ) )
             {
-                svs[i].setStatus( SecurityVulnerabilityStatus.getByName( node.asText() ) );
+                svs.get( i ).setStatus( SecurityVulnerabilityStatus.getByName( node.asText() ) );
             }
         }
     }

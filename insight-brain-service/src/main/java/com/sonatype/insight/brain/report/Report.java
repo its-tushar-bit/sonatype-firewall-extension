@@ -22,12 +22,13 @@ import java.util.zip.ZipFile;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public final class Report
@@ -92,7 +93,7 @@ public final class Report
         return buf != null ? buf.toString() : path;
     }
 
-    public static int[] applyChanges( final File reportFile, final File auditDir )
+    public static int[] applyChanges( final String appId, final File reportFile, final File auditDir )
         throws IOException
     {
         final ReportType reportType = getType( reportFile );
@@ -126,13 +127,9 @@ public final class Report
          */
 
         final int[] securityCounts = new int[10];
+        final int[] licenseCounts = new int[10];
 
         int insecureArtifactCount = 0;
-        int copyleftLicenseCount = 0;
-        int weakcopyleftLicenseCount = 0;
-        int liberalLicenseCount = 0;
-        int nonStandardLicenseCount = 0;
-        int notProvidedLicenseCount = 0;
 
         int securityAlerts = 0;
         int licenseAlerts = 0;
@@ -177,69 +174,87 @@ public final class Report
             }
         }
 
+        ComponentDAO componentDAO = new ComponentDAO();
+        List<String> multiLicenseNames = new ArrayList<String>();
         for ( final JsonNode row : licenses.get( "aaData" ) )
         {
-            String threat = asText( row.path( "overriddenLicenseThreat" ) );
-            if ( StringUtils.isBlank( threat ) )
+            ArrayNode threats = (ArrayNode) row.get( "overriddenLicenses" );
+            if ( threats == null || threats.size() == 0 )
             {
-                threat = row.path( "effectiveLicenseThreat" ).asText();
+                threats = (ArrayNode) row.path( "declaredLicenses" );
+                threats.addAll( (ArrayNode) row.path( "observedLicenses" ) );
             }
-
-            final int counter;
-            if ( "COPYLEFT".equals( threat ) )
+            for ( int i = 0; i < threats.size(); i++ )
             {
-                copyleftLicenseCount++;
-                counter = 0;
-            }
-            else if ( "WEAKCOPYLEFT".equals( threat ) )
-            {
-                weakcopyleftLicenseCount++;
-                counter = 2;
-            }
-            else if ( "LIBERAL".equals( threat ) )
-            {
-                liberalLicenseCount++;
-                counter = -1;
-            }
-            else if ( "NON-STANDARD".equals( threat ) )
-            {
-                nonStandardLicenseCount++;
-                counter = 1;
-            }
-            else if ( "NOT-PROVIDED".equals( threat ) )
-            {
-                notProvidedLicenseCount++;
-                counter = 1;
-            }
-            else
-            {
-                counter = -1;
-            }
-
-            if ( counter >= 0 )
-            {
-                licenseAlerts++;
-
-                for ( final JsonNode level : gavDepths.path( gav( row ) ) )
+                String threat = threats.get( i ).asText();
+                if ( threat.equals( "Not Provided" ) )
                 {
-                    final int index = level.asInt() - 1;
-                    while ( index >= licensePunchCard.size() )
-                    {
-                        licensePunchCard.add( new int[3] );
-                    }
-                    licensePunchCard.get( index )[counter]++;
+                    continue;
                 }
+                multiLicenseNames.add( threat );
             }
         }
+
+        Set<LicenseThreatGroup> licenseThreatGroups =
+            componentDAO.multiLicenseNamestoLicenseGroups( appId, multiLicenseNames );
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        {
+            final int threatIndex = licenseThreatGroup.getThreatLevel();
+            licenseCounts[Math.min( 9, Math.max( 0, threatIndex ) )]++;
+        }
+        //
+        // final int counter;
+        // if ( "COPYLEFT".equals( threat ) )
+        // {
+        // copyleftLicenseCount++;
+        // counter = 0;
+        // }
+        // else if ( "WEAKCOPYLEFT".equals( threat ) )
+        // {
+        // weakcopyleftLicenseCount++;
+        // counter = 2;
+        // }
+        // else if ( "LIBERAL".equals( threat ) )
+        // {
+        // liberalLicenseCount++;
+        // counter = -1;
+        // }
+        // else if ( "NON-STANDARD".equals( threat ) )
+        // {
+        // nonStandardLicenseCount++;
+        // counter = 1;
+        // }
+        // else if ( "NOT-PROVIDED".equals( threat ) )
+        // {
+        // notProvidedLicenseCount++;
+        // counter = 1;
+        // }
+        // else
+        // {
+        // counter = -1;
+        // }
+        //
+        // if ( counter >= 0 )
+        // {
+        // licenseAlerts++;
+        //
+        // for ( final JsonNode level : gavDepths.path( gav( row ) ) )
+        // {
+        // final int index = level.asInt() - 1;
+        // while ( index >= licensePunchCard.size() )
+        // {
+        // licensePunchCard.add( new int[3] );
+        // }
+        // licensePunchCard.get( index )[counter]++;
+        // }
+        // }
+        // }
 
         final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
         fill( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
-        data.put( "copyleftLicenseCount", copyleftLicenseCount );
-        data.put( "weakcopyleftLicenseCount", weakcopyleftLicenseCount );
-        data.put( "liberalLicenseCount", liberalLicenseCount );
-        data.put( "nonStandardLicenseCount", nonStandardLicenseCount );
-        data.put( "notProvidedLicenseCount", notProvidedLicenseCount );
+        fill( data.putArray( "licenseCounts" ), licenseCounts );
+
         fill( data.putArray( "securityPunchCard" ), securityPunchCard );
         fill( data.putArray( "licensePunchCard" ), licensePunchCard );
         filterKeyFindings( data, security );

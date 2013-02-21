@@ -322,7 +322,7 @@ public class ReportResource
             {
                 Report.deletePdf( reportFile );
 
-                Report.applyChanges( reportFile, auditDir );
+                Report.applyChanges( appId, reportFile, auditDir );
 
                 MODIFICATION_COUNTS.put( appId + '-' + scanId, newCount );
             }

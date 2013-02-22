@@ -68,13 +68,10 @@
 		}).success(function (data) {
 			// Keep sorted for setLicenses
 			$scope.allLicenses = data.sort(sortLicense);
-			for (var i = 0; i < $scope.allLicenses.length; i++) {
-				$scope.allLicenses[i].isApplied = false;
-			}
 		}).error(onError);
 		
 		$scope.editLicenseGroup = function(group) {
-			$scope.editorUrl = 'components/license-threat-group-editor.html?' + new Date(); // + clmBuildTimestamp;
+			$scope.editorUrl = 'components/license-threat-group-editor.html?' + clmBuildTimestamp;
 			
 			$scope.selectedGroup = { id : null, applicationId : null, licenses : [], name : '', threatLevel : 5 };
 			if (group) {
@@ -87,6 +84,10 @@
 				if ($scope.licenseGroups[i].id != $scope.selectedGroup.id) {
 					$.merge(existingLicenses, $scope.licenseGroups[i].licenses);
 				}
+			}
+			// Reset master license list
+			for (var i = 0; i < $scope.allLicenses.length; i++) {
+				$scope.allLicenses[i].isApplied = false;
 			}
 			// Copy master license list
 			var availableLicenses = $.merge([], $scope.allLicenses);

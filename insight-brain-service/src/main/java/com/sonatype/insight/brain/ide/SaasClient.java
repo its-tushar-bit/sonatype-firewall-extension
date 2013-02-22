@@ -24,7 +24,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionManagerFactory;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
 
 import com.sonatype.insight.brain.service.AbstractInjectable;
@@ -42,11 +49,16 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class SaasClient
     extends AbstractInjectable<InsightProxy>
 {
-    private Configuration config;
+    private final Configuration config;
+
+    private final HttpClient client;
 
     public SaasClient( final InsightProxy proxy )
     {
         config = proxy.contextualize( new Configuration() );
+        client = HttpClientUtils.createConfig( config );
+        client.getParams().setParameter( ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME,
+                                         PoolingClientConnectionManagerFactory.class.getName() );
         // TODO Need to determine if there is additional information we should be sending to the SaaS
     }
 
@@ -54,33 +66,39 @@ public class SaasClient
         throws IOException
     {
         HttpResponse response = execute( request, paths );
-
-        switch ( response.getStatusLine().getStatusCode() )
+        try
         {
-            case 200:
-            case 202:
-                InputStream in = null;
-                try
-                {
-                    in = response.getEntity().getContent();
-                    return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
-                }
-                finally
-                {
-                    IOUtil.close( in );
-                }
-            case 400:
-                throw new BadRequestException( response.getStatusLine().getReasonPhrase() );
-            case 401:
-                throw new NotAuthenticatedException( response.getStatusLine().getReasonPhrase() );
-            case 403:
-                throw new NotAuthorizedException( response.getStatusLine().getReasonPhrase() );
-            case 404:
-                throw new NotFoundException( response.getStatusLine().getReasonPhrase() );
-            case 409:
-                throw new ConflictException( response.getStatusLine().getReasonPhrase() );
-            default:
-                throw new InternalServerException( response.getStatusLine().getReasonPhrase() );
+            switch ( response.getStatusLine().getStatusCode() )
+            {
+                case 200:
+                case 202:
+                    InputStream in = null;
+                    try
+                    {
+                        in = response.getEntity().getContent();
+                        return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
+                    }
+                    finally
+                    {
+                        IOUtil.close( in );
+                    }
+                case 400:
+                    throw new BadRequestException( response.getStatusLine().getReasonPhrase() );
+                case 401:
+                    throw new NotAuthenticatedException( response.getStatusLine().getReasonPhrase() );
+                case 403:
+                    throw new NotAuthorizedException( response.getStatusLine().getReasonPhrase() );
+                case 404:
+                    throw new NotFoundException( response.getStatusLine().getReasonPhrase() );
+                case 409:
+                    throw new ConflictException( response.getStatusLine().getReasonPhrase() );
+                default:
+                    throw new InternalServerException( response.getStatusLine().getReasonPhrase() );
+            }
+        }
+        finally
+        {
+            EntityUtils.consume( response.getEntity() );
         }
     }
 
@@ -120,8 +138,6 @@ public class SaasClient
             throw new IllegalArgumentException( "Unknown request method" );
         }
         populateRequest( request, cloudReq );
-        // TODO should the client be shared?
-        HttpClient client = HttpClientUtils.createConfig( config );
         return client.execute( cloudReq );
     }
 
@@ -220,4 +236,19 @@ public class SaasClient
         }
         return uri.toString();
     }
+
+    public static class PoolingClientConnectionManagerFactory
+        implements ClientConnectionManagerFactory
+    {
+
+        @Override
+        public ClientConnectionManager newInstance( HttpParams params, SchemeRegistry schemeRegistry )
+        {
+            ThreadSafeClientConnManager connManager = new ThreadSafeClientConnManager();
+            connManager.setDefaultMaxPerRoute( connManager.getMaxTotal() );
+            return connManager;
+        }
+
+    }
+
 }

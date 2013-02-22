@@ -67,9 +67,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
-        String responseBody = FileUtils.fileRead( testResponseFileUrl.getFile() );
-        setSaasResponseForURI( saasUrl, responseBody, 200 );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -105,9 +103,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
-        String responseBody = FileUtils.fileRead( testResponseFileUrl.getFile() );
-        setSaasResponseForURI( saasUrl, responseBody, 200 );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -162,9 +158,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
-        String responseBody = FileUtils.fileRead( testResponseFileUrl.getFile() );
-        setSaasResponseForURI( saasUrl, responseBody, 200 );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -220,9 +214,7 @@ public class SaasIdeResourceTest
         // There should be no policy alerts when none of the security vulnerabilities was overridden
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
-        String responseBody = FileUtils.fileRead( testResponseFileUrl.getFile() );
-        setSaasResponseForURI( saasUrl, responseBody, 200 );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -297,9 +289,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        URL testResponseFileUrl = getClass().getResource( "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
-        String responseBody = FileUtils.fileRead( testResponseFileUrl.getFile() );
-        setSaasResponseForURI( saasUrl, responseBody, 200 );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =

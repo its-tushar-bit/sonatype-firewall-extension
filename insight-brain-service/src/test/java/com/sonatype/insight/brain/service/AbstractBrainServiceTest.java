@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -139,5 +140,19 @@ public abstract class AbstractBrainServiceTest
     protected void setSaasResponseForURI( String uri, String body, int status )
     {
         saas.setResponseForURI( uri, body, status );
+    }
+
+    protected void setSaasResponseForURI( String uri, int status, String bodyResource )
+    {
+        String body;
+        try
+        {
+            body = IOUtil.toString( getClass().getResourceAsStream( bodyResource ), "UTF-8" );
+        }
+        catch ( IOException e )
+        {
+            throw new IllegalStateException( e );
+        }
+        setSaasResponseForURI( uri, body, status );
     }
 }

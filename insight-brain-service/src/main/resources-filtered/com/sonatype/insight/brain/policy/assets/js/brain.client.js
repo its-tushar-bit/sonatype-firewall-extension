@@ -4,13 +4,20 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*jslint plusplus:true */
-var Brain;
 (function () {
 	"use strict";
 
-	var features = ["policy", "labels", "release-graph"]; // Lowercase
+	var features = ["policy", "labels", "release-graph"],// Lowercase
+		param = window.$ ? $.param : function (obj) {
+			var string = '',
+				field;
+			for (field in obj) {
+				string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field]);
+			}
+			return string.substring(1);
+		};
 
-	Brain = {
+	window.Brain = {
 		"hasFeature" : function (feature) {
 			var i;
 			feature = feature.toLowerCase();
@@ -25,7 +32,10 @@ var Brain;
 			return "${project.version}";
 		},
 		'getArtifactInfoUrl' : function (arg) {
-		    return '/rest/ide/artifact/info/' + arg.appId + '?' + $.param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+		    return '/rest/ide/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+	    },
+	    'getArtifactVersionInfoUrl' : function (arg) {
+			return '/rest/ide/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
 	    },
 		'getArtifactDetailsUrl' : function (arg) {
 			return '/rest/ide/artifact/detail/' + arg.appId;

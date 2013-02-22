@@ -87,6 +87,22 @@ public class SaasIdeResource
     }
 
     @GET
+    @Path( "component/details/versions/{applicationPublicId}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public Response getComponentVersionDetails( @Context HttpServletRequest servletRequest,
+                                                @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                                @QueryParam( "instanceId" ) String instanceId,
+                                                @QueryParam( "groupId" ) String groupId,
+                                                @QueryParam( "artifactId" ) String artifactId,
+                                                @QueryParam( "version" ) String version )
+        throws IOException
+    {
+        log.debug( "Getting component version details for application id {}, GAV {}:{}:{}.", applicationPublicId,
+                   groupId, artifactId, version );
+        return client.doProxy( servletRequest, "rest/ide/component/details/versions", applicationPublicId );
+    }
+
+    @GET
     @Path( "component/details/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
     public ComponentDetails getComponentDetails( @Context HttpServletRequest servletRequest,

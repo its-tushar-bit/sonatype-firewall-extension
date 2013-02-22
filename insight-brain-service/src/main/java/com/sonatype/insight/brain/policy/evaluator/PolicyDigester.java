@@ -67,11 +67,11 @@ public class PolicyDigester
                     {
                         if ( !results[0].isEmpty() )
                         {
-                            appeared.add( newAlert.with( newTrigger.with( results[0] ) ) );
+                            appeared.add( newAlert.cloneWith( newTrigger.cloneWith( results[0] ) ) );
                         }
                         if ( !results[1].isEmpty() )
                         {
-                            cleared.add( oldAlert.with( oldTrigger.with( results[1] ) ) );
+                            cleared.add( oldAlert.cloneWith( oldTrigger.cloneWith( results[1] ) ) );
                         }
                     }
 
@@ -140,11 +140,11 @@ public class PolicyDigester
                     {
                         if ( !results[0].isEmpty() )
                         {
-                            appeared.add( newFact.with( results[0] ) );
+                            appeared.add( newFact.cloneWith( results[0] ) );
                         }
                         if ( !results[1].isEmpty() )
                         {
-                            cleared.add( oldFact.with( results[1] ) );
+                            cleared.add( oldFact.cloneWith( results[1] ) );
                         }
                     }
 
@@ -210,11 +210,11 @@ public class PolicyDigester
                     {
                         if ( !results[0].isEmpty() )
                         {
-                            appeared.add( newFact.with( results[0] ) );
+                            appeared.add( newFact.cloneWith( results[0] ) );
                         }
                         if ( !results[1].isEmpty() )
                         {
-                            cleared.add( oldFact.with( results[1] ) );
+                            cleared.add( oldFact.cloneWith( results[1] ) );
                         }
                     }
 

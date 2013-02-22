@@ -90,8 +90,6 @@ public class SaasIdeResourceTest
     }
 
     @Test
-    public void testDoScan()
-        throws Exception
     public void testDoScan_Simple()
         throws Exception
     {

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.model.policy;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
 public class PolicyAlert
@@ -38,7 +37,6 @@ public class PolicyAlert
         return actions;
     }
 
-    @JsonIgnore
     public PolicyAlert with( final PolicyFact newTrigger )
     {
         try

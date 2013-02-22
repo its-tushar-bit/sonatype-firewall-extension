@@ -108,13 +108,7 @@ public final class Report
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
         final ReportEntry licenseReportEntry = getEntry( reportFile, "licenses.json" );
-        final ReportEntry securityReportEntry = getEntry( reportFile, "security.json" );
-        final ReportEntry bomReportEntry = getEntry( reportFile, "bom.json" );
-        final ReportEntry dependenciesReportEntry = getEntry( reportFile, "dependencies.json" );
-
-        final List<Component> components =
-            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
-                                       dependenciesReportEntry.buf );
+        final List<Component> components = new ComponentDAO().getAll( appId, licenseReportEntry.buf, null, null, null );
 
         for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
@@ -137,7 +131,7 @@ public final class Report
          */
 
         final int[] securityCounts = new int[10];
-        final int[] licenseCounts = new int[10];
+        final int[] licenseCounts = new int[11];
 
         int insecureArtifactCount = 0;
 
@@ -184,8 +178,6 @@ public final class Report
             }
         }
 
-        ComponentDAO componentDAO = new ComponentDAO();
-        List<String> multiLicenseNames = new ArrayList<String>();
         for ( final JsonNode row : licenses.get( "aaData" ) )
         {
             ArrayNode multiLicenseNodes = (ArrayNode) row.get( "overriddenLicenses" );
@@ -201,7 +193,6 @@ public final class Report
                 {
                     continue;
                 }
-                multiLicenseNames.add( threat );
 
                 final int counter;
                 if ( "COPYLEFT".equals( threat ) )
@@ -251,12 +242,12 @@ public final class Report
             {
                 continue;
             }
-            int threatIndex = 0;
+            int threatLevel = 0;
             for ( LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups() )
             {
-                threatIndex = Math.max( threatIndex, licenseThreatGroup.getThreatLevel() );
+                threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
             }
-            threatIndex = Math.min( 9, Math.max( 0, threatIndex ) );
+            threatLevel = Math.min( 10, Math.max( 0, threatLevel ) );
             for ( JsonNode licenseJsonNode : licenses.get( "aaData" ) )
             {
                 final String groupId = licenseJsonNode.get( "groupId" ).asText();
@@ -267,9 +258,10 @@ public final class Report
                     continue;
                 }
                 ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
-                licenseNode.put( "licenseThreatLevel", threatIndex );
+                licenseNode.put( "licenseThreatLevel", threatLevel );
+                break;
             }
-            licenseCounts[threatIndex]++;
+            licenseCounts[threatLevel]++;
         }
         cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licenses ) );
 

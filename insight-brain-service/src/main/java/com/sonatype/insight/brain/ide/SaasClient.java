@@ -20,6 +20,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -131,11 +132,11 @@ public class SaasClient
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( request.getQueryString(), paths ) );
+            cloudReq = new HttpDelete( buildUri( request.getQueryString(), paths ) );
         }
         else
         {
-            throw new IllegalArgumentException( "Unknown request method" );
+            throw new IllegalArgumentException( "Unknown request method " + request.getMethod() );
         }
         populateRequest( request, cloudReq );
         return client.execute( cloudReq );

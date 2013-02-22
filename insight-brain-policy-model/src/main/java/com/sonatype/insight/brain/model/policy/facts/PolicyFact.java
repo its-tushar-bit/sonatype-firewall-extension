@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -66,7 +65,6 @@ public class PolicyFact
         componentFacts.add( componentFact );
     }
 
-    @JsonIgnore
     public PolicyFact with( final List<ComponentFact> newComponentFacts )
     {
         try
@@ -82,7 +80,6 @@ public class PolicyFact
         }
     }
 
-    @JsonIgnore
     public PolicyFact with( final ComponentFact... newComponentFacts )
     {
         return with( Arrays.asList( newComponentFacts ) );

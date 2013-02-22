@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.policy.Constraint;
 
 public class ConstraintFact
@@ -55,7 +54,6 @@ public class ConstraintFact
         conditionFacts.add( conditionFact );
     }
 
-    @JsonIgnore
     public ConstraintFact with( final List<ConditionFact> newConditionFacts )
     {
         try
@@ -71,7 +69,6 @@ public class ConstraintFact
         }
     }
 
-    @JsonIgnore
     public ConstraintFact with( final ConditionFact... newConditionFacts )
     {
         return with( Arrays.asList( newConditionFacts ) );

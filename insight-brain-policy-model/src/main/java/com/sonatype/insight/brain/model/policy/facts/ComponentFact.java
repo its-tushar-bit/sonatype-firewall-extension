@@ -77,7 +77,6 @@ public class ComponentFact
         constraintFacts.add( constraintFact );
     }
 
-    @JsonIgnore
     public ComponentFact with( final List<ConstraintFact> newConstraintFacts )
     {
         try
@@ -93,7 +92,6 @@ public class ComponentFact
         }
     }
 
-    @JsonIgnore
     public ComponentFact with( final ConstraintFact... newConstraintFacts )
     {
         return with( Arrays.asList( newConstraintFacts ) );

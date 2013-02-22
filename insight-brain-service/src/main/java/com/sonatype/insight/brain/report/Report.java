@@ -267,7 +267,7 @@ public final class Report
                     continue;
                 }
                 ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
-                licenseNode.put( "threatLevel", threatIndex );
+                licenseNode.put( "licenseThreatLevel", threatIndex );
             }
             licenseCounts[threatIndex]++;
         }

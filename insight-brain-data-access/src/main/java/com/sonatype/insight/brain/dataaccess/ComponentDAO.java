@@ -243,10 +243,13 @@ public class ComponentDAO
         component.setHash( matchComponent.getHash() );
         component.setMatchState( matchComponent.isSimpleMatch() ? MatchState.EXACT : MatchState.SIMILAR );
 
-        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : matchComponent.getSecurityThreats() )
+        if ( matchComponent.getSecurityThreats() != null )
         {
-            component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
-                                                                           issue.getSeverity() ) );
+            for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : matchComponent.getSecurityThreats() )
+            {
+                component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
+                                                                               issue.getSeverity() ) );
+            }
         }
         if ( jsonSVNode != null )
         {

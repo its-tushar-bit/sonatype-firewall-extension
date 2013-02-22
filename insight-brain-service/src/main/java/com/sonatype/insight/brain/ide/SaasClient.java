@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
@@ -172,18 +171,17 @@ public class SaasClient
             {
                 builder.header( HttpHeaders.CONTENT_TYPE, entity.getContentType().getValue() );
             }
-        }
 
-        builder.entity( new StreamingOutput()
-        {
-
-            @Override
-            public void write( OutputStream output )
-                throws IOException, WebApplicationException
+            builder.entity( new StreamingOutput()
             {
-                response.getEntity().writeTo( output );
-            }
-        } );
+                @Override
+                public void write( OutputStream output )
+                    throws IOException
+                {
+                    entity.writeTo( output );
+                }
+            } );
+        }
         return builder.build();
     }
 

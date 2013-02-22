@@ -42,7 +42,7 @@ public class Component
 
     private int relativePopularity;
 
-    private MatchState matchState;
+    private MatchState matchState = MatchState.UNKNOWN;
 
     private Long catalogDate;
 

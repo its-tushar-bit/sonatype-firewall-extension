@@ -126,11 +126,7 @@ public class PolicyEvaluator
         final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
 
         String summary = conditionType.explainCondition( condition );
-        String reason = null;
-        if ( component != null )
-        {
-            reason = conditionType.explainMatch( condition, component );
-        }
+        String reason = conditionType.explainMatch( condition, component );
 
         return new ConditionFact( summary, reason );
     }

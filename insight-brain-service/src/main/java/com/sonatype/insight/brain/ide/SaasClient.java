@@ -32,6 +32,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
 
@@ -84,23 +85,35 @@ public class SaasClient
                         IOUtil.close( in );
                     }
                 case 400:
-                    throw new BadRequestException( response.getStatusLine().getReasonPhrase() );
+                    throw new BadRequestException( getErrorMessage( response ) );
                 case 401:
-                    throw new NotAuthenticatedException( response.getStatusLine().getReasonPhrase() );
+                    throw new NotAuthenticatedException( getErrorMessage( response ) );
                 case 403:
-                    throw new NotAuthorizedException( response.getStatusLine().getReasonPhrase() );
+                    throw new NotAuthorizedException( getErrorMessage( response ) );
                 case 404:
-                    throw new NotFoundException( response.getStatusLine().getReasonPhrase() );
+                    throw new NotFoundException( getErrorMessage( response ) );
                 case 409:
-                    throw new ConflictException( response.getStatusLine().getReasonPhrase() );
+                    throw new ConflictException( getErrorMessage( response ) );
                 default:
-                    throw new InternalServerException( response.getStatusLine().getReasonPhrase() );
+                    throw new InternalServerException( getErrorMessage( response ) );
             }
         }
         finally
         {
             EntityUtils.consume( response.getEntity() );
         }
+    }
+
+    private String getErrorMessage( HttpResponse response )
+        throws IOException
+    {
+        Header hdr = response.getFirstHeader( HttpHeaders.CONTENT_TYPE );
+        if ( hdr != null && hdr.getValue() != null && hdr.getValue().contains( HTTP.PLAIN_TEXT_TYPE )
+            && response.getEntity() != null )
+        {
+            return EntityUtils.toString( response.getEntity(), "UTF-8" );
+        }
+        return response.getStatusLine().getReasonPhrase();
     }
 
     public Response doProxy( HttpServletRequest request, String... paths )

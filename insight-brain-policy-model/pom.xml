@@ -15,7 +15,6 @@
 
   <artifactId>insight-brain-policy-model</artifactId>
   <name>Insight Brain Policy Model</name>
-  <packaging>bundle</packaging>
 
   <dependencies>
     <dependency>
@@ -45,20 +44,4 @@
       <version>2.1</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>com.sonatype.insight.brain.model.policy</Export-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

@@ -382,6 +382,10 @@ public class ComponentDAO
 
     private static JsonNode loadJson( final byte[] data )
     {
+        if ( data == null )
+        {
+            return null;
+        }
         try
         {
             return JsonUtils.parse( data );

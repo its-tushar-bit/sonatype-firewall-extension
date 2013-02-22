@@ -189,8 +189,10 @@ public final class Report
             {
                 continue;
             }
+
             final String componentGAV = component.getGAV();
             Integer threatLevel = null;
+
             for ( LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups() )
             {
                 threatLevel = Math.max( threatLevel != null ? threatLevel : 0, licenseThreatGroup.getThreatLevel() );

@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
+import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Action;
@@ -49,7 +50,7 @@ public class SaasIdeResourceTest
     }
 
     @Test
-    public void testDoScan()
+    public void testDoScan_Simple()
         throws Exception
     {
         String applicationPublicId = "SaasIdeResourceTest_AppId";
@@ -82,6 +83,32 @@ public class SaasIdeResourceTest
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+    }
+
+    @Test
+    public void testDoScan_Enhanced()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        String serviceUrl = getScanEnhancedUrl( applicationPublicId, "abababababababababab" );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        setSaasResponseForURI( saasUrl, 202, "/SaasIdeResourceTest/EnhancedMatch_wait.json" );
+        Response response = RestAccess.post( serviceUrl, JsonHelpers.asJson( new ScannedComponent() ) );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertNotNull( ideMatchedComponent.getWaitDelta() );
+        Assert.assertTrue( ideMatchedComponent.getWaitDelta() > 0 );
+
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
     }
 
     @Test
@@ -316,7 +343,6 @@ public class SaasIdeResourceTest
         return getScanUrl( "simple", applicationPublicId, hash, null, null, null, null );
     }
 
-    @SuppressWarnings( "unused" )
     private String getScanEnhancedUrl( String applicationPublicId, String hash )
     {
         return getScanUrl( "enhanced", applicationPublicId, hash, null, null, null, null );

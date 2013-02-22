@@ -59,6 +59,7 @@ public class SaasClient
         switch ( response.getStatusLine().getStatusCode() )
         {
             case 200:
+            case 202:
                 InputStream in = null;
                 try
                 {
@@ -131,7 +132,10 @@ public class SaasClient
         {
             String headerName = e.nextElement();
             if ( !HttpHeaders.CONNECTION.equals( headerName ) && !HttpHeaders.HOST.equals( headerName )
-                && !HttpHeaders.ACCEPT_ENCODING.equals( headerName ) )
+                && !HttpHeaders.ACCEPT_ENCODING.equals( headerName )
+                && !HttpHeaders.TRANSFER_ENCODING.equals( headerName )
+                && !HttpHeaders.CONTENT_LENGTH.equals( headerName )
+                && !HttpHeaders.CONTENT_ENCODING.equals( headerName ) )
             {
                 req.setHeader( headerName, orig.getHeader( headerName ) );
             }

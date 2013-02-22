@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -149,6 +150,17 @@ public class SaasIdeResource
             ideComponent.setAlerts( toPolicyAlertsDTO( alerts ) );
         }
         return ideComponent;
+    }
+
+    @POST
+    @Path( "scan/{scanType}/{appId}/{path:.*}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public IdeMatchedComponent postScan( @PathParam( "scanType" ) String scanType,
+                                         @PathParam( "appId" ) String applicationPublicId,
+                                         @PathParam( "path" ) String path, @Context HttpServletRequest req )
+        throws IOException
+    {
+        return doScan( scanType, applicationPublicId, path, req );
     }
 
     private PolicyDAO policyDAO()

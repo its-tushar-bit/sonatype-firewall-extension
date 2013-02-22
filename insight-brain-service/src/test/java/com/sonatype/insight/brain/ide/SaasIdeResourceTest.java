@@ -18,9 +18,9 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
@@ -421,29 +420,5 @@ public class SaasIdeResourceTest
             }
         }
         return buffer.toString();
-    }
-
-    public static class MyClass
-    {
-        public String x = "abc";
-
-        public String with()
-        {
-            return "xwith";
-        }
-
-        public String with( String s )
-        {
-            return s;
-        }
-    }
-
-    @Test
-    public void test()
-        throws Exception
-    {
-        MyClass myClass = new MyClass();
-        System.out.println( JsonHelpers.asJson( myClass ) );
-        System.out.println( new String( JsonUtils.generate( myClass ) ) );
     }
 }

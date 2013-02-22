@@ -28,17 +28,19 @@ import org.drools.runtime.StatefulKnowledgeSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
-import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.ConditionFact;
-import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
-import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
 public class PolicyEvaluator
 {
@@ -82,29 +84,31 @@ public class PolicyEvaluator
         for ( final Entry<Policy, List<MatchFact>> byPolicy : byPolicy( policies, facts ).entrySet() )
         {
             final Policy policy = byPolicy.getKey();
-            final PolicyFact policyFact = new PolicyFact( policy );
+            final PolicyFact policyFact = new PolicyFact( policy.getId(), policy.getName(), policy.getThreatLevel() );
             for ( final Entry<Component, List<MatchFact>> byComponent : byComponent( byPolicy.getValue() ).entrySet() )
             {
                 final Component component = byComponent.getKey();
-                final ComponentFact componentFact = new ComponentFact( component );
+                final ComponentFact componentFact =
+                    new ComponentFact( component.getGroupId(), component.getArtifactId(), component.getVersion(),
+                                       component.getHash() );
                 for ( final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint( policy.getConstraints(),
                                                                                              byComponent.getValue() ).entrySet() )
                 {
                     final Constraint constraint = byConstraints.getKey();
-                    final ConstraintFact constraintFact = new ConstraintFact( constraint );
+                    final ConstraintFact constraintFact = new ConstraintFact( constraint.getId(), constraint.getName() );
                     for ( final MatchFact fact : byConstraints.getValue() )
                     {
                         final int num = fact.getConditionNumber();
                         if ( num >= 0 )
                         {
                             final Condition condition = constraint.getConditions().get( num );
-                            constraintFact.addConditionFact( new ConditionFact( condition, component ) );
+                            constraintFact.addConditionFact( createConditionFact( condition, component ) );
                         }
                         else
                         {
                             for ( final Condition condition : constraint.getConditions() )
                             {
-                                constraintFact.addConditionFact( new ConditionFact( condition, component ) );
+                                constraintFact.addConditionFact( createConditionFact( condition, component ) );
                             }
                         }
                     }
@@ -115,6 +119,20 @@ public class PolicyEvaluator
             alerts.add( new PolicyAlert( policyFact, policy.getActions( stage.getStageTypeId() ) ) );
         }
         return alerts;
+    }
+
+    public static ConditionFact createConditionFact( Condition condition, Component component )
+    {
+        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+
+        String summary = conditionType.explainCondition( condition );
+        String reason = null;
+        if ( component != null )
+        {
+            reason = conditionType.explainMatch( condition, component );
+        }
+
+        return new ConditionFact( summary, reason );
     }
 
     private static Map<Policy, List<MatchFact>> byPolicy( final List<Policy> policies, final List<MatchFact> facts )

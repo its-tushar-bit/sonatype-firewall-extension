@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.brain.client.ValidationClient;
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;

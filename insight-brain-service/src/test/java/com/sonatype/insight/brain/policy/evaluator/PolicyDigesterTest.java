@@ -18,19 +18,16 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.ConditionFact;
-import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
-import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
 public class PolicyDigesterTest
 {
@@ -281,28 +278,17 @@ public class PolicyDigesterTest
 
     private static PolicyFact policyFact( final String id, final String name, final int threatLevel )
     {
-        final Policy policy = new Policy();
-        policy.setId( id );
-        policy.setName( name );
-        policy.setThreatLevel( threatLevel );
-        return new PolicyFact( policy );
+        return new PolicyFact( id, name, threatLevel );
     }
 
     private static ComponentFact componentFact( final String groupId, final String artifactId, final String version )
     {
-        final Component component = new Component();
-        component.setGroupId( groupId );
-        component.setArtifactId( artifactId );
-        component.setVersion( version );
-        return new ComponentFact( component );
+        return new ComponentFact( groupId, artifactId, version, null /* hash */);
     }
 
     private static ConstraintFact constraintFact( final String id, final String name )
     {
-        final Constraint constraint = new Constraint();
-        constraint.setId( id );
-        constraint.setName( name );
-        return new ConstraintFact( constraint );
+        return new ConstraintFact( id, name );
     }
 
     private static ConditionFact conditionFact( final String conditionTypeId, final String operator, final String value )
@@ -311,7 +297,7 @@ public class PolicyDigesterTest
         condition.setConditionTypeId( conditionTypeId );
         condition.setOperator( operator );
         condition.setValue( value );
-        return new ConditionFact( condition, null );
+        return PolicyEvaluator.createConditionFact( condition, null /* component */);
     }
 
     private static ConditionFact conditionFact( final String conditionTypeId, final String operator )
@@ -319,6 +305,6 @@ public class PolicyDigesterTest
         final Condition condition = new Condition();
         condition.setConditionTypeId( conditionTypeId );
         condition.setOperator( operator );
-        return new ConditionFact( condition, null );
+        return PolicyEvaluator.createConditionFact( condition, null /* component */);
     }
 }

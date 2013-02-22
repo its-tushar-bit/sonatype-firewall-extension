@@ -17,7 +17,7 @@ import org.drools.io.ResourceFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sonatype.insight.brain.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;

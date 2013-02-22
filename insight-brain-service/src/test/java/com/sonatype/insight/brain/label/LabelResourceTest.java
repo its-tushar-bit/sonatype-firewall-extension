@@ -13,11 +13,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;

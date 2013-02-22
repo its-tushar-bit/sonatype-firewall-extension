@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.ConditionFact;
-import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
-import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 
 public class PolicyDigester
 {
@@ -116,9 +116,10 @@ public class PolicyDigester
                 final ComponentFact newFact = newFacts.get( i );
                 final ComponentFact oldFact = oldFacts.get( j );
 
+                final String newGav = newFact.getGroupId() + ':' + newFact.getArtifactId() + ':' + newFact.getVersion();
+                final String oldGav = oldFact.getGroupId() + ':' + oldFact.getArtifactId() + ':' + oldFact.getVersion();
                 final int comparison =
-                    ( newFact.getGAV() + '|' + newFact.getHash() ).compareTo( oldFact.getGAV() + '|'
-                        + oldFact.getHash() );
+                    ( newGav + '|' + newFact.getHash() ).compareTo( oldGav + '|' + oldFact.getHash() );
 
                 if ( comparison < 0 )
                 {

@@ -15,6 +15,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.policy.Action;
+
 public class Policy
 {
     private static final Logger log = LoggerFactory.getLogger( Policy.class );

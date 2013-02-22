@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.Policy;
 
 public class PolicyFact

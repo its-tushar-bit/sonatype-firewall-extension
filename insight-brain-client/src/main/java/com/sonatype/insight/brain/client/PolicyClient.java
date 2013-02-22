@@ -18,7 +18,7 @@ import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;

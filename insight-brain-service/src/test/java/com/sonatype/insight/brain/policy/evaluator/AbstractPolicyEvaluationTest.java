@@ -12,15 +12,15 @@ import java.util.Set;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
-import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 
 public abstract class AbstractPolicyEvaluationTest
 {

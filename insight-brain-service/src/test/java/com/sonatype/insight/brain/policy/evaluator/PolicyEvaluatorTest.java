@@ -14,14 +14,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;

@@ -37,19 +37,19 @@ import org.sonatype.micromailer.Address;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
-import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -196,7 +196,8 @@ public class PolicyEvaluateResource
             final int threatLevel = trigger.getThreatLevel();
             for ( final ComponentFact component : trigger.getComponentFacts() )
             {
-                final String gav = component.getGAV();
+                final String gav =
+                    component.getGroupId() + ':' + component.getArtifactId() + ':' + component.getVersion();
                 ObjectNode threat = (ObjectNode) componentThreats.get( gav );
                 if ( threat == null )
                 {

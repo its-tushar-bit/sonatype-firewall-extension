@@ -114,6 +114,7 @@ public final class Report
         final ReportEntry licenseReportEntry = getEntry( reportFile, "licenses.json" );
         final List<Component> components = new ComponentDAO().getAll( appId, licenseReportEntry.buf, null, null, null );
 
+
         for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
             if ( !"security.json".equals( name ) && !"licenses.json".equals( name ) )

@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
@@ -355,24 +354,6 @@ public class ComponentDAO
             component.addLicenseThreatGroup( licenseThreatGroupDAO.getByApplicationIdAndLicenseId( applicationId,
                                                                                                    licenseId ) );
         }
-    }
-
-    public Set<LicenseThreatGroup> multiLicenseNamestoLicenseGroups( String applicationId,
-                                                                     List<String> multiLicenseNames )
-    {
-        if ( multiLicenseNames == null )
-        {
-            return null;
-        }
-        Set<LicenseThreatGroup> licenseThreatGroups = new LinkedHashSet<LicenseThreatGroup>();
-        Set<String> licenseIds = multiLicenseNamesToLicenseIds( multiLicenseNames );
-        for ( String licenseId : licenseIds )
-        {
-            LicenseThreatGroup licenseThreatGroup =
-                licenseThreatGroupDAO.getByApplicationIdAndLicenseId( applicationId, licenseId );
-            licenseThreatGroups.add( licenseThreatGroup );
-        }
-        return licenseThreatGroups;
     }
 
     private Set<String> multiLicenseNamesToLicenseIds( List<String> multiLicenseNames )

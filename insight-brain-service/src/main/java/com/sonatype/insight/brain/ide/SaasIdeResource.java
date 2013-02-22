@@ -69,9 +69,9 @@ public class SaasIdeResource
     }
 
     @GET
-    @Path( "details/{appId}/{path:.*}" )
+    @Path( "details/{applicationPublicId}/{path:.*}" )
     public Response getDetailsResource( @PathParam( "path" ) String path,
-                                        @PathParam( "appId" ) String applicationPublicId,
+                                        @PathParam( "applicationPublicId" ) String applicationPublicId,
                                         @Context HttpServletRequest req )
         throws IOException
     {
@@ -177,10 +177,10 @@ public class SaasIdeResource
     }
 
     @GET
-    @Path( "scan/{scanType}/{appId}/{path:.*}" )
+    @Path( "scan/{scanType}/{applicationPublicId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent doScan( @PathParam( "scanType" ) String scanType,
-                                       @PathParam( "appId" ) String applicationPublicId,
+                                       @PathParam( "applicationPublicId" ) String applicationPublicId,
                                        @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
@@ -213,10 +213,10 @@ public class SaasIdeResource
     }
 
     @POST
-    @Path( "scan/{scanType}/{appId}/{path:.*}" )
+    @Path( "scan/{scanType}/{applicationPublicId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent postScan( @PathParam( "scanType" ) String scanType,
-                                         @PathParam( "appId" ) String applicationPublicId,
+                                         @PathParam( "applicationPublicId" ) String applicationPublicId,
                                          @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {

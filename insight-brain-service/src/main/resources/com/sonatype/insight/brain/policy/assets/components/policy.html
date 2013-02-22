@@ -72,23 +72,23 @@
 								</tr>
 							</thead>
 							<tr ng-repeat="actionData in state.actionTableData">
-								<td style="width:19%;">{{actionData.name}}</td>
-								<td style="width:20%;text-align:center;">
+								<td style="width:29%;">{{actionData.name}}</td>
+								<td style="width:15%;text-align:center;">
 									<input ng-model="actionData.action" value="fail" name="{{actionData.id}}" ng-show="state.actionEditMode" type="radio">
 									</input>
 									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'fail'">
 								</td>
-								<td style="width:20%;text-align:center;">
+								<td style="width:15%;text-align:center;">
 									<input ng-model="actionData.action" value="warn" name="{{actionData.id}}" ng-show="state.actionEditMode" type="radio">
 									</input>
 									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'warn'">
 								</td>
-								<td style="width:20%;text-align:center;">
+								<td style="width:25%;text-align:center;">
 									<input ng-model="actionData.action" value="none" name="{{actionData.id}}" ng-show="state.actionEditMode" type="radio">
 									</input>
 									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'none'">
 								</td>
-								<td style="width:20%;max-width:50px;overflow:hidden;text-align:center;">
+								<td style="width:15%;max-width:50px;overflow:hidden;text-align:center;">
 									<div style="display:inline;overflow:hidden;"><i class="icon-user"></i> {{actionData.targetCount}}</div>
 								</td>
 								<td style="width:1%;" ng-show="state.actionEditMode">

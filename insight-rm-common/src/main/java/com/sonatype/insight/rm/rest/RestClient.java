@@ -41,7 +41,7 @@ public interface RestClient
     interface Scan
     {
 
-        List<PolicyAlert> evaluatePolicies()
+        List<PolicyAlert> evaluatePolicies( Stage stage )
             throws IOException;
 
     }

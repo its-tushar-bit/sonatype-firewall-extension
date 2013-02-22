@@ -20,6 +20,7 @@ public class StageTypes
         add( new ProcureStageType() );
         add( new DevelopStageType() );
         add( new BuildStageType() );
+        add( new StageReleaseStageType() );
         add( new ReleaseStageType() );
         add( new OperateStageType() );
     }

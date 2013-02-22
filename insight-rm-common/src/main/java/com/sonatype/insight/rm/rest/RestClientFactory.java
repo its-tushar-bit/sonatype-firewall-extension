@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.client.ValidationClient;
 import com.sonatype.insight.brain.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
@@ -98,8 +99,6 @@ public class RestClientFactory
         implements RestClient.Scan
     {
 
-        private static final Stage STAGE = new Stage( ReleaseStageType.ID );
-
         protected final String scanId;
 
         public ScanSpecificClient( final Configuration config, final String appId, final String scanId )
@@ -109,10 +108,26 @@ public class RestClientFactory
         }
 
         @Override
-        public List<PolicyAlert> evaluatePolicies()
+        public List<PolicyAlert> evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
             throws IOException
         {
-            return new PolicyClient( config, appId ).evaluate( scanId, STAGE );
+            if ( stage == null )
+            {
+                throw new IllegalArgumentException( "stage missing" );
+            }
+            Stage st;
+            switch ( stage )
+            {
+                case CLOSE_REPOSITORY:
+                    st = new Stage( StageReleaseStageType.ID );
+                    break;
+                case RELEASE_REPOSITORY:
+                    st = new Stage( ReleaseStageType.ID );
+                    break;
+                default:
+                    throw new IllegalStateException( "unsupported stage " + stage );
+            }
+            return new PolicyClient( config, appId ).evaluate( scanId, st );
         }
 
     }

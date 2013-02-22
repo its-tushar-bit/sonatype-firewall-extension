@@ -17,6 +17,7 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.clm.dto.model.MatchedComponent;
+import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -250,6 +251,48 @@ public class ComponentDAO
                 component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
                                                                                issue.getSeverity() ) );
             }
+        }
+        if ( jsonSVNode != null )
+        {
+            processJsonSVData( component, jsonSVNode );
+        }
+
+        loadLicenseThreatGroups( applicationId, component );
+
+        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
+
+        return component;
+    }
+
+    public Component getComponent( String applicationId, ComponentDetails componentDetails, JsonNode jsonLicenseNode,
+                                   ArrayNode jsonSVNode )
+    {
+        Component component = new Component();
+        component.setArtifactId( componentDetails.getArtifactId() );
+        component.setGroupId( componentDetails.getGroupId() );
+        component.setVersion( componentDetails.getVersion() );
+        if ( jsonLicenseNode != null )
+        {
+            processJsonLicenseData( component, jsonLicenseNode );
+        }
+        component.setCatalogDate( componentDetails.getCatalogDate() );
+        for ( com.sonatype.clm.dto.model.License license : componentDetails.getDeclaredLicenses() )
+        {
+            component.addDeclaredLicenseId( license.getLicenseId() );
+        }
+        for ( com.sonatype.clm.dto.model.License license : componentDetails.getObservedLicenses() )
+        {
+            component.addObservedLicenseId( license.getLicenseId() );
+        }
+        for ( com.sonatype.clm.dto.model.License license : componentDetails.getOverriddenLicenses() )
+        {
+            component.addOverriddenLicenseId( license.getLicenseId() );
+        }
+
+        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities() )
+        {
+            component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
+                                                                           issue.getSeverity() ) );
         }
         if ( jsonSVNode != null )
         {

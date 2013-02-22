@@ -17,15 +17,20 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.MatchedComponent;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
@@ -45,6 +50,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class SaasIdeResource
 {
     public static final String SERVICE_PATH = "rest/ide";
+
+    private static final Logger log = LoggerFactory.getLogger( SaasIdeResource.class );
 
     @Context
     private SaasClient client;
@@ -82,24 +89,60 @@ public class SaasIdeResource
         return client.doProxy( req, "rest/ide/artifact/", path );
     }
 
-    private ArrayNode getAugmentedLicenseData( String applicationId, MatchedComponent matchedComponent )
+    @GET
+    @Path( "component/details/{applicationPublicId}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ComponentDetails getComponentDetails( @Context HttpServletRequest servletRequest,
+                                                 @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                                 @QueryParam( "instanceId" ) String instanceId,
+                                                 @QueryParam( "groupId" ) String groupId,
+                                                 @QueryParam( "artifactId" ) String artifactId,
+                                                 @QueryParam( "version" ) String version )
+        throws IOException
+    {
+        log.debug( "Getting component details for application id {}, GAV {}:{}:{}.", applicationPublicId, groupId,
+                   artifactId, version );
+        Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String applicationId = app.getId();
+
+        ComponentDetails componentDetails =
+            client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
+
+        ArrayNode licenseData =
+            getAugmentedLicenseData( applicationId, componentDetails.getGroupId(), componentDetails.getArtifactId(),
+                                     componentDetails.getVersion() );
+        ArrayNode svData =
+            getAugmentedSVData( applicationId, componentDetails.getGroupId(), componentDetails.getArtifactId(),
+                                componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities() );
+
+        ComponentDAO componentDAO = new ComponentDAO();
+        Component component = componentDAO.getComponent( applicationId, componentDetails, licenseData.get( 0 ), svData );
+        List<PolicyAlert> alerts =
+            evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
+                                policyDAO().getByApplicationId( applicationId ), Collections.singletonList( component ) );
+        componentDetails.setPolicyAlerts( toPolicyAlertsDTO( alerts ) );
+
+        return componentDetails;
+    }
+
+    private ArrayNode getAugmentedLicenseData( String applicationId, String groupId, String artifactId, String version )
         throws IOException
     {
         ArrayNode licenseData = new ArrayNode( JsonNodeFactory.instance );
         ObjectNode gavNode = licenseData.objectNode();
         licenseData.add( gavNode );
-        gavNode.put( "groupId", matchedComponent.getGroupId() );
-        gavNode.put( "artifactId", matchedComponent.getArtifactId() );
-        gavNode.put( "version", matchedComponent.getVersion() );
+        gavNode.put( "groupId", groupId );
+        gavNode.put( "artifactId", artifactId );
+        gavNode.put( "version", version );
         File auditDir = work.getAuditDir( applicationId );
         licenseData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
         return licenseData;
     }
 
-    private ArrayNode getAugmentedSVData( String applicationId, MatchedComponent matchedComponent )
+    private ArrayNode getAugmentedSVData( String applicationId, String groupId, String artifactId, String version,
+                                          List<SecurityVulnerability> securityVulnerabilities )
         throws IOException
     {
-        List<SecurityVulnerability> securityVulnerabilities = matchedComponent.getSecurityThreats();
         if ( securityVulnerabilities == null || securityVulnerabilities.isEmpty() )
         {
             return null;
@@ -109,9 +152,9 @@ public class SaasIdeResource
         {
             ObjectNode svNode = svData.objectNode();
             svData.add( svNode );
-            svNode.put( "groupId", matchedComponent.getGroupId() );
-            svNode.put( "artifactId", matchedComponent.getArtifactId() );
-            svNode.put( "version", matchedComponent.getVersion() );
+            svNode.put( "groupId", groupId );
+            svNode.put( "artifactId", artifactId );
+            svNode.put( "version", version );
             svNode.put( "reference", securityVulnerability.getRefId() );
             svNode.put( "source", securityVulnerability.getSource() );
         }
@@ -137,8 +180,12 @@ public class SaasIdeResource
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
         {
-            ArrayNode licenseData = getAugmentedLicenseData( applicationId, matchedComponent );
-            ArrayNode svData = getAugmentedSVData( applicationId, matchedComponent );
+            ArrayNode licenseData =
+                getAugmentedLicenseData( applicationId, matchedComponent.getGroupId(),
+                                         matchedComponent.getArtifactId(), matchedComponent.getVersion() );
+            ArrayNode svData =
+                getAugmentedSVData( applicationId, matchedComponent.getGroupId(), matchedComponent.getArtifactId(),
+                                    matchedComponent.getVersion(), matchedComponent.getSecurityThreats() );
 
             ComponentDAO componentDAO = new ComponentDAO();
             Component component =

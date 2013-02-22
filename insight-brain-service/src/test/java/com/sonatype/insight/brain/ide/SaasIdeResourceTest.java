@@ -14,6 +14,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -50,6 +52,46 @@ public class SaasIdeResourceTest
     }
 
     @Test
+    public void testGetComponentDetails()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        constraint1.addCondition( condition1 );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
+
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "Test Ref Id", "Test Source", 7.5F ) );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+    }
+
+    @Test
+    public void testDoScan()
+        throws Exception
     public void testDoScan_Simple()
         throws Exception
     {
@@ -353,6 +395,12 @@ public class SaasIdeResourceTest
     {
         return getServiceURL() + "/scan/" + mode + "/" + applicationPublicId + "/" + hash
             + getQueryParams( "filename", filename, "groupId", groupId, "artifactId", artifactId, "version", version );
+    }
+
+    private String getComponentDetailsUrl( String applicationPublicId, String groupId, String artifactId, String version )
+    {
+        return getServiceURL() + "/component/details/" + applicationPublicId + "?groupId=" + groupId + "&artifactId="
+            + artifactId + "&version=" + version;
     }
 
     private String getQueryParams( String... params )

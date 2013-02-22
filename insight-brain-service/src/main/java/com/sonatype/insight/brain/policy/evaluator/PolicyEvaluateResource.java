@@ -49,7 +49,6 @@ import com.sonatype.insight.brain.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.facts.ComponentFact;
-import com.sonatype.insight.brain.model.policy.facts.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.facts.PolicyFact;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -207,10 +206,6 @@ public class PolicyEvaluateResource
                 }
                 if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
                 {
-                    // log first constraint (must be at least one for component to be listed)
-                    final ConstraintFact constraint = component.getConstraintFacts().get( 0 );
-                    threat.put( "constraintId", constraint.getConstraintId() );
-                    threat.put( "constraintName", constraint.getConstraintName() );
                     threat.put( "policyId", trigger.getPolicyId() );
                     threat.put( "policyName", trigger.getPolicyName() );
                     threat.put( "policyThreatLevel", threatLevel );

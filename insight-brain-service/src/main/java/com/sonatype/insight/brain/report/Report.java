@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -106,6 +107,15 @@ public final class Report
         final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
+        final ReportEntry licenseReportEntry = getEntry( reportFile, "licenses.json" );
+        final ReportEntry securityReportEntry = getEntry( reportFile, "security.json" );
+        final ReportEntry bomReportEntry = getEntry( reportFile, "bom.json" );
+        final ReportEntry dependenciesReportEntry = getEntry( reportFile, "dependencies.json" );
+
+        final List<Component> components =
+            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
+                                       dependenciesReportEntry.buf );
+
         for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
             if ( !"security.json".equals( name ) && !"licenses.json".equals( name ) )
@@ -178,77 +188,90 @@ public final class Report
         List<String> multiLicenseNames = new ArrayList<String>();
         for ( final JsonNode row : licenses.get( "aaData" ) )
         {
-            ArrayNode threats = (ArrayNode) row.get( "overriddenLicenses" );
-            if ( threats == null || threats.size() == 0 )
+            ArrayNode multiLicenseNodes = (ArrayNode) row.get( "overriddenLicenses" );
+            if ( multiLicenseNodes == null || multiLicenseNodes.size() == 0 )
             {
-                threats = (ArrayNode) row.path( "declaredLicenses" );
-                threats.addAll( (ArrayNode) row.path( "observedLicenses" ) );
+                multiLicenseNodes = (ArrayNode) row.path( "declaredLicenses" );
+                multiLicenseNodes.addAll( (ArrayNode) row.path( "observedLicenses" ) );
             }
-            for ( int i = 0; i < threats.size(); i++ )
+            for ( int i = 0; i < multiLicenseNodes.size(); i++ )
             {
-                String threat = threats.get( i ).asText();
+                String threat = multiLicenseNodes.get( i ).asText();
                 if ( threat.equals( "Not Provided" ) )
                 {
                     continue;
                 }
                 multiLicenseNames.add( threat );
+
+                final int counter;
+                if ( "COPYLEFT".equals( threat ) )
+                {
+                    counter = 0;
+                }
+                else if ( "WEAKCOPYLEFT".equals( threat ) )
+                {
+                    counter = 2;
+                }
+                else if ( "LIBERAL".equals( threat ) )
+                {
+                    counter = -1;
+                }
+                else if ( "NON-STANDARD".equals( threat ) )
+                {
+                    counter = 1;
+                }
+                else if ( "NOT-PROVIDED".equals( threat ) )
+                {
+                    counter = 1;
+                }
+                else
+                {
+                    counter = -1;
+                }
+
+                if ( counter >= 0 )
+                {
+                    licenseAlerts++;
+
+                    for ( final JsonNode level : gavDepths.path( gav( row ) ) )
+                    {
+                        final int index = level.asInt() - 1;
+                        while ( index >= licensePunchCard.size() )
+                        {
+                            licensePunchCard.add( new int[3] );
+                        }
+                        licensePunchCard.get( index )[counter]++;
+                    }
+                }
             }
         }
-
-        Set<LicenseThreatGroup> licenseThreatGroups =
-            componentDAO.multiLicenseNamestoLicenseGroups( appId, multiLicenseNames );
-        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        for ( Component component : components )
         {
-            final int threatIndex = licenseThreatGroup.getThreatLevel();
-            licenseCounts[Math.min( 9, Math.max( 0, threatIndex ) )]++;
+            if ( component.getArtifactId() == null )
+            {
+                continue;
+            }
+            int threatIndex = 0;
+            for ( LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups() )
+            {
+                threatIndex = Math.max( threatIndex, licenseThreatGroup.getThreatLevel() );
+            }
+            threatIndex = Math.min( 9, Math.max( 0, threatIndex ) );
+            for ( JsonNode licenseJsonNode : licenses.get( "aaData" ) )
+            {
+                final String groupId = licenseJsonNode.get( "groupId" ).asText();
+                final String artifactId = licenseJsonNode.get( "artifactId" ).asText();
+                final String version = licenseJsonNode.get( "version" ).asText();
+                if ( !component.getGAV().equals( groupId + ':' + artifactId + ':' + version ) )
+                {
+                    continue;
+                }
+                ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
+                licenseNode.put( "threatLevel", threatIndex );
+            }
+            licenseCounts[threatIndex]++;
         }
-        //
-        // final int counter;
-        // if ( "COPYLEFT".equals( threat ) )
-        // {
-        // copyleftLicenseCount++;
-        // counter = 0;
-        // }
-        // else if ( "WEAKCOPYLEFT".equals( threat ) )
-        // {
-        // weakcopyleftLicenseCount++;
-        // counter = 2;
-        // }
-        // else if ( "LIBERAL".equals( threat ) )
-        // {
-        // liberalLicenseCount++;
-        // counter = -1;
-        // }
-        // else if ( "NON-STANDARD".equals( threat ) )
-        // {
-        // nonStandardLicenseCount++;
-        // counter = 1;
-        // }
-        // else if ( "NOT-PROVIDED".equals( threat ) )
-        // {
-        // notProvidedLicenseCount++;
-        // counter = 1;
-        // }
-        // else
-        // {
-        // counter = -1;
-        // }
-        //
-        // if ( counter >= 0 )
-        // {
-        // licenseAlerts++;
-        //
-        // for ( final JsonNode level : gavDepths.path( gav( row ) ) )
-        // {
-        // final int index = level.asInt() - 1;
-        // while ( index >= licensePunchCard.size() )
-        // {
-        // licensePunchCard.add( new int[3] );
-        // }
-        // licensePunchCard.get( index )[counter]++;
-        // }
-        // }
-        // }
+        cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licenses ) );
 
         final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
         fill( data.putArray( "securityCounts" ), securityCounts );

@@ -397,4 +397,15 @@ public class Component
     {
         return licenseThreatGroupsById.keySet().contains( licenseThreatGroupId );
     }
+
+    @JsonIgnore
+    public Set<LicenseThreatGroup> getLicenseThreatGroups()
+    {
+        final Set<LicenseThreatGroup> licenseThreatGroups = new HashSet<LicenseThreatGroup>();
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroupsById.values() )
+        {
+            licenseThreatGroups.add( licenseThreatGroup );
+        }
+        return licenseThreatGroups;
+    }
 }

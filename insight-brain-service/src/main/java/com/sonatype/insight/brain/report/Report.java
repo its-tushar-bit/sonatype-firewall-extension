@@ -270,8 +270,8 @@ public final class Report
             LicenseThreatGroup licenseThreatGroup =
                 licenseThreatGroupDAO.getByApplicationIdAndLicenseId( appId, license.getId() );
             ObjectNode licenseNode = mapper.createObjectNode();
-            licenseNode.put( "name", license.getShortDisplayName() );
-            licenseNode.put( "threatLevel", licenseThreatGroup.getThreatLevel() );
+            licenseNode.put( "name", license.getId() );
+            licenseNode.put( "threatLevel", licenseThreatGroup != null ? licenseThreatGroup.getThreatLevel() : null );
             licenseThreats.add( licenseNode );
         }
         cache( getCacheFile( reportFile, "licensethreats.json" ), JsonUtils.generate( licenseTable ) );

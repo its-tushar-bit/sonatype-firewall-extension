@@ -8,12 +8,14 @@ package com.sonatype.insight.json.store;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -128,7 +130,26 @@ public final class JsonUtils
         final JsonParser parser = JSON.createParser( buf );
         try
         {
-            return parser.readValueAs( type );
+            try
+            {
+                return parser.readValueAs( type );
+            }
+            catch ( final JsonMappingException e )
+            {
+                if ( type.isArray() )
+                {
+                    try
+                    {
+                        // handle situation where array is actually wrapped inside root 'aaData' property
+                        return JSON.getCodec().reader().withRootName( "aaData" ).readValue( parser, type );
+                    }
+                    catch ( final JsonMappingException ignore )
+                    {
+                        // no luck, fall-through and throw the original parsing exception
+                    }
+                }
+                throw e;
+            }
         }
         finally
         {
@@ -201,7 +222,22 @@ public final class JsonUtils
         return data != null ? data.objectNode() : JsonNodeFactory.instance.objectNode();
     }
 
-    public static Float getNullableFloat( JsonNode jsonNode )
+    public static ObjectNode aaDataNode( final Iterable<JsonNode> data )
+    {
+        final ArrayNode aaData = JsonNodeFactory.instance.arrayNode();
+        for ( final JsonNode d : data )
+        {
+            aaData.add( d );
+        }
+        return (ObjectNode) aaData.objectNode().set( "aaData", aaData );
+    }
+
+    public static <T> Object aaData( final Iterable<T> data )
+    {
+        return Collections.singletonMap( "aaData", data );
+    }
+
+    public static Float getNullableFloat( final JsonNode jsonNode )
     {
         if ( isNull( jsonNode ) )
         {
@@ -210,7 +246,7 @@ public final class JsonUtils
         return (float) jsonNode.asDouble();
     }
 
-    public static String getNullableString( JsonNode jsonNode )
+    public static String getNullableString( final JsonNode jsonNode )
     {
         if ( isNull( jsonNode ) )
         {
@@ -219,7 +255,7 @@ public final class JsonUtils
         return jsonNode.asText();
     }
 
-    public static boolean isNull( JsonNode jsonNode )
+    public static boolean isNull( final JsonNode jsonNode )
     {
         return jsonNode == null || jsonNode instanceof NullNode;
     }

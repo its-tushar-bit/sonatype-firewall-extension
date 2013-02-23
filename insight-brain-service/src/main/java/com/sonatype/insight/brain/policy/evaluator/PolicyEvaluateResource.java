@@ -117,7 +117,7 @@ public class PolicyEvaluateResource
 
         final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policies, components );
 
-        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( alerts ) );
+        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
         Report.putEntry( reportFile, "policythreats.html",
                          summarizeThreats( applicationPublicId, appId, scanId, stage, alerts ) );
@@ -213,10 +213,7 @@ public class PolicyEvaluateResource
                 }
             }
         }
-
-        final ObjectNode threats = JsonUtils.objectNode( null );
-        threats.withArray( "aaData" ).addAll( componentThreats.values() );
-        return threats;
+        return JsonUtils.aaDataNode( componentThreats.values() );
     }
 
     private String summarizeThreats( final String applicationPublicId, final String appId, final String scanId,

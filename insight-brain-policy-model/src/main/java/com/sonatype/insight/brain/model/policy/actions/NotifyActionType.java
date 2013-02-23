@@ -7,12 +7,13 @@ package com.sonatype.insight.brain.model.policy.actions;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
 
 public class NotifyActionType
     implements ActionType
 {
-    public static final String ID = "notify";
+    public static final String ID = Action.ID_NOTIFY;
 
     @Override
     public String getId()

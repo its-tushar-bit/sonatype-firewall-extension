@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.model.policy.stages;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.StageType;
 
 public class OperateStageType
     implements StageType
 {
-    public static final String ID = "operate";
+    public static final String ID = Stage.ID_OPERATE;
 
     @Override
     public String getId()

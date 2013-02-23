@@ -11,12 +11,10 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.brain.client.ValidationClient;
-import com.sonatype.insight.brain.model.policy.Stage;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
@@ -119,10 +117,10 @@ public class RestClientFactory
             switch ( stage )
             {
                 case CLOSE_REPOSITORY:
-                    st = new Stage( StageReleaseStageType.ID );
+                    st = new Stage( Stage.ID_STAGE_RELEASE );
                     break;
                 case RELEASE_REPOSITORY:
-                    st = new Stage( ReleaseStageType.ID );
+                    st = new Stage( Stage.ID_RELEASE );
                     break;
                 default:
                     throw new IllegalStateException( "unsupported stage " + stage );

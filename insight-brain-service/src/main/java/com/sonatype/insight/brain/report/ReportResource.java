@@ -335,6 +335,11 @@ public class ReportResource
         }
     }
 
+    public static void flushReportChanges( final String appId, final String scanId )
+    {
+        MODIFICATION_COUNTS.remove( appId + '-' + scanId );
+    }
+
     private static boolean downloadReport( final InsightProxy proxy, final String applicationPublicId,
                                            final String scanId, final File reportFile, final boolean waitForReport )
     {

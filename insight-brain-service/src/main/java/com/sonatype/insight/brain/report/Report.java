@@ -22,6 +22,7 @@ import java.util.zip.ZipFile;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -108,12 +109,13 @@ public final class Report
             return new int[] { -1, -1 };
         }
 
+        final ReportEntry policyReportEntry = getEntry( reportFile, "policythreats.json" );
+
         final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
 
         final ReportEntry licenseReportEntry = getEntry( reportFile, "licenses.json" );
         final List<Component> components = new ComponentDAO().getAll( appId, licenseReportEntry.buf, null, null, null );
-
 
         for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
@@ -135,9 +137,11 @@ public final class Report
          * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
          */
 
+        final int[] policyCounts = new int[11];
         final int[] securityCounts = new int[10];
         final int[] licenseCounts = new int[11];
 
+        int policyArtifactCount = 0;
         int insecureArtifactCount = 0;
 
         int securityAlerts = 0;
@@ -146,6 +150,20 @@ public final class Report
 
         final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
         final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
+
+        if ( policyReportEntry != null )
+        {
+            for ( final JsonNode row : JsonUtils.parse( policyReportEntry.buf ).get( "aaData" ) )
+            {
+                final int level = row.path( "policyThreatLevel" ).asInt();
+                policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
+
+                if ( StringUtils.isNotEmpty( asText( row.get( "artifactId" ) ) ) )
+                {
+                    policyArtifactCount++;
+                }
+            }
+        }
 
         final Set<String> gavs = new HashSet<String>();
         for ( final JsonNode row : security.get( "aaData" ) )
@@ -235,6 +253,8 @@ public final class Report
         writeLicenseThreatsToReportFile( appId, reportFile );
 
         final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
+        fill( data.putArray( "policyCounts" ), policyCounts );
+        data.put( "policyArtifactCount", policyArtifactCount );
         fill( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
         fill( data.putArray( "licenseCounts" ), licenseCounts );

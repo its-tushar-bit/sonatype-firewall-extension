@@ -116,10 +116,7 @@ public class PolicyDigester
                 final ComponentFact newFact = newFacts.get( i );
                 final ComponentFact oldFact = oldFacts.get( j );
 
-                final String newGav = newFact.getGroupId() + ':' + newFact.getArtifactId() + ':' + newFact.getVersion();
-                final String oldGav = oldFact.getGroupId() + ':' + oldFact.getArtifactId() + ':' + oldFact.getVersion();
-                final int comparison =
-                    ( newGav + '|' + newFact.getHash() ).compareTo( oldGav + '|' + oldFact.getHash() );
+                final int comparison = newFact.getComponentId().compareTo( oldFact.getComponentId() );
 
                 if ( comparison < 0 )
                 {

@@ -116,11 +116,13 @@ public class PolicyEvaluateResource
                                        dependenciesReportEntry.buf );
 
         final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policies, components );
-
         Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
+
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
         Report.putEntry( reportFile, "policythreats.html",
                          summarizeThreats( applicationPublicId, appId, scanId, stage, alerts ) );
+
+        ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
 
         final List<PolicyAlert> oldAlerts = findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
 
@@ -196,14 +198,13 @@ public class PolicyEvaluateResource
             final int threatLevel = trigger.getThreatLevel();
             for ( final ComponentFact component : trigger.getComponentFacts() )
             {
-                final String gav =
-                    component.getGroupId() + ':' + component.getArtifactId() + ':' + component.getVersion();
-                ObjectNode threat = (ObjectNode) componentThreats.get( gav );
+                final String id = component.getComponentId();
+                ObjectNode threat = (ObjectNode) componentThreats.get( id );
                 if ( threat == null )
                 {
                     threat = JsonUtils.asTree( component );
                     threat.remove( "constraintFacts" );
-                    componentThreats.put( gav, threat );
+                    componentThreats.put( id, threat );
                 }
                 if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
                 {

@@ -227,6 +227,7 @@ public final class Report
                         }
                         licensePunchCard.get( index )[threatDepth]++;
                     }
+                    licenseAlerts++;
                 }
             }
         }

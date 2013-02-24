@@ -72,12 +72,31 @@ public class ReportResourceTest
                 // embedded report processor removes trailing zeros from arrays
                 expected = expected.replaceAll( ", \\[ 0, 0, 0 \\] \\]", " ]" );
 
-                assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( expected ) );
+                String actual = response.getResponseBody();
+
+                // embedded report processor adds a new licenseCounts property
+                actual = actual.replaceAll( ",\\s*\"licenseCounts\" : \\[[^\\]]*\\]", "" );
+
+                assertThat( actual, equalToIgnoringWhiteSpace( expected ) );
             }
             else if ( "badges.json".equals( entry.getName() ) )
             {
                 assertThat( JsonUtils.parse( response.getResponseBodyAsBytes(), int[].class ), equalTo( new int[] { 6,
                     6, 6 } ) );
+            }
+            else if ( "licenses.json".equals( entry.getName() ) )
+            {
+                String actual = response.getResponseBody();
+
+                // embedded report processor adds a new licenseThreatLevel property
+                actual = actual.replaceAll( ",\\s*\"licenseThreatLevel\" : \\d+", "" );
+
+                assertThat( actual,
+                            equalToIgnoringWhiteSpace( IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" ) ) );
+            }
+            else if ( "licensethreats.json".equals( entry.getName() ) )
+            {
+                // embedded report processor radically changes structure of this file, so can't compare content
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {

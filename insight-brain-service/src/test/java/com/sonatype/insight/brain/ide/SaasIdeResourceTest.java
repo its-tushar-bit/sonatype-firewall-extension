@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -131,6 +132,15 @@ public class SaasIdeResourceTest
         String applicationPublicId = "SaasIdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
+
         String serviceUrl = getScanEnhancedUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
         setSaasResponseForURI( saasUrl, 202, "/SaasIdeResourceTest/EnhancedMatch_wait.json" );
@@ -141,13 +151,19 @@ public class SaasIdeResourceTest
         Assert.assertNotNull( ideMatchedComponent.getWaitDelta() );
         Assert.assertTrue( ideMatchedComponent.getWaitDelta() > 0 );
 
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/EnhancedMatch_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertFalse( ideMatchedComponent.isSimpleMatch() );
+        List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
     }
 
     @Test

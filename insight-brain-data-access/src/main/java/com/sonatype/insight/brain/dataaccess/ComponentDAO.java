@@ -242,7 +242,7 @@ public class ComponentDAO
         component.setDeclaredLicenseIds( matchComponent.getDeclaredLicenseIds() );
         component.setObservedLicenseIds( matchComponent.getObservedLicenseIds() );
         component.setHash( matchComponent.getHash() );
-        component.setMatchState( matchComponent.isSimpleMatch() ? MatchState.EXACT : MatchState.SIMILAR );
+        component.setMatchState( MatchState.getById( matchComponent.getMatchState() ) );
 
         if ( matchComponent.getSecurityThreats() != null )
         {

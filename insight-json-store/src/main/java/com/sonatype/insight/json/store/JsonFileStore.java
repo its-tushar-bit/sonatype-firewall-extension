@@ -151,7 +151,7 @@ public final class JsonFileStore
     }
 
     @Override
-    public ContainerNode<?> augment( final ContainerNode<?> key, final String... paths )
+    public <T extends ContainerNode<?>> T augment( final T key, final String... paths )
         throws IOException
     {
         final CountingLock lock = lockFor( folder );
@@ -159,7 +159,7 @@ public final class JsonFileStore
         lock.sharedLock();
         try
         {
-            ContainerNode<?> table = key;
+            T table = key;
             for ( final String path : paths )
             {
                 final File file = new File( folder, path );
@@ -225,7 +225,7 @@ public final class JsonFileStore
         return filteredLog;
     }
 
-    private static ContainerNode<?> augmentTable( final ContainerNode<?> table, final ArrayNode log )
+    private static <T extends ContainerNode<?>> T augmentTable( final T table, final ArrayNode log )
     {
         // first aggregate all the changes found in the data log
         final List<JsonNode> changes = new ArrayList<JsonNode>();

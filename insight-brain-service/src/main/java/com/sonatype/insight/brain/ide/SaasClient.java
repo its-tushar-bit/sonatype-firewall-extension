@@ -46,6 +46,7 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class SaasClient
@@ -88,6 +89,8 @@ public class SaasClient
                     throw new BadRequestException( getErrorMessage( response ) );
                 case 401:
                     throw new NotAuthenticatedException( getErrorMessage( response ) );
+                case 402:
+                    throw new PaymentRequiredException( getErrorMessage( response ) );
                 case 403:
                     throw new NotAuthorizedException( getErrorMessage( response ) );
                 case 404:

@@ -148,7 +148,7 @@ public class SaasIdeResource
         gavNode.put( "artifactId", artifactId );
         gavNode.put( "version", version );
         File auditDir = work.getAuditDir( applicationId );
-        licenseData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
+        JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
         return licenseData;
     }
 
@@ -172,7 +172,7 @@ public class SaasIdeResource
             svNode.put( "source", securityVulnerability.getSource() );
         }
         File auditDir = work.getAuditDir( applicationId );
-        svData = (ArrayNode) JsonUtils.fileStore( auditDir ).augment( svData, "security.json" );
+        JsonUtils.fileStore( auditDir ).augment( svData, "security.json" );
         return svData;
     }
 

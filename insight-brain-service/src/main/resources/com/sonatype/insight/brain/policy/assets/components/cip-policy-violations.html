@@ -1,0 +1,106 @@
+<div ng-controller="PolicyViolationsController" style='padding:5px' class='policyViolations'>
+	<style type='text/css'>
+		.border-bottom, .page-header, .threat-level, .policy-name, .components {
+			border-bottom:2px solid black;
+		}
+		.border-left, .page-header, .page-body {
+			border-left:2px solid black;
+		}
+		.border-right, .page-header, .page-body {
+			border-right:2px solid black;
+		}
+		.border-bottom, .page-header {
+			border-bottom:2px solid black;
+		}
+		.light-border-bottom {
+			border-bottom:1px solid black;
+		}
+		.page-body {
+			width:100%;
+			border-collapse:collapse;
+		}
+		.threat-level {
+			height:1px; /*this is a hack so that % height can be used on contained divs properly*/
+			width:4%;
+			padding:4 0 4 4;
+		}
+		.policy-name {
+			height:1px; /*this is a hack so that % height can be used on contained divs properly*/
+			width:31%;
+			vertical-align:top;
+			padding:4 4 4 0;
+		}
+		.components {
+			height:1px; /*this is a hack so that % height can be used on contained divs properly*/
+			width:65%;
+			padding:4 4 4 0;
+		}
+		.red {
+			background-color:#EE1B24;
+		}
+		.orange {
+			background-color:#F7941D;
+		}
+		.yellow {
+			background-color:#FEDF15;
+		}
+		.blue {
+			background-color:#6E99D0;
+		}
+		.grey {
+			background-color:#E6E6E6;
+		}
+		.action-text {
+			padding-left:40px;
+			padding-top:5px;
+			color:#6E99D0;
+		}
+		.conditionText {
+			color:#6E99D0;
+		}
+		.full-height {
+			height:100%;
+		}
+	</style>
+	<table class="page-body">
+		<tr ng-repeat="policyAlert in $scope.policyAlerts">
+			<td class="threat-level">
+				<div class="full-height red" ng-show="policyAlert.threatLevel > 7"></div>
+				<div class="full-height orange" ng-show="policyAlert.threatLevel > 3"></div>
+				<div class="full-height yellow" ng-show="policyAlert.threatLevel > 0"></div>
+				<div class="full-height blue" ng-show="!policyAlert.threatLevel && policyAlert.threatLevel !== 0"></div>
+			</td>
+			<td class="policy-name">	
+				<div class="full-height grey">
+					<div style="padding-left:4px;"><b>${alert.trigger.policyName}</b></div>
+					<div class="action-text">
+						<div ng-repeat="action in policyAlert.actions"><i><b>{{action.summary}}</b></i></div>
+					</div>
+				</div>
+			</td>
+			<td class="components">
+				<div class="full-height grey">
+					<div class="light-border-bottom">
+						<div ng-show="policyAlert.componentFact.groupId">
+							<b>GAV:</b> {{policyAlert.componentFact.groupId}} : {{policyAlert.componentFact.artifactId}} : {{policyAlert.componentFact.version}}
+						</div>
+						<div ng-show="!policyAlert.componentFact.groupId">
+							<b>Hash:</b> ${policyAlert.componentFact.hash}
+						</div>
+					</div>
+					<table>
+						<tr ng-repeat="constraintFact in policyAlert.componentFact.constraintFacts">
+							<td style="vertical-align:top;">{{constraintFact.constraintName}}</td>
+							<td style="padding-left:20px;">
+								<div ng-repeat="conditionFact in constraintFact.conditionFacts">
+									<div>{{conditionFact.summary}}</div>
+									<div class="conditionText">{{condition.reason}}</div>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>

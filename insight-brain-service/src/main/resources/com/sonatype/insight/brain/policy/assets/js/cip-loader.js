@@ -14,7 +14,7 @@
 	});
 
 	var head = $('head'),
-	    scripts = ['policy-assets/angular/angular-1.0.3.min.js', 'policy-assets/js/cip-label-editor.js'];
+	    scripts = ['policy-assets/angular/angular-1.0.3.min.js', 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js'];
 
 	$.each(scripts, function (key, script) {
 		$('<script></script>').attr('src', CLM.path + script).appendTo(head);

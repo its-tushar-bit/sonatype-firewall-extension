@@ -1,6 +1,7 @@
 {
   "simpleMatch" : true,
   "matchState" : "exact",
+  "hash" : "abababababababababab",
   "groupId" : "g1",
   "artifactId" : "a1",
   "version" : "v1",

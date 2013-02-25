@@ -116,8 +116,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -178,8 +177,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -197,8 +195,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         policyAlerts = ideMatchedComponent.getAlerts();
@@ -233,8 +230,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -252,8 +248,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         policyAlerts = ideMatchedComponent.getAlerts();
@@ -289,8 +284,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -309,8 +303,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         policyAlerts = ideMatchedComponent.getAlerts();
@@ -328,8 +321,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         policyAlerts = ideMatchedComponent.getAlerts();
@@ -364,8 +356,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
         Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
-        // TODO check why the hash is not set
-        // Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();

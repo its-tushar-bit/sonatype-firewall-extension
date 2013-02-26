@@ -244,18 +244,7 @@ public class ComponentDAO
         component.setHash( matchComponent.getHash() );
         component.setMatchState( MatchState.getById( matchComponent.getMatchState() ) );
 
-        if ( matchComponent.getSecurityThreats() != null )
-        {
-            for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : matchComponent.getSecurityThreats() )
-            {
-                component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
-                                                                               issue.getSeverity() ) );
-            }
-        }
-        if ( jsonSVNode != null )
-        {
-            processJsonSVData( component, jsonSVNode );
-        }
+        addSecurityVulnerabilities( component, matchComponent.getSecurityThreats(), jsonSVNode );
 
         loadLicenseThreatGroups( applicationId, component );
 
@@ -289,7 +278,24 @@ public class ComponentDAO
             component.addOverriddenLicenseId( license.getLicenseId() );
         }
 
-        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities() )
+        addSecurityVulnerabilities( component, componentDetails.getSecurityVulnerabilities(), jsonSVNode );
+
+        loadLicenseThreatGroups( applicationId, component );
+
+        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
+
+        return component;
+    }
+
+    private void addSecurityVulnerabilities( Component component,
+                                             List<com.sonatype.clm.dto.model.SecurityVulnerability> issues,
+                                             ArrayNode jsonSVNode )
+    {
+        if ( issues == null )
+        {
+            return;
+        }
+        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : issues )
         {
             component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
                                                                            issue.getSeverity() ) );
@@ -298,12 +304,6 @@ public class ComponentDAO
         {
             processJsonSVData( component, jsonSVNode );
         }
-
-        loadLicenseThreatGroups( applicationId, component );
-
-        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
-
-        return component;
     }
 
     private void processJsonSVData( Component component, ArrayNode jsonSVNodes )

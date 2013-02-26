@@ -115,8 +115,9 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 1, componentDetails.getOverriddenLicenses().size() );
         License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
         Assert.assertNotNull( overriddenLicense );
-        Assert.assertEquals( "AAL", overriddenLicense.getLicenseId() );
-        Assert.assertEquals( "AAL", overriddenLicense.getLicenseName() );
+        Assert.assertEquals( "GPL-2.0", overriddenLicense.getLicenseId() );
+        Assert.assertEquals( "GPL-2.0", overriddenLicense.getLicenseName() );
+        Assert.assertEquals( new Integer( 9 ), componentDetails.getLicenseThreatLevel() );
     }
 
     @Test
@@ -236,7 +237,7 @@ public class SaasIdeResourceTest
         Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
-        Condition condition1 = new Condition( LicenseConditionType.ID, "is", "AAL" );
+        Condition condition1 = new Condition( LicenseConditionType.ID, "is", "GPL-2.0" );
         constraint1.addCondition( condition1 );
         Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
         policy1.setThreatLevel( 8 );

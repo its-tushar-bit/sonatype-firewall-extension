@@ -8,7 +8,7 @@
     "artifactId" : "a1",
     "version" : "v1",
     "status" : "Overridden",
-    "overriddenLicenses" : [ "AAL" ],
+    "overriddenLicenses" : [ "GPL-2.0" ],
     "overriddenLicenseThreat" : "UNKCAT",
     "comment" : ""
   } ]

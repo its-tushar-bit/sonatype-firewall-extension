@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -123,9 +124,11 @@ public class SaasIdeResource
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String applicationId = app.getId();
 
+        // Get component details from the SAAS server
         ComponentDetails componentDetails =
             client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
 
+        // Load the augmented data for licenses and security vulnerabilities
         ObjectNode licenseData =
             getAugmentedLicenseData( applicationId, componentDetails.getGroupId(), componentDetails.getArtifactId(),
                                      componentDetails.getVersion() );
@@ -133,14 +136,26 @@ public class SaasIdeResource
             getAugmentedSVData( applicationId, componentDetails.getGroupId(), componentDetails.getArtifactId(),
                                 componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities() );
 
+        // Load all data into a Component instance for policy evaluation
         ComponentDAO componentDAO = new ComponentDAO();
         Component component = componentDAO.getComponent( applicationId, componentDetails, licenseData, svData );
+
+        // Use CLM data to populate the component details
         for ( String overriddenLicenseId : component.getOverriddenLicenseIds() )
         {
             com.sonatype.insight.brain.model.license.License overriddenLicense =
                 licenseDAO.getByIdNotNull( overriddenLicenseId );
             componentDetails.getOverriddenLicenses().add( new License( overriddenLicense.getId(),
                                                                        overriddenLicense.getShortDisplayName() ) );
+        }
+        if ( !component.getLicenseThreatGroups().isEmpty() )
+        {
+            int licenseThreatLevel = 0;
+            for ( LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups() )
+            {
+                licenseThreatLevel = Math.max( licenseThreatLevel, licenseThreatGroup.getThreatLevel() );
+            }
+            componentDetails.setLicenseThreatLevel( licenseThreatLevel );
         }
         if ( componentDetails.getSecurityVulnerabilities() != null )
         {
@@ -157,6 +172,8 @@ public class SaasIdeResource
                 }
             }
         }
+
+        // Evaluate the policies
         List<PolicyAlert> policyAlerts =
             evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
                                 policyDAO().getByApplicationId( applicationId ), Collections.singletonList( component ) );

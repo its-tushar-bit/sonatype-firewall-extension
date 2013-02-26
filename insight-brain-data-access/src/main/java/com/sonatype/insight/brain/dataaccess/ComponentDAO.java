@@ -40,11 +40,11 @@ public class ComponentDAO
     {
         final String statusString = JsonUtils.getNullableString( jsonLicenseData.get( "status" ) );
         final LicenseStatus status = LicenseStatus.getByName( statusString );
-        List<String> declaredLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "declaredLicenses" ) );
+        List<String> declaredLicenseNames = JsonUtils.getStringListFromArray( jsonLicenseData.get( "declaredLicenses" ) );
         component.setDeclaredLicenseIds( multiLicenseNamesToLicenseIds( declaredLicenseNames ) );
-        List<String> observedLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "observedLicenses" ) );
+        List<String> observedLicenseNames = JsonUtils.getStringListFromArray( jsonLicenseData.get( "observedLicenses" ) );
         component.setObservedLicenseIds( multiLicenseNamesToLicenseIds( observedLicenseNames ) );
-        List<String> overriddenLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "overriddenLicenses" ) );
+        List<String> overriddenLicenseNames = JsonUtils.getStringListFromArray( jsonLicenseData.get( "overriddenLicenses" ) );
         component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
         // TODO Load effective license data too?
         component.setLicenseStatus( status );
@@ -394,24 +394,5 @@ public class ComponentDAO
         {
             throw new IllegalStateException( e );
         }
-    }
-
-    private List<String> jsonStringArrayToList( JsonNode jsonNode )
-    {
-        if ( JsonUtils.isNull( jsonNode ) )
-        {
-            return null;
-        }
-        ArrayNode jsonArray = (ArrayNode) jsonNode;
-        if ( jsonArray.size() == 0 )
-        {
-            return null;
-        }
-        List<String> result = new ArrayList<String>();
-        for ( int i = 0; i < jsonArray.size(); i++ )
-        {
-            result.add( jsonArray.get( i ).asText() );
-        }
-        return result;
     }
 }

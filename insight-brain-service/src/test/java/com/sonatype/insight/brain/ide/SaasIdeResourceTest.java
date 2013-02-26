@@ -53,11 +53,11 @@ public class SaasIdeResourceTest
     }
 
     @Test
-    public void testGetComponentDetails()
+    public void testGetComponentDetails_PolicyAlerts()
         throws Exception
     {
         String applicationPublicId = "SaasIdeResourceTest_AppId";
-        Application application = createApplication( applicationPublicId );
+        createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
@@ -68,11 +68,6 @@ public class SaasIdeResourceTest
         Action failAction = new Action( FailActionType.ID );
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
-
-        URL testOverriddenLicenseFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
 
         String groupId = "g1";
         String artifactId = "a1";
@@ -93,8 +88,74 @@ public class SaasIdeResourceTest
         List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+    }
+
+    @Test
+    public void testGetComponentDetails_OverriddenLicense()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+
+        URL testOverriddenLicenseFileUrl =
+            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
+        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
+                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
+
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
         Assert.assertEquals( 1, componentDetails.getOverriddenLicenses().size() );
+        Assert.assertEquals( "AAL", componentDetails.getOverriddenLicenses().iterator().next().getLicenseId() );
         Assert.assertEquals( "AAL", componentDetails.getOverriddenLicenses().iterator().next().getLicenseName() );
+    }
+
+    @Test
+    public void testGetComponentDetails_OverriddenSecurityVulnerabilityStatus()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+
+        URL testOverriddenSecurityFileUrl =
+            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
+        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
+                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "36079", "osvdb", 7.5F, "Summary" ) );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        Assert.assertEquals( 1, componentDetails.getSecurityVulnerabilities().size() );
+        Assert.assertEquals( "36079", componentDetails.getSecurityVulnerabilities().get( 0 ).getRefId() );
+        Assert.assertEquals( "osvdb", componentDetails.getSecurityVulnerabilities().get( 0 ).getSource() );
+        Assert.assertEquals( 7.5F, componentDetails.getSecurityVulnerabilities().get( 0 ).getSeverity(), 0.1 );
+        Assert.assertEquals( "Summary", componentDetails.getSecurityVulnerabilities().get( 0 ).getSummary() );
+        Assert.assertEquals( "Acknowledged", componentDetails.getSecurityVulnerabilities().get( 0 ).getStatus() );
     }
 
     @Test

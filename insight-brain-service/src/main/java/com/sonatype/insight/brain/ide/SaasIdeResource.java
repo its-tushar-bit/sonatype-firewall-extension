@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
@@ -142,6 +143,21 @@ public class SaasIdeResource
             List<String> overriddenLicenseNames =
                 JsonUtils.getStringListFromArray( licenseData.get( "overriddenLicenses" ) );
             componentDetails.setOverriddenLicenses( convertNamesToLicenses( overriddenLicenseNames ) );
+        }
+        if ( componentDetails.getSecurityVulnerabilities() != null )
+        {
+            for ( SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities() )
+            {
+                issue.setStatus( SecurityVulnerabilityStatus.OPEN.getName() );
+                for ( com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component.getSecurityVulnerabilities() )
+                {
+                    if ( issue.getRefId().equals( sv.getRefId() ) && issue.getSource().equals( sv.getSource() ) )
+                    {
+                        issue.setStatus( sv.getStatus().getName() );
+                        break;
+                    }
+                }
+            }
         }
         List<PolicyAlert> policyAlerts =
             evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),

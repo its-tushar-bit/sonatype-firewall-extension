@@ -8,7 +8,9 @@ package com.sonatype.insight.json.store;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
@@ -258,5 +260,24 @@ public final class JsonUtils
     public static boolean isNull( final JsonNode jsonNode )
     {
         return jsonNode == null || jsonNode instanceof NullNode;
+    }
+
+    public static List<String> getStringListFromArray( final JsonNode jsonNode )
+    {
+        if ( JsonUtils.isNull( jsonNode ) )
+        {
+            return null;
+        }
+        final ArrayNode jsonArray = (ArrayNode) jsonNode;
+        if ( jsonArray.size() == 0 )
+        {
+            return null;
+        }
+        final List<String> result = new ArrayList<String>();
+        for ( final JsonNode child : jsonArray )
+        {
+            result.add( child.asText() );
+        }
+        return result;
     }
 }

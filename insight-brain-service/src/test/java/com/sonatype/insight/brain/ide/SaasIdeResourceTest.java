@@ -57,7 +57,7 @@ public class SaasIdeResourceTest
         throws Exception
     {
         String applicationPublicId = "SaasIdeResourceTest_AppId";
-        createApplication( applicationPublicId );
+        Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
@@ -68,6 +68,11 @@ public class SaasIdeResourceTest
         Action failAction = new Action( FailActionType.ID );
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
+
+        URL testOverriddenLicenseFileUrl =
+            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
+        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
+                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
 
         String groupId = "g1";
         String artifactId = "a1";
@@ -88,6 +93,8 @@ public class SaasIdeResourceTest
         List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( 1, componentDetails.getOverriddenLicenses().size() );
+        Assert.assertEquals( "AAL", componentDetails.getOverriddenLicenses().iterator().next().getLicenseName() );
     }
 
     @Test

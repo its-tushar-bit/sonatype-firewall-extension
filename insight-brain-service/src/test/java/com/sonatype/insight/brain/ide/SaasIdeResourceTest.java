@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import java.io.File;
-import java.net.URL;
 import java.util.List;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -97,10 +94,7 @@ public class SaasIdeResourceTest
         String applicationPublicId = "SaasIdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
-        URL testOverriddenLicenseFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
+        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
 
         String groupId = "g1";
         String artifactId = "a1";
@@ -129,10 +123,7 @@ public class SaasIdeResourceTest
         String applicationPublicId = "SaasIdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
-        URL testOverriddenSecurityFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+        setSecurityAuditLog( application.getId(), "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
 
         String groupId = "g1";
         String artifactId = "a1";
@@ -269,10 +260,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the license and evaluate the policy again
-        URL testOverriddenLicenseFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
+        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -322,10 +310,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the license and evaluate the policy again
-        URL testOverriddenLicenseFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
+        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -377,10 +362,8 @@ public class SaasIdeResourceTest
 
         // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
         // the policy again. There should be no policy alerts.
-        URL testOverriddenSecurityFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
-        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+        setSecurityAuditLog( application.getId(),
+                             "/SaasIdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -395,10 +378,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
-        testOverriddenSecurityFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+        setSecurityAuditLog( application.getId(), "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );

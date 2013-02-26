@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -144,15 +145,42 @@ public abstract class AbstractBrainServiceTest
 
     protected void setSaasResponseForURI( String uri, int status, String bodyResource )
     {
-        String body;
+        setSaasResponseForURI( uri, toString( bodyResource ), status );
+    }
+
+    protected void setLicenseAuditLog( String appId, String jsonResource )
+    {
+        setAuditLog( appId, "licenses.json", jsonResource );
+    }
+
+    protected void setSecurityAuditLog( String appId, String jsonResource )
+    {
+        setAuditLog( appId, "security.json", jsonResource );
+    }
+
+    private void setAuditLog( String appId, String jsonFile, String jsonResource )
+    {
+        File logFile = new File( brain.getAuditDir( appId ), jsonFile );
+        logFile.getAbsoluteFile().getParentFile().mkdirs();
         try
         {
-            body = IOUtil.toString( getClass().getResourceAsStream( bodyResource ), "UTF-8" );
+            FileUtils.fileWrite( logFile, "UTF-8", toString( jsonResource ) );
         }
         catch ( IOException e )
         {
             throw new IllegalStateException( e );
         }
-        setSaasResponseForURI( uri, body, status );
+    }
+
+    private String toString( String resource )
+    {
+        try
+        {
+            return IOUtil.toString( getClass().getResourceAsStream( resource ), "UTF-8" );
+        }
+        catch ( IOException e )
+        {
+            throw new IllegalStateException( e );
+        }
     }
 }

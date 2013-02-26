@@ -39,6 +39,15 @@
 	            angular.forEach($scope.policyAlerts, function(policyAlert,policyAlertIndex){
 	                angular.forEach(policyAlert.trigger.componentFacts, function(componentFact, componentFactIndex){
 	                    policyAlert.componentFact = componentFact;
+	                    if (policyAlert.trigger.threatLevel > 7) {
+	                        policyAlert.color = 'red';
+	                    } else if (policyAlert.trigger.threatLevel > 3) {
+	                        policyAlert.color = 'orange';
+	                    } else if (policyAlert.trigger.threatLevel > 0) {
+	                        policyAlert.color = 'yellow';
+	                    } else {
+	                        policyAlert.color = 'blue';
+	                    }
 	                });
 	                angular.forEach(policyAlert.actions, function(action, actionIndex){
 	                    angular.forEach($scope.actionTypes, function(actionType, actionTypeIndex){

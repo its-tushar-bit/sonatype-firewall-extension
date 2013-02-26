@@ -37,7 +37,6 @@
 		    if ($scope.policyAlerts !== undefined
 		        && $scope.actionTypes !== undefined) {
 	            angular.forEach($scope.policyAlerts, function(policyAlert,policyAlertIndex){
-	                console.log(policyAlert);
 	                angular.forEach(policyAlert.trigger.componentFacts, function(componentFact, componentFactIndex){
 	                    policyAlert.componentFact = componentFact;
 	                });

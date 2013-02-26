@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
@@ -112,8 +113,10 @@ public class SaasIdeResourceTest
         Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
         Assert.assertEquals( version, componentDetails.getVersion() );
         Assert.assertEquals( 1, componentDetails.getOverriddenLicenses().size() );
-        Assert.assertEquals( "AAL", componentDetails.getOverriddenLicenses().iterator().next().getLicenseId() );
-        Assert.assertEquals( "AAL", componentDetails.getOverriddenLicenses().iterator().next().getLicenseName() );
+        License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
+        Assert.assertNotNull( overriddenLicense );
+        Assert.assertEquals( "AAL", overriddenLicense.getLicenseId() );
+        Assert.assertEquals( "AAL", overriddenLicense.getLicenseName() );
     }
 
     @Test

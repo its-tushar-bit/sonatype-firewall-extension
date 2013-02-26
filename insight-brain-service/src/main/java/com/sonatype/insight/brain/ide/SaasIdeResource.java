@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.ide;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -38,12 +36,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
-import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -61,7 +58,7 @@ public class SaasIdeResource
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    private LicenseDAO licenseDAO = new LicenseDAO();
 
     private PolicyEvaluator evaluator = new PolicyEvaluator();
 
@@ -138,11 +135,12 @@ public class SaasIdeResource
 
         ComponentDAO componentDAO = new ComponentDAO();
         Component component = componentDAO.getComponent( applicationId, componentDetails, licenseData, svData );
-        if ( licenseData != null )
+        for ( String overriddenLicenseId : component.getOverriddenLicenseIds() )
         {
-            List<String> overriddenLicenseNames =
-                JsonUtils.getStringListFromArray( licenseData.get( "overriddenLicenses" ) );
-            componentDetails.setOverriddenLicenses( convertNamesToLicenses( overriddenLicenseNames ) );
+            com.sonatype.insight.brain.model.license.License overriddenLicense =
+                licenseDAO.getByIdNotNull( overriddenLicenseId );
+            componentDetails.getOverriddenLicenses().add( new License( overriddenLicense.getId(),
+                                                                       overriddenLicense.getShortDisplayName() ) );
         }
         if ( componentDetails.getSecurityVulnerabilities() != null )
         {
@@ -268,19 +266,5 @@ public class SaasIdeResource
         ide.setSimpleMatch( mComponent.isSimpleMatch() );
         ide.setWaitDelta( mComponent.getWaitDelta() );
         return ide;
-    }
-
-    private Set<License> convertNamesToLicenses( List<String> multiLicenseNames )
-    {
-        Set<License> licenses = new LinkedHashSet<License>();
-        if ( multiLicenseNames != null )
-        {
-            for ( String multiLicenseName : multiLicenseNames )
-            {
-                MultiLicense license = multiLicenseDAO.getByNameNotNull( multiLicenseName );
-                licenses.add( new License( license.getId(), license.getShortDisplayName() ) );
-            }
-        }
-        return licenses;
     }
 }

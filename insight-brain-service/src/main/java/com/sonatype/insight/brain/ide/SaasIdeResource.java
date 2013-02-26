@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.MatchedComponent;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
@@ -35,9 +36,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -54,6 +57,8 @@ public class SaasIdeResource
     private SaasClient client;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+    private LicenseDAO licenseDAO = new LicenseDAO();
 
     private PolicyEvaluator evaluator = new PolicyEvaluator();
 
@@ -121,7 +126,7 @@ public class SaasIdeResource
         ComponentDetails componentDetails =
             client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
 
-        ArrayNode licenseData =
+        ObjectNode licenseData =
             getAugmentedLicenseData( applicationId, componentDetails.getGroupId(), componentDetails.getArtifactId(),
                                      componentDetails.getVersion() );
         ArrayNode svData =
@@ -129,7 +134,29 @@ public class SaasIdeResource
                                 componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities() );
 
         ComponentDAO componentDAO = new ComponentDAO();
-        Component component = componentDAO.getComponent( applicationId, componentDetails, licenseData.get( 0 ), svData );
+        Component component = componentDAO.getComponent( applicationId, componentDetails, licenseData, svData );
+        for ( String overriddenLicenseId : component.getOverriddenLicenseIds() )
+        {
+            com.sonatype.insight.brain.model.license.License overriddenLicense =
+                licenseDAO.getByIdNotNull( overriddenLicenseId );
+            componentDetails.getOverriddenLicenses().add( new License( overriddenLicense.getId(),
+                                                                       overriddenLicense.getShortDisplayName() ) );
+        }
+        if ( componentDetails.getSecurityVulnerabilities() != null )
+        {
+            for ( SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities() )
+            {
+                issue.setStatus( SecurityVulnerabilityStatus.OPEN.getName() );
+                for ( com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component.getSecurityVulnerabilities() )
+                {
+                    if ( issue.getRefId().equals( sv.getRefId() ) && issue.getSource().equals( sv.getSource() ) )
+                    {
+                        issue.setStatus( sv.getStatus().getName() );
+                        break;
+                    }
+                }
+            }
+        }
         List<PolicyAlert> policyAlerts =
             evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
                                 policyDAO().getByApplicationId( applicationId ), Collections.singletonList( component ) );
@@ -138,7 +165,7 @@ public class SaasIdeResource
         return componentDetails;
     }
 
-    private ArrayNode getAugmentedLicenseData( String applicationId, String groupId, String artifactId, String version )
+    private ObjectNode getAugmentedLicenseData( String applicationId, String groupId, String artifactId, String version )
         throws IOException
     {
         ArrayNode licenseData = new ArrayNode( JsonNodeFactory.instance );
@@ -149,7 +176,7 @@ public class SaasIdeResource
         gavNode.put( "version", version );
         File auditDir = work.getAuditDir( applicationId );
         JsonUtils.fileStore( auditDir ).augment( licenseData, "licenses.json" );
-        return licenseData;
+        return (ObjectNode) licenseData.get( 0 );
     }
 
     private ArrayNode getAugmentedSVData( String applicationId, String groupId, String artifactId, String version,
@@ -193,7 +220,7 @@ public class SaasIdeResource
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
         {
-            ArrayNode licenseData =
+            ObjectNode licenseData =
                 getAugmentedLicenseData( applicationId, matchedComponent.getGroupId(),
                                          matchedComponent.getArtifactId(), matchedComponent.getVersion() );
             ArrayNode svData =
@@ -202,7 +229,7 @@ public class SaasIdeResource
 
             ComponentDAO componentDAO = new ComponentDAO();
             Component component =
-                componentDAO.getComponent( applicationId, matchedComponent, licenseData.get( 0 ), svData );
+                componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
             List<PolicyAlert> policyAlerts =
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
                                     policyDAO().getByApplicationId( applicationId ),

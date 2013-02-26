@@ -40,11 +40,11 @@ public class ComponentDAO
     {
         final String statusString = JsonUtils.getNullableString( jsonLicenseData.get( "status" ) );
         final LicenseStatus status = LicenseStatus.getByName( statusString );
-        List<String> declaredLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "declaredLicenses" ) );
+        List<String> declaredLicenseNames = JsonUtils.getStringListFromArray( jsonLicenseData.get( "declaredLicenses" ) );
         component.setDeclaredLicenseIds( multiLicenseNamesToLicenseIds( declaredLicenseNames ) );
-        List<String> observedLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "observedLicenses" ) );
+        List<String> observedLicenseNames = JsonUtils.getStringListFromArray( jsonLicenseData.get( "observedLicenses" ) );
         component.setObservedLicenseIds( multiLicenseNamesToLicenseIds( observedLicenseNames ) );
-        List<String> overriddenLicenseNames = jsonStringArrayToList( jsonLicenseData.get( "overriddenLicenses" ) );
+        List<String> overriddenLicenseNames = JsonUtils.getStringListFromArray( jsonLicenseData.get( "overriddenLicenses" ) );
         component.setOverriddenLicenseIds( multiLicenseNamesToLicenseIds( overriddenLicenseNames ) );
         // TODO Load effective license data too?
         component.setLicenseStatus( status );
@@ -244,18 +244,7 @@ public class ComponentDAO
         component.setHash( matchComponent.getHash() );
         component.setMatchState( MatchState.getById( matchComponent.getMatchState() ) );
 
-        if ( matchComponent.getSecurityThreats() != null )
-        {
-            for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : matchComponent.getSecurityThreats() )
-            {
-                component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
-                                                                               issue.getSeverity() ) );
-            }
-        }
-        if ( jsonSVNode != null )
-        {
-            processJsonSVData( component, jsonSVNode );
-        }
+        addSecurityVulnerabilities( component, matchComponent.getSecurityThreats(), jsonSVNode );
 
         loadLicenseThreatGroups( applicationId, component );
 
@@ -289,7 +278,24 @@ public class ComponentDAO
             component.addOverriddenLicenseId( license.getLicenseId() );
         }
 
-        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities() )
+        addSecurityVulnerabilities( component, componentDetails.getSecurityVulnerabilities(), jsonSVNode );
+
+        loadLicenseThreatGroups( applicationId, component );
+
+        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
+
+        return component;
+    }
+
+    private void addSecurityVulnerabilities( Component component,
+                                             List<com.sonatype.clm.dto.model.SecurityVulnerability> issues,
+                                             ArrayNode jsonSVNode )
+    {
+        if ( issues == null )
+        {
+            return;
+        }
+        for ( com.sonatype.clm.dto.model.SecurityVulnerability issue : issues )
         {
             component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
                                                                            issue.getSeverity() ) );
@@ -298,12 +304,6 @@ public class ComponentDAO
         {
             processJsonSVData( component, jsonSVNode );
         }
-
-        loadLicenseThreatGroups( applicationId, component );
-
-        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
-
-        return component;
     }
 
     private void processJsonSVData( Component component, ArrayNode jsonSVNodes )
@@ -394,24 +394,5 @@ public class ComponentDAO
         {
             throw new IllegalStateException( e );
         }
-    }
-
-    private List<String> jsonStringArrayToList( JsonNode jsonNode )
-    {
-        if ( JsonUtils.isNull( jsonNode ) )
-        {
-            return null;
-        }
-        ArrayNode jsonArray = (ArrayNode) jsonNode;
-        if ( jsonArray.size() == 0 )
-        {
-            return null;
-        }
-        List<String> result = new ArrayList<String>();
-        for ( int i = 0; i < jsonArray.size(); i++ )
-        {
-            result.add( jsonArray.get( i ).asText() );
-        }
-        return result;
     }
 }

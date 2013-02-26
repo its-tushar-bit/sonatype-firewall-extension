@@ -5,15 +5,13 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import java.io.File;
-import java.net.URL;
 import java.util.List;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
@@ -53,7 +51,7 @@ public class SaasIdeResourceTest
     }
 
     @Test
-    public void testGetComponentDetails()
+    public void testGetComponentDetails_PolicyAlerts()
         throws Exception
     {
         String applicationPublicId = "SaasIdeResourceTest_AppId";
@@ -88,6 +86,70 @@ public class SaasIdeResourceTest
         List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+    }
+
+    @Test
+    public void testGetComponentDetails_OverriddenLicense()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+
+        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
+
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        Assert.assertEquals( 1, componentDetails.getOverriddenLicenses().size() );
+        License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
+        Assert.assertNotNull( overriddenLicense );
+        Assert.assertEquals( "AAL", overriddenLicense.getLicenseId() );
+        Assert.assertEquals( "AAL", overriddenLicense.getLicenseName() );
+    }
+
+    @Test
+    public void testGetComponentDetails_OverriddenSecurityVulnerabilityStatus()
+        throws Exception
+    {
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        Application application = createApplication( applicationPublicId );
+
+        setSecurityAuditLog( application.getId(), "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
+
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "36079", "osvdb", 7.5F, "Summary" ) );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        Assert.assertEquals( 1, componentDetails.getSecurityVulnerabilities().size() );
+        Assert.assertEquals( "36079", componentDetails.getSecurityVulnerabilities().get( 0 ).getRefId() );
+        Assert.assertEquals( "osvdb", componentDetails.getSecurityVulnerabilities().get( 0 ).getSource() );
+        Assert.assertEquals( 7.5F, componentDetails.getSecurityVulnerabilities().get( 0 ).getSeverity(), 0.1 );
+        Assert.assertEquals( "Summary", componentDetails.getSecurityVulnerabilities().get( 0 ).getSummary() );
+        Assert.assertEquals( "Acknowledged", componentDetails.getSecurityVulnerabilities().get( 0 ).getStatus() );
     }
 
     @Test
@@ -201,10 +263,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the license and evaluate the policy again
-        URL testOverriddenLicenseFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
+        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -254,10 +313,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the license and evaluate the policy again
-        URL testOverriddenLicenseFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenLicenseFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "licenses.json" ) );
+        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -309,10 +365,8 @@ public class SaasIdeResourceTest
 
         // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
         // the policy again. There should be no policy alerts.
-        URL testOverriddenSecurityFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
-        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+        setSecurityAuditLog( application.getId(),
+                             "/SaasIdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -327,10 +381,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
-        testOverriddenSecurityFileUrl =
-            getClass().getResource( "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
-        FileUtils.copyFile( new File( testOverriddenSecurityFileUrl.getFile() ),
-                            new File( brain.getAuditDir( application.getId() ), "security.json" ) );
+        setSecurityAuditLog( application.getId(), "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );

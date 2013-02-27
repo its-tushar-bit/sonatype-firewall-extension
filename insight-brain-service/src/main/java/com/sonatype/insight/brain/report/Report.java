@@ -30,11 +30,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public final class Report
@@ -278,21 +277,20 @@ public final class Report
     private static void writeLicenseThreatsToReportFile( final String appId, final File reportFile )
         throws IOException
     {
-        LicenseDAO licenseDAO = new LicenseDAO();
-        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        final List<License> licenses = licenseDAO.getAll();
+        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+        final Set<String> multiLicenseIds = multiLicenseDAO.getMultiLicenseMappings().keySet();
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode licenseTable = mapper.createObjectNode();
         ArrayNode licenseThreats = licenseTable.putArray( "aaData" );
 
-        for ( License license : licenses )
+        for ( String multiLicenseId : multiLicenseIds )
         {
-            LicenseThreatGroup licenseThreatGroup =
-                licenseThreatGroupDAO.getByApplicationIdAndLicenseId( appId, license.getId() );
+            MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull( multiLicenseId );
+            Integer threatLevel = multiLicenseDAO.getMostSevereLicenseGroupThreatLevelById( appId, multiLicenseId );
             ObjectNode licenseNode = mapper.createObjectNode();
-            licenseNode.put( "name", license.getId() );
-            licenseNode.put( "threatLevel", licenseThreatGroup != null ? licenseThreatGroup.getThreatLevel() : null );
+            licenseNode.put( "name", multiLicense.getShortDisplayName() );
+            licenseNode.put( "threatLevel", threatLevel );
             licenseThreats.add( licenseNode );
         }
         cache( getCacheFile( reportFile, "licensethreats.json" ), JsonUtils.generate( licenseTable ) );

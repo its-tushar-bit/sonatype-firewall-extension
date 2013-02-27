@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -125,6 +126,23 @@ public class MultiLicenseDAO
             }
         }
         return safestCategory;
+    }
+
+    public Integer getMostSevereLicenseGroupThreatLevelById( String appId, String id )
+    {
+        final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        final Set<License> licenses = getLicensesByMultiLicenseId( id );
+        Integer threatLevel = null;
+        for ( License license : licenses )
+        {
+            LicenseThreatGroup licenseThreatGroup =
+                licenseThreatGroupDAO.getByApplicationIdAndLicenseId( appId, license.getId() );
+            if ( licenseThreatGroup != null )
+            {
+                threatLevel = Math.max( threatLevel != null ? threatLevel : 0, licenseThreatGroup.getThreatLevel() );
+            }
+        }
+        return threatLevel;
     }
 
     public Map<String, Set<String>> getMultiLicenseMappings()

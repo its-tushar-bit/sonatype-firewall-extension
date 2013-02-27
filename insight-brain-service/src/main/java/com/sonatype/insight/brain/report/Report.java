@@ -299,7 +299,8 @@ public final class Report
         for ( String multiLicenseId : multiLicenseIds )
         {
             MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull( multiLicenseId );
-            Integer threatLevel = multiLicenseDAO.getMostSevereLicenseGroupThreatLevelById( appId, multiLicenseId );
+            Integer threatLevel =
+                multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId( appId, multiLicenseId );
             licenseTable.put( multiLicense.getShortDisplayName(), threatLevel );
         }
         licenseThreatsJson.put( "aaData", licenseTable );

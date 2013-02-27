@@ -9,7 +9,7 @@
     "version" : "v1",
     "status" : "Overridden",
     "overriddenLicenses" : [ "GPL-2.0" ],
-    "overriddenLicenseThreat" : "UNKCAT",
+    "overriddenLicenseThreat" : 9,
     "comment" : ""
   } ]
 } ]

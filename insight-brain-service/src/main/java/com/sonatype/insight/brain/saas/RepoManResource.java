@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -90,8 +91,10 @@ public class RepoManResource
         final ScanReceipt receipt = new ScanReceipt();
         receipt.setScanId( result.getScanId() );
         receipt.setTimeToReport( result.getTimeToReport() );
-        receipt.setReportUrl( "rest/report/" + UrlUtils.encodeUrlComponent( applicationPublicId ) + "/"
-            + UrlUtils.encodeUrlComponent( result.getScanId() ) + "/embedReport/index.html?pdf=true" );
+        receipt.setReportUrl( ReportResource.SERVICE_PATH.replace( "{applicationPublicId}",
+                                                                   UrlUtils.encodeUrlComponent( applicationPublicId ) ).replace( "{scanId}",
+                                                                                                                                 UrlUtils.encodeUrlComponent( result.getScanId() ) )
+            + "/embedReport/" );
 
         return Response.ok( receipt ).build();
     }

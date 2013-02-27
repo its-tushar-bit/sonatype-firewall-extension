@@ -3,7 +3,6 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
@@ -116,24 +114,6 @@ public class MultiLicenseDAO
         return licenseSetsById.get( id );
     }
 
-    public LicenseCategory getSafestLicenseCategoryById( String id )
-    {
-        LicenseCategory safestCategory = null;
-        Set<License> licenses = getLicensesByMultiLicenseId( id );
-        for ( License license : licenses )
-        {
-            LicenseCategory category = new LicenseCategoryDAO().getById( license.getLicenseCategoryId() );
-            if ( category != null )
-            {
-                if ( safestCategory == null || safestCategory.getSeverity() > category.getSeverity() )
-                {
-                    safestCategory = category;
-                }
-            }
-        }
-        return safestCategory;
-    }
-
     public Integer getLicenseThreatLevelByApplicationIdAndMultiLicenseId( String appId, String multiLicenseId )
     {
         final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -156,26 +136,6 @@ public class MultiLicenseDAO
             }
         }
         return threatLevel;
-    }
-
-    public Map<String, Set<String>> getMultiLicenseMappings()
-    {
-        if ( licenseSetsById == null )
-        {
-            load();
-        }
-
-        Map<String, Set<String>> result = new HashMap<String, Set<String>>( 512 );
-        for ( Map.Entry<String, Set<License>> entry : licenseSetsById.entrySet() )
-        {
-            Set<String> ids = new LinkedHashSet<String>();
-            for ( License license : entry.getValue() )
-            {
-                ids.add( license.getId() );
-            }
-            result.put( entry.getKey(), ids );
-        }
-        return result;
     }
 
     private synchronized void load()

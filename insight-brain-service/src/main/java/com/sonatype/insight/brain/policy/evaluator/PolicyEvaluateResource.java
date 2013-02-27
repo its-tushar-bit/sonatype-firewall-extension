@@ -248,11 +248,7 @@ public class PolicyEvaluateResource
         final Map<String, Object> model = new HashMap<String, Object>();
 
         model.put( "detailedReportUrl",
-                   uriInfo.getBaseUri()
-                       + ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ).replace( "{scanId}",
-                                                                                                                      scanId )
-                       + "/embedReport/" );
-
+                   uriInfo.getBaseUri() + ReportResource.getReportPath( applicationPublicId, scanId ) );
         model.put( "policyAlerts", policyAlerts );
         model.put( "policyThreatStage", stage.getStageTypeId() );
         model.put( "policyThreatApp", applicationPublicId );

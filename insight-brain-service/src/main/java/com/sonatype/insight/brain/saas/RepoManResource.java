@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.RepoManScanUploadRequest;
@@ -91,10 +90,7 @@ public class RepoManResource
         final ScanReceipt receipt = new ScanReceipt();
         receipt.setScanId( result.getScanId() );
         receipt.setTimeToReport( result.getTimeToReport() );
-        receipt.setReportUrl( ReportResource.SERVICE_PATH.replace( "{applicationPublicId}",
-                                                                   UrlUtils.encodeUrlComponent( applicationPublicId ) ).replace( "{scanId}",
-                                                                                                                                 UrlUtils.encodeUrlComponent( result.getScanId() ) )
-            + "/embedReport/" );
+        receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, result.getScanId() ) );
 
         return Response.ok( receipt ).build();
     }

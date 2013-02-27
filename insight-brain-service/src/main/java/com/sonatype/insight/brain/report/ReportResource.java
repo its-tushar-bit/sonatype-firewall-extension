@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -431,5 +432,13 @@ public class ReportResource
             }
         }
         return lock;
+    }
+
+    public static String getReportPath( final String appPublicId, final String scanId )
+    {
+        String url = ReportResource.SERVICE_PATH + "/embedReport/";
+        url = url.replace( "{applicationPublicId}", UrlUtils.encodeUrlComponent( appPublicId ) );
+        url = url.replace( "{scanId}", UrlUtils.encodeUrlComponent( scanId ) );
+        return url;
     }
 }

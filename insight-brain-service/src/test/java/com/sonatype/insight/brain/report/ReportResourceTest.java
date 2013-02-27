@@ -115,6 +115,10 @@ public class ReportResourceTest
         }
 
         zipFile.close();
+
+        assertResponseStatus( 200,
+                              RestAccess.get( getRestBaseUrl()
+                                  + ReportResource.getReportPath( applicationPublicId, scanId ) ) );
     }
 
     @Test

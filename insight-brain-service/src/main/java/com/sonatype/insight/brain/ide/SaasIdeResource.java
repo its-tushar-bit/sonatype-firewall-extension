@@ -67,8 +67,8 @@ public class SaasIdeResource
     private InsightWork work;
 
     @GET
-    @Path( "resource/{path:.*}" )
-    public Response getResource( @PathParam( "path" ) String path, @Context HttpServletRequest req )
+    @Path( "asset/{path:.*}" )
+    public Response getAsset( @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
         return client.doProxy( req, "ide", path );

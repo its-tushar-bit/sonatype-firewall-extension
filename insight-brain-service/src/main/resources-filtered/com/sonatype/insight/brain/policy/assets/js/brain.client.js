@@ -36,9 +36,6 @@
 	    },
 	    'getArtifactVersionInfoUrl' : function (arg) {
 			return '/rest/ide/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
-	    },
-		'getArtifactDetailsUrl' : function (arg) {
-			return '/rest/ide/artifact/detail/' + arg.appId;
-		}
+	    }
 	};
 }());

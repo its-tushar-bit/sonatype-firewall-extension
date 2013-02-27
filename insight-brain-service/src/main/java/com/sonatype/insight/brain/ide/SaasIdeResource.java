@@ -67,29 +67,11 @@ public class SaasIdeResource
     private InsightWork work;
 
     @GET
-    @Path( "cip/{path:.*}" )
-    public Response getCipResource( @PathParam( "path" ) String path, @Context HttpServletRequest req )
+    @Path( "resource/{path:.*}" )
+    public Response getResource( @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
         return client.doProxy( req, "ide", path );
-    }
-
-    @GET
-    @Path( "details/{applicationPublicId}/{path:.*}" )
-    public Response getDetailsResource( @PathParam( "path" ) String path,
-                                        @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                        @Context HttpServletRequest req )
-        throws IOException
-    {
-        return client.doProxy( req, "rest/ide/artifact/detail/", applicationPublicId, path );
-    }
-
-    @GET
-    @Path( "artifact/{path:.*}" )
-    public Response getArtifactInfo( @PathParam( "path" ) String path, @Context HttpServletRequest req )
-        throws IOException
-    {
-        return client.doProxy( req, "rest/ide/artifact/", path );
     }
 
     @GET

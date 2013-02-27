@@ -278,16 +278,15 @@ public final class Report
         throws IOException
     {
         MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-        final Set<String> multiLicenseIds = multiLicenseDAO.getMultiLicenseMappings().keySet();
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode licenseTable = mapper.createObjectNode();
         ArrayNode licenseThreats = licenseTable.putArray( "aaData" );
 
-        for ( String multiLicenseId : multiLicenseIds )
+        for ( MultiLicense multiLicense : multiLicenseDAO.getAll() )
         {
-            MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull( multiLicenseId );
-            Integer threatLevel = multiLicenseDAO.getMostSevereLicenseGroupThreatLevelById( appId, multiLicenseId );
+            Integer threatLevel =
+                multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId( appId, multiLicense.getId() );
             ObjectNode licenseNode = mapper.createObjectNode();
             licenseNode.put( "name", multiLicense.getShortDisplayName() );
             licenseNode.put( "threatLevel", threatLevel );

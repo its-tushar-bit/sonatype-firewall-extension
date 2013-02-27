@@ -1,6 +1,7 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.lang.management.ManagementFactory;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -52,6 +53,11 @@ public class MultiLicenseDAO
         {
             log.error( "Could not register LicenseMXBean", e );
         }
+    }
+
+    public Collection<MultiLicense> getAll()
+    {
+        return multiLicensesByName.values();
     }
 
     @Override
@@ -128,10 +134,10 @@ public class MultiLicenseDAO
         return safestCategory;
     }
 
-    public Integer getMostSevereLicenseGroupThreatLevelById( String appId, String id )
+    public Integer getLicenseThreatLevelByApplicationIdAndMultiLicenseId( String appId, String multiLicenseId )
     {
         final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        final Set<License> licenses = getLicensesByMultiLicenseId( id );
+        final Set<License> licenses = getLicensesByMultiLicenseId( multiLicenseId );
         Integer threatLevel = null;
         for ( License license : licenses )
         {
@@ -139,7 +145,14 @@ public class MultiLicenseDAO
                 licenseThreatGroupDAO.getByApplicationIdAndLicenseId( appId, license.getId() );
             if ( licenseThreatGroup != null )
             {
-                threatLevel = Math.max( threatLevel != null ? threatLevel : 0, licenseThreatGroup.getThreatLevel() );
+                if ( threatLevel == null )
+                {
+                    threatLevel = licenseThreatGroup.getThreatLevel();
+                }
+                else
+                {
+                    threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
+                }
             }
         }
         return threatLevel;

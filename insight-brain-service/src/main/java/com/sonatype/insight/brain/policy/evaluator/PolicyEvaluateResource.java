@@ -116,11 +116,9 @@ public class PolicyEvaluateResource
                                        dependenciesReportEntry.buf );
 
         final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policies, components );
-        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
 
+        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
-        Report.putEntry( reportFile, "policythreats.html",
-                         summarizeThreats( applicationPublicId, appId, scanId, stage, alerts ) );
 
         ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
 

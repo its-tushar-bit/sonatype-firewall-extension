@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -250,7 +251,7 @@ public class PolicyEvaluateResource
         model.put( "detailedReportUrl",
                    uriInfo.getBaseUri() + ReportResource.getReportPath( applicationPublicId, scanId ) );
         model.put( "policyAlerts", policyAlerts );
-        model.put( "policyThreatStage", stage.getStageTypeId() );
+        model.put( "policyThreatStage", StageTypes.getById( stage.getStageTypeId() ).getName() );
         model.put( "policyThreatApp", applicationPublicId );
         model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy" ).format( new Date() ) );
         model.put( "policyThreatRedCount", red );

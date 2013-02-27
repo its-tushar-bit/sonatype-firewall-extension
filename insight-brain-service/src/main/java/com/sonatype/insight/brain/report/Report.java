@@ -112,6 +112,7 @@ public final class Report
 
         final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
+        final ContainerNode<?> partialMatched = applyChanges( reportFile, "partialmatched.json", auditDir );
 
         final ReportEntry licenseReportEntry = getEntry( reportFile, "licenses.json" );
         final List<Component> components = new ComponentDAO().getAll( appId, licenseReportEntry.buf, null, null, null );
@@ -227,6 +228,17 @@ public final class Report
                 licenseNode.put( "licenseThreatLevel", threatLevel );
                 break;
             }
+            for ( JsonNode partialMatchedJsonNode : partialMatched.get( "aaData" )) {
+                final String groupId = partialMatchedJsonNode.get( "groupId" ).asText();
+                final String artifactId = partialMatchedJsonNode.get( "artifactId" ).asText();
+                final String version = partialMatchedJsonNode.get( "version" ).asText();
+                if ( !componentGAV.equals( groupId + ':' + artifactId + ':' + version ) )
+                {
+                    continue;
+                }
+                ObjectNode partialMatchedNode = (ObjectNode) partialMatchedJsonNode;
+                partialMatchedNode.put( "licenseThreatLevel", threatLevel );
+            }
             if ( threatLevel != null )
             {
                 threatLevel = Math.min( 10, Math.max( 0, threatLevel ) );
@@ -249,6 +261,7 @@ public final class Report
             }
         }
         cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licenses ) );
+        cache( getCacheFile( reportFile, "partialmatched.json" ), JsonUtils.generate( partialMatched ) );
         writeLicenseThreatsToReportFile( appId, reportFile );
 
         final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
@@ -278,21 +291,19 @@ public final class Report
         throws IOException
     {
         MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+        final Set<String> multiLicenseIds = multiLicenseDAO.getMultiLicenseMappings().keySet();
 
         ObjectMapper mapper = new ObjectMapper();
+        ObjectNode licenseThreatsJson = mapper.createObjectNode();
         ObjectNode licenseTable = mapper.createObjectNode();
-        ArrayNode licenseThreats = licenseTable.putArray( "aaData" );
-
-        for ( MultiLicense multiLicense : multiLicenseDAO.getAll() )
+        for ( String multiLicenseId : multiLicenseIds )
         {
-            Integer threatLevel =
-                multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId( appId, multiLicense.getId() );
-            ObjectNode licenseNode = mapper.createObjectNode();
-            licenseNode.put( "name", multiLicense.getShortDisplayName() );
-            licenseNode.put( "threatLevel", threatLevel );
-            licenseThreats.add( licenseNode );
+            MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull( multiLicenseId );
+            Integer threatLevel = multiLicenseDAO.getMostSevereLicenseGroupThreatLevelById( appId, multiLicenseId );
+            licenseTable.put( multiLicense.getShortDisplayName(), threatLevel );
         }
-        cache( getCacheFile( reportFile, "licensethreats.json" ), JsonUtils.generate( licenseTable ) );
+        licenseThreatsJson.put( "aaData", licenseTable );
+        cache( getCacheFile( reportFile, "licensethreats.json" ), JsonUtils.generate( licenseThreatsJson ) );
     }
 
     private static void filterKeyFindings( final ObjectNode data, final ContainerNode<?> security )

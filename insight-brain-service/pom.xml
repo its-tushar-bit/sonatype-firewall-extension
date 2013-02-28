@@ -427,6 +427,13 @@
                   </excludes>
                 </filter>
                 <filter>
+                  <artifact>*:sisu-inject-bean</artifact>
+                  <excludes>
+                    <!-- avoid conflict with same resource from BIRT -->
+                    <exclude>plugin.xml</exclude>
+                  </excludes>
+                </filter>
+                <filter>
                   <artifact>*:org.eclipse.birt.runtime</artifact>
                   <includes>
                     <include>*.xml</include>

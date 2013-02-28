@@ -18,6 +18,10 @@
 		};
 
 	window.Brain = {
+		/**
+		 * Check if the Brain instance supports a feature
+		 * @since version 1.1
+		 */
 		"hasFeature" : function (feature) {
 			var i;
 			feature = feature.toLowerCase();
@@ -28,14 +32,26 @@
 			}
 			return false;
 		},
+		/**
+		 * Get the Brain's version.
+		 * @since version 1.1
+		 */
 		"getVersion" : function () {
 			return "${project.version}";
 		},
+		/**
+		 * Get the URL for a specific GAV. (Used to generate the table in the CIP)
+		 * @since version 1.2
+		 */
 		'getArtifactInfoUrl' : function (arg) {
-		    return '/rest/ide/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
-	    },
-	    'getArtifactVersionInfoUrl' : function (arg) {
+			return '/rest/ide/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
+		},
+		/**
+		 * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
+		 * @since version 1.2
+		 */
+		'getArtifactVersionInfoUrl' : function (arg) {
 			return '/rest/ide/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
-	    }
+		}
 	};
 }());

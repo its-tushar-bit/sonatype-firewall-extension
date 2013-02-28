@@ -138,49 +138,53 @@ public class MultiLicenseDAO
         return threatLevel;
     }
 
-    private synchronized void load()
+    private void load()
     {
-        long start = System.currentTimeMillis();
-
-        String sQuery = "SELECT license FROM MultiLicense license" + //
-            " ORDER BY license.shortDisplayName";
-        List<MultiLicense> multiLicenses = getList( sQuery );
-
-        sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
-        @SuppressWarnings( { "unchecked", "rawtypes" } )
-        List<MultiLicenseLicenseInternal> mappings = (List) getList( sQuery );
-
-        Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<String, Set<License>>();
-
-        Map<String, MultiLicense> _licensesById = new LinkedHashMap<String, MultiLicense>();
-        for ( MultiLicense license : multiLicenses )
+        synchronized ( this.getClass() )
         {
-            _licensesById.put( license.getId(), license );
-            _licenseSetsById.put( license.getId(), new LinkedHashSet<License>() );
-        }
-        multiLicensesById = _licensesById;
+            long start = System.currentTimeMillis();
 
-        Map<String, MultiLicense> _licensesByName = new TreeMap<String, MultiLicense>( String.CASE_INSENSITIVE_ORDER );
-        for ( MultiLicense license : multiLicenses )
-        {
-            _licensesByName.put( license.getShortDisplayName(), license );
-        }
-        multiLicensesByName = _licensesByName;
+            String sQuery = "SELECT license FROM MultiLicense license" + //
+                " ORDER BY license.shortDisplayName";
+            List<MultiLicense> multiLicenses = getList( sQuery );
 
-        LicenseDAO licenseDAO = new LicenseDAO();
-        for ( MultiLicenseLicenseInternal mapping : mappings )
-        {
-            License license = licenseDAO.getByIdNotNull( mapping.getLicenseId() );
-            _licenseSetsById.get( mapping.getMultiLicenseId() ).add( license );
-        }
+            sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
+            @SuppressWarnings( { "unchecked", "rawtypes" } )
+            List<MultiLicenseLicenseInternal> mappings = (List) getList( sQuery );
 
-        for ( Map.Entry<String, Set<License>> entry : _licenseSetsById.entrySet() )
-        {
-            entry.setValue( Collections.unmodifiableSet( entry.getValue() ) );
-        }
-        licenseSetsById = _licenseSetsById;
+            Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<String, Set<License>>();
 
-        log.debug( "Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start );
+            Map<String, MultiLicense> _licensesById = new LinkedHashMap<String, MultiLicense>();
+            for ( MultiLicense license : multiLicenses )
+            {
+                _licensesById.put( license.getId(), license );
+                _licenseSetsById.put( license.getId(), new LinkedHashSet<License>() );
+            }
+            multiLicensesById = _licensesById;
+
+            Map<String, MultiLicense> _licensesByName =
+                new TreeMap<String, MultiLicense>( String.CASE_INSENSITIVE_ORDER );
+            for ( MultiLicense license : multiLicenses )
+            {
+                _licensesByName.put( license.getShortDisplayName(), license );
+            }
+            multiLicensesByName = _licensesByName;
+
+            LicenseDAO licenseDAO = new LicenseDAO();
+            for ( MultiLicenseLicenseInternal mapping : mappings )
+            {
+                License license = licenseDAO.getByIdNotNull( mapping.getLicenseId() );
+                _licenseSetsById.get( mapping.getMultiLicenseId() ).add( license );
+            }
+
+            for ( Map.Entry<String, Set<License>> entry : _licenseSetsById.entrySet() )
+            {
+                entry.setValue( Collections.unmodifiableSet( entry.getValue() ) );
+            }
+            licenseSetsById = _licenseSetsById;
+
+            log.debug( "Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start );
+        }
     }
 
     @Override

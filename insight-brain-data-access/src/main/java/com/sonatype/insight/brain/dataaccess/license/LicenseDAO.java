@@ -50,31 +50,34 @@ public class LicenseDAO
         return license;
     }
 
-    private synchronized void load()
+    private void load()
     {
-        long start = System.currentTimeMillis();
-
-        String sQuery = "SELECT license FROM License license";
-        licenses = new ArrayList<License>();
-        licenses.addAll( getList( sQuery ) );
-        Collections.sort( licenses, new Comparator<License>()
+        synchronized ( this.getClass() )
         {
-            @Override
-            public int compare( License license1, License license2 )
+            long start = System.currentTimeMillis();
+
+            String sQuery = "SELECT license FROM License license";
+            licenses = new ArrayList<License>();
+            licenses.addAll( getList( sQuery ) );
+            Collections.sort( licenses, new Comparator<License>()
             {
-                return license1.getShortDisplayName().toLowerCase( Locale.ENGLISH ).compareTo( license2.getShortDisplayName().toLowerCase( Locale.ENGLISH ) );
+                @Override
+                public int compare( License license1, License license2 )
+                {
+                    return license1.getShortDisplayName().toLowerCase( Locale.ENGLISH ).compareTo( license2.getShortDisplayName().toLowerCase( Locale.ENGLISH ) );
+                }
+            } );
+            licenses = Collections.unmodifiableList( licenses );
+
+            Map<String, License> _licensesById = new LinkedHashMap<String, License>();
+            for ( License license : licenses )
+            {
+                _licensesById.put( license.getId(), license );
             }
-        } );
-        licenses = Collections.unmodifiableList( licenses );
+            licensesById = _licensesById;
 
-        Map<String, License> _licensesById = new LinkedHashMap<String, License>();
-        for ( License license : licenses )
-        {
-            _licensesById.put( license.getId(), license );
+            log.debug( "Loaded all licenses in {} ms.", System.currentTimeMillis() - start );
         }
-        licensesById = _licensesById;
-
-        log.debug( "Loaded all licenses in {} ms.", System.currentTimeMillis() - start );
     }
 
     @Override

@@ -62,7 +62,7 @@ public class SaasClient
 
     private final HttpClient client;
 
-    private final String version;
+    private static volatile String version;
 
     public SaasClient( final InsightProxy proxy )
     {
@@ -71,7 +71,7 @@ public class SaasClient
         client.getParams().setParameter( ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME,
                                          PoolingClientConnectionManagerFactory.class.getName() );
         // TODO Need to determine if there is additional information we should be sending to the SaaS
-        version = loadVersion();
+        loadVersion();
     }
 
     public <T> T get( HttpServletRequest request, Class<T> clazz, String... paths )
@@ -278,17 +278,21 @@ public class SaasClient
 
     }
 
-    private String loadVersion()
+    private void loadVersion()
     {
+        if ( version != null )
+        {
+            return;
+        }
         try
         {
             Properties prop = VersionResource.get();
-            return prop.getProperty( "version", "Unknown" );
+            version = prop.getProperty( "version", "Unknown" );
         }
         catch ( IOException e )
         {
-            log.warn( "Failed to load version", e );
+            log.error( "Failed to load version", e );
+            version = "Unknown";
         }
-        return "Unknown";
     }
 }

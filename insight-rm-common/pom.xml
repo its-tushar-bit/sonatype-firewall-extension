@@ -139,17 +139,17 @@
                   <pattern>com</pattern>
                   <shadedPattern>zz.com</shadedPattern>
                   <excludes>
-                    <exclude>com.sonatype.*</exclude>
+                    <exclude>com.sonatype.**</exclude>
                   </excludes>
                 </relocation>
                 <relocation>
                   <pattern>org</pattern>
                   <shadedPattern>zz.org</shadedPattern>
                   <excludes>
-                    <exclude>org.ietf.*</exclude>
-                    <exclude>org.slf4j.*</exclude>
-                    <exclude>org.w3c.*</exclude>
-                    <exclude>org.xml.*</exclude>
+                    <exclude>org.ietf.**</exclude>
+                    <exclude>org.slf4j.**</exclude>
+                    <exclude>org.w3c.**</exclude>
+                    <exclude>org.xml.**</exclude>
                   </excludes>
                 </relocation>
               </relocations>

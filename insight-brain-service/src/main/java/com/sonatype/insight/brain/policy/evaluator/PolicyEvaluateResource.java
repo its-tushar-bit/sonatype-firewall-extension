@@ -179,7 +179,7 @@ public class PolicyEvaluateResource
                     return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );
                 }
             }
-            catch ( final IOException e )
+            catch ( final Exception e )
             {
                 // don't abort sending notifications if old results are corrupt, just means full digest will be sent
                 log.warn( "Cannot load previous results for app id {}, scan id {}", applicationPublicId, scanId, e );

@@ -35,6 +35,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.service.AbstractInjectable;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -52,9 +54,13 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class SaasClient
     extends AbstractInjectable<InsightProxy>
 {
+    private final Logger log = LoggerFactory.getLogger( SaasClient.class );
+
     private final Configuration config;
 
     private final HttpClient client;
+
+    private final String version;
 
     public SaasClient( final InsightProxy proxy )
     {
@@ -63,6 +69,7 @@ public class SaasClient
         client.getParams().setParameter( ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME,
                                          PoolingClientConnectionManagerFactory.class.getName() );
         // TODO Need to determine if there is additional information we should be sending to the SaaS
+        version = loadVersion();
     }
 
     public <T> T get( HttpServletRequest request, Class<T> clazz, String... paths )
@@ -172,6 +179,7 @@ public class SaasClient
                 req.setHeader( headerName, orig.getHeader( headerName ) );
             }
         }
+        req.setHeader( "X-Brain-Version", version );
     }
 
     private Response buildResponse( final HttpResponse response )
@@ -268,4 +276,22 @@ public class SaasClient
 
     }
 
+    private String loadVersion()
+    {
+        InputStream input = null;
+        try
+        {
+            input = InsightProxy.class.getResourceAsStream( "/VERSION" );
+            return IOUtil.toString( input );
+        }
+        catch ( IOException e )
+        {
+            log.warn( "Failed to load version", e );
+            return "Unknown";
+        }
+        finally
+        {
+            IOUtil.close( input );
+        }
+    }
 }

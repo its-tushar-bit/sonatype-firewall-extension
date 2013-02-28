@@ -22,7 +22,7 @@ public class FeaturesResource
     @Produces( MediaType.APPLICATION_JSON )
     public List<String> getFeatures()
     {
-        // Changes to this list should be replicated in brain-client.js
-        return Arrays.asList( "policy", "labels", "release-graph" );
+        // Changes to this list should be replicated in brain.client.js
+        return Arrays.asList( "policy", "labels", "release-graph", "policy-violations" );
     }
 }

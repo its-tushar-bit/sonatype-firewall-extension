@@ -9,13 +9,18 @@
 
 	$.extend(true, window, {
 	    'Insight' : {
-			'PolicyViolations' : function (node, applicationId, hash) {
+			'PolicyViolations' : function (node, appId, hash) {
 				var timestamp = (new Date()).getTime(),
 					container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-policy-violations.html\'"></div>');
 				node.empty();
 				container.appendTo(node);
-
-				angular.module('policyViolations' + timestamp, []);
+				
+				angular.module('policyViolations' + timestamp, []).service('PolicyViolationData', function () {
+                    return {
+                        hash : hash
+                    };
+                });
+				
 				angular.bootstrap(container[0], ['PolicyViolations', 'policyViolations' + timestamp]);
 	        }
 	    }
@@ -23,7 +28,7 @@
 
 	var policyViolationApp = angular.module('PolicyViolations', []);
 
-	policyViolationApp.controller('PolicyViolationsController', ['$http', '$scope', function ($http, $scope) {
+	policyViolationApp.controller('PolicyViolationsController', ['$http', '$scope', 'PolicyViolationData', function ($http, $scope, policyViolationData) {
 		function errorFn(data, status, headersFn, config) {
 		    var header = headersFn();
             if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
@@ -36,27 +41,41 @@
 		function startIfReady() {
 		    if ($scope.policyAlerts !== undefined
 		        && $scope.actionTypes !== undefined) {
+		        $scope.processedPolicyAlerts = [];
 	            angular.forEach($scope.policyAlerts, function(policyAlert,policyAlertIndex){
+	                var actions = [];
+	                angular.forEach(policyAlert.actions, function(action, actionIndex){
+                        angular.forEach($scope.actionTypes, function(actionType, actionTypeIndex){
+                            if (actionType.id === action.actionTypeId) {
+                                actions.push(actionType.summary);
+                                return false;
+                            }
+                        });
+                    });
 	                angular.forEach(policyAlert.trigger.componentFacts, function(componentFact, componentFactIndex){
-	                    policyAlert.componentFact = componentFact;
-	                    if (policyAlert.trigger.threatLevel > 7) {
-	                        policyAlert.color = 'red';
-	                    } else if (policyAlert.trigger.threatLevel > 3) {
-	                        policyAlert.color = 'orange';
-	                    } else if (policyAlert.trigger.threatLevel > 0) {
-	                        policyAlert.color = 'yellow';
-	                    } else {
-	                        policyAlert.color = 'blue';
+	                    console.log('componentHash: ' + componentFact.hash);
+	                    console.log('requestedHash: ' + policyViolationData.hash);
+	                    if (componentFact.hash === policyViolationData.hash){
+	                        var tLvl = policyAlert.trigger.threatLevel;
+	                        $scope.processedPolicyAlerts.push({
+	                            id: policyAlert.trigger.policyId,
+	                            name: policyAlert.trigger.policyName,
+	                            threatLevel: tLvl,
+	                            groupId: componentFact.groupId,
+	                            artifactId: componentFact.artifactId,
+	                            version: componentFact.version,
+	                            hash: componentFact.hash,
+	                            color: tLvl > 7 ? 'red' : tLvl > 3 ? 'orange' : tLvl > 0 ? 'yellow' : 'blue',
+	                            constraints: componentFact.constraintFacts,
+	                            actions: actions
+	                        });
 	                    }
 	                });
-	                angular.forEach(policyAlert.actions, function(action, actionIndex){
-	                    angular.forEach($scope.actionTypes, function(actionType, actionTypeIndex){
-	                        if (actionType.id === action.actionTypeId) {
-	                            action.summary = actionType.summary;
-	                        }
-	                    });
-	                });
-	            });    
+	            });  
+	            
+	            $scope.processedPolicyAlerts.sort(function(policyA, policyB){
+	                return policyA.threatLevel > policyB.threatLevel ? -11 : policyA.threatLevel < policyB.threatLevel ? 1 : 0;
+	            });
 		    }
 		}
 		

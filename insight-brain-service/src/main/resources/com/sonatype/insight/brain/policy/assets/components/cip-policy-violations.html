@@ -12,9 +12,6 @@
 		.border-top, .page-body {
 			border-top:2px solid black;
 		}
-		.light-border-bottom {
-			border-bottom:1px solid black;
-		}
 		.page-body {
 			width:100%;
 			background-color:#E6E6E6;
@@ -54,32 +51,24 @@
 		}
 	</style>
 	<table class="page-body">
-		<tr ng-repeat="policyAlert in policyAlerts">
+		<tr ng-repeat="policyAlert in processedPolicyAlerts">
 			<td class="threat-level {{policyAlert.color}}">
 			</td>
 			<td class="policy-name">	
 				<div>
-					<div style="padding-left:4px;"><b>{{policyAlert.trigger.policyName}}</b></div>
+					<div style="padding-left:4px;"><b>{{policyAlert.name}}</b></div>
 					<div class="action-text">
-						<div ng-repeat="action in policyAlert.actions"><i><b>{{action.summary}}</b></i></div>
+						<div ng-repeat="action in policyAlert.actions"><i><b>{{action}}</b></i></div>
 					</div>
 				</div>
 			</td>
 			<td class="components">
 				<div>
-					<div class="light-border-bottom">
-						<div ng-show="policyAlert.componentFact.groupId">
-							<b>GAV:</b> {{policyAlert.componentFact.groupId}} : {{policyAlert.componentFact.artifactId}} : {{policyAlert.componentFact.version}}
-						</div>
-						<div ng-show="!policyAlert.componentFact.groupId">
-							<b>Hash:</b> {{policyAlert.componentFact.hash}}
-						</div>
-					</div>
-					<table>
-						<tr ng-repeat="constraintFact in policyAlert.componentFact.constraintFacts">
-							<td style="vertical-align:top;">{{constraintFact.constraintName}}</td>
+					<table style="margin-bottom:0px;" class="table table-condensed">
+						<tr ng-repeat="constraint in policyAlert.constraints">
+							<td style="vertical-align:top;width:25%">{{constraint.constraintName}}</td>
 							<td style="padding-left:20px;">
-								<div ng-repeat="conditionFact in constraintFact.conditionFacts">
+								<div ng-repeat="conditionFact in constraint.conditionFacts">
 									<div>{{conditionFact.summary}}</div>
 									<div class="conditionText">{{conditionFact.reason}}</div>
 								</div>

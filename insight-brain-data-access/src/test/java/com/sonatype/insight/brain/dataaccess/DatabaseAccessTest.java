@@ -37,19 +37,26 @@ public class DatabaseAccessTest
         // Create a file database (i.e. not in memory)
         File databaseDir = new File( "target/DatabaseTest/testConcurrentDatabaseAccess" );
         FileUtils.deleteDirectory( databaseDir.getParentFile() );
-        DatabaseConfig databaseConfig = new DatabaseConfig();
-        databaseConfig.setDriverClassName( "org.h2.Driver" );
-        databaseConfig.setUrl( "jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/ods;LOCK_TIMEOUT=10000" );
-        databaseConfig.setUsername( "sa" );
-        databaseConfig.setPassword( "" );
-        databaseConfig.setMaxConnections( 50 );
-        OperationalDataStoreProvider.init( databaseConfig );
+
+        DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
+        odsDatabaseConfig.setDriverClassName( "org.h2.Driver" );
+        odsDatabaseConfig.setUrl( "jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/ods;;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
+        odsDatabaseConfig.setUsername( "sa" );
+        odsDatabaseConfig.setPassword( "" );
+        odsDatabaseConfig.setMaxConnections( 50 );
+        OperationalDataStoreProvider.init( odsDatabaseConfig );
         DataSource dataSource = OperationalDataStoreProvider.get();
         Assert.assertNotNull( dataSource );
         Assert.assertTrue( databaseDir.exists() );
         Assert.assertTrue( new File( databaseDir, "ods.h2.db" ).exists() );
-        databaseConfig.setUrl( "jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/dm;LOCK_TIMEOUT=10000" );
-        DatamartProvider.init( databaseConfig );
+
+        DatabaseConfig dmDatabaseConfig = new DatabaseConfig();
+        dmDatabaseConfig.setDriverClassName( "org.h2.Driver" );
+        dmDatabaseConfig.setUrl( "jdbc:h2:target/DatabaseTest/testConcurrentDatabaseAccess/dm;;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
+        dmDatabaseConfig.setUsername( "sa" );
+        dmDatabaseConfig.setPassword( "" );
+        dmDatabaseConfig.setMaxConnections( 50 );
+        DatamartProvider.init( dmDatabaseConfig );
         dataSource = DatamartProvider.get();
         Assert.assertNotNull( dataSource );
         Assert.assertTrue( databaseDir.exists() );

@@ -3,7 +3,6 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -137,26 +136,6 @@ public class MultiLicenseDAO
             }
         }
         return threatLevel;
-    }
-
-    public Map<String, Set<String>> getMultiLicenseMappings()
-    {
-        if ( licenseSetsById == null )
-        {
-            load();
-        }
-
-        Map<String, Set<String>> result = new HashMap<String, Set<String>>( 512 );
-        for ( Map.Entry<String, Set<License>> entry : licenseSetsById.entrySet() )
-        {
-            Set<String> ids = new LinkedHashSet<String>();
-            for ( License license : entry.getValue() )
-            {
-                ids.add( license.getId() );
-            }
-            result.put( entry.getKey(), ids );
-        }
-        return result;
     }
 
     private synchronized void load()

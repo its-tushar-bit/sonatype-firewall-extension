@@ -291,16 +291,14 @@ public final class Report
         throws IOException
     {
         MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-        final Set<String> multiLicenseIds = multiLicenseDAO.getMultiLicenseMappings().keySet();
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode licenseThreatsJson = mapper.createObjectNode();
         ObjectNode licenseTable = mapper.createObjectNode();
-        for ( String multiLicenseId : multiLicenseIds )
+        for ( MultiLicense multiLicense : multiLicenseDAO.getAll() )
         {
-            MultiLicense multiLicense = multiLicenseDAO.getByIdNotNull( multiLicenseId );
             Integer threatLevel =
-                multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId( appId, multiLicenseId );
+                multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId( appId, multiLicense.getId() );
             licenseTable.put( multiLicense.getShortDisplayName(), threatLevel );
         }
         licenseThreatsJson.put( "aaData", licenseTable );

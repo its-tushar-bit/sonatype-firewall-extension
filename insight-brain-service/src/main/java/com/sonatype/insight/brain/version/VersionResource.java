@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.version;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -25,8 +26,14 @@ public class VersionResource
     public Properties getVersionInfo()
         throws Exception
     {
+        return get();
+    }
+
+    public static Properties get()
+        throws IOException
+    {
         Properties props = new Properties();
-        InputStream is = getClass().getResourceAsStream( "version.properties" );
+        InputStream is = VersionResource.class.getResourceAsStream( "version.properties" );
         try
         {
             props.load( is );
@@ -36,5 +43,6 @@ public class VersionResource
             IOUtil.close( is );
         }
         return props;
+
     }
 }

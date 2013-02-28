@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.service.AbstractInjectable;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -278,20 +280,15 @@ public class SaasClient
 
     private String loadVersion()
     {
-        InputStream input = null;
         try
         {
-            input = InsightProxy.class.getResourceAsStream( "/VERSION" );
-            return IOUtil.toString( input );
+            Properties prop = VersionResource.get();
+            return prop.getProperty( "version", "Unknown" );
         }
         catch ( IOException e )
         {
             log.warn( "Failed to load version", e );
-            return "Unknown";
         }
-        finally
-        {
-            IOUtil.close( input );
-        }
+        return "Unknown";
     }
 }

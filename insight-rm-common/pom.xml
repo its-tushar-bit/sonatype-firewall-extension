@@ -103,6 +103,12 @@
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
+              <artifactSet>
+                <excludes>
+                  <!-- for proper integration, allow host environment to override these -->
+                  <exclude>*:slf4j-api</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -112,6 +118,8 @@
                     <exclude>META-INF/*.RSA</exclude>
                     <exclude>META-INF/maven/*/*/**</exclude>
                     <exclude>META-INF/maven/remote-resources.xml</exclude>
+                    <exclude>META-INF/sisu/**</exclude>
+                    <exclude>com/sonatype/clm/dto/model/ide/**</exclude>
                   </excludes>
                 </filter>
                 <filter>
@@ -122,6 +130,63 @@
                   </excludes>
                 </filter>
               </filters>
+              <relocations>
+                <relocation>
+                  <pattern>de</pattern>
+                  <shadedPattern>zz.de</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com</pattern>
+                  <shadedPattern>zz.com</shadedPattern>
+                  <excludes>
+                    <exclude>com.sonatype.*</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>org</pattern>
+                  <shadedPattern>zz.org</shadedPattern>
+                  <excludes>
+                    <exclude>org.ietf.*</exclude>
+                    <exclude>org.slf4j.*</exclude>
+                    <exclude>org.w3c.*</exclude>
+                    <exclude>org.xml.*</exclude>
+                  </excludes>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uber-jar-fixes</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${project.build.directory}/uberjar">
+                  <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="META-INF/services/**"/>
+                  <firstmatchmapper>
+                    <regexpmapper from="META-INF/services/((?:java)\..+)" to="META-INF/services/\1" handledirsep="true"/>
+                    <regexpmapper from="META-INF/services/(.+)" to="META-INF/services/zz.\1" handledirsep="true"/>
+                  </firstmatchmapper>
+                  <filterchain>
+                    <tokenfilter>
+                      <replaceregex pattern="(?:com|de|org)\.[^,]+" replace="zz.\0" flags="gim"/>
+                    </tokenfilter>
+                  </filterchain>
+                </copy>
+                <move file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/${project.build.finalName}-shade.jar"/>
+                <jar destfile="${project.build.directory}/${project.build.finalName}.jar" filesetmanifest="merge">
+                  <zipfileset src="${project.build.directory}/${project.build.finalName}-shade.jar" excludes="META-INF/services/**"/>
+                  <fileset dir="${project.build.directory}/uberjar"/>
+                </jar>
+              </target>
             </configuration>
           </execution>
         </executions>

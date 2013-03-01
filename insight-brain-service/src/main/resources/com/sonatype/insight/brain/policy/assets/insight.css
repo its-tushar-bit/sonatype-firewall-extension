@@ -185,8 +185,15 @@ input.editor-checkbox {
 }
 
 .licenseContainer {
-	overflow:auto; 
+	overflow:auto;
 	height: 200px;
+	padding: 2px;
+	border-radius:4px;
+	border: 1px solid #ccc;
+}
+.licenseContainer > div {
+	overflow: auto;
+	height: 100%;
 }
 .licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove  {
 	cursor: pointer

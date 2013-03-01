@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
 public class Policy
 {
@@ -167,6 +168,18 @@ public class Policy
                     }
                 }
                 result.merge( constraint.validate( applicationId ) );
+            }
+        }
+
+        if ( actions != null )
+        {
+            for ( String stageTypeId : actions.keySet() )
+            {
+                for ( Action action : actions.get( stageTypeId ) )
+                {
+                    ActionType actionType = ActionTypes.getById( action.getActionTypeId() );
+                    result.merge( actionType.validateAction( action ) );
+                }
             }
         }
 

@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.model.policy;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 
 public class PolicyTest
@@ -136,11 +140,67 @@ public class PolicyTest
         assertConditionValidationResult( "Invalid condition 'SecurityVulnerability null null', Operator is null", result );
     }
 
+    @Test
+    public void testValidate_NotifyActionType()
+    {
+        Policy policy = new Policy( "PolicyId", "Policy Name" );
+        Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        Action action = new Action( NotifyActionType.ID );
+        policy.addAction( FailActionType.ID, action );
+        ValidationResult result = policy.validate( applicationId );
+        assertValidationResult( "Invalid action 'Notify': A target is required", result );
+
+        // Fix the action and validate again
+        action.setTarget( "tester@sonatype.com" );
+        result = policy.validate( applicationId );
+        Assert.assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testValidate_FailActionType()
+    {
+        Policy policy = new Policy( "PolicyId", "Policy Name" );
+        Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        Action action = new Action( FailActionType.ID );
+        action.setTarget( "abc" );
+        policy.addAction( FailActionType.ID, action );
+        ValidationResult result = policy.validate( applicationId );
+        assertValidationResult( "Invalid action 'Fail': This action does not support targets", result );
+
+        // Fix the action and validate again
+        action.setTarget( null );
+        result = policy.validate( applicationId );
+        Assert.assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testValidate_WarnActionType()
+    {
+        Policy policy = new Policy( "PolicyId", "Policy Name" );
+        Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        Action action = new Action( WarnActionType.ID );
+        action.setTarget( "abc" );
+        policy.addAction( FailActionType.ID, action );
+        ValidationResult result = policy.validate( applicationId );
+        assertValidationResult( "Invalid action 'Warn': This action does not support targets", result );
+
+        // Fix the action and validate again
+        action.setTarget( null );
+        result = policy.validate( applicationId );
+        Assert.assertTrue( result.isValid() );
+    }
+
     private void assertValidationResult( String error, ValidationResult result )
     {
         Assert.assertNotNull( result );
         Assert.assertFalse( result.isValid() );
-        Assert.assertEquals( 1, result.getErrors().size() );
+        Assert.assertEquals( result.toMessageString(), 1, result.getErrors().size() );
         Assert.assertEquals( error, result.getErrors().get( 0 ) );
     }
 

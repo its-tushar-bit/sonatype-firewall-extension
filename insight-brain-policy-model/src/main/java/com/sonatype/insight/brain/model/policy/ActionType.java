@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
+
 public interface ActionType
 {
     String getId();
@@ -18,4 +20,6 @@ public interface ActionType
     boolean isRequiresTarget();
     
     String getSummary();
+
+    ValidationResult validateAction( Action action );
 }

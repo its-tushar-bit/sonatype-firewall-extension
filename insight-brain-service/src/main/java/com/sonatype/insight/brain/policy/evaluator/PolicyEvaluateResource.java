@@ -310,7 +310,7 @@ public class PolicyEvaluateResource
         {
             for ( final Action action : alert.getActions() )
             {
-                if ( NotifyActionType.ID.equals( action.getActionTypeId() ) && action.getTarget() != null )
+                if ( NotifyActionType.ID.equals( action.getActionTypeId() ) )
                 {
                     final String[] addresses = action.getTarget().split( "\n" );
                     for ( final String address : addresses )

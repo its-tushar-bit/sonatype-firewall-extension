@@ -43,7 +43,7 @@ public class LabelConditionTypeTest
     @AfterClass
     public static void afterClass()
     {
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 
     @After

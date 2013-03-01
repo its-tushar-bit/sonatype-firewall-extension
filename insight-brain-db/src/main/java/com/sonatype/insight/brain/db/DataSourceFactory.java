@@ -33,14 +33,13 @@ public class DataSourceFactory
         return dataSource;
     }
 
-    /**
-     * For tests only
-     */
-    public static void unloadAll()
+    public static void clear_ForTestsOnly()
     {
         synchronized ( dataSources )
         {
             dataSources.clear();
+            DatamartProvider.clear_ForTestsOnly();
+            OperationalDataStoreProvider.clear_ForTestsOnly();
         }
     }
 }

@@ -33,7 +33,7 @@ public abstract class AbstractBrainServiceTest
     @AfterClass
     public static void afterClass()
     {
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 
     @Before

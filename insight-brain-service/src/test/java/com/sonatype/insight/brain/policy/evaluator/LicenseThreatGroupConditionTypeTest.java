@@ -54,7 +54,7 @@ public class LicenseThreatGroupConditionTypeTest
     @AfterClass
     public static void afterClass()
     {
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 
     private Constraint createConstraint( String operator, String value )

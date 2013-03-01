@@ -5,29 +5,75 @@
  */
 package com.sonatype.insight.brain.db;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
 public class DatamartProvider
 {
+    private static final Logger log = LoggerFactory.getLogger( DatamartProvider.class );
+
     public static final String ID = "insight_brain_dm";
 
-    private static DatabaseConfig config;
+    private static DataSource dataSource;
 
-    private static DataSourceFactory factory = new DataSourceFactory();
+    private static EntityManagerFactory entityManagerFactory;
+
+    private static boolean isInitialized = false;
 
     private DatamartProvider()
     {
     }
 
-    public static void init( DatabaseConfig databaseConfig )
+    public static synchronized void init( DatabaseConfig databaseConfig )
     {
-        config = databaseConfig;
+        if ( isInitialized )
+        {
+            return;
+        }
+
+        log.info( "Initializing the {} data store.", ID );
+        long start = System.currentTimeMillis();
+
+        dataSource = new DataSourceFactory().newDataSource( databaseConfig, ID );
+        Map<String, Object> props = new LinkedHashMap<String, Object>();
+        props.put( "openjpa.ConnectionFactory", dataSource );
+        entityManagerFactory = Persistence.createEntityManagerFactory( "InsightBrainDM", props );
+        isInitialized = true;
+
+        log.info( "Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start );
     }
 
-    public static synchronized DataSource get()
+    public static synchronized DataSource getDataSource()
     {
-        return factory.newDataSource( config, ID );
+        if ( !isInitialized )
+        {
+            init( null /* databaseConfig */);
+        }
+        return dataSource;
+    }
+
+    public static EntityManagerFactory getJPAEntityManagerFactory()
+    {
+        if ( !isInitialized )
+        {
+            init( null /* databaseConfig */);
+        }
+        return entityManagerFactory;
+    }
+
+    static void clear_ForTestsOnly()
+    {
+        dataSource = null;
+        entityManagerFactory = null;
+        isInitialized = false;
     }
 }

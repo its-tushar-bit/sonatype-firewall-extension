@@ -38,6 +38,6 @@ public abstract class AbstractDbDAOTest
             applicationDAO.delete( application );
         }
 
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 }

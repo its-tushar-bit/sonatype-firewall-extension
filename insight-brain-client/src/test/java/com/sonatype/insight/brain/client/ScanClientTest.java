@@ -34,7 +34,7 @@ public class ScanClientTest
     @AfterClass
     public static void afterClass()
     {
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 
     @BeforeClass

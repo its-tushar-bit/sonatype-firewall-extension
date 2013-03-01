@@ -26,13 +26,13 @@ public class DatamartDataStoreProviderTest
     public void setUp()
         throws Exception
     {
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 
     @After
     public void tearDown()
     {
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
     }
 
     @Test
@@ -48,7 +48,7 @@ public class DatamartDataStoreProviderTest
     {
         DatabaseConfig databaseConfig = new DatabaseConfig();
         databaseConfig.setDriverClassName( "org.h2.Driver" );
-        databaseConfig.setUrl( "jdbc:h2:target/DatamartDataStoreProviderTest/test" );
+        databaseConfig.setUrl( "jdbc:h2:target/DatamartDataStoreProviderTest/test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
         databaseConfig.setUsername( "sa" );
         databaseConfig.setPassword( "" );
         databaseConfig.setMaxConnections( 50 );
@@ -61,7 +61,7 @@ public class DatamartDataStoreProviderTest
         Assert.assertTrue( new File( databaseDir, "test.h2.db" ).exists() );
 
         // Existing database
-        DataSourceFactory.unloadAll();
+        DataSourceFactory.clear_ForTestsOnly();
         verifyDatabaseCreation( databaseConfig );
         Assert.assertTrue( databaseDir.exists() );
         Assert.assertTrue( new File( databaseDir, "test.h2.db" ).exists() );
@@ -71,12 +71,23 @@ public class DatamartDataStoreProviderTest
         throws Exception
     {
         DatamartProvider.init( databaseConfig );
-        DataSource dataSource = DatamartProvider.get();
+        DataSource dataSource = DatamartProvider.getDataSource();
         Assert.assertNotNull( dataSource );
         Connection conn = dataSource.getConnection();
         try
         {
             exec( conn, "SELECT * FROM test_table" );
+
+            String databaseURL = conn.getMetaData().getURL();
+            Assert.assertNotNull( databaseURL );
+            if ( databaseConfig != null )
+            {
+                Assert.assertTrue( databaseConfig.getUrl().startsWith( databaseURL + ";" ) );
+            }
+            else
+            {
+                Assert.assertEquals( "jdbc:h2:mem:inMemoryDatabase", databaseURL );
+            }
         }
         finally
         {

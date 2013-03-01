@@ -87,7 +87,7 @@ input.editor-checkbox {
   text-align: center;
 }
 
-.clmLabel, .clmLicense {
+.clmLabel {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   border-radius: 3px;
@@ -103,15 +103,6 @@ input.editor-checkbox {
   max-width: 200px;
   display:inline-block;
   word-break: break-all;
-}
-
-.clmLicense {
-	display: block;
-	border-style: none;
-}
-
-.clmLicense > span {
-	vertical-align: bottom;
 }
 
 .whiteLabel {

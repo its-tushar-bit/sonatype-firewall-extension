@@ -10,7 +10,7 @@
 	<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
 	    <div class="policy-item" ng-repeat="policy in state.policyList">
 	    	<div style="float:right;"><button class="btn btn-mini policy-button" title="Edit Policy" ng-click="viewEditPolicy(policy)"><i class="icon-pencil" style="margin-top:0px;"></i></button><button class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy($index)"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
-	        <span><b>{{policy.name}}</b><br>Threat Level: <div class="policy-threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
+	        <span><b>{{policy.name}}</b><br>Threat Level: <div class="threat-box threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>{{policy.summary.constraints}}<br>{{policy.summary.actionCount}} Action(s) assigned<ul style="list-style:none;">{{policy.summary.actions}}<li></li></ul></span>
 	    </div>
 	</div>
 	<div ng-show="state.showAddPolicyScreen" class='content-container' style="width:625px;margin: 0 auto;">
@@ -23,9 +23,8 @@
 						<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
 						<label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
 							<select
-								id="policyThreatLevel"
 								style="width:100px;"
-								class="policy-threat-color-{{state.currentPolicy.threatLevel}}"
+								class="threat-level threat-level-{{state.currentPolicy.threatLevel}}"
 								ng-model="state.currentPolicy.threatLevel"
 								ng-change="validatePolicy()"
 								ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">

@@ -149,6 +149,9 @@ public class ReportResource
         return response.build();
     }
 
+    /**
+     * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
+     */
     @GET
     @Path( "artifactDetails{ignore:.*}" )
     @Produces( MediaType.APPLICATION_JSON )

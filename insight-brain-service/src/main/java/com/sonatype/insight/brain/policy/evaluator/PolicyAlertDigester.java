@@ -58,6 +58,14 @@ public class PolicyAlertDigester
                     cleared.add( oldAlert );
                     j++;
                 }
+                else if ( oldTrigger.getThreatLevel() != newTrigger.getThreatLevel()
+                    || !oldTrigger.getPolicyName().equals( newTrigger.getPolicyName() ) )
+                {
+                    appeared.add( newAlert );
+                    cleared.add( oldAlert );
+                    i++;
+                    j++;
+                }
                 else
                 {
                     final List<ComponentFact>[] results =
@@ -196,6 +204,13 @@ public class PolicyAlertDigester
                 else if ( comparison > 0 )
                 {
                     cleared.add( oldFact );
+                    j++;
+                }
+                else if ( !oldFact.getConstraintName().equals( newFact.getConstraintName() ) )
+                {
+                    appeared.add( newFact );
+                    cleared.add( oldFact );
+                    i++;
                     j++;
                 }
                 else

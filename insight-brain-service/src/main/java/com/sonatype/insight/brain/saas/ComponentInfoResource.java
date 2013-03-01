@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.ide.SaasClient;
-import com.sonatype.insight.brain.ide.SaasIdeResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
@@ -48,7 +47,7 @@ public class ComponentInfoResource
 {
     public static final String SERVICE_PATH = "rest/{tool : ide|ci}/component/details";
 
-    private static final Logger log = LoggerFactory.getLogger( SaasIdeResource.class );
+    private static final Logger log = LoggerFactory.getLogger( ComponentInfoResource.class );
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 

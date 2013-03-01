@@ -292,7 +292,7 @@ public class PolicyEvaluateResource
                 final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
                 final List<Address> addresses = Arrays.asList( new Address( details.getKey() ) );
                 final String body = summarizeThreats( applicationPublicId, appId, scanId, stage, details.getValue() );
-                mail.sendHtml( mailId, addresses, "Sonatype-CLM Policy Alert", body );
+                mail.sendHtml( mailId, addresses, "Sonatype CLM Policy Alert", body );
             }
             catch ( final Exception e )
             {

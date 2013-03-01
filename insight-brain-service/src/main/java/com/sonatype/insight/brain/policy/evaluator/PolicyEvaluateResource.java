@@ -301,17 +301,20 @@ public class PolicyEvaluateResource
         {
             for ( final Action action : alert.getActions() )
             {
-                if ( NotifyActionType.ID.equals( action.getActionTypeId() ) )
+                if ( NotifyActionType.ID.equals( action.getActionTypeId() ) && action.getTarget() != null )
                 {
-                    final String address = action.getTarget();
-                    List<PolicyAlert> personalAlerts = byRecipients.get( address );
-                    if ( personalAlerts == null )
+                    final String[] addresses = action.getTarget().split( "\n" );
+                    for ( final String address : addresses )
                     {
-                        byRecipients.put( address, personalAlerts = new ArrayList<PolicyAlert>() );
-                    }
-                    if ( !personalAlerts.contains( alert ) )
-                    {
-                        personalAlerts.add( alert );
+                        List<PolicyAlert> personalAlerts = byRecipients.get( address );
+                        if ( personalAlerts == null )
+                        {
+                            byRecipients.put( address, personalAlerts = new ArrayList<PolicyAlert>() );
+                        }
+                        if ( !personalAlerts.contains( alert ) )
+                        {
+                            personalAlerts.add( alert );
+                        }
                     }
                 }
             }

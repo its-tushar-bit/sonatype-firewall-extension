@@ -210,7 +210,7 @@
 								item.target = value.target;
 								
 								if (item.target) {
-									item.targetCount = item.target.split(/,/g).length;
+									item.targetCount = item.target.split('\n').length;
 								}
 							} else {
 								item.action = value.actionTypeId;

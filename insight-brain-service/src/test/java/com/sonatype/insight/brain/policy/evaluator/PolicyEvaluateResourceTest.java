@@ -71,7 +71,7 @@ public class PolicyEvaluateResourceTest
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
         final Action notifyAction = new Action( NotifyActionType.ID );
-        notifyAction.setTarget( "manager@test.corp" );
+        notifyAction.setTarget( "manager@test.corp\njohn.doe@test.corp" );
         policy1.addAction( BuildStageType.ID, notifyAction );
         addPolicy( applicationPublicId, policy1 );
 
@@ -95,9 +95,11 @@ public class PolicyEvaluateResourceTest
         final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
 
-        final List<Message> messages = Mailbox.get( "manager@test.corp" );
+        final List<Message> messagesA = Mailbox.get( "manager@test.corp" );
+        final List<Message> messagesB = Mailbox.get( "john.doe@test.corp" );
 
-        messages.clear();
+        messagesA.clear();
+        messagesB.clear();
 
         // evaluate policy
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
@@ -116,10 +118,13 @@ public class PolicyEvaluateResourceTest
         Assert.assertEquals( 8, policyThreats.get( 0 ).get( "policyThreatLevel" ).asInt() );
 
         // notification message should also have been sent
-        Assert.assertEquals( 1, messages.size() );
-        Assert.assertTrue( messages.get( 0 ).getSubject().contains( "Policy" ) );
+        Assert.assertEquals( 1, messagesA.size() );
+        Assert.assertTrue( messagesA.get( 0 ).getSubject().contains( "Policy" ) );
+        Assert.assertEquals( 1, messagesB.size() );
+        Assert.assertTrue( messagesB.get( 0 ).getSubject().contains( "Policy" ) );
 
-        messages.clear();
+        messagesA.clear();
+        messagesB.clear();
 
         // evaluate policy again
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
@@ -130,7 +135,8 @@ public class PolicyEvaluateResourceTest
         AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts[0] );
 
         // notification message should not have been sent since the results are the same
-        Assert.assertTrue( messages.isEmpty() );
+        Assert.assertTrue( messagesA.isEmpty() );
+        Assert.assertTrue( messagesB.isEmpty() );
     }
 
     @Test

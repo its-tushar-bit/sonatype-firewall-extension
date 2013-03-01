@@ -19,14 +19,14 @@
             $scope.state.notificationEmailList = [];
             $scope.state.currentActionStep = actionData;
             if ($scope.state.currentActionStep.target) {
-                $scope.state.notificationEmailList = $scope.state.currentActionStep.target.split(',');
+                $scope.state.notificationEmailList = $scope.state.currentActionStep.target.split('\n');
             }
             $('#editNotificationsModal').modal('show');
         }
 
         $scope.addNotificationEmail = function() {
             $scope.state.notificationEmailList.push($scope.state.currentNotificationEmail);
-            item.targetCount = item.target.split(/,/g).length;
+            item.targetCount = item.target.split('\n').length;
         }
 
         $scope.cancelNotificationEmail = function() {
@@ -35,7 +35,7 @@
 
         $scope.doneNotificationEmail = function() {
             $('#editNotificationsModal').modal('hide');
-            $scope.state.currentActionStep.target = $scope.state.notificationEmailList.join();
+            $scope.state.currentActionStep.target = $scope.state.notificationEmailList.join('\n');
             $scope.state.currentActionStep.targetCount = $scope.state.notificationEmailList.length;
         }
 

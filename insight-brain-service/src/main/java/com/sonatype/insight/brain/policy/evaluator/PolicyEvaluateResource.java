@@ -227,22 +227,23 @@ public class PolicyEvaluateResource
         for ( PolicyAlert alert : policyAlerts )
         {
             int level = alert.getTrigger().getThreatLevel();
+            int components = alert.getTrigger().getComponentFacts().size();
 
             if ( level > 7 )
             {
-                red++;
+                red += components;
             }
             else if ( level > 3 )
             {
-                orange++;
+                orange += components;
             }
             else if ( level > 0 )
             {
-                yellow++;
+                yellow += components;
             }
             else
             {
-                blue++;
+                blue += components;
             }
         }
 

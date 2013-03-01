@@ -188,6 +188,9 @@ input.editor-checkbox {
 	overflow:auto; 
 	height: 200px;
 }
+.licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove  {
+	cursor: pointer
+}
 
 .fullWidthPrependedTextBox {
 	float: right; 

@@ -33,22 +33,17 @@
 					<div class='halfSize floatLeft'>
 						<h5>Applied Licenses</h5>
 						<div class='licenseContainer'>
-							<span ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'
-								class='clmLicense'><i
-								class='icon-minus-sign'
-								ng-click='setIsApplied(l, false)'></i>&nbsp;<span
-								title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span></span>
+							<div ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
+								<i class='icon-minus-sign' ng-click='setIsApplied(l, false)'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+							</div>
 						</div>
 					</div>
 					<div class='halfSize floatRight'>
 						<h5>Available Licenses</h5>
 						<div class='licenseContainer'>
-							<span
-								ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'
-								class='clmLicense'><i
-								class='icon-plus-sign'
-								ng-click='setIsApplied(l, true)'></i>&nbsp;<span
-								title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span></span>
+							<div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
+								<i class='icon-plus-sign' ng-click='setIsApplied(l, true)'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+							</div>
 						</div>
 					</div>
 				</div>

@@ -31,7 +31,6 @@
                 }
             } 
             $scope.state.notificationEmailList.push($scope.state.currentNotificationEmail);
-            item.targetCount = item.target.split('\n').length;
         }
 
         $scope.cancelNotificationEmail = function() {

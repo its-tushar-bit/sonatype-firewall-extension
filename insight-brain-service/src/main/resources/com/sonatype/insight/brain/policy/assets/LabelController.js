@@ -139,7 +139,8 @@
 			link : function (scope, element, attrs, ctrl) {
 				ctrl.$parsers.unshift(function (newValue) {
 					var nonDuplicate = true,
-						notEmpty = newValue.length !== 0;
+						notEmpty = newValue.length !== 0,
+						notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
 					ctrl.$setValidity('empty', notEmpty);
 
 					angular.forEach(scope.labels, function (item, key) {
@@ -148,8 +149,9 @@
 						}
 					});
 					ctrl.$setValidity('duplicate', nonDuplicate);
+					ctrl.$setValidity('invalid', notInvalid);
 
-					return (notEmpty && nonDuplicate) ? newValue : undefined;
+					return (notEmpty && nonDuplicate && notInvalid) ? newValue : undefined;
 				});
 			}
 		};

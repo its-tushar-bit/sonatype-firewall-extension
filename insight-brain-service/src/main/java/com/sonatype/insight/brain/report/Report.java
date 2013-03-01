@@ -210,7 +210,7 @@ public final class Report
 
             final String componentGAV = component.getGAV();
             Integer threatLevel = null;
-
+        
             for ( LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups() )
             {
                 threatLevel = Math.max( threatLevel != null ? threatLevel : 0, licenseThreatGroup.getThreatLevel() );
@@ -225,10 +225,11 @@ public final class Report
                     continue;
                 }
                 ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
-                licenseNode.put( "licenseThreatLevel", threatLevel );
+                licenseNode.put( "effectiveLicenseThreat", threatLevel );
                 break;
             }
-            for ( JsonNode partialMatchedJsonNode : partialMatched.get( "aaData" )) {
+            for ( JsonNode partialMatchedJsonNode : partialMatched.get( "aaData" ) )
+            {
                 final String groupId = partialMatchedJsonNode.get( "groupId" ).asText();
                 final String artifactId = partialMatchedJsonNode.get( "artifactId" ).asText();
                 final String version = partialMatchedJsonNode.get( "version" ).asText();
@@ -237,7 +238,7 @@ public final class Report
                     continue;
                 }
                 ObjectNode partialMatchedNode = (ObjectNode) partialMatchedJsonNode;
-                partialMatchedNode.put( "licenseThreatLevel", threatLevel );
+                partialMatchedNode.put( "effectiveLicenseThreat", threatLevel );
             }
             if ( threatLevel != null )
             {
@@ -269,8 +270,7 @@ public final class Report
         data.put( "policyArtifactCount", policyArtifactCount );
         fill( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
-        fill( data.putArray( "licenseCounts" ), licenseCounts );
-
+        fill( data.putArray( "effectiveLicenseCounts" ), licenseCounts );
         fill( data.putArray( "securityPunchCard" ), securityPunchCard );
         fill( data.putArray( "licensePunchCard" ), licensePunchCard );
         filterKeyFindings( data, security );

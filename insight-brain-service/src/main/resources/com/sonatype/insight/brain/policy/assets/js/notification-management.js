@@ -25,6 +25,11 @@
         }
 
         $scope.addNotificationEmail = function() {
+            for (var i = $scope.state.notificationEmailList.length - 1; i >= 0; i--) {
+                if ($scope.state.notificationEmailList[i] == $scope.state.currentNotificationEmail) {
+                    return;
+                }
+            } 
             $scope.state.notificationEmailList.push($scope.state.currentNotificationEmail);
             item.targetCount = item.target.split('\n').length;
         }

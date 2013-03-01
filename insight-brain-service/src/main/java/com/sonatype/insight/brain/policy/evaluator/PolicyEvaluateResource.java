@@ -129,7 +129,7 @@ public class PolicyEvaluateResource
         List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
         if ( oldAlerts != null && !oldAlerts.isEmpty() )
         {
-            digest = PolicyDigester.digestPolicyAlerts( alerts, oldAlerts );
+            digest = PolicyAlertDigester.digestPolicyAlerts( alerts, oldAlerts );
         }
 
         if ( digest != null )

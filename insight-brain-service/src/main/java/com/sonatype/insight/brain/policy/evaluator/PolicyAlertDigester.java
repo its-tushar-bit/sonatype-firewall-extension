@@ -14,7 +14,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 
-public class PolicyDigester
+public class PolicyAlertDigester
 {
     @SuppressWarnings( "unchecked" )
     public static List<PolicyAlert>[] digestPolicyAlerts( final List<PolicyAlert> newAlerts,

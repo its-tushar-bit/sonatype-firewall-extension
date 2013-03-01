@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 
-public class PolicyDigesterTest
+public class PolicyAlertDigesterTest
 {
     @Test
     public void testDigest_Nothing()
@@ -38,7 +38,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> oldAlerts = Collections.emptyList();
         final List<PolicyAlert> newAlerts = Collections.emptyList();
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results, nullValue() );
     }
@@ -49,7 +49,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> oldAlerts = Collections.emptyList();
         final List<PolicyAlert> newAlerts = defaultPolicyAlerts();
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( newAlerts.get( 0 ) ) );
         assertThat( results[1], empty() );
@@ -61,7 +61,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> oldAlerts = defaultPolicyAlerts();
         final List<PolicyAlert> newAlerts = defaultPolicyAlerts();
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results, nullValue() );
     }
@@ -72,7 +72,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> oldAlerts = defaultPolicyAlerts();
         final List<PolicyAlert> newAlerts = Collections.emptyList();
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], empty() );
         assertThat( results[1], contains( oldAlerts.get( 0 ) ) );
@@ -86,7 +86,7 @@ public class PolicyDigesterTest
 
         newAlerts.add( 0, new PolicyAlert( policyFact( "policy_1", "Policy 1", 0 ), Collections.<Action> emptyList() ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( newAlerts.get( 0 ) ) );
         assertThat( results[1], empty() );
@@ -100,7 +100,7 @@ public class PolicyDigesterTest
 
         newAlerts.add( new PolicyAlert( policyFact( "policy_8", "Policy 8", 0 ), Collections.<Action> emptyList() ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( newAlerts.get( 1 ) ) );
         assertThat( results[1], empty() );
@@ -115,7 +115,7 @@ public class PolicyDigesterTest
         newAlerts.add( 0, new PolicyAlert( policyFact( "policy_1", "Policy 1", 0 ), Collections.<Action> emptyList() ) );
         newAlerts.add( new PolicyAlert( policyFact( "policy_8", "Policy 8", 0 ), Collections.<Action> emptyList() ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( newAlerts.get( 0 ), newAlerts.get( 2 ) ) );
         assertThat( results[1], empty() );
@@ -130,7 +130,7 @@ public class PolicyDigesterTest
         newAlerts.add( new PolicyAlert( policyFact( "policy_1", "Policy 1", 0 ), Collections.<Action> emptyList() ) );
         newAlerts.add( new PolicyAlert( policyFact( "policy_8", "Policy 8", 0 ), Collections.<Action> emptyList() ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( newAlerts.get( 0 ), newAlerts.get( 1 ) ) );
         assertThat( results[1], contains( oldAlerts.get( 0 ) ) );
@@ -147,7 +147,7 @@ public class PolicyDigesterTest
 
         final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( newFact, oldFact ) ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( any( PolicyAlert.class ) ) );
         assertThat( results[0].get( 0 ).getTrigger().getComponentFacts(), contains( newFact ) );
@@ -165,7 +165,7 @@ public class PolicyDigesterTest
 
         final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( oldFact, newFact ) ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( any( PolicyAlert.class ) ) );
         assertThat( results[0].get( 0 ).getTrigger().getComponentFacts(), contains( newFact ) );
@@ -185,7 +185,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> newAlerts =
             Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( newFact, oldFact ) ) ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( any( PolicyAlert.class ) ) );
         assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts(),
@@ -206,7 +206,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> newAlerts =
             Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( oldFact, newFact ) ) ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( any( PolicyAlert.class ) ) );
         assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts(),
@@ -228,7 +228,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> newAlerts =
             Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( constraint.cloneWith( newFact, oldFact ) ) ) ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( any( PolicyAlert.class ) ) );
         assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts().get( 0 ).getConditionFacts(),
@@ -250,7 +250,7 @@ public class PolicyDigesterTest
         final List<PolicyAlert> newAlerts =
             Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( constraint.cloneWith( oldFact, newFact ) ) ) ) );
 
-        final List<PolicyAlert>[] results = PolicyDigester.digestPolicyAlerts( newAlerts, oldAlerts );
+        final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
         assertThat( results[0], contains( any( PolicyAlert.class ) ) );
         assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts().get( 0 ).getConditionFacts(),

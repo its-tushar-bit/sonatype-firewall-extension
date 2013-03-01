@@ -9,6 +9,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.mail.Message;
 
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -183,6 +185,72 @@ public class PolicyEvaluateResourceTest
         AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponent, policy1.getId(), "Policy 1",
                                                                 FailActionType.ID, constraint1.getId(), "Constraint 1",
                                                                 Arrays.asList( policyAlerts ) );
+    }
+
+    @Test
+    public void testNotificationEmailModel()
+        throws Exception
+    {
+        final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "PolicyEvaluateResourceTest_ScanId";
+        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        saasReportFile.delete();
+
+        final Constraint constraint1 =
+            new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        final Policy policy1 = new Policy( "P1", "PolicyEvaluateResourceTest policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        addPolicy( applicationPublicId, policy1 );
+
+        final Constraint constraint2 =
+            new Constraint( "C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( CoordinatesConditionType.ID, "match", "tomcat" ) );
+        final Policy policy2 = new Policy( "P2", "PolicyEvaluateResourceTest policy2" );
+        policy2.setThreatLevel( 4 );
+        policy2.addConstraint( constraint2 );
+        addPolicy( applicationPublicId, policy2 );
+
+        final Constraint constraint3 =
+            new Constraint( "C3", "PolicyEvaluateResourceTest constraint 3", LogicalOperator.AND );
+        constraint3.addCondition( new Condition( CoordinatesConditionType.ID, "match", "org.*" ) );
+        final Policy policy3 = new Policy( "P3", "PolicyEvaluateResourceTest policy3" );
+        policy3.setThreatLevel( 3 );
+        policy3.addConstraint( constraint3 );
+        addPolicy( applicationPublicId, policy3 );
+
+        final Constraint constraint4 =
+            new Constraint( "C4", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
+        constraint4.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "absent" ) );
+        final Policy policy4 = new Policy( "P4", "PolicyEvaluateResourceTest policy4" );
+        policy4.setThreatLevel( 0 );
+        policy4.addConstraint( constraint4 );
+        addPolicy( applicationPublicId, policy4 );
+
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+
+        Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        Map<String, Object> model =
+            PolicyEvaluateResource.createPolicyMailModel( "http://localhost/", applicationPublicId, scanId, stage,
+                                                          Arrays.asList( policyAlerts ) );
+        Assert.assertNotNull( model );
+        Assert.assertEquals( Arrays.asList( policyAlerts ), model.get( "policyAlerts" ) );
+        Assert.assertEquals( "http://localhost/" + ReportResource.getReportPath( applicationPublicId, scanId ),
+                             model.get( "detailedReportUrl" ) );
+        Assert.assertEquals( 7, model.get( "policyThreatRedCount" ) );
+        Assert.assertEquals( 3, model.get( "policyThreatOrangeCount" ) );
+        Assert.assertEquals( 13, model.get( "policyThreatYellowCount" ) );
+        Assert.assertEquals( 21, model.get( "policyThreatBlueCount" ) );
+        Assert.assertEquals( "Build", model.get( "policyThreatStage" ) );
+        Assert.assertEquals( applicationPublicId, model.get( "policyThreatApp" ) );
+        Assert.assertNotNull( model.get( "policyThreatTime" ) );
     }
 
     private String getServiceURL( final String appId, final String scanId )

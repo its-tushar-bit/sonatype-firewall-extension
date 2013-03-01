@@ -216,9 +216,9 @@ public class PolicyEvaluateResource
         return JsonUtils.aaDataNode( componentThreats.values() );
     }
 
-    private String summarizeThreats( final String applicationPublicId, final String appId, final String scanId,
-                                     final Stage stage, final List<PolicyAlert> policyAlerts )
-        throws IOException
+    static Map<String, Object> createPolicyMailModel( final String serverUrl, final String applicationPublicId,
+                                                      final String scanId, final Stage stage,
+                                                      final List<PolicyAlert> policyAlerts )
     {
         int red = 0;
         int orange = 0;
@@ -249,8 +249,7 @@ public class PolicyEvaluateResource
 
         final Map<String, Object> model = new HashMap<String, Object>();
 
-        model.put( "detailedReportUrl",
-                   uriInfo.getBaseUri() + ReportResource.getReportPath( applicationPublicId, scanId ) );
+        model.put( "detailedReportUrl", serverUrl + ReportResource.getReportPath( applicationPublicId, scanId ) );
         model.put( "policyAlerts", policyAlerts );
         model.put( "policyThreatStage", StageTypes.getById( stage.getStageTypeId() ).getName() );
         model.put( "policyThreatApp", applicationPublicId );
@@ -261,6 +260,15 @@ public class PolicyEvaluateResource
         model.put( "policyThreatBlueCount", blue );
         model.put( "actionTypes", ActionTypes.getAll() );
 
+        return model;
+    }
+
+    private String summarizeThreats( final String applicationPublicId, final String appId, final String scanId,
+                                     final Stage stage, final List<PolicyAlert> policyAlerts )
+        throws IOException
+    {
+        final Map<String, Object> model =
+            createPolicyMailModel( uriInfo.getBaseUri().toString(), applicationPublicId, scanId, stage, policyAlerts );
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }
 

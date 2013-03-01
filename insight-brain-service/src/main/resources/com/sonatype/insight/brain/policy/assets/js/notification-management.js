@@ -74,7 +74,7 @@
             restrict : 'A',
             replace : true,
             transclude : true,
-            templateUrl : 'components/notification-management.html'
+            templateUrl : 'components/notification-management.html?' + clmBuildTimestamp
         }
     });
 }());

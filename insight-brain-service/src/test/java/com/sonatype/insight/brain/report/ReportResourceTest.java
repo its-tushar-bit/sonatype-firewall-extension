@@ -76,6 +76,8 @@ public class ReportResourceTest
 
                 // embedded report processor adds a new licenseCounts property
                 actual = actual.replaceAll( ",\\s*\"licenseCounts\" : \\[[^\\]]*\\]", "" );
+                // embedded report processor adds a new effectiveLicenseCounts property
+                actual = actual.replaceAll( ",\\s*\"effectiveLicenseCounts\" : \\[[^\\]]*\\]", "" );
                 // embedded report processor adds a new policyCounts property
                 actual = actual.replaceAll( ",\\s*\"policyCounts\" : \\[[^\\]]*\\]", "" );
                 // embedded report processor adds a new policyArtifactCount property
@@ -90,13 +92,16 @@ public class ReportResourceTest
             }
             else if ( "licenses.json".equals( entry.getName() ) )
             {
+                String expected = IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" );
                 String actual = response.getResponseBody();
 
                 // embedded report processor adds a new licenseThreatLevel property
                 actual = actual.replaceAll( ",\\s*\"licenseThreatLevel\" : \\d+", "" );
+                // embedded report processor modifies the effectiveLicenseThreat property type
+                expected = expected.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \"[^\"]+\"", "" );
+                actual = actual.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \\d+", "" );
 
-                assertThat( actual,
-                            equalToIgnoringWhiteSpace( IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" ) ) );
+                assertThat( actual, equalToIgnoringWhiteSpace( expected ) );
             }
             else if ( "licensethreats.json".equals( entry.getName() ) )
             {

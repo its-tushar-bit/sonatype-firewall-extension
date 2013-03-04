@@ -18,6 +18,8 @@
     font-family: Arial;
     font-size: 12px;
     font-style: normal;
+    line-height:18px;
+    vertical-align:middle;
 }
 
 /* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */

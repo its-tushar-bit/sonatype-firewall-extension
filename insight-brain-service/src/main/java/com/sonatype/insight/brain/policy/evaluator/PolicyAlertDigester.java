@@ -61,7 +61,7 @@ public class PolicyAlertDigester
                     j++;
                 }
                 else if ( oldTrigger.getThreatLevel() != newTrigger.getThreatLevel()
-                    || !StringUtils.equals( oldTrigger.getPolicyName(), newTrigger.getPolicyName() ) )
+                    || !StringUtils.equalsIgnoreCase( oldTrigger.getPolicyName(), newTrigger.getPolicyName() ) )
                 {
                     appeared.add( newAlert );
                     cleared.add( oldAlert );
@@ -208,8 +208,8 @@ public class PolicyAlertDigester
                     cleared.add( oldFact );
                     j++;
                 }
-                else if ( !StringUtils.equals( oldFact.getOperatorName(), newFact.getOperatorName() )
-                    || !StringUtils.equals( oldFact.getConstraintName(), newFact.getConstraintName() ) )
+                else if ( !StringUtils.equalsIgnoreCase( oldFact.getOperatorName(), newFact.getOperatorName() )
+                    || !StringUtils.equalsIgnoreCase( oldFact.getConstraintName(), newFact.getConstraintName() ) )
                 {
                     appeared.add( newFact );
                     cleared.add( oldFact );

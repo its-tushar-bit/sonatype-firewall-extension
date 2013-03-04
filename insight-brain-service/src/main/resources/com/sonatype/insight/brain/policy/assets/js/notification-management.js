@@ -81,7 +81,7 @@
                         return undefined;
                     } else {
                         for ( var i = 0; i < scope.notificationEmailList.length; i++) {
-                            if (scope.notificationEmailList[i] === scope.currentNotificationEmail) {
+                            if (scope.notificationEmailList[i] === viewValue) {
                                 scope.notificationValidationMsg = "Enter a unique email address";
                                 return undefined;
                             }

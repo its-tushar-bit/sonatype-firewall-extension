@@ -46,16 +46,17 @@ public class MultiLicenseDAOTest
     }
 
     @Test
-    public void testGetMultiLicenseMappings()
+    public void testGetAll()
     {
         MultiLicenseDAO dao = new MultiLicenseDAO();
         Collection<MultiLicense> multiLicenses = dao.getAll();
 
         Assert.assertNotNull( multiLicenses );
+        Assert.assertFalse( multiLicenses.isEmpty() );
     }
 
     @Test
-    public void testGetMostSevereLicenseGroupThreatLevelById()
+    public void testGetLicenseThreatLevelByApplicationIdAndMultiLicenseId()
     {
         MultiLicenseDAO dao = new MultiLicenseDAO();
         Collection<MultiLicense> multiLicenses = dao.getAll();

@@ -80,7 +80,7 @@
 		}
 		
 	    $http.get('policyalerts.json', { params : { timestamp : new Date().getTime() } }).success(function (data) {
-			$scope.policyAlerts = data.aaData;
+			$scope.policyAlerts = data.aaData || [];
 			startIfReady();
 		}).error(errorFn);
 		

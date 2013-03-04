@@ -34,10 +34,6 @@
                 });
             }
         };
-        $scope.viewRemoveConstraint = function (constraintIndex) {
-            $scope.state.deleteConstraintIndex = constraintIndex;
-            viewConfirmation("Delete Constraint?", "Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[$scope.state.deleteConstraintIndex].name + "'?", 'Cancel', 'Delete', deleteConstraint);
-        };
         scope.cancelNotificationEmail = function() {
             $('#editNotificationsModal').modal('hide');
             delete scope.currentNotificationEmail;
@@ -74,21 +70,20 @@
                 ctrl.$parsers.unshift(function(viewValue) {
                     delete scope.notificationValid;
                     delete scope.notificationValidationMsg;
-                    if (!viewValue) {
-                        return undefined;
-                    } else if (!EMAIL_REGEXP.test(viewValue)) {
+                    if (!EMAIL_REGEXP.test(viewValue)) {
                         scope.notificationValidationMsg = "Enter a valid email address";
-                        return undefined;
-                    } else {
+                    } else if (viewValue) {
+                        scope.notificationValid = true;
                         for ( var i = 0; i < scope.notificationEmailList.length; i++) {
                             if (scope.notificationEmailList[i] === viewValue) {
                                 scope.notificationValidationMsg = "Enter a unique email address";
-                                return undefined;
+                                scope.notificationValid = false;
+                                break;
                             }
                         }
-                        scope.notificationValid = true;
-                        return viewValue;
                     }
+
+                    return viewValue;
                 });
             }
         };

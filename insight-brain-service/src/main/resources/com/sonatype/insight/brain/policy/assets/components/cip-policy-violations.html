@@ -1,81 +1,69 @@
 <div ng-controller="PolicyViolationsController" style='padding:5px' class='policyViolations'>
 	<style type='text/css'>
-		.border-bottom, .threat-level, .policy-name, .components {
-			border-bottom:2px solid black;
-		}
-		.border-left, .page-body {
-			border-left:2px solid black;
-		}
-		.border-right, .page-body {
-			border-right:2px solid black;
-		}
-		.border-top, .page-body {
-			border-top:2px solid black;
-		}
-		.page-body {
+		.cip-policy-page-body {
 			width:100%;
 			background-color:#E6E6E6;
 		}
-		.threat-level {
-			width:2%;
-			padding:4 0 4 4;
+		.cip-policy-bordered {
+			border: 2px solid black
 		}
-		.policy-name {
+		.cip-policy-threat-level {
+			width:2%;
+		}
+		.cip-policy-name {
 			width:31%;
 			vertical-align:top;
-			padding:4 4 4 0;
+			padding: 4px;
 		}
-		.components {
+		.cip-policy-components {
 			width:67%;
-			padding:4 4 4 0;
 		}
-		.red {
+		.cip-policy-components table {
+			margin:4px 0 4px 0;width:100%
+		}
+		.cip-policy-red {
 			background-color:#EE1B24;
 		}
-		.orange {
+		.cip-policy-orange {
 			background-color:#F7941D;
 		}
-		.yellow {
+		.cip-policy-yellow {
 			background-color:#FEDF15;
 		}
-		.blue {
+		.cip-policy-blue {
 			background-color:#6E99D0;
 		}
-		.action-text {
+		.cip-policy-action-text {
 			padding-left:40px;
 			padding-top:5px;
 			color:#6E99D0;
 		}
-		.conditionText {
+		.cip-policy-conditionText {
 			color:#6E99D0;
 		}
 	</style>
-	<table class="page-body">
-		<tr ng-repeat="policyAlert in processedPolicyAlerts">
-			<td class="threat-level {{policyAlert.color}}">
+	<table class="cip-policy-page-body">
+		<tr ng-repeat="policyAlert in processedPolicyAlerts" class='cip-policy-bordered'>
+			<td class="cip-policy-threat-level cip-policy-{{policyAlert.color}}">
 			</td>
-			<td class="policy-name">	
-				<div>
-					<div style="padding-left:4px;"><b>{{policyAlert.name}}</b></div>
-					<div class="action-text">
-						<div ng-repeat="action in policyAlert.actions"><i><b>{{action}}</b></i></div>
-					</div>
+			<td class="cip-policy-name">
+				<div><b>{{policyAlert.name}}</b></div>
+				<div class="cip-policy-action-text">
+					<div ng-repeat="action in policyAlert.actions"><i><b>{{action}}</b></i></div>
 				</div>
 			</td>
-			<td class="components">
-				<div>
-					<table style="margin-bottom:0px;" class="table table-condensed">
-						<tr ng-repeat="constraint in policyAlert.constraints">
-							<td style="vertical-align:top;width:25%">{{constraint.constraintName}}</td>
-							<td style="padding-left:20px;">
-								<div ng-repeat="conditionFact in constraint.conditionFacts">
-									<div>{{conditionFact.summary}}</div>
-									<div class="conditionText">{{conditionFact.reason}}</div>
-								</div>
-							</td>
-						</tr>
-					</table>
-				</div>
+			<td class="cip-policy-components">
+				<table>
+					<tr ng-repeat="constraint in policyAlert.constraints">
+						<td style="vertical-align:top;width:25%">{{constraint.constraintName}}</td>
+						<td style="padding-left:20px;">
+							<div ng-repeat="conditionFact in constraint.conditionFacts">
+								<div>{{conditionFact.summary}}</div>
+								<div class="cip-policy-conditionText">{{conditionFact.reason}}</div>
+							</div>
+						</td>
+					</tr>
+				</table>
 			</td>
 		</tr>
 	</table>

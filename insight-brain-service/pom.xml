@@ -399,6 +399,7 @@
             <include>InsightPolicyControllerSpec.js</include>
             <include>InsightLicenseGroupControllerSpec.js</include>
             <include>CIPLabelEditorSpec.js</include>
+            <include>LabelControllerSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/policy/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/policy/assets</jsTestSrcDir>

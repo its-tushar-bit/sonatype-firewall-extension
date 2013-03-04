@@ -22,7 +22,6 @@ import java.util.zip.ZipFile;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

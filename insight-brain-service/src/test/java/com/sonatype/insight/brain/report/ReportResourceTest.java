@@ -80,8 +80,8 @@ public class ReportResourceTest
                 actual = actual.replaceAll( ",\\s*\"effectiveLicenseCounts\" : \\[[^\\]]*\\]", "" );
                 // embedded report processor adds a new policyCounts property
                 actual = actual.replaceAll( ",\\s*\"policyCounts\" : \\[[^\\]]*\\]", "" );
-                // embedded report processor adds a new policyArtifactCount property
-                actual = actual.replaceAll( ",\\s*\"policyArtifactCount\" : \\d+", "" );
+                // embedded report processor adds a new policyComponentCount property
+                actual = actual.replaceAll( ",\\s*\"policyComponentCount\" : \\d+", "" );
 
                 assertThat( actual, equalToIgnoringWhiteSpace( expected ) );
             }

@@ -141,7 +141,7 @@ public final class Report
         final int[] securityCounts = new int[10];
         final int[] licenseCounts = new int[11];
 
-        int policyArtifactCount = 0;
+        int policyComponentCount = 0;
         int insecureArtifactCount = 0;
 
         int securityAlerts = 0;
@@ -157,11 +157,7 @@ public final class Report
             {
                 final int level = row.path( "policyThreatLevel" ).asInt();
                 policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
-
-                if ( StringUtils.isNotEmpty( asText( row.get( "artifactId" ) ) ) )
-                {
-                    policyArtifactCount++;
-                }
+                policyComponentCount++;
             }
         }
 
@@ -267,7 +263,7 @@ public final class Report
 
         final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
         fill( data.putArray( "policyCounts" ), policyCounts );
-        data.put( "policyArtifactCount", policyArtifactCount );
+        data.put( "policyComponentCount", policyComponentCount );
         fill( data.putArray( "securityCounts" ), securityCounts );
         data.put( "insecureArtifactCount", insecureArtifactCount );
         fill( data.putArray( "effectiveLicenseCounts" ), licenseCounts );

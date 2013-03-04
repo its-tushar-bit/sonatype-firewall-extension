@@ -95,7 +95,8 @@ public class PolicyEvaluator
                                                                                              byComponent.getValue() ).entrySet() )
                 {
                     final Constraint constraint = byConstraints.getKey();
-                    final ConstraintFact constraintFact = new ConstraintFact( constraint.getId(), constraint.getName() );
+                    final ConstraintFact constraintFact =
+                        new ConstraintFact( constraint.getId(), constraint.getName(), constraint.getOperator().name() );
                     for ( final MatchFact fact : byConstraints.getValue() )
                     {
                         final int num = fact.getConditionNumber();

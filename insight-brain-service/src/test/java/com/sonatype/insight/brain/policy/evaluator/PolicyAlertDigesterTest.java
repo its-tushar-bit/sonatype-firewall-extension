@@ -145,7 +145,8 @@ public class PolicyAlertDigesterTest
         final ComponentFact oldFact = trigger.getComponentFacts().get( 0 );
         final ComponentFact newFact = componentFact( "1G", "A", "V" );
 
-        final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( newFact, oldFact ) ) );
+        final List<PolicyAlert> newAlerts =
+            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( newFact, oldFact ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -163,7 +164,8 @@ public class PolicyAlertDigesterTest
         final ComponentFact oldFact = trigger.getComponentFacts().get( 0 );
         final ComponentFact newFact = componentFact( "G1", "A", "V" );
 
-        final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( oldFact, newFact ) ) );
+        final List<PolicyAlert> newAlerts =
+            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( oldFact, newFact ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -180,7 +182,7 @@ public class PolicyAlertDigesterTest
         final ComponentFact component = trigger.getComponentFacts().get( 0 );
 
         final ConstraintFact oldFact = component.getConstraintFacts().get( 0 );
-        final ConstraintFact newFact = constraintFact( "constraint_1", "Constraint 1" );
+        final ConstraintFact newFact = constraintFact( "constraint_1", "Constraint 1", "AND" );
 
         final List<PolicyAlert> newAlerts =
             Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( newFact, oldFact ) ) ) );
@@ -201,7 +203,7 @@ public class PolicyAlertDigesterTest
         final ComponentFact component = trigger.getComponentFacts().get( 0 );
 
         final ConstraintFact oldFact = component.getConstraintFacts().get( 0 );
-        final ConstraintFact newFact = constraintFact( "constraint_8", "Constraint 8" );
+        final ConstraintFact newFact = constraintFact( "constraint_8", "Constraint 8", "AND" );
 
         final List<PolicyAlert> newAlerts =
             Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( oldFact, newFact ) ) ) );
@@ -226,7 +228,8 @@ public class PolicyAlertDigesterTest
         final ConditionFact newFact = conditionFact( CoordinatesConditionType.ID, "match", "*" );
 
         final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( constraint.cloneWith( newFact, oldFact ) ) ) ) );
+            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( constraint.cloneWith( newFact,
+                                                                                                                       oldFact ) ) ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -248,7 +251,8 @@ public class PolicyAlertDigesterTest
         final ConditionFact newFact = conditionFact( SecurityVulnerabilityConditionType.ID, "present" );
 
         final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( constraint.cloneWith( oldFact, newFact ) ) ) ) );
+            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.cloneWith( component.cloneWith( constraint.cloneWith( oldFact,
+                                                                                                                       newFact ) ) ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -268,7 +272,7 @@ public class PolicyAlertDigesterTest
     private static PolicyFact defaultPolicyFact()
     {
         final ConditionFact conditionFact = conditionFact( MatchStateConditionType.ID, "is", "exact" );
-        final ConstraintFact constraintFact = constraintFact( "constraint_4", "Constraint 4" );
+        final ConstraintFact constraintFact = constraintFact( "constraint_4", "Constraint 4", "OR" );
         constraintFact.addConditionFact( conditionFact );
         final ComponentFact componentFact = componentFact( "G", "A", "V" );
         componentFact.addConstraintFact( constraintFact );
@@ -287,9 +291,9 @@ public class PolicyAlertDigesterTest
         return new ComponentFact( groupId, artifactId, version, null /* hash */);
     }
 
-    private static ConstraintFact constraintFact( final String id, final String name )
+    private static ConstraintFact constraintFact( final String id, final String name, final String operator )
     {
-        return new ConstraintFact( id, name );
+        return new ConstraintFact( id, name, operator );
     }
 
     private static ConditionFact conditionFact( final String conditionTypeId, final String operator, final String value )

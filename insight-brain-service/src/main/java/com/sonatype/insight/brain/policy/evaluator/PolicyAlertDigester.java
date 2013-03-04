@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.plexus.util.StringUtils;
+
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -59,7 +61,7 @@ public class PolicyAlertDigester
                     j++;
                 }
                 else if ( oldTrigger.getThreatLevel() != newTrigger.getThreatLevel()
-                    || !oldTrigger.getPolicyName().equals( newTrigger.getPolicyName() ) )
+                    || !StringUtils.equals( oldTrigger.getPolicyName(), newTrigger.getPolicyName() ) )
                 {
                     appeared.add( newAlert );
                     cleared.add( oldAlert );
@@ -206,7 +208,8 @@ public class PolicyAlertDigester
                     cleared.add( oldFact );
                     j++;
                 }
-                else if ( !oldFact.getConstraintName().equals( newFact.getConstraintName() ) )
+                else if ( !StringUtils.equals( oldFact.getOperatorName(), newFact.getOperatorName() )
+                    || !StringUtils.equals( oldFact.getConstraintName(), newFact.getConstraintName() ) )
                 {
                     appeared.add( newFact );
                     cleared.add( oldFact );

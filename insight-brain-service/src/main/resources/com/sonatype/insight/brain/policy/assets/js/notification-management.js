@@ -16,7 +16,7 @@
 			$scope.currentNotificationEmail = '';
             $timeout(function () {
 				// This seems to be required to trigger the validity check
-                $scope.notificationEditor.email.$setViewValue('');
+                $scope.neditor.email.$setViewValue('');
             });
 		}
 

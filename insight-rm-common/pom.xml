@@ -140,6 +140,8 @@
                   <shadedPattern>zz.com.</shadedPattern>
                   <excludes>
                     <exclude>com.sonatype.**</exclude>
+                    <!-- NOTE: The leading slash on the below pattern is needed to exclude absolute resource strings, too -->
+                    <exclude>/com/sonatype/**</exclude>
                   </excludes>
                 </relocation>
                 <relocation>

@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,8 +24,11 @@ import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -74,6 +78,8 @@ public class ReportResourceTest
 
                 String actual = response.getResponseBody();
 
+                testDataJsonAugmentation( actual );
+
                 // embedded report processor adds a new licenseCounts property
                 actual = actual.replaceAll( ",\\s*\"licenseCounts\" : \\[[^\\]]*\\]", "" );
                 // embedded report processor adds a new effectiveLicenseCounts property
@@ -95,6 +101,8 @@ public class ReportResourceTest
                 String expected = IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" );
                 String actual = response.getResponseBody();
 
+                testLicensesJsonAugmentation( actual );
+
                 // embedded report processor adds a new licenseThreatLevel property
                 actual = actual.replaceAll( ",\\s*\"licenseThreatLevel\" : \\d+", "" );
                 // embedded report processor modifies the effectiveLicenseThreat property type
@@ -105,7 +113,15 @@ public class ReportResourceTest
             }
             else if ( "licensethreats.json".equals( entry.getName() ) )
             {
-                // embedded report processor radically changes structure of this file, so can't compare content
+                String actual = response.getResponseBody();
+
+                testLicenseThreatsJsonAugmentation( actual );
+            }
+            else if ( "partialmatched.json".equals( entry.getName() ) )
+            {
+                String actual = response.getResponseBody();
+
+                testLicensesJsonAugmentation( actual );
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {
@@ -326,6 +342,44 @@ public class ReportResourceTest
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
+    }
+
+    private void testDataJsonAugmentation( String json )
+        throws IOException
+    {
+        final ContainerNode<?> data = JsonUtils.parse( json );
+        final JsonNode effectiveCounts = data.get( "effectiveLicenseCounts" );
+
+        Assert.assertNotNull( effectiveCounts );
+        Assert.assertEquals( 11, effectiveCounts.size() );
+    }
+
+    private void testLicensesJsonAugmentation( String json )
+        throws IOException
+    {
+        final ContainerNode<?> licenses = JsonUtils.parse( json );
+        final JsonNode aaData = licenses.get( "aaData" );
+        for ( JsonNode license : aaData )
+        {
+            JsonNode effectiveLicenseThreat = license.get( "effectiveLicenseThreat" );
+            Assert.assertNotNull( effectiveLicenseThreat );
+            Integer threat = effectiveLicenseThreat.asInt();
+            Assert.assertTrue( "Effective license threat between null and 10.", threat == null
+                || ( threat >= 0 && threat <= 10 ) );
+        }
+    }
+
+    private void testLicenseThreatsJsonAugmentation( String json )
+        throws IOException
+    {
+        final ContainerNode<?> licenseThreats = JsonUtils.parse( json );
+        final JsonNode aaData = licenseThreats.get( "aaData" );
+        for ( JsonNode licenseThreat : aaData )
+        {
+            Integer threat = licenseThreat.asInt();
+            Assert.assertTrue( "Effective license threat between null and 10.", threat == null
+                || ( threat >= 0 && threat <= 10 ) );
+        }
     }
 
     private String getServiceURL( final String appId, final String scanId )

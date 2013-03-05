@@ -145,8 +145,7 @@ public class PolicyAlertDigesterTest
         final ComponentFact oldFact = trigger.getComponentFacts().get( 0 );
         final ComponentFact newFact = componentFact( "1G", "A", "V" );
 
-        final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.with( newFact, oldFact ) ) );
+        final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( newFact, oldFact ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -164,8 +163,7 @@ public class PolicyAlertDigesterTest
         final ComponentFact oldFact = trigger.getComponentFacts().get( 0 );
         final ComponentFact newFact = componentFact( "G1", "A", "V" );
 
-        final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.with( oldFact, newFact ) ) );
+        final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( oldFact, newFact ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -185,7 +183,7 @@ public class PolicyAlertDigesterTest
         final ConstraintFact newFact = constraintFact( "constraint_1", "Constraint 1", "AND" );
 
         final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.with( component.with( newFact, oldFact ) ) ) );
+            Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( component.with( newFact, oldFact ) ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -206,7 +204,7 @@ public class PolicyAlertDigesterTest
         final ConstraintFact newFact = constraintFact( "constraint_8", "Constraint 8", "AND" );
 
         final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.with( component.with( oldFact, newFact ) ) ) );
+            Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( component.with( oldFact, newFact ) ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -228,8 +226,7 @@ public class PolicyAlertDigesterTest
         final ConditionFact newFact = conditionFact( CoordinatesConditionType.ID, "match", "*" );
 
         final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.with( component.with( constraint.with( newFact,
-                                                                                                                       oldFact ) ) ) ) );
+            Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( component.with( constraint.with( newFact, oldFact ) ) ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 
@@ -251,8 +248,7 @@ public class PolicyAlertDigesterTest
         final ConditionFact newFact = conditionFact( SecurityVulnerabilityConditionType.ID, "present" );
 
         final List<PolicyAlert> newAlerts =
-            Arrays.asList( oldAlerts.get( 0 ).cloneWith( trigger.with( component.with( constraint.with( oldFact,
-                                                                                                                       newFact ) ) ) ) );
+            Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( component.with( constraint.with( oldFact, newFact ) ) ) ) );
 
         final List<PolicyAlert>[] results = PolicyAlertDigester.digestPolicyAlerts( newAlerts, oldAlerts );
 

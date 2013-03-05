@@ -77,11 +77,11 @@ public class PolicyAlertDigester
                     {
                         if ( !results[0].isEmpty() )
                         {
-                            appeared.add( newAlert.cloneWith( newTrigger.with( results[0] ) ) );
+                            appeared.add( newAlert.with( newTrigger.with( results[0] ) ) );
                         }
                         if ( !results[1].isEmpty() )
                         {
-                            cleared.add( oldAlert.cloneWith( oldTrigger.with( results[1] ) ) );
+                            cleared.add( oldAlert.with( oldTrigger.with( results[1] ) ) );
                         }
                     }
 

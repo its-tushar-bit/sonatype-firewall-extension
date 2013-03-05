@@ -55,6 +55,10 @@ public class MultiLicenseDAO
 
     public Collection<MultiLicense> getAll()
     {
+        if ( multiLicensesByName == null )
+        {
+            load();
+        }
         return multiLicensesByName.values();
     }
 

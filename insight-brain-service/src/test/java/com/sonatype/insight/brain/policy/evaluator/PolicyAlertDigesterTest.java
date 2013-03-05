@@ -258,11 +258,184 @@ public class PolicyAlertDigesterTest
         assertThat( results[1], empty() );
     }
 
+    @Test
+    public void testDigest_PolicyNameChange()
+    {
+        final PolicyAlert oldAlert = defaultPolicyAlert();
+        final PolicyFact trigger = oldAlert.getTrigger();
+
+        PolicyAlert newAlert;
+        List<PolicyAlert>[] results;
+
+        newAlert = oldAlert.with( policyFact( "policy_4", "Policy 4", 0 ).with( trigger.getComponentFacts() ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+        assertThat( results, nullValue() );
+
+        newAlert = oldAlert.with( policyFact( "policy_4", "Policy 4~", 0 ).with( trigger.getComponentFacts() ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+        assertThat( results[0], contains( newAlert ) );
+    }
+
+    @Test
+    public void testDigest_PolicyThreatLevelChange()
+    {
+        final PolicyAlert oldAlert = defaultPolicyAlert();
+        final PolicyFact trigger = oldAlert.getTrigger();
+
+        PolicyAlert newAlert;
+        List<PolicyAlert>[] results;
+
+        newAlert = oldAlert.with( policyFact( "policy_4", "Policy 4", 0 ).with( trigger.getComponentFacts() ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+        assertThat( results, nullValue() );
+
+        newAlert = oldAlert.with( policyFact( "policy_4", "Policy 4", 1 ).with( trigger.getComponentFacts() ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+        assertThat( results[0], contains( newAlert ) );
+    }
+
+    @Test
+    public void testDigest_ConstraintNameChange()
+    {
+        final PolicyAlert oldAlert = defaultPolicyAlert();
+        final PolicyFact trigger = oldAlert.getTrigger();
+
+        final ComponentFact componentFact = trigger.getComponentFacts().get( 0 );
+        final ConstraintFact constraintFact = componentFact.getConstraintFacts().get( 0 );
+        final ConditionFact conditionFact = constraintFact.getConditionFacts().get( 0 );
+
+        PolicyAlert newAlert;
+        List<PolicyAlert>[] results;
+
+        final ConstraintFact sameConstraintFact =
+            constraintFact( "constraint_4", "Constraint 4", "OR" ).with( conditionFact );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( sameConstraintFact ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results, nullValue() );
+
+        final ConstraintFact newConstraintFact =
+            constraintFact( "constraint_4", "Constraint 4~", "OR" ).with( conditionFact );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( newConstraintFact ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results[0], contains( any( PolicyAlert.class ) ) );
+        assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts(),
+                    contains( newConstraintFact ) );
+        assertThat( results[1].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts(),
+                    contains( constraintFact ) );
+    }
+
+    @Test
+    public void testDigest_ConstraintOperatorChange()
+    {
+        final PolicyAlert oldAlert = defaultPolicyAlert();
+        final PolicyFact trigger = oldAlert.getTrigger();
+
+        final ComponentFact componentFact = trigger.getComponentFacts().get( 0 );
+        final ConstraintFact constraintFact = componentFact.getConstraintFacts().get( 0 );
+        final ConditionFact conditionFact = constraintFact.getConditionFacts().get( 0 );
+
+        PolicyAlert newAlert;
+        List<PolicyAlert>[] results;
+
+        final ConstraintFact sameConstraintFact =
+            constraintFact( "constraint_4", "Constraint 4", "OR" ).with( conditionFact );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( sameConstraintFact ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results, nullValue() );
+
+        final ConstraintFact newConstraintFact =
+            constraintFact( "constraint_4", "Constraint 4", "AND" ).with( conditionFact );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( newConstraintFact ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results[0], contains( any( PolicyAlert.class ) ) );
+        assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts(),
+                    contains( newConstraintFact ) );
+        assertThat( results[1].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts(),
+                    contains( constraintFact ) );
+    }
+
+    @Test
+    public void testDigest_ConditionValueChange()
+    {
+        final PolicyAlert oldAlert = defaultPolicyAlert();
+        final PolicyFact trigger = oldAlert.getTrigger();
+
+        final ComponentFact componentFact = trigger.getComponentFacts().get( 0 );
+        final ConstraintFact constraintFact = componentFact.getConstraintFacts().get( 0 );
+        final ConditionFact conditionFact = constraintFact.getConditionFacts().get( 0 );
+
+        PolicyAlert newAlert;
+        List<PolicyAlert>[] results;
+
+        final ConditionFact sameConditionFact = conditionFact( MatchStateConditionType.ID, "is", "exact" );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( constraintFact.with( sameConditionFact ) ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results, nullValue() );
+
+        final ConditionFact newConditionFact = conditionFact( MatchStateConditionType.ID, "is", "similar" );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( constraintFact.with( newConditionFact ) ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results[0], contains( any( PolicyAlert.class ) ) );
+        assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts().get( 0 ).getConditionFacts(),
+                    contains( newConditionFact ) );
+        assertThat( results[1].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts().get( 0 ).getConditionFacts(),
+                    contains( conditionFact ) );
+    }
+
+    @Test
+    public void testDigest_ConditionOperatorChange()
+    {
+        final PolicyAlert oldAlert = defaultPolicyAlert();
+        final PolicyFact trigger = oldAlert.getTrigger();
+
+        final ComponentFact componentFact = trigger.getComponentFacts().get( 0 );
+        final ConstraintFact constraintFact = componentFact.getConstraintFacts().get( 0 );
+        final ConditionFact conditionFact = constraintFact.getConditionFacts().get( 0 );
+
+        PolicyAlert newAlert;
+        List<PolicyAlert>[] results;
+
+        final ConditionFact sameConditionFact = conditionFact( MatchStateConditionType.ID, "is", "exact" );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( constraintFact.with( sameConditionFact ) ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results, nullValue() );
+
+        final ConditionFact newConditionFact = conditionFact( MatchStateConditionType.ID, "is not", "exact" );
+
+        newAlert = oldAlert.with( trigger.with( componentFact.with( constraintFact.with( newConditionFact ) ) ) );
+        results = PolicyAlertDigester.digestPolicyAlerts( Arrays.asList( newAlert ), Arrays.asList( oldAlert ) );
+
+        assertThat( results[0], contains( any( PolicyAlert.class ) ) );
+        assertThat( results[0].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts().get( 0 ).getConditionFacts(),
+                    contains( newConditionFact ) );
+        assertThat( results[1].get( 0 ).getTrigger().getComponentFacts().get( 0 ).getConstraintFacts().get( 0 ).getConditionFacts(),
+                    contains( conditionFact ) );
+    }
+
     private static List<PolicyAlert> defaultPolicyAlerts()
     {
         final List<PolicyAlert> policyAlerts = new ArrayList<PolicyAlert>();
-        policyAlerts.add( new PolicyAlert( defaultPolicyFact(), Collections.<Action> emptyList() ) );
+        policyAlerts.add( defaultPolicyAlert() );
         return policyAlerts;
+    }
+
+    private static PolicyAlert defaultPolicyAlert()
+    {
+        return new PolicyAlert( defaultPolicyFact(), Collections.<Action> emptyList() );
     }
 
     private static PolicyFact defaultPolicyFact()

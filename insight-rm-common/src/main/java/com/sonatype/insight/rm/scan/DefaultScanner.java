@@ -289,7 +289,7 @@ class DefaultScanner
             {
                 continue;
             }
-            File file = item.getFile();
+            File file = item.getFile(), tmp = null;
             try
             {
                 if ( file == null )
@@ -297,7 +297,7 @@ class DefaultScanner
                     // NOTE: We need to retain the proper file extension for TrueZIP to recognize the archive type
                     String ext = new File( item.getPath() ).getName();
                     ext = ext.substring( ext.indexOf( '.' ) + 1 );
-                    file = File.createTempFile( "sonatype-clm-file-", "." + ext, config.getWorkDir() );
+                    file = tmp = File.createTempFile( "sonatype-clm-file-", "." + ext, config.getWorkDir() );
                     InputStream is = item.newInputStream();
                     try
                     {
@@ -319,14 +319,14 @@ class DefaultScanner
                 FileScanRequest scanRequest = new FileScanRequest();
                 scanRequest.setScan( scan );
                 scanRequest.setScanWriter( scanWriter );
-                scanRequest.addFile( file, item.getPath(), item.getCoordinates().getId() );
+                scanRequest.addFile( file, trimLeadingSlash( item.getPath() ), item.getCoordinates().getId() );
                 fileScanner.scan( scanRequest );
             }
             finally
             {
-                if ( item.getFile() == null && !file.delete() && file.exists() )
+                if ( tmp != null && !tmp.delete() && tmp.exists() )
                 {
-                    log.warn( "Failed to delete temporary file {}", file );
+                    log.warn( "Failed to delete temporary file {}", tmp );
                 }
             }
         }
@@ -344,6 +344,11 @@ class DefaultScanner
     private SHA1 normalizeSha1( String sha1 )
     {
         return ( sha1 != null ) ? SHA1.fromHexString( sha1 ) : null;
+    }
+
+    private String trimLeadingSlash( String path )
+    {
+        return ( path != null && path.startsWith( "/" ) ) ? path.substring( 1 ) : path;
     }
 
     private ScanConfiguration getConfiguration()

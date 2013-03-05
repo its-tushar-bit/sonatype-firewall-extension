@@ -53,8 +53,6 @@
                         });
                     });
 	                angular.forEach(policyAlert.trigger.componentFacts, function(componentFact, componentFactIndex){
-	                    console.log('componentHash: ' + componentFact.hash);
-	                    console.log('requestedHash: ' + policyViolationData.hash);
 	                    if (componentFact.hash === policyViolationData.hash){
 	                        var tLvl = policyAlert.trigger.threatLevel;
 	                        $scope.processedPolicyAlerts.push({

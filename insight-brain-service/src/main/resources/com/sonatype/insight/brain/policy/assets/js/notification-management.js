@@ -28,6 +28,7 @@
                 $scope.notificationEmailList = $scope.currentActionStep.target.split('\n');
             }
             $('#editNotificationsModal').modal('show');
+            $('#editNotificationsModal input').focus();
 		});
 
         $scope.addNotificationEmail = function() {

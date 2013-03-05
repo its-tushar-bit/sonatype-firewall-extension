@@ -27,7 +27,7 @@ public class OperationalDataStoreProvider
 
     private static EntityManagerFactory entityManagerFactory;
 
-    private static boolean isInitialized = false;
+    private static volatile boolean isInitialized = false;
 
     private OperationalDataStoreProvider()
     {
@@ -52,7 +52,7 @@ public class OperationalDataStoreProvider
         log.info( "Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start );
     }
 
-    public static synchronized DataSource getDataSource()
+    public static DataSource getDataSource()
     {
         if (!isInitialized)
         {
@@ -70,7 +70,7 @@ public class OperationalDataStoreProvider
         return entityManagerFactory;
     }
 
-    static void clear_ForTestsOnly()
+    static synchronized void clear_ForTestsOnly()
     {
         dataSource = null;
         entityManagerFactory = null;

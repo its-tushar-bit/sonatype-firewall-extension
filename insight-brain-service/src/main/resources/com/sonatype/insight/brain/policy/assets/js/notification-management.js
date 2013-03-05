@@ -11,9 +11,17 @@
 
     var module = angular.module('NotificationManagement', []);
     
-    module.controller('NotificationManagementController', [ '$scope', function($scope) {
+    module.controller('NotificationManagementController', [ '$scope', '$timeout', function($scope, $timeout) {
+		function resetInput() {
+			$scope.currentNotificationEmail = '';
+            $timeout(function () {
+				// This seems to be required to trigger the validity check
+                $scope.notificationEditor.email.$setViewValue('');
+            });
+		}
+
 		$scope.$on('editNotification', function (event, actionData) {
-            $scope.currentNotificationEmail = '';
+            resetInput();
             $scope.notificationEmailList = [];
             $scope.currentActionStep = actionData;
             if ($scope.currentActionStep.target) {
@@ -23,13 +31,11 @@
 		});
 
         $scope.addNotificationEmail = function() {
-            if ($scope.notificationValid) {
-                $scope.notificationEmailList.push($scope.currentNotificationEmail);
-                delete $scope.currentNotificationEmail;
-                $scope.notificationEmailList.sort(function(emailA, emailB){
-                    return emailA > emailB ? 1 : emailA < emailB ? -1 : 0;
-                });
-            }
+            $scope.notificationEmailList.push($scope.currentNotificationEmail);
+            resetInput();
+            $scope.notificationEmailList.sort(function(emailA, emailB){
+                return emailA > emailB ? 1 : emailA < emailB ? -1 : 0;
+            });
         };
 
         $scope.cancelNotificationEmail = function() {
@@ -65,23 +71,19 @@
             restrict : 'A',
             scope : false,
             link : function(directiveScope, elm, attrs, ctrl) {
-                ctrl.$parsers.unshift(function(viewValue) {
-                    delete directiveScope.notificationValid;
-                    delete directiveScope.notificationValidationMsg;
-                    if (!EMAIL_REGEXP.test(viewValue)) {
-						directiveScope.notificationValidationMsg = "Enter a valid email address";
-                    } else if (viewValue) {
-						directiveScope.notificationValid = true;
-                        for ( var i = 0; i < directiveScope.notificationEmailList.length; i++) {
-                            if (directiveScope.notificationEmailList[i] === viewValue) {
-								directiveScope.notificationValidationMsg = "Enter a unique email address";
-								directiveScope.notificationValid = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    return viewValue;
+				ctrl.$setValidity('invalid', false);
+				ctrl.$parsers.unshift(function(newValue) {
+					var notInvalid = !newValue || EMAIL_REGEXP.test(newValue),
+						notDuplicate = true;
+					for ( var i = 0; i < directiveScope.notificationEmailList.length; i++) {
+						if (directiveScope.notificationEmailList[i] === newValue) {
+							notDuplicate = false;
+							break;
+						}
+					}
+					ctrl.$setValidity('invalid', notInvalid);
+					ctrl.$setValidity('unique', notDuplicate);
+                    return (notInvalid && notDuplicate) ? newValue : undefined;
                 });
             }
         };

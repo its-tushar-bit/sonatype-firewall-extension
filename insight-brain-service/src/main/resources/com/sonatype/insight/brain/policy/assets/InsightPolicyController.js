@@ -558,6 +558,9 @@
 			}
 		});
 
+		$scope.editNotification = function (actionData) {
+			$rootScope.$broadcast('editNotification', actionData);
+		};
 		showHttpMask('Loading data from server...');
 
 		loadList(clmLocations.getConditionTypeUrl(), 'conditionTypeList', 'Condition Type Initialization Error');

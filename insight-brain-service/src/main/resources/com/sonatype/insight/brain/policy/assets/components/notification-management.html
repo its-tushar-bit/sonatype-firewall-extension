@@ -8,10 +8,10 @@
 				<tr>
 					<td>
 						<div class="input-append">
-							<form ng-submit="notificationManagement.addNotificationEmail()">
-								<input type="text" class="span6" ng-model="notificationManagement.currentNotificationEmail" placeholder='Enter Email Address...' email-input
+							<form ng-submit="addNotificationEmail()">
+								<input type="text" class="span6" ng-model="currentNotificationEmail" placeholder='Enter Email Address...' email-input
 									entersubmit></input>
-								<button class="btn" ng-disabled="!notificationManagement.notificationValid" title="Add Notification Email">Add</button>
+								<button class="btn" ng-disabled="!notificationValid" title="Add Notification Email">Add</button>
 							</form>
 						</div>
 					</td>
@@ -19,14 +19,14 @@
 				<tr>
 					<td>
 						<div class="well well-small" style="padding: 3px; margin-bottom: 5px; overflow-y: auto; overflow-x: hidden; height: 120px; max-height: 120px;">
-							<div ng-repeat="notificationEmail in notificationManagement.notificationEmailList">
+							<div ng-repeat="notificationEmail in notificationEmailList">
 								<table class="table table-condensed" style="margin-bottom: 0px;">
 									<tr>
 										<td style="width: 1%; max-width: 400px; overflow: hidden;">
 											<div style="overflow: hidden;">{{notificationEmail}}</div>
 										</td>
 										<td style="width: 99%; text-align: right;">
-											<button class="btn btn-mini" ng-click="notificationManagement.removeNotificationEmail($index)" title="Remove Notification Email">
+											<button class="btn btn-mini" ng-click="removeNotificationEmail($index)" title="Remove Notification Email">
 												<i class="icon-minus-sign"></i>
 											</button>
 										</td>
@@ -41,11 +41,11 @@
 	</div>
 	<div class="modal-footer">
 		<div>
-			<div style="padding-top: 5px; float: left;" ng-show="notificationManagement.notificationValidationMsg">
-				<span style="color: #b94a48;">{{notificationManagement.notificationValidationMsg}}</span>
+			<div style="padding-top: 5px; float: left;" ng-show="notificationValidationMsg">
+				<span style="color: #b94a48;">{{notificationValidationMsg}}</span>
 			</div>
-			<button class="btn" ng-click="notificationManagement.cancelNotificationEmail()">Cancel</button>
-			<button class="btn btn-primary" ng-click="notificationManagement.doneNotificationEmail()">Done</button>
+			<button class="btn" ng-click="cancelNotificationEmail()">Cancel</button>
+			<button class="btn btn-primary" ng-click="doneNotificationEmail()">Done</button>
 		</div>
 	</div>
 </div>

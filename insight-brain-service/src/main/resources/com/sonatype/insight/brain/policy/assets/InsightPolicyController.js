@@ -16,11 +16,19 @@
 			data.summary = {
 				constraints: data.constraints.length + ' Constraint(s) to be evaluated'
 			};
+			
+			function capitalize(text) {
+			    if (text && text.length > 1) {
+			        return text.substring(0,1).toUpperCase() + text.substring(1);
+			    }
+			    
+			    return text;
+			}
 
 			var actionCount = 0,
 				actionNames = '';
 			angular.forEach(data.actions, function (value, key) {
-				var j;
+				var j, currentStageText = '', formattedName;
 				if (value.length > 0) {
 					actionCount++;
 					if (actionNames.length > 0) {
@@ -29,22 +37,23 @@
 
 					for (j = 0; j < $scope.state.actionStageList.length; j++) {
 						if ($scope.state.actionStageList[j].id == key) {
-							actionNames += $scope.state.actionStageList[j].name + ': ';
+							currentStageText += $scope.state.actionStageList[j].name + ': ';
 							break;
 						}
 					}
 
 					for (j = 0; j < value.length; j++) {
-						if (j > 0) {
-							actionNames += '/';
+						formattedName = capitalize(value[j].actionTypeId);
+						if (currentStageText.indexOf(formattedName) < 0) {
+						    if (j > 0) {
+	                            currentStageText += '/';
+	                        }
+						    currentStageText += formattedName;
 						}
-						if (value[j].actionTypeId === 'warn') {
-							actionNames += 'Warn';
-						} else if (value[j].actionTypeId === 'fail') {
-							actionNames += 'Fail';
-						} else if (value[j].actionTypeId === 'notify') {
-							actionNames += 'Notify';
-						}
+					}
+					
+					if (currentStageText) {
+					    actionNames += currentStageText;
 					}
 				}
 			});
@@ -200,22 +209,38 @@
 					item = {
 						id: $scope.state.actionStageList[i].id,
 						name: $scope.state.actionStageList[i].name,
-						action: 'none',
-						targetCount: 0
+						notifyCount: 0,
+						actions: [],
+						action: 'none'
 					};
 					
 					if ($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id] && $scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id].length > 0) {
-						angular.forEach($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id],function(value,key){
-							if (value.actionTypeId === 'notify'){
-								item.target = value.target;
-								
-								if (item.target) {
-									item.targetCount = item.target.split('\n').length;
-								}
-							} else {
-								item.action = value.actionTypeId;
-							}
+						var foundFailWarn = false;
+					    angular.forEach($scope.state.currentPolicy.actions[$scope.state.actionStageList[i].id],function(value,key){
+						    switch (value.actionTypeId) {
+						    case 'notify':
+						        item.notifyCount++;
+						        item.actions.push({
+						            action: value.actionTypeId,
+						            target: value.target
+						        });
+						        break;
+						    case 'fail':
+						    case 'warn':
+						        foundFailWarn = true;
+						        item.actions.push({
+						            action: value.actionTypeId
+						        });
+						        item.action = value.actionTypeId;
+						        break;
+						    }
 						});
+					    
+					    if (!foundFailWarn) {
+					        item.actions.push({
+					            action: 'none'
+					        });
+					    }
 					}
 					
 					$scope.state.actionTableData.push(item);
@@ -257,22 +282,28 @@
 				if ($scope.state.currentPolicy) {
 					var handleAction = function (id) {
 						var result = [],
-							i;
+							i, j;
 
 						for (i = 0; i < $scope.state.actionTableData.length; i++) {
 							if ($scope.state.actionTableData[i].id === id) {
-								if ($scope.state.actionTableData[i].action != 'none'){
-									result.push({
-										actionTypeId: $scope.state.actionTableData[i].action
-									});
-								}
-								
-								if ($scope.state.actionTableData[i].target){
-									result.push({
-										actionTypeId: 'notify',
-										target: $scope.state.actionTableData[i].target
-									});
-								}
+							    switch ($scope.state.actionTableData[i].action) {
+							    case 'warn':
+							    case 'fail':
+							        result.push({
+                                        actionTypeId: $scope.state.actionTableData[i].action
+                                    });
+							        break;
+							    }
+							    for (j = 0; j < $scope.state.actionTableData[i].actions.length; j++) {
+							        switch ($scope.state.actionTableData[i].actions[j].action) {
+							        case 'notify':
+							            result.push({
+                                            actionTypeId: $scope.state.actionTableData[i].actions[j].action,
+                                            target: $scope.state.actionTableData[i].actions[j].target
+                                        });
+							            break;
+							        }   
+							    }
 							}
 						}
 

@@ -312,18 +312,15 @@ public class PolicyEvaluateResource
             {
                 if ( NotifyActionType.ID.equals( action.getActionTypeId() ) )
                 {
-                    final String[] addresses = action.getTarget().split( "\n" );
-                    for ( final String address : addresses )
+                    final String address = action.getTarget();
+                    List<PolicyAlert> personalAlerts = byRecipients.get( address );
+                    if ( personalAlerts == null )
                     {
-                        List<PolicyAlert> personalAlerts = byRecipients.get( address );
-                        if ( personalAlerts == null )
-                        {
-                            byRecipients.put( address, personalAlerts = new ArrayList<PolicyAlert>() );
-                        }
-                        if ( !personalAlerts.contains( alert ) )
-                        {
-                            personalAlerts.add( alert );
-                        }
+                        byRecipients.put( address, personalAlerts = new ArrayList<PolicyAlert>() );
+                    }
+                    if ( !personalAlerts.contains( alert ) )
+                    {
+                        personalAlerts.add( alert );
                     }
                 }
             }

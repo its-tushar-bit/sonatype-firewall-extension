@@ -67,7 +67,7 @@
 									<th style="text-align:center;">Fail</th>
 									<th style="text-align:center;">Warn</th>
 									<th style="text-align:center;">Do Nothing</th>
-									<th style="text-align:center;">Notify</th>
+									<th style="text-align:center;" colspan='2' ng-show='features.notification'>Notify</th>
 								</tr>
 							</thead>
 							<tr ng-repeat="actionData in state.actionTableData">
@@ -87,10 +87,10 @@
 									</input>
 									<img src="img/tick.png" ng-show="!state.actionEditMode && actionData.action == 'none'">
 								</td>
-								<td style="width:15%;max-width:50px;overflow:hidden;text-align:center;">
+								<td style="width:15%;max-width:50px;overflow:hidden;text-align:center;" ng-show='features.notification'>
 									<div style="display:inline;overflow:hidden;"><i class="icon-user"></i> {{actionData.targetCount}}</div>
 								</td>
-								<td style="width:1%;" ng-show="state.actionEditMode">
+								<td style="width:1%;" ng-show="state.actionEditMode && features.notification">
 									<div><button class="btn btn-mini" ng-click="editNotification(actionData)" title="Edit Notifications"><i class="icon-pencil"></i></button></div>
 								</td>
 							</tr>

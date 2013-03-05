@@ -132,19 +132,19 @@
               </filters>
               <relocations>
                 <relocation>
-                  <pattern>de</pattern>
-                  <shadedPattern>zz.de</shadedPattern>
+                  <pattern>de.</pattern>
+                  <shadedPattern>zz.de.</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>com</pattern>
-                  <shadedPattern>zz.com</shadedPattern>
+                  <pattern>com.</pattern>
+                  <shadedPattern>zz.com.</shadedPattern>
                   <excludes>
                     <exclude>com.sonatype.**</exclude>
                   </excludes>
                 </relocation>
                 <relocation>
-                  <pattern>org</pattern>
-                  <shadedPattern>zz.org</shadedPattern>
+                  <pattern>org.</pattern>
+                  <shadedPattern>zz.org.</shadedPattern>
                   <excludes>
                     <exclude>org.ietf.**</exclude>
                     <exclude>org.slf4j.**</exclude>

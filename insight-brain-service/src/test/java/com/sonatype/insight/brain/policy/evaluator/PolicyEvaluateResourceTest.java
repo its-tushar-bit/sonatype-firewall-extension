@@ -73,8 +73,11 @@ public class PolicyEvaluateResourceTest
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
         final Action notifyAction = new Action( NotifyActionType.ID );
-        notifyAction.setTarget( "manager@test.corp\njohn.doe@test.corp" );
+        notifyAction.setTarget( "manager@test.corp" );
         policy1.addAction( BuildStageType.ID, notifyAction );
+        final Action notifyAction2 = new Action( NotifyActionType.ID );
+        notifyAction2.setTarget( "john.doe@test.corp" );
+        policy1.addAction( BuildStageType.ID, notifyAction2 );
         addPolicy( applicationPublicId, policy1 );
 
         final Constraint constraint2 =

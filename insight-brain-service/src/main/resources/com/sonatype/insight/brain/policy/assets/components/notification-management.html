@@ -19,20 +19,18 @@
 				<tr>
 					<td>
 						<div class="well well-small" style="padding: 3px; margin-bottom: 5px; overflow-y: auto; overflow-x: hidden; height: 120px; max-height: 120px;">
-							<div ng-repeat="notificationEmail in notificationEmailList">
-								<table class="table table-condensed" style="margin-bottom: 0px;">
-									<tr>
-										<td style="width: 1%; max-width: 400px; overflow: hidden;">
-											<div style="overflow: hidden;">{{notificationEmail}}</div>
-										</td>
-										<td style="width: 99%; text-align: right;">
-											<button class="btn btn-mini" ng-click="removeNotificationEmail($index)" title="Remove Notification Email">
-												<i class="icon-minus-sign"></i>
-											</button>
-										</td>
-									</tr>
-								</table>
-							</div>
+							<table class="table table-condensed" style="margin-bottom: 0px;">
+								<tr ng-repeat="notificationEmail in notificationEmailList">
+									<td style="width: 1%; max-width: 400px; overflow: hidden;">
+										<div style="overflow: hidden;">{{notificationEmail}}</div>
+									</td>
+									<td style="width: 99%; text-align: right;">
+										<button class="btn btn-mini" ng-click="removeNotificationEmail($index)" title="Remove Notification Email">
+											<i class="icon-minus-sign"></i>
+										</button>
+									</td>
+								</tr>
+							</table>
 						</div>
 					</td>
 				</tr>

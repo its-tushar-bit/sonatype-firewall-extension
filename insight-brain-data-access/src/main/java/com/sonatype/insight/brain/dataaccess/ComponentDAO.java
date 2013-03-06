@@ -235,33 +235,7 @@ public class ComponentDAO
 
         processJsonLicenseData( component, componentJson );
 
-        component.setCatalogDate( componentJson.get( "catalogDate" ).asLong() );
-        component.setHash( componentJson.get( "hash" ).asText() );
-        component.setMatchState( MatchState.getById( componentJson.get( "matchState" ).asText() ) );
-
-        ArrayNode securityNodes = (ArrayNode) componentJson.get( "securityIssues" );
-        if ( securityNodes != null )
-        {
-            for ( JsonNode securityNode : securityNodes )
-            {
-                final String source = securityNode.get( "source" ).asText();
-                final String reference = securityNode.get( "reference" ).asText();
-                final Float severity = JsonUtils.getNullableFloat( securityNode.get( "score" ) );
-                final String statusString = JsonUtils.getNullableString( securityNode.get( "status" ) );
-                final SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName( statusString );
-
-                final SecurityVulnerability securityVulnerability = new SecurityVulnerability();
-                securityVulnerability.setSource( source );
-                securityVulnerability.setRefId( reference );
-                securityVulnerability.setSeverity( severity );
-                securityVulnerability.setStatus( status );
-                component.addSecurityVulnerability( securityVulnerability );
-            }
-        }
-
         loadLicenseThreatGroups( applicationId, component );
-
-        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
 
         return component;
     }

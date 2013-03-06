@@ -432,6 +432,60 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 1, policyAlerts.size() );
     }
 
+    @Test
+    public void test_unknown_simple()
+        throws Exception
+    {
+        String hash = "000babababababababab";
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        String url = getScanSimpleUrl( applicationPublicId, hash );
+        String saasUrl = url.substring( getRestBaseUrl().length() );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_000babababababababab.json" );
+        Response response = RestAccess.get( url );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertNull( ideMatchedComponent.getAlerts() );
+    }
+
+    @Test
+    public void test_unknown_simple_enhancedResponse()
+        throws Exception
+    {
+        String hash = "000babababababababab";
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        String url = getScanSimpleUrl( applicationPublicId, hash );
+        String saasUrl = url.substring( getRestBaseUrl().length() );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
+        Response response = RestAccess.get( url );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertNotNull( ideMatchedComponent.getAlerts() );
+    }
+
+    @Test
+    public void test_unknown_enhanced()
+        throws Exception
+    {
+        String hash = "000babababababababab";
+        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        String url = getScanEnhancedUrl( applicationPublicId, hash );
+        String saasUrl = url.substring( getRestBaseUrl().length() );
+        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
+        Response response = RestAccess.get( url );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertNotNull( ideMatchedComponent.getAlerts() );
+    }
+
     private String getServiceURL()
     {
         return getRestBaseUrl() + SaasIdeResource.SERVICE_PATH;

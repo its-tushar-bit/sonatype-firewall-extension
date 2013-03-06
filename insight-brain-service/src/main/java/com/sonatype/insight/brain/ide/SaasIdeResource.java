@@ -73,7 +73,8 @@ public class SaasIdeResource
             client.get( req, MatchedComponent.class, "rest/ide/scan", scanType, applicationPublicId, path );
 
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
-        if ( ideComponent.getWaitDelta() == null && !"unknown".equals( ideComponent.getMatchState() ) )
+        if ( ideComponent.getWaitDelta() == null
+            && ( !"unknown".equals( ideComponent.getMatchState() ) || !ideComponent.isSimpleMatch() ) )
         {
             ObjectNode licenseData =
                 AugmentUtil.getLicenseData( work, applicationId, matchedComponent.getGroupId(),

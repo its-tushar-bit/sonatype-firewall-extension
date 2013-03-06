@@ -86,8 +86,6 @@ public class ReportResourceTest
 
                 testLicensesJsonAugmentation( actual );
 
-                // embedded report processor adds a new licenseThreatLevel property
-                actual = actual.replaceAll( ",\\s*\"licenseThreatLevel\" : \\d+", "" );
                 // embedded report processor modifies the effectiveLicenseThreat property type
                 expected = expected.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \"[^\"]+\"", "" );
                 actual = actual.replaceAll( ",\\s*\"effectiveLicenseThreat\" : [^,]+", "" );

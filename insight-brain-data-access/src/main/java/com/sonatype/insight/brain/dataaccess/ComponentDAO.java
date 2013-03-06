@@ -226,21 +226,38 @@ public class ComponentDAO
         return component;
     }
 
-    public Component getComponent( String applicationId, JsonNode matchedJson )
+    public Component getComponent( String applicationId, JsonNode componentJson )
     {
         Component component = new Component();
-        component.setArtifactId( matchedJson.get( "artifactId" ).textValue() );
-        component.setGroupId( matchedJson.get( "groupId" ).textValue() );
-        component.setVersion( matchedJson.get( "version" ).textValue() );
+        component.setArtifactId( componentJson.get( "artifactId" ).asText() );
+        component.setGroupId( componentJson.get( "groupId" ).asText() );
+        component.setVersion( componentJson.get( "version" ).asText() );
 
-        processJsonLicenseData( component, matchedJson );
+        processJsonLicenseData( component, componentJson );
 
-        component.setCatalogDate( matchedJson.get( "catalogDate" ).asLong() );
-        component.setHash( matchedJson.get( "hash" ).textValue() );
-        component.setMatchState( MatchState.getById( matchedJson.get( "matchState" ).textValue() ) );
+        component.setCatalogDate( componentJson.get( "catalogDate" ).asLong() );
+        component.setHash( componentJson.get( "hash" ).asText() );
+        component.setMatchState( MatchState.getById( componentJson.get( "matchState" ).asText() ) );
 
-        ArrayNode securityNode = (ArrayNode) matchedJson.get( "securityIssues" );
-        processJsonSVData( component, securityNode );
+        ArrayNode securityNodes = (ArrayNode) componentJson.get( "securityIssues" );
+        if ( securityNodes != null )
+        {
+            for ( JsonNode securityNode : securityNodes )
+            {
+                final String source = securityNode.get( "source" ).asText();
+                final String reference = securityNode.get( "reference" ).asText();
+                final Float severity = JsonUtils.getNullableFloat( securityNode.get( "score" ) );
+                final String statusString = JsonUtils.getNullableString( securityNode.get( "status" ) );
+                final SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName( statusString );
+
+                final SecurityVulnerability securityVulnerability = new SecurityVulnerability();
+                securityVulnerability.setSource( source );
+                securityVulnerability.setRefId( reference );
+                securityVulnerability.setSeverity( severity );
+                securityVulnerability.setStatus( status );
+                component.addSecurityVulnerability( securityVulnerability );
+            }
+        }
 
         loadLicenseThreatGroups( applicationId, component );
 

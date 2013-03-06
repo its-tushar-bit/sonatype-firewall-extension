@@ -296,14 +296,15 @@ public class ComponentDAO
             component.addSecurityVulnerability( new SecurityVulnerability( issue.getSource(), issue.getRefId(),
                                                                            issue.getSeverity() ) );
         }
-        if ( jsonSVNode != null )
-        {
-            processJsonSVData( component, jsonSVNode );
-        }
+        processJsonSVData( component, jsonSVNode );
     }
 
     private void processJsonSVData( Component component, ArrayNode jsonSVNodes )
     {
+        if ( jsonSVNodes == null )
+        {
+            return;
+        }
         List<SecurityVulnerability> svs = component.getSecurityVulnerabilities();
         for ( int i = 0; i < jsonSVNodes.size(); i++ )
         {

@@ -240,10 +240,8 @@ public class ComponentDAO
         component.setMatchState( MatchState.getById( matchedJson.get( "matchState" ).textValue() ) );
 
         ArrayNode securityNode = (ArrayNode) matchedJson.get( "securityIssues" );
-        if ( securityNode != null )
-        {
-            processJsonSVData( component, securityNode );
-        }
+        processJsonSVData( component, securityNode );
+
         loadLicenseThreatGroups( applicationId, component );
 
         loadComponentLabels( applicationId, component, new ComponentLabelDAO() );

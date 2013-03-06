@@ -18,6 +18,8 @@ import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -31,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -39,15 +40,12 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class SaasIdeResourceTest
     extends AbstractResourceTest
 {
-    private Response addPolicy( String applicationPublicId, Policy policy )
+    private void addPolicy( String applicationPublicId, Policy policy )
         throws Exception
     {
-        Response response =
-            RestAccess.post( getRestBaseUrl()
-                                 + PolicyResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ),
-                             JsonHelpers.asJson( policy ) );
-        assertResponseStatus( 200, response );
-        return response;
+        String appId = new ApplicationDAO().getByPublicIdNotNull( applicationPublicId ).getId();
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        policyDAO.insert( appId, policy );
     }
 
     @Test
@@ -433,12 +431,22 @@ public class SaasIdeResourceTest
     }
 
     @Test
-    public void test_unknown_simple()
+    public void testDoScan_unknown_simple()
         throws Exception
     {
         String hash = "000babababababababab";
         String applicationPublicId = "SaasIdeResourceTest_AppId";
         createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( MatchStateConditionType.ID, "is", "unknown" );
+        constraint1.addCondition( condition1 );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
 
         String url = getScanSimpleUrl( applicationPublicId, hash );
         String saasUrl = url.substring( getRestBaseUrl().length() );
@@ -451,12 +459,22 @@ public class SaasIdeResourceTest
     }
 
     @Test
-    public void test_unknown_simple_enhancedResponse()
+    public void testDoScan_unknown_simple_enhancedResponse()
         throws Exception
     {
         String hash = "000babababababababab";
         String applicationPublicId = "SaasIdeResourceTest_AppId";
         createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( MatchStateConditionType.ID, "is", "unknown" );
+        constraint1.addCondition( condition1 );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
 
         String url = getScanSimpleUrl( applicationPublicId, hash );
         String saasUrl = url.substring( getRestBaseUrl().length() );
@@ -465,16 +483,28 @@ public class SaasIdeResourceTest
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
             JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
-        Assert.assertNotNull( ideMatchedComponent.getAlerts() );
+        List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
     }
 
     @Test
-    public void test_unknown_enhanced()
+    public void testDoScan_unknown_enhanced()
         throws Exception
     {
         String hash = "000babababababababab";
         String applicationPublicId = "SaasIdeResourceTest_AppId";
         createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( MatchStateConditionType.ID, "is", "unknown" );
+        constraint1.addCondition( condition1 );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
 
         String url = getScanEnhancedUrl( applicationPublicId, hash );
         String saasUrl = url.substring( getRestBaseUrl().length() );
@@ -483,7 +513,9 @@ public class SaasIdeResourceTest
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
             JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
-        Assert.assertNotNull( ideMatchedComponent.getAlerts() );
+        List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
     }
 
     private String getServiceURL()
@@ -533,5 +565,18 @@ public class SaasIdeResourceTest
             }
         }
         return buffer.toString();
+    }
+
+    @Override
+    protected void cleanupApplication( Application application )
+    {
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        List<Policy> policiesToDelete = policyDAO.getByApplicationId( application.getId() );
+        for ( Policy policy : policiesToDelete )
+        {
+            policyDAO.delete( application.getId(), policy.getId() );
+        }
+
+        super.cleanupApplication( application );
     }
 }

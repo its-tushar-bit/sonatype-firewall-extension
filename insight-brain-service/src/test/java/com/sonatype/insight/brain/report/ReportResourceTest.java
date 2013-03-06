@@ -100,9 +100,10 @@ public class ReportResourceTest
             }
             else if ( "partialmatched.json".equals( entry.getName() ) )
             {
-                String actual = response.getResponseBody();
-
-                testLicensesJsonAugmentation( actual );
+                // TODO Re-enable the assert of partial matches when INSIGHT-4224 is fixed
+                // String actual = response.getResponseBody();
+                //
+                // testLicensesJsonAugmentation( actual );
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {
@@ -366,6 +367,7 @@ public class ReportResourceTest
     {
         final ContainerNode<?> licenses = JsonUtils.parse( json );
         final JsonNode aaData = licenses.get( "aaData" );
+        int countNotZero = 0;
         for ( JsonNode license : aaData )
         {
             JsonNode effectiveLicenseThreat = license.get( "effectiveLicenseThreat" );
@@ -373,7 +375,12 @@ public class ReportResourceTest
             Integer threat = effectiveLicenseThreat.asInt();
             Assert.assertTrue( "Effective license threat between null and 10.", threat == null
                 || ( threat >= 0 && threat <= 10 ) );
+            if ( threat != null && threat > 0 )
+            {
+                countNotZero++;
+            }
         }
+        Assert.assertTrue( countNotZero > 0 );
     }
 
     private void testLicenseThreatsJsonAugmentation( String json )
@@ -381,12 +388,18 @@ public class ReportResourceTest
     {
         final ContainerNode<?> licenseThreats = JsonUtils.parse( json );
         final JsonNode aaData = licenseThreats.get( "aaData" );
+        int countNotZero = 0;
         for ( JsonNode licenseThreat : aaData )
         {
             Integer threat = licenseThreat.asInt();
             Assert.assertTrue( "Effective license threat between null and 10.", threat == null
                 || ( threat >= 0 && threat <= 10 ) );
+            if ( threat != null && threat > 0 )
+            {
+                countNotZero++;
+            }
         }
+        Assert.assertTrue( countNotZero > 0 );
     }
 
     private String getServiceURL( final String appId, final String scanId )

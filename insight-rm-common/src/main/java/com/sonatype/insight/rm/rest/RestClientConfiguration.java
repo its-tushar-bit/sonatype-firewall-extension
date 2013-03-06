@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.rm.rest;
 
+import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 public class RestClientConfiguration
@@ -61,4 +62,15 @@ public class RestClientConfiguration
         return this;
     }
 
+    public RestClientConfiguration setProxyAuth( final String username, final String password, final String ntlmDomain,
+                                                 final String ntlmWorkstation )
+    {
+        final SimpleAuthentication auth = new SimpleAuthentication();
+        auth.setUsername( username );
+        auth.setPassword( password );
+        auth.setNtlmDomain( ntlmDomain );
+        auth.setNtlmWorkstation( ntlmWorkstation );
+        config.setProxyAuth( auth );
+        return this;
+    }
 }

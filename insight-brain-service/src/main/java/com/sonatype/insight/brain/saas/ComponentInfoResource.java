@@ -74,8 +74,7 @@ public class ComponentInfoResource
         throws IOException
     {
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", tool,
-                   applicationPublicId,
-                   groupId, artifactId, version );
+                   applicationPublicId, groupId, artifactId, version );
         return client.doProxy( servletRequest, "rest/ide/component/details/versions", applicationPublicId );
     }
 
@@ -92,8 +91,7 @@ public class ComponentInfoResource
         throws IOException
     {
         log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}.", tool, applicationPublicId,
-                   groupId,
-                   artifactId, version );
+                   groupId, artifactId, version );
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String applicationId = app.getId();
 
@@ -104,12 +102,11 @@ public class ComponentInfoResource
         // Load the augmented data for licenses and security vulnerabilities
         ObjectNode licenseData =
             AugmentUtil.getLicenseData( work, applicationId, componentDetails.getGroupId(),
-                                                 componentDetails.getArtifactId(),
-                                     componentDetails.getVersion() );
+                                        componentDetails.getArtifactId(), componentDetails.getVersion() );
         ArrayNode svData =
             AugmentUtil.getSVData( work, applicationId, componentDetails.getGroupId(),
-                                            componentDetails.getArtifactId(),
-                                componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities() );
+                                   componentDetails.getArtifactId(), componentDetails.getVersion(),
+                                   componentDetails.getSecurityVulnerabilities() );
 
         // Load all data into a Component instance for policy evaluation
         ComponentDAO componentDAO = new ComponentDAO();
@@ -156,6 +153,7 @@ public class ComponentInfoResource
 
         return componentDetails;
     }
+
     private PolicyDAO policyDAO()
     {
         return new PolicyDAO( work.getWorkDir() );

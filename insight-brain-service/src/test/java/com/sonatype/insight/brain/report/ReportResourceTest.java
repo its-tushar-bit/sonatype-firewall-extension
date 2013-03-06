@@ -19,6 +19,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -69,32 +71,13 @@ public class ReportResourceTest
 
             if ( "data.json".equals( entry.getName() ) )
             {
-                String expected = IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" );
-
-                // embedded report processor removes the duplicate key findings
-                expected = expected.replaceFirst( "(?s)keyFindings.*text\"", "keyFindings\" : [ { \"text\"" );
-                // embedded report processor removes trailing zeros from arrays
-                expected = expected.replaceAll( ", \\[ 0, 0, 0 \\] \\]", " ]" );
-
                 String actual = response.getResponseBody();
-
                 testDataJsonAugmentation( actual );
-
-                // embedded report processor adds a new licenseCounts property
-                actual = actual.replaceAll( ",\\s*\"licenseCounts\" : \\[[^\\]]*\\]", "" );
-                // embedded report processor adds a new effectiveLicenseCounts property
-                actual = actual.replaceAll( ",\\s*\"effectiveLicenseCounts\" : \\[[^\\]]*\\]", "" );
-                // embedded report processor adds a new policyCounts property
-                actual = actual.replaceAll( ",\\s*\"policyCounts\" : \\[[^\\]]*\\]", "" );
-                // embedded report processor adds a new policyComponentCount property
-                actual = actual.replaceAll( ",\\s*\"policyComponentCount\" : \\d+", "" );
-
-                assertThat( actual, equalToIgnoringWhiteSpace( expected ) );
             }
             else if ( "badges.json".equals( entry.getName() ) )
             {
-                assertThat( JsonUtils.parse( response.getResponseBodyAsBytes(), int[].class ), equalTo( new int[] { 6,
-                    6, 6 } ) );
+                assertThat( JsonUtils.parse( response.getResponseBodyAsBytes(), int[].class ), equalTo( new int[] { 36,
+                    8, 36 } ) );
             }
             else if ( "licenses.json".equals( entry.getName() ) )
             {
@@ -107,7 +90,7 @@ public class ReportResourceTest
                 actual = actual.replaceAll( ",\\s*\"licenseThreatLevel\" : \\d+", "" );
                 // embedded report processor modifies the effectiveLicenseThreat property type
                 expected = expected.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \"[^\"]+\"", "" );
-                actual = actual.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \\d+", "" );
+                actual = actual.replaceAll( ",\\s*\"effectiveLicenseThreat\" : [^,]+", "" );
 
                 assertThat( actual, equalToIgnoringWhiteSpace( expected ) );
             }
@@ -225,7 +208,8 @@ public class ReportResourceTest
         assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
 
         // edit the state
-        final String edit = "{ \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\" }";
+        final String edit =
+            "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
         response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
         assertResponseStatus( 200, response );
 
@@ -237,11 +221,11 @@ public class ReportResourceTest
         // check the audit log reflects this change
         response =
             RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
-                + UrlUtils.encodeUrlComponent( "{\"hash\":\"964cd74171f427720480\"}" ) );
+                + UrlUtils.encodeUrlComponent( "{\"hash\":\"1249e25aebb15358bedd\"}" ) );
         assertResponseStatus( 200, response );
 
         final String feed =
-            "{ \"aaData\" : [ { \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+            "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
@@ -272,18 +256,19 @@ public class ReportResourceTest
         assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
 
         // edit the state
-        final String edit = "{ \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\" }";
+        final String edit =
+            "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
         response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
         assertResponseStatus( 200, response );
 
         // check the audit log reflects this change
         response =
             RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
-                + UrlUtils.encodeUrlComponent( "{\"hash\":\"964cd74171f427720480\"}" ) );
+                + UrlUtils.encodeUrlComponent( "{\"hash\":\"1249e25aebb15358bedd\"}" ) );
         assertResponseStatus( 200, response );
 
         final String feed =
-            "{ \"aaData\" : [ { \"hash\" : \"964cd74171f427720480\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+            "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
@@ -348,10 +333,34 @@ public class ReportResourceTest
         throws IOException
     {
         final ContainerNode<?> data = JsonUtils.parse( json );
-        final JsonNode effectiveCounts = data.get( "effectiveLicenseCounts" );
 
-        Assert.assertNotNull( effectiveCounts );
-        Assert.assertEquals( 11, effectiveCounts.size() );
+        // keyFindings must not have duplicates
+        JsonNode keyFindings = data.get( "keyFindings" );
+        Assert.assertNotNull( keyFindings );
+        Assert.assertTrue( keyFindings.size() > 0 );
+        Set<String> uniqueKeyFindings = new LinkedHashSet<String>();
+        for ( int i = 0; i < keyFindings.size(); i++ )
+        {
+            String keyFinding = keyFindings.get( i ).get( "text" ).asText();
+            uniqueKeyFindings.add( keyFinding );
+        }
+        Assert.assertEquals( keyFindings.toString(), uniqueKeyFindings.size(), keyFindings.size() );
+
+        Assert.assertEquals( 2, data.get( "weakcopyleftLicenseCount" ).asInt() );
+        Assert.assertEquals( 2, data.get( "nonStandardLicenseCount" ).asInt() );
+        Assert.assertEquals( 3, data.get( "copyleftLicenseCount" ).asInt() );
+        Assert.assertEquals( 20, data.get( "liberalLicenseCount" ).asInt() );
+        Assert.assertEquals( 1, data.get( "notProvidedLicenseCount" ).asInt() );
+        Assert.assertEquals( "[19,0,2,0,0,0,2,0,0,4,0]", data.get( "effectiveLicenseCounts" ).toString() );
+
+        Assert.assertEquals( 7, data.get( "insecureArtifactCount" ).asInt() );
+        Assert.assertEquals( "[0,4,0,0,2,12,15,2,0,1]", data.get( "securityCounts" ).toString() );
+
+        Assert.assertEquals( "[0,0,0,0,0,0,0,0,0,0,0]", data.get( "policyCounts" ).toString() );
+        Assert.assertEquals( 0, data.get( "policyComponentCount" ).asInt() );
+
+        Assert.assertEquals( "[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get( "securityPunchCard" ).toString() );
+        Assert.assertEquals( "[[2,1,2],[2,1,0],[1,0,0],[0,1,0],[0,1,0]]", data.get( "licensePunchCard" ).toString() );
     }
 
     private void testLicensesJsonAugmentation( String json )

@@ -11,76 +11,70 @@
 
     var module = angular.module('NotificationManagement', []);
 
-    module.controller('NotificationManagementController', [ '$scope', function($scope) {
-        function sort(emailList) {
-            emailList.sort(function(emailA, emailB) {
-                return emailA > emailB ? 1 : emailA < emailB ? -1 : 0;
-            });
-        }
-        
-        $scope.$on('editNotification', function (event, actionData) {
-            delete $scope.currentNotificationEmail;
-            $scope.notificationEmailList = [];
-            $scope.currentActionStep = actionData;
-            if ($scope.currentActionStep) {
-                for ( var i = 0; i < $scope.currentActionStep.actions.length; i++) {
-                    if ($scope.currentActionStep.actions[i].action === 'notify') {
-                        $scope.notificationEmailList.push($scope.currentActionStep.actions[i].target);
-                    }
-                }
-                sort($scope.notificationEmailList);
-            }
-            $('#editNotificationsModal').modal('show');
-        });
+	function sort(emailList) {
+		emailList.sort(function(emailA, emailB) {
+			return emailA > emailB ? 1 : emailA < emailB ? -1 : 0;
+		});
+	}
 
-        $scope.editNotifications = function(actionData) {
-            delete $scope.currentNotificationEmail;
+    module.controller('NotificationManagementController', [ '$scope', '$timeout', function($scope, $timeout) {
+		function resetInput() {
+			$scope.currentNotificationEmail = '';
+            $timeout(function () {
+				// This seems to be required to trigger the validity check
+                $scope.neditor.email.$setViewValue('');
+            });
+		}
+
+		$scope.$on('editNotification', function (event, actionData) {
+            resetInput();
             $scope.notificationEmailList = [];
             $scope.currentActionStep = actionData;
-            if ($scope.currentActionStep) {
-                for ( var i = 0; i < $scope.currentActionStep.actions.length; i++) {
-                    if ($scope.currentActionStep.actions[i].action === 'notify') {
-                        $scope.notificationEmailList.push($scope.currentActionStep.actions[i].target);
-                    }
-                }
-                sort($scope.notificationEmailList);
-            }
+			if ($scope.currentActionStep) {
+				angular.forEach($scope.currentActionStep.actions, function (item, index) {
+					if (item.action === 'notify') {
+						$scope.notificationEmailList.push(item.target);
+					}
+				});
+				sort($scope.notificationEmailList)
+			}
             $('#editNotificationsModal').modal('show');
-        };
+            $('#editNotificationsModal input').focus();
+		});
+
         $scope.addNotificationEmail = function() {
-            if ($scope.notificationValid) {
-                $scope.notificationEmailList.push($scope.currentNotificationEmail);
-                delete $scope.currentNotificationEmail;
-                sort($scope.notificationEmailList);
-            }
+            $scope.notificationEmailList.push($scope.currentNotificationEmail);
+            resetInput();
+            sort($scope.notificationEmailList);
         };
+
         $scope.cancelNotificationEmail = function() {
             $('#editNotificationsModal').modal('hide');
-            delete $scope.currentNotificationEmail;
         };
+
         $scope.doneNotificationEmail = function() {
             $('#editNotificationsModal').modal('hide');
-            delete $scope.currentNotificationEmail;
-            for ( var i = $scope.currentActionStep.actions.length - 1; i >= 0; i--) {
-                if ($scope.currentActionStep.actions[i].action === 'notify') {
-                    $scope.currentActionStep.actions.splice(i, 1);
-                }
-            }
-            $scope.currentActionStep.notifyCount = 0;
-            for ( var i = 0; i < $scope.notificationEmailList.length; i++) {
-                $scope.currentActionStep.actions.push({
-                    action : 'notify',
-                    target : $scope.notificationEmailList[i]
-                });
-                $scope.currentActionStep.notifyCount++;
-            }
+			for ( var i = $scope.currentActionStep.actions.length - 1; i >= 0; i--) {
+				if ($scope.currentActionStep.actions[i].action === 'notify') {
+					$scope.currentActionStep.actions.splice(i, 1);
+				}
+			}
+			$scope.currentActionStep.notifyCount = 0;
+			for ( var i = 0; i < $scope.notificationEmailList.length; i++) {
+				$scope.currentActionStep.actions.push({
+					action : 'notify',
+					target : $scope.notificationEmailList[i]
+				});
+				$scope.currentActionStep.notifyCount++;
+			}
         };
+
         $scope.removeNotificationEmail = function(index) {
             $scope.notificationEmailList.splice(index, 1);
         };
-    } ]);
+    }]);
 
-    module.directive('entersubmit', function() {
+    module.directive('entersubmit', function () {
         return function(scope, element, attrs) {
             element.bind('keydown', function(e) {
                 if (e.keyCode === 13) { // Enter
@@ -97,24 +91,20 @@
             require : 'ngModel',
             restrict : 'A',
             scope : false,
-            link : function(scope, elm, attrs, ctrl) {
-                ctrl.$parsers.unshift(function(viewValue) {
-                    delete scope.notificationValid;
-                    delete scope.notificationValidationMsg;
-                    if (!EMAIL_REGEXP.test(viewValue)) {
-                        scope.notificationValidationMsg = "Enter a valid email address";
-                    } else if (viewValue) {
-                        scope.notificationValid = true;
-                        for ( var i = 0; i < scope.notificationEmailList.length; i++) {
-                            if (scope.notificationEmailList[i] === viewValue) {
-                                scope.notificationValidationMsg = "Enter a unique email address";
-                                scope.notificationValid = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    return viewValue;
+            link : function(directiveScope, elm, attrs, ctrl) {
+				ctrl.$setValidity('invalid', false);
+				ctrl.$parsers.unshift(function(newValue) {
+					var notInvalid = !newValue || EMAIL_REGEXP.test(newValue),
+						notDuplicate = true;
+					for ( var i = 0; i < directiveScope.notificationEmailList.length; i++) {
+						if (directiveScope.notificationEmailList[i] === newValue) {
+							notDuplicate = false;
+							break;
+						}
+					}
+					ctrl.$setValidity('invalid', notInvalid);
+					ctrl.$setValidity('unique', notDuplicate);
+                    return (notInvalid && notDuplicate) ? newValue : undefined;
                 });
             }
         };

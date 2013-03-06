@@ -116,7 +116,7 @@ describe('InsightPolicyController tests', function() {
 		expect(scope.state.showAddPolicyScreen).toBe(true);
 		expect(scope.state.addPolicyTitle).toEqual('Create a New Policy');
 		expect(scope.state.policyWatchStopFn).not.toBeUndefined();
-		expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', action : 'none', targetCount : 0 }, { id : 'develop', name : 'Develop', action : 'none', targetCount : 0 }, { id : 'build', name : 'Build', action : 'none', targetCount : 0 }, { id : 'release', name : 'Release', action : 'none', targetCount : 0 }, { id : 'operate', name : 'Operate', action : 'none', targetCount : 0 } ]); 
+		expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', action : 'none', notifyCount : 0, actions: [] }, { id : 'develop', name : 'Develop', action : 'none', notifyCount : 0, actions: [] }, { id : 'build', name : 'Build', action : 'none', notifyCount : 0, actions: [] }, { id : 'release', name : 'Release', action : 'none', notifyCount : 0, actions: [] }, { id : 'operate', name : 'Operate', action : 'none', notifyCount : 0, actions: [] } ]); 
 		
 		scope.validatePolicy();
 		expect(scope.state.policyValid).toBeUndefined();
@@ -165,7 +165,7 @@ describe('InsightPolicyController tests', function() {
         expect(scope.state.policyValid).toBe(true);
         expect(scope.state.addPolicyTitle).toEqual('Edit Policy');
         expect(scope.state.policyWatchStopFn).not.toBeUndefined();
-        expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', action : 'none', targetCount : 0 }, { id : 'develop', name : 'Develop', action : 'none', targetCount : 0 }, { id : 'build', name : 'Build', action : 'none', targetCount : 0 }, { id : 'release', name : 'Release', action : 'none', targetCount : 0 }, { id : 'operate', name : 'Operate', action : 'none', targetCount : 0 } ]); 
+        expect(scope.state.actionTableData).toEqual([ { id : 'procure', name : 'Procure', actions: [], notifyCount : 0, action: 'none' }, { id : 'develop', name : 'Develop', actions: [], notifyCount : 0, action: 'none' }, { id : 'build', name : 'Build', actions: [], notifyCount : 0, action: 'none' }, { id : 'release', name : 'Release', actions: [], notifyCount : 0, action: 'none' }, { id : 'operate', name : 'Operate', actions: [], notifyCount : 0, action: 'none' } ]); 
         
         scope.state.currentPolicy.name = '5555';
         

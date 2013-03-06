@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -113,9 +112,6 @@ public final class Report
         final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
         final ContainerNode<?> partialMatched = applyChanges( reportFile, "partialmatched.json", auditDir );
 
-        final ReportEntry licenseReportEntry = getEntry( reportFile, "licenses.json" );
-        final List<Component> components = new ComponentDAO().getAll( appId, licenseReportEntry.buf, null, null, null );
-
         for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
             if ( !"security.json".equals( name ) && !"licenses.json".equals( name ) )
@@ -195,46 +191,15 @@ public final class Report
                 }
             }
         }
-
-        for ( Component component : components )
-        {
-            if ( component.getArtifactId() == null )
-            {
-                continue;
-            }
-
-            final String componentGAV = component.getGAV();
-            Integer threatLevel = null;
         
-            for ( LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups() )
-            {
-                threatLevel = Math.max( threatLevel != null ? threatLevel : 0, licenseThreatGroup.getThreatLevel() );
-            }
-            for ( JsonNode licenseJsonNode : licenses.get( "aaData" ) )
-            {
-                final String groupId = licenseJsonNode.get( "groupId" ).asText();
-                final String artifactId = licenseJsonNode.get( "artifactId" ).asText();
-                final String version = licenseJsonNode.get( "version" ).asText();
-                if ( !componentGAV.equals( groupId + ':' + artifactId + ':' + version ) )
-                {
-                    continue;
-                }
-                ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
-                licenseNode.put( "effectiveLicenseThreat", threatLevel );
-                break;
-            }
-            for ( JsonNode partialMatchedJsonNode : partialMatched.get( "aaData" ) )
-            {
-                final String groupId = partialMatchedJsonNode.get( "groupId" ).asText();
-                final String artifactId = partialMatchedJsonNode.get( "artifactId" ).asText();
-                final String version = partialMatchedJsonNode.get( "version" ).asText();
-                if ( !componentGAV.equals( groupId + ':' + artifactId + ':' + version ) )
-                {
-                    continue;
-                }
-                ObjectNode partialMatchedNode = (ObjectNode) partialMatchedJsonNode;
-                partialMatchedNode.put( "effectiveLicenseThreat", threatLevel );
-            }
+        ComponentDAO componentDAO = new ComponentDAO();
+        for ( JsonNode licenseJsonNode : licenses.get( "aaData" ) )
+        {
+            final Component component = componentDAO.getComponent( appId, licenseJsonNode );
+            ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
+            Integer threatLevel = component.getLicenseThreatLevel();
+            licenseNode.put( "effectiveLicenseThreat",  threatLevel);
+            
             if ( threatLevel != null )
             {
                 threatLevel = Math.min( 10, Math.max( 0, threatLevel ) );
@@ -243,7 +208,7 @@ public final class Report
                 {
                     // Punch card expects 0 to be the highest threat with 2 being the lowest
                     final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
-                    for ( final JsonNode level : gavDepths.path( componentGAV ) )
+                    for ( final JsonNode level : gavDepths.path( component.getGAV() ) )
                     {
                         final int index = level.asInt() - 1;
                         while ( index >= licensePunchCard.size() )
@@ -256,6 +221,22 @@ public final class Report
                 }
             }
         }
+
+        for ( JsonNode licenseJsonNode : partialMatched.get( "aaData" ) )
+        {
+            final Component component = componentDAO.getComponent( appId, licenseJsonNode );
+            ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
+            licenseNode.put( "effectiveLicenseThreat", component.getLicenseThreatLevel() );
+            
+            final ArrayNode matchedComponentNodes = (ArrayNode)licenseJsonNode.get( "matchDetails" );
+            for ( JsonNode matchedComponentJsonNode : matchedComponentNodes )
+            {
+                final Component matchedComponent = new ComponentDAO().getComponent( appId, matchedComponentJsonNode );
+                ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
+                matchedComponentNode.put( "effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel() );
+            }
+        }
+
         cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licenses ) );
         cache( getCacheFile( reportFile, "partialmatched.json" ), JsonUtils.generate( partialMatched ) );
         writeLicenseThreatsToReportFile( appId, reportFile );

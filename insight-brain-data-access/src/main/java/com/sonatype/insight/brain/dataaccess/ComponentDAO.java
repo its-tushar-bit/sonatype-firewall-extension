@@ -226,6 +226,31 @@ public class ComponentDAO
         return component;
     }
 
+    public Component getComponent( String applicationId, JsonNode matchedJson )
+    {
+        Component component = new Component();
+        component.setArtifactId( matchedJson.get( "artifactId" ).textValue() );
+        component.setGroupId( matchedJson.get( "groupId" ).textValue() );
+        component.setVersion( matchedJson.get( "version" ).textValue() );
+
+        processJsonLicenseData( component, matchedJson );
+
+        component.setCatalogDate( matchedJson.get( "catalogDate" ).asLong() );
+        component.setHash( matchedJson.get( "hash" ).textValue() );
+        component.setMatchState( MatchState.getById( matchedJson.get( "matchState" ).textValue() ) );
+
+        ArrayNode securityNode = (ArrayNode) matchedJson.get( "securityIssues" );
+        if ( securityNode != null )
+        {
+            processJsonSVData( component, securityNode );
+        }
+        loadLicenseThreatGroups( applicationId, component );
+
+        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
+
+        return component;
+    }
+
     public Component getComponent( String applicationId, ComponentDetails componentDetails, JsonNode jsonLicenseNode,
                                    ArrayNode jsonSVNode )
     {

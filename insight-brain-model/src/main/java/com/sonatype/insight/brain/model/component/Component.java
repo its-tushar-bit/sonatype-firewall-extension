@@ -408,4 +408,16 @@ public class Component
         }
         return licenseThreatGroups;
     }
+
+    public Integer getLicenseThreatLevel()
+    {
+        Integer threatLevel = null;
+
+        for ( LicenseThreatGroup licenseThreatGroup : getLicenseThreatGroups() )
+        {
+            threatLevel = Math.max( threatLevel != null ? threatLevel : 0, licenseThreatGroup.getThreatLevel() );
+        }
+
+        return threatLevel;
+    }
 }

@@ -224,10 +224,6 @@ public final class Report
 
         for ( JsonNode licenseJsonNode : partialMatched.get( "aaData" ) )
         {
-            final Component component = componentDAO.getComponent( appId, licenseJsonNode );
-            ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
-            licenseNode.put( "effectiveLicenseThreat", component.getLicenseThreatLevel() );
-            
             final ArrayNode matchedComponentNodes = (ArrayNode)licenseJsonNode.get( "matchDetails" );
             for ( JsonNode matchedComponentJsonNode : matchedComponentNodes )
             {

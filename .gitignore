@@ -1,7 +1,10 @@
 .classpath
+.idea
 .project
 .settings/
 .sonatype
 target/
 sonatype-work/
 dependency-reduced-pom.xml
+*.iml
+*.eml

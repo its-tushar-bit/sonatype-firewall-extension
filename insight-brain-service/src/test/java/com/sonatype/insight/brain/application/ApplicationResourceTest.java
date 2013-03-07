@@ -44,6 +44,22 @@ public class ApplicationResourceTest
         applicationDAO.delete( application );
     }
 
+    @Test
+    public void testGetApplications()
+        throws Exception
+    {
+        // final String applicationId = "ApplicationResourceTest_getApplicationsTest_AppId";
+        // createApplication( applicationId );
+        //
+        // Response response = RestAccess.get( getServiceURL() );
+        // assertResponseStatus( 200, response );
+        //
+        // Application[] applications = JsonHelpers.fromJson( response.getResponseBody(), Application[].class );
+        // Assert.assertNotNull( applications );
+        // Assert.assertEquals( 1, applications.length );
+        // Assert.assertEquals( applicationId, applications[0].getId() );
+    }
+
     private String getValidateApplicationIdServiceURL( String applicationPublicId )
     {
         return getServiceURL() + '/'

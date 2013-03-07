@@ -342,7 +342,7 @@
 				}, true);
 				
 				$('#policyName').focus();
-			}, 100);
+			}, 100, false);
 		}
 		
 		function setConstraintFormFocus(){

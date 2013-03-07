@@ -100,10 +100,9 @@ public class ReportResourceTest
             }
             else if ( "partialmatched.json".equals( entry.getName() ) )
             {
-                // TODO Re-enable the assert of partial matches when INSIGHT-4224 is fixed
-                // String actual = response.getResponseBody();
-                //
-                // testLicensesJsonAugmentation( actual );
+                String actual = response.getResponseBody();
+
+                testPartialMatchedJsonApplyChanges( actual );
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {
@@ -420,8 +419,29 @@ public class ReportResourceTest
     {
         final ContainerNode<?> licenseThreats = JsonUtils.parse( json );
         final JsonNode aaData = licenseThreats.get( "aaData" );
+        int countNotZero = testLicenseThreatsApplyChanges( aaData );
+        Assert.assertTrue( countNotZero > 0 );
+    }
+
+    private void testPartialMatchedJsonApplyChanges( String json )
+        throws IOException
+    {
+        final ContainerNode<?> partialMatched = JsonUtils.parse( json );
+        final JsonNode aaNode = partialMatched.get( "aaData" );
+        for ( JsonNode license : aaNode )
+        {
+            final JsonNode matchedComponentNodes = license.get( "matchDetails" );
+            if ( matchedComponentNodes != null )
+            {
+                testLicenseThreatsApplyChanges( matchedComponentNodes );
+            }
+        }
+    }
+
+    private int testLicenseThreatsApplyChanges( JsonNode licenses )
+    {
         int countNotZero = 0;
-        for ( JsonNode licenseThreat : aaData )
+        for ( JsonNode licenseThreat : licenses )
         {
             Integer threat = licenseThreat.asInt();
             Assert.assertTrue( "Effective license threat between null and 10.", threat == null
@@ -431,7 +451,7 @@ public class ReportResourceTest
                 countNotZero++;
             }
         }
-        Assert.assertTrue( countNotZero > 0 );
+        return countNotZero;
     }
 
     private String getServiceURL( final String appId, final String scanId )

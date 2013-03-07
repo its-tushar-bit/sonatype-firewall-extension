@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -243,19 +242,24 @@ public class ReportResourceTest
         assertResponseStatus( 200, response );
 
         // verify that the license is overridden correctly
-        final String licenseJson = response.getResponseBody();
-        final ContainerNode<?> licenseThreats = JsonUtils.parse( licenseJson );
-        final JsonNode aaData = licenseThreats.get( "aaData" );
-        for ( JsonNode licenseThreat : aaData )
+        boolean found = false;
+        final String licenseJsonString = response.getResponseBody();
+        final JsonNode licenseJsonData = JsonUtils.parse( licenseJsonString ).get( "aaData" );
+        for ( JsonNode licenseJsonNode : licenseJsonData )
         {
-            final JsonNode overridenLicenseNamesStr = licenseThreat.get( "overriddenLicenses" );
-            final List<String> overriddenLicenseNames = JsonUtils.getStringListFromArray( overridenLicenseNamesStr );
-            if ( overriddenLicenseNames != null && overriddenLicenseNames.contains( "GPL-3.0" ) )
+            if ( "commons-pool".equals( licenseJsonNode.get( "groupId" ).asText() )
+                && "commons-pool".equals( licenseJsonNode.get( "artifactId" ).asText() )
+                && "1.4".equals( licenseJsonNode.get( "version" ).asText() ) )
             {
-                Integer threat = licenseThreat.get( "effectiveLicenseThreat" ).asInt();
-                Assert.assertEquals( 9, (long) threat );
+                String overridenLicenseNamesStr = licenseJsonNode.get( "overriddenLicenses" ).toString();
+                Assert.assertEquals( "[\"GPL-3.0\"]", overridenLicenseNamesStr );
+                int threat = licenseJsonNode.get( "effectiveLicenseThreat" ).asInt();
+                Assert.assertEquals( 9, threat );
+                found = true;
+                break;
             }
         }
+        Assert.assertTrue( "Did not find expected overridden license", found );
     }
 
     @Test

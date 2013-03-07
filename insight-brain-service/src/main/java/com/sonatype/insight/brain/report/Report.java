@@ -114,7 +114,8 @@ public final class Report
 
         for ( final String name : JsonUtils.fileStore( auditDir ).list() )
         {
-            if ( !"security.json".equals( name ) && !"licenses.json".equals( name ) )
+            if ( !"security.json".equals( name ) && !"licenses.json".equals( name )
+                && !"partialmatched.json".equals( name ) )
             {
                 applyChanges( reportFile, name, auditDir );
             }

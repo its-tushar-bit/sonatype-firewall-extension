@@ -5,9 +5,14 @@
  */
 package com.sonatype.insight.brain.application;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -19,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ScanUploader;
@@ -36,6 +43,11 @@ public class ApplicationResource
     private static final ScanUploader uploader =
         new DefaultScanUploader( LoggerFactory.getLogger( DefaultScanUploader.class ), false /* failOnLogErrors */);
 
+    private static final ApplicationDAO applicationDAO = new ApplicationDAO();
+
+    @Context
+    private InsightWork work;
+
     @Context
     private InsightProxy proxy;
 
@@ -46,6 +58,44 @@ public class ApplicationResource
         throws IOException
     {
         return validateApplicationPublicId( applicationPublicId, proxy );
+    }
+
+    @GET
+    @Produces( MediaType.APPLICATION_JSON )
+    public List<ApplicationManagementSummary> getApplications()
+        throws IOException
+    {
+        final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
+        final List<Application> applications = applicationDAO.getAll();
+        for ( Application application : applications )
+        {
+            final File latestReport = work.getLatestReport( application.getId() );
+            final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+            applicationManagement.setId( application.getId() );
+            applicationManagement.setLastModified( latestReport.lastModified() );
+            applicationManagement.setScanId( latestReport.getName() );
+
+            applicationManagements.add( applicationManagement );
+        }
+
+        return applicationManagements;
+    }
+
+    @POST
+    @Consumes( MediaType.APPLICATION_JSON )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ApplicationManagementSummary addApplication( String applicationPublicId )
+        throws IOException
+    {
+        String result = validateApplicationPublicId( applicationPublicId, proxy );
+        if ( "OK".equals( result ) )
+        {
+            Application application = applicationDAO.getByPublicId( applicationPublicId );
+            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+            applicationManagement.setId( application.getId() );
+            return applicationManagement;
+        }
+        return null;
     }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )
@@ -59,7 +109,6 @@ public class ApplicationResource
         if ( "OK".equals( result ) )
         {
             // The token is valid. Create an application object for it if it doesn't exist already.
-            ApplicationDAO applicationDAO = new ApplicationDAO();
             if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
             {
                 Application application = new Application();

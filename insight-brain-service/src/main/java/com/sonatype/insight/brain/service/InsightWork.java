@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -66,6 +68,28 @@ public class InsightWork
             catch ( final IOException e )
             {
                 log.error( "Problem scanning directory: " + rootDir + " for scanId: " + scanId, e );
+            }
+        }
+        return null;
+    }
+
+    public File getLatestReport( final String appId )
+        throws IOException
+    {
+        final File reportDir = new File( insightConfig.getSonatypeWork(), "report/" + appId );
+        if ( reportDir.isDirectory() )
+        {
+            File[] files = reportDir.listFiles();
+            if ( files.length > 0 )
+            {
+                Arrays.sort( files, new Comparator<File>()
+                {
+                    public int compare( File f1, File f2 )
+                    {
+                        return Long.valueOf( f2.lastModified() ).compareTo( f1.lastModified() );
+                    }
+                } );
+                return files[0];
             }
         }
         return null;

@@ -50,6 +50,11 @@ public class ApplicationDAOTest
         application = applicationDAO.getById( applicationId );
         Assert.assertEquals( "ApplicationDAOTest New public id", application.getPublicId() );
 
+        // Get All
+        List<Application> applications = applicationDAO.getAll();
+        Assert.assertEquals( 1, applications.size() );
+        Assert.assertEquals( "ApplicationDAOTest New public id", applications.get( 0 ).getPublicId() );
+
         // Delete
         applicationDAO.delete( application );
         application = applicationDAO.getById( applicationId );

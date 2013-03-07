@@ -74,6 +74,12 @@ public class ApplicationDAO
         return application;
     }
 
+    public List<Application> getAll()
+    {
+        String sQuery = "SELECT entity FROM Application entity";
+        return getList( sQuery );
+    }
+
     @Override
     public void insert( EntityManager em, Application application )
     {

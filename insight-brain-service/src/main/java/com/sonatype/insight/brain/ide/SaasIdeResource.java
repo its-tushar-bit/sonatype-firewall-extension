@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.saas.AugmentUtil;
+import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightWork;
 
 @Path( SaasIdeResource.SERVICE_PATH )

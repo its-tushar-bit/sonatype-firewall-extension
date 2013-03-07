@@ -431,10 +431,7 @@ public class ReportResourceTest
         for ( JsonNode license : aaNode )
         {
             final JsonNode matchedComponentNodes = license.get( "matchDetails" );
-            if ( matchedComponentNodes != null )
-            {
-                testLicenseThreatsApplyChanges( matchedComponentNodes );
-            }
+            testLicenseThreatsApplyChanges( matchedComponentNodes );
         }
     }
 

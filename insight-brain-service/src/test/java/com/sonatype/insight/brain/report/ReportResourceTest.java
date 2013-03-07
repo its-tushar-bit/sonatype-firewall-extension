@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -72,7 +73,7 @@ public class ReportResourceTest
             if ( "data.json".equals( entry.getName() ) )
             {
                 String actual = response.getResponseBody();
-                testDataJsonAugmentation( actual );
+                testDataJsonApplyChanges( actual );
             }
             else if ( "badges.json".equals( entry.getName() ) )
             {
@@ -84,19 +85,19 @@ public class ReportResourceTest
                 String expected = IOUtil.toString( zipFile.getInputStream( entry ), "UTF-8" );
                 String actual = response.getResponseBody();
 
-                testLicensesJsonAugmentation( actual );
+                testLicensesJsonApplyChanges( actual );
 
                 // embedded report processor modifies the effectiveLicenseThreat property type
-                expected = expected.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \"[^\"]+\"", "" );
-                actual = actual.replaceAll( ",\\s*\"effectiveLicenseThreat\" : [^,]+", "" );
+                String alteredExpected = expected.replaceAll( ",\\s*\"effectiveLicenseThreat\" : \"[^\"]+\"", "" );
+                String alteredActual = actual.replaceAll( ",\\s*\"effectiveLicenseThreat\" : [^,]+", "" );
 
-                assertThat( actual, equalToIgnoringWhiteSpace( expected ) );
+                assertThat( alteredActual, equalToIgnoringWhiteSpace( alteredExpected ) );
             }
             else if ( "licensethreats.json".equals( entry.getName() ) )
             {
                 String actual = response.getResponseBody();
 
-                testLicenseThreatsJsonAugmentation( actual );
+                testLicenseThreatsJsonApplyChanges( actual );
             }
             else if ( "partialmatched.json".equals( entry.getName() ) )
             {
@@ -228,6 +229,33 @@ public class ReportResourceTest
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
+
+        // edit the license
+        final String licenseEdit =
+            "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"GPL-3.0\"],\"overriddenLicenseThreat\":10,\"comment\":\"\"}]:";
+        final String licenseQuery = "licenses.json?user=test&where=ReportResourceTest";
+
+        response = RestAccess.post( resourcePrefix + "/augmentData/" + licenseQuery, licenseEdit );
+        assertResponseStatus( 200, response );
+
+        // verify the license change has processed
+        response = RestAccess.get( resourcePrefix + "/embedReport/licenses.json" );
+        assertResponseStatus( 200, response );
+
+        // verify that the license is overridden correctly
+        final String licenseJson = response.getResponseBody();
+        final ContainerNode<?> licenseThreats = JsonUtils.parse( licenseJson );
+        final JsonNode aaData = licenseThreats.get( "aaData" );
+        for ( JsonNode licenseThreat : aaData )
+        {
+            final JsonNode overridenLicenseNamesStr = licenseThreat.get( "overriddenLicenses" );
+            final List<String> overriddenLicenseNames = JsonUtils.getStringListFromArray( overridenLicenseNamesStr );
+            if ( overriddenLicenseNames != null && overriddenLicenseNames.contains( "GPL-3.0" ) )
+            {
+                Integer threat = licenseThreat.get( "effectiveLicenseThreat" ).asInt();
+                Assert.assertEquals( 9, (long) threat );
+            }
+        }
     }
 
     @Test
@@ -328,7 +356,7 @@ public class ReportResourceTest
                     equalToIgnoringWhiteSpace( feed ) );
     }
 
-    private void testDataJsonAugmentation( String json )
+    private void testDataJsonApplyChanges( String json )
         throws IOException
     {
         final ContainerNode<?> data = JsonUtils.parse( json );
@@ -362,7 +390,7 @@ public class ReportResourceTest
         Assert.assertEquals( "[[2,1,2],[2,1,0],[1,0,0],[0,1,0],[0,1,0]]", data.get( "licensePunchCard" ).toString() );
     }
 
-    private void testLicensesJsonAugmentation( String json )
+    private void testLicensesJsonApplyChanges( String json )
         throws IOException
     {
         final ContainerNode<?> licenses = JsonUtils.parse( json );
@@ -383,7 +411,7 @@ public class ReportResourceTest
         Assert.assertTrue( countNotZero > 0 );
     }
 
-    private void testLicenseThreatsJsonAugmentation( String json )
+    private void testLicenseThreatsJsonApplyChanges( String json )
         throws IOException
     {
         final ContainerNode<?> licenseThreats = JsonUtils.parse( json );

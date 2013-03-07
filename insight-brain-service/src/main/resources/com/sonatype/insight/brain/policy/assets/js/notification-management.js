@@ -43,9 +43,11 @@
 		});
 
         $scope.addNotificationEmail = function() {
-            $scope.notificationEmailList.push($scope.currentNotificationEmail);
-            resetInput();
-            sort($scope.notificationEmailList);
+			if ($scope.neditor.$valid) {
+				$scope.notificationEmailList.push($scope.currentNotificationEmail);
+				resetInput();
+				sort($scope.notificationEmailList);
+			}
         };
 
         $scope.cancelNotificationEmail = function() {

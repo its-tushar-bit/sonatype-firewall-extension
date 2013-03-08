@@ -76,7 +76,8 @@ public class ApplicationDAO
 
     public List<Application> getAll()
     {
-        String sQuery = "SELECT entity FROM Application entity";
+        String sQuery = "SELECT entity FROM Application entity" + //
+            " ORDER BY entity.publicIdLowercase";
         return getList( sQuery );
     }
 

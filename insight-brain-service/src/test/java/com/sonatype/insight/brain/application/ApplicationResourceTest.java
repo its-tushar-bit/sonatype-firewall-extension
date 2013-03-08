@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.application;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -12,11 +18,6 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.junit.Assert;
-import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -50,9 +51,7 @@ public class ApplicationResourceTest
         throws Exception
     {
         final String applicationPublicId = "ApplicationResourceTest_getApplicationsTest_AppId";
-        createApplication( applicationPublicId );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        Application application = createApplication( applicationPublicId );
 
         Response response = RestAccess.get( getServiceURL() );
         assertResponseStatus( 200, response );
@@ -62,7 +61,7 @@ public class ApplicationResourceTest
         Assert.assertNotNull( applications );
         // Freemium application created by super
         Assert.assertEquals( 2, applications.length );
-        Assert.assertEquals( application.getId(), applications[1].getId() );
+        Assert.assertEquals( application.getId(), applications[0].getId() );
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

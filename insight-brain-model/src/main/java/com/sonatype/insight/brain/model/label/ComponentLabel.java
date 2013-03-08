@@ -34,6 +34,13 @@ public class ComponentLabel
     {
     }
 
+    public ComponentLabel( String applicationId, String labelId, String hash )
+    {
+        this.applicationId = applicationId;
+        this.labelId = labelId;
+        this.hash = hash;
+    }
+
     @Override
     public String getId()
     {

@@ -119,7 +119,6 @@
                     <exclude>META-INF/maven/*/*/**</exclude>
                     <exclude>META-INF/maven/remote-resources.xml</exclude>
                     <exclude>META-INF/sisu/**</exclude>
-                    <exclude>com/sonatype/clm/dto/model/ide/**</exclude>
                   </excludes>
                 </filter>
                 <filter>

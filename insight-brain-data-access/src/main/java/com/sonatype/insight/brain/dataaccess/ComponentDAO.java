@@ -16,8 +16,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.sonatype.clm.dto.model.MatchedComponent;
-import com.sonatype.clm.dto.model.ide.ComponentDetails;
+import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -200,26 +199,33 @@ public class ComponentDAO
         return result;
     }
 
-    public Component getComponent( String applicationId, MatchedComponent matchComponent, JsonNode jsonLicenseNode,
+    public Component getComponent( String applicationId, ComponentInfo componentInfo, JsonNode jsonLicenseNode,
                                    ArrayNode jsonSVNode )
     {
         Component component = new Component();
-        component.setArtifactId( matchComponent.getArtifactId() );
-        component.setGroupId( matchComponent.getGroupId() );
-        component.setVersion( matchComponent.getVersion() );
+
+        component.setHash( componentInfo.getHash() );
+        component.setGroupId( componentInfo.getGroupId() );
+        component.setArtifactId( componentInfo.getArtifactId() );
+        component.setVersion( componentInfo.getVersion() );
+
+        component.setMatchState( MatchState.getById( componentInfo.getMatchState() ) );
+
+        component.setCatalogDate( componentInfo.getCatalogDate() );
+        if ( componentInfo.getRelativePopularity() != null )
+        {
+            component.setRelativePopularity( componentInfo.getRelativePopularity() );
+        }
+
         if ( jsonLicenseNode != null )
         {
             processJsonLicenseData( component, jsonLicenseNode );
         }
-        component.setCatalogDate( matchComponent.getCatalogDate() );
-        component.setDeclaredLicenseIds( matchComponent.getDeclaredLicenseIds() );
-        component.setObservedLicenseIds( matchComponent.getObservedLicenseIds() );
-        component.setHash( matchComponent.getHash() );
-        component.setMatchState( MatchState.getById( matchComponent.getMatchState() ) );
-
-        addSecurityVulnerabilities( component, matchComponent.getSecurityThreats(), jsonSVNode );
-
+        component.setDeclaredLicenseIds( componentInfo.getDeclaredLicenseIds() );
+        component.setObservedLicenseIds( componentInfo.getObservedLicenseIds() );
         loadLicenseThreatGroups( applicationId, component );
+
+        addSecurityVulnerabilities( component, componentInfo.getSecurityVulnerabilities(), jsonSVNode );
 
         loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
 
@@ -236,40 +242,6 @@ public class ComponentDAO
         processJsonLicenseData( component, componentJson );
 
         loadLicenseThreatGroups( applicationId, component );
-
-        return component;
-    }
-
-    public Component getComponent( String applicationId, ComponentDetails componentDetails, JsonNode jsonLicenseNode,
-                                   ArrayNode jsonSVNode )
-    {
-        Component component = new Component();
-        component.setArtifactId( componentDetails.getArtifactId() );
-        component.setGroupId( componentDetails.getGroupId() );
-        component.setVersion( componentDetails.getVersion() );
-        if ( jsonLicenseNode != null )
-        {
-            processJsonLicenseData( component, jsonLicenseNode );
-        }
-        component.setCatalogDate( componentDetails.getCatalogDate() );
-        for ( com.sonatype.clm.dto.model.License license : componentDetails.getDeclaredLicenses() )
-        {
-            component.addDeclaredLicenseId( license.getLicenseId() );
-        }
-        for ( com.sonatype.clm.dto.model.License license : componentDetails.getObservedLicenses() )
-        {
-            component.addObservedLicenseId( license.getLicenseId() );
-        }
-        for ( com.sonatype.clm.dto.model.License license : componentDetails.getOverriddenLicenses() )
-        {
-            component.addOverriddenLicenseId( license.getLicenseId() );
-        }
-
-        addSecurityVulnerabilities( component, componentDetails.getSecurityVulnerabilities(), jsonSVNode );
-
-        loadLicenseThreatGroups( applicationId, component );
-
-        loadComponentLabels( applicationId, component, new ComponentLabelDAO() );
 
         return component;
     }

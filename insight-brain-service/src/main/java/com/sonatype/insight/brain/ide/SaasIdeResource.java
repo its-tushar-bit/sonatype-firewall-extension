@@ -125,4 +125,12 @@ public class SaasIdeResource
         ide.setWaitDelta( mComponent.getWaitDelta() );
         return ide;
     }
+
+    @GET
+    @Path( "component/versions" )
+    public Response getVersions( @Context HttpServletRequest req )
+        throws IOException
+    {
+        return client.doProxy( req, "rest/ide/artifact/versions" );
+    }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
@@ -518,6 +519,17 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 1, policyAlerts.size() );
     }
 
+    @Test
+    public void testGetComponentVersions()
+        throws Exception
+    {
+        setSaasResponseForURI( "rest/ide/artifact/versions?groupId=gid&artifactId=aid", "[\"1.1\", \"2.0\"]", 200 );
+        Response response = RestAccess.get( getComponentVersionsUrl( "gid", "aid" ) );
+        assertResponseStatus( 200, response );
+        String[] versions = JsonHelpers.fromJson( response.getResponseBody(), String[].class );
+        Assert.assertEquals( Arrays.asList( "1.1", "2.0" ), Arrays.asList( versions ) );
+    }
+
     private String getServiceURL()
     {
         return getRestBaseUrl() + SaasIdeResource.SERVICE_PATH;
@@ -544,6 +556,11 @@ public class SaasIdeResourceTest
     {
         return getServiceURL() + "/component/details/" + applicationPublicId + "?groupId=" + groupId + "&artifactId="
             + artifactId + "&version=" + version;
+    }
+
+    private String getComponentVersionsUrl( String groupId, String artifactId )
+    {
+        return getServiceURL() + "/component/versions/?groupId=" + groupId + "&artifactId=" + artifactId;
     }
 
     private String getQueryParams( String... params )

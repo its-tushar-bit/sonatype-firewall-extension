@@ -69,6 +69,8 @@ public class ApplicationResource
         final List<Application> applications = applicationDAO.getAll();
         for ( Application application : applications )
         {
+            log.debug( "Found application with public id {}", application.getPublicId() );
+
             final File latestReport = work.getLatestReport( application.getId() );
             final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
             applicationManagement.setId( application.getId() );

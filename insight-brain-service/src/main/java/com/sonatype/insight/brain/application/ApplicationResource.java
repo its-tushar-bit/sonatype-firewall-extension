@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ScanUploader;
@@ -97,7 +98,7 @@ public class ApplicationResource
             applicationManagement.setId( application.getId() );
             return applicationManagement;
         }
-        return null;
+        throw new BadRequestException( "Invalid application id" );
     }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )

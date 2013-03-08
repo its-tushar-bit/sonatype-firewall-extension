@@ -26,15 +26,15 @@ public class ApplicationManagementSummary
         this.lastModified = lastModified;
     }
 
-    private String scanId;
+    private String reportName;
 
-    public String getScanId()
+    public String getReportName()
     {
-        return scanId;
+        return reportName;
     }
 
-    public void setScanId( final String scanId )
+    public void setReportName( final String reportName )
     {
-        this.scanId = scanId;
+        this.reportName = reportName;
     }
 }

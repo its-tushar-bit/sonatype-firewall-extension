@@ -74,7 +74,7 @@ public class ApplicationResource
             if ( latestReport != null )
             {
                 applicationManagement.setLastModified( latestReport.lastModified() );
-                applicationManagement.setScanId( latestReport.getName() );
+                applicationManagement.setReportName( latestReport.getName() );
             }
 
             applicationManagements.add( applicationManagement );

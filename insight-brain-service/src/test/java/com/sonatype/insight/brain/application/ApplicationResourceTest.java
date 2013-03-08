@@ -51,13 +51,15 @@ public class ApplicationResourceTest
         throws Exception
     {
         final String applicationPublicId = "ApplicationResourceTest_testValidate_AppId";
-        Application application = createApplication( applicationPublicId );
 
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 200, response );
 
         ApplicationManagementSummary applicationManagementSummary =
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
+
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
     }
 

@@ -74,7 +74,6 @@ public class InsightWork
     }
 
     public File getLatestReport( final String appId )
-        throws IOException
     {
         final File reportDir = new File( insightConfig.getSonatypeWork(), "report/" + appId );
         if ( reportDir.isDirectory() )
@@ -84,6 +83,7 @@ public class InsightWork
             {
                 Arrays.sort( files, new Comparator<File>()
                 {
+                    @Override
                     public int compare( File f1, File f2 )
                     {
                         return Long.valueOf( f2.lastModified() ).compareTo( f1.lastModified() );

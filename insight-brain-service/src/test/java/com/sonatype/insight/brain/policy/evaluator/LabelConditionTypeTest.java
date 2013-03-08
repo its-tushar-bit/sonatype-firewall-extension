@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.label.Color;
@@ -43,7 +42,9 @@ public class LabelConditionTypeTest
     @AfterClass
     public static void afterClass()
     {
-        DataSourceFactory.clear_ForTestsOnly();
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByIdNotNull( applicationId );
+        applicationDAO.delete( application );
     }
 
     @After

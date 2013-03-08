@@ -19,7 +19,6 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -60,13 +59,14 @@ public class LicenseThreatGroupLevelConditionTypeTest
         licenseThreatGroupDAO.insert( licenseThreatGroup2 );
         licenseThreatGroup5 = new LicenseThreatGroup( applicationId, "Level 5", 5 );
         licenseThreatGroupDAO.insert( licenseThreatGroup5 );
-
     }
 
     @AfterClass
     public static void afterClass()
     {
-        DataSourceFactory.clear_ForTestsOnly();
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByIdNotNull( applicationId );
+        applicationDAO.delete( application );
     }
 
     private Constraint createConstraint( String operator, String value )

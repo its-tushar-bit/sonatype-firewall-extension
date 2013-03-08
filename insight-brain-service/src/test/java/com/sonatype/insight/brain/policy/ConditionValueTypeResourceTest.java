@@ -9,8 +9,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -18,17 +16,12 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
 {
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
-
     @Test
     public void testGetConditionValueTypes()
         throws Exception
     {
-        // Create an application
         String appPublicId = "ConditionValueTypeResourceTest_AppId";
-        Application application = new Application();
-        application.setPublicId( appPublicId );
-        applicationDAO.insert( application );
+        createApplication( appPublicId );
 
         final Response response = RestAccess.get( getServiceURL( appPublicId ) );
         assertResponseStatus( 200, response );

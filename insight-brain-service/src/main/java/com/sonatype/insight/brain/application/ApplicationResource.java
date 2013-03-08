@@ -5,10 +5,16 @@
  */
 package com.sonatype.insight.brain.application;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
+import com.sonatype.insight.scan.upload.DefaultScanUploader;
+import com.sonatype.insight.scan.upload.ScanUploader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -18,18 +24,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationManagementSummary;
-import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
-import com.sonatype.insight.scan.upload.DefaultScanUploader;
-import com.sonatype.insight.scan.upload.ScanUploader;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Path( ApplicationResource.SERVICE_PATH )
 public class ApplicationResource
@@ -41,7 +39,7 @@ public class ApplicationResource
     private static final Logger log = LoggerFactory.getLogger( ApplicationResource.class );
 
     private static final ScanUploader uploader =
-        new DefaultScanUploader( LoggerFactory.getLogger( DefaultScanUploader.class ), false /* failOnLogErrors */);
+        new DefaultScanUploader( LoggerFactory.getLogger( DefaultScanUploader.class ), false /* failOnLogErrors */ );
 
     private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -72,8 +70,11 @@ public class ApplicationResource
             final File latestReport = work.getLatestReport( application.getId() );
             final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
             applicationManagement.setId( application.getId() );
-            applicationManagement.setLastModified( latestReport.lastModified() );
-            applicationManagement.setScanId( latestReport.getName() );
+            if ( latestReport != null )
+            {
+                applicationManagement.setLastModified( latestReport.lastModified() );
+                applicationManagement.setScanId( latestReport.getName() );
+            }
 
             applicationManagements.add( applicationManagement );
         }

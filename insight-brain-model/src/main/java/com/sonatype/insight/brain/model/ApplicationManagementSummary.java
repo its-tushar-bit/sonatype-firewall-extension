@@ -1,8 +1,5 @@
 package com.sonatype.insight.brain.model;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public class ApplicationManagementSummary
 {
     private String id;
@@ -17,24 +14,16 @@ public class ApplicationManagementSummary
         this.id = id;
     }
 
-    private long lastModified;
+    private Long lastModified;
 
-    private String lastModifiedSimple;
-
-    public long getLastModified()
+    public Long getLastModified()
     {
         return lastModified;
     }
 
-    public String getLastModifiedSimple()
-    {
-        return lastModifiedSimple;
-    }
-
-    public void setLastModified( final long lastModified )
+    public void setLastModified( final Long lastModified )
     {
         this.lastModified = lastModified;
-        this.lastModifiedSimple = new SimpleDateFormat( "yyyy-MM-dd" ).format( new Date( lastModified ) );
     }
 
     private String scanId;

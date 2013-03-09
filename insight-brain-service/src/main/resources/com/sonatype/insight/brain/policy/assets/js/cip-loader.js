@@ -4,19 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global $, window, CLM */
-(function () {
-	'use strict';
+(function ()
+{
+    'use strict';
 
-	$.extend(true, window, {
-		'CLM' : {
-			'path' : '../brain/'
-		}
-	});
+    $.extend( true, window, {
+        'CLM': {
+            'path': '../brain/'
+        }
+    } );
 
-	var head = $('head'),
-	    scripts = ['policy-assets/angular/angular-1.0.5.min.js', 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js'];
+    var head = $( 'head' ), scripts = ['assets/angular/angular-1.0.5.min.js', 'policy-assets/js/cip-label-editor.js',
+        'policy-assets/js/cip-policy-violations.js'];
 
-	$.each(scripts, function (key, script) {
-		$('<script></script>').attr('src', CLM.path + script).appendTo(head);
-	});
+    $.each( scripts, function ( key, script )
+    {
+        $( '<script></script>' ).attr( 'src', CLM.path + script ).appendTo( head );
+    } );
 }());

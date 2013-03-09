@@ -1,0 +1,116 @@
+.no-content {
+    padding-top: 100px;
+}
+
+input.editor-text {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    background: transparent;
+    outline: 0;
+    padding: 0;
+}
+
+input.editor-checkbox {
+    margin: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+}
+
+.checkbox-edit-cell {
+    text-align: center;
+}
+
+.halfSize {
+    width: 49.5%;
+}
+
+.floatLeft {
+    float: left;
+}
+
+.floatRight {
+    float: right;
+}
+
+.fullWidthPrependedTextBox {
+    float: right;
+    width: 100%;
+}
+
+.fullWidthPrependedTextBox > input {
+    width: 90%;
+}
+
+.navbar .brand {
+    margin-left: 0px;
+    white-space: nowrap;
+}
+
+.header-centered {
+    text-align: center;
+}
+
+div.nopad {
+    padding: 0px;
+    height: 25px !important;
+    border: none;
+}
+
+.masked-cell {
+    width: 100%;
+    height: 25px;
+}
+
+tr:hover .hover-vis {
+    display: inline;
+}
+
+tr .hover-vis {
+    display: none;
+}
+
+/* Page content */
+html, body, .page-content {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: rgb(85, 85, 85);
+    background-image: url(img/margin-bg.png);
+}
+
+.brand-header {
+    line-height: 32px;
+    vertical-align: middle;
+}
+
+.navbar .title {
+    padding: 6px 0px 6px 5px;
+    line-height: 24px;
+    vertical-align: middle;
+}
+
+.page-content {
+    padding-top: 60px;
+    width: 100%;
+}
+
+.content-container {
+    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid #999;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    margin: 10px;
+    -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+.content-container .page-header {
+    padding-left: 20px;
+}

@@ -5,7 +5,8 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
@@ -382,27 +383,27 @@
         </executions>
         <configuration>
           <sourceIncludes>
-            <include>jquery/jquery-1.7.2.min.js</include>
-            <include>bootstrap/bootstrap-2.2.2.min.js</include>
-            <include>angular/angular-1.0.5.js</include>
-            <include>angular/angular-sanitize-1.0.5.js</include>
-            <include>InsightApp.js</include>
-            <include>InsightPolicyController.js</include>
-            <include>InsightLicenseGroupController.js</include>
-            <include>LabelController.js</include>
-            <include>js/cip-label-editor.js</include>
+            <include>assets/jquery/jquery-1.7.2.min.js</include>
+            <include>assets/bootstrap/bootstrap-2.2.2.min.js</include>
+            <include>assets/angular/angular-1.0.5.js</include>
+            <include>assets/angular/angular-sanitize-1.0.5.js</include>
+            <include>policy/assets/InsightApp.js</include>
+            <include>policy/assets/InsightPolicyController.js</include>
+            <include>policy/assets/InsightLicenseGroupController.js</include>
+            <include>policy/assets/LabelController.js</include>
+            <include>policy/assets/js/cip-label-editor.js</include>
           </sourceIncludes>
           <specIncludes>
-            <include>angular-mocks-1.0.5.js</include>
-            <include>PolicyMockData.js</include>
-            <include>LicenseGroupMockData.js</include>
-            <include>InsightPolicyControllerSpec.js</include>
-            <include>InsightLicenseGroupControllerSpec.js</include>
-            <include>CIPLabelEditorSpec.js</include>
-            <include>LabelControllerSpec.js</include>
+            <include>policy/assets/angular-mocks-1.0.5.js</include>
+            <include>policy/assets/PolicyMockData.js</include>
+            <include>policy/assets/LicenseGroupMockData.js</include>
+            <include>policy/assets/InsightPolicyControllerSpec.js</include>
+            <include>policy/assets/InsightLicenseGroupControllerSpec.js</include>
+            <include>policy/assets/CIPLabelEditorSpec.js</include>
+            <include>policy/assets/LabelControllerSpec.js</include>
           </specIncludes>
-          <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain/policy/assets</jsSrcDir>
-          <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain/policy/assets</jsTestSrcDir>
+          <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain</jsSrcDir>
+          <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain</jsTestSrcDir>
         </configuration>
       </plugin>
       <plugin>
@@ -444,7 +445,7 @@
                 </filter>
               </filters>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.sonatype.insight.brain.service.InsightBrainService</mainClass>
                   <manifestEntries>
@@ -507,7 +508,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore />
+                    <ignore/>
                   </action>
                 </pluginExecution>
               </pluginExecutions>

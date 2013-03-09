@@ -5,12 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.application.ApplicationResource;
@@ -52,24 +46,32 @@ import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Set;
 
 public class InsightBrainService
     extends Service<InsightConfig>
 {
     private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
 
-    private static final String ASSET_PATH = "/policy-assets/";
+    private static final String POLICY_ASSET_PATH = "/policy-assets/";
+
+    private static final String BRAIN_ASSET_PATH = "/assets";
 
     public static void main( final String[] args )
         throws Exception
     {
-        new InsightBrainService().run( args.length > 0 ? args : new String[] { "server" } );
+        new InsightBrainService().run( args.length > 0 ? args : new String[]{ "server" } );
     }
 
     @Override
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
-        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/assets", BRAIN_ASSET_PATH ) );
     }
 
     protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )
@@ -77,7 +79,7 @@ public class InsightBrainService
         DatabaseConfig databaseConfig = new DatabaseConfig();
         databaseConfig.setDriverClassName( "org.h2.Driver" );
         databaseConfig.setUrl( "jdbc:h2:" + databaseDir.getAbsolutePath() + '/' + databaseName
-            + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
+                                   + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
         databaseConfig.setUsername( "sa" );
         databaseConfig.setPassword( "" );
         databaseConfig.setMaxConnections( 50 );
@@ -132,7 +134,8 @@ public class InsightBrainService
         env.addResource( EnvironmentResource.class );
 
         LoadingCache<ReleaseGraphKey, byte[]> cache =
-            CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build( new ReleaseGraphCacheLoader() );
+            CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build(
+                new ReleaseGraphCacheLoader() );
         env.addResource( new ReleaseGraphResource( cache ) );
         env.addHealthCheck( new ReleaseGraphHealthCheck( cache ) );
         env.addTask( new ReleaseGraphTask( cache ) );

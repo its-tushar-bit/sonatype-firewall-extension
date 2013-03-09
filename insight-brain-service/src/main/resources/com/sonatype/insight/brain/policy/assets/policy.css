@@ -1,0 +1,156 @@
+.policy-button {
+    height: 22px;
+    width: 22px;
+    padding: 0px;
+    margin-top: -4px;
+}
+
+.threat-box {
+    border-radius: 2px 2px 2px 2px;
+    display: inline-block;
+    height: 18px;
+    padding: 0 5px;
+    text-align: center;
+    font-family: Arial;
+    font-size: 12px;
+    font-style: normal;
+    line-height: 18px;
+    vertical-align: middle;
+}
+
+/* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */
+.threat-level-0, .threat-level option[value="10"] {
+    border: 1px solid #6185B7;
+    background-color: #6E99D0;
+    font-weight: bold;
+    color: #DDD;
+}
+
+.threat-level-1, .threat-level-2, .threat-level-3, .threat-level option[value="7"], .threat-level option[value="8"], .threat-level option[value="9"] {
+    border: 1px solid #DDBE18;
+    background-color: #FEDF15;
+    font-weight: bold;
+    color: #555;
+}
+
+.threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level option[value="3"], .threat-level option[value="4"], .threat-level option[value="5"], .threat-level option[value="6"] {
+    border: 1px solid #C67A22;
+    background-color: #F7941D;
+    font-weight: bold;
+    color: #DDD;
+}
+
+.threat-level-8, .threat-level-9, .threat-level-10, .threat-level option[value="0"], .threat-level option[value="1"], .threat-level option[value="2"] {
+    border: 1px solid #B71218;
+    background-color: #EE1B24;
+    font-weight: bold;
+    color: #DDD;
+}
+
+.policy-item {
+    border: 1px solid #e5e5e5;
+    float: left;
+    width: 250px;
+    background-color: #ffffff;
+    border: 1px solid #999;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    margin: 10px;
+    padding: 10px;
+    height: 140px;
+    *border: 1px solid #999;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    outline: none;
+    -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+.clmLabel {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: 12px;
+    overflow: hidden;
+    margin: 0;
+    padding: 1px 3px;
+    vertical-align: middle;
+    border-color: #AFBFCF;
+    line-height: 13px;
+    max-width: 200px;
+    display: inline-block;
+    word-break: break-all;
+}
+
+.whiteLabel {
+    background-color: #EEEEEE;
+    color: black;
+}
+
+.greyLabel {
+    background-color: #BFBFBF;
+    color: black;
+}
+
+.blackLabel {
+    background-color: #444444;
+    color: white;
+}
+
+.greenLabel {
+    background-color: #46A546;
+    color: white;
+}
+
+.yellowLabel {
+    background-color: #FAF20F;
+    color: black;
+}
+
+.orangeLabel {
+    background-color: #F89406;
+    color: white;
+}
+
+.redLabel {
+    background-color: #C43C35;
+    color: white;
+}
+
+.blueLabel {
+    background-color: #0080FF;
+    color: white;
+}
+
+.labelContainer {
+    padding: 2px;
+    margin: 2px;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid lightgrey;
+}
+
+.labelContainer.active {
+    border: 1px dashed black;
+}
+
+.licenseContainer {
+    overflow: auto;
+    height: 200px;
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.licenseContainer > div {
+    overflow: auto;
+    height: 100%;
+}
+
+.licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
+    cursor: pointer
+}

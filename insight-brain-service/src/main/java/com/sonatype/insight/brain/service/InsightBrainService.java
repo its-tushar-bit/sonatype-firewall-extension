@@ -59,7 +59,7 @@ public class InsightBrainService
 
     private static final String POLICY_ASSET_PATH = "/policy-assets/";
 
-    private static final String BRAIN_ASSET_PATH = "/assets";
+    private static final String BRAIN_ASSET_PATH = "/assets/";
 
     public static void main( final String[] args )
         throws Exception
@@ -71,7 +71,7 @@ public class InsightBrainService
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH ) );
-        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/assets", BRAIN_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/assets/", BRAIN_ASSET_PATH ) );
     }
 
     protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )

@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import java.net.URI;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
+
+import com.sonatype.insight.brain.service.InsightBrainService;
 
 @Path( LandingResource.SERVICE_PATH )
 public class LandingResource
@@ -17,6 +21,6 @@ public class LandingResource
     @GET
     public Response home()
     {
-        return Response.ok().build(); // empty for now
+        return Response.seeOther( URI.create( InsightBrainService.APPLICATION_ASSET_PATH + "index.html" ) ).build();
     }
 }

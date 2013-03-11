@@ -56,9 +56,11 @@ public class InsightBrainService
 {
     private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
 
-    private static final String POLICY_ASSET_PATH = "/policy-assets/";
+    public static final String APPLICATION_ASSET_PATH = "/application-assets/";
 
     private static final String BRAIN_ASSET_PATH = "/assets/";
+
+    private static final String POLICY_ASSET_PATH = "/policy-assets/";
 
     public static void main( final String[] args )
         throws Exception
@@ -69,8 +71,10 @@ public class InsightBrainService
     @Override
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
-        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH ) );
+        bootstrap.addBundle(
+            new AssetsBundle( "/com/sonatype/insight/brain/application/assets/", APPLICATION_ASSET_PATH ) );
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/assets/", BRAIN_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH ) );
     }
 
     protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )

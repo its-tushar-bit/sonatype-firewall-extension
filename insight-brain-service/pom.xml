@@ -387,7 +387,8 @@
             <include>assets/bootstrap/bootstrap-2.2.2.min.js</include>
             <include>assets/angular/angular-1.0.5.js</include>
             <include>assets/angular/angular-sanitize-1.0.5.js</include>
-            <include>policy/assets/InsightApp.js</include>
+            <include>assets/CLMLocation.js</include>
+            <include>policy/assets/PolicyApp.js</include>
             <include>policy/assets/InsightPolicyController.js</include>
             <include>policy/assets/InsightLicenseGroupController.js</include>
             <include>policy/assets/LabelController.js</include>

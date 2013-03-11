@@ -392,6 +392,7 @@
             <include>policy/assets/InsightLicenseGroupController.js</include>
             <include>policy/assets/LabelController.js</include>
             <include>policy/assets/js/cip-label-editor.js</include>
+            <include>policy/assets/js/notification-management.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>policy/assets/angular-mocks-1.0.5.js</include>
@@ -401,6 +402,7 @@
             <include>policy/assets/InsightLicenseGroupControllerSpec.js</include>
             <include>policy/assets/CIPLabelEditorSpec.js</include>
             <include>policy/assets/LabelControllerSpec.js</include>
+            <include>policy/assets/notification-management-spec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain</jsTestSrcDir>

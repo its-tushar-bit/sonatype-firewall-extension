@@ -19,7 +19,7 @@
 
     module.controller('NotificationManagementController', [ '$scope', '$timeout', function($scope, $timeout) {
 		function resetInput() {
-			$scope.currentNotificationEmail = '';
+		    delete $scope.currentNotificationEmail;
             $timeout(function () {
 				// This seems to be required to trigger the validity check
                 $scope.neditor.email.$setViewValue('');

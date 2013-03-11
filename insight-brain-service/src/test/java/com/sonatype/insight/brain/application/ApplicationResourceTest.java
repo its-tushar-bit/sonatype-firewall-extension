@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.application;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,6 +15,9 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -47,7 +47,7 @@ public class ApplicationResourceTest
     }
 
     @Test
-    public void testAddApplication()
+    public void testAddApplicationIsSuccessful()
         throws Exception
     {
         final String applicationPublicId = "ApplicationResourceTest_testAddApplication_AppId";
@@ -61,9 +61,17 @@ public class ApplicationResourceTest
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
+    }
+
+    @Test
+    public void testAddApplicationFails()
+        throws Exception
+    {
+        final String applicationPublicId = "ApplicationResourceTest_testValidate_AppId";
+        createApplication( applicationPublicId );
 
         //Verify validate fails when application already exists in brain
-        response = RestAccess.post( getServiceURL(), applicationPublicId );
+        Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "An application with id " + applicationPublicId + " already exists",
                              response.getResponseBody() );

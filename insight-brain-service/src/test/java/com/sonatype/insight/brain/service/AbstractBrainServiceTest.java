@@ -14,12 +14,16 @@ import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.mock.InsightMockServer;
 
 public abstract class AbstractBrainServiceTest
 {
+    private static final Logger log = LoggerFactory.getLogger( AbstractBrainServiceTest.class );
+
     private static int saasPort = findFreePort( 8071 );
 
     private static int brainPort = findFreePort( 8070 );
@@ -40,6 +44,8 @@ public abstract class AbstractBrainServiceTest
     public void startService()
         throws Exception
     {
+        long start = System.currentTimeMillis();
+
         if ( saas == null )
         {
             saas = new InsightMockServer();
@@ -55,12 +61,16 @@ public abstract class AbstractBrainServiceTest
             brain.setSaasAddress( saas.getHttpUrl() );
             brain.start();
         }
+
+        log.debug( "Started test servers in {}", System.currentTimeMillis() - start );
     }
 
     @After
     public void stopService()
         throws Exception
     {
+        long start = System.currentTimeMillis();
+
         if ( brain != null )
         {
             brain.stop();
@@ -71,6 +81,8 @@ public abstract class AbstractBrainServiceTest
             saas.stop();
             saas = null;
         }
+
+        log.debug( "Stopped test servers in {}", System.currentTimeMillis() - start );
     }
 
     protected void invalidateAppId( final String appId, final String reason )

@@ -19,6 +19,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
+import com.yammer.dropwizard.util.Duration;
 
 public class TestInsightBrainService
     extends InsightBrainService
@@ -144,6 +145,7 @@ public class TestInsightBrainService
     {
         config.getHttpConfiguration().setPort( testPort );
         config.getHttpConfiguration().setAdminPort( testPort );
+        config.getHttpConfiguration().setShutdownGracePeriod( Duration.milliseconds( 1 ) );
         config.setSonatypeWork( getWorkDir().getPath() );
         config.setSaasAddress( testSaasAddress );
 

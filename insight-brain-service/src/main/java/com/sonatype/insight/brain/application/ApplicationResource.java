@@ -90,13 +90,20 @@ public class ApplicationResource
     public ApplicationManagementSummary addApplication( String applicationPublicId )
         throws IOException
     {
-        String result = validateApplicationPublicId( applicationPublicId, proxy );
+        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
+        String result = uploader.validateToken( proxy.contextualize( request ) );
+
         if ( "OK".equals( result ) )
         {
-            Application application = applicationDAO.getByPublicId( applicationPublicId );
-            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-            applicationManagement.setId( application.getId() );
-            return applicationManagement;
+            if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
+            {
+                Application application = new Application();
+                application.setPublicId( applicationPublicId );
+                applicationDAO.insert( application );
+                ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+                applicationManagement.setId( application.getId() );
+                return applicationManagement;
+            }
         }
         throw new BadRequestException( "Invalid application id" );
     }

@@ -21,8 +21,8 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sonatype.clm.dto.model.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
+import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;

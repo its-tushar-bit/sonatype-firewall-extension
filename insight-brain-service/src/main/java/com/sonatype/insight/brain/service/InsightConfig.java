@@ -37,6 +37,9 @@ public class InsightConfig
         }
     };
 
+    @JsonProperty
+    private String baseUrl;
+
     @NotNull
     @JsonProperty
     private String saasAddress = "https://insight.sonatype.com/";
@@ -92,5 +95,19 @@ public class InsightConfig
     public void setSonatypeWork( final String sonatypeWork )
     {
         this.sonatypeWork = sonatypeWork;
+    }
+
+    public String getBaseUrl()
+    {
+        if ( baseUrl != null )
+        {
+            return baseUrl;
+        }
+        return "http://localhost:" + getHttpConfiguration().getPort();
+    }
+
+    public void setBaseUrl( String baseUrl )
+    {
+        this.baseUrl = baseUrl;
     }
 }

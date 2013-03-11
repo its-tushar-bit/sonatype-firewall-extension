@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.application.ApplicationResource;
@@ -46,11 +52,6 @@ import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.Set;
 
 public class InsightBrainService
     extends Service<InsightConfig>
@@ -141,6 +142,8 @@ public class InsightBrainService
         env.addTask( new ReleaseGraphTask( cache ) );
 
         env.addResource( LandingResource.class );
+
+        log.debug( "Server base URL: {}", config.getBaseUrl() );
     }
 
     private void loadDatabase()

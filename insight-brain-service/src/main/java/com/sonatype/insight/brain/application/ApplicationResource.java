@@ -92,24 +92,18 @@ public class ApplicationResource
     public ApplicationManagementSummary addApplication( String applicationPublicId )
         throws IOException
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
-        String result = uploader.validateToken( proxy.contextualize( request ) );
+        if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
+        {
+            throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
+        }
 
+        String result = validateApplicationPublicId( applicationPublicId, proxy );
         if ( "OK".equals( result ) )
         {
-            if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
-            {
-                Application application = new Application();
-                application.setPublicId( applicationPublicId );
-                applicationDAO.insert( application );
-                ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-                applicationManagement.setId( application.getId() );
-                return applicationManagement;
-            }
-            else
-            {
-                throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
-            }
+            Application application = applicationDAO.getByPublicId( applicationPublicId );
+            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+            applicationManagement.setId( application.getId() );
+            return applicationManagement;
         }
         throw new BadRequestException( "Invalid application id " + applicationPublicId );
     }

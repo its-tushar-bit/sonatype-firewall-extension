@@ -143,7 +143,7 @@ public class InsightBrainService
 
         env.addResource( LandingResource.class );
 
-        log.debug( "Server base URL: {}", config.getBaseUrl() );
+        log.info( "Server base URL: {}", config.getBaseUrl() );
     }
 
     private void loadDatabase()

@@ -108,10 +108,10 @@ public class ApplicationResource
             }
             else
             {
-                throw new BadRequestException( "Application already exists" );
+                throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
             }
         }
-        throw new BadRequestException( "Invalid application id" );
+        throw new BadRequestException( "Invalid application id " + applicationPublicId );
     }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )

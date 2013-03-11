@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.application;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -12,11 +18,6 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.junit.Assert;
-import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -49,7 +50,7 @@ public class ApplicationResourceTest
     public void testAddApplication()
         throws Exception
     {
-        final String applicationPublicId = "ApplicationResourceTest_testValidate_AppId";
+        final String applicationPublicId = "ApplicationResourceTest_testAddApplication_AppId";
 
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 200, response );
@@ -64,6 +65,8 @@ public class ApplicationResourceTest
         //Verify validate fails when application already exists in brain
         response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 400, response );
+        Assert.assertEquals( "An application with id " + applicationPublicId + " already exists",
+                             response.getResponseBody() );
     }
 
     @Test
@@ -75,7 +78,7 @@ public class ApplicationResourceTest
 
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Invalid application id", response.getResponseBody() );
+        Assert.assertEquals( "Invalid application id " + applicationPublicId, response.getResponseBody() );
     }
 
     @Test

@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -86,17 +87,32 @@ public class ComponentInfoResource
                                                  @QueryParam( "instanceId" ) String instanceId,
                                                  @QueryParam( "groupId" ) String groupId,
                                                  @QueryParam( "artifactId" ) String artifactId,
-                                                 @QueryParam( "version" ) String version )
+                                                 @QueryParam( "version" ) String version,
+                                                 @QueryParam( "hash" ) String hash,
+                                                 @QueryParam( "matchState" ) String matchState )
         throws IOException
     {
-        log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}.", tool, applicationPublicId,
-                   groupId, artifactId, version );
+        log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", tool, applicationPublicId,
+                   groupId, artifactId, version, hash );
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String applicationId = app.getId();
 
         // Get component details from the SAAS server
         ComponentDetails componentDetails =
             client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
+
+        if ( hash != null )
+        {
+            componentDetails.setHash( hash );
+        }
+        if ( matchState != null )
+        {
+            componentDetails.setMatchState( matchState );
+        }
+        else
+        {
+            componentDetails.setMatchState( MatchState.EXACT.getId() );
+        }
 
         // Load the augmented data for licenses and security vulnerabilities
         ObjectNode licenseData =

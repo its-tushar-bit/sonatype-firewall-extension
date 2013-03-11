@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.application.ApplicationResource;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
@@ -111,7 +109,6 @@ public class InsightBrainService
         DatamartProvider.init( dmDatabaseConfig );
         DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
         OperationalDataStoreProvider.init( odsDatabaseConfig );
-        loadDatabase();
 
         env.addResource( ApplicationResource.class );
         env.addResource( FeaturesResource.class );
@@ -144,15 +141,6 @@ public class InsightBrainService
         env.addResource( LandingResource.class );
 
         log.info( "Server base URL: {}", config.getBaseUrl() );
-    }
-
-    private void loadDatabase()
-    {
-        // not very nice, but good enough for now
-        // Load the datamart db:
-        new LicenseDAO().getById( "UNSPECIFIED" );
-        // Load the ODS db:
-        new ApplicationDAO().getById( "not a real id" );
     }
 
     // Copied from IdeScanService

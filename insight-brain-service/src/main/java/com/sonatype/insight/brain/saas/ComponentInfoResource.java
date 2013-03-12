@@ -101,11 +101,11 @@ public class ComponentInfoResource
         ComponentDetails componentDetails =
             client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
 
-        if ( hash != null )
+        if ( hash != null && !hash.isEmpty() )
         {
             componentDetails.setHash( hash );
         }
-        if ( matchState != null )
+        if ( matchState != null && !matchState.isEmpty() )
         {
             componentDetails.setMatchState( matchState );
         }

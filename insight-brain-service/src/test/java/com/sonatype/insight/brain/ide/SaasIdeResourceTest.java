@@ -20,14 +20,19 @@ import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -54,22 +59,38 @@ public class SaasIdeResourceTest
         throws Exception
     {
         String applicationPublicId = "SaasIdeResourceTest_AppId";
-        createApplication( applicationPublicId );
+        Application application = createApplication( applicationPublicId );
+        Label label = new Label( application.getId(), "white", null );
+        new LabelDAO().insert( label );
+        new ComponentLabelDAO().insert( new ComponentLabel( application.getId(), label.getId(), "01234567890123456789" ) );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
         constraint1.addCondition( condition1 );
-        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
         Action failAction = new Action( FailActionType.ID );
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
 
+        Constraint constraint2 = new Constraint( "C2", "Constraint 2", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( MatchStateConditionType.ID, "is not", "similar" ) );
+        Constraint constraint3 = new Constraint( "C3", "Constraint 3", LogicalOperator.AND );
+        constraint3.addCondition( new Condition( LabelConditionType.ID, "is not", label.getId() ) );
+        Policy policy2 = new Policy( "PolicyId2", "Policy2" );
+        policy2.setThreatLevel( 8 );
+        policy2.addConstraint( constraint2 );
+        policy2.addConstraint( constraint3 );
+        policy2.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy2 );
+
         String groupId = "g1";
         String artifactId = "a1";
         String version = "v1";
-        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String serviceUrl =
+            getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
+                                    "similar" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
         saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "Test Ref Id", "Test Source", 7.5F ) );
@@ -85,6 +106,7 @@ public class SaasIdeResourceTest
         List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
     }
 
     @Test
@@ -99,7 +121,7 @@ public class SaasIdeResourceTest
         String groupId = "g1";
         String artifactId = "a1";
         String version = "v1";
-        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, null, null );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
         setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
@@ -131,7 +153,7 @@ public class SaasIdeResourceTest
         String groupId = "g1";
         String artifactId = "a1";
         String version = "v1";
-        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version );
+        String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, null, null );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
         saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "36079", "osvdb", 7.5F, "Summary" ) );
@@ -552,10 +574,21 @@ public class SaasIdeResourceTest
             + getQueryParams( "filename", filename, "groupId", groupId, "artifactId", artifactId, "version", version );
     }
 
-    private String getComponentDetailsUrl( String applicationPublicId, String groupId, String artifactId, String version )
+    private String getComponentDetailsUrl( String applicationPublicId, String groupId, String artifactId,
+                                           String version, String hash, String matchState )
     {
-        return getServiceURL() + "/component/details/" + applicationPublicId + "?groupId=" + groupId + "&artifactId="
-            + artifactId + "&version=" + version;
+        String url =
+            getServiceURL() + "/component/details/" + applicationPublicId + "?groupId=" + groupId + "&artifactId="
+                + artifactId + "&version=" + version;
+        if ( hash != null )
+        {
+            url += "&hash=" + hash;
+        }
+        if ( matchState != null )
+        {
+            url += "&matchState=" + matchState;
+        }
+        return url;
     }
 
     private String getComponentVersionsUrl( String groupId, String artifactId )
@@ -592,6 +625,19 @@ public class SaasIdeResourceTest
         for ( Policy policy : policiesToDelete )
         {
             policyDAO.delete( application.getId(), policy.getId() );
+        }
+
+        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = componentLabelDAO.getByApplicationId( application.getId() );
+        for ( ComponentLabel componentLabel : componentLabels )
+        {
+            componentLabelDAO.delete( componentLabel );
+        }
+
+        LabelDAO labelDAO = new LabelDAO();
+        for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
+        {
+            labelDAO.delete( label );
         }
 
         super.cleanupApplication( application );

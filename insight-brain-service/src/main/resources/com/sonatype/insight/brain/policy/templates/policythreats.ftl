@@ -27,8 +27,8 @@ div,p,a,li,td {
 <body style="margin: 0; padding: 0;">
 	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
 		<tr>
-			<td colspan="3"><a href="${serverUrl}rest/report/${applicationPublicId}/${scanId}/embedReport/index.html" title="Sonatype CLM Policy Alert"><img
-					src="${serverUrl}policy-assets/img/header_bg.gif" width="647" height="68" alt="View Full Report" border="0" /></a></td>
+			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img src="${serverUrl}policy-assets/img/header_bg.gif"
+					width="647" height="68" alt="View Full Report" border="0" /></a></td>
 		</tr>
 		<tr>
 			<td width="12">&nbsp;</td>
@@ -157,8 +157,8 @@ div,p,a,li,td {
 			<td width="12">&nbsp;</td>
 		</tr>
 		<tr>
-			<td colspan="3" width="647" height="54"><a href="${serverUrl}rest/report/${applicationPublicId}/${scanId}/embedReport/index.html"
-				title="View Full Report"><img src="${serverUrl}policy-assets/img/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
+			<td colspan="3" width="647" height="54"><a href="${detailedReportUrl}" title="View Full Report"><img
+					src="${serverUrl}policy-assets/img/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
 		</tr>
 	</table>
 </body>

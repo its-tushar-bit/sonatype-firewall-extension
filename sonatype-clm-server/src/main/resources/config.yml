@@ -1,8 +1,8 @@
 # Directory for data files.
 sonatypeWork: ./sonatype-work/clm-server
 
-# Base URL of the Sonatype CLM server.
-#baseUrl: http://localhost:8070
+# Base URL of the Sonatype CLM server for user facing links back to the server.
+#baseUrl: http://localhost:8070/
 
 # HTTP-specific options.
 http:

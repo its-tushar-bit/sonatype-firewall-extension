@@ -103,11 +103,15 @@ public class InsightConfig
         {
             return baseUrl;
         }
-        return "http://localhost:" + getHttpConfiguration().getPort();
+        return "http://localhost:" + getHttpConfiguration().getPort() + "/";
     }
 
     public void setBaseUrl( String baseUrl )
     {
         this.baseUrl = baseUrl;
+        if ( baseUrl != null && !baseUrl.endsWith( "/" ) )
+        {
+            this.baseUrl += '/';
+        }
     }
 }

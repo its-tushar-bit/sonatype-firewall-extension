@@ -217,33 +217,8 @@ public class PolicyEvaluateResource
                                                       final String scanId, final Stage stage,
                                                       final List<PolicyAlert> policyAlerts )
     {
-        int red = 0;
-        int orange = 0;
-        int yellow = 0;
-        int blue = 0;
-        for ( PolicyAlert alert : policyAlerts )
-        {
-            int level = alert.getTrigger().getThreatLevel();
-            int components = alert.getTrigger().getComponentFacts().size();
+        MailPolicyAlertCounts counts = new MailPolicyAlertCounts( policyAlerts );
 
-            if ( level > 7 )
-            {
-                red += components;
-            }
-            else if ( level > 3 )
-            {
-                orange += components;
-            }
-            else if ( level > 0 )
-            {
-                yellow += components;
-            }
-            else
-            {
-                blue += components;
-            }
-        }
-        
         Collections.sort( policyAlerts, new Comparator<PolicyAlert>(){
             @Override
             public int compare( PolicyAlert o1, PolicyAlert o2 )
@@ -262,15 +237,42 @@ public class PolicyEvaluateResource
         model.put( "policyThreatStage", StageTypes.getById( stage.getStageTypeId() ).getName() );
         model.put( "policyThreatApp", applicationPublicId );
         model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy" ).format( new Date() ) );
-        model.put( "policyThreatRedCount", red );
-        model.put( "policyThreatOrangeCount", orange );
-        model.put( "policyThreatYellowCount", yellow );
-        model.put( "policyThreatBlueCount", blue );
+        model.put( "policyThreatRedCount", counts.red );
+        model.put( "policyThreatOrangeCount", counts.orange );
+        model.put( "policyThreatYellowCount", counts.yellow );
+        model.put( "policyThreatBlueCount", counts.blue );
         model.put( "actionTypes", ActionTypes.getAll() );
         model.put( "applicationPublicId", applicationPublicId );
         model.put( "scanId", scanId );
 
         return model;
+    }
+
+    static String createPolicyMailSubject( MailPolicyAlertCounts counts )
+    {
+        StringBuilder buffer = new StringBuilder( 128 );
+        buffer.append( "Policy Alert: " );
+        int total = counts.red + counts.orange + counts.yellow + counts.blue;
+        int highest = 0;
+        if ( counts.red > 0 )
+        {
+            buffer.append( highest = counts.red ).append( " critical" );
+        }
+        else if ( counts.orange > 0 )
+        {
+            buffer.append( highest = counts.orange ).append( " severe" );
+        }
+        else if ( counts.yellow > 0 )
+        {
+            buffer.append( highest = counts.yellow ).append( " moderate" );
+        }
+        else if ( counts.blue > 0 )
+        {
+            buffer.append( highest = counts.blue ).append( " neutral" );
+        }
+        buffer.append( " violation" ).append( highest != 1 ? "s" : "" );
+        buffer.append( " out of " ).append( total );
+        return buffer.toString();
     }
 
     private String summarizeThreats( final String applicationPublicId, final String appId, final String scanId,
@@ -301,8 +303,9 @@ public class PolicyEvaluateResource
             {
                 final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
                 final List<Address> addresses = Arrays.asList( new Address( details.getKey() ) );
+                final String subject = createPolicyMailSubject( new MailPolicyAlertCounts( details.getValue() ) );
                 final String body = summarizeThreats( applicationPublicId, appId, scanId, stage, details.getValue() );
-                mail.sendHtml( mailId, addresses, "Sonatype CLM Policy Alert", body );
+                mail.sendHtml( mailId, addresses, subject, body );
             }
             catch ( final Exception e )
             {
@@ -337,4 +340,44 @@ public class PolicyEvaluateResource
         }
         return byRecipients;
     }
+
+    static class MailPolicyAlertCounts
+    {
+        public int red, orange, yellow, blue;
+
+        public MailPolicyAlertCounts( final int red, final int orange, final int yellow, final int blue )
+        {
+            this.red = red;
+            this.orange = orange;
+            this.yellow = yellow;
+            this.blue = blue;
+        }
+
+        public MailPolicyAlertCounts( final List<PolicyAlert> alerts )
+        {
+            for ( PolicyAlert alert : alerts )
+            {
+                int level = alert.getTrigger().getThreatLevel();
+                int components = alert.getTrigger().getComponentFacts().size();
+
+                if ( level > 7 )
+                {
+                    red += components;
+                }
+                else if ( level > 3 )
+                {
+                    orange += components;
+                }
+                else if ( level > 0 )
+                {
+                    yellow += components;
+                }
+                else
+                {
+                    blue += components;
+                }
+            }
+        }
+    }
+
 }

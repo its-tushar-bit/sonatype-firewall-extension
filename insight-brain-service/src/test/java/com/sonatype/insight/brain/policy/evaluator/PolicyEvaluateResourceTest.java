@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource.MailPolicyAlertCounts;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -257,6 +258,20 @@ public class PolicyEvaluateResourceTest
         Assert.assertEquals( "Build", model.get( "policyThreatStage" ) );
         Assert.assertEquals( applicationPublicId, model.get( "policyThreatApp" ) );
         Assert.assertNotNull( model.get( "policyThreatTime" ) );
+    }
+
+    @Test
+    public void testNotificationEmailSubject()
+        throws Exception
+    {
+        Assert.assertEquals( "Policy Alert: 1 critical violation out of 10",
+                             PolicyEvaluateResource.createPolicyMailSubject( new MailPolicyAlertCounts( 1, 2, 3, 4 ) ) );
+        Assert.assertEquals( "Policy Alert: 2 severe violations out of 9",
+                             PolicyEvaluateResource.createPolicyMailSubject( new MailPolicyAlertCounts( 0, 2, 3, 4 ) ) );
+        Assert.assertEquals( "Policy Alert: 3 moderate violations out of 7",
+                             PolicyEvaluateResource.createPolicyMailSubject( new MailPolicyAlertCounts( 0, 0, 3, 4 ) ) );
+        Assert.assertEquals( "Policy Alert: 4 neutral violations out of 4",
+                             PolicyEvaluateResource.createPolicyMailSubject( new MailPolicyAlertCounts( 0, 0, 0, 4 ) ) );
     }
 
     private String getServiceURL( final String appId, final String scanId )

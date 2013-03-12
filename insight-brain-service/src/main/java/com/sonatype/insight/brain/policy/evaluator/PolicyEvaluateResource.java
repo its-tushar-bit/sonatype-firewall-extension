@@ -242,8 +242,6 @@ public class PolicyEvaluateResource
         model.put( "policyThreatYellowCount", counts.yellow );
         model.put( "policyThreatBlueCount", counts.blue );
         model.put( "actionTypes", ActionTypes.getAll() );
-        model.put( "applicationPublicId", applicationPublicId );
-        model.put( "scanId", scanId );
 
         return model;
     }

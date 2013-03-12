@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.net.URL;
 
 import javax.validation.constraints.NotNull;
 
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sonatype.insight.portal.mail.MailConfig;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.HttpConfiguration;
+import com.yammer.dropwizard.validation.ValidationMethod;
 
 public class InsightConfig
     extends Configuration
@@ -113,5 +115,19 @@ public class InsightConfig
         {
             this.baseUrl += '/';
         }
+    }
+
+    @ValidationMethod( message = "baseUrl is invalid" )
+    public boolean isValidBaseUrl()
+    {
+        try
+        {
+            new URL( getBaseUrl() );
+        }
+        catch ( Exception e )
+        {
+            return false;
+        }
+        return true;
     }
 }

@@ -23,6 +23,6 @@ public class FeaturesResource
     public List<String> getFeatures()
     {
         // Changes to this list should be replicated in brain.client.js
-        return Arrays.asList( "policy", "labels", "release-graph", "policy-violations" );
+        return Arrays.asList( "policy", "labels", "release-graph", "policy-violations", "notification" );
     }
 }

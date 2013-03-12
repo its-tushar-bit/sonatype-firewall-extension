@@ -8,7 +8,7 @@
 (function () {
 	"use strict";
 
-	var features = ["policy", "labels", "release-graph", "policy-violations"],// Lowercase
+	var features = ["policy", "labels", "release-graph", "policy-violations", "notification"],// Lowercase
 		param = window.$ ? $.param : function (obj) {
 			var string = '',
 				field;

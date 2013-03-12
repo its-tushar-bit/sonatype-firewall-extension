@@ -83,7 +83,7 @@ public class SaasIdeResource
             ArrayNode svData =
                 AugmentUtil.getSVData( work, applicationId, matchedComponent.getGroupId(),
                                        matchedComponent.getArtifactId(), matchedComponent.getVersion(),
-                                       matchedComponent.getSecurityThreats() );
+                                       matchedComponent.getSecurityVulnerabilities() );
 
             ComponentDAO componentDAO = new ComponentDAO();
             Component component =

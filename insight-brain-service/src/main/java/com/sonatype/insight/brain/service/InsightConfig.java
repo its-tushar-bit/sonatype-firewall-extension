@@ -10,6 +10,9 @@ import java.net.URL;
 
 import javax.validation.constraints.NotNull;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sonatype.insight.portal.mail.MailConfig;
 import com.yammer.dropwizard.config.Configuration;
@@ -19,6 +22,8 @@ import com.yammer.dropwizard.validation.ValidationMethod;
 public class InsightConfig
     extends Configuration
 {
+    private static final Logger log = LoggerFactory.getLogger( InsightConfig.class );
+
     {
         setHttpConfiguration( new HttpConfiguration()
         {
@@ -123,11 +128,12 @@ public class InsightConfig
         try
         {
             new URL( getBaseUrl() );
+            return true;
         }
         catch ( Exception e )
         {
+            log.error( "Invalid baseUrl: {}", e.getMessage() );
             return false;
         }
-        return true;
     }
 }

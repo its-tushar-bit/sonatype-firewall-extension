@@ -36,8 +36,8 @@ import com.sonatype.insight.brain.saas.AugmentUtil;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightWork;
 
-@Path( SaasIdeResource.SERVICE_PATH )
-public class SaasIdeResource
+@Path( IdeResource.SERVICE_PATH )
+public class IdeResource
 {
     public static final String SERVICE_PATH = "rest/ide";
 

@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.application.ApplicationResource;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.features.FeaturesResource;
-import com.sonatype.insight.brain.ide.SaasIdeResource;
+import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
 import com.sonatype.insight.brain.landing.LandingResource;
@@ -131,7 +131,7 @@ public class InsightBrainService
         env.addResource( CIResource.class );
         env.addResource( RepoManResource.class );
         env.addResource( VersionResource.class );
-        env.addResource( SaasIdeResource.class );
+        env.addResource( IdeResource.class );
         env.addResource( ComponentInfoResource.class );
         env.addResource( EnvironmentResource.class );
 

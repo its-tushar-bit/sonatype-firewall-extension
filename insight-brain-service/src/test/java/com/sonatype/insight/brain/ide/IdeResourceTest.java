@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
-public class SaasIdeResourceTest
+public class IdeResourceTest
     extends AbstractResourceTest
 {
     private void addPolicy( String applicationPublicId, Policy policy )
@@ -58,7 +58,7 @@ public class SaasIdeResourceTest
     public void testGetComponentDetails_PolicyAlerts()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
         Label label = new Label( application.getId(), "white", null );
         new LabelDAO().insert( label );
@@ -113,10 +113,10 @@ public class SaasIdeResourceTest
     public void testGetComponentDetails_OverriddenLicense()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
-        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
+        setLicenseAuditLog( application.getId(), "/IdeResourceTest/LicenseOverride_abababababababababab.json" );
 
         String groupId = "g1";
         String artifactId = "a1";
@@ -145,10 +145,10 @@ public class SaasIdeResourceTest
     public void testGetComponentDetails_OverriddenSecurityVulnerabilityStatus()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
-        setSecurityAuditLog( application.getId(), "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
+        setSecurityAuditLog( application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json" );
 
         String groupId = "g1";
         String artifactId = "a1";
@@ -178,7 +178,7 @@ public class SaasIdeResourceTest
     public void testDoScan_Simple()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -193,7 +193,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -213,7 +213,7 @@ public class SaasIdeResourceTest
     public void testDoScan_Enhanced()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -227,7 +227,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanEnhancedUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 202, "/SaasIdeResourceTest/EnhancedMatch_wait.json" );
+        setSaasResponseForURI( saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json" );
         Response response = RestAccess.post( serviceUrl, JsonHelpers.asJson( new ScannedComponent() ) );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -235,7 +235,7 @@ public class SaasIdeResourceTest
         Assert.assertNotNull( ideMatchedComponent.getWaitDelta() );
         Assert.assertTrue( ideMatchedComponent.getWaitDelta() > 0 );
 
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/EnhancedMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -254,7 +254,7 @@ public class SaasIdeResourceTest
     public void testDoScan_OverriddenLicense()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -269,7 +269,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -285,7 +285,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the license and evaluate the policy again
-        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
+        setLicenseAuditLog( application.getId(), "/IdeResourceTest/LicenseOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -304,7 +304,7 @@ public class SaasIdeResourceTest
     public void testDoScan_LicenseStatus()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -319,7 +319,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -335,7 +335,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the license and evaluate the policy again
-        setLicenseAuditLog( application.getId(), "/SaasIdeResourceTest/LicenseOverride_abababababababababab.json" );
+        setLicenseAuditLog( application.getId(), "/IdeResourceTest/LicenseOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -354,7 +354,7 @@ public class SaasIdeResourceTest
     public void testDoScan_SecurityStatus()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -370,7 +370,7 @@ public class SaasIdeResourceTest
         // There should be no policy alerts when none of the security vulnerabilities was overridden
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -388,7 +388,7 @@ public class SaasIdeResourceTest
         // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
         // the policy again. There should be no policy alerts.
         setSecurityAuditLog( application.getId(),
-                             "/SaasIdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
+                             "/IdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -403,7 +403,7 @@ public class SaasIdeResourceTest
         Assert.assertEquals( 0, policyAlerts.size() );
 
         // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
-        setSecurityAuditLog( application.getId(), "/SaasIdeResourceTest/SecurityOverride_abababababababababab.json" );
+        setSecurityAuditLog( application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json" );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -422,7 +422,7 @@ public class SaasIdeResourceTest
     public void testDoScan_Age()
         throws Exception
     {
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -437,7 +437,7 @@ public class SaasIdeResourceTest
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
         String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_abababababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -458,7 +458,7 @@ public class SaasIdeResourceTest
         throws Exception
     {
         String hash = "000babababababababab";
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -473,7 +473,7 @@ public class SaasIdeResourceTest
 
         String url = getScanSimpleUrl( applicationPublicId, hash );
         String saasUrl = url.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_000babababababababab.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab.json" );
         Response response = RestAccess.get( url );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -486,7 +486,7 @@ public class SaasIdeResourceTest
         throws Exception
     {
         String hash = "000babababababababab";
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -501,7 +501,7 @@ public class SaasIdeResourceTest
 
         String url = getScanSimpleUrl( applicationPublicId, hash );
         String saasUrl = url.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
         Response response = RestAccess.get( url );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -516,7 +516,7 @@ public class SaasIdeResourceTest
         throws Exception
     {
         String hash = "000babababababababab";
-        String applicationPublicId = "SaasIdeResourceTest_AppId";
+        String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
@@ -531,7 +531,7 @@ public class SaasIdeResourceTest
 
         String url = getScanEnhancedUrl( applicationPublicId, hash );
         String saasUrl = url.substring( getRestBaseUrl().length() );
-        setSaasResponseForURI( saasUrl, 200, "/SaasIdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
         Response response = RestAccess.get( url );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
@@ -554,7 +554,7 @@ public class SaasIdeResourceTest
 
     private String getServiceURL()
     {
-        return getRestBaseUrl() + SaasIdeResource.SERVICE_PATH;
+        return getRestBaseUrl() + IdeResource.SERVICE_PATH;
     }
 
     private String getScanSimpleUrl( String applicationPublicId, String hash )

@@ -1,8 +1,14 @@
 package com.sonatype.insight.brain.model;
 
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+
 public class ApplicationManagementSummary
 {
     private String id;
+
+    private String publicId;
+
+    private PolicyEvaluation policyEvaluation;
 
     public String getId()
     {
@@ -14,8 +20,6 @@ public class ApplicationManagementSummary
         this.id = id;
     }
 
-    private String publicId;
-
     public String getPublicId()
     {
         return publicId;
@@ -26,27 +30,13 @@ public class ApplicationManagementSummary
         this.publicId = publicId;
     }
 
-    private Long lastModified;
-
-    public Long getLastModified()
+    public PolicyEvaluation getPolicyEvaluation()
     {
-        return lastModified;
+        return policyEvaluation;
     }
 
-    public void setLastModified( final Long lastModified )
+    public void setPolicyEvaluation( PolicyEvaluation policyEvaluation )
     {
-        this.lastModified = lastModified;
-    }
-
-    private String reportName;
-
-    public String getReportName()
-    {
-        return reportName;
-    }
-
-    public void setReportName( final String reportName )
-    {
-        this.reportName = reportName;
+        this.policyEvaluation = policyEvaluation;
     }
 }

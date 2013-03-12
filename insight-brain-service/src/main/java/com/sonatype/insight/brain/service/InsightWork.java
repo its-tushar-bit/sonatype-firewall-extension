@@ -5,15 +5,17 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.json.store.JsonUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 public class InsightWork
     extends AbstractInjectable<InsightWork>
@@ -73,26 +75,25 @@ public class InsightWork
         return null;
     }
 
-    public File getLatestReport( final String appId )
+    public PolicyEvaluation getLatestReport( final String appId )
+        throws IOException
     {
-        final File reportDir = new File( insightConfig.getSonatypeWork(), "report/" + appId );
-        if ( reportDir.isDirectory() )
+        final File auditDir = new File( insightConfig.getSonatypeWork(), "audit/" + appId + "/policyevaluations.json" );
+        final ContainerNode<?> auditNodes = JsonUtils.read( auditDir );
+        long time = 0;
+        JsonNode latestAuditNode = null;
+        for ( JsonNode auditNode : auditNodes )
         {
-            File[] files = reportDir.listFiles();
-            if ( files.length > 0 )
+            final long auditTime = auditNode.get( "time" ).asLong();
+            if ( auditTime > time )
             {
-                Arrays.sort( files, new Comparator<File>()
-                {
-                    @Override
-                    public int compare( File f1, File f2 )
-                    {
-                        return Long.valueOf( f2.lastModified() ).compareTo( f1.lastModified() );
-                    }
-                } );
-                return files[0];
+                time = auditTime;
+                latestAuditNode = auditNode;
             }
         }
-        return null;
+        PolicyEvaluation evaluation = JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
+
+        return evaluation;
     }
 
     public String getBaseUrl()

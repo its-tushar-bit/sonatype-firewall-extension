@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.application;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -25,7 +26,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +62,7 @@ public class ApplicationResource
     @GET
     @Produces( MediaType.APPLICATION_JSON )
     public List<ApplicationManagementSummary> getApplications()
+        throws IOException
     {
         final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
         final List<Application> applications = applicationDAO.getAll();
@@ -69,15 +70,11 @@ public class ApplicationResource
         {
             log.debug( "Found application with public id {}", application.getPublicId() );
 
-            final File latestReport = work.getLatestReport( application.getId() );
+            final PolicyEvaluation policyEvaluation = work.getLatestReport( application.getId() );
             final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
             applicationManagement.setId( application.getId() );
             applicationManagement.setPublicId( application.getPublicId() );
-            if ( latestReport != null )
-            {
-                applicationManagement.setLastModified( latestReport.lastModified() );
-                applicationManagement.setReportName( latestReport.getName() );
-            }
+            applicationManagement.setPolicyEvaluation( policyEvaluation );
 
             applicationManagements.add( applicationManagement );
         }

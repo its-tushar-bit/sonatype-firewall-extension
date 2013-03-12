@@ -8,15 +8,29 @@
     <table class='table table-striped' style='margin-bottom:0px'>
         <thead>
         <tr>
-            <th>Public Id</th>
-            <th>Stage Release</th>
+            <th>
+                <button class='btn' ng-click="order('publicId');">
+                    Public Id
+                    <i ng-class="{ 'icon-chevron-down' : orderColumn == 'publicId' && orderDirection,
+                                'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection }"></i>
+                </button>
+            </th>
+            <th ng-repeat='stage in stages'>
+                <button class='btn' ng-click="order(stage.id);">
+                    {{stage.name}}
+                    <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
+                                'icon-chevron-up' : orderColumn == stage.id && !orderDirection }"></i>
+                </button>
+            </th>
             <th></th>
         </tr>
         </thead>
-        <tr ng-repeat='application in applications | filter: searchText'>
+        <tr ng-repeat=' application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
             <td>{{application.publicId}}</td>
-            <td><a href='/rest/report/{{application.publicId}}/{{application.reportName}}/embedReport/index.html'>{{application.lastModified
-                | date:'yyyy-MM-dd'}}</a>
+            <td ng-repeat='stage in stages'>
+                <a ng-show='application.policyEvaluation.data.stage.stageTypeId == stage.id'
+                   href='/rest/report/{{application.publicId}}/{{application.policyEvaluation.data.scanId}}/embedReport/index.html'>
+                    {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
             </td>
             <td><a href="/policy-assets/index.html?appId={{application.publicId}}">Manage Policy</a></td>
         </tr>
@@ -27,5 +41,31 @@
         </tr>
         </tfoot>
     </table>
+    <div id='addApplicationModal' data-backdrop='static' class='modal hide'>
+        <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal'>×</button>
+            <h3>Add Application</h3>
+        </div>
+        <div class='modal-body'>
+            <div class='form-horizontal'>
+                <div class='control-group'>
+                    <label class='control-label' for='inputApplicationId'>Application Public Id</label>
+
+                    <div class='controls'>
+                        <input id='inputApplicationId' type='text' ng-model='applicationPublicId'/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-show='addApplicationError'>
+            <div class='alert alert-error'>
+                <button type='button' class='close' ng-click='clearAddApplicationError()'>&times;</button>
+                <strong>Error</strong> {{addApplicationError}}
+            </div>
+        </div>
+        <div class='modal-footer'>
+            <button class='btn btn-primary' ng-click='addApplication()'>Add</button>
+        </div>
+    </div>
     <div error-Modal></div>
 </div>

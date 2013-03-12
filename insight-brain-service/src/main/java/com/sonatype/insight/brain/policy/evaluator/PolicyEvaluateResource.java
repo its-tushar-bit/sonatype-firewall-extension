@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -242,6 +243,16 @@ public class PolicyEvaluateResource
                 blue += components;
             }
         }
+        
+        Collections.sort( policyAlerts, new Comparator<PolicyAlert>(){
+            @Override
+            public int compare( PolicyAlert o1, PolicyAlert o2 )
+            {
+                int t1 = o1.getTrigger().getThreatLevel();
+                int t2 = o2.getTrigger().getThreatLevel();
+                
+                return t1 > t2 ? -1 : t1 < t2 ? 1 : 0;
+            }} );
 
         final Map<String, Object> model = new HashMap<String, Object>();
 
@@ -256,6 +267,8 @@ public class PolicyEvaluateResource
         model.put( "policyThreatYellowCount", yellow );
         model.put( "policyThreatBlueCount", blue );
         model.put( "actionTypes", ActionTypes.getAll() );
+        model.put( "applicationPublicId", applicationPublicId );
+        model.put( "scanId", scanId );
 
         return model;
     }

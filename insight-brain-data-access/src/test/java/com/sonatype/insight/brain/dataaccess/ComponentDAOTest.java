@@ -115,7 +115,7 @@ public class ComponentDAOTest
         info.setRelativePopularity( 42 );
         info.addDeclaredLicenseId( "Apache-2.0" );
         info.addObservedLicenseId( "MIT" );
-        info.addSecurityThreat( new SecurityVulnerability( "12345", "osvdb", 4f ) );
+        info.addSecurityVulnerability( new SecurityVulnerability( "12345", "osvdb", 4f ) );
         Component comp = componentDAO.getComponent( applicationId, info, null, null );
         assertNotNull( comp );
         assertEquals( info.getHash(), comp.getHash() );

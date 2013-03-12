@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.net.URL;
 
+import javax.mail.internet.InternetAddress;
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
@@ -41,6 +42,8 @@ public class InsightConfig
         {
             setHostname( "127.0.0.1" );
             setPort( 587 );
+            setSystemEmail( "SonatypeCLM@localhost" );
+            setSystemPersonal( "Sonatype CLM" );
         }
     };
 
@@ -133,6 +136,21 @@ public class InsightConfig
         catch ( Exception e )
         {
             log.error( "Invalid baseUrl: {}", e.getMessage() );
+            return false;
+        }
+    }
+
+    @ValidationMethod( message = "mail.systemEmail is invalid" )
+    public boolean isValidSystemMailAddress()
+    {
+        try
+        {
+            new InternetAddress( getMailConfig().getSystemEmail() );
+            return true;
+        }
+        catch ( Exception e )
+        {
+            log.error( "Invalid mail.systemEmail: {}", e.getMessage() );
             return false;
         }
     }

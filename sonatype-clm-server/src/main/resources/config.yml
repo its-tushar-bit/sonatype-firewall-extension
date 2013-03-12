@@ -17,6 +17,18 @@ http:
   # requests. Subject to the same limitations as "port".
   adminPort: 8071
 
+# Notification mail settings.
+mail:
+
+  # The host running the SMTP server to use. 
+  #hostname: "127.0.0.1"
+
+  # The port at which the SMTP server listens on. 
+  #port: 587
+
+  # The address used as From for outgoing notification mails sent by the server.
+  #systemEmail: "SonatypeCLM@localhost"
+
 # Logging settings.
 logging:
 

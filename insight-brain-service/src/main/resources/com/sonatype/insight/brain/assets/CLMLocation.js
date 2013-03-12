@@ -83,6 +83,10 @@
 
             getPolicyUrl: function () {
                 return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
+            },
+
+            getApplicationsUrl: function () {
+                return this.getBaseUrl() + '/rest/application';
             }
         };
     });

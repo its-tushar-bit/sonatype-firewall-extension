@@ -14,6 +14,18 @@ public class ApplicationManagementSummary
         this.id = id;
     }
 
+    private String publicId;
+
+    public String getPublicId()
+    {
+        return publicId;
+    }
+
+    public void setPublicId( String publicId )
+    {
+        this.publicId = publicId;
+    }
+
     private Long lastModified;
 
     public Long getLastModified()

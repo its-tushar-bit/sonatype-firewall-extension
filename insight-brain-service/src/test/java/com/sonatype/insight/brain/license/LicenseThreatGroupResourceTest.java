@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -120,16 +119,5 @@ public class LicenseThreatGroupResourceTest
     private String getServiceURL( final String appId )
     {
         return getRestBaseUrl() + LicenseThreatGroupResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
-    }
-
-    @Override
-    protected void cleanupApplication( Application application )
-    {
-        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-        for ( LicenseThreatGroup licenseThreatGroup : dao.getByApplicationId( application.getId() ) )
-        {
-            dao.delete( licenseThreatGroup );
-        }
-        super.cleanupApplication( application );
     }
 }

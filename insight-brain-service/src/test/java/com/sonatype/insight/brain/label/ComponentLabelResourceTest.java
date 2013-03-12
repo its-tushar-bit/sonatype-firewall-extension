@@ -13,8 +13,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -23,17 +21,6 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ComponentLabelResourceTest
     extends AbstractResourceTest
 {
-    private LabelDAO labelDAO = new LabelDAO();
-
-    @Override
-    protected void cleanupApplication( Application application )
-    {
-        for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
-        {
-            labelDAO.delete( label );
-        }
-        super.cleanupApplication( application );
-    }
 
     @Test
     public void testSetGetComponentLabels()

@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
@@ -33,7 +32,6 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class LabelResourceTest
     extends AbstractResourceTest
 {
-    private LabelDAO labelDAO = new LabelDAO();
 
     @Test
     public void testDeleteLabel_UsedInPolicyCondition()
@@ -188,15 +186,5 @@ public class LabelResourceTest
     private String getServiceURL( final String appId )
     {
         return getRestBaseUrl() + LabelResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
-    }
-
-    @Override
-    protected void cleanupApplication( Application application )
-    {
-        for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
-        {
-            labelDAO.delete( label );
-        }
-        super.cleanupApplication( application );
     }
 }

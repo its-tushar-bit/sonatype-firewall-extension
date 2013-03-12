@@ -616,30 +616,4 @@ public class SaasIdeResourceTest
         }
         return buffer.toString();
     }
-
-    @Override
-    protected void cleanupApplication( Application application )
-    {
-        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
-        List<Policy> policiesToDelete = policyDAO.getByApplicationId( application.getId() );
-        for ( Policy policy : policiesToDelete )
-        {
-            policyDAO.delete( application.getId(), policy.getId() );
-        }
-
-        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = componentLabelDAO.getByApplicationId( application.getId() );
-        for ( ComponentLabel componentLabel : componentLabels )
-        {
-            componentLabelDAO.delete( componentLabel );
-        }
-
-        LabelDAO labelDAO = new LabelDAO();
-        for ( Label label : labelDAO.getByApplicationId( application.getId() ) )
-        {
-            labelDAO.delete( label );
-        }
-
-        super.cleanupApplication( application );
-    }
 }

@@ -80,15 +80,4 @@ public class LicenseThreatGroupLicenseResourceTest
             + LicenseThreatGroupLicenseResource.SERVICE_PATH.replace( "{applicationPublicId}", appId ).replace( "{licenseThreatGroupId}",
                                                                                                                 licenseThreatGroupId );
     }
-
-    @Override
-    protected void cleanupApplication( Application application )
-    {
-        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-        for ( LicenseThreatGroup licenseThreatGroup : dao.getByApplicationId( application.getId() ) )
-        {
-            dao.delete( licenseThreatGroup );
-        }
-        super.cleanupApplication( application );
-    }
 }

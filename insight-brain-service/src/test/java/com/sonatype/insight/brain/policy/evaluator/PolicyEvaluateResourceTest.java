@@ -238,15 +238,18 @@ public class PolicyEvaluateResourceTest
         final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
 
+        String serverUrl = "http://localhost/";
+
         Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
         PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
         Map<String, Object> model =
-            PolicyEvaluateResource.createPolicyMailModel( "http://localhost/", applicationPublicId, scanId, stage,
+            PolicyEvaluateResource.createPolicyMailModel( serverUrl, applicationPublicId, scanId, stage,
                                                           Arrays.asList( policyAlerts ) );
         Assert.assertNotNull( model );
         Assert.assertEquals( Arrays.asList( policyAlerts ), model.get( "policyAlerts" ) );
-        Assert.assertEquals( "http://localhost/" + ReportResource.getReportPath( applicationPublicId, scanId ),
+        Assert.assertEquals( serverUrl, model.get( "serverUrl" ) );
+        Assert.assertEquals( serverUrl + ReportResource.getReportPath( applicationPublicId, scanId ),
                              model.get( "detailedReportUrl" ) );
         Assert.assertEquals( 7, model.get( "policyThreatRedCount" ) );
         Assert.assertEquals( 3, model.get( "policyThreatOrangeCount" ) );

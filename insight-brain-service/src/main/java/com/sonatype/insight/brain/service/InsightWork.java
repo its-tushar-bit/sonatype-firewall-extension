@@ -94,4 +94,9 @@ public class InsightWork
         }
         return null;
     }
+
+    public String getBaseUrl()
+    {
+        return insightConfig.getBaseUrl();
+    }
 }

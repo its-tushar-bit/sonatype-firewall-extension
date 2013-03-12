@@ -27,7 +27,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -82,9 +81,6 @@ public class PolicyEvaluateResource
 
     @Context
     private InsightMail mail;
-
-    @Context
-    private UriInfo uriInfo;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -249,6 +245,7 @@ public class PolicyEvaluateResource
 
         final Map<String, Object> model = new HashMap<String, Object>();
 
+        model.put( "serverUrl", serverUrl );
         model.put( "detailedReportUrl", serverUrl + ReportResource.getReportPath( applicationPublicId, scanId ) );
         model.put( "policyAlerts", policyAlerts );
         model.put( "policyThreatStage", StageTypes.getById( stage.getStageTypeId() ).getName() );
@@ -268,7 +265,7 @@ public class PolicyEvaluateResource
         throws IOException
     {
         final Map<String, Object> model =
-            createPolicyMailModel( uriInfo.getBaseUri().toString(), applicationPublicId, scanId, stage, policyAlerts );
+            createPolicyMailModel( work.getBaseUrl(), applicationPublicId, scanId, stage, policyAlerts );
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }
 

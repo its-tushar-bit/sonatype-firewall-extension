@@ -5,17 +5,18 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.json.store.JsonUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class InsightWork
     extends AbstractInjectable<InsightWork>

@@ -6,7 +6,7 @@
   "artifactId" : "a1",
   "version" : "v1",
   "licenseThreat" : "LIBERAL",
-  "securityThreats" : [ {
+  "securityVulnerabilities" : [ {
     "refId" : "36079",
     "severity" : 3.5,
     "source" : "osvdb"

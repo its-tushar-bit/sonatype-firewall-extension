@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -236,7 +237,7 @@ public class PolicyEvaluateResource
         model.put( "policyAlerts", policyAlerts );
         model.put( "policyThreatStage", StageTypes.getById( stage.getStageTypeId() ).getName() );
         model.put( "policyThreatApp", applicationPublicId );
-        model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy" ).format( new Date() ) );
+        model.put( "policyThreatTime", new SimpleDateFormat( "MMMM dd, yyyy", Locale.ENGLISH ).format( new Date() ) );
         model.put( "policyThreatRedCount", counts.red );
         model.put( "policyThreatOrangeCount", counts.orange );
         model.put( "policyThreatYellowCount", counts.yellow );

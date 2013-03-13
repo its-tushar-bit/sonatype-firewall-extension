@@ -8,15 +8,15 @@
     <table class='table table-striped' style='margin-bottom:0px'>
         <thead>
         <tr>
-            <th>
-                <button class='btn' ng-click="order('publicId');">
+            <th style='padding: 0px'>
+                <button class='btn' style='width: 100%' ng-click="order('publicId');">
                     Public Id
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == 'publicId' && orderDirection,
                                 'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection }"></i>
                 </button>
             </th>
-            <th ng-repeat='stage in stages'>
-                <button class='btn' ng-click="order(stage.id);">
+            <th ng-repeat='stage in stages' style='padding: 0px'>
+                <button class='btn' style='width: 100%' ng-click="order(stage.id);">
                     {{stage.name}}
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
                                 'icon-chevron-up' : orderColumn == stage.id && !orderDirection }"></i>
@@ -64,7 +64,7 @@
             </div>
         </div>
         <div class='modal-footer'>
-            <button class='btn btn-primary' ng-click='addApplication()'>Add</button>
+            <button class='btn btn-primary' ng-click='addApplication()' ng-disabled='!applicationPublicId'>Add</button>
         </div>
     </div>
     <div error-Modal></div>

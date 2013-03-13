@@ -35,8 +35,12 @@
         };
 
         $scope.addApplication = function () {
+            if (!$scope.applicationPublicId) {
+                $scope.addApplicationError = 'Please enter a value for the Application Id';
+            }
             hudson.post(clmLocations.getApplicationsUrl(), $scope.applicationPublicId).success(function (application) {
                 $scope.applications.push(application);
+                $scope.clearAddApplicationError();
                 $('#addApplicationModal').modal('hide');
             }).error(onAddApplicationError);
         };

@@ -28,8 +28,8 @@
         <tr ng-repeat=' application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
             <td>{{application.publicId}}</td>
             <td ng-repeat='stage in stages'>
-                <a ng-show='application.policyEvaluation.data.stage.stageTypeId == stage.id'
-                   href='/rest/report/{{application.publicId}}/{{application.policyEvaluation.data.scanId}}/embedReport/index.html'>
+                <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
+                   href='/rest/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}/embedReport/index.html'>
                     {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
             </td>
             <td><a href="/policy-assets/index.html?appId={{application.publicId}}">Manage Policy</a></td>

@@ -72,7 +72,7 @@ public class ApplicationResource
         {
             log.debug( "Found application with public id {}", application.getPublicId() );
 
-            final PolicyEvaluation policyEvaluation = work.getLatestReport( application.getId() );
+            final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
             final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
             applicationManagement.setId( application.getId() );
             applicationManagement.setPublicId( application.getPublicId() );

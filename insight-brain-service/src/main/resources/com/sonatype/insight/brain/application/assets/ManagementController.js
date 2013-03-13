@@ -58,7 +58,7 @@
             if ($scope.orderColumn === 'publicId') {
                 return application.publicId;
             } else {
-                if (application.policyEvaluation.data.stage.stageTypeId === $scope.orderColumn) {
+                if (application.policyEvaluation.stage.stageTypeId === $scope.orderColumn) {
                     return application.policyEvaluation.time;
                 }
             }

@@ -5,55 +5,17 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import com.sonatype.clm.dto.model.policy.Stage;
+
 public class PolicyEvaluation
 {
-    public class PolicyEvaluationData
-    {
-        public class PolicyEvaluationStage
-        {
-            private String stageTypeId;
+    private Stage stage;
 
-            public String getStageTypeId()
-            {
-                return stageTypeId;
-            }
-
-            public void setStageTypeId( String stageTypeId )
-            {
-                this.stageTypeId = stageTypeId;
-            }
-        }
-
-        private PolicyEvaluationStage stage;
-
-        private String scanId;
-
-        public PolicyEvaluationData.PolicyEvaluationStage getStage()
-        {
-            return stage;
-        }
-
-        public void setStage( PolicyEvaluationData.PolicyEvaluationStage stage )
-        {
-            this.stage = stage;
-        }
-
-        public String getScanId()
-        {
-            return scanId;
-        }
-
-        public void setScanId( String scanId )
-        {
-            this.scanId = scanId;
-        }
-    }
+    private String scanId;
 
     private long time;
 
     private String user;
-
-    private PolicyEvaluationData data;
 
     public long getTime()
     {
@@ -75,13 +37,23 @@ public class PolicyEvaluation
         this.user = user;
     }
 
-    public PolicyEvaluation.PolicyEvaluationData getData()
+    public Stage getStage()
     {
-        return data;
+        return stage;
     }
 
-    public void setData( PolicyEvaluation.PolicyEvaluationData data )
+    public void setStage( Stage stage )
     {
-        this.data = data;
+        this.stage = stage;
+    }
+
+    public String getScanId()
+    {
+        return scanId;
+    }
+
+    public void setScanId( String scanId )
+    {
+        this.scanId = scanId;
     }
 }

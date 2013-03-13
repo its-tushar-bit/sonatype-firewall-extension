@@ -14,8 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class InsightWork
@@ -76,22 +76,11 @@ public class InsightWork
         return null;
     }
 
-    public PolicyEvaluation getLatestReport( final String appId )
+    public PolicyEvaluation getPolicyEvaluation( final String appId )
         throws IOException
     {
-        final File auditFile = new File( getAuditDir( appId ), "policyevaluations.json" );
-        final ContainerNode<?> auditNodes = JsonUtils.read( auditFile );
-        long time = 0;
-        JsonNode latestAuditNode = null;
-        for ( JsonNode auditNode : auditNodes )
-        {
-            final long auditTime = auditNode.get( "time" ).asLong();
-            if ( auditTime > time )
-            {
-                time = auditTime;
-                latestAuditNode = auditNode;
-            }
-        }
+        final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
+        final JsonNode latestAuditNode = auditStore.history( null, "policyevaluations.json" ).get( "aaData" ).get( 0 );
         PolicyEvaluation evaluation = JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
 
         return evaluation;

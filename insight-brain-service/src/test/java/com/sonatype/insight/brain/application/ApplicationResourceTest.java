@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.application;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -83,7 +82,6 @@ public class ApplicationResourceTest
     }
 
     @Test
-    @Ignore
     public void testGetApplications()
         throws Exception
     {

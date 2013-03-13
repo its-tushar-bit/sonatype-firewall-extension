@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -77,22 +78,17 @@ public class InsightWork
     }
 
     public PolicyEvaluation getPolicyEvaluation( final String appId )
-        throws IOException
+        throws Exception
     {
-        try
+        final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
+        final ContainerNode<?> auditContainer = auditStore.history( null, "policyevaluations.json" );
+        if ( auditContainer != null )
         {
-            final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
-            final JsonNode latestAuditNode =
-                auditStore.history( null, "policyevaluations.json" ).get( "aaData" ).get( 0 );
-            PolicyEvaluation evaluation = JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
-
-            return evaluation;
+            JsonNode latestAuditNode = auditContainer.get( "aaData" ).get( 0 );
+            return JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
         }
-        catch ( IOException ex )
-        {
-            IOException exception = ex;
-            throw exception;
-        }
+        // Valid response as there have been no policy evaluations for this application
+        return null;
     }
 
     public String getBaseUrl()

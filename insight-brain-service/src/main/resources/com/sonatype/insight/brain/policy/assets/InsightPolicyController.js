@@ -90,22 +90,24 @@
 			angular.forEach(data.constraints, function (constraint, constraintIndex) {
 				angular.forEach(constraint.conditions, function (condition, conditionIndex) {
 					condition.conditionType = getConditionType(condition.conditionTypeId);
-					condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
-					if (condition.value) {
-						var parts = condition.value.split(',');
-						if (parts.length > 1) {
-							condition.value = parts;
-						} else if (condition.valueType && condition.valueType.id === 'AgeInDaysValueType') {
-							if (condition.value >= 365 && condition.value % 365 === 0) {
-								condition.value = condition.value / 365;
-								condition.valueModifier = 'y';
-							} else if (condition.value >= 30 && condition.value % 30 === 0) {
-								condition.value = condition.value / 30;
-								condition.valueModifier = 'm';
-							} else {
-								condition.valueModifier = 'd';
-							}
-						}
+					if (condition.conditionType){
+    					condition.valueType = getConditionValueType(condition.conditionType.valueTypeId);
+    					if (condition.value) {
+    						var parts = condition.value.split(',');
+    						if (parts.length > 1) {
+    							condition.value = parts;
+    						} else if (condition.valueType && condition.valueType.id === 'AgeInDaysValueType') {
+    							if (condition.value >= 365 && condition.value % 365 === 0) {
+    								condition.value = condition.value / 365;
+    								condition.valueModifier = 'y';
+    							} else if (condition.value >= 30 && condition.value % 30 === 0) {
+    								condition.value = condition.value / 30;
+    								condition.valueModifier = 'm';
+    							} else {
+    								condition.valueModifier = 'd';
+    							}
+    						}
+    					}
 					}
 				});
 			});
@@ -531,6 +533,9 @@
 				if ($scope.state.currentConstraint.conditions[i].valueType && !$scope.state.currentConstraint.conditions[i].value) {
 					$scope.state.constraintValidationMsg = 'Please enter a value for condition #' + (i + 1);
 					return;
+				} else if (!$scope.state.currentConstraint.conditions[i].conditionType) {
+				    $scope.state.constraintValidationMsg = 'Please select a valid condition type for condition #' + (i + 1);
+				    return;
 				}
 			}
 		};

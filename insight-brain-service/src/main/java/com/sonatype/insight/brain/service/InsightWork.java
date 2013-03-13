@@ -79,8 +79,8 @@ public class InsightWork
     public PolicyEvaluation getLatestReport( final String appId )
         throws IOException
     {
-        final File auditDir = new File( insightConfig.getSonatypeWork(), "audit/" + appId + "/policyevaluations.json" );
-        final ContainerNode<?> auditNodes = JsonUtils.read( auditDir );
+        final File auditFile = new File( getAuditDir( appId ), "policyevaluations.json" );
+        final ContainerNode<?> auditNodes = JsonUtils.read( auditFile );
         long time = 0;
         JsonNode latestAuditNode = null;
         for ( JsonNode auditNode : auditNodes )

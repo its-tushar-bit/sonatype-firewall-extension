@@ -175,6 +175,58 @@ public class IdeResourceTest
     }
 
     @Test
+    public void testGetComponentDetails_UnknownComponent()
+        throws Exception
+    {
+        String applicationPublicId = "IdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "unknown" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action failAction = new Action( FailActionType.ID );
+        policy1.addAction( BuildStageType.ID, failAction );
+        addPolicy( applicationPublicId, policy1 );
+
+        String groupId = "ug1";
+        String artifactId = "ua1";
+        String version = "uv1";
+        String serviceUrl =
+            getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
+                                    "unknown" );
+        setSaasResponseForURI( serviceUrl.substring( getRestBaseUrl().length() ), "unknown GAV", 404 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
+
+        serviceUrl = getComponentDetailsUrl( applicationPublicId, "", "", "", "01234567890123456789", "unknown" );
+        setSaasResponseForURI( serviceUrl.substring( getRestBaseUrl().length() ), "unknown GAV", 404 );
+        response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( "", componentDetails.getGroupId() );
+        Assert.assertEquals( "", componentDetails.getArtifactId() );
+        Assert.assertEquals( "", componentDetails.getVersion() );
+        policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
+    }
+
+    @Test
     public void testDoScan_Simple()
         throws Exception
     {

@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 @Path( ComponentInfoResource.SERVICE_PATH )
 public class ComponentInfoResource
@@ -98,8 +99,17 @@ public class ComponentInfoResource
         String applicationId = app.getId();
 
         // Get component details from the SAAS server
-        ComponentDetails componentDetails =
-            client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
+        ComponentDetails componentDetails;
+        try
+        {
+            componentDetails =
+                client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
+        }
+        catch ( NotFoundException e )
+        {
+            // GAV is unknown to SaaS, still want to provide minimal data for details view
+            componentDetails = new ComponentDetails( groupId, artifactId, version );
+        }
 
         if ( hash != null && !hash.isEmpty() )
         {

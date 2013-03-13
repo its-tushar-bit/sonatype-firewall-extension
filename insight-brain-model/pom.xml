@@ -41,9 +41,8 @@
       <artifactId>jackson-annotations</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-rm-common</artifactId>
-      <version>1.2-SNAPSHOT</version>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
   </dependencies>
 

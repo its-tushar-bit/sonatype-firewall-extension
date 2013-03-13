@@ -44,6 +44,10 @@ input.editor-checkbox {
     width: 90%;
 }
 
+.emptyIconGlyph {
+    padding-left: 18px;
+}
+
 .navbar .brand {
     margin-left: 0px;
     white-space: nowrap;

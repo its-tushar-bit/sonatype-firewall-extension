@@ -12,27 +12,29 @@
                 <button class='btn' style='width: 100%' ng-click="order('publicId');">
                     Public Id
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == 'publicId' && orderDirection,
-                                'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection }"></i>
+                            'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection,
+                            'emptyIconGlyph' : orderColumn != 'publicId' }"></i>
                 </button>
             </th>
             <th ng-repeat='stage in stages' style='padding: 0px'>
                 <button class='btn' style='width: 100%' ng-click="order(stage.id);">
                     {{stage.name}}
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
-                                'icon-chevron-up' : orderColumn == stage.id && !orderDirection }"></i>
+                            'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
+                            'emptyIconGlyph' : orderColumn != stage.id }"></i>
                 </button>
             </th>
             <th></th>
         </tr>
         </thead>
-        <tr ng-repeat=' application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
-            <td>{{application.publicId}}</td>
-            <td ng-repeat='stage in stages'>
+        <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
+            <td style='text-align: center;'>{{application.publicId}}</td>
+            <td ng-repeat='stage in stages' style='text-align: center;'>
                 <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
-                   href='/rest/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}/embedReport/index.html'>
+                   href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
                     {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
             </td>
-            <td><a href="/policy-assets/index.html?appId={{application.publicId}}">Manage Policy</a></td>
+            <td><a href='/policy-assets/index.html?appId={{application.publicId}}'>Manage Policy</a></td>
         </tr>
         <tfoot>
         <tr>

@@ -8,10 +8,14 @@ var applicationApp;
 (function () {
     "use strict";
 
-    applicationApp = angular.module('applicationApp', ['InsightAngularCommon', 'Management'], ['$routeProvider', function ($routeProvider) {
+    applicationApp = angular.module('applicationApp', ['InsightAngularCommon', 'Management', 'Report'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/management', {
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ManagementController'
+        });
+        $routeProvider.when('/report/:applicationId/:scanId', {
+            templateUrl: 'components/report.html?' + clmBuildTimestamp,
+            controller: 'ReportController'
         });
         $routeProvider.otherwise({redirectTo: '/management'});
     } ]);

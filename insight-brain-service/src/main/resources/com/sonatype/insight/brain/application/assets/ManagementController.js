@@ -7,9 +7,9 @@
 (function () {
     'use strict';
 
-    var applicationModule = angular.module('Management', ['InsightAngularCommon', 'Hudson', 'CLMLocation']);
+    var managementModule = angular.module('Management', ['InsightAngularCommon', 'Hudson', 'CLMLocation']);
 
-    applicationModule.controller('ManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
+    managementModule.controller('ManagementController', ['$scope', '$location', '$http', 'hudson', 'CLMLocations', function ($scope, $location, $http, hudson, clmLocations) {
         $scope.orderColumn = 'publicId';
         $scope.orderDirection = true;
 
@@ -69,5 +69,7 @@
             // return max value to prevent empty values showing up as low
             return Number.MAX_VALUE;
         };
-    }]);
+    }
+    ])
+    ;
 }());

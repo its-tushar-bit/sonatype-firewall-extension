@@ -79,11 +79,20 @@ public class InsightWork
     public PolicyEvaluation getPolicyEvaluation( final String appId )
         throws IOException
     {
-        final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
-        final JsonNode latestAuditNode = auditStore.history( null, "policyevaluations.json" ).get( "aaData" ).get( 0 );
-        PolicyEvaluation evaluation = JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
+        try
+        {
+            final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
+            final JsonNode latestAuditNode =
+                auditStore.history( null, "policyevaluations.json" ).get( "aaData" ).get( 0 );
+            PolicyEvaluation evaluation = JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
 
-        return evaluation;
+            return evaluation;
+        }
+        catch ( IOException ex )
+        {
+            IOException exception = ex;
+            throw exception;
+        }
     }
 
     public String getBaseUrl()

@@ -13,7 +13,7 @@
 			var string = '',
 				field;
 			for (field in obj) {
-				string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field]);
+				string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field] == null ? "" : obj[field]);
 			}
 			return string.substring(1);
 		};

@@ -30,7 +30,6 @@ public class ConditionTypes
         add( new AgeInDaysConditionType() );
         add( new MatchStateConditionType() );
         add( new CoordinatesConditionType() );
-        add( new DependencyDepthConditionType() );
     }
 
     public static Collection<ConditionType> getAll()

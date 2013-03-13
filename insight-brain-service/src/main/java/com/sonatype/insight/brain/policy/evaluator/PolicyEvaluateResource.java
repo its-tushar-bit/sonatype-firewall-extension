@@ -108,11 +108,9 @@ public class PolicyEvaluateResource
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
         final ReportEntry bomReportEntry = Report.getEntry( reportFile, "bom.json" );
-        final ReportEntry dependenciesReportEntry = Report.getEntry( reportFile, "dependencies.json" );
 
         final List<Component> components =
-            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
-                                       dependenciesReportEntry.buf );
+            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf );
 
         final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policies, components );
 

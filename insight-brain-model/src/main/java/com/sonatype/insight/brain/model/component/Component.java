@@ -46,8 +46,6 @@ public class Component
 
     private Long catalogDate;
 
-    private List<Integer> dependencyDepths = new ArrayList<Integer>();
-
     private List<String> labelIds = new ArrayList<String>();
 
     public Component()
@@ -345,28 +343,6 @@ public class Component
     public void setCatalogDate( Long catalogDate )
     {
         this.catalogDate = catalogDate;
-    }
-
-    public List<Integer> getDependencyDepths()
-    {
-        return dependencyDepths;
-    }
-
-    public void setDependencyDepths( List<Integer> dependencyDepths )
-    {
-        this.dependencyDepths.clear();
-
-        if ( dependencyDepths == null )
-        {
-            return;
-        }
-
-        this.dependencyDepths.addAll( dependencyDepths );
-    }
-
-    public void addDependencyDepth( int dependencyDepth )
-    {
-        dependencyDepths.add( dependencyDepth );
     }
 
     public void addLabelId( String labelId )

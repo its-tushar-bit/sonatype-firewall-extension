@@ -78,7 +78,7 @@ public class InsightWork
     }
 
     public PolicyEvaluation getPolicyEvaluation( final String appId )
-        throws Exception
+        throws IOException
     {
         final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
         final ContainerNode<?> auditContainer = auditStore.history( null, "policyevaluations.json" );

@@ -64,7 +64,7 @@ public class ApplicationResource
     @GET
     @Produces( MediaType.APPLICATION_JSON )
     public List<ApplicationManagementSummary> getApplications()
-        throws Exception
+        throws IOException
     {
         final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
         final List<Application> applications = applicationDAO.getAll();

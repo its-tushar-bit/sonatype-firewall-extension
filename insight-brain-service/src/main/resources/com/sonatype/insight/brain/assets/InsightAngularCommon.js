@@ -42,9 +42,9 @@ var angularCommon;
             require: '?ngModel',
             link: function postLink($scope, element, attrs, controller) {
                 var source = $parse(attrs.typeAhead)($scope);
-                $scope.$watch(attrs.typeAhead, function (newTA, oldTA) {
-                    if (oldTA !== newTA) {
-                        source = newTA;
+                $scope.$watch(attrs.typeAhead, function (newSource, oldSource) {
+                    if (oldSource !== newSource) {
+                        source = newSource;
                     }
                 });
 

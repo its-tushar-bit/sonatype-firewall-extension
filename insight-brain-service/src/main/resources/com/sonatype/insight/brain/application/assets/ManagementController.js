@@ -73,7 +73,5 @@
             // return max value to prevent empty values showing up as low
             return Number.MAX_VALUE;
         };
-    }
-    ])
-    ;
+    }]);
 }());

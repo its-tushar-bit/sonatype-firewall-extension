@@ -29,14 +29,14 @@ describe('InsightLicenseGroupController', function() {
 	
 	it('shows the GUI', function() {
 		expect(scope.features.licenseGroup).toBeTruthy();
-	})
+	});
 	it('loads licenses.', function() {
 		expect(scope.allLicenses).not.toBeUndefined();
 		expect(scope.allLicenses.length).toEqual(3);
 	});
 	it('sorts the licenses.', function() {
 		expect(scope.allLicenses[0].id).toEqual('AAL');
-	})
+	});
 	it('loads license groups.', function() {
 		expect(scope.licenseGroups).not.toBeUndefined();
 		expect(scope.licenseGroups.length).toEqual(1);

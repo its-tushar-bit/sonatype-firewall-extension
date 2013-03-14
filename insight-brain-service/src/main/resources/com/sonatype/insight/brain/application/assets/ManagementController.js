@@ -22,11 +22,15 @@
             }
         }
 
-        $http.get(clmLocations.getActionStageUrl()).success(function (data) {
+        $http.get(clmLocations.getActionStageUrl(), {
+            params: { timestamp: new Date().getTime() }
+        }).success(function (data) {
             $scope.stages = data;
         }).error($scope.showServerError);
 
-        $http.get(clmLocations.getApplicationsUrl()).success(function (data) {
+        $http.get(clmLocations.getApplicationsUrl(), {
+            params: { timestamp: new Date().getTime() }
+        }).success(function (data) {
             $scope.applications = data;
         }).error($scope.showServerError);
 

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -81,11 +82,11 @@ public class LicenseThreatGroupConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "Apache-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component1 );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "GPL-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component2 );
         components.add( component2 );
@@ -120,11 +121,11 @@ public class LicenseThreatGroupConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "Apache-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component1 );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "GPL-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component2 );
         components.add( component2 );
@@ -159,11 +160,11 @@ public class LicenseThreatGroupConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addObservedLicenseId( "Apache-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component1 );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addObservedLicenseId( "GPL-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component2 );
         components.add( component2 );
@@ -198,11 +199,11 @@ public class LicenseThreatGroupConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addObservedLicenseId( "Apache-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component1 );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addObservedLicenseId( "GPL-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component2 );
         components.add( component2 );
@@ -237,13 +238,13 @@ public class LicenseThreatGroupConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "Apache-2.0" );
         component1.addObservedLicenseId( "Apache-2.0" );
         component1.addOverriddenLicenseId( "GPL-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component1 );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "GPL-2.0" );
         component2.addObservedLicenseId( "GPL-2.0" );
         component2.addOverriddenLicenseId( "Apache-2.0" );
@@ -280,13 +281,13 @@ public class LicenseThreatGroupConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "Apache-2.0" );
         component1.addObservedLicenseId( "Apache-2.0" );
         component1.addOverriddenLicenseId( "GPL-2.0" );
         componentDAO.loadLicenseThreatGroups( applicationId, component1 );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "GPL-2.0" );
         component2.addObservedLicenseId( "GPL-2.0" );
         component2.addOverriddenLicenseId( "Apache-2.0" );

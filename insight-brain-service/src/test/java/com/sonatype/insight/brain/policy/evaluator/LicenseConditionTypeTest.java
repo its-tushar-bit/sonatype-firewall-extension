@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
@@ -46,10 +47,10 @@ public class LicenseConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "UNSPECIFIED" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "AFL-1.2" );
         components.add( component2 );
 
@@ -80,10 +81,10 @@ public class LicenseConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "UNSPECIFIED" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
         components.add( component2 );
 
@@ -114,10 +115,10 @@ public class LicenseConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addObservedLicenseId( "UNSPECIFIED" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addObservedLicenseId( "AFL-1.2" );
         components.add( component2 );
 
@@ -148,10 +149,10 @@ public class LicenseConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addObservedLicenseId( "UNSPECIFIED" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
         components.add( component2 );
 
@@ -182,12 +183,12 @@ public class LicenseConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "UNSPECIFIED" );
         component1.addObservedLicenseId( "UNSPECIFIED" );
         component1.addOverriddenLicenseId( "Apache-2.0" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
         component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
         component2.addOverriddenLicenseId( "UNSPECIFIED" );
@@ -220,12 +221,12 @@ public class LicenseConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.addDeclaredLicenseId( "UNSPECIFIED" );
         component1.addObservedLicenseId( "UNSPECIFIED" );
         component1.addOverriddenLicenseId( "Apache-2.0" );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
         component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
         component2.addOverriddenLicenseId( "UNSPECIFIED" );

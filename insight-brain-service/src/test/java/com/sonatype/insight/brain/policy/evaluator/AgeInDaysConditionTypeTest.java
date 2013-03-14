@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
@@ -47,14 +48,14 @@ public class AgeInDaysConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         // A component without age
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         components.add( component1 );
         // A component with age 10
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.setCatalogDate( System.currentTimeMillis() - 10 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1 );
         components.add( component2 );
         // A component with age 20
-        Component component3 = new Component( "g3", "a3", "v3" );
+        Component component3 = new Component( "g3", "a3", "v3", MatchState.EXACT );
         component3.setCatalogDate( System.currentTimeMillis() - 20 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1 );
         components.add( component3 );
         // Evaluate the policy
@@ -83,14 +84,14 @@ public class AgeInDaysConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         // A component without age
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         components.add( component1 );
         // A component with age 10
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.setCatalogDate( System.currentTimeMillis() - 10 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1 );
         components.add( component2 );
         // A component with age 20
-        Component component3 = new Component( "g3", "a3", "v3" );
+        Component component3 = new Component( "g3", "a3", "v3", MatchState.EXACT );
         component3.setCatalogDate( System.currentTimeMillis() - 20 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1 );
         components.add( component3 );
         // Evaluate the policy

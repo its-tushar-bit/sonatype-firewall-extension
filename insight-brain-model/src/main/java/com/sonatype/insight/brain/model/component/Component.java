@@ -52,12 +52,12 @@ public class Component
     {
     }
 
-    public Component( final String groupId, final String artifactId, final String version )
+    public Component( final String groupId, final String artifactId, final String version, MatchState matchState )
     {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
-        matchState = MatchState.EXACT;
+        this.matchState = matchState;
     }
 
     public String getGroupId()

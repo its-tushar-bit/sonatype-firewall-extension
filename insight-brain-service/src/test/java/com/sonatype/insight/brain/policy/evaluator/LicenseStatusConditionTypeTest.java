@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -48,10 +49,10 @@ public class LicenseStatusConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         // A component with license status OPEN
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         components.add( component1 );
         // A component with license status CONFIRMED
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.setLicenseStatus( LicenseStatus.CONFIRMED );
         components.add( component2 );
 
@@ -81,10 +82,10 @@ public class LicenseStatusConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         // A component with license status OPEN
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         components.add( component1 );
         // A component with license status CONFIRMED
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.setLicenseStatus( LicenseStatus.CONFIRMED );
         components.add( component2 );
 

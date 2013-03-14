@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -471,7 +472,7 @@ public class PolicyAlertDigesterTest
         condition.setConditionTypeId( conditionTypeId );
         condition.setOperator( operator );
         condition.setValue( value );
-        return PolicyEvaluator.createConditionFact( condition, new Component( "G", "A", "V" ) );
+        return PolicyEvaluator.createConditionFact( condition, new Component( "G", "A", "V", MatchState.EXACT ) );
     }
 
     private static ConditionFact conditionFact( final String conditionTypeId, final String operator )
@@ -479,6 +480,6 @@ public class PolicyAlertDigesterTest
         final Condition condition = new Condition();
         condition.setConditionTypeId( conditionTypeId );
         condition.setOperator( operator );
-        return PolicyEvaluator.createConditionFact( condition, new Component( "G", "A", "V" ) );
+        return PolicyEvaluator.createConditionFact( condition, new Component( "G", "A", "V", MatchState.EXACT ) );
     }
 }

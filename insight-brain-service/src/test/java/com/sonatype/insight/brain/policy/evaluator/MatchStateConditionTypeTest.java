@@ -47,10 +47,10 @@ public class MatchStateConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.setMatchState( MatchState.EXACT );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.setMatchState( MatchState.SIMILAR );
         components.add( component2 );
         Component component3 = new Component();
@@ -82,10 +82,10 @@ public class MatchStateConditionTypeTest
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
 
         List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
         component1.setMatchState( MatchState.EXACT );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2" );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
         component2.setMatchState( MatchState.SIMILAR );
         components.add( component2 );
         Component component3 = new Component();

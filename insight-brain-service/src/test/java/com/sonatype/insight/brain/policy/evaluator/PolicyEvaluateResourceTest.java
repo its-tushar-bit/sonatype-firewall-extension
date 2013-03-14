@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -184,7 +185,7 @@ public class PolicyEvaluateResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.length );
         AbstractPolicyEvaluationTest.assertFactCounts( 1, 3, policyAlerts[0] );
-        Component expectedComponent = new Component( "org.webjars", "select2", "3.2" );
+        Component expectedComponent = new Component( "org.webjars", "select2", "3.2", MatchState.EXACT );
         expectedComponent.setHash( "f2e35e4a21f07d25710f" );
         AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponent, policy1.getId(), "Policy 1",
                                                                 FailActionType.ID, constraint1.getId(), "Constraint 1",

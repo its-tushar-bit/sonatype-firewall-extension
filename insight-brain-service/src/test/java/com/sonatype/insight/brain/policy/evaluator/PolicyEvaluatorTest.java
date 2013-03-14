@@ -15,9 +15,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -79,6 +83,110 @@ public class PolicyEvaluatorTest
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", policyAlerts );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
+                                   "Constraint Name 2", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluate_UnknowComponent_NoMatchStateConditionType()
+    {
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // Create policy constraints
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( LicenseConditionType.ID, "is not", "Apache-2.0" ) );
+        constraints.add( constraint1 );
+
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component();
+        component1.setMatchState( MatchState.UNKNOWN );
+        components.add( component1 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( applicationId, stage, Arrays.asList( policy ), components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 0, policyAlerts.size() );
+    }
+
+    @Test
+    public void testEvaluate_UnknowComponent_MatchStateConditionType_SimpleConstraints()
+    {
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // Create policy constraints
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( LicenseConditionType.ID, "is not", "Apache-2.0" ) );
+        constraints.add( constraint1 );
+        Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId() ) );
+        constraints.add( constraint2 );
+
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component();
+        component1.setMatchState( MatchState.UNKNOWN );
+        components.add( component1 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( applicationId, stage, Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        List<ComponentFact> componentFacts = policyAlerts.get( 0 ).getTrigger().getComponentFacts();
+        Assert.assertEquals( 1, componentFacts.size() );
+        List<ConstraintFact> constraintFacts = componentFacts.get( 0 ).getConstraintFacts();
+        Assert.assertEquals( constraintFacts.toString(), 1, constraintFacts.size() );
+
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
+                                   "Constraint Name 2", policyAlerts );
+    }
+
+    @Test
+    public void testEvaluate_UnknowComponent_MatchStateConditionType_ComplexConstraints()
+    {
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // Create policy constraints
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( LicenseConditionType.ID, "is not", "Apache-2.0" ) );
+        constraints.add( constraint1 );
+        Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.OR );
+        constraint2.addCondition( new Condition( LicenseConditionType.ID, "is not", "GPL-2.0" ) );
+        constraint2.addCondition( new Condition( MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId() ) );
+        constraints.add( constraint2 );
+
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component();
+        component1.setMatchState( MatchState.UNKNOWN );
+        components.add( component1 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( applicationId, stage, Arrays.asList( policy ), components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        List<ComponentFact> componentFacts = policyAlerts.get( 0 ).getTrigger().getComponentFacts();
+        Assert.assertEquals( 1, componentFacts.size() );
+        List<ConstraintFact> constraintFacts = componentFacts.get( 0 ).getConstraintFacts();
+        Assert.assertEquals( constraintFacts.toString(), 1, constraintFacts.size() );
+
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
                                    "Constraint Name 2", policyAlerts );
     }
 

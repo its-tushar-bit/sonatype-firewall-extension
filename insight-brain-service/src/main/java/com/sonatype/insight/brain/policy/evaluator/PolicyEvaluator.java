@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +36,13 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
 public class PolicyEvaluator
@@ -190,6 +193,70 @@ public class PolicyEvaluator
         return byComponent;
     }
 
+    /**
+     * Filter out match facts for unknown components that were triggered by a condition type other than
+     * MatchStateConditionType.
+     */
+    private static List<MatchFact> filterFactsForUnknownComponents( List<Policy> policies, List<MatchFact> matchFacts )
+    {
+        if ( matchFacts == null )
+        {
+            return null;
+        }
+        Iterator<MatchFact> iterMatchFacts = matchFacts.iterator();
+        while ( iterMatchFacts.hasNext() )
+        {
+            MatchFact matchFact = iterMatchFacts.next();
+            if ( MatchState.UNKNOWN != matchFact.getComponent().getMatchState() )
+            {
+                continue;
+            }
+
+            Policy policy = getPolicy( policies, matchFact.getPolicyId() );
+            Constraint constraint = policy.getConstraintById( matchFact.getConstraintId() );
+            Condition matchStateCondition = null;
+            int conditionNumber = matchFact.getConditionNumber();
+            if ( conditionNumber >= 0 )
+            {
+                Condition condition = constraint.getConditions().get( conditionNumber );
+                if ( !MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
+                {
+                    matchStateCondition = condition;
+                }
+            }
+            else
+            {
+                for ( final Condition condition : constraint.getConditions() )
+                {
+                    if ( MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
+                    {
+                        matchStateCondition = condition;
+                        break;
+                    }
+                }
+            }
+            if ( matchStateCondition == null )
+            {
+                iterMatchFacts.remove();
+            }
+        }
+
+        return matchFacts;
+    }
+
+    private static Policy getPolicy( List<Policy> policies, String policyId )
+    {
+        for ( Policy policy : policies )
+        {
+            if ( policy.getId().equals( policyId ) )
+            {
+                return policy;
+            }
+        }
+
+        throw new IllegalStateException( "Cannot find policy with id " + policyId );
+    }
+
     static List<MatchFact> evaluateFacts( final String applicationId, final List<Policy> policies,
                                           final List<Component> components )
     {
@@ -216,7 +283,8 @@ public class PolicyEvaluator
 
         droolsSession.fireAllRules();
 
-        return getMatchFacts( droolsSession );
+        List<MatchFact> matchFacts = getMatchFacts( droolsSession );
+        return filterFactsForUnknownComponents( policies, matchFacts );
     }
     
     @SuppressWarnings( { "unchecked", "rawtypes" } )

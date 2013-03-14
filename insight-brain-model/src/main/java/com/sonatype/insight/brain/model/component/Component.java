@@ -57,6 +57,7 @@ public class Component
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
+        matchState = MatchState.EXACT;
     }
 
     public String getGroupId()

@@ -26,7 +26,7 @@ public class PolicyTest
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "The policy name must not be null or empty", result );
+        assertValidationResult( result, "The policy name must not be null or empty" );
     }
 
     @Test
@@ -38,7 +38,7 @@ public class PolicyTest
         policy.addConstraint( constraint );
         policy.setName( " " );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "The policy name must not be null or empty", result );
+        assertValidationResult( result, "The policy name must not be null or empty" );
     }
 
     @Test
@@ -47,7 +47,7 @@ public class PolicyTest
         Policy policy = new Policy();
         policy.setName( "Policy Name" );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "Policy 'Policy Name' has no constraints", result );
+        assertValidationResult( result, "Policy 'Policy Name' has no constraints" );
     }
 
     @Test
@@ -58,7 +58,8 @@ public class PolicyTest
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "The constraint name must not be null or empty", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid constraints:",
+                                "The constraint name must not be null or empty" );
     }
 
     @Test
@@ -69,7 +70,8 @@ public class PolicyTest
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "The constraint name must not be null or empty", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid constraints:",
+                                "The constraint name must not be null or empty" );
     }
 
     @Test
@@ -83,7 +85,8 @@ public class PolicyTest
         constraint2.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint2 );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "Duplicate constraint name 'Constraint Name'", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid constraints:",
+                                "Duplicate constraint name 'Constraint Name'" );
     }
 
     @Test
@@ -93,7 +96,8 @@ public class PolicyTest
         Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "Constraint 'Constraint Name' has no conditions", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid constraints:",
+                                "Constraint 'Constraint Name' has no conditions" );
     }
 
     @Test
@@ -150,7 +154,8 @@ public class PolicyTest
         Action action = new Action( NotifyActionType.ID );
         policy.addAction( FailActionType.ID, action );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "Invalid action 'Notify': A target is required", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid actions:",
+                                "Invalid action 'Notify': A target is required" );
 
         // Fix the action and validate again
         action.setTarget( "tester@sonatype.com" );
@@ -169,7 +174,8 @@ public class PolicyTest
         action.setTarget( "abc" );
         policy.addAction( FailActionType.ID, action );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "Invalid action 'Fail': This action does not support targets", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid actions:",
+                                "Invalid action 'Fail': This action does not support targets" );
 
         // Fix the action and validate again
         action.setTarget( null );
@@ -188,7 +194,8 @@ public class PolicyTest
         action.setTarget( "abc" );
         policy.addAction( FailActionType.ID, action );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( "Invalid action 'Warn': This action does not support targets", result );
+        assertValidationResult( result, "Policy 'Policy Name' has invalid actions:",
+                                "Invalid action 'Warn': This action does not support targets" );
 
         // Fix the action and validate again
         action.setTarget( null );
@@ -196,20 +203,24 @@ public class PolicyTest
         Assert.assertTrue( result.isValid() );
     }
 
-    private void assertValidationResult( String error, ValidationResult result )
+    private void assertValidationResult( ValidationResult result, String... errors )
     {
         Assert.assertNotNull( result );
         Assert.assertFalse( result.isValid() );
-        Assert.assertEquals( result.toMessageString(), 1, result.getErrors().size() );
-        Assert.assertEquals( error, result.getErrors().get( 0 ) );
+        Assert.assertEquals( result.toMessageString(), errors.length, result.getErrors().size() );
+        for ( int i = 0; i < errors.length; i++ )
+        {
+            Assert.assertEquals( errors[i], result.getErrors().get( i ) );
+        }
     }
 
     private void assertConditionValidationResult( String error, ValidationResult result )
     {
         Assert.assertNotNull( result );
         Assert.assertFalse( result.isValid() );
-        Assert.assertEquals( 2, result.getErrors().size() );
-        Assert.assertEquals( "Constraint 'Constraint Name' has invalid conditions:", result.getErrors().get( 0 ) );
-        Assert.assertEquals( error, result.getErrors().get( 1 ) );
+        Assert.assertEquals( 3, result.getErrors().size() );
+        Assert.assertEquals( "Policy 'Policy Name' has invalid constraints:", result.getErrors().get( 0 ) );
+        Assert.assertEquals( "Constraint 'Constraint Name' has invalid conditions:", result.getErrors().get( 1 ) );
+        Assert.assertEquals( error, result.getErrors().get( 2 ) );
     }
 }

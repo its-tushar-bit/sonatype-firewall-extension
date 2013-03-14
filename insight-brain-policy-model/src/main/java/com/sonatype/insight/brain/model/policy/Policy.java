@@ -152,6 +152,7 @@ public class Policy
         }
         else
         {
+            ValidationResult constraintResult = new ValidationResult();
             Set<String> constraintNames = new LinkedHashSet<String>();
             for ( Constraint constraint : constraints )
             {
@@ -160,26 +161,37 @@ public class Policy
                 {
                     if ( constraintNames.contains( constraintName ) )
                     {
-                        result.addError( "Duplicate constraint name '" + constraintName + "'" );
+                        constraintResult.addError( "Duplicate constraint name '" + constraintName + "'" );
                     }
                     else
                     {
                         constraintNames.add( constraintName );
                     }
                 }
-                result.merge( constraint.validate( applicationId ) );
+                constraintResult.merge( constraint.validate( applicationId ) );
+            }
+            if ( !constraintResult.isValid() )
+            {
+                result.addError( "Policy '" + name + "' has invalid constraints:" );
+                result.merge( constraintResult );
             }
         }
 
         if ( actions != null )
         {
+            ValidationResult actionResult = new ValidationResult();
             for ( String stageTypeId : actions.keySet() )
             {
                 for ( Action action : actions.get( stageTypeId ) )
                 {
                     ActionType actionType = ActionTypes.getById( action.getActionTypeId() );
-                    result.merge( actionType.validateAction( action ) );
+                    actionResult.merge( actionType.validateAction( action ) );
                 }
+            }
+            if ( !actionResult.isValid() )
+            {
+                result.addError( "Policy '" + name + "' has invalid actions:" );
+                result.merge( actionResult );
             }
         }
 

@@ -7,7 +7,7 @@
 (function () {
     'use strict';
 
-    var licenseGroupModule = angular.module('LicenseGroup', []);
+    var licenseGroupModule = angular.module('LicenseGroup', ['InsightAngularCommon']);
 
     licenseGroupModule.controller('InsightLicenseGroupController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
         if (typeof($scope.features) === 'undefined') {
@@ -15,17 +15,6 @@
         }
         $scope.features.licenseGroup = true;
         $scope.allLicenses = null;
-
-        function onError(data, status, headersFn, config) {
-            $('#deleteLicenseGroupModal').modal('hide');
-            var header = headersFn();
-            if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-                $scope.errorResponse = 'Server Error';
-            } else {
-                $scope.errorResponse = data;
-            }
-            $('#licenseGroupErrorModal').modal('show');
-        }
 
         function sortLicense(a, b) {
             if (a.id < b.id) {
@@ -57,18 +46,17 @@
                             params: { timestamp: new Date().getTime() }
                         }).success(function (data) {
                                 group.licenses = data;
-                            }).error(onError);
+                            }).error($scope.showServerError);
                     })($scope.licenseGroups[i]);
                 }
-
-            }).error(onError);
+            }).error($scope.showServerError);
 
         $http.get(clmLocations.getLicensesUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
                 // Keep sorted for setLicenses
                 $scope.allLicenses = data.sort(sortLicense);
-            }).error(onError);
+            }).error($scope.showServerError);
 
         $scope.editLicenseGroup = function (group) {
             $scope.editorUrl = 'components/license-threat-group-editor.html?' + clmBuildTimestamp;
@@ -135,7 +123,7 @@
                     }
                 });
                 $('#deleteLicenseGroupModal').modal('hide');
-            }).error(onError);
+            }).error($scope.showServerError);
         };
     }]);
 

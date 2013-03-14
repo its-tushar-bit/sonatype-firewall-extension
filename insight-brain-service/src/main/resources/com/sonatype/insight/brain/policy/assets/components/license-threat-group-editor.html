@@ -1,63 +1,74 @@
 <div ng-controller='InsightLicenseGroupEditorController'>
-	<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
-		<div class='modal-body'>
-			<div class='control-group halfSize floatLeft'
-				ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
-				<label class='control-label' for='licenseGroupEditorName'>Name:</label>
-				<div class='controls'>
-					<input id='licenseGroupEditorName' name='name' type='text'
-						class='input' maxlength='50' ng-model='selectedGroup.name'
-						item-label> <span
-						ng-show='licenseGroupEditor.name.$error.empty' class='help-inline'>Required</span>
+    <form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+        <div class='modal-body'>
+            <div class='control-group halfSize floatLeft'
+                 ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
+                <label class='control-label' for='licenseGroupEditorName'>Name:</label>
+
+                <div class='controls'>
+                    <input id='licenseGroupEditorName' name='name' type='text'
+                           class='input' maxlength='50' ng-model='selectedGroup.name'
+                           item-label> <span
+                        ng-show='licenseGroupEditor.name.$error.empty' class='help-inline'>Required</span>
 					<span ng-show='licenseGroupEditor.name.$error.duplicate'
-						class='help-inline'>Duplicate Label</span>
-				</div>
-			</div>
-			<div class='control-group halfSize floatRight'>
-				<label class='control-label' for='groupEditorThreatLevel'>Threat
-					Level:</label>
-				<div class='controls'>
-					<select style='width: 120px;'
-						class='threat-level threat-level-{{selectedGroup.threatLevel}}'
-						ng-model='selectedGroup.threatLevel'
-						ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
-					</select>
-				</div>
-			</div>
-			<div class='control-group'>
-				<div class='input-prepend fullWidthPrependedTextBox'>
-					<span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
-					<input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-Down prevent-Submit />
-				</div>
-				<div class='controls' style='clear: both;'>
-					<div class='halfSize floatLeft'>
-						<h5>Applied Licenses</h5>
-						<div class='licenseContainer'><div>
-							<div ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-								<i class='icon-minus-sign' ng-click='setIsApplied(l, false)'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-							</div>
-						</div></div>
-					</div>
-					<div class='halfSize floatRight'>
-						<h5>Available Licenses</h5>
-						<div class='licenseContainer'><div>
-							<div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-								<i class='icon-plus-sign' ng-click='setIsApplied(l, true)'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-							</div>
-						</div></div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div ng-show='licenseGroupEditor.editErrorResponse'>
-			<div class='alert alert-error'>
-				<button type='button' class='close' ng-click='clearEditError()'>&times;</button>
-				<strong>Error</strong> {{licenseGroupEditor.editErrorResponse}}
-			</div>
-		</div>
-		<div class='modal-footer'>
-			<button class='btn' type='button' data-dismiss='modal'>Cancel</button>
-			<button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-		</div>
-	</form>
+                          class='help-inline'>Duplicate Label</span>
+                </div>
+            </div>
+            <div class='control-group halfSize floatRight'>
+                <label class='control-label'>Threat Level:</label>
+
+                <div class='controls'>
+                    <select style='width: 120px;'
+                            class='threat-level threat-level-{{selectedGroup.threatLevel}}'
+                            ng-model='selectedGroup.threatLevel'
+                            ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
+                    </select>
+                </div>
+            </div>
+            <div class='control-group'>
+                <div class='input-prepend fullWidthPrependedTextBox'>
+                    <span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}"
+                                            ng-click="licenseSearch = ''"></i></span>
+                    <input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-Down
+                           prevent-Submit/>
+                </div>
+                <div class='controls' style='clear: both;'>
+                    <div class='halfSize floatLeft'>
+                        <h5>Applied Licenses</h5>
+
+                        <div class='licenseContainer'>
+                            <div>
+                                <div ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
+                                    <i class='icon-minus-sign' ng-click='setIsApplied(l, false)'></i>&nbsp;<span
+                                        title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='halfSize floatRight'>
+                        <h5>Available Licenses</h5>
+
+                        <div class='licenseContainer'>
+                            <div>
+                                <div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
+                                    <i class='icon-plus-sign' ng-click='setIsApplied(l, true)'></i>&nbsp;<span
+                                        title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-show='licenseGroupEditor.editErrorResponse'>
+            <div class='alert alert-error'>
+                <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
+                <strong>Error</strong> {{licenseGroupEditor.editErrorResponse}}
+            </div>
+        </div>
+        <div class='modal-footer'>
+            <button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
+        </div>
+    </form>
 </div>

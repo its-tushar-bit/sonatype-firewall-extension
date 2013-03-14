@@ -31,7 +31,7 @@ public class ValidationResult
         return toMessageString( errors );
     }
 
-    public static String toMessageString( List<String> errors )
+    private static String toMessageString( List<String> errors )
     {
         if ( errors == null || errors.isEmpty() )
         {

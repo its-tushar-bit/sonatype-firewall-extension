@@ -19,6 +19,6 @@ public class InvalidPolicyException
 
     public InvalidPolicyException( ValidationResult validationResult )
     {
-        super( ValidationResult.toMessageString( validationResult.getErrors() ) );
+        super( validationResult.toMessageString() );
     }
 }

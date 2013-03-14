@@ -11,7 +11,7 @@
         <tr>
             <th style='padding: 0px'>
                 <button class='btn' style='width: 100%' ng-click="order('publicId');">
-                    Public Id
+                    Application Id
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == 'publicId' && orderDirection,
                             'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection,
                             'emptyIconGlyph' : orderColumn != 'publicId' }"></i>
@@ -52,7 +52,7 @@
         <div class='modal-body'>
             <div class='form-horizontal'>
                 <div class='control-group'>
-                    <label class='control-label' for='inputApplicationId'>Application Public Id</label>
+                    <label class='control-label' for='inputApplicationId'>Application Id</label>
 
                     <div class='controls'>
                         <input id='inputApplicationId' type='text' ng-model='applicationPublicId'/>

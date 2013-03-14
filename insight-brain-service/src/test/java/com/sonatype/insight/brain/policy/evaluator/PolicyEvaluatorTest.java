@@ -275,7 +275,7 @@ public class PolicyEvaluatorTest
         final Component component1 = new Component( "g1", "a1", "v1" );
         component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
         components.add( component1 );
-        // A component with license category "Weak Copyleft"
+        // A component with Apache-2.0 license
         final Component component2 = new Component( "g2", "a2", "v2" );
         component2.addDeclaredLicenseId( "Apache-2.0" );
         components.add( component2 );

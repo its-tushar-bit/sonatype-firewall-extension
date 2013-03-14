@@ -1,0 +1,39 @@
+<project>
+	<artifactId>com.sonatype.insight.brain</artifactId>
+	<groupId>bootstrap</groupId>
+	<version>1.0.0-SNAPSHOT</version>
+	<modelVersion>4.0.0</modelVersion>
+	
+	<properties>
+		<bootstrap.version>2.3.1</bootstrap.version>
+	</properties>
+  <build>
+    <plugins>
+      <plugin>
+			<groupId>ro.isdc.wro4j</groupId>
+			<artifactId>wro4j-maven-plugin</artifactId>
+			<version>1.6.3</version>
+			<configuration>
+				<minimize>true</minimize>
+				<contextFolder>${basedir}/src/main/</contextFolder>
+				<wroFile>${basedir}/wro.xml</wroFile>
+				<wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
+				<ignoreMissingResources>false</ignoreMissingResources>
+				<extraConfigFile>${basedir}/wro.properties</extraConfigFile>
+				<targetGroups>brain</targetGroups>
+				<cssDestinationFolder>${project.build.directory}/</cssDestinationFolder>
+				<jsDestinationFolder>${project.build.directory}/</jsDestinationFolder>
+			</configuration>
+			<executions>
+				<execution>
+					<id>build</id>
+					<phase>compile</phase>
+					<goals>
+						<goal>run</goal>
+					</goals>
+				</execution>
+			</executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

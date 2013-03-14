@@ -25,14 +25,24 @@
         $http.get(clmLocations.getActionStageUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-            $scope.stages = data;
-        }).error($scope.showServerError);
+                $scope.stages = data;
+            }).error($scope.showServerError);
 
         $http.get(clmLocations.getApplicationsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-            $scope.applications = data;
-        }).error($scope.showServerError);
+                $scope.applications = data;
+            }).error($scope.showServerError);
+
+        $scope.getApplicationNames = function () {
+            var names = [];
+            if ($scope.applications) {
+                for (var i = 0; i < $scope.applications.length; i++) {
+                    names.push($scope.applications[i].publicId);
+                }
+            }
+            return names;
+        };
 
         $scope.registerNewApplication = function () {
             $('#addApplicationModal').modal('show');
@@ -74,4 +84,19 @@
             return Number.MAX_VALUE;
         };
     }]);
+
+    managementModule.filter('filterReportColumns', function () {
+        return function (items) {
+            var arrayToReturn = [];
+            if (items) {
+                var validReportColumns = ['Build', 'Stage Release', 'Release'];
+                for (var i = 0; i < items.length; i++) {
+                    if (validReportColumns.indexOf(items[i].name) > -1) {
+                        arrayToReturn.push(items[i]);
+                    }
+                }
+            }
+            return arrayToReturn;
+        };
+    });
 }());

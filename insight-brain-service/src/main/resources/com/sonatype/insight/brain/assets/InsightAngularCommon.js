@@ -33,4 +33,42 @@ var angularCommon;
             }
         };
     });
+
+    angularCommon.directive('typeAhead', ['$parse', function ($parse) {
+        'use strict';
+
+        return {
+            restrict: 'A',
+            require: '?ngModel',
+            link: function postLink($scope, element, attrs, controller) {
+                var source = $parse(attrs.typeAhead)($scope);
+                $scope.$watch(attrs.typeAhead, function (newTA, oldTA) {
+                    if (oldTA !== newTA) {
+                        source = newTA;
+                    }
+                });
+
+                element.attr('data-provide', 'typeahead');
+                element.typeahead({
+                    source: function (query) {
+                        return angular.isFunction(source) ? source.apply(this, arguments) : source;
+                    },
+                    updater: function (item) {
+                        if (controller) {
+                            $scope.$apply(function () {
+                                controller.$setViewValue(item);
+                            });
+                        }
+                        return item;
+                    }
+                });
+            }
+        };
+    }]);
+
+    angularCommon.directive('tip', function () {
+        return function (scope, element, attrs) {
+            $(element).tooltip();
+        };
+    });
 }());

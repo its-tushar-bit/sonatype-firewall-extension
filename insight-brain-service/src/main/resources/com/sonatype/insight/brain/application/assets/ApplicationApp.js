@@ -18,5 +18,30 @@ var applicationApp;
             controller: 'ReportController'
         });
         $routeProvider.otherwise({redirectTo: '/management'});
-    } ]);
+    }]);
+
+    applicationApp.controller('TabController', ['$scope', '$location', '$rootScope', function ($scope, $location, $rootScope) {
+        function handleTabClick(path, $event) {
+            $event.preventDefault();
+            function doTabChange() {
+                $location.path(path);
+            }
+
+            var tabChangeEvent = $rootScope.$emit('tabChange', [$location.path(), doTabChange]);
+            if (!tabChangeEvent.defaultPrevented) {
+                doTabChange();
+            }
+        }
+
+        $scope.managementTabClick = function ($event) {
+            handleTabClick('/management', $event);
+        };
+
+        $scope.$watch(function () {
+            return $location.path();
+        }, function () {
+            $scope.tabUrl = $location.path();
+            angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
+        });
+    }]);
 }());

@@ -11,14 +11,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Application Management</title>
-    <link type="text/css" href="../assets/bootstrap/bootstrap-2.2.2.min.css" rel="stylesheet"/>
+    <link type="text/css" href="../assets/bootstrap/bootstrap-2.3.1.min.css" rel="stylesheet"/>
     <link type="text/css" href="../assets/insight.css?${build.timestamp}" rel="stylesheet"/>
+    <link type="text/css" href="application.css?${build.timestamp}" rel="stylesheet"/>
     <link rel='shortcut icon' href='../assets/favicon.ico'/>
     <script type='text/javascript'>
         var clmBuildTimestamp = '${build.timestamp}';
     </script>
     <script type='text/javascript' src='../assets/jquery/jquery-1.7.2.min.js'></script>
-    <script type='text/javascript' src='../assets/bootstrap/bootstrap-2.2.2.min.js'></script>
+    <script type='text/javascript' src='../assets/bootstrap/bootstrap-2.3.1.min.js'></script>
     <script type='text/javascript' src='../assets/angular/angular-1.0.5.min.js'></script>
     <script type='text/javascript' src='../assets/angular/angular-sanitize-1.0.5.min.js'></script>
     <script type='text/javascript' src='../assets/CLMLocation.js?${build.timestamp}'></script>
@@ -34,6 +35,19 @@
         <div style='width:950px; margin:auto;'>
             <a class="title brand" href="#"><img src='../assets/img/sonatype-32.png' alt='Logo'/> <span
                     class='brand-header'>Sonatype CLM</span></a>
+            <ul class="nav pull-right" style='padding-right:25px' ng-controller='TabController'>
+                <li ng-class='{ active : tabUrl == "/management"}' data-placement='bottom'
+                    data-title='Application Management' tip><a
+                        href="#" ng-click="managementTabClick($event)"><img style='height: 25px;'
+                                                                            src='../assets/img/glyphicons_340_globe.png'
+                                                                            alt='Application Management'/></a></li>
+                <li class='disabled'><a ng-disabled="true"><img src='../assets/img/glyphicons_263_bank.png'
+                                                                alt='Policies'/></a></li>
+                <li class='disabled'><a ng-disabled="true"><img src='../assets/img/glyphicons_065_tag.png'
+                                                                alt='Labels'/></a></li>
+                <li class='disabled'><a ng-disabled="true"><img
+                        src='../assets/img/glyphicons_332_certificate.png' alt='License Threat Groups'/></a></li>
+            </ul>
         </div>
     </div>
 </div>

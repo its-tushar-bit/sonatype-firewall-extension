@@ -76,6 +76,11 @@ tr .hover-vis {
     display: none;
 }
 
+.disabled img {
+    opacity: 0.4;
+    filter: alpha(opacity = 40);
+}
+
 /* Page content */
 html, body, .page-content {
     height: 100%;

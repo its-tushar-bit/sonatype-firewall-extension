@@ -1,25 +1,28 @@
-<div id='applicationManagement' xmlns='http://www.w3.org/1999/html'>
-    <button class='btn floatLeft' ng-click='registerNewApplication()'><i class='icon-plus'></i> Register New Application
+<div id='applicationManagement' class='content-container' style='padding: 10px;'>
+    <button class='btn floatRight' ng-click='registerNewApplication()'><i class='icon-plus'></i> Register New
+        Application
     </button>
-    <div class='input-prepend floatRight'>
+    <div class='input-prepend floatLeft'>
         <span class='add-on'><i ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"
                                 ng-click="searchText = ''"></i></span>
-        <input type='text' ng-model='searchText'/>
+        <input type='text' ng-model='searchText' autocomplete="off" type-Ahead='getApplicationNames'/>
     </div>
     <table class='table table-striped' style='margin-bottom:0px'>
         <thead>
         <tr>
             <th style='padding: 0px'>
-                <button class='btn' style='width: 100%' ng-click="order('publicId');">
+                <button ng-class="{ 'buttonColumn' : orderColumn != 'publicId', 'buttonColumn buttonColumnSorted' : orderColumn == 'publicId' }"
+                        style='width: 100%' ng-click="order('publicId');">
                     Application Id
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == 'publicId' && orderDirection,
                             'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection,
                             'emptyIconGlyph' : orderColumn != 'publicId' }"></i>
                 </button>
             </th>
-            <th ng-repeat='stage in stages' style='padding: 0px'>
-                <button class='btn' style='width: 100%' ng-click="order(stage.id);">
-                    {{stage.name}}
+            <th ng-repeat='stage in stages | filterReportColumns' style='padding: 0px'>
+                <button ng-class="{ 'buttonColumn' : orderColumn != stage.id, 'buttonColumn buttonColumnSorted' : orderColumn == stage.id }"
+                        style='width: 100%' ng-click="order(stage.id);">
+                    {{stage.name}} Report
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
                             'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
@@ -29,13 +32,13 @@
         </tr>
         </thead>
         <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
-            <td style='text-align: center;'>{{application.publicId}}</td>
-            <td ng-repeat='stage in stages' style='text-align: center;'>
+            <td style='text-align: center;'><a
+                    href='/policy-assets/index.html?appId={{application.publicId}}'>{{application.publicId}}</a></td>
+            <td ng-repeat='stage in stages | filterReportColumns' style='text-align: center;'>
                 <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
                    href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
                     {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
             </td>
-            <td><a href='/policy-assets/index.html?appId={{application.publicId}}'>Manage Policy</a></td>
         </tr>
         <tfoot>
         <tr>
@@ -47,7 +50,7 @@
     <div id='addApplicationModal' data-backdrop='static' class='modal hide'>
         <div class='modal-header'>
             <button type='button' class='close' data-dismiss='modal'>×</button>
-            <h3>Add Application</h3>
+            <h3>New Application</h3>
         </div>
         <div class='modal-body'>
             <div class='form-horizontal'>

@@ -38,15 +38,19 @@
             <a class="title brand" href="#"><img src='../assets/img/sonatype-32.png' alt='Logo'/> <span
                     class='brand-header'>Sonatype CLM</span></a>
             <ul class="nav pull-right" style='padding-right:25px' ng-controller='TabController'>
+                <li ng-class='{ active : tabUrl == "/management"}' data-placement='bottom'
+                    data-title='Application Management' tip><a href="/"><img style='height: 25px;'
+                                                                             src='../assets/img/glyphicons_340_globe.png'
+                                                                             alt='Application Management'/></a></li>
                 <li ng-class='{ active : tabUrl == "/policy"}' data-placement='bottom' data-title='Policies' tip><a
-                        href="#" ng-click="policyTabClick($event)"><img src='img/glyphicons_263_bank.png'
+                        href="#" ng-click="policyTabClick($event)"><img src='../assets/img/glyphicons_263_bank.png'
                                                                         alt='Policies'/></a></li>
                 <li ng-class='{ active : tabUrl == "/labels"}' data-placement='bottom' data-title='Labels' tip><a
-                        href="#" ng-click="labelTabClick($event)"><img src='img/glyphicons_065_tag.png'
+                        href="#" ng-click="labelTabClick($event)"><img src='../assets/img/glyphicons_065_tag.png'
                                                                        alt='Labels'/></a></li>
                 <li ng-class='{ active : tabUrl == "/license-threat-group"}' data-placement='bottom'
                     data-title='License Threat Groups' tip><a href="#" ng-click="licenseGroupTabClick($event)"><img
-                        src='img/glyphicons_332_certificate.png' alt='License Threat Groups'/></a></li>
+                        src='../assets/img/glyphicons_332_certificate.png' alt='License Threat Groups'/></a></li>
             </ul>
         </div>
     </div>

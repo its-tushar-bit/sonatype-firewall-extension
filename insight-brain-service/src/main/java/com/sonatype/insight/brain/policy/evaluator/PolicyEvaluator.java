@@ -190,7 +190,6 @@ public class PolicyEvaluator
         return byComponent;
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
     static List<MatchFact> evaluateFacts( final String applicationId, final List<Policy> policies,
                                           final List<Component> components )
     {
@@ -217,6 +216,12 @@ public class PolicyEvaluator
 
         droolsSession.fireAllRules();
 
+        return getMatchFacts( droolsSession );
+    }
+    
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    private static List<MatchFact> getMatchFacts(StatefulKnowledgeSession droolsSession)
+    {
         return new ArrayList<MatchFact>( (Collection) droolsSession.getObjects( new ObjectFilter()
         {
             @Override

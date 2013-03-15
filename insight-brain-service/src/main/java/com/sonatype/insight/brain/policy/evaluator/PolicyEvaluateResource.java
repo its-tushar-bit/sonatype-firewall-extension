@@ -123,7 +123,7 @@ public class PolicyEvaluateResource
 
         @SuppressWarnings( "unchecked" )
         List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
-        if ( oldAlerts != null && !oldAlerts.isEmpty() )
+        if ( !oldAlerts.isEmpty() )
         {
             digest = PolicyAlertDigester.digestPolicyAlerts( alerts, oldAlerts );
         }
@@ -181,7 +181,7 @@ public class PolicyEvaluateResource
                 log.warn( "Cannot load previous results for app id {}, scan id {}", applicationPublicId, scanId, e );
             }
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private static ObjectNode analyzeThreats( final List<PolicyAlert> policyAlerts )

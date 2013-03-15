@@ -28,15 +28,15 @@ public class PolicyAlertDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldAlerts == null || j >= oldAlerts.size() )
+            if ( j >= oldAlerts.size() )
             {
-                if ( newAlerts == null || i >= newAlerts.size() )
+                if ( i >= newAlerts.size() )
                 {
                     break; // nothing left
                 }
                 appeared.add( newAlerts.get( i++ ) );
             }
-            else if ( newAlerts == null || i >= newAlerts.size() )
+            else if ( i >= newAlerts.size() )
             {
                 cleared.add( oldAlerts.get( j++ ) );
             }
@@ -109,15 +109,15 @@ public class PolicyAlertDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldFacts == null || j >= oldFacts.size() )
+            if ( j >= oldFacts.size() )
             {
-                if ( newFacts == null || i >= newFacts.size() )
+                if ( i >= newFacts.size() )
                 {
                     break; // nothing left
                 }
                 appeared.add( newFacts.get( i++ ) );
             }
-            else if ( newFacts == null || i >= newFacts.size() )
+            else if ( i >= newFacts.size() )
             {
                 cleared.add( oldFacts.get( j++ ) );
             }
@@ -179,15 +179,15 @@ public class PolicyAlertDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldFacts == null || j >= oldFacts.size() )
+            if ( j >= oldFacts.size() )
             {
-                if ( newFacts == null || i >= newFacts.size() )
+                if ( i >= newFacts.size() )
                 {
                     break; // nothing left
                 }
                 appeared.add( newFacts.get( i++ ) );
             }
-            else if ( newFacts == null || i >= newFacts.size() )
+            else if ( i >= newFacts.size() )
             {
                 cleared.add( oldFacts.get( j++ ) );
             }
@@ -257,15 +257,15 @@ public class PolicyAlertDigester
         int i = 0, j = 0;
         while ( true )
         {
-            if ( oldFacts == null || j >= oldFacts.size() )
+            if ( j >= oldFacts.size() )
             {
-                if ( newFacts == null || i >= newFacts.size() )
+                if ( i >= newFacts.size() )
                 {
                     break; // nothing left
                 }
                 appeared.add( newFacts.get( i++ ) );
             }
-            else if ( newFacts == null || i >= newFacts.size() )
+            else if ( i >= newFacts.size() )
             {
                 cleared.add( oldFacts.get( j++ ) );
             }

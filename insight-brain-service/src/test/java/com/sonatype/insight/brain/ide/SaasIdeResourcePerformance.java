@@ -24,9 +24,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 public class SaasIdeResourcePerformance
 {
-    private static final int CONNECTIONS_PER_CLIENT = 4;
-
-    private static final int CLIENTS = 1;
+    // private static final int CONNECTIONS_PER_CLIENT = 4;
+    //
+    // private static final int CLIENTS = 1;
 
     public static void main( String... args )
         throws Exception
@@ -81,7 +81,7 @@ public class SaasIdeResourcePerformance
     {
 
         pool = Executors.newFixedThreadPool( connections );
-        ;
+
         this.iterations = iterations * connections;
         resource = new IdeResource();
         SaasIdeResourcePerformanceUtils.setClient( resource, server );

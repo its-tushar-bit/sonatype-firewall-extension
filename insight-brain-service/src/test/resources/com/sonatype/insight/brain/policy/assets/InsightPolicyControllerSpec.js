@@ -168,11 +168,37 @@ describe('InsightPolicyController tests', function () {
         scope.viewEditPolicy(scope.state.policyList[4]);
         $timeout.flush();
 
-        expect(scope.state.currentPolicy).toEqual({ id: '03bf6717cbbf49b8a177c3004668875a', name: '4444', enabled: true, threatLevel: 5, constraints: [
-            { id: 'd68c0fda6269459ab81524079a4bc6a8', name: 'sd', enabled: true, operator: 'OR', conditions: [
-                { conditionTypeId: 'SecurityVulnerability', operator: 'present', value: null, conditionType: { name: 'Security Vulnerability', id: 'SecurityVulnerability', supportedOperators: [ 'present', 'absent' ], valueTypeId: null, valueHint: null }, valueType: null }
-            ] }
-        ], actions: {  }, summary: { constraints: '1 Constraint(s) to be evaluated', actionCount: 0, actions: '' } });
+		expect(scope.state.currentPolicy).toEqual({
+			id: '03bf6717cbbf49b8a177c3004668875a',
+			name: '4444',
+			enabled: true,
+			threatLevel: 5,
+			constraints: [{
+				id: 'd68c0fda6269459ab81524079a4bc6a8',
+				name: 'sd',
+				enabled: true,
+				operator: 'OR',
+				conditions: [{
+					conditionTypeId: 'SecurityVulnerability',
+					operator: 'present',
+					value: null,
+					conditionType: {
+						name: 'Security Vulnerability',
+						id: 'SecurityVulnerability',
+						supportedOperators: [ 'present', 'absent' ],
+						valueTypeId: null,
+						valueHint: null
+					},
+					valueType: null
+				}]
+			}],
+			actions: {},
+			summary: {
+				constraintCount: 1,
+				actionCount: 0,
+				actions: ''
+			}
+		});
         expect(scope.state.showAddPolicyScreen).toBe(true);
         expect(scope.state.policyValid).toBe(true);
         expect(scope.state.addPolicyTitle).toEqual('Edit Policy');

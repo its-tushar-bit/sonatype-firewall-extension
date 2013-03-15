@@ -17,8 +17,6 @@
         return {
             template: "<iframe ng-src='{{reportUrl}}' width='100%' height='1000px' border='0' frameborder='0' scrolling='yes' style='overflow:auto;'/>",
             compile: function () {
-                "use strict";
-
                 function setDimensions() {
                     var iframe = $('iframe');
                     if (!iframe) {

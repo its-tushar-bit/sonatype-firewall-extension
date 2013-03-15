@@ -397,4 +397,10 @@ public class Component
 
         return threatLevel;
     }
+
+    @Override
+    public String toString()
+    {
+        return getHash() + " " + getMatchState();
+    }
 }

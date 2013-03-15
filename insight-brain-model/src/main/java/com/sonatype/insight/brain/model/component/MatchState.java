@@ -63,4 +63,10 @@ public class MatchState
     {
         return name;
     }
+
+    @Override
+    public String toString()
+    {
+        return getId();
+    }
 }

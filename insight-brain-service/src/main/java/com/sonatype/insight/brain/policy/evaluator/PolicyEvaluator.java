@@ -147,7 +147,7 @@ public class PolicyEvaluator
 
     public static ConditionFact createConditionFact( Condition condition, Component component )
     {
-        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+        final ConditionType<?> conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
 
         String summary = conditionType.explainCondition( condition );
         String reason = conditionType.explainMatch( condition, component );

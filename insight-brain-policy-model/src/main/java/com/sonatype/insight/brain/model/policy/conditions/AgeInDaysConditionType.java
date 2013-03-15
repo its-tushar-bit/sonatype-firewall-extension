@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.AgeInDaysValueType;
 
 public class AgeInDaysConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<Integer>
 {
     public static final String ID = "AgeInDays";
 
@@ -55,19 +55,9 @@ public class AgeInDaysConditionType
     }
 
     @Override
-    public String generateDroolsCode( final Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        String operator;
-        if ( "older than".equals( condition.getOperator() ) )
-        {
-            operator = ">";
-        }
-        else
-        {
-            operator = "<";
-        }
-        return "getCatalogDate() != null && ( System.currentTimeMillis() - getCatalogDate() ) / " + DAY_IN_MILLISECONDS
-            + " " + operator + " " + condition.getValue();
+        return value + " /* days */";
     }
 
     @Override
@@ -109,5 +99,23 @@ public class AgeInDaysConditionType
     public String getValueHint()
     {
         return "Enter term";
+    }
+
+    @Override
+    public boolean internalEvaluateCondition( Component component, String operator, Integer value )
+    {
+        if (component.getCatalogDate() == null)
+        {
+            return false;
+        }
+        int ageInDays = (int) ( ( System.currentTimeMillis() - component.getCatalogDate() ) / DAY_IN_MILLISECONDS );
+        if ( "older than".equals( operator ) )
+        {
+            return ageInDays > value;
+        }
+        else
+        {
+            return ageInDays <= value;
+        }
     }
 }

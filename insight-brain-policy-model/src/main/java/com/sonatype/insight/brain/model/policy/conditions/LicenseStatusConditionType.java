@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
 
 public class LicenseStatusConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<String>
 {
     public static final String ID = "LicenseStatus";
 
@@ -46,18 +46,9 @@ public class LicenseStatusConditionType
     }
 
     @Override
-    public String generateDroolsCode( final Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        String operator;
-        if ( "is".equals( condition.getOperator() ) )
-        {
-            operator = "==";
-        }
-        else
-        {
-            operator = "!=";
-        }
-        return "getLicenseStatus().getId() " + operator + " \"" + condition.getValue() + "\"";
+        return "\"" + value + "\"";
     }
 
     @Override
@@ -82,5 +73,12 @@ public class LicenseStatusConditionType
         {
             throw new InvalidConditionException( condition, "Value not supported: " + condition.getValue() );
         }
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, String value )
+    {
+        boolean result = component.getLicenseStatus().getId().equals( value );
+        return "is".equals( operator ) ? result : !result;
     }
 }

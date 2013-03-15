@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageValueType;
 
 public class RelativePopularityConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<Integer>
 {
     public static final String ID = "RelativePopularity";
 
@@ -36,10 +36,9 @@ public class RelativePopularityConditionType
     }
 
     @Override
-    public String generateDroolsCode( final Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        return "getRelativePopularity() " + NumericOperators.getDroolsOperator( condition.getOperator() ) + " "
-            + condition.getValue();
+        return value;
     }
 
     @Override
@@ -78,5 +77,27 @@ public class RelativePopularityConditionType
     public String getValueHint()
     {
         return "Enter percent value, 1 to 100";
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, Integer value )
+    {
+        if ( "=".equals( operator ) )
+        {
+            return component.getRelativePopularity() == value;
+        }
+        if ( "<".equals( operator ) )
+        {
+            return component.getRelativePopularity() < value;
+        }
+        if ( "<=".equals( operator ) )
+        {
+            return component.getRelativePopularity() <= value;
+        }
+        if ( ">".equals( operator ) )
+        {
+            return component.getRelativePopularity() > value;
+        }
+        return component.getRelativePopularity() >= value;
     }
 }

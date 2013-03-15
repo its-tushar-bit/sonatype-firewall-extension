@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
 public class LicenseConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<String>
 {
     public static final String ID = "License";
 
@@ -67,10 +67,9 @@ public class LicenseConditionType
     }
 
     @Override
-    public String generateDroolsCode( Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLicenseId( \"" + condition.getValue()
-            + "\" )";
+        return "\"" + value + "\"";
     }
 
     @Override
@@ -103,5 +102,12 @@ public class LicenseConditionType
             }
         }
         return "Found " + buf + ( licenseIds.size() != 1 ? " Licenses" : " License" );
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, String value )
+    {
+        boolean hasLicense = component.hasLicenseId( value );
+        return "is".equals( operator ) ? hasLicense : !hasLicense;
     }
 }

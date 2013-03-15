@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
 
 public class CoordinatesConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<String>
 {
     public static final String ID = "Coordinates";
 
@@ -47,14 +47,37 @@ public class CoordinatesConditionType
     }
 
     @Override
-    public String generateDroolsCode( final Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
+        return "\"" + value + "\"";
+    }
+
+    @Override
+    public String explainMatch( final Condition condition, final Component component )
+    {
+        return "Coordinates were " + component.getGAV();
+    }
+
+    @Override
+    public String getValueTypeId()
+    {
+        return CoordinatesValueType.ID;
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, String value )
+    {
+        if (component.getGroupId() == null)
+        {
+            return false;
+        }
+        
         String groupId = "";
         String artifactId = "";
         String version = "";
-        if ( condition.getValue() != null )
+        if ( value != null )
         {
-            String[] coordinates = condition.getValue().split( ":" );
+            String[] coordinates = value.split( ":" );
             if ( coordinates.length >= 1 )
             {
                 groupId = coordinates[0].trim();
@@ -70,20 +93,7 @@ public class CoordinatesConditionType
         }
 
         // Drools does not allow a ! to negate the condition in this case, so we have to use "== false" :(
-        return "getGroupId() != null && " + "new ArtifactCoordinate( \"" + groupId + "\", \"" + artifactId + "\", \""
-            + version + "\" ).matches( getGroupId(), getArtifactId(), getVersion() )"
-            + ( "match".equals( condition.getOperator() ) ? "" : " == false" );
-    }
-
-    @Override
-    public String explainMatch( final Condition condition, final Component component )
-    {
-        return "Coordinates were " + component.getGAV();
-    }
-
-    @Override
-    public String getValueTypeId()
-    {
-        return CoordinatesValueType.ID;
+        boolean match = new ArtifactCoordinate( groupId, artifactId, version ).matches( component.getGroupId(), component.getArtifactId(), component.getVersion() );
+        return "match".equals( operator ) ? match : !match;
     }
 }

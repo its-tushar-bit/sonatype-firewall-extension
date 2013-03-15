@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
 
 public class LicenseThreatGroupLevelConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<Integer>
 {
     public static final String ID = "License Threat Group Level";
 
@@ -74,10 +74,9 @@ public class LicenseThreatGroupLevelConditionType
     }
 
     @Override
-    public String generateDroolsCode( Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        return "!getLicenseThreatGroupsByLevel( " + condition.getValue() + ", \"" + condition.getOperator()
-            + "\" ).isEmpty()";
+        return value;
     }
 
     @Override
@@ -100,5 +99,12 @@ public class LicenseThreatGroupLevelConditionType
         }
         return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" ) + " with Level "
             + condition.getOperator() + " " + condition.getValue();
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, Integer value )
+    {
+        // TODO Simplify
+        return !component.getLicenseThreatGroupsByLevel( value, operator ).isEmpty();
     }
 }

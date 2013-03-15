@@ -27,7 +27,7 @@ public class ConditionTypeResource
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public Collection<ConditionType> getConditionTypes()
+    public Collection<ConditionType<?>> getConditionTypes()
     {
         log.debug( "Received request to get all condition types" );
 

@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LabelValueType;
 
 public class LabelConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<String>
 {
     public static final String ID = "Label";
 
@@ -71,12 +71,10 @@ public class LabelConditionType
     }
 
     @Override
-    public String generateDroolsCode( Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        String labelId = condition.getValue();
-        Label label = new LabelDAO().getById( labelId );
-        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLabelId( \"" + labelId + "\" ) /* label: "
-            + label.getLabel() + " */";
+        Label label = new LabelDAO().getById( value );
+        return "\"" + value + "\" /* label: " + label.getLabel() + " */";
     }
 
     @Override
@@ -109,5 +107,12 @@ public class LabelConditionType
             }
         }
         return "Found " + buf + ( labelIds.size() != 1 ? " Labels" : " Label" );
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, String value )
+    {
+        boolean hasLabel = component.hasLabelId( value );
+        return "is".equals( operator ) ? hasLabel : !hasLabel;
     }
 }

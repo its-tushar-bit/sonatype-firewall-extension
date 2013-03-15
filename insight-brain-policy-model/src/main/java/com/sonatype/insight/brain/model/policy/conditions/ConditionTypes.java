@@ -13,37 +13,68 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 
 public class ConditionTypes
 {
-    private static final Map<String, ConditionType> allConditionTypes = new LinkedHashMap<String, ConditionType>();
+    private static final Map<String, ConditionType<?>> allConditionTypes =
+        new LinkedHashMap<String, ConditionType<?>>();
+
+    public static final AgeInDaysConditionType AgeInDaysConditionType = new AgeInDaysConditionType();
+
+    public static final CoordinatesConditionType CoordinatesConditionType = new CoordinatesConditionType();
+
+    public static final LabelConditionType LabelConditionType = new LabelConditionType();
+
+    public static final LicenseConditionType LicenseConditionType = new LicenseConditionType();
+
+    public static final LicenseStatusConditionType LicenseStatusConditionType = new LicenseStatusConditionType();
+
+    public static final LicenseThreatGroupConditionType LicenseThreatGroupConditionType =
+        new LicenseThreatGroupConditionType();
+
+    public static final LicenseThreatGroupLevelConditionType LicenseThreatGroupLevelConditionType =
+        new LicenseThreatGroupLevelConditionType();
+
+    public static final RelativePopularityConditionType RelativePopularityConditionType =
+        new RelativePopularityConditionType();
+
+    public static final MatchStateConditionType MatchStateConditionType = new MatchStateConditionType();
+
+    public static final SecurityVulnerabilityConditionType SecurityVulnerabilityConditionType =
+        new SecurityVulnerabilityConditionType();
+
+    public static final SecurityVulnerabilitySeverityConditionType SecurityVulnerabilitySeverityConditionType =
+        new SecurityVulnerabilitySeverityConditionType();
+
+    public static final SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType =
+        new SecurityVulnerabilityStatusConditionType();
 
     static
     {
         // Note: The order condition types are added here determines the order they are displayed in the UI
-        add( new LabelConditionType() );
-        add( new LicenseConditionType() );
-        add( new LicenseStatusConditionType() );
-        add( new LicenseThreatGroupConditionType() );
-        add( new LicenseThreatGroupLevelConditionType() );
-        add( new SecurityVulnerabilityConditionType() );
-        add( new SecurityVulnerabilitySeverityConditionType() );
-        add( new SecurityVulnerabilityStatusConditionType() );
-        add( new RelativePopularityConditionType() );
-        add( new AgeInDaysConditionType() );
-        add( new MatchStateConditionType() );
-        add( new CoordinatesConditionType() );
+        add( LabelConditionType );
+        add( LicenseConditionType );
+        add( LicenseStatusConditionType );
+        add( LicenseThreatGroupConditionType );
+        add( LicenseThreatGroupLevelConditionType );
+        add( SecurityVulnerabilityConditionType );
+        add( SecurityVulnerabilitySeverityConditionType );
+        add( SecurityVulnerabilityStatusConditionType );
+        add( RelativePopularityConditionType );
+        add( AgeInDaysConditionType );
+        add( MatchStateConditionType );
+        add( CoordinatesConditionType );
     }
 
-    public static Collection<ConditionType> getAll()
+    public static Collection<ConditionType<?>> getAll()
     {
         return allConditionTypes.values();
     }
 
-    public static ConditionType getById( final String conditionTypeId )
+    public static ConditionType<?> getById( final String conditionTypeId )
     {
         // TODO throw exception if conditionTypeId is unknown
         return allConditionTypes.get( conditionTypeId );
     }
 
-    private static void add( final ConditionType conditionType )
+    private static void add( final ConditionType<?> conditionType )
     {
         if ( allConditionTypes.keySet().contains( conditionType.getId() ) )
         {

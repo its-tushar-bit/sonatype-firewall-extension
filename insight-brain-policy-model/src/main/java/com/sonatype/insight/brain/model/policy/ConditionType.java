@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
 
-public interface ConditionType
+public interface ConditionType<T>
 {
     String getId();
 
@@ -25,6 +25,8 @@ public interface ConditionType
 
     String getValueHint();
 
+    String generateDroolsConditionValue( String value );
+
     String generateDroolsCode( Condition condition );
 
     String explainCondition( Condition condition );
@@ -33,4 +35,6 @@ public interface ConditionType
 
     void validateCondition( Condition condition, String applicationId )
         throws InvalidConditionException;
+
+    boolean evaluateCondition( Component component, String operator, T value );
 }

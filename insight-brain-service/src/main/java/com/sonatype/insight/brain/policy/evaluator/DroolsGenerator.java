@@ -32,8 +32,8 @@ public class DroolsGenerator
         final StringBuilder droolsCode = new StringBuilder();
 
         droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate\n" );
         droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.MatchFact\n" );
+        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.*\n" );
 
         for ( final Policy policy : policies )
         {
@@ -76,7 +76,7 @@ public class DroolsGenerator
                         }
 
                         droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+                        final ConditionType<?> conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
                         droolsCode.append( conditionType.generateDroolsCode( condition ) );
                         droolsCode.append( " )\n" );
 
@@ -100,7 +100,7 @@ public class DroolsGenerator
                         droolsCode.append( INDENT ).append( "(\n" );
 
                         droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                        final ConditionType conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
+                        final ConditionType<?> conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
                         droolsCode.append( conditionType.generateDroolsCode( condition ) );
                         droolsCode.append( " )\n" );
 

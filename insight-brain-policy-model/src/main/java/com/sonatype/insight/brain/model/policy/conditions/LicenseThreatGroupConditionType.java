@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 
 public class LicenseThreatGroupConditionType
-    extends AbstractConditionType
+    extends AbstractConditionType<String>
 {
     public static final String ID = "License Threat Group";
 
@@ -71,12 +71,11 @@ public class LicenseThreatGroupConditionType
     }
 
     @Override
-    public String generateDroolsCode( Condition condition )
+    public String generateDroolsConditionValue( String value )
     {
-        LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getById( condition.getValue() );
-        return ( "is".equals( condition.getOperator() ) ? "" : "! " ) + "hasLicenseInLicenseThreatGroup( \""
-            + condition.getValue() + "\" )" + //
-            " /* License threat group name: " + licenseThreatGroup.getName().replace( "*/", "" ) + " */";
+        LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getById( value );
+        return "\"" + value + "\" " + " /* License threat group name: "
+            + licenseThreatGroup.getName().replace( "*/", "" ) + " */";
     }
 
     @Override
@@ -104,5 +103,12 @@ public class LicenseThreatGroupConditionType
             buf.append( '\'' ).append( groups.get( i ).getName() ).append( '\'' );
         }
         return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" );
+    }
+
+    @Override
+    protected boolean internalEvaluateCondition( Component component, String operator, String value )
+    {
+        boolean result = component.hasLicenseInLicenseThreatGroup( value );
+        return "is".equals( operator ) ? result : !result;
     }
 }

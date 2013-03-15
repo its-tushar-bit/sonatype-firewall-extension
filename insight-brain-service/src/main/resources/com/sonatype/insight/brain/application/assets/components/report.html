@@ -1,3 +1,7 @@
-<div>
+<div class='content-container'>
+    <div class='reportTitle'>
+        {{application.publicId}}: {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}
+        {{application.policyEvaluation.stage.stageName}} Report
+    </div>
     <div expandable-Iframe></div>
 </div>

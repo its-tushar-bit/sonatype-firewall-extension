@@ -31,3 +31,8 @@
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#f5f9fa', endColorstr = '#b5c6e0', GradientType = 0);
     font-size: 12px;
 }
+
+.reportTitle {
+    padding: 10px;
+    font-weight: bold;
+}

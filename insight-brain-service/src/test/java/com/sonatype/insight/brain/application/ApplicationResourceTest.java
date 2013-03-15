@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.application;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,6 +15,9 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -86,6 +86,7 @@ public class ApplicationResourceTest
     public void testGetApplications()
         throws Exception
     {
+        // Test GetApplications
         final String applicationPublicId = "ApplicationResourceTest_getApplicationsTest_AppId";
         Application application = createApplication( applicationPublicId );
 
@@ -98,12 +99,27 @@ public class ApplicationResourceTest
         // Freemium application created by super
         Assert.assertEquals( 2, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
+
+        // Test GetApplication
+        response = RestAccess.get( getApplicationServiceUrl( applicationPublicId ) );
+        assertResponseStatus( 200, response );
+
+        ApplicationManagementSummary applicationSummary =
+            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
+        Assert.assertNotNull( applicationSummary );
+        Assert.assertEquals( application.getId(), applicationSummary.getId() );
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )
     {
         return getServiceURL() + '/' + ApplicationResource.VALIDATE_PATH.replace( "{applicationPublicId}",
                                                                                   applicationPublicId );
+    }
+
+    private String getApplicationServiceUrl( String applicationPublicId )
+    {
+        return getServiceURL() + '/' + ApplicationResource.GET_APPLICATION_PATH.replace( "{applicationPublicId}",
+                                                                                         applicationPublicId );
     }
 
     private String getServiceURL()

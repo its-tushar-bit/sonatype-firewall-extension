@@ -7,9 +7,25 @@
 (function () {
     'use strict';
 
-    var reportModule = angular.module('Report', []);
+    var reportModule = angular.module('Report', ['CLMLocation']);
 
-    reportModule.controller('ReportController', ['$scope', '$routeParams', function ($scope, $routeParams) {
+    reportModule.controller('ReportController', ['$scope', '$routeParams', '$http', 'CLMLocations', function ($scope, $routeParams, $http, clmLocations) {
+        $http.get(clmLocations.getApplicationUrl($routeParams.applicationId), {
+            params: { timestamp: new Date().getTime() }
+        }).success(function (data) {
+                $http.get(clmLocations.getActionStageUrl(), {
+                    params: { timestamp: new Date().getTime() }
+                }).success(function (stages) {
+                        for (var i = 0; i < stages.length; i++) {
+                            if (stages[i].id == data.policyEvaluation.stage.stageTypeId) {
+                                data.policyEvaluation.stage.stageName = stages[i].name;
+                                break;
+                            }
+                        }
+                        $scope.application = data;
+                    });
+            });
+
         $scope.reportUrl = '/rest/report/' + $routeParams.applicationId + '/' + $routeParams.scanId + '/embedReport/index.html?readonly=true';
     }]);
 
@@ -32,7 +48,7 @@
                 }
 
                 setTimeout(setDimensions, 100);
-                $('.container').css({ 'width': '955px' });
+                $('.container').css({ 'width': '980px' });
             }
         };
     });

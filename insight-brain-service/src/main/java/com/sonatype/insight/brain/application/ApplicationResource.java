@@ -37,6 +37,8 @@ public class ApplicationResource
 {
     public static final String SERVICE_PATH = "rest/application";
 
+    public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
+
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
     private static final Logger log = LoggerFactory.getLogger( ApplicationResource.class );
@@ -82,6 +84,25 @@ public class ApplicationResource
         }
 
         return applicationManagements;
+    }
+
+    @GET
+    @Path( GET_APPLICATION_PATH )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ApplicationManagementSummary getApplication(
+        @PathParam( "applicationPublicId" ) final String applicationPublicId )
+        throws IOException
+    {
+        final Application application = applicationDAO.getByPublicId( applicationPublicId );
+        log.debug( "Found application with public id {}", application.getPublicId() );
+
+        final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
+        final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+        applicationManagement.setId( application.getId() );
+        applicationManagement.setPublicId( application.getPublicId() );
+        applicationManagement.setPolicyEvaluation( policyEvaluation );
+
+        return applicationManagement;
     }
 
     @POST

@@ -85,6 +85,10 @@
                 return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
             },
 
+            getApplicationUrl: function (applicationId) {
+                return this.getBaseUrl() + '/rest/application/' + applicationId;
+            },
+
             getApplicationsUrl: function () {
                 return this.getBaseUrl() + '/rest/application';
             }

@@ -4,10 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.helpers.NullEnumeration;
 import org.mockito.Mockito;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -24,13 +25,40 @@ import com.sonatype.insight.brain.service.InsightWork;
 public class SaasIdeResourcePerformanceUtils
 {
     private static int counter = 0;
+    
+    private static class EmptyEnumeration
+        implements Enumeration<String>
+    {
+        private static final EmptyEnumeration instance = new EmptyEnumeration();
+
+        private EmptyEnumeration()
+        {
+        }
+
+        public static EmptyEnumeration getInstance()
+        {
+            return instance;
+        }
+
+        @Override
+        public boolean hasMoreElements()
+        {
+            return false;
+        }
+
+        @Override
+        public String nextElement()
+        {
+            throw new NoSuchElementException();
+        }
+    }
 
     public static HttpServletRequest createRequest()
         throws Exception
     {
         HttpServletRequest request = Mockito.mock( HttpServletRequest.class );
         Mockito.when( request.getMethod() ).thenReturn( "GET" );
-        Mockito.when( request.getHeaderNames() ).thenReturn( NullEnumeration.getInstance() );
+        Mockito.when( request.getHeaderNames() ).thenReturn( EmptyEnumeration.getInstance() );
         return request;
     }
 

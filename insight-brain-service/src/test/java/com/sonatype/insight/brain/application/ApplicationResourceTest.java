@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.application;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,9 +18,6 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -47,7 +47,7 @@ public class ApplicationResourceTest
     }
 
     @Test
-    public void testAddApplicationIsSuccessful()
+    public void testAddApplication()
         throws Exception
     {
         final String applicationPublicId = "ApplicationResourceTest_testAddApplication_AppId";
@@ -59,8 +59,9 @@ public class ApplicationResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
 
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
+        Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
 
         //Verify validate fails when application already exists in brain
         response = RestAccess.post( getServiceURL(), applicationPublicId );

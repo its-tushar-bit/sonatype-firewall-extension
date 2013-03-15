@@ -27,7 +27,7 @@ div,p,a,li,td {
 <body style="margin: 0; padding: 0;">
 	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
 		<tr>
-			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img src="${serverUrl}policy-assets/img/header_bg.gif"
+			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img src="http://clm-assets.sonatype.com/policy/1.3/header_bg.gif"
 					width="647" height="68" alt="View Full Report" border="0" /></a></td>
 		</tr>
 		<tr>
@@ -41,16 +41,16 @@ div,p,a,li,td {
 									<td>
 										<table cellpadding="0" cellspacing="0" border="0" bordercolor="#FFFFFF" style="border-collapse: collapse;">
 											<tr>
-												<td width="60" height="30" background="${serverUrl}policy-assets/img/alert_red.gif"
+												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_red.gif"
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #ED1C24;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatRedCount}</span></td>
-												<td width="60" height="30" background="${serverUrl}policy-assets/img/alert_orange.gif"
+												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif"
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #F7931D;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatOrangeCount}</span></td>
-												<td width="60" height="30" background="${serverUrl}policy-assets/img/alert_yellow.gif"
+												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif"
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #FFDD17;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatYellowCount}</span></td>
-												<td width="60" height="30" background="${serverUrl}policy-assets/img/alert_blue.gif"
+												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif"
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #6D98CF;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatBlueCount}</span></td>
 											</tr>
@@ -158,7 +158,7 @@ div,p,a,li,td {
 		</tr>
 		<tr>
 			<td colspan="3" width="647" height="54"><a href="${detailedReportUrl}" title="View Full Report"><img
-					src="${serverUrl}policy-assets/img/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
+					src="http://clm-assets.sonatype.com/policy/1.3/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
 		</tr>
 	</table>
 </body>

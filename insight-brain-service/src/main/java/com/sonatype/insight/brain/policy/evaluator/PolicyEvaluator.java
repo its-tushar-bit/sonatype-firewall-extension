@@ -35,13 +35,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
 public class PolicyEvaluator
@@ -105,13 +103,13 @@ public class PolicyEvaluator
                         final int num = fact.getConditionNumber();
                         if ( num >= 0 )
                         {
-                            addConditionFact( constraintFact, conditions.get( num ), component );
+                            constraintFact.addConditionFact( createConditionFact( conditions.get( num ), component ) );
                         }
                         else
                         {
                             for ( final Condition condition : conditions )
                             {
-                                addConditionFact( constraintFact, condition, component );
+                                constraintFact.addConditionFact( createConditionFact( condition, component ) );
                             }
                         }
                     }
@@ -131,18 +129,6 @@ public class PolicyEvaluator
             }
         }
         return alerts;
-    }
-
-    private static void addConditionFact( ConstraintFact constraintFact, Condition condition, Component component )
-    {
-        /*
-         * Only interested in facts about known components, or facts about match state of unknown components
-         */
-        if ( MatchState.UNKNOWN != component.getMatchState()
-            || MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
-        {
-            constraintFact.addConditionFact( createConditionFact( condition, component ) );
-        }
     }
 
     public static ConditionFact createConditionFact( Condition condition, Component component )

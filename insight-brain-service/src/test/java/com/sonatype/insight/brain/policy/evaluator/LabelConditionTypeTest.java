@@ -115,7 +115,7 @@ public class LabelConditionTypeTest
         assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", LabelConditionType.ID, policyAlerts );
     }
 
     @Test
@@ -159,9 +159,9 @@ public class LabelConditionTypeTest
         assertFactCounts( 1, 2, policyAlerts.get( 0 ) );
 
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", LabelConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", LabelConditionType.ID, policyAlerts );
     }
 
     @Test

@@ -14,6 +14,7 @@ import org.junit.Assert;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -61,7 +62,7 @@ public abstract class AbstractPolicyEvaluationTest
     public static void assertContainsPolicyAlert( Component expectedComponent, String expectedPolicyId,
                                                   String expectedPolicyName, String actionTypeId,
                                                   String expectedConstraintId, String expectedConstraintName,
-                                                  List<PolicyAlert> actual )
+                                                  String expectedConditionTypeId, List<PolicyAlert> actual )
     {
         for ( PolicyAlert actualPolicyAlert : actual )
         {
@@ -82,7 +83,13 @@ public abstract class AbstractPolicyEvaluationTest
                             if ( expectedConstraintId.equals( constraintFact.getConstraintId() )
                                 && expectedConstraintName.equals( constraintFact.getConstraintName() ) )
                             {
-                                return;
+                                for ( ConditionFact conditionFact : constraintFact.getConditionFacts() )
+                                {
+                                    if ( expectedConditionTypeId.equals( conditionFact.getConditionTypeId() ) )
+                                    {
+                                        return;
+                                    }
+                                }
                             }
                         }
                     }

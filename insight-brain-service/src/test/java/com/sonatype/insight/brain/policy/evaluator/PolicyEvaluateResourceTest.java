@@ -189,7 +189,7 @@ public class PolicyEvaluateResourceTest
         expectedComponent.setHash( "f2e35e4a21f07d25710f" );
         AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponent, policy1.getId(), "Policy 1",
                                                                 FailActionType.ID, constraint1.getId(), "Constraint 1",
-                                                                Arrays.asList( policyAlerts ) );
+                                                                LicenseConditionType.ID, Arrays.asList( policyAlerts ) );
     }
 
     @Test

@@ -132,7 +132,7 @@ public class PolicyEvaluator
         String summary = conditionType.explainCondition( condition );
         String reason = conditionType.explainMatch( condition, component );
 
-        return new ConditionFact( summary, reason );
+        return new ConditionFact( condition.getConditionTypeId(), summary, reason );
     }
 
     private static Map<Policy, List<MatchFact>> byPolicy( final List<Policy> policies, final List<MatchFact> facts )

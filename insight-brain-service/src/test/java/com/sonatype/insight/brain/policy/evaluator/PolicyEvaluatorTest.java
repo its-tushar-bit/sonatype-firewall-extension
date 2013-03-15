@@ -81,9 +81,9 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
-                                   "Constraint Name 2", policyAlerts );
+                                   "Constraint Name 2", LicenseConditionType.ID, policyAlerts );
     }
 
     @Test
@@ -148,7 +148,7 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( constraintFacts.toString(), 1, constraintFacts.size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
-                                   "Constraint Name 2", policyAlerts );
+                                   "Constraint Name 2", MatchStateConditionType.ID, policyAlerts );
     }
 
     @Test
@@ -190,7 +190,7 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( constraintFacts.toString(), 1, constraintFacts.size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", MatchStateConditionType.ID, policyAlerts );
     }
 
     @Test
@@ -247,7 +247,9 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
 
         // Another component with one security vulnerability and Apache-2.0 license
         final Component component4 = new Component( "g4", "a4", "v4", MatchState.EXACT );
@@ -263,9 +265,13 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
     }
 
     @Test
@@ -299,7 +305,7 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
 
         // A component with Apache-2.0 license
         final Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
@@ -314,9 +320,9 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
 
         // A component with one security vulnerability and Apache-2.0 license
         final Component component3 = new Component( "g3", "a3", "v3", MatchState.EXACT );
@@ -332,11 +338,13 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 3, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
 
         // Another component with one security vulnerability and Apache-2.0 license
         final Component component4 = new Component( "g4", "a4", "v4", MatchState.EXACT );
@@ -352,13 +360,17 @@ public class PolicyEvaluatorTest
         Assert.assertEquals( 4, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
 
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
         assertContainsPolicyAlert( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", policyAlerts );
+                                   "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", LicenseConditionType.ID, policyAlerts );
     }
 
     @Test

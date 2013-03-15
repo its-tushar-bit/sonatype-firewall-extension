@@ -62,7 +62,7 @@ public class CIResource
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
     /**
-     * @deprecated Use ApplicationResource.validateToken() instead.
+     * @deprecated Use ApplicationResource.validateApplicationPublicId() instead.
      */
     @GET
     @Path( "validate/{applicationPublicId}" )

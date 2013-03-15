@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div ng-controller='NewApplicationController'>
     <form action='{{addApplication}}' method='post' enctype='multipart/form-data'
           onsubmit='return angular.element(this).scope().saveClick()'
@@ -38,6 +39,20 @@
                     <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
                     <strong>Error</strong> {{errorResponse}}
                 </div>
+=======
+<div>
+    <form name='applicationEditor' class='form-horizontal'>
+        <div class='modal-body'
+             ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
+            <div class='control-group'>
+
+            </div>
+        </div>
+        <div ng-show='errorResponse'>
+            <div class='alert alert-error'>
+                <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
+                <strong>Error</strong> {{errorResponse}}
+>>>>>>> INSIGHT-4299 new application skeleton
             </div>
         </div>
         <div class='modal-footer'>

@@ -13,9 +13,13 @@
 	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', 'CLMLocations', '$rootScope', function ($scope, global, $http, hudson, $timeout, clmLocations, $rootScope) {
 
 		function updatePolicySummary(data) {
-			data.summary = {
-				constraints: data.constraints.length + ' Constraint(s) to be evaluated'
-			};
+			angular.extend(data, {
+				'summary' : {
+				    'constraintCount' : data.constraints.length,
+				    'actionCount' : 0,
+				    'actions' : ''
+			    }
+			});
 			
 			function capitalize(text) {
 			    if (text && text.length > 1) {
@@ -30,9 +34,9 @@
 			angular.forEach(data.actions, function (value, key) {
 				var j, currentStageText = '', formattedName;
 				if (value.length > 0) {
-					actionCount++;
-					if (actionNames.length > 0) {
-						actionNames += ', ';
+					data.summary.actionCount++;
+					if (data.summary.actions.length > 0) {
+						data.summary.actions += ', ';
 					}
 
 					for (j = 0; j < $scope.state.actionStageList.length; j++) {
@@ -53,13 +57,10 @@
 					}
 					
 					if (currentStageText) {
-					    actionNames += currentStageText;
+					    data.summary.actions += currentStageText;
 					}
 				}
 			});
-
-			data.summary.actionCount = actionCount;
-			data.summary.actions = actionNames;
 		}
 		
 		function removePolicySummary(data) {

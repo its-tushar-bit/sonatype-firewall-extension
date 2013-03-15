@@ -13,6 +13,11 @@
 	        <div>
 				<b>{{policy.name}}</b><br>
 				Threat Level: <div class="threat-box threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>
+				<span ng-pluralize count='policy.summary.constraintCount'
+					when="{ '0': 'No constraints to be evaluated',
+							'1': '1 Constraint to be evaluated',
+							'other': '{{policy.summary.constraintCount}} Constraints to be evaluated'
+					}"></span>
 				{{policy.summary.constraints}}<br>
 				<span ng-pluralize count='policy.summary.actionCount'
 					when="{ '0': 'No actions assigned',

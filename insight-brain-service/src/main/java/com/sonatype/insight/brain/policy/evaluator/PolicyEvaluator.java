@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,27 +101,48 @@ public class PolicyEvaluator
                         new ConstraintFact( constraint.getId(), constraint.getName(), constraint.getOperator().name() );
                     for ( final MatchFact fact : byConstraints.getValue() )
                     {
+                        final List<Condition> conditions = constraint.getConditions();
                         final int num = fact.getConditionNumber();
                         if ( num >= 0 )
                         {
-                            final Condition condition = constraint.getConditions().get( num );
-                            constraintFact.addConditionFact( createConditionFact( condition, component ) );
+                            addConditionFact( constraintFact, conditions.get( num ), component );
                         }
                         else
                         {
-                            for ( final Condition condition : constraint.getConditions() )
+                            for ( final Condition condition : conditions )
                             {
-                                constraintFact.addConditionFact( createConditionFact( condition, component ) );
+                                addConditionFact( constraintFact, condition, component );
                             }
                         }
                     }
-                    componentFact.addConstraintFact( constraintFact );
+                    if ( !constraintFact.getConditionFacts().isEmpty() )
+                    {
+                        componentFact.addConstraintFact( constraintFact );
+                    }
                 }
-                policyFact.addComponentFact( componentFact );
+                if ( !componentFact.getConstraintFacts().isEmpty() )
+                {
+                    policyFact.addComponentFact( componentFact );
+                }
             }
-            alerts.add( new PolicyAlert( policyFact, policy.getActions( stage.getStageTypeId() ) ) );
+            if ( !policyFact.getComponentFacts().isEmpty() )
+            {
+                alerts.add( new PolicyAlert( policyFact, policy.getActions( stage.getStageTypeId() ) ) );
+            }
         }
         return alerts;
+    }
+
+    private static void addConditionFact( ConstraintFact constraintFact, Condition condition, Component component )
+    {
+        /*
+         * Only interested in facts about known components, or facts about match state of unknown components
+         */
+        if ( MatchState.UNKNOWN != component.getMatchState()
+            || MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
+        {
+            constraintFact.addConditionFact( createConditionFact( condition, component ) );
+        }
     }
 
     public static ConditionFact createConditionFact( Condition condition, Component component )
@@ -193,70 +213,6 @@ public class PolicyEvaluator
         return byComponent;
     }
 
-    /**
-     * Filter out match facts for unknown components that were triggered by a condition type other than
-     * MatchStateConditionType.
-     */
-    private static List<MatchFact> filterFactsForUnknownComponents( List<Policy> policies, List<MatchFact> matchFacts )
-    {
-        if ( matchFacts == null )
-        {
-            return null;
-        }
-        Iterator<MatchFact> iterMatchFacts = matchFacts.iterator();
-        while ( iterMatchFacts.hasNext() )
-        {
-            MatchFact matchFact = iterMatchFacts.next();
-            if ( MatchState.UNKNOWN != matchFact.getComponent().getMatchState() )
-            {
-                continue;
-            }
-
-            Policy policy = getPolicy( policies, matchFact.getPolicyId() );
-            Constraint constraint = policy.getConstraintById( matchFact.getConstraintId() );
-            Condition matchStateCondition = null;
-            int conditionNumber = matchFact.getConditionNumber();
-            if ( conditionNumber >= 0 )
-            {
-                Condition condition = constraint.getConditions().get( conditionNumber );
-                if ( MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
-                {
-                    matchStateCondition = condition;
-                }
-            }
-            else
-            {
-                for ( final Condition condition : constraint.getConditions() )
-                {
-                    if ( MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
-                    {
-                        matchStateCondition = condition;
-                        break;
-                    }
-                }
-            }
-            if ( matchStateCondition == null )
-            {
-                iterMatchFacts.remove();
-            }
-        }
-
-        return matchFacts;
-    }
-
-    private static Policy getPolicy( List<Policy> policies, String policyId )
-    {
-        for ( Policy policy : policies )
-        {
-            if ( policy.getId().equals( policyId ) )
-            {
-                return policy;
-            }
-        }
-
-        throw new IllegalStateException( "Cannot find policy with id " + policyId );
-    }
-
     static List<MatchFact> evaluateFacts( final String applicationId, final List<Policy> policies,
                                           final List<Component> components )
     {
@@ -283,12 +239,11 @@ public class PolicyEvaluator
 
         droolsSession.fireAllRules();
 
-        List<MatchFact> matchFacts = getMatchFacts( droolsSession );
-        return filterFactsForUnknownComponents( policies, matchFacts );
+        return getMatchFacts( droolsSession );
     }
-    
+
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static List<MatchFact> getMatchFacts(StatefulKnowledgeSession droolsSession)
+    private static List<MatchFact> getMatchFacts( StatefulKnowledgeSession droolsSession )
     {
         return new ArrayList<MatchFact>( (Collection) droolsSession.getObjects( new ObjectFilter()
         {

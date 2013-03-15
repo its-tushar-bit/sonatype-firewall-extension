@@ -28,7 +28,6 @@
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
                 </button>
             </th>
-            <th></th>
         </tr>
         </thead>
         <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
@@ -43,7 +42,7 @@
         <tfoot>
         <tr>
             <td></td>
-            <td ng-repeat='stage in stages | filterReportColumns'></td>
+            <td colspan="{{stages.length}}"></td>
         </tr>
         </tfoot>
     </table>

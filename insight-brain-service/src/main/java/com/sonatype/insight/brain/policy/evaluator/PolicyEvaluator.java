@@ -219,7 +219,7 @@ public class PolicyEvaluator
             if ( conditionNumber >= 0 )
             {
                 Condition condition = constraint.getConditions().get( conditionNumber );
-                if ( !MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
+                if ( MatchStateConditionType.ID.equals( condition.getConditionTypeId() ) )
                 {
                     matchStateCondition = condition;
                 }

@@ -158,13 +158,16 @@ public class PolicyEvaluatorTest
 
         // Create policy constraints
         List<Constraint> constraints = new ArrayList<Constraint>();
-        Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
-        constraint1.addCondition( new Condition( LicenseConditionType.ID, "is not", "Apache-2.0" ) );
+        Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.OR );
+        constraint1.addCondition( new Condition( LicenseConditionType.ID, "is not", "GPL-2.0" ) );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId() ) );
         constraints.add( constraint1 );
         Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.OR );
-        constraint2.addCondition( new Condition( LicenseConditionType.ID, "is not", "GPL-2.0" ) );
-        constraint2.addCondition( new Condition( MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId() ) );
+        constraint2.addCondition( new Condition( LicenseConditionType.ID, "is not", "Apache-2.0" ) );
         constraints.add( constraint2 );
+        Constraint constraint3 = new Constraint( "ConstraintId3", "Constraint Name 3", LogicalOperator.AND );
+        constraint3.addCondition( new Condition( LicenseConditionType.ID, "is not", "Apache-2.0" ) );
+        constraints.add( constraint3 );
 
         Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
         policy.setConstraints( constraints );
@@ -186,8 +189,8 @@ public class PolicyEvaluatorTest
         List<ConstraintFact> constraintFacts = componentFacts.get( 0 ).getConstraintFacts();
         Assert.assertEquals( constraintFacts.toString(), 1, constraintFacts.size() );
 
-        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId2",
-                                   "Constraint Name 2", policyAlerts );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", policyAlerts );
     }
 
     @Test

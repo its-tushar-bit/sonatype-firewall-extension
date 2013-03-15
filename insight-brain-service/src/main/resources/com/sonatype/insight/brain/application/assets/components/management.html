@@ -40,6 +40,13 @@
             </td>
         </tr>
     </table>
+    <div id='newApplicationModal' data-backdrop='static' class='modal hide'>
+        <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal'>&times;</button>
+            <h3>New Application</h3>
+        </div>
+        <div ng-include='newApplicationUrl'></div>
+    </div>
     <div id='addApplicationModal' data-backdrop='static' class='modal hide'>
         <div class='modal-header'>
             <button type='button' class='close' data-dismiss='modal'>&times;</button>

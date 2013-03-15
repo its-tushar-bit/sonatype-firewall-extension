@@ -1,0 +1,20 @@
+<div>
+    <form name='applicationEditor' class='form-horizontal'>
+        <div class='modal-body'
+             ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
+            <div class='control-group'>
+
+            </div>
+        </div>
+        <div ng-show='errorResponse'>
+            <div class='alert alert-error'>
+                <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
+                <strong>Error</strong> {{errorResponse}}
+            </div>
+        </div>
+        <div class='modal-footer'>
+            <button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit(applicationEditor.$valid)'>Save</button>
+        </div>
+    </form>
+</div>

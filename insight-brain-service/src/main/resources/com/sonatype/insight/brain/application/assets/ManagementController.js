@@ -45,7 +45,11 @@
         };
 
         $scope.registerNewApplication = function () {
-            $('#addApplicationModal').modal('show');
+            $scope.editorUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
+
+            $scope.selectedApplication = { id: null, publicId: null };
+
+            $('#newApplicationModal').modal('show');
         };
 
         $scope.addApplication = function () {

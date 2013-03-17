@@ -15,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sonatype.insight.portal.mail.MailConfig;
 import com.yammer.dropwizard.config.Configuration;
-import com.yammer.dropwizard.config.HttpConfiguration;
 import com.yammer.dropwizard.validation.ValidationMethod;
 
 public class InsightConfig
@@ -26,13 +24,7 @@ public class InsightConfig
     private static final Logger log = LoggerFactory.getLogger( InsightConfig.class );
 
     {
-        setHttpConfiguration( new HttpConfiguration()
-        {
-            {
-                setPort( 8070 );
-                setAdminPort( 8070 );
-            }
-        } );
+        setHttpConfiguration( new HttpConfig() );
     }
 
     @NotNull
@@ -41,15 +33,7 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
-    private MailConfig mail = new MailConfig()
-    {
-        {
-            setHostname( "127.0.0.1" );
-            setPort( 587 );
-            setSystemEmail( "SonatypeCLM@localhost" );
-            setSystemPersonal( "Sonatype CLM" );
-        }
-    };
+    private MailConfig mail = new MailConfig();
 
     @JsonProperty
     private String baseUrl;

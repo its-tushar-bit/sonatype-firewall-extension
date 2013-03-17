@@ -75,6 +75,9 @@ public class InsightBrainService
             new AssetsBundle( "/com/sonatype/insight/brain/application/assets/", APPLICATION_ASSET_PATH ) );
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/assets/", BRAIN_ASSET_PATH ) );
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH ) );
+
+        // workaround to let us set different defaults in the core HTTP configuration
+        bootstrap.getObjectMapperFactory().registerModule( new HttpConfig.Module() );
     }
 
     protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )

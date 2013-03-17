@@ -22,6 +22,11 @@ import com.sonatype.insight.mock.InsightMockServer;
 
 public abstract class AbstractBrainServiceTest
 {
+    static
+    {
+        System.setProperty( "javax.net.ssl.trustStore", "src/test/resources/ssl/server-store" );
+    }
+
     private static final Logger log = LoggerFactory.getLogger( AbstractBrainServiceTest.class );
 
     private static int saasPort = findFreePort( 8071 );
@@ -52,6 +57,11 @@ public abstract class AbstractBrainServiceTest
             saas.setHttpPort( saasPort );
             saas.setJsonResponseDirectory( getJsonResponseDirectory() );
             saas.setZipResponseDirectory( getZipResponseDirectory() );
+            if ( getClass().getName().endsWith( "ProxyTest" ) )
+            {
+                saas.setKeyStore( System.getProperty( "javax.net.ssl.trustStore" ), "server-pwd" );
+                saas.setProxyAuthentication( "proxyuser", "proxypass" );
+            }
             saas.start();
         }
         if ( brain == null )
@@ -59,6 +69,10 @@ public abstract class AbstractBrainServiceTest
             brain = new TestInsightBrainService();
             brain.setHttpPort( brainPort );
             brain.setSaasAddress( saas.getHttpUrl() );
+            if ( getClass().getName().endsWith( "ProxyTest" ) )
+            {
+                brain.setProxyConfig( "127.0.0.1", saasPort, "proxyuser:proxypass" );
+            }
             brain.start();
         }
 

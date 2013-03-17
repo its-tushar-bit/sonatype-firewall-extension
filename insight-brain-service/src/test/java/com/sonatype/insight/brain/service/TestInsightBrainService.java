@@ -30,6 +30,8 @@ public class TestInsightBrainService
 
     private String testSaasAddress;
 
+    private ProxyConfig testProxyConfig;
+
     private Server testBrainServer;
 
     private Exception brainFault;
@@ -42,6 +44,14 @@ public class TestInsightBrainService
     public void setSaasAddress( final String saasAddress )
     {
         testSaasAddress = saasAddress;
+    }
+
+    public void setProxyConfig( final String host, final int port, final String auth )
+    {
+        testProxyConfig = new ProxyConfig();
+        testProxyConfig.setHost( host );
+        testProxyConfig.setPort( port );
+        testProxyConfig.setAuth( auth );
     }
 
     public File getWorkDir()
@@ -148,6 +158,11 @@ public class TestInsightBrainService
         config.getHttpConfiguration().setShutdownGracePeriod( Duration.milliseconds( 1 ) );
         config.setSonatypeWork( getWorkDir().getPath() );
         config.setSaasAddress( testSaasAddress );
+
+        if ( testProxyConfig != null )
+        {
+            config.setProxyConfig( testProxyConfig );
+        }
 
         FileUtils.deleteDirectory( config.getSonatypeWork() );
 

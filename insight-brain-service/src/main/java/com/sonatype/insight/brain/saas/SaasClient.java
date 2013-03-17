@@ -30,6 +30,7 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
@@ -146,14 +147,14 @@ public class SaasClient
         else if ( "POST".equals( request.getMethod() ) )
         {
             cloudReq = new HttpPost( buildUri( request.getQueryString(), paths ) );
-            ( (HttpPost) cloudReq ).setEntity( new InputStreamEntity( request.getInputStream(),
-                                                                      request.getContentLength() ) );
+            HttpEntity entity = new InputStreamEntity( request.getInputStream(), request.getContentLength() );
+            ( (HttpPost) cloudReq ).setEntity( new BufferedHttpEntity( entity ) );
         }
         else if ( "PUT".equals( request.getMethod() ) )
         {
             cloudReq = new HttpPut( buildUri( request.getQueryString(), paths ) );
-            ( (HttpPut) cloudReq ).setEntity( new InputStreamEntity( request.getInputStream(),
-                                                                     request.getContentLength() ) );
+            HttpEntity entity = new InputStreamEntity( request.getInputStream(), request.getContentLength() );
+            ( (HttpPut) cloudReq ).setEntity( new BufferedHttpEntity( entity ) );
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {

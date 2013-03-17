@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.client.utils.HttpClientUtils;
+import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 public class InsightProxy
     extends AbstractInjectable<InsightProxy>
@@ -20,7 +21,18 @@ public class InsightProxy
     public <T extends HttpClientUtils.Configuration> T contextualize( final T httpConfig )
     {
         httpConfig.setServerUrl( insightConfig.getSaasAddress() );
-        // TODO: proxy settings
+
+        final ProxyConfig proxyConfig = insightConfig.getProxyConfig();
+        if ( proxyConfig.getHost() != null )
+        {
+            httpConfig.setProxyHost( proxyConfig.getHost() );
+            httpConfig.setProxyPort( proxyConfig.getPort() );
+            if ( proxyConfig.getAuth() != null )
+            {
+                httpConfig.setProxyAuth( SimpleAuthentication.parse( proxyConfig.getAuth() ) );
+            }
+        }
+
         return httpConfig;
     }
 }

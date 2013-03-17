@@ -37,6 +37,10 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
+    private ProxyConfig proxy = new ProxyConfig();
+
+    @NotNull
+    @JsonProperty
     private MailConfig mail = new MailConfig()
     {
         {
@@ -62,6 +66,11 @@ public class InsightConfig
     @JsonProperty
     private int releaseGraphCacheSize = 1000;
 
+    public ProxyConfig getProxyConfig()
+    {
+        return proxy;
+    }
+
     public MailConfig getMailConfig()
     {
         return mail;
@@ -85,6 +94,11 @@ public class InsightConfig
     public File getConfigDir()
     {
         return new File( sonatypeWork, "config" );
+    }
+
+    public void setProxyConfig( ProxyConfig proxyConfig )
+    {
+        this.proxy = proxyConfig;
     }
 
     public void setMailConfig( final MailConfig mailConfig )

@@ -1,15 +1,41 @@
-<div>
-    <form name='applicationEditor' class='form-horizontal'>
-        <div class='modal-body'
-             ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
-            <div class='control-group'>
+<div ng-controller='NewApplicationController'>
+    <form name='applicationEditor' class='form-horizontal' style='margin-bottom: 0px' ng-submit='saveClick()'>
+        <div class='modal-body'>
+            <div class='control-group'
+                 ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
+                <label class='control-label' for='applicationName'>Name:</label>
 
+                <div class='controls'>
+                    <input id='applicationName' name='name' type='text'
+                           class='input' maxlength='50' ng-model='selectedApplication.publicId'
+                           item-label>
+                </div>
             </div>
-        </div>
-        <div ng-show='errorResponse'>
-            <div class='alert alert-error'>
-                <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
-                <strong>Error</strong> {{errorResponse}}
+            <div class='control-group'>
+                <label class='control-label' for='applicationIcon'>Icon:</label>
+
+                <div class='controls'>
+                    <div ng-show='hasIconSource'>
+                        <img id='applicationIcon' width='48px' height='48px' ng-src='{{applicationIconSource}}'/>
+                    </div>
+
+                    <div ng-show='!uploadInProgress'>
+                        <input type='file' size='40' name='file' id='uploadFile' accept='image/*'
+                               onchange="angular.element(this).scope().fileChanged(this)"/>
+                    </div>
+                </div>
+            </div>
+            <div ng-show='uploadInProgress'>
+                Uploading...
+                <div class="progress progress-striped active">
+                    <div class="bar" style="width: {{progress}}%;"></div>
+                </div>
+            </div>
+            <div ng-show='errorResponse'>
+                <div class='alert alert-error'>
+                    <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
+                    <strong>Error</strong> {{errorResponse}}
+                </div>
             </div>
         </div>
         <div class='modal-footer'>

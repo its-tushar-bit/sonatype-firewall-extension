@@ -45,7 +45,7 @@
         };
 
         $scope.registerNewApplication = function () {
-            $scope.editorUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
+            $scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
 
             $scope.selectedApplication = { id: null, publicId: null };
 
@@ -103,4 +103,39 @@
             return arrayToReturn;
         };
     });
+
+    managementModule.controller('NewApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
+        $scope.fileChanged = function (element) {
+            if (element.files.length > 0) {
+                var file = element.files[0],
+                    src;
+                if (window.URL) {
+                    src = window.URL.createObjectURL(file);
+                } else if (window.webkitURL) {
+                    src = window.webkitURL.createObjectURL(file);
+                }
+                if (src) {
+                    $scope.$apply(function () {
+                        $scope.hasIconSource = true;
+                        $scope.applicationIconSource = src;
+                    });
+                } else {
+                    $scope.$apply(function () {
+                        $scope.hasIconSource = false;
+                    });
+                }
+            } else {
+                $scope.$apply(function () {
+                    $scope.hasIconSource = false;
+                });
+            }
+        };
+
+        $scope.saveClick = function () {
+            $scope.uploadInProgress = true;
+            hudson.post(clmLocations.getApplicationsUrl(), new FormData($('applicationEditor')[0])).success(function (application) {
+                $scope.uploadInProgress = false;
+            });
+        };
+    }]);
 }());

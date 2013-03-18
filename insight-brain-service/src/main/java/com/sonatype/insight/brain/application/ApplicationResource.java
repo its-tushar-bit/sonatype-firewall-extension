@@ -32,7 +32,7 @@ import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ScanUploader;
 
-@Path( ApplicationResource.SERVICE_PATH )
+@Path(ApplicationResource.SERVICE_PATH)
 public class ApplicationResource
 {
     public static final String SERVICE_PATH = "rest/application";
@@ -55,16 +55,16 @@ public class ApplicationResource
     private InsightProxy proxy;
 
     @GET
-    @Path( VALIDATE_PATH )
-    @Produces( MediaType.TEXT_PLAIN )
-    public String validateApplicationPublicId( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+    @Path(VALIDATE_PATH)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String validateApplicationPublicId( @PathParam("applicationPublicId") final String applicationPublicId )
         throws IOException
     {
         return validateApplicationPublicId( applicationPublicId, proxy );
     }
 
     @GET
-    @Produces( MediaType.APPLICATION_JSON )
+    @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationManagementSummary> getApplications()
         throws IOException
     {
@@ -87,10 +87,10 @@ public class ApplicationResource
     }
 
     @GET
-    @Path( GET_APPLICATION_PATH )
-    @Produces( MediaType.APPLICATION_JSON )
+    @Path(GET_APPLICATION_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
     public ApplicationManagementSummary getApplication(
-        @PathParam( "applicationPublicId" ) final String applicationPublicId )
+        @PathParam("applicationPublicId") final String applicationPublicId )
         throws IOException
     {
         final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -106,8 +106,8 @@ public class ApplicationResource
     }
 
     @POST
-    @Consumes( MediaType.APPLICATION_JSON )
-    @Produces( MediaType.APPLICATION_JSON )
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public ApplicationManagementSummary addApplication( String applicationPublicId )
         throws IOException
     {
@@ -127,6 +127,14 @@ public class ApplicationResource
         }
         throw new BadRequestException( "Invalid application id " + applicationPublicId );
     }
+
+//    @POST
+//    @Consumes( MediaType.MULTIPART_FORM_DATA )
+//    @Produces( MediaType.APPLICATION_JSON )
+//    public ApplicationManagementSummary newApplication( @FormDataParam( "file" ) InputStream uploadedInputStream )
+//    {
+//        return null;
+//    }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )
         throws IOException

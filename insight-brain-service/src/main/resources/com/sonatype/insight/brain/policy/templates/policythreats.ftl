@@ -42,27 +42,27 @@ div,p,a,li,td {
 										<table cellpadding="0" cellspacing="0" border="0" bordercolor="#FFFFFF" style="border-collapse: collapse;">
 											<tr>
 												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_red.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #ED1C24;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatRedCount}</span></td>
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #ED1C24;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatRedCount}</span></td>
 												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #F7931D;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatOrangeCount}</span></td>
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #F7931D;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatOrangeCount}</span></td>
 												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #FFDD17;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatYellowCount}</span></td>
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #FFDD17;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
 												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #6D98CF;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;">${policyThreatBlueCount}</span></td>
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #6D98CF;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
 											</tr>
 											<tr>
-												<td style="color: #A91113; font-size: 8px; text-align: center;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #A91113; font-size: 8px; font-weight: bold;">CRITICAL</span></td>
-												<td style="color: #CB7A16; font-size: 8px; text-align: center;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #CB7A16; font-size: 8px; font-weight: bold;">SEVERE</span></td>
-												<td style="color: #D4B718; font-size: 8px; text-align: center;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #D4B718; font-size: 8px; font-weight: bold;">MODERATE</span></td>
-												<td style="color: #5B80AE; font-size: 8px; text-align: center;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #005399; font-size: 8px; font-weight: bold;">NEUTRAL</span></td>
+												<td style="color: #A91113; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #A91113; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">CRITICAL</span></td>
+												<td style="color: #CB7A16; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #CB7A16; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">SEVERE</span></td>
+												<td style="color: #D4B718; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #D4B718; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">MODERATE</span></td>
+												<td style="color: #5B80AE; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #005399; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">NEUTRAL</span></td>
 											</tr>
 										</table>
 									</td>

@@ -11,18 +11,21 @@ import com.yammer.dropwizard.validation.PortRange;
 public class ProxyConfig
 {
     @JsonProperty
-    private String host = null;
+    private String hostname;
 
     @PortRange( min = 1 )
     @JsonProperty
     private int port = 80;
 
     @JsonProperty
-    private String auth = null;
+    private String username;
 
-    public String getHost()
+    @JsonProperty
+    private String password;
+
+    public String getHostname()
     {
-        return host;
+        return hostname;
     }
 
     public int getPort()
@@ -30,14 +33,19 @@ public class ProxyConfig
         return port;
     }
 
-    public String getAuth()
+    public String getUsername()
     {
-        return auth;
+        return username;
     }
 
-    public void setHost( final String host )
+    public String getPassword()
     {
-        this.host = host;
+        return password;
+    }
+
+    public void setHostname( final String hostname )
+    {
+        this.hostname = hostname;
     }
 
     public void setPort( final int port )
@@ -45,8 +53,13 @@ public class ProxyConfig
         this.port = port;
     }
 
-    public void setAuth( final String auth )
+    public void setUsername( String username )
     {
-        this.auth = auth;
+        this.username = username;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
     }
 }

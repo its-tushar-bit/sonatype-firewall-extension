@@ -71,7 +71,7 @@ public abstract class AbstractBrainServiceTest
             brain.setSaasAddress( saas.getHttpUrl() );
             if ( getClass().getName().endsWith( "ProxyTest" ) )
             {
-                brain.setProxyConfig( "127.0.0.1", saasPort, "proxyuser:proxypass" );
+                brain.setProxyConfig( "127.0.0.1", saasPort, "proxyuser", "proxypass" );
             }
             brain.start();
         }

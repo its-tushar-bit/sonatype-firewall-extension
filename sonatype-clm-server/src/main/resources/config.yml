@@ -29,6 +29,21 @@ mail:
   # The address used as From for outgoing notification mails sent by the server.
   #systemEmail: "SonatypeCLM@localhost"
 
+# Proxy settings.
+proxy:
+
+  # The host running the proxy server to use.
+  #hostname: "127.0.0.1"
+
+  # The port at which the proxy server listens on.
+  #port: 80
+
+  # The username used to access the proxy server.
+  #username: "anonymous"
+
+  # The password used to access the proxy server.
+  #password: "guest"
+
 # Logging settings.
 logging:
 

@@ -46,12 +46,13 @@ public class TestInsightBrainService
         testSaasAddress = saasAddress;
     }
 
-    public void setProxyConfig( final String host, final int port, final String auth )
+    public void setProxyConfig( final String host, final int port, final String user, final String pass )
     {
         testProxyConfig = new ProxyConfig();
-        testProxyConfig.setHost( host );
+        testProxyConfig.setHostname( host );
         testProxyConfig.setPort( port );
-        testProxyConfig.setAuth( auth );
+        testProxyConfig.setUsername( user );
+        testProxyConfig.setPassword( pass );
     }
 
     public File getWorkDir()

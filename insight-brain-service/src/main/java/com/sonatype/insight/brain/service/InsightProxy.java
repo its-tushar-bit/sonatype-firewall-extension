@@ -23,13 +23,17 @@ public class InsightProxy
         httpConfig.setServerUrl( insightConfig.getSaasAddress() );
 
         final ProxyConfig proxyConfig = insightConfig.getProxyConfig();
-        if ( proxyConfig.getHost() != null )
+        if ( proxyConfig.getHostname() != null )
         {
-            httpConfig.setProxyHost( proxyConfig.getHost() );
+            httpConfig.setProxyHost( proxyConfig.getHostname() );
             httpConfig.setProxyPort( proxyConfig.getPort() );
-            if ( proxyConfig.getAuth() != null )
+            if ( proxyConfig.getUsername() != null )
             {
-                httpConfig.setProxyAuth( SimpleAuthentication.parse( proxyConfig.getAuth() ) );
+                final SimpleAuthentication proxyAuth = new SimpleAuthentication();
+                proxyAuth.setUsername( proxyConfig.getUsername() );
+                proxyAuth.setPassword( proxyConfig.getPassword() );
+                // TODO: do we need to support NTLM?
+                httpConfig.setProxyAuth( proxyAuth );
             }
         }
 

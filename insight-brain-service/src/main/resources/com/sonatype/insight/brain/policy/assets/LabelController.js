@@ -7,7 +7,7 @@
 (function () {
     'use strict';
 
-    var labelModule = angular.module('Labels', ['InsightAngularCommon', 'Hudson', 'CLMLocation']);
+    var labelModule = angular.module('Labels', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
     labelModule.controller('LabelController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
         function errorFn(data, status, headersFn, config) {

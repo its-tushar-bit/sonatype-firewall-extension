@@ -8,7 +8,7 @@ var applicationApp;
 (function () {
     "use strict";
 
-    applicationApp = angular.module('applicationApp', ['InsightAngularCommon', 'Management', 'Report'], ['$routeProvider', function ($routeProvider) {
+    applicationApp = angular.module('applicationApp', ['AngularCommon', 'Management', 'Report'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/management', {
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ManagementController'

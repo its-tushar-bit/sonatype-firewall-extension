@@ -7,7 +7,7 @@
 (function () {
     'use strict';
 
-    var managementModule = angular.module('Management', ['InsightAngularCommon', 'Hudson', 'CLMLocation']);
+    var managementModule = angular.module('Management', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
     managementModule.controller('ManagementController', ['$scope', '$location', '$http', 'hudson', 'CLMLocations', function ($scope, $location, $http, hudson, clmLocations) {
         $scope.orderColumn = 'publicId';

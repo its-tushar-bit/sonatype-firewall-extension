@@ -11,7 +11,7 @@ describe('ApplicationManagementController', function () {
         return $http;
     }]);
 
-    beforeEach(module('Management', 'InsightAngularCommon', 'CLMLocation', 'Hudson'));
+    beforeEach(module('Management', 'AngularCommon', 'CLMLocation', 'Hudson'));
     beforeEach(inject(function ($httpBackend, $rootScope, $controller, CLMLocations) {
         $httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(ApplicationMockData.getApplicationsData());
         $httpBackend.whenGET(toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());

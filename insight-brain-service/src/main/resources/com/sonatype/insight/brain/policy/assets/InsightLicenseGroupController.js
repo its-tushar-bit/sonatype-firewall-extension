@@ -7,7 +7,7 @@
 (function () {
     'use strict';
 
-    var licenseGroupModule = angular.module('LicenseGroup', ['InsightAngularCommon']);
+    var licenseGroupModule = angular.module('LicenseGroup', ['AngularCommon']);
 
     licenseGroupModule.controller('InsightLicenseGroupController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
         if (typeof($scope.features) === 'undefined') {

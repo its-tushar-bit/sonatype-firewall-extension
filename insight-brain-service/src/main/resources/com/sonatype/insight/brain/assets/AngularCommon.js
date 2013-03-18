@@ -7,7 +7,7 @@ var angularCommon;
 (function () {
     "use strict";
 
-    angularCommon = angular.module('InsightAngularCommon', []);
+    angularCommon = angular.module('AngularCommon', []);
 
     angularCommon.directive('errorModal', function () {
         return {

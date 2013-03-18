@@ -1,7 +1,7 @@
-describe('InsightAngularCommon', function () {
+describe('AngularCommon', function () {
     var scope, compile;
 
-    beforeEach(module('InsightAngularCommon'));
+    beforeEach(module('AngularCommon'));
     beforeEach(inject(function ($rootScope, $controller, $compile) {
         scope = $rootScope.$new();
         compile = $compile;

@@ -93,7 +93,7 @@ public class ApplicationResource
         @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        final Application application = applicationDAO.getByPublicId( applicationPublicId );
+        final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         log.debug( "Found application with public id {}", application.getPublicId() );
 
         final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );

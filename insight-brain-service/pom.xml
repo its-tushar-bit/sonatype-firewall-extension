@@ -410,6 +410,7 @@
             <include>policy/assets/notification-management-spec.js</include>
             <include>application/assets/ApplicationMockData.js</include>
             <include>application/assets/ManagementControllerSpec.js</include>
+            <include>assets/AngularCommonSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain</jsTestSrcDir>

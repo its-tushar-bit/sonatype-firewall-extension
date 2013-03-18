@@ -1,21 +1,16 @@
 describe('AngularCommon', function () {
-    var scope, compile;
+    var scope, compile, httpBackend;
 
     beforeEach(module('AngularCommon'));
-    beforeEach(inject(function ($rootScope, $controller, $compile) {
+    beforeEach(inject(function ($httpBackend, $rootScope, $compile) {
         scope = $rootScope.$new();
         compile = $compile;
+        httpBackend = $httpBackend;
     }));
 
-    it('replaces implements errorModal template', function () {
-        var element = compile('<div error-Modal></div>');
-        expect(element.find('div').length).toEqual(3);
-        expect(element.attr('class')).toEqual('modal hide');
-    });
-
-    it('can be shown', function () {
-        var element = compile('<div error-Modal></div>');
-        scope.showError('foo');
-        expect(element.attr('class')).toEqual('modal hide in');
+    it('implements errorModal directive', function () {
+        httpBackend.expectGET('/assets/components/errorModal.html').respond("<div id='errorModal'></div>");
+        var element = compile('<div error-Modal></div>')(scope);
+        expect(element).not.toBeUndefined();
     });
 });

@@ -1,16 +1,15 @@
 var clmBuildTimestamp = '';
 
-describe('InsightPolicyController tests', function () {
+describe('InsightPolicyController tests', function() {
     var scope;
 
-    angular.module('Hudson', []).factory('hudson', ['$http', function ($http) {
+    angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
         return $http;
-    }]);
-
+    } ]);
 
     beforeEach(module('Policy', 'Hudson', 'CLMLocation'));
     // setup our http backend to return what we want
-    beforeEach(inject(function ($httpBackend, $rootScope, $controller, CLMLocations) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations) {
         CLMLocations.appId = 'myAppId';
 
         function toRegExp(getUrl) {
@@ -26,19 +25,22 @@ describe('InsightPolicyController tests', function () {
         // inject the controller
         scope = $rootScope.$new();
 
-        $controller('InsightPolicyController', {$scope: scope, global: {}});
+        $controller('InsightPolicyController', {
+            $scope : scope,
+            global : {}
+        });
         $httpBackend.flush();
     }));
 
-    it('Test initial data state', function () {
-        expect(scope.state.conditionTypeList.length).toEqual(11);
+    it('Test initial data state', function() {
+        expect(scope.state.conditionTypeList.length).toEqual(10);
         expect(scope.state.actionTypeList.length).toEqual(3);
         expect(scope.state.actionStageList.length).toEqual(5);
         expect(scope.state.conditionValueTypeList.length).toEqual(9);
         expect(scope.state.policyList.length).toEqual(5);
     });
 
-    it('Test apply UI data to json', function () {
+    it('Test apply UI data to json', function() {
         expect(scope.state.policyList[0].summary.actionCount).toEqual(1);
         expect(scope.state.policyList[0].summary.actions).toEqual('Build: Fail');
         expect(scope.state.policyList[1].summary.actionCount).toEqual(1);
@@ -96,35 +98,83 @@ describe('InsightPolicyController tests', function () {
         expect(scope.state.policyList[4].constraints[0].conditions[0].valueModifier).toBeUndefined();
     });
 
-    it('Test initial scope variables', function () {
+    it('Test initial scope variables', function() {
         expect(scope.state.policyChanged).toBeUndefined();
         expect(scope.state.policyWatchStopFn).toBeUndefined();
         expect(scope.state.currentPolicy).toBeUndefined();
         expect(scope.state.showAddPolicyScreen).toBeUndefined();
         expect(scope.state.showAddPolicyScreen).toBeUndefined();
         expect(scope.state.actionEditMode).toBeUndefined();
-        expect(scope.state.currentConstraint).toEqual({conditions: [
-            { conditionTypeId: 'Label', conditionType: { name: 'Label', id: 'Label', supportedOperators: [ 'is', 'is not' ], valueTypeId: 'LabelValueType', valueHint: null }, operator: 'is', valueType: { id: 'LabelValueType', dataType: 'Label', allowMultiple: false, availableValues: [  ] }, valueModifier: 'y' }
-        ], operator: 'OR'});
+        expect(scope.state.currentConstraint).toEqual({
+            conditions : [ {
+                conditionTypeId : 'Label',
+                conditionType : {
+                    name : 'Label',
+                    id : 'Label',
+                    supportedOperators : [ 'is', 'is not' ],
+                    valueTypeId : 'LabelValueType',
+                    valueHint : null
+                },
+                operator : 'is',
+                valueType : {
+                    id : 'LabelValueType',
+                    dataType : 'Label',
+                    allowMultiple : false,
+                    availableValues : []
+                },
+                valueModifier : 'y'
+            } ],
+            operator : 'OR'
+        });
         expect(scope.state.actionTableData).toEqual([]);
     });
 
-    it('Test create policy', inject(function (CLMLocations, $timeout, $httpBackend) {
-        scope.viewCreatePolicy({ preventDefault: angular.noop });
+    it('Test create policy', inject(function(CLMLocations, $timeout, $httpBackend) {
+        scope.viewCreatePolicy({
+            preventDefault : angular.noop
+        });
 
         $timeout.flush();
 
-        expect(scope.state.currentPolicy).toEqual({constraints: [], actions: {}, threatLevel: 5});
+        expect(scope.state.currentPolicy).toEqual({
+            constraints : [],
+            actions : {},
+            threatLevel : 5
+        });
         expect(scope.state.showAddPolicyScreen).toBe(true);
         expect(scope.state.addPolicyTitle).toEqual('Create a New Policy');
         expect(scope.state.policyWatchStopFn).not.toBeUndefined();
-        expect(scope.state.actionTableData).toEqual([
-            { id: 'procure', name: 'Procure', action: 'none', notifyCount: 0, actions: [] },
-            { id: 'develop', name: 'Develop', action: 'none', notifyCount: 0, actions: [] },
-            { id: 'build', name: 'Build', action: 'none', notifyCount: 0, actions: [] },
-            { id: 'release', name: 'Release', action: 'none', notifyCount: 0, actions: [] },
-            { id: 'operate', name: 'Operate', action: 'none', notifyCount: 0, actions: [] }
-        ]);
+        expect(scope.state.actionTableData).toEqual([ {
+            id : 'procure',
+            name : 'Procure',
+            action : 'none',
+            notifyCount : 0,
+            actions : []
+        }, {
+            id : 'develop',
+            name : 'Develop',
+            action : 'none',
+            notifyCount : 0,
+            actions : []
+        }, {
+            id : 'build',
+            name : 'Build',
+            action : 'none',
+            notifyCount : 0,
+            actions : []
+        }, {
+            id : 'release',
+            name : 'Release',
+            action : 'none',
+            notifyCount : 0,
+            actions : []
+        }, {
+            id : 'operate',
+            name : 'Operate',
+            action : 'none',
+            notifyCount : 0,
+            actions : []
+        } ]);
 
         scope.validatePolicy();
         expect(scope.state.policyValid).toBeUndefined();
@@ -164,52 +214,76 @@ describe('InsightPolicyController tests', function () {
         expect(scope.state.policyList[5].name).toEqual('createPolicyTest');
     }));
 
-    it('Test edit policy', inject(function (CLMLocations, $timeout, $httpBackend) {
+    it('Test edit policy', inject(function(CLMLocations, $timeout, $httpBackend) {
         scope.viewEditPolicy(scope.state.policyList[4]);
         $timeout.flush();
 
-		expect(scope.state.currentPolicy).toEqual({
-			id: '03bf6717cbbf49b8a177c3004668875a',
-			name: '4444',
-			enabled: true,
-			threatLevel: 5,
-			constraints: [{
-				id: 'd68c0fda6269459ab81524079a4bc6a8',
-				name: 'sd',
-				enabled: true,
-				operator: 'OR',
-				conditions: [{
-					conditionTypeId: 'SecurityVulnerability',
-					operator: 'present',
-					value: null,
-					conditionType: {
-						name: 'Security Vulnerability',
-						id: 'SecurityVulnerability',
-						supportedOperators: [ 'present', 'absent' ],
-						valueTypeId: null,
-						valueHint: null
-					},
-					valueType: null
-				}]
-			}],
-			actions: {},
-			summary: {
-				constraintCount: 1,
-				actionCount: 0,
-				actions: ''
-			}
-		});
+        expect(scope.state.currentPolicy).toEqual({
+            id : '03bf6717cbbf49b8a177c3004668875a',
+            name : '4444',
+            enabled : true,
+            threatLevel : 5,
+            constraints : [ {
+                id : 'd68c0fda6269459ab81524079a4bc6a8',
+                name : 'sd',
+                enabled : true,
+                operator : 'OR',
+                conditions : [ {
+                    conditionTypeId : 'SecurityVulnerability',
+                    operator : 'present',
+                    value : null,
+                    conditionType : {
+                        name : 'Security Vulnerability',
+                        id : 'SecurityVulnerability',
+                        supportedOperators : [ 'present', 'absent' ],
+                        valueTypeId : null,
+                        valueHint : null
+                    },
+                    valueType : null
+                } ]
+            } ],
+            actions : {},
+            summary : {
+                constraintCount : 1,
+                actionCount : 0,
+                actions : ''
+            }
+        });
         expect(scope.state.showAddPolicyScreen).toBe(true);
         expect(scope.state.policyValid).toBe(true);
         expect(scope.state.addPolicyTitle).toEqual('Edit Policy');
         expect(scope.state.policyWatchStopFn).not.toBeUndefined();
-        expect(scope.state.actionTableData).toEqual([
-            { id: 'procure', name: 'Procure', actions: [], notifyCount: 0, action: 'none' },
-            { id: 'develop', name: 'Develop', actions: [], notifyCount: 0, action: 'none' },
-            { id: 'build', name: 'Build', actions: [], notifyCount: 0, action: 'none' },
-            { id: 'release', name: 'Release', actions: [], notifyCount: 0, action: 'none' },
-            { id: 'operate', name: 'Operate', actions: [], notifyCount: 0, action: 'none' }
-        ]);
+        expect(scope.state.actionTableData).toEqual([ {
+            id : 'procure',
+            name : 'Procure',
+            actions : [],
+            notifyCount : 0,
+            action : 'none'
+        }, {
+            id : 'develop',
+            name : 'Develop',
+            actions : [],
+            notifyCount : 0,
+            action : 'none'
+        }, {
+            id : 'build',
+            name : 'Build',
+            actions : [],
+            notifyCount : 0,
+            action : 'none'
+        }, {
+            id : 'release',
+            name : 'Release',
+            actions : [],
+            notifyCount : 0,
+            action : 'none'
+        }, {
+            id : 'operate',
+            name : 'Operate',
+            actions : [],
+            notifyCount : 0,
+            action : 'none'
+        } ]);
 
         scope.state.currentPolicy.name = '5555';
 
@@ -222,7 +296,7 @@ describe('InsightPolicyController tests', function () {
         expect(scope.state.policyList[4].name).toEqual('5555');
     }));
 
-    it('Test remove policy', inject(function (CLMLocations, $httpBackend) {
+    it('Test remove policy', inject(function(CLMLocations, $httpBackend) {
         expect(scope.state.deletePolicyIndex).toBeUndefined();
 
         scope.viewRemovePolicy(0);
@@ -259,5 +333,12 @@ describe('InsightPolicyController tests', function () {
         $httpBackend.flush();
 
         expect(scope.state.policyList[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
+    }));
+
+    it('Test load policy with invalid condition', inject(function($timeout) {
+        scope.viewEditPolicy(scope.state.policyList[0]);
+        $timeout.flush();
+        scope.viewEditConstraint(scope.state.currentPolicy.constraints[0]);
+        expect(scope.state.constraintValidationMsg).toEqual('Please select a valid condition type for condition #5');
     }));
 });

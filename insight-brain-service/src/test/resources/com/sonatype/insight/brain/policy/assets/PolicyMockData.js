@@ -60,12 +60,6 @@ PolicyMockData = {
           "supportedOperators" : ["match", "do not match"],
           "valueTypeId" : "CoordinatesValueType",
           "valueHint" : null
-        }, {
-          "name" : "Dependency Depth",
-          "id" : "DependencyDepth",
-          "supportedOperators" : ["is direct dependency"],
-          "valueTypeId" : null,
-          "valueHint" : null
         }];
   },
   getActionTypeData : function() {
@@ -208,6 +202,10 @@ PolicyMockData = {
                       "conditionTypeId" : "SecurityVulnerabilitySeverity",
                       "operator" : "=",
                       "value" : "44"
+                    }, {
+                        "conditionTypeId" : "DependencyDepth",
+                        "operator" : "is direct dependency",
+                        "value" : null
                     }]
               }, {
                 "id" : "6c2755ee5ef6400e935e913fdeda4e6b",

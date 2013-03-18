@@ -21,6 +21,8 @@ public class HttpConfig
     public static class Module
         extends SimpleModule
     {
+        private static final long serialVersionUID = 7897301364271583290L;
+
         public Module()
         {
             // makes it look like JsonDeserialize.as was on original class

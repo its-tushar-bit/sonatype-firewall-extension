@@ -13,7 +13,7 @@ public class ProxyConfig
     @JsonProperty
     private String host = null;
 
-    @PortRange
+    @PortRange( min = 1 )
     @JsonProperty
     private int port = 80;
 

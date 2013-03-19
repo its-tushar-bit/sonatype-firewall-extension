@@ -378,7 +378,7 @@ public class Component
     @JsonIgnore
     public Set<LicenseThreatGroup> getLicenseThreatGroups()
     {
-        final Set<LicenseThreatGroup> licenseThreatGroups = new HashSet<LicenseThreatGroup>();
+        final Set<LicenseThreatGroup> licenseThreatGroups = new LinkedHashSet<LicenseThreatGroup>();
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroupsById.values() )
         {
             licenseThreatGroups.add( licenseThreatGroup );

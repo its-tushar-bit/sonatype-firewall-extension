@@ -77,6 +77,48 @@ public class LicenseThreatGroupLevelConditionTypeTest
     }
 
     @Test
+    public void testExplainMatchLessOrEqual()
+    {
+        Condition condition = new Condition( LicenseThreatGroupLevelConditionType.ID, "<=", "5" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
+        Assert.assertEquals( "Found no License Threat Groups with Level <= 5",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+
+        component1.addLicenseThreatGroup( licenseThreatGroup2 );
+        Assert.assertEquals( "Found 'Level 2' License Threat Group with Level <= 5",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+
+        component1.addLicenseThreatGroup( licenseThreatGroup5 );
+        Assert.assertEquals( "Found 'Level 2' and 'Level 5' License Threat Groups with Level <= 5",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+
+        condition.setValue( "2" );
+        Assert.assertEquals( "Found 'Level 2' License Threat Group with Level <= 2",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+    }
+
+    @Test
+    public void testExplainMatchGreaterOrEqual()
+    {
+        Condition condition = new Condition( LicenseThreatGroupLevelConditionType.ID, ">=", "2" );
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
+        Assert.assertEquals( "Found no License Threat Groups with Level >= 2",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+
+        component1.addLicenseThreatGroup( licenseThreatGroup2 );
+        Assert.assertEquals( "Found 'Level 2' License Threat Group with Level >= 2",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+
+        component1.addLicenseThreatGroup( licenseThreatGroup5 );
+        Assert.assertEquals( "Found 'Level 2' and 'Level 5' License Threat Groups with Level >= 2",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+
+        condition.setValue( "5" );
+        Assert.assertEquals( "Found 'Level 5' License Threat Group with Level >= 5",
+                             new LicenseThreatGroupLevelConditionType().explainMatch( condition, component1 ) );
+    }
+
+    @Test
     public void testEvaluateLessOrEqual()
     {
         // Create policy constraints

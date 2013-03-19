@@ -90,9 +90,4 @@ public class InsightWork
         // Valid response as there have been no policy evaluations for this application
         return null;
     }
-
-    public String getBaseUrl()
-    {
-        return insightConfig.getBaseUrl();
-    }
 }

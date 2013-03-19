@@ -14,18 +14,18 @@ public class InsightConfigTest
     public void testBaseUrl()
     {
         InsightConfig config = new InsightConfig();
-        Assert.assertEquals( "http://localhost:8070/", config.getBaseUrl() );
-
-        config.getHttpConfiguration().setPort( 1234 );
-        Assert.assertEquals( "http://localhost:1234/", config.getBaseUrl() );
-
-        config.setBaseUrl( "https://clm.sonatype.com" );
-        Assert.assertEquals( "https://clm.sonatype.com/", config.getBaseUrl() );
+        Assert.assertEquals( null, config.getBaseUrl() );
+        Assert.assertEquals( true, config.isValidBaseUrl() );
 
         config.setBaseUrl( "https://clm.sonatype.com/" );
         Assert.assertEquals( "https://clm.sonatype.com/", config.getBaseUrl() );
+        Assert.assertEquals( true, config.isValidBaseUrl() );
 
-        config.setBaseUrl( null );
-        Assert.assertEquals( "http://localhost:1234/", config.getBaseUrl() );
+        config.setBaseUrl( "https://clm.sonatype.com" );
+        Assert.assertEquals( "https://clm.sonatype.com/", config.getBaseUrl() );
+        Assert.assertEquals( true, config.isValidBaseUrl() );
+
+        config.setBaseUrl( "invalid" );
+        Assert.assertEquals( false, config.isValidBaseUrl() );
     }
 }

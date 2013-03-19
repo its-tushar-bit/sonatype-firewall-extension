@@ -38,7 +38,7 @@ public class RelativePopularityConditionType
     @Override
     public String generateDroolsConditionValue( String value )
     {
-        return value;
+        return "Integer.valueOf( " + value + " )";
     }
 
     @Override

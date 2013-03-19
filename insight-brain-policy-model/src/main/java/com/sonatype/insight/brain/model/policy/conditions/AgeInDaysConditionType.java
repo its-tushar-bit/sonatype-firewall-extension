@@ -57,7 +57,7 @@ public class AgeInDaysConditionType
     @Override
     public String generateDroolsConditionValue( String value )
     {
-        return value + " /* days */";
+        return "Integer.valueOf( " + value + " ) /* days */";
     }
 
     @Override

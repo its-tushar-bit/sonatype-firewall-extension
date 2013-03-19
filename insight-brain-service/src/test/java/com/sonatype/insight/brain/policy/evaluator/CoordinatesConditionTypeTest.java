@@ -190,4 +190,26 @@ public class CoordinatesConditionTypeTest
         assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
                                    "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
     }
+
+    @Test
+    public void testEvaluateEscapeUnsafeCharacter()
+    {
+        String artifactId = "\\\"\r\n\t'";
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.addConstraint( createConstraint( "match", "g1:" + artifactId ) );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", artifactId, "v1", MatchState.EXACT );
+        components.add( component1 );
+
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
+                                            Arrays.asList( policy ), components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
+    }
 }

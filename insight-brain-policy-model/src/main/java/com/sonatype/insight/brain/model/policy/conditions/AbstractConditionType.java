@@ -66,4 +66,21 @@ public abstract class AbstractConditionType<T>
         return "ConditionTypes." + getClass().getSimpleName() + ".evaluateCondition(this, \"" + condition.getOperator()
             + "\", " + generateDroolsConditionValue( condition.getValue() ) + ")";
     }
+
+    protected static String asDroolsString( String value )
+    {
+        if ( value == null )
+        {
+            value = "null";
+        }
+        else
+        {
+            value = value.replace( "\\", "\\\\" );
+            value = value.replace( "\n", "\\n" );
+            value = value.replace( "\r", "\\r" );
+            value = value.replace( "\"", "\\\"" );
+            value = '"' + value + '"';
+        }
+        return value;
+    }
 }

@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -83,28 +85,51 @@ public class LicenseThreatGroupLevelConditionType
     public String explainMatch( final Condition condition, final Component component )
     {
         final StringBuilder buf = new StringBuilder();
-        final List<LicenseThreatGroup> groups =
-            component.getLicenseThreatGroupsByLevel( Integer.parseInt( condition.getValue() ), condition.getOperator() );
-        if ( groups.isEmpty() )
+        final Set<LicenseThreatGroup> licenseThreatGroups =
+            getLicenseThreatGroupsByLevel( component, Integer.valueOf( condition.getValue() ), condition.getOperator() );
+        if ( licenseThreatGroups.isEmpty() )
         {
             buf.append( "no" );
         }
-        for ( int i = 0, size = groups.size(); i < size; i++ )
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
             if ( buf.length() > 0 )
             {
                 buf.append( " and " );
             }
-            buf.append( '\'' ).append( groups.get( i ).getName() ).append( '\'' );
+            buf.append( '\'' ).append( licenseThreatGroup.getName() ).append( '\'' );
         }
-        return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" ) + " with Level "
+        return "Found " + buf + " License Threat " + ( licenseThreatGroups.size() != 1 ? "Groups" : "Group" )
+            + " with Level "
             + condition.getOperator() + " " + condition.getValue();
     }
 
     @Override
     protected boolean internalEvaluateCondition( Component component, String operator, Integer value )
     {
-        // TODO Simplify
-        return !component.getLicenseThreatGroupsByLevel( value, operator ).isEmpty();
+        return !getLicenseThreatGroupsByLevel( component, value, operator ).isEmpty();
+    }
+
+    private Set<LicenseThreatGroup> getLicenseThreatGroupsByLevel( Component component, int threatLevel, String operator )
+    {
+        Set<LicenseThreatGroup> licenseThreatGroups = component.getLicenseThreatGroups();
+        if ( licenseThreatGroups.isEmpty() )
+        {
+            return licenseThreatGroups;
+        }
+
+        Set<LicenseThreatGroup> result = new LinkedHashSet<LicenseThreatGroup>();
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        {
+            if ( ">=".equals( operator ) && ( licenseThreatGroup.getThreatLevel() >= threatLevel ) )
+            {
+                result.add( licenseThreatGroup );
+            }
+            else if ( "<=".equals( operator ) && ( licenseThreatGroup.getThreatLevel() <= threatLevel ) )
+            {
+                result.add( licenseThreatGroup );
+            }
+        }
+        return result;
     }
 }

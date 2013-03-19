@@ -14,6 +14,8 @@ import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,9 @@ public abstract class AbstractBrainServiceTest
     private InsightMockServer saas;
 
     protected TestInsightBrainService brain;
+
+    @Rule
+    public TestName testName = new TestName();
 
     @AfterClass
     public static void afterClass()
@@ -73,10 +78,16 @@ public abstract class AbstractBrainServiceTest
             {
                 brain.setProxyConfig( "127.0.0.1", saasPort, "proxyuser", "proxypass" );
             }
+            configureBrain( brain );
             brain.start();
         }
 
         log.debug( "Started test servers in {}", System.currentTimeMillis() - start );
+    }
+
+    protected void configureBrain( final TestInsightBrainService brain )
+    {
+        // hook for sub classes
     }
 
     @After

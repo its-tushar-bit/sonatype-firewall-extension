@@ -12,19 +12,39 @@ import org.junit.Test;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.service.TestInsightBrainService;
 import com.sonatype.insight.test.RestAccess;
 
 public class LandingResourceTest
     extends AbstractResourceTest
 {
 
+    @Override
+    protected void configureBrain( TestInsightBrainService brain )
+    {
+        if ( testName.getMethodName().endsWith( "ConfiguredBaseUrl" ) )
+        {
+            brain.setBaseUrl( "http://clm.sonatype.com/test" );
+        }
+    }
+
     @Test
-    public void testHome()
+    public void testHome_RequestBaseUrl()
         throws Exception
     {
         Response response = RestAccess.get( getRestBaseUrl() );
         assertResponseStatus( 303, response );
         assertEquals( getRestBaseUrl() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html",
+                      response.getHeader( "Location" ) );
+    }
+
+    @Test
+    public void testHome_ConfiguredBaseUrl()
+        throws Exception
+    {
+        Response response = RestAccess.get( getRestBaseUrl() );
+        assertResponseStatus( 303, response );
+        assertEquals( "http://clm.sonatype.com/test" + InsightBrainService.APPLICATION_ASSET_PATH + "index.html",
                       response.getHeader( "Location" ) );
     }
 

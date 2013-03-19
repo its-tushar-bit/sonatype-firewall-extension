@@ -30,6 +30,8 @@ public class TestInsightBrainService
 
     private String testSaasAddress;
 
+    private String testBaseUrl;
+
     private ProxyConfig testProxyConfig;
 
     private Server testBrainServer;
@@ -44,6 +46,11 @@ public class TestInsightBrainService
     public void setSaasAddress( final String saasAddress )
     {
         testSaasAddress = saasAddress;
+    }
+
+    public void setBaseUrl( final String baseUrl )
+    {
+        this.testBaseUrl = baseUrl;
     }
 
     public void setProxyConfig( final String host, final int port, final String user, final String pass )
@@ -159,6 +166,7 @@ public class TestInsightBrainService
         config.getHttpConfiguration().setShutdownGracePeriod( Duration.milliseconds( 1 ) );
         config.setSonatypeWork( getWorkDir().getPath() );
         config.setSaasAddress( testSaasAddress );
+        config.setBaseUrl( testBaseUrl );
 
         if ( testProxyConfig != null )
         {

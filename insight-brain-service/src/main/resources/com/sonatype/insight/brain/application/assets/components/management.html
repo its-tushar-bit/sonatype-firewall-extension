@@ -37,7 +37,7 @@
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns' style='text-align: center;'>
                     <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
-                       href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
+                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{encodeURIComponent(application.policyEvaluation.scanId)}}'>
                         {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
                 </td>
             </tr>

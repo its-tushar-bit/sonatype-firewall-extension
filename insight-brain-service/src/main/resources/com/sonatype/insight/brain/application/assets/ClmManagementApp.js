@@ -13,7 +13,7 @@ var clmManagementApp;
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ManagementController'
         });
-        $routeProvider.when('/report/:applicationId/:scanId', {
+        $routeProvider.when('/report/:encodedApplicationId/:encodedScanId', {
             templateUrl: 'components/report.html?' + clmBuildTimestamp,
             controller: 'ReportController'
         });

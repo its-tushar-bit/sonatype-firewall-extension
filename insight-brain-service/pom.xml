@@ -400,7 +400,7 @@
             <include>policy/assets/LabelController.js</include>
             <include>policy/assets/js/cip-label-editor.js</include>
             <include>policy/assets/js/notification-management.js</include>
-            <include>application/assets/ApplicationApp.js</include>
+            <include>application/assets/ClmManagementApp.js</include>
             <include>application/assets/ManagementController.js</include>
           </sourceIncludes>
           <specIncludes>

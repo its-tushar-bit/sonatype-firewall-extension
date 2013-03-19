@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.service;
+
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
+
+public class BaseUrl
+    extends AbstractInjectable<BaseUrl>
+{
+
+    private final InsightConfig appConfig;
+
+    @Context
+    private final UriInfo uriInfo;
+
+    public BaseUrl( final InsightConfig appConfig )
+    {
+        this.appConfig = appConfig;
+        this.uriInfo = null; // set via reflection by Jersey's dependency injection
+    }
+
+    BaseUrl( final InsightConfig appConfig, final UriInfo uriInfo )
+    {
+        this.appConfig = appConfig;
+        this.uriInfo = uriInfo;
+    }
+
+    public String get()
+    {
+        String url = appConfig.getBaseUrl();
+        if ( url != null && !url.isEmpty() )
+        {
+            return url;
+        }
+        url = uriInfo.getBaseUri().toString();
+        if ( !url.endsWith( "/" ) )
+        {
+            url += '/';
+        }
+        return url;
+    }
+
+}

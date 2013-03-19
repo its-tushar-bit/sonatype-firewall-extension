@@ -110,6 +110,7 @@ public class InsightBrainService
         env.addProvider( proxy );
         env.addProvider( new InsightMail( config ) );
         env.addProvider( new SaasClient( proxy ) );
+        env.addProvider( new BaseUrl( config ) );
 
         File databaseDir = new File( config.getSonatypeWork(), "data" );
         DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );

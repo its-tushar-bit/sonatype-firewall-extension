@@ -109,11 +109,7 @@ public class InsightConfig
 
     public String getBaseUrl()
     {
-        if ( baseUrl != null )
-        {
-            return baseUrl;
-        }
-        return "http://localhost:" + getHttpConfiguration().getPort() + "/";
+        return baseUrl;
     }
 
     public void setBaseUrl( String baseUrl )
@@ -130,7 +126,11 @@ public class InsightConfig
     {
         try
         {
-            new URL( getBaseUrl() );
+            String url = getBaseUrl();
+            if ( url != null )
+            {
+                new URL( url );
+            }
             return true;
         }
         catch ( Exception e )

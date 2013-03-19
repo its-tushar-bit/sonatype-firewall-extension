@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -83,6 +84,9 @@ public class PolicyEvaluateResource
 
     @Context
     private InsightMail mail;
+
+    @Context
+    private BaseUrl baseUrl;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -283,7 +287,7 @@ public class PolicyEvaluateResource
         throws IOException
     {
         final Map<String, Object> model =
-            createPolicyMailModel( work.getBaseUrl(), applicationPublicId, scanId, stage, policyAlerts );
+            createPolicyMailModel( baseUrl.get(), applicationPublicId, scanId, stage, policyAlerts );
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }
 

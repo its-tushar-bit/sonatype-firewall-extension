@@ -27,7 +27,6 @@
                         <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
                             'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
-                        <<<<<<< HEAD
                     </button>
                 </th>
             </tr>
@@ -78,6 +77,9 @@
                 </button>
             </div>
         </div>
-        <div error-Modal></div>
+        <div class='modal-footer'>
+            <button class='btn btn-primary' ng-click='addApplication()' ng-disabled='!applicationPublicId'>Add</button>
+        </div>
     </div>
+    <div error-Modal></div>
 </div>

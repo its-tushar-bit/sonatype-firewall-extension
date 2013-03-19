@@ -109,46 +109,6 @@ public class Component
         return result;
     }
 
-    public List<SecurityVulnerability> getSecurityVulnerabilitiesBySeverity( float severity, String operator )
-    {
-        if ( getSecurityVulnerabilities().isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-
-        List<SecurityVulnerability> result = new ArrayList<SecurityVulnerability>();
-        for ( SecurityVulnerability securityVulnerability : securityVulnerabilities )
-        {
-            float securityVulnerabilitySeverity = 0;
-            if ( securityVulnerability.getSeverity() != null )
-            {
-                securityVulnerabilitySeverity = securityVulnerability.getSeverity();
-            }
-
-            if ( "=".equals( operator ) && ( securityVulnerabilitySeverity == severity ) )
-            {
-                result.add( securityVulnerability );
-            }
-            else if ( ">".equals( operator ) && ( securityVulnerabilitySeverity > severity ) )
-            {
-                result.add( securityVulnerability );
-            }
-            else if ( ">=".equals( operator ) && ( securityVulnerabilitySeverity >= severity ) )
-            {
-                result.add( securityVulnerability );
-            }
-            else if ( "<".equals( operator ) && ( securityVulnerabilitySeverity < severity ) )
-            {
-                result.add( securityVulnerability );
-            }
-            else if ( "<=".equals( operator ) && ( securityVulnerabilitySeverity <= severity ) )
-            {
-                result.add( securityVulnerability );
-            }
-        }
-        return result;
-    }
-
     public List<SecurityVulnerability> getSecurityVulnerabilities()
     {
         if ( securityVulnerabilities == null )

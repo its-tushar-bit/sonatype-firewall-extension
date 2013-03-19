@@ -32,7 +32,7 @@
         </thead>
         <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
             <td style='text-align: center;'><a
-                    href='/policy-assets/index.html?appId={{application.publicId}}'>{{application.publicId}}</a></td>
+                    href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.publicId}}</a></td>
             <td ng-repeat='stage in stages | filterReportColumns' style='text-align: center;'>
                 <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
                    href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>

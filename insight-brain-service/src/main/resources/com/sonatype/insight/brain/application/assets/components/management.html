@@ -1,4 +1,4 @@
-<div class='container'>
+<div class="container">
     <div id='applicationManagement' class='content-container' style='padding: 20px;'>
         <button class='btn floatRight' ng-click='registerNewApplication()'><i class='icon-plus'></i> Register New
             Application
@@ -37,18 +37,11 @@
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns' style='text-align: center;'>
                     <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
-                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{encodeURIComponent(application.policyEvaluation.scanId)}}'>
+                       href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
                         {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
                 </td>
             </tr>
         </table>
-        <div id='newApplicationModal' data-backdrop='static' class='modal hide'>
-            <div class='modal-header'>
-                <button type='button' class='close' data-dismiss='modal'>&times;</button>
-                <h3>New Application</h3>
-            </div>
-            <div ng-include='newApplicationUrl'></div>
-        </div>
         <div id='addApplicationModal' data-backdrop='static' class='modal hide'>
             <div class='modal-header'>
                 <button type='button' class='close' data-dismiss='modal'>&times;</button>
@@ -60,7 +53,8 @@
                         <label class='control-label' for='inputApplicationId'>Application Id:</label>
 
                         <div class='controls'>
-                            <input id='inputApplicationId' type='text' ng-model='applicationPublicId'/>
+                            <input id='inputApplicationId' type='text' ng-model='applicationPublicId'
+                                   style='width: 300px;'/>
                         </div>
                     </div>
                 </div>

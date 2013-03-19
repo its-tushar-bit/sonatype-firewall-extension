@@ -140,7 +140,7 @@ public class PolicyEvaluateResource
              */
             for ( final PolicyAlert alert : alerts )
             {
-                alert.getTrigger().getComponentFacts().clear();
+                alert.getTrigger().setComponentFacts( null );
             }
         }
 

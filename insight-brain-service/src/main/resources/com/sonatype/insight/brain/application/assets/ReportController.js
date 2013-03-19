@@ -34,7 +34,7 @@
             template: "<iframe ng-src='{{reportUrl}}' width='100%' height='1000px' border='0' frameborder='0' scrolling='yes' style='overflow:auto;'/>",
             compile: function () {
                 function setDimensions() {
-                    var iframe = $('iframe');
+                    var iframe = angular.element('iframe');
                     if (!iframe) {
                         clearTimeout(setDimensions);
                         return;
@@ -47,8 +47,14 @@
                     iframe.css({ 'height': height + 'px' });
                 }
 
+                function dedupe() {
+                    clearTimeout(resizeTimeoutId);
+                    resizeTimeoutId = setTimeout(setDimensions, 100);
+                }
+
+                var resizeTimeoutId;
                 setTimeout(setDimensions, 100);
-                $('.container').css({ 'width': '980px' });
+                window.onresize = dedupe;
             }
         };
     });

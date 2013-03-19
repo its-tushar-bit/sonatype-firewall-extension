@@ -9,7 +9,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +46,14 @@ public class PolicyClient
     public ServletResult handle( final String path, final String query )
         throws IOException
     {
+        if ( path == null || path.length() == 0 )
+        {
+            // implicit redirect from initial top-level request to the actual management asset
+            final HttpResponse redirect = new BasicHttpResponse( HttpVersion.HTTP_1_1, 302, null );
+            redirect.setHeader( HttpHeaders.LOCATION, "application-assets/index.html" );
+            return result( redirect );
+        }
+
         // workaround for DropWizard directory->index redirect bug
         if ( path.contains( "-assets/" ) && path.endsWith( "/" ) )
         {

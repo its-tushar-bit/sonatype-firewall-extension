@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -89,20 +90,20 @@ public class LicenseThreatGroupConditionType
     public String explainMatch( final Condition condition, final Component component )
     {
         final StringBuilder buf = new StringBuilder();
-        final List<LicenseThreatGroup> groups = component.getLicenseThreatGroupsByLevel( 0, ">=" );
-        if ( groups.isEmpty() )
+        final Set<LicenseThreatGroup> licenseThreatGroups = component.getLicenseThreatGroups();
+        if ( licenseThreatGroups.isEmpty() )
         {
             buf.append( "no" );
         }
-        for ( int i = 0, size = groups.size(); i < size; i++ )
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
             if ( buf.length() > 0 )
             {
                 buf.append( " and " );
             }
-            buf.append( '\'' ).append( groups.get( i ).getName() ).append( '\'' );
+            buf.append( '\'' ).append( licenseThreatGroup.getName() ).append( '\'' );
         }
-        return "Found " + buf + " License Threat " + ( groups.size() != 1 ? "Groups" : "Group" );
+        return "Found " + buf + " License Threat " + ( licenseThreatGroups.size() != 1 ? "Groups" : "Group" );
     }
 
     @Override

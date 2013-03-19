@@ -224,8 +224,14 @@ public class PolicyEvaluateResource
             {
                 int t1 = o1.getTrigger().getThreatLevel();
                 int t2 = o2.getTrigger().getThreatLevel();
-                
-                return t1 > t2 ? -1 : t1 < t2 ? 1 : 0;
+                int r = t2 - t1;
+                if ( r == 0 )
+                {
+                    r =
+                        String.CASE_INSENSITIVE_ORDER.compare( o1.getTrigger().getPolicyName(),
+                                                               o2.getTrigger().getPolicyName() );
+                }
+                return r;
             }} );
 
         final Map<String, Object> model = new HashMap<String, Object>();

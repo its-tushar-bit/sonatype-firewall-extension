@@ -75,8 +75,7 @@ public class LicenseThreatGroupConditionType
     public String generateDroolsConditionValue( String value )
     {
         LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getById( value );
-        return "\"" + value + "\" " + " /* License threat group name: "
-            + licenseThreatGroup.getName().replace( "*/", "" ) + " */";
+        return "\"" + value + "\"" + asDroolsComment( "License threat group name: " + licenseThreatGroup.getName() );
     }
 
     @Override

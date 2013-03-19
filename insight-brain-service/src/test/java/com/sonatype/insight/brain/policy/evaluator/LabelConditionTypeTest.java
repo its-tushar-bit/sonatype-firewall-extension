@@ -181,4 +181,30 @@ public class LabelConditionTypeTest
             }
         }
     }
+
+    @Test
+    public void testEvaluateLabelNameEdgeCase()
+    {
+        Label label1 = new Label( applicationId, "*/comment-end", Color.green );
+        labelDAO.insert( label1 );
+        String labelId1 = label1.getId();
+
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        constraints.add( createConstraint( "is", labelId1 ) );
+
+        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
+        policy.setConstraints( constraints );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
+        components.add( component1 );
+
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( applicationId, new Stage( BuildStageType.ID ), Arrays.asList( policy ),
+                                            components );
+
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 0, policyAlerts.size() );
+    }
 }

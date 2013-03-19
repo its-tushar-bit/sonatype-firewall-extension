@@ -92,7 +92,6 @@ public class CoordinatesConditionType
             }
         }
 
-        // Drools does not allow a ! to negate the condition in this case, so we have to use "== false" :(
         boolean match = new ArtifactCoordinate( groupId, artifactId, version ).matches( component.getGroupId(), component.getArtifactId(), component.getVersion() );
         return "match".equals( operator ) ? match : !match;
     }

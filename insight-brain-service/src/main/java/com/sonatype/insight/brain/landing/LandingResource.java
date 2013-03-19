@@ -9,8 +9,10 @@ import java.net.URI;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
 @Path( LandingResource.SERVICE_PATH )
@@ -18,9 +20,13 @@ public class LandingResource
 {
     public static final String SERVICE_PATH = "";
 
+    @Context
+    private BaseUrl baseUrl;
+
     @GET
     public Response home()
     {
-        return Response.seeOther( URI.create( InsightBrainService.APPLICATION_ASSET_PATH + "index.html" ) ).build();
+        return Response.seeOther( URI.create( baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 )
+                                      + "index.html" ) ).build();
     }
 }

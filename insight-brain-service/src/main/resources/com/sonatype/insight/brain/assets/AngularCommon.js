@@ -12,7 +12,7 @@ var angularCommon;
     angularCommon.directive('errorModal', function () {
         return {
             replace: true,
-            templateUrl: '/assets/components/errorModal.html',
+            templateUrl: '../assets/components/errorModal.html',
             link: function ($scope, element) {
                 $scope.showError = function (errorResponse) {
                     $scope.errorResponse = errorResponse;

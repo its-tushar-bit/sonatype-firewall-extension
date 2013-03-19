@@ -15,7 +15,6 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 @Path( ConditionTypeResource.SERVICE_PATH )
@@ -27,7 +26,9 @@ public class ConditionTypeResource
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public Collection<ConditionType<?>> getConditionTypes()
+    // NOTE: We don't use generics in the return type to suppress an annoying warning from Jersey in the log
+    @SuppressWarnings( "rawtypes" )
+    public Collection getConditionTypes()
     {
         log.debug( "Received request to get all condition types" );
 

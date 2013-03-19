@@ -3,7 +3,7 @@
 <html xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Sonatype CLM Alert Email</title>
+<title>CLM Policy Alert</title>
 <style type="text/css">
 v:* {
 	behavior: url(#default#VML);

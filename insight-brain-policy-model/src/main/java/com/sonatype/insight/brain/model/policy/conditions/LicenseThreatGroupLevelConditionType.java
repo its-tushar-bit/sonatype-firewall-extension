@@ -78,7 +78,7 @@ public class LicenseThreatGroupLevelConditionType
     @Override
     public String generateDroolsConditionValue( String value )
     {
-        return "Integer.valueOf( " + value + " )";
+        return asDroolsInteger( value );
     }
 
     @Override

@@ -67,6 +67,11 @@ public abstract class AbstractConditionType<T>
             + "\", " + generateDroolsConditionValue( condition.getValue() ) + ")";
     }
 
+    protected static String asDroolsComment( String text )
+    {
+        return " /* " + text.replace( "*/", "" ).replaceAll( "[\r\n]+", " " ) + " */";
+    }
+
     protected static String asDroolsString( String value )
     {
         if ( value == null )
@@ -82,5 +87,11 @@ public abstract class AbstractConditionType<T>
             value = '"' + value + '"';
         }
         return value;
+    }
+
+    protected static String asDroolsInteger( String value )
+    {
+        // We've seen issues similar to https://issues.jboss.org/browse/JBRULES-3628 so we use explicit boxing
+        return "Integer.valueOf( " + value + " )";
     }
 }

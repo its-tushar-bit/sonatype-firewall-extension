@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, $, clmBuildTimestamp */
-var applicationApp;
+var clmManagementApp;
 (function () {
     "use strict";
 
-    applicationApp = angular.module('applicationApp', ['AngularCommon', 'Management', 'Report'], ['$routeProvider', function ($routeProvider) {
+    clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'Management', 'Report'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/management', {
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ManagementController'
@@ -20,7 +20,7 @@ var applicationApp;
         $routeProvider.otherwise({redirectTo: '/management'});
     }]);
 
-    applicationApp.controller('TabController', ['$scope', '$location', '$rootScope', function ($scope, $location, $rootScope) {
+    clmManagementApp.controller('TabController', ['$scope', '$location', '$rootScope', function ($scope, $location, $rootScope) {
         function handleTabClick(path, $event) {
             $event.preventDefault();
             function doTabChange() {

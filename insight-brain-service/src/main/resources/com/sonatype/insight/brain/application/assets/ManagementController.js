@@ -75,10 +75,8 @@
         $scope.orderBy = function (application) {
             if ($scope.orderColumn === 'publicId') {
                 return application.publicId;
-            } else {
-                if (application.policyEvaluation.stage.stageTypeId === $scope.orderColumn) {
-                    return application.policyEvaluation.time;
-                }
+            } else if ($scope.orderColumn === application.policyEvaluation.stage.stageTypeId) {
+                return application.policyEvaluation.time;
             }
             // return max value to prevent empty values showing up as low
             return Number.MAX_VALUE;

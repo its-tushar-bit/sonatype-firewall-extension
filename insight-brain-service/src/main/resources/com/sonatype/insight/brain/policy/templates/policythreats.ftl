@@ -27,8 +27,8 @@ div,p,a,li,td {
 <body style="margin: 0; padding: 0;">
 	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
 		<tr>
-			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img src="http://clm-assets.sonatype.com/policy/1.3/header_bg.gif"
-					width="647" height="68" alt="View Full Report" border="0" /></a></td>
+			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img
+					src="http://clm-assets.sonatype.com/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Report" border="0" /></a></td>
 		</tr>
 		<tr>
 			<td width="12">&nbsp;</td>
@@ -41,28 +41,18 @@ div,p,a,li,td {
 									<td>
 										<table cellpadding="0" cellspacing="0" border="0" bordercolor="#FFFFFF" style="border-collapse: collapse;">
 											<tr>
-												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_red.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #ED1C24;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatRedCount}</span></td>
-												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #F7931D;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatOrangeCount}</span></td>
-												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #FFDD17;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
-												<td width="60" height="30" background="http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-color: #6D98CF;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold;-webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
-											</tr>
-											<tr>
-												<td style="color: #A91113; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #A91113; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">CRITICAL</span></td>
-												<td style="color: #CB7A16; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #CB7A16; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">SEVERE</span></td>
-												<td style="color: #D4B718; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #D4B718; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">MODERATE</span></td>
-												<td style="color: #5B80AE; font-size: 8px; text-align: center;background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #005399; font-size: 8px; font-weight: bold;-webkit-text-size-adjust: none;">NEUTRAL</span></td>
+												<td width="60" height="30"
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_red.gif);background-size:cover; background-color: #ED1C24; background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatRedCount}</span></td>
+												<td width="60" height="30"
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif);background-size:cover; background-color: #F7931D; background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatOrangeCount}</span></td>
+												<td width="60" height="30"
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif);background-size:cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
+												<td width="60" height="30"
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif);background-size:cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
 											</tr>
 										</table>
 									</td>
@@ -93,7 +83,7 @@ div,p,a,li,td {
 		<tr>
 			<td width="12">&nbsp;</td>
 			<td width="623" bgcolor="#FFFFFF" style="border-left: 1px solid #BCBCBC; border-right: 1px solid #BCBCBC; font-size: 13px;">
-				<table border="0" cellpadding="0" cellspacing="0" style="width: 100%; font-size: 13px; padding-top: 15px;">
+				<table border="0" cellpadding="0" cellspacing="0" style="width: 100%; font-size: 13px;">
 					<#list policyAlerts as alert> <#list alert.trigger.componentFacts as component>
 					<tr>
 						<#if (alert.trigger.threatLevel > 7)>
@@ -125,7 +115,7 @@ div,p,a,li,td {
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> </#if>
-						<td valign="top" align="left" nowrap="nowrap" style="padding: 15px 15px 15px 0;">
+						<td valign="top" align="left" style="padding: 15px 15px 15px 0;">
 							<div style="background-color: #FFFFFF; padding-bottom: 15px;">
 								<#if component.groupId??>
 								<div style="border-bottom: 1px dotted #E6E6E6;">

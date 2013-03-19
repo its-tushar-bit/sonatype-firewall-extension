@@ -81,6 +81,10 @@
             // return max value to prevent empty values showing up as low
             return Number.MAX_VALUE;
         };
+
+        $scope.encodeURIComponent = function(value) {
+            return encodeURIComponent(value);
+        }
     }]);
 
     managementModule.filter('filterReportColumns', function () {

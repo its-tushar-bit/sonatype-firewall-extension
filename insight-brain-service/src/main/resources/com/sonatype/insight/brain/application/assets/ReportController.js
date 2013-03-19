@@ -10,7 +10,7 @@
     var reportModule = angular.module('Report', ['CLMLocation']);
 
     reportModule.controller('ReportController', ['$scope', '$routeParams', '$http', 'CLMLocations', function ($scope, $routeParams, $http, clmLocations) {
-        $http.get(clmLocations.getApplicationUrl($routeParams.applicationId), {
+        $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
                 $http.get(clmLocations.getActionStageUrl(), {
@@ -26,7 +26,7 @@
                     });
             });
 
-        $scope.reportUrl = '../rest/report/' + $routeParams.applicationId + '/' + $routeParams.scanId + '/embedReport/index.html?readonly=true';
+        $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + $routeParams.encodedScanId + '/embedReport/index.html?readonly=true';
     }]);
 
     reportModule.directive('expandableIframe', function () {

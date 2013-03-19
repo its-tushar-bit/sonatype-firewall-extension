@@ -46,10 +46,8 @@ public class CoordinatesConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        component1.setMatchState( MatchState.EXACT );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.setMatchState( MatchState.SIMILAR );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
         components.add( component2 );
         Component component3 = new Component();
         component3.setMatchState( MatchState.UNKNOWN );
@@ -109,10 +107,8 @@ public class CoordinatesConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        component1.setMatchState( MatchState.EXACT );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.setMatchState( MatchState.SIMILAR );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
         components.add( component2 );
         Component component3 = new Component();
         component3.setMatchState( MatchState.UNKNOWN );
@@ -144,10 +140,8 @@ public class CoordinatesConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        component1.setMatchState( MatchState.EXACT );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.setMatchState( MatchState.SIMILAR );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
         components.add( component2 );
         Component component3 = new Component();
         component3.setMatchState( MatchState.UNKNOWN );
@@ -179,10 +173,8 @@ public class CoordinatesConditionTypeTest
 
         List<Component> components = new ArrayList<Component>();
         Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        component1.setMatchState( MatchState.EXACT );
         components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.setMatchState( MatchState.SIMILAR );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
         components.add( component2 );
         Component component3 = new Component();
         component3.setMatchState( MatchState.UNKNOWN );

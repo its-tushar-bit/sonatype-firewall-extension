@@ -25,14 +25,14 @@
         $http.get(clmLocations.getActionStageUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-                $scope.stages = data;
-            }).error($scope.showServerError);
+            $scope.stages = data;
+        }).error($scope.showServerError);
 
         $http.get(clmLocations.getApplicationsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-                $scope.applications = data;
-            }).error($scope.showServerError);
+            $scope.applications = data;
+        }).error($scope.showServerError);
 
         $scope.getApplicationNames = function () {
             var names = [];

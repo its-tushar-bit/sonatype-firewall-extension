@@ -42,16 +42,16 @@ div,p,a,li,td {
 										<table cellpadding="0" cellspacing="0" border="0" bordercolor="#FFFFFF" style="border-collapse: collapse;">
 											<tr>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_red.gif);background-size:cover; background-color: #ED1C24; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_red.gif); background-size: cover; background-color: #ED1C24; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatRedCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif);background-size:cover; background-color: #F7931D; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif); background-size: cover; background-color: #F7931D; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatOrangeCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif);background-size:cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif); background-size: cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif);background-size:cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif); background-size: cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
 											</tr>
 										</table>
@@ -79,6 +79,15 @@ div,p,a,li,td {
 				</table>
 			</td>
 			<td width="12">&nbsp;</td>
+		</tr>
+		<tr>
+			<td width="12"></td>
+			<td width="623" bgcolor="#f7f7f7"
+				style="border-left: 1px solid #bcbcbc; border-right: 1px solid #bcbcbc; border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd; padding: 15px">
+				<span style="font-family: Helvetica, Arial, sans-serif; color: #5d5d5d; font-size: 13px">You&#39;re receiving this email because a policy
+					has been configured to notify you. See below details.</span>
+			</td>
+			<td width="12"></td>
 		</tr>
 		<tr>
 			<td width="12">&nbsp;</td>

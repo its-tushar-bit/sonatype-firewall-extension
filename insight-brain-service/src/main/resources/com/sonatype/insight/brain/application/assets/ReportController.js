@@ -26,7 +26,7 @@
                     });
             });
 
-        $scope.reportUrl = '/rest/report/' + $routeParams.applicationId + '/' + $routeParams.scanId + '/embedReport/index.html?readonly=true';
+        $scope.reportUrl = '../rest/report/' + $routeParams.applicationId + '/' + $routeParams.scanId + '/embedReport/index.html?readonly=true';
     }]);
 
     reportModule.directive('expandableIframe', function () {

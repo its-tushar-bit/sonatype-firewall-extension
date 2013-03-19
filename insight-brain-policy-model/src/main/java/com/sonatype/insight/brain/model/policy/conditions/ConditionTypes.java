@@ -16,6 +16,8 @@ public class ConditionTypes
     private static final Map<String, ConditionType<?>> allConditionTypes =
         new LinkedHashMap<String, ConditionType<?>>();
 
+    // The instances below support the Drools code produced by AbstractConditionType.generateDroolsCode()
+
     public static final AgeInDaysConditionType AgeInDaysConditionType = new AgeInDaysConditionType();
 
     public static final CoordinatesConditionType CoordinatesConditionType = new CoordinatesConditionType();

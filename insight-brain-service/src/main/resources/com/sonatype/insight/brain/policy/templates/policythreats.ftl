@@ -136,7 +136,7 @@ div,p,a,li,td {
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> </#if>
-						<td valign="top" align="left">
+						<td valign="top" align="left" style="padding-left: 10px;">
 							<div style="background-color: #FFFFFF;">
 								<#if component.groupId??>
 								<div style="border-bottom: 1px dotted #E6E6E6;">

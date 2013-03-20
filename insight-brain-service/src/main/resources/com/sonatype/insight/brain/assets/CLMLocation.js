@@ -4,97 +4,101 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 (function () {
-    "use strict";
-    angular.module('CLMLocation', []).factory('CLMLocations', function () {
-        return {
-            getQueryString: function (key) {
-                var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
-                if (results) {
-                    return results[1];
-                }
-            },
+	"use strict";
+	angular.module('CLMLocation', []).factory('CLMLocations', function () {
+		return {
+			getQueryString: function (key) {
+				var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
+				if (results) {
+					return results[1];
+				}
+			},
 
-            getAppId: function () {
-                if (this.appId) {
-                    return this.appId;
-                }
+			getAppId: function () {
+				if (this.appId) {
+					return this.appId;
+				}
 
-                this.appId = this.getQueryString('appId');
+				this.appId = this.getQueryString('appId');
 
-                return this.appId;
-            },
+				return this.appId;
+			},
 
-            getBaseUrl: function () {
-                if (this.baseUrl) {
-                    return this.baseUrl;
-                }
+			getBaseUrl: function () {
+				if (this.baseUrl) {
+					return this.baseUrl;
+				}
 
-                this.baseUrl = '';
+				this.baseUrl = '';
 
-                var idx = window.location.href.indexOf('/policy-assets/');
-                if (idx > -1) {
-                    this.baseUrl = window.location.href.substring(0, idx);
-                }
-                idx = window.location.href.indexOf('/application-assets/');
-                if (idx > -1) {
-                    this.baseUrl = window.location.href.substring(0, idx);
-                }
+				var idx = window.location.href.indexOf('/policy-assets/');
+				if (idx > -1) {
+					this.baseUrl = window.location.href.substring(0, idx);
+				}
+				idx = window.location.href.indexOf('/application-assets/');
+				if (idx > -1) {
+					this.baseUrl = window.location.href.substring(0, idx);
+				}
 
-                return this.baseUrl;
-            },
+				return this.baseUrl;
+			},
 
-            getLabelsUrl: function () {
-                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
-            },
+			getLabelsUrl: function () {
+				return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
+			},
 
-            getDeleteLabelsUrl: function (label) {
-                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
-            },
+			getDeleteLabelsUrl: function (label) {
+				return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
+			},
 
-            getLicenseGroupsUrl: function () {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId();
-            },
+			getLicenseGroupsUrl: function () {
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId();
+			},
 
-            getDeleteLicenseGroupUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId() + '/' + group.id;
-            },
+			getDeleteLicenseGroupUrl: function (group) {
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId() + '/' + group.id;
+			},
 
-            getLicenseGroupLicensesUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + this.getAppId() + '/'
-                    + group.id;
-            },
+			getLicenseGroupLicensesUrl: function (group) {
+				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + this.getAppId() + '/'
+					+ group.id;
+			},
 
-            getLicensesUrl: function () {
-                return this.getBaseUrl() + '/rest/license';
-            },
+			getLicensesUrl: function () {
+				return this.getBaseUrl() + '/rest/license';
+			},
 
-            getConditionTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/conditionType';
-            },
+			getConditionTypeUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/conditionType';
+			},
 
-            getActionTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/actionType';
-            },
+			getActionTypeUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/actionType';
+			},
 
-            getActionStageUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/stageType';
-            },
+			getActionStageUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/stageType';
+			},
 
-            getConditionValueTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
-            },
+			getConditionValueTypeUrl: function () {
+				return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
+			},
 
-            getPolicyUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
-            },
+			getPolicyUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
+			},
 
-            getApplicationUrl: function (applicationId) {
-                return this.getBaseUrl() + '/rest/application/' + applicationId;
-            },
+			getApplicationUrl: function (applicationId) {
+				return this.getBaseUrl() + '/rest/application/' + applicationId;
+			},
 
-            getApplicationsUrl: function () {
-                return this.getBaseUrl() + '/rest/application';
-            }
-        };
-    });
+			getAddApplicationSyncUrl: function () {
+				return this.getBaseUrl() + '/rest/application/sync';
+			},
+
+			getApplicationsUrl: function () {
+				return this.getBaseUrl() + '/rest/application';
+			}
+		};
+	});
 }());

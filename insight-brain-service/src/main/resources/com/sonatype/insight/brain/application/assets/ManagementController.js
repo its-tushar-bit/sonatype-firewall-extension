@@ -109,7 +109,7 @@
 	managementModule.controller('NewApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
 		$scope.submitActive = false;
 
-		$scope.addApplication = clmLocations.getApplicationsUrl();
+		$scope.addApplicationSync = clmLocations.getAddApplicationSyncUrl();
 
 		$scope.fileChanged = function (element) {
 			if (element.files.length > 0) {
@@ -153,37 +153,17 @@
 
 				hudson.ajaxPost({
 					url: clmLocations.getApplicationsUrl(),
-					data: formData
+					data: formData,
+					success: function (data, status, jqXHR) {
+						alert(status);
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						alert(errorThrown);
+					}
 				});
 				return false;
-
-				var xhrWrapper = hudson.xhrPost();
-				xhrWrapper.xhr.upload.addEventListener("progress", uploadProgress, false);
-				xhrWrapper.xhr.addEventListener("load", uploadComplete, false);
-				xhrWrapper.xhr.addEventListener("error", uploadFailed, false);
-				xhrWrapper.xhr.addEventListener("abort", uploadCanceled, false);
-				xhrWrapper.xhr.open("POST", clmLocations.getApplicationsUrl());
-				xhrWrapper.post(formData);
-				return false;
-			} else {
-				return true;
 			}
+			return true;
 		};
-
-
-		function uploadProgress(evt) {
-			if (evt.lengthComputable) {
-				$scope.progress = Math.round(evt.loaded * 100 / evt.total)
-			}
-		}
-
-		function uploadComplete(evt) {
-		}
-
-		function uploadFailed(evt) {
-		}
-
-		function uploadCanceled(evt) {
-		}
 	}]);
 }());

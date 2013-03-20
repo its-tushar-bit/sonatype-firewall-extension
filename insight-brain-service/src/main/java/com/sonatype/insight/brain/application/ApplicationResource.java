@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.application;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -42,6 +46,8 @@ public class ApplicationResource
 
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
+    public static final String ADD_APPLICATION_SYNC_PATH = "sync";
+
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
     private static final Logger log = LoggerFactory.getLogger( ApplicationResource.class );
@@ -56,6 +62,9 @@ public class ApplicationResource
 
     @Context
     private InsightProxy proxy;
+
+    @Context
+    private BaseUrl baseUrl;
 
     @GET
     @Path( VALIDATE_PATH )
@@ -109,8 +118,8 @@ public class ApplicationResource
     }
 
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes( MediaType.APPLICATION_JSON )
+    @Produces( MediaType.APPLICATION_JSON )
     public ApplicationManagementSummary addApplication( String applicationPublicId )
         throws IOException
     {
@@ -133,10 +142,30 @@ public class ApplicationResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public void newApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
-                                @FormDataParam( "file" ) InputStream uploadedInputStream,
-                                @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+    public ApplicationManagementSummary newApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
+                                                        @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                                        @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
     {
+        return newApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
+    }
+
+    @POST
+    @Path( ADD_APPLICATION_SYNC_PATH )
+    @Consumes( MediaType.MULTIPART_FORM_DATA )
+    public Response newApplicationSync( @FormDataParam( "applicationName" ) String applicationPublicId,
+                                        @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                        @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+    {
+        newApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
+        return Response.seeOther( URI.create(
+            baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
+    }
+
+    public ApplicationManagementSummary newApplicationInternal( String applicationPublicId,
+                                                                InputStream uploadedInputStream,
+                                                                FormDataContentDisposition fileDetail )
+    {
+        return null;
     }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )

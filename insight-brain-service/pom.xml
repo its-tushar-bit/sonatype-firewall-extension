@@ -371,12 +371,12 @@
       <resource>
         <directory>src/main/brain-client</directory>
         <filtering>true</filtering>
-        <targetPath>${project.build.directory}/classes/com/sonatype/insight/brain/policy/assets/js/</targetPath>
+        <targetPath>${project.build.outputDirectory}/com/sonatype/insight/brain/policy/assets/js/</targetPath>
       </resource>
       <resource>
         <directory>src/main/brain-client</directory>
         <filtering>true</filtering>
-        <targetPath>${project.build.directory}/classes/com/sonatype/insight/brain/assets/js/</targetPath>
+        <targetPath>${project.build.outputDirectory}/com/sonatype/insight/brain/assets/js/</targetPath>
       </resource>
     </resources>
     <plugins>

@@ -360,6 +360,25 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources-filtered</directory>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/brain-client</directory>
+        <filtering>true</filtering>
+        <targetPath>${project.build.directory}/classes/com/sonatype/insight/brain/policy/assets/js/</targetPath>
+      </resource>
+      <resource>
+        <directory>src/main/brain-client</directory>
+        <filtering>true</filtering>
+        <targetPath>${project.build.directory}/classes/com/sonatype/insight/brain/assets/js/</targetPath>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>

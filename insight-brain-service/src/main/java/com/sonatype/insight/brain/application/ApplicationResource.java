@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.application;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -165,6 +168,24 @@ public class ApplicationResource
                                                                 InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )
     {
+        final int dimension = 24;
+        Image image;
+        try
+        {
+            image = ImageIO.read( uploadedInputStream );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+        }
+        catch ( IOException e )
+        {
+            throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+        }
+        BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_BYTE_INDEXED );
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage( image, 0, 0, dimension, dimension, null );
+        g.dispose();
         return null;
     }
 

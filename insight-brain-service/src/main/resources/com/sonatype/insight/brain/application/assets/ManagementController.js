@@ -108,8 +108,18 @@
 
 	managementModule.controller('NewApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
 		$scope.submitActive = false;
-
 		$scope.addApplicationSync = clmLocations.getAddApplicationSyncUrl();
+
+		function onError(jqXHR) {
+			var contentType = jqXHR.getResponseHeader('Content-Type');
+			if ($scope.applicationEditor) {
+				if (contentType.indexOf('text/html') === 0) {
+					$scope.errorResponse = 'Server Error';
+				} else {
+					$scope.errorResponse = jqXHR.responseText;
+				}
+			}
+		};
 
 		$scope.fileChanged = function (element) {
 			if (element.files.length > 0) {
@@ -157,8 +167,12 @@
 					success: function (data, status, jqXHR) {
 						alert(status);
 					},
-					error: function (jqXHR, textStatus, errorThrown) {
-						alert(errorThrown);
+					error: function (jqXHR) {
+						$scope.$apply(function () {
+							$scope.uploadInProgress = false;
+							$scope.submitActive = false;
+							onError(jqXHR);
+						});
 					}
 				});
 				return false;

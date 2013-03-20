@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -84,9 +83,6 @@ public class ReportResource
 
     @Context
     InsightProxy proxy;
-
-    @Context
-    UriInfo uriInfo;
 
     @Context
     BaseUrl baseUrl;

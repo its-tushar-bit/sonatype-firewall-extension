@@ -25,6 +25,8 @@ public class LandingResource
     @GET
     public Response home()
     {
-        return Response.seeOther( UriBuilder.fromUri( baseUrl.get() ).path( InsightBrainService.APPLICATION_ASSET_PATH ).path( "index.html" ).build() ).build();
+        UriBuilder uriBuilder =
+            UriBuilder.fromUri( baseUrl.get() ).path( InsightBrainService.APPLICATION_ASSET_PATH ).path( "index.html" );
+        return Response.seeOther( uriBuilder.build() ).build();
     }
 }

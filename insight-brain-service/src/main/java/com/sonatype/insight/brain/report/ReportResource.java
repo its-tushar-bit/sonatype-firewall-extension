@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -46,6 +47,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
@@ -85,6 +87,9 @@ public class ReportResource
 
     @Context
     UriInfo uriInfo;
+
+    @Context
+    BaseUrl baseUrl;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -263,33 +268,35 @@ public class ReportResource
     @Path( "brain/{path:.*}" )
     public Response brainGet( final @PathParam( "path" ) String path )
     {
-        return redirectToBrain( uriInfo, path );
+        return redirectToBrain( baseUrl, path );
     }
 
     @POST
     @Path( "brain/{path:.*}" )
     public Response brainPost( final @PathParam( "path" ) String path )
     {
-        return redirectToBrain( uriInfo, path );
+        return redirectToBrain( baseUrl, path );
     }
 
     @PUT
     @Path( "brain/{path:.*}" )
     public Response brainPut( final @PathParam( "path" ) String path )
     {
-        return redirectToBrain( uriInfo, path );
+        return redirectToBrain( baseUrl, path );
     }
 
     @DELETE
     @Path( "brain/{path:.*}" )
     public Response brainDelete( final @PathParam( "path" ) String path )
     {
-        return redirectToBrain( uriInfo, path );
+        return redirectToBrain( baseUrl, path );
     }
 
-    private static Response redirectToBrain( final UriInfo uriInfo, final String path )
+    private static Response redirectToBrain( final BaseUrl baseUrl, final String path )
     {
-        return Response.temporaryRedirect( uriInfo.getRequestUriBuilder().replacePath( path ).build() ).build();
+        UriBuilder uriBuilder = UriBuilder.fromUri( baseUrl.get() ).path( path );
+
+        return Response.temporaryRedirect( uriBuilder.build() ).build();
     }
 
     public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String applicationPublicId,

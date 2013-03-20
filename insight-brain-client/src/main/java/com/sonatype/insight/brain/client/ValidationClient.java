@@ -36,6 +36,11 @@ public final class ValidationClient
             // improve error msg
             throw (IOException) new UnknownHostException( "Unknown host: " + e.getMessage() ).initCause( e );
         }
+        catch ( NumberFormatException e )
+        {
+            // improve error msg (thrown from httpclient in response to non-numeric port specs)
+            throw new IllegalArgumentException( "Invalid port", e );
+        }
         final int status = result.status();
         final String text = result.text();
         // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server

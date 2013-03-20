@@ -83,6 +83,23 @@ public class ValidationClientTest
     }
 
     @Test
+    public void testValidateConfiguration_InvalidPort()
+        throws Exception
+    {
+        Configuration config = brain.getClientConfiguration();
+        config.setServerUrl( "http://localhost:NaN/" );
+        try
+        {
+            new ValidationClient( config ).validateConfiguration();
+            fail( "Validation should have failed due to invalid port" );
+        }
+        catch ( Exception e )
+        {
+            assertMatch( "(?i).*Invalid port.*", e.getMessage() );
+        }
+    }
+
+    @Test
     public void testValidateConfiguration_BadProxyHost()
         throws Exception
     {

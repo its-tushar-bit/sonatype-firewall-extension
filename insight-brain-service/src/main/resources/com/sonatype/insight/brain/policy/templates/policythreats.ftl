@@ -96,36 +96,48 @@ div,p,a,li,td {
 					<#list policyAlerts as alert> <#list alert.trigger.componentFacts as component>
 					<tr>
 						<#if (alert.trigger.threatLevel > 7)>
+						<td bgcolor="#ED1C24" valign="top" height="20" nowrap="nowrap" align="center" width="20"
+							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 3)>
+						<td bgcolor="#F7941D" valign="top" height="20" nowrap="nowrap" align="center" width="20"
+							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 0)>
+						<td bgcolor="#FEDF15" valign="top" height="20" nowrap="nowrap" align="center" width="20"
+							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#else>
+						<td bgcolor="#6D98CF" valign="top" height="20" nowrap="nowrap" align="center" width="20"
+							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> </#if>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<#if (alert.trigger.threatLevel > 7)>
 						<td bgcolor="#ED1C24" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding: 15px;">
+						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #A91113;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#elseif (alert.trigger.threatLevel > 3)>
 						<td bgcolor="#F7941D" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding: 15px;">
+						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #CB7A16;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#elseif (alert.trigger.threatLevel > 0)>
 						<td bgcolor="#FEDF15" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding: 15px;">
+						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #D4B718;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#else>
 						<td bgcolor="#6D98CF" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding: 15px;">
+						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #005399;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> </#if>
-						<td valign="top" align="left" style="padding: 15px 15px 15px 0;">
-							<div style="background-color: #FFFFFF; padding-bottom: 15px;">
+						<td valign="top" align="left">
+							<div style="background-color: #FFFFFF;">
 								<#if component.groupId??>
 								<div style="border-bottom: 1px dotted #E6E6E6;">
 									<b>GAV:</b> ${component.groupId} : ${component.artifactId} : ${component.version}

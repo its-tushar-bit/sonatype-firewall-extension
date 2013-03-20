@@ -44,23 +44,23 @@
             },
 
             getLabelsUrl: function () {
-                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId();
+                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(this.getAppId());
             },
 
             getDeleteLabelsUrl: function (label) {
-                return this.getBaseUrl() + '/rest/label/application/' + this.getAppId() + '/' + label.id;
+                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(this.getAppId()) + '/' +  encodeURIComponent(label.id);
             },
 
             getLicenseGroupsUrl: function () {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId();
+                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(this.getAppId());
             },
 
             getDeleteLicenseGroupUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + this.getAppId() + '/' + group.id;
+                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(this.getAppId()) + '/' +  encodeURIComponent(group.id);
             },
 
             getLicenseGroupLicensesUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + this.getAppId() + '/'
+                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + encodeURIComponent(this.getAppId()) + '/'
                     + group.id;
             },
 
@@ -81,15 +81,15 @@
             },
 
             getConditionValueTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/conditionValueType/' + this.getAppId();
+                return this.getBaseUrl() + '/rest/conditionValueType/' + encodeURIComponent(this.getAppId());
             },
 
             getPolicyUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/' + this.getAppId();
+                return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(this.getAppId());
             },
 
             getApplicationUrl: function (applicationId) {
-                return this.getBaseUrl() + '/rest/application/' + applicationId;
+                return this.getBaseUrl() + '/rest/application/' +  encodeURIComponent(applicationId);
             },
 
             getApplicationsUrl: function () {

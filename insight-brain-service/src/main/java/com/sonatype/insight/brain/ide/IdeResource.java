@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.ide;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,7 +19,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.saas.AugmentUtil;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 
 @Path( IdeResource.SERVICE_PATH )
@@ -53,7 +54,7 @@ public class IdeResource
     private InsightWork work;
 
     @Context
-    private UriInfo uriInfo;
+    private BaseUrl baseUrl;
 
     @GET
     @Path( "asset/{path:.*}" )
@@ -142,6 +143,13 @@ public class IdeResource
     @Path( "brain/{path:.*}" )
     public Response brainGet( final @PathParam( "path" ) String path )
     {
-        return Response.temporaryRedirect( uriInfo.getRequestUriBuilder().replacePath( path ).build() ).build();
+        StringBuilder url = new StringBuilder( this.baseUrl.get() );
+        if ( url.charAt( url.length() ) != '/' )
+        {
+            url.append( '/' );
+        }
+        url.append( path );
+
+        return Response.temporaryRedirect( URI.create( url.toString() ) ).build();
     }
 }

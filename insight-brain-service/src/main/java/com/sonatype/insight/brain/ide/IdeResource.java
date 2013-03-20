@@ -143,13 +143,8 @@ public class IdeResource
     @Path( "brain/{path:.*}" )
     public Response brainGet( final @PathParam( "path" ) String path )
     {
-        StringBuilder url = new StringBuilder( this.baseUrl.get() );
-        if ( url.charAt( url.length() ) != '/' )
-        {
-            url.append( '/' );
-        }
-        url.append( path );
+        String url = baseUrl.get() + path;
 
-        return Response.temporaryRedirect( URI.create( url.toString() ) ).build();
+        return Response.temporaryRedirect( URI.create( url ) ).build();
     }
 }

@@ -83,7 +83,6 @@
         };
 
         $scope.encodeURIComponent = window.encodeURIComponent;
-        }
     }]);
 
     managementModule.filter('filterReportColumns', function () {

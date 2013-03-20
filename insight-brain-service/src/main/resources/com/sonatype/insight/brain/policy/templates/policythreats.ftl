@@ -85,7 +85,7 @@ div,p,a,li,td {
 			<td width="623" bgcolor="#f7f7f7"
 				style="border-left: 1px solid #bcbcbc; border-right: 1px solid #bcbcbc; border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd; padding: 15px">
 				<span style="font-family: Helvetica, Arial, sans-serif; color: #5d5d5d; font-size: 13px">You&#39;re receiving this email because a policy
-					has been configured to notify you. See below details.</span>
+					has been configured to notify you. See details below.</span>
 			</td>
 			<td width="12"></td>
 		</tr>

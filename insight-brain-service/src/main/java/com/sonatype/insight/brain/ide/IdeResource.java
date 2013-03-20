@@ -19,6 +19,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -143,8 +144,8 @@ public class IdeResource
     @Path( "brain/{path:.*}" )
     public Response brainGet( final @PathParam( "path" ) String path )
     {
-        String url = baseUrl.get() + path;
+        UriBuilder uriBuilder = UriBuilder.fromUri( baseUrl.get() ).path( path );
 
-        return Response.temporaryRedirect( URI.create( url ) ).build();
+        return Response.temporaryRedirect( uriBuilder.build() ).build();
     }
 }

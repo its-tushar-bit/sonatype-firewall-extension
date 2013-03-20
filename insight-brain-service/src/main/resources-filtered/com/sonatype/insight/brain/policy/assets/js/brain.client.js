@@ -16,7 +16,27 @@
 				string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field] == null ? "" : obj[field]);
 			}
 			return string.substring(1);
-		};
+		},
+		basePath = (function () {
+			var scripts = window.document.getElementsByTagName('script'),
+				i,
+				index;
+			if (scripts.length) {
+				for (var i = 0; i < scripts.length; i++) {
+					if (scripts[i].src) {
+						index = scripts[i].src.indexOf('policy-assets/js/brain.client.js');
+						if (index == -1) {
+							index = scripts[i].src.indexOf('assets/js/brain.client.js');
+						}
+
+						if (index != -1) {
+							return scripts[i].src.substring(0, index);
+						}
+					}
+				}
+			}
+			return '/';
+		}());
 
 	window.Brain = {
 		/**
@@ -46,14 +66,14 @@
 			 * @since version 1.2
 			 */
 			'getArtifactInfoUrl' : function (arg) {
-				return '/rest/ci/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
+				return basePath + 'rest/ci/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
 			},
 			/**
 			 * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
 			 * @since version 1.2
 			 */
 			'getArtifactVersionInfoUrl' : function (arg) {
-				return '/rest/ci/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+				return basePath + 'rest/ci/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
 			}
 		},
 		'ide' : {
@@ -62,14 +82,14 @@
 			 * @since version 1.2
 			 */
 			'getArtifactInfoUrl' : function (arg) {
-				return '/rest/ide/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
+				return basePath + 'rest/ide/component/details/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
 			},
 			/**
 			 * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
 			 * @since version 1.2
 			 */
 			'getArtifactVersionInfoUrl' : function (arg) {
-				return '/rest/ide/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+				return basePath + 'rest/ide/component/details/versions/' + arg.appId + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
 			}
 		}
 	};

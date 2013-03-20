@@ -18,6 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -50,6 +51,9 @@ public class IdeResource
 
     @Context
     private InsightWork work;
+
+    @Context
+    private UriInfo uriInfo;
 
     @GET
     @Path( "asset/{path:.*}" )
@@ -132,5 +136,12 @@ public class IdeResource
         throws IOException
     {
         return client.doProxy( req, "rest/ide/artifact/versions" );
+    }
+
+    @GET
+    @Path( "brain/{path:.*}" )
+    public Response brainGet( final @PathParam( "path" ) String path )
+    {
+        return Response.temporaryRedirect( uriInfo.getRequestUriBuilder().replacePath( path ).build() ).build();
     }
 }

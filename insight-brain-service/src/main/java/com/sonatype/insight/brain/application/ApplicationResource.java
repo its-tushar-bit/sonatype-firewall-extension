@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ScanUploader;
@@ -107,28 +108,28 @@ public class ApplicationResource
         return applicationManagement;
     }
 
-//    @POST
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public ApplicationManagementSummary addApplication( String applicationPublicId )
-//        throws IOException
-//    {
-//        if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
-//        {
-//            throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
-//        }
-//
-//        String result = validateApplicationPublicId( applicationPublicId, proxy );
-//        if ( "OK".equals( result ) )
-//        {
-//            Application application = applicationDAO.getByPublicId( applicationPublicId );
-//            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-//            applicationManagement.setId( application.getId() );
-//            applicationManagement.setPublicId( application.getPublicId() );
-//            return applicationManagement;
-//        }
-//        throw new BadRequestException( "Invalid application id " + applicationPublicId );
-//    }
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationManagementSummary addApplication( String applicationPublicId )
+        throws IOException
+    {
+        if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
+        {
+            throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
+        }
+
+        String result = validateApplicationPublicId( applicationPublicId, proxy );
+        if ( "OK".equals( result ) )
+        {
+            Application application = applicationDAO.getByPublicId( applicationPublicId );
+            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+            applicationManagement.setId( application.getId() );
+            applicationManagement.setPublicId( application.getPublicId() );
+            return applicationManagement;
+        }
+        throw new BadRequestException( "Invalid application id " + applicationPublicId );
+    }
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )

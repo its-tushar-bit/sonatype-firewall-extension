@@ -151,13 +151,13 @@
                     formData.append('file', icon.files[0]);
                 }
 
-                var xhr = new XMLHttpRequest();
-                xhr.upload.addEventListener("progress", uploadProgress, false);
-                xhr.addEventListener("load", uploadComplete, false);
-                xhr.addEventListener("error", uploadFailed, false);
-                xhr.addEventListener("abort", uploadCanceled, false);
-                xhr.open("POST", clmLocations.getApplicationsUrl());
-                xhr.send(formData);
+                var xhrWrapper = hudson.xhrPost();
+                xhrWrapper.xhr.upload.addEventListener("progress", uploadProgress, false);
+                xhrWrapper.xhr.addEventListener("load", uploadComplete, false);
+                xhrWrapper.xhr.addEventListener("error", uploadFailed, false);
+                xhrWrapper.xhr.addEventListener("abort", uploadCanceled, false);
+                xhrWrapper.xhr.open("POST", clmLocations.getApplicationsUrl());
+                xhrWrapper.post(formData);
                 return false;
             } else {
                 return true;

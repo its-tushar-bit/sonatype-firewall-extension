@@ -82,7 +82,7 @@
             return Number.MAX_VALUE;
         };
 
-        $scope.encodeURIComponent = function(value) {
+        $scope.encodeURIComponent = function (value) {
             return encodeURIComponent(value);
         }
     }]);

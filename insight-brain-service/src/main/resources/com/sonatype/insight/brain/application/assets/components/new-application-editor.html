@@ -1,12 +1,14 @@
 <div ng-controller='NewApplicationController'>
-    <form name='applicationEditor' class='form-horizontal' style='margin-bottom: 0px' ng-submit='saveClick()'>
+    <form action='{{addApplication}}' method='post' enctype='multipart/form-data'
+          onsubmit='return angular.element(this).scope().saveClick()'
+          name='applicationEditor' id='applicationEditor' class='form-horizontal' style='margin-bottom: 0px'>
         <div class='modal-body'>
             <div class='control-group'
                  ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
                 <label class='control-label' for='applicationName'>Name:</label>
 
                 <div class='controls'>
-                    <input id='applicationName' name='name' type='text'
+                    <input id='applicationName' name='applicationName' type='text'
                            class='input' maxlength='50' ng-model='selectedApplication.publicId'
                            item-label>
                 </div>

@@ -25,14 +25,14 @@
         $http.get(clmLocations.getActionStageUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-            $scope.stages = data;
-        }).error($scope.showServerError);
+                $scope.stages = data;
+            }).error($scope.showServerError);
 
         $http.get(clmLocations.getApplicationsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-            $scope.applications = data;
-        }).error($scope.showServerError);
+                $scope.applications = data;
+            }).error($scope.showServerError);
 
         $scope.getApplicationNames = function () {
             var names = [];
@@ -86,7 +86,7 @@
             return Number.MAX_VALUE;
         };
 
-        $scope.encodeURIComponent = function(value) {
+        $scope.encodeURIComponent = function (value) {
             return encodeURIComponent(value);
         }
     }]);
@@ -107,6 +107,10 @@
     });
 
     managementModule.controller('NewApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
+        $scope.submitActive = false;
+
+        $scope.addApplication = clmLocations.getApplicationsUrl();
+
         $scope.fileChanged = function (element) {
             if (element.files.length > 0) {
                 var file = element.files[0],
@@ -133,11 +137,47 @@
             }
         };
 
-        $scope.saveClick = function () {
-            $scope.uploadInProgress = true;
-            hudson.post(clmLocations.getApplicationsUrl(), new FormData($('applicationEditor')[0])).success(function (application) {
-                $scope.uploadInProgress = false;
-            });
+        $scope.canSaveEdit = function (valid) {
+            return valid && !$scope.submitActive && $scope.selectedApplication != null && $scope.selectedApplication.publicId.length > 0;
         };
+
+        // This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
+        $scope.saveClick = function (e) {
+            if (window.FormData) {
+                $scope.uploadInProgress = true;
+                var formData = new FormData(angular.element('#applicationEditor')[0]);
+                var icon = angular.element('#uploadFile')[0];
+                if (icon.files.length > 0) {
+                    formData.append('file', icon.files[0]);
+                }
+
+                var xhr = new XMLHttpRequest();
+                xhr.upload.addEventListener("progress", uploadProgress, false);
+                xhr.addEventListener("load", uploadComplete, false);
+                xhr.addEventListener("error", uploadFailed, false);
+                xhr.addEventListener("abort", uploadCanceled, false);
+                xhr.open("POST", clmLocations.getApplicationsUrl());
+                xhr.send(formData);
+                return false;
+            } else {
+                return true;
+            }
+        };
+
+
+        function uploadProgress(evt) {
+            if (evt.lengthComputable) {
+                $scope.progress = Math.round(evt.loaded * 100 / evt.total)
+            }
+        }
+
+        function uploadComplete(evt) {
+        }
+
+        function uploadFailed(evt) {
+        }
+
+        function uploadCanceled(evt) {
+        }
     }]);
 }());

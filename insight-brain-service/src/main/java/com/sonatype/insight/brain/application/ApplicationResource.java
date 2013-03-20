@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.application;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +28,13 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ScanUploader;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
 
-@Path(ApplicationResource.SERVICE_PATH)
+@Path( ApplicationResource.SERVICE_PATH )
 public class ApplicationResource
 {
     public static final String SERVICE_PATH = "rest/application";
@@ -55,16 +57,16 @@ public class ApplicationResource
     private InsightProxy proxy;
 
     @GET
-    @Path(VALIDATE_PATH)
-    @Produces(MediaType.TEXT_PLAIN)
-    public String validateApplicationPublicId( @PathParam("applicationPublicId") final String applicationPublicId )
+    @Path( VALIDATE_PATH )
+    @Produces( MediaType.TEXT_PLAIN )
+    public String validateApplicationPublicId( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
         return validateApplicationPublicId( applicationPublicId, proxy );
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces( MediaType.APPLICATION_JSON )
     public List<ApplicationManagementSummary> getApplications()
         throws IOException
     {
@@ -87,10 +89,10 @@ public class ApplicationResource
     }
 
     @GET
-    @Path(GET_APPLICATION_PATH)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path( GET_APPLICATION_PATH )
+    @Produces( MediaType.APPLICATION_JSON )
     public ApplicationManagementSummary getApplication(
-        @PathParam("applicationPublicId") final String applicationPublicId )
+        @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
         final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -105,36 +107,36 @@ public class ApplicationResource
         return applicationManagement;
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationManagementSummary addApplication( String applicationPublicId )
-        throws IOException
-    {
-        if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
-        {
-            throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
-        }
-
-        String result = validateApplicationPublicId( applicationPublicId, proxy );
-        if ( "OK".equals( result ) )
-        {
-            Application application = applicationDAO.getByPublicId( applicationPublicId );
-            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-            applicationManagement.setId( application.getId() );
-            applicationManagement.setPublicId( application.getPublicId() );
-            return applicationManagement;
-        }
-        throw new BadRequestException( "Invalid application id " + applicationPublicId );
-    }
-
 //    @POST
-//    @Consumes( MediaType.MULTIPART_FORM_DATA )
-//    @Produces( MediaType.APPLICATION_JSON )
-//    public ApplicationManagementSummary newApplication( @FormDataParam( "file" ) InputStream uploadedInputStream )
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public ApplicationManagementSummary addApplication( String applicationPublicId )
+//        throws IOException
 //    {
-//        return null;
+//        if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
+//        {
+//            throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
+//        }
+//
+//        String result = validateApplicationPublicId( applicationPublicId, proxy );
+//        if ( "OK".equals( result ) )
+//        {
+//            Application application = applicationDAO.getByPublicId( applicationPublicId );
+//            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+//            applicationManagement.setId( application.getId() );
+//            applicationManagement.setPublicId( application.getPublicId() );
+//            return applicationManagement;
+//        }
+//        throw new BadRequestException( "Invalid application id " + applicationPublicId );
 //    }
+
+    @POST
+    @Consumes( MediaType.MULTIPART_FORM_DATA )
+    public void newApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
+                                @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+    {
+    }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )
         throws IOException

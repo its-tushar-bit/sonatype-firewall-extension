@@ -28,7 +28,7 @@ div,p,a,li,td {
 	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
 		<tr>
 			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img
-					src="http://clm-assets.sonatype.com/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Report" border="0" /></a></td>
+					src="http://cdn.sonatype.com/clm/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Report" border="0" /></a></td>
 		</tr>
 		<tr>
 			<td width="12">&nbsp;</td>
@@ -42,16 +42,16 @@ div,p,a,li,td {
 										<table cellpadding="0" cellspacing="0" border="0" bordercolor="#FFFFFF" style="border-collapse: collapse;">
 											<tr>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_red.gif); background-size: cover; background-color: #ED1C24; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://cdn.sonatype.com/clm/policy/1.3/alert_red.gif); background-size: cover; background-color: #ED1C24; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatRedCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_orange.gif); background-size: cover; background-color: #F7931D; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://cdn.sonatype.com/clm/policy/1.3/alert_orange.gif); background-size: cover; background-color: #F7931D; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatOrangeCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_yellow.gif); background-size: cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://cdn.sonatype.com/clm/policy/1.3/alert_yellow.gif); background-size: cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://clm-assets.sonatype.com/policy/1.3/alert_blue.gif); background-size: cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(http://cdn.sonatype.com/clm/policy/1.3/alert_blue.gif); background-size: cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
 											</tr>
 										</table>
@@ -169,7 +169,7 @@ div,p,a,li,td {
 		</tr>
 		<tr>
 			<td colspan="3" width="647" height="54"><a href="${detailedReportUrl}" title="View Full Report"><img
-					src="http://clm-assets.sonatype.com/policy/1.3/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
+					src="http://cdn.sonatype.com/clm/policy/1.3/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
 		</tr>
 	</table>
 </body>

@@ -1,0 +1,65 @@
+.cip-policy-table {
+	width: 100%;
+	border-bottom: 1px solid #CFD0D2;
+	border-left: 1px solid #CFD0D2;
+	border-right: 1px solid #CFD0D2;
+}
+
+.cip-policy-table-header,.cip-policy-table-header-last {
+	border-left: 1px solid #CFD0D2 !important;
+	border-top: 1px solid #CFD0D2 !important;
+	padding: 0px !important;
+}
+
+.cip-policy-table-header-last {
+	border-right: 1px solid #CFD0D2 !important;
+}
+
+.cip-policy-table-header>div,.cip-policy-table-header-last>div {
+	/* For IE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr=#FAFAFC,
+		endColorstr=#CFD0D2 );
+	/* For Chrome and Safari */
+	background-image: -webkit-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+	/* For old Fx (3.6 to 15) */
+	background-image: -moz-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+	/* For pre-releases of IE 10*/
+	background-image: -ms-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+	/* For old Opera (11.1 to 12.0) */
+	background-image: -o-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+	/* Standard syntax; must be last */
+	background-image: linear-gradient(to bottom, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+	line-height: 16px !important;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 4px !important;
+	height: 100%;
+}
+
+.cip-policy {
+	padding: 4px 0 0 15px !important;
+}
+
+.cip-policy-red {
+	background: url(../img/bg-score-critical.png) repeat-y scroll 0 0
+		transparent;
+	color: #A91113;
+}
+
+.cip-policy-orange {
+	background: url(../img/bg-score-severe.png) repeat-y scroll 0 0
+		transparent;
+	color: #CB7A16;
+}
+
+.cip-policy-yellow {
+	background: url(../img/bg-score-moderate.png) repeat-y scroll 0 0
+		transparent;
+	color: #D4B718;
+}
+
+.cip-policy-blue {
+	background: url(../img/bg-score-none.png) repeat-y scroll 0 0
+		transparent;
+	color: #005399;
+}

@@ -1,0 +1,122 @@
+.clmLabel {
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	border-style: solid;
+	border-width: 1px;
+	font-size: 12px;
+	overflow: hidden;
+	text-align: center;
+	border-color: #AFBFCF;
+}
+
+span.clmLabel {
+	padding: 1px 3px;
+	vertical-align: middle;
+	display: inline-block;
+	max-height: 20px;
+	max-width: 400px;
+	margin-bottom: 5px;
+	white-space: nowrap;
+}
+
+.clmLabel>option[value="0"] {
+	background-color: white;
+	color: black;
+}
+
+.whiteLabel,.clmLabel>option[value="1"] {
+	background-color: #EEEEEE;
+	color: black;
+}
+
+.greyLabel,.clmLabel>option[value="2"] {
+	background-color: #BFBFBF;
+	color: black;
+}
+
+.blackLabel,.clmLabel>option[value="3"] {
+	background-color: #444444;
+	color: white;
+}
+
+.greenLabel,.clmLabel>option[value="4"] {
+	background-color: #46A546;
+	color: white;
+}
+
+.yellowLabel,.clmLabel>option[value="5"] {
+	background-color: #FAF20F;
+	color: black;
+}
+
+.orangeLabel,.clmLabel>option[value="6"] {
+	background-color: #F89406;
+	color: white;
+}
+
+.redLabel,.clmLabel>option[value="7"] {
+	background-color: #C43C35;
+	color: white;
+}
+
+.blueLabel,.clmLabel>option[value="8"] {
+	background-color: #0080FF;
+	color: white;
+}
+
+.clmLabel>.remove {
+	text-shadow: 0 1px 0 #ffffff;
+	opacity: 0.4;
+	filter: alpha(opacity = 40);
+}
+
+.clmLabel>.remove:hover {
+	text-decoration: none;
+	cursor: pointer;
+	opacity: 0.8;
+	filter: alpha(opacity = 80);
+}
+
+.availableContainer,.appliedContainer {
+	border: 1px solid black;
+	border-radius: 4px;
+	padding: 5px;
+	overflow-y: auto;
+	overflow-x: hidden
+}
+
+.appliedContainer {
+	height: 60px;
+	margin-bottom: 5px
+}
+
+.availableContainer {
+	height: 94px
+}
+
+.labelEditor .clmLabel {
+	margin-right: 5px
+}
+
+.labelEditor .icon-refresh,.clmLabel>.icon-plus-sign,.clmLabel>.icon-minus-sign
+	{
+	cursor: pointer;
+	opacity: 0.5;
+	filter: alpha(opacity = 50);
+	vertical-align: top;
+	margin-top: 1px
+}
+
+.labelEditor .icon-refresh:hover,.clmLabel>.icon-plus-sign:hover,.clmLabel>.icon-minus-sign:hover
+	{
+	opacity: 1.0;
+	filter: alpha(opacity = 100)
+}
+
+.clmLabel>span {
+	max-width: 380px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: inline-block
+}

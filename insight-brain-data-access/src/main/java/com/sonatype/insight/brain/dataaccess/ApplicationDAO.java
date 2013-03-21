@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
+import javax.imageio.ImageIO;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -99,5 +105,23 @@ public class ApplicationDAO
             licenseThreatGroupDAO.delete( em, licenseThreatGroup );
         }
         super.delete( em, application );
+    }
+
+    public void setIcon( String applicationId, File dataDirectory, InputStream imageStream )
+        throws IOException, IllegalArgumentException
+    {
+        File iconDirectory = new File( dataDirectory, applicationId );
+        if ( !iconDirectory.exists() )
+        {
+            iconDirectory.mkdir();
+        }
+
+        final int dimension = 24;
+        Image image = ImageIO.read( imageStream );
+        BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_BYTE_INDEXED );
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage( image, 0, 0, dimension, dimension, null );
+        g.dispose();
+        ImageIO.write( resizedImage, "png", new File( iconDirectory, "icon24px.png" ) );
     }
 }

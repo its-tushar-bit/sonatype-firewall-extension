@@ -36,6 +36,11 @@ public class InsightWork
         return insightConfig.getSonatypeWork();
     }
 
+    public File getDataDir()
+    {
+        return new File( insightConfig.getSonatypeWork(), "data" );
+    }
+
     public File getScanDir( final String appId )
     {
         return new File( insightConfig.getSonatypeWork(), "scan/" + appId );

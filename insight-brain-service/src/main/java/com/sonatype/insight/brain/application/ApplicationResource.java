@@ -5,15 +5,13 @@
  */
 package com.sonatype.insight.brain.application;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-import javax.imageio.ImageIO;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -108,16 +106,7 @@ public class ApplicationResource
         @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        log.debug( "Found application with public id {}", application.getPublicId() );
-
-        final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
-        final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-        applicationManagement.setId( application.getId() );
-        applicationManagement.setPublicId( application.getPublicId() );
-        applicationManagement.setPolicyEvaluation( policyEvaluation );
-
-        return applicationManagement;
+        return getApplicationManagementSummary( applicationPublicId );
     }
 
     @POST
@@ -148,6 +137,7 @@ public class ApplicationResource
     public ApplicationManagementSummary newApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
                                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+        throws IOException
     {
         return newApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
     }
@@ -158,6 +148,7 @@ public class ApplicationResource
     public Response newApplicationSync( @FormDataParam( "applicationName" ) String applicationPublicId,
                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+        throws IOException
     {
         newApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
@@ -167,12 +158,19 @@ public class ApplicationResource
     public ApplicationManagementSummary newApplicationInternal( String applicationPublicId,
                                                                 InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )
+        throws IOException
     {
-        final int dimension = 24;
-        Image image;
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        if ( application == null )
+        {
+            application = new Application();
+            application.setPublicId( applicationPublicId );
+            //applicationDAO.insert( application );
+            application.setId( UUID.randomUUID().toString() );
+        }
         try
         {
-            image = ImageIO.read( uploadedInputStream );
+            applicationDAO.setIcon( application.getId(), work.getDataDir(), uploadedInputStream );
         }
         catch ( IllegalArgumentException e )
         {
@@ -182,11 +180,26 @@ public class ApplicationResource
         {
             throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
         }
-        BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_BYTE_INDEXED );
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage( image, 0, 0, dimension, dimension, null );
-        g.dispose();
-        return null;
+        catch ( Exception e )
+        {
+            throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+        }
+        return getApplicationManagementSummary( applicationPublicId );
+    }
+
+    private ApplicationManagementSummary getApplicationManagementSummary( String applicationPublicId )
+        throws IOException
+    {
+        final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        log.debug( "Found application with public id {}", application.getPublicId() );
+
+        final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
+        final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
+        applicationManagement.setId( application.getId() );
+        applicationManagement.setPublicId( application.getPublicId() );
+        applicationManagement.setPolicyEvaluation( policyEvaluation );
+
+        return applicationManagement;
     }
 
     public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )

@@ -61,7 +61,7 @@ public class IdeResource
     public Response getAsset( @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
-        return client.doProxy( req, "ide", path );
+        return client.doProxy( req, "ide/{path}", path );
     }
 
     @GET
@@ -76,7 +76,8 @@ public class IdeResource
         String applicationId = app.getId();
 
         MatchedComponent matchedComponent =
-            client.get( req, MatchedComponent.class, "rest/ide/scan", scanType, applicationPublicId, path );
+            client.get( req, MatchedComponent.class, "rest/ide/scan/{scanType}/{appId}/{path}", scanType,
+                        applicationPublicId, path );
 
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.ide;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.core.UriBuilder;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -224,6 +226,32 @@ public class IdeResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
+    }
+
+    @Test
+    public void testGetComponentDetails_AppIdWithUnsafeCharacters()
+        throws Exception
+    {
+        String applicationPublicId = "bom 1&2%20?";
+        createApplication( applicationPublicId );
+
+        String groupId = "ug1";
+        String artifactId = "ua1";
+        String version = "uv1";
+        String serviceUrl =
+            getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
+                                    "unknown" );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        setSaasResponseForURI( serviceUrl.substring( getRestBaseUrl().length() ),
+                               JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
     }
 
     @Test
@@ -604,6 +632,16 @@ public class IdeResourceTest
         Assert.assertEquals( Arrays.asList( "1.1", "2.0" ), Arrays.asList( versions ) );
     }
 
+    @Test
+    public void testGetAsset()
+        throws Exception
+    {
+        setSaasResponseForURI( "ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200 );
+        Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
+        assertResponseStatus( 200, response );
+        Assert.assertEquals( "OK", response.getResponseBody() );
+    }
+
     private String getServiceURL()
     {
         return getRestBaseUrl() + IdeResource.SERVICE_PATH;
@@ -629,18 +667,20 @@ public class IdeResourceTest
     private String getComponentDetailsUrl( String applicationPublicId, String groupId, String artifactId,
                                            String version, String hash, String matchState )
     {
-        String url =
-            getServiceURL() + "/component/details/" + applicationPublicId + "?groupId=" + groupId + "&artifactId="
-                + artifactId + "&version=" + version;
+        UriBuilder builder = UriBuilder.fromUri( getServiceURL() );
+        builder.path( "component/details/{appId}" );
+        builder.queryParam( "groupId", groupId );
+        builder.queryParam( "artifactId", artifactId );
+        builder.queryParam( "version", version );
         if ( hash != null )
         {
-            url += "&hash=" + hash;
+            builder.queryParam( "hash", hash );
         }
         if ( matchState != null )
         {
-            url += "&matchState=" + matchState;
+            builder.queryParam( "matchState", matchState );
         }
-        return url;
+        return builder.build( applicationPublicId ).toString();
     }
 
     private String getComponentVersionsUrl( String groupId, String artifactId )

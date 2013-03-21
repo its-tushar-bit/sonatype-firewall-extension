@@ -76,7 +76,7 @@ public class ComponentInfoResource
     {
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", tool,
                    applicationPublicId, groupId, artifactId, version );
-        return client.doProxy( servletRequest, "rest/ide/component/details/versions", applicationPublicId );
+        return client.doProxy( servletRequest, "rest/ide/component/details/versions/{appId}", applicationPublicId );
     }
 
     @GET
@@ -103,7 +103,8 @@ public class ComponentInfoResource
         try
         {
             componentDetails =
-                client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details", applicationPublicId );
+                client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details/{appId}",
+                            applicationPublicId );
         }
         catch ( NotFoundException e )
         {

@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -75,10 +76,10 @@ public class SaasClient
         loadVersion();
     }
 
-    public <T> T get( HttpServletRequest request, Class<T> clazz, String... paths )
+    public <T> T get( HttpServletRequest request, Class<T> clazz, String path, String... params )
         throws IOException
     {
-        HttpResponse response = execute( request, paths );
+        HttpResponse response = execute( request, path, params );
         try
         {
             switch ( response.getStatusLine().getStatusCode() )
@@ -129,36 +130,36 @@ public class SaasClient
         return response.getStatusLine().getReasonPhrase();
     }
 
-    public Response doProxy( HttpServletRequest request, String... paths )
+    public Response doProxy( HttpServletRequest request, String path, String... params )
         throws IOException
     {
-        HttpResponse response = execute( request, paths );
+        HttpResponse response = execute( request, path, params );
         return buildResponse( response );
     }
 
-    private HttpResponse execute( HttpServletRequest request, String... paths )
+    private HttpResponse execute( HttpServletRequest request, String path, String... params )
         throws IOException
     {
         HttpUriRequest cloudReq;
         if ( "GET".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpGet( buildUri( request.getQueryString(), paths ) );
+            cloudReq = new HttpGet( buildUri( request, path, params ) );
         }
         else if ( "POST".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPost( buildUri( request.getQueryString(), paths ) );
+            cloudReq = new HttpPost( buildUri( request, path, params ) );
             HttpEntity entity = new InputStreamEntity( request.getInputStream(), request.getContentLength() );
             ( (HttpPost) cloudReq ).setEntity( new BufferedHttpEntity( entity ) );
         }
         else if ( "PUT".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( request.getQueryString(), paths ) );
+            cloudReq = new HttpPut( buildUri( request, path, params ) );
             HttpEntity entity = new InputStreamEntity( request.getInputStream(), request.getContentLength() );
             ( (HttpPut) cloudReq ).setEntity( new BufferedHttpEntity( entity ) );
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpDelete( buildUri( request.getQueryString(), paths ) );
+            cloudReq = new HttpDelete( buildUri( request, path, params ) );
         }
         else
         {
@@ -229,40 +230,12 @@ public class SaasClient
         return builder.build();
     }
 
-    private String buildUri( String queryString, String... paths )
+    private String buildUri( HttpServletRequest base, String path, String... params )
     {
-        StringBuilder uri = new StringBuilder( config.getServerUrl() );
-        for ( String path : paths )
-        {
-            if ( path.length() == 0 )
-            {
-                continue;
-            }
-            if ( uri.charAt( uri.length() - 1 ) == '/' )
-            {
-                if ( path.charAt( 0 ) == '/' )
-                {
-                    uri.append( path, 1, path.length() - 1 );
-                }
-                else
-                {
-                    uri.append( path );
-                }
-            }
-            else
-            {
-                if ( path.charAt( 0 ) != '/' )
-                {
-                    uri.append( '/' );
-                }
-                uri.append( path );
-            }
-        }
-        if ( queryString != null )
-        {
-            uri.append( '?' ).append( queryString );
-        }
-        return uri.toString();
+        UriBuilder uriBuilder = UriBuilder.fromUri( config.getServerUrl() );
+        uriBuilder.path( path );
+        uriBuilder.replaceQuery( base.getQueryString() );
+        return uriBuilder.build( (Object[]) params ).toString();
     }
 
     public static class PoolingClientConnectionManagerFactory

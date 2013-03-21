@@ -10,7 +10,7 @@
             </tr>
             </thead>
             <tr ng-repeat='group in licenseGroups | orderBy: group.name'>
-                <td style='height:24px'>{{group.name}}</td>
+                <td style='height:24px'><span class='threat-level-{{group.threatLevel}} threat-box' style='width:8px'></span>&nbsp;<span style='vertical-align:middle'>{{group.name}}</span></td>
                 <td style='width:60px'>
                     <button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit hover-vis'
                             title='Edit License Threat Group'><i class='icon-pencil' style='margin-top:0px;'></i>
@@ -22,7 +22,7 @@
             </tr>
             <tfoot>
             <tr>
-                <td colspan='2' style='text-align:right;'>
+                <td colspan='2' style='text-align:center;'>
                     <button class='btn btn-add btn-info' ng-click='editLicenseGroup();'><i
                             class='icon-white icon-plus-sign'> </i> Add License Threat Group
                     </button>

@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.net.URI;
+
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 public class BaseUrl
@@ -42,6 +45,12 @@ public class BaseUrl
             url += '/';
         }
         return url;
+    }
+
+    public UriBuilder redirect()
+    {
+        URI requestUri = uriInfo.getRequestUri();
+        return UriBuilder.fromUri( get() ).replaceQuery( requestUri.getRawQuery() );
     }
 
 }

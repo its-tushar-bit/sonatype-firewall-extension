@@ -79,13 +79,13 @@ public class ReportResource
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 
     @Context
-    InsightWork work;
+    private InsightWork work;
 
     @Context
-    InsightProxy proxy;
+    private InsightProxy proxy;
 
     @Context
-    BaseUrl baseUrl;
+    private BaseUrl baseUrl;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -290,7 +290,7 @@ public class ReportResource
 
     private static Response redirectToBrain( final BaseUrl baseUrl, final String path )
     {
-        UriBuilder uriBuilder = UriBuilder.fromUri( baseUrl.get() ).path( path );
+        UriBuilder uriBuilder = baseUrl.redirect().path( path );
 
         return Response.temporaryRedirect( uriBuilder.build() ).build();
     }

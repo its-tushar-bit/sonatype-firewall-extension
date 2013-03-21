@@ -32,20 +32,20 @@ public class LandingResourceTest
     public void testHome_RequestBaseUrl()
         throws Exception
     {
-        Response response = RestAccess.get( getRestBaseUrl() );
+        Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
         assertResponseStatus( 303, response );
-        assertEquals( getRestBaseUrl() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html",
-                      response.getHeader( "Location" ) );
+        assertEquals( getRestBaseUrl() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 )
+            + "index.html?x=y&a=b", response.getHeader( "Location" ) );
     }
 
     @Test
     public void testHome_ConfiguredBaseUrl()
         throws Exception
     {
-        Response response = RestAccess.get( getRestBaseUrl() );
+        Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
         assertResponseStatus( 303, response );
-        assertEquals( "http://clm.sonatype.com/test" + InsightBrainService.APPLICATION_ASSET_PATH + "index.html",
-                      response.getHeader( "Location" ) );
+        assertEquals( "http://clm.sonatype.com/test" + InsightBrainService.APPLICATION_ASSET_PATH
+            + "index.html?x=y&a=b", response.getHeader( "Location" ) );
     }
 
 }

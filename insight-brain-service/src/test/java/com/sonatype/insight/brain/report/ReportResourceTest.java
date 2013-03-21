@@ -359,6 +359,17 @@ public class ReportResourceTest
                     equalToIgnoringWhiteSpace( feed ) );
     }
 
+    @Test
+    public void testRedirection()
+        throws Exception
+    {
+        String path = "index.html?x=y&a=b";
+        String url = getServiceURL( "appId", "scanId" );
+        Response response = RestAccess.get( url + "/brain/" + path );
+        assertResponseStatus( 307, response );
+        Assert.assertEquals( getRestBaseUrl() + path, response.getHeader( "Location" ) );
+    }
+
     private void testDataJsonApplyChanges( String json )
         throws IOException
     {

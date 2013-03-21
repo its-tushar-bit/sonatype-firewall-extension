@@ -46,4 +46,20 @@ public class BaseUrlTest
         assertEquals( "http://test.sonatype.com/", baseUrl.get() );
     }
 
+    @Test
+    public void testRedirect()
+    {
+        InsightConfig appConfig = new InsightConfig();
+
+        UriInfo uriInfo = mock( UriInfo.class );
+        when( uriInfo.getBaseUri() ).thenReturn( URI.create( "http://clm.sonatype.com:8080" ) );
+
+        BaseUrl baseUrl = new BaseUrl( appConfig, uriInfo );
+        when( uriInfo.getRequestUri() ).thenReturn( URI.create( "http://clm.sonatype.com:8080/foo" ) );
+        assertEquals( "http://clm.sonatype.com:8080/dst", baseUrl.redirect().path( "dst" ).build().toString() );
+        when( uriInfo.getRequestUri() ).thenReturn( URI.create( "http://clm.sonatype.com:8080/foo?x=y&a=b" ) );
+        assertEquals( "http://clm.sonatype.com:8080/dst/index.html?x=y&a=b",
+                      baseUrl.redirect().path( "dst/index.html" ).build().toString() );
+    }
+
 }

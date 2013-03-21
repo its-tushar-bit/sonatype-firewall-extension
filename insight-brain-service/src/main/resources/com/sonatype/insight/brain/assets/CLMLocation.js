@@ -49,23 +49,23 @@
             },
 
             getLabelsUrl: function () {
-                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(getAppId());
+                return this.getBaseUrl() + '/rest/label/application/' + getAppId();
             },
 
             getDeleteLabelsUrl: function (label) {
-                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(getAppId()) + '/' +  encodeURIComponent(label.id);
+                return this.getBaseUrl() + '/rest/label/application/' + getAppId() + '/' +  encodeURIComponent(label.id);
             },
 
             getLicenseGroupsUrl: function () {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(getAppId());
+                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getAppId();
             },
 
             getDeleteLicenseGroupUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(getAppId()) + '/' +  encodeURIComponent(group.id);
+                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getAppId() + '/' +  encodeURIComponent(group.id);
             },
 
             getLicenseGroupLicensesUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + encodeURIComponent(getAppId()) + '/'
+                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getAppId() + '/'
                     + group.id;
             },
 
@@ -86,11 +86,11 @@
             },
 
             getConditionValueTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/conditionValueType/' + encodeURIComponent(getAppId());
+                return this.getBaseUrl() + '/rest/conditionValueType/' + getAppId();
             },
 
             getPolicyUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(getAppId());
+                return this.getBaseUrl() + '/rest/policy/' + getAppId();
             },
 
             getApplicationUrl: function (applicationId) {

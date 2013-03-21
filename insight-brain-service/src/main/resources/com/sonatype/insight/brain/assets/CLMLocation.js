@@ -5,25 +5,30 @@
  */
 (function () {
     "use strict";
+
+    // URI Encoded Query Parameter
+	function getQueryString(key) {
+		var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.search);
+		if (results) {
+			return results[1];
+		}
+	}
+
     angular.module('CLMLocation', []).factory('CLMLocations', function () {
+		// URI encoded ApplicationID
+		var getAppId = (function() {
+			var appId = null;
+			return function () {
+				if (appId) {
+					return appId;
+				}
+				appId = getQueryString('appId');
+
+				return appId;
+			};
+		}());
+
         return {
-            getQueryString: function (key) {
-                var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.href);
-                if (results) {
-                    return results[1];
-                }
-            },
-
-            getAppId: function () {
-                if (this.appId) {
-                    return this.appId;
-                }
-
-                this.appId = this.getQueryString('appId');
-
-                return this.appId;
-            },
-
             getBaseUrl: function () {
                 if (this.baseUrl) {
                     return this.baseUrl;
@@ -44,23 +49,23 @@
             },
 
             getLabelsUrl: function () {
-                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(this.getAppId());
+                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(getAppId());
             },
 
             getDeleteLabelsUrl: function (label) {
-                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(this.getAppId()) + '/' +  encodeURIComponent(label.id);
+                return this.getBaseUrl() + '/rest/label/application/' + encodeURIComponent(getAppId()) + '/' +  encodeURIComponent(label.id);
             },
 
             getLicenseGroupsUrl: function () {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(this.getAppId());
+                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(getAppId());
             },
 
             getDeleteLicenseGroupUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(this.getAppId()) + '/' +  encodeURIComponent(group.id);
+                return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + encodeURIComponent(getAppId()) + '/' +  encodeURIComponent(group.id);
             },
 
             getLicenseGroupLicensesUrl: function (group) {
-                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + encodeURIComponent(this.getAppId()) + '/'
+                return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + encodeURIComponent(getAppId()) + '/'
                     + group.id;
             },
 
@@ -81,11 +86,11 @@
             },
 
             getConditionValueTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/conditionValueType/' + encodeURIComponent(this.getAppId());
+                return this.getBaseUrl() + '/rest/conditionValueType/' + encodeURIComponent(getAppId());
             },
 
             getPolicyUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(this.getAppId());
+                return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(getAppId());
             },
 
             getApplicationUrl: function (applicationId) {

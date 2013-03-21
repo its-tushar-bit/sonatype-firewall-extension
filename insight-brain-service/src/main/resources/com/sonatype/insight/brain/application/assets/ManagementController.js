@@ -147,17 +147,26 @@
 			}
 		};
 
-		$scope.canSaveEdit = function (valid) {
-			return valid && !$scope.submitActive && $scope.selectedApplication != null && $scope.selectedApplication.publicId.length > 0;
+		$scope.canSaveEdit = function () {
+			applicationRules();
+			return $scope.applicationEditor.$valid && !$scope.submitActive;
 		};
 
 		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
-		$scope.saveClick = function (e) {
+		$scope.saveClick = function () {
+			applicationRules();
+			if (!$scope.applicationEditor.$valid) {
+				return false;
+			}
+
 			if (window.FormData) {
 				$scope.uploadInProgress = true;
 				var formData = new FormData(angular.element('#applicationEditor')[0]);
-				var icon = angular.element('#uploadFile')[0];
+				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
+					if (icon.files[0].size > 5242880) {
+						$scope.errorResponse.push('Icon file size must be smaller than 5 MB.')
+					}
 					formData.append('file', icon.files[0]);
 				}
 
@@ -179,5 +188,15 @@
 			}
 			return true;
 		};
+
+		function applicationRules() {
+			var applicationName = angular.element('#applicationName');
+			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
+			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', applicationName.val().match(/^[a-z0-9]+$/i));
+			var isDuplicateName = $scope.applications.some(function (application) {
+				return application.publicId.replace(/\s/g, "") === applicationName.val().replace(/\s/g, "");
+			});
+			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
+		}
 	}]);
 }());

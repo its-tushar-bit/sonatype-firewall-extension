@@ -3,14 +3,19 @@
           onsubmit='return angular.element(this).scope().saveClick()'
           name='applicationEditor' id='applicationEditor' class='form-horizontal' style='margin-bottom: 0px'>
         <div class='modal-body'>
-            <div class='control-group'
-                 ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty }'>
+            <div class='control-group'>
                 <label class='control-label' for='applicationName'>Name:</label>
 
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
-                           class='input' maxlength='50' ng-model='selectedApplication.publicId'
-                           item-label>
+                           class='input' maxlength='50' ng-model='selectedApplication.publicId'>
+                    <ul>
+                        <li ng-show="applicationEditor.applicationName.$error.required">Required</li>
+                        <li ng-show="applicationEditor.applicationName.$error.alphaNumeric">Must Be Alpha Numeric</li>
+                        <li ng-show="applicationEditor.applicationName.$error.duplicate">
+                            {{selectedApplication.publicId}} Is Already Used
+                        </li>
+                    </ul>
                 </div>
             </div>
             <div class='control-group'>
@@ -20,11 +25,8 @@
                     <div ng-show='hasIconSource'>
                         <img id='applicationIcon' width='48px' height='48px' ng-src='{{applicationIconSource}}'/>
                     </div>
-
-                    <div ng-show='!uploadInProgress'>
-                        <input type='file' name='file' id='uploadFile' accept='image/*'
-                               onchange="angular.element(this).scope().fileChanged(this)"/>
-                    </div>
+                    <input name='file' id='file' type='file' accept='image/*'
+                           onchange="angular.element(this).scope().fileChanged(this)"/>
                 </div>
             </div>
             <div ng-show='uploadInProgress'>
@@ -36,13 +38,15 @@
             <div ng-show='errorResponse'>
                 <div class='alert alert-error'>
                     <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
-                    <strong>Error</strong> {{errorResponse}}
+                    <ul ng-repeat='error in errorResponse'>
+                        <li>{{error}}</li>
+                    </ul>
                 </div>
             </div>
         </div>
         <div class='modal-footer'>
             <button class='btn' type='button' data-dismiss='modal'>Cancel</button>
-            <button class='btn btn-primary' ng-disabled='!canSaveEdit(applicationEditor.$valid)'>Save</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
         </div>
     </form>
 </div>

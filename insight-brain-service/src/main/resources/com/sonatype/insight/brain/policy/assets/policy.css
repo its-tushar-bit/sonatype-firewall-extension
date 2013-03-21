@@ -5,16 +5,9 @@
     margin-top: -4px;
 }
 
-.threat-container {
-    display: block;
-}
-
 .threat-box {
-    display: inline-block;
-}
-
-.threat-container, .threat-box {
     border-radius: 2px 2px 2px 2px;
+    display: inline-block;
     height: 18px;
     padding: 0 5px;
     text-align: center;

@@ -12,7 +12,6 @@
             <tr ng-repeat='group in licenseGroups | orderBy: group.name'>
                 <td style='height:24px'>{{group.name}}</td>
                 <td style='width:60px'>
-					<div class='hover-invis threat-container threat-level-{{group.threatLevel}}'>{{group.threatLevel}}</div>
                     <button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit hover-vis'
                             title='Edit License Threat Group'><i class='icon-pencil' style='margin-top:0px;'></i>
                     </button>

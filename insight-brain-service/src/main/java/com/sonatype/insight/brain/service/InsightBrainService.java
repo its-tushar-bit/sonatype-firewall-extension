@@ -149,6 +149,7 @@ public class InsightBrainService
         env.addResource( LandingResource.class );
 
         log.info( "Server base URL: {}", config.getBaseUrl() );
+        log.debug( "Saas address: {}", config.getSaasAddress() );
     }
 
     // Copied from IdeScanService

@@ -35,7 +35,6 @@ var angularCommon;
     });
 
     angularCommon.directive('typeAhead', ['$parse', function ($parse) {
-        'use strict';
 
         return {
             restrict: 'A',

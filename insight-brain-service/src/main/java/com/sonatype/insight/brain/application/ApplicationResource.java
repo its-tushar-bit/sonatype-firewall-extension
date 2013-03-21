@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -160,13 +159,27 @@ public class ApplicationResource
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
-        if ( application == null )
+        if ( applicationPublicId != null || !applicationPublicId.isEmpty() )
         {
-            application = new Application();
-            application.setPublicId( applicationPublicId );
-            //applicationDAO.insert( application );
-            application.setId( UUID.randomUUID().toString() );
+            throw new BadRequestException( "Name is required." );
+        }
+        if ( applicationPublicId.matches( "^[a-zA-Z0-9]+$" ) )
+        {
+            throw new BadRequestException( "Name must be alpha numeric." );
+        }
+
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        if ( application != null )
+        {
+            throw new BadRequestException( applicationPublicId + " is already used." );
+        }
+        application = new Application();
+        application.setPublicId( applicationPublicId );
+        applicationDAO.insert( application );
+
+        if ( fileDetail.getSize() > 5242880 )
+        {
+            throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
         }
         try
         {
@@ -174,16 +187,15 @@ public class ApplicationResource
         }
         catch ( IllegalArgumentException e )
         {
+            applicationDAO.delete( application );
             throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
         }
         catch ( IOException e )
         {
+            applicationDAO.delete( application );
             throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
         }
-        catch ( Exception e )
-        {
-            throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
-        }
+
         return getApplicationManagementSummary( applicationPublicId );
     }
 

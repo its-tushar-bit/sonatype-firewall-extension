@@ -10,10 +10,10 @@
                     <input id='applicationName' name='applicationName' type='text'
                            class='input' maxlength='50' ng-model='selectedApplication.publicId'>
                     <ul>
-                        <li ng-show="applicationEditor.applicationName.$error.required">Required</li>
-                        <li ng-show="applicationEditor.applicationName.$error.alphaNumeric">Must Be Alpha Numeric</li>
+                        <li ng-show="applicationEditor.applicationName.$error.required">Name is required.</li>
+                        <li ng-show="applicationEditor.applicationName.$error.alphaNumeric">Must be alpha numeric.</li>
                         <li ng-show="applicationEditor.applicationName.$error.duplicate">
-                            {{selectedApplication.publicId}} Is Already Used
+                            {{selectedApplication.publicId}} is already used.
                         </li>
                     </ul>
                 </div>

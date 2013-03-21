@@ -32,8 +32,9 @@
             </tr>
             </thead>
             <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
-                <td><a
-                        href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.publicId}}</a>
+                <td>
+                    <img ng-src='../rest/application/icon/{{application.publicId}}'/>
+                    <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.publicId}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
                     <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'

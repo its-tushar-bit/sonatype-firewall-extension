@@ -38,9 +38,7 @@
             <div ng-show='errorResponse'>
                 <div class='alert alert-error'>
                     <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
-                    <ul ng-repeat='error in errorResponse'>
-                        <li>{{error}}</li>
-                    </ul>
+                    <strong>Error</strong> {{errorResponse}}
                 </div>
             </div>
         </div>

@@ -46,6 +46,8 @@ public class ApplicationResource
 
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
+    public static final String GET_APPLICATION_ICON_PATH = "icon/{applicationPublicId}";
+
     public static final String ADD_APPLICATION_SYNC_PATH = "sync";
 
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
@@ -108,6 +110,17 @@ public class ApplicationResource
         return getApplicationManagementSummary( applicationPublicId );
     }
 
+    @GET
+    @Path( GET_APPLICATION_ICON_PATH )
+    @Produces( "image/png" )
+    public Response getApplicationIcon( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+        throws IOException
+    {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getDataDir() );
+        return Response.ok( imageBytes ).build();
+    }
+
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
@@ -159,11 +172,11 @@ public class ApplicationResource
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
-        if ( applicationPublicId != null || !applicationPublicId.isEmpty() )
+        if ( applicationPublicId == null || applicationPublicId.isEmpty() )
         {
             throw new BadRequestException( "Name is required." );
         }
-        if ( applicationPublicId.matches( "^[a-zA-Z0-9]+$" ) )
+        if ( !applicationPublicId.matches( "^[a-zA-Z0-9]+$" ) )
         {
             throw new BadRequestException( "Name must be alpha numeric." );
         }

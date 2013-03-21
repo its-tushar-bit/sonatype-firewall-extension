@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,5 +124,25 @@ public class ApplicationDAO
         g.drawImage( image, 0, 0, dimension, dimension, null );
         g.dispose();
         ImageIO.write( resizedImage, "png", new File( iconDirectory, "icon24px.png" ) );
+    }
+
+    public byte[] getIcon( String applicationId, File dataDirectory )
+        throws IOException
+    {
+        File iconDirectory = new File( dataDirectory, applicationId );
+        if ( !iconDirectory.exists() )
+        {
+            return null;
+        }
+        File iconFile = new File( iconDirectory, "icon24px.png" );
+        if ( !iconFile.exists() )
+        {
+            return null;
+        }
+
+        BufferedImage image = ImageIO.read( iconFile );
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write( image, "png", byteArrayOutputStream );
+        return byteArrayOutputStream.toByteArray();
     }
 }

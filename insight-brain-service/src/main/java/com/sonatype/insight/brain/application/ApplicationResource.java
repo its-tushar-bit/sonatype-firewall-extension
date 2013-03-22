@@ -25,12 +25,9 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
-import com.sonatype.insight.scan.upload.DefaultScanUploader;
-import com.sonatype.insight.scan.upload.ScanUploader;
 
 @Path( ApplicationResource.SERVICE_PATH )
 public class ApplicationResource
@@ -43,16 +40,13 @@ public class ApplicationResource
 
     private static final Logger log = LoggerFactory.getLogger( ApplicationResource.class );
 
-    private static final ScanUploader uploader =
-        new DefaultScanUploader( LoggerFactory.getLogger( DefaultScanUploader.class ), false /* failOnLogErrors */ );
-
     private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
     @Context
     private InsightWork work;
 
     @Context
-    private InsightProxy proxy;
+    private SaasClient client;
 
     @GET
     @Path( VALIDATE_PATH )
@@ -60,7 +54,7 @@ public class ApplicationResource
     public String validateApplicationPublicId( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        return validateApplicationPublicId( applicationPublicId, proxy );
+        return validateApplicationPublicId( applicationPublicId, client );
     }
 
     @GET
@@ -116,7 +110,7 @@ public class ApplicationResource
             throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
         }
 
-        String result = validateApplicationPublicId( applicationPublicId, proxy );
+        String result = validateApplicationPublicId( applicationPublicId, client );
         if ( "OK".equals( result ) )
         {
             Application application = applicationDAO.getByPublicId( applicationPublicId );
@@ -128,12 +122,10 @@ public class ApplicationResource
         throw new BadRequestException( "Invalid application id " + applicationPublicId );
     }
 
-    public static String validateApplicationPublicId( String applicationPublicId, InsightProxy proxy )
+    public static String validateApplicationPublicId( String applicationPublicId, SaasClient client )
         throws IOException
     {
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
-
-        String result = uploader.validateToken( proxy.contextualize( request ) );
+        String result = client.get( String.class, "rest/ci/validate/{appId}", applicationPublicId );
         log.debug( "validateApplicationPublicId({}) result:{}", applicationPublicId, result );
 
         if ( "OK".equals( result ) )

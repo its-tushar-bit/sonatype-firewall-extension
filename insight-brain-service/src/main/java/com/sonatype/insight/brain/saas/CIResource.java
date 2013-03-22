@@ -54,10 +54,13 @@ public class CIResource
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 
     @Context
-    InsightWork work;
+    private InsightWork work;
 
     @Context
-    InsightProxy proxy;
+    private InsightProxy proxy;
+
+    @Context
+    private SaasClient client;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -70,7 +73,7 @@ public class CIResource
     public String validateToken( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws Exception
     {
-        return ApplicationResource.validateApplicationPublicId( applicationPublicId, proxy );
+        return ApplicationResource.validateApplicationPublicId( applicationPublicId, client );
     }
 
     @PUT

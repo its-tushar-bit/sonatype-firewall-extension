@@ -76,6 +76,12 @@ public class SaasClient
         loadVersion();
     }
 
+    public <T> T get( Class<T> clazz, String path, String... params )
+        throws IOException
+    {
+        return get( null, clazz, path, params );
+    }
+
     public <T> T get( HttpServletRequest request, Class<T> clazz, String path, String... params )
         throws IOException
     {
@@ -86,10 +92,19 @@ public class SaasClient
             {
                 case 200:
                 case 202:
+                    HttpEntity entity = response.getEntity();
+                    if ( entity == null )
+                    {
+                        return null;
+                    }
                     InputStream in = null;
                     try
                     {
-                        in = response.getEntity().getContent();
+                        if ( String.class.equals( clazz ) )
+                        {
+                            return clazz.cast( EntityUtils.toString( entity, "UTF-8" ) );
+                        }
+                        in = entity.getContent();
                         return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
                     }
                     finally
@@ -148,7 +163,7 @@ public class SaasClient
         throws IOException
     {
         HttpUriRequest cloudReq;
-        if ( "GET".equals( request.getMethod() ) )
+        if ( request == null || "GET".equals( request.getMethod() ) )
         {
             cloudReq = new HttpGet( buildUri( request, path, params ) );
         }
@@ -178,16 +193,19 @@ public class SaasClient
 
     private void populateRequest( final HttpServletRequest orig, HttpUriRequest req )
     {
-        for ( Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements(); )
+        if ( orig != null )
         {
-            String headerName = e.nextElement();
-            if ( !HttpHeaders.CONNECTION.equals( headerName ) && !HttpHeaders.HOST.equals( headerName )
-                && !HttpHeaders.ACCEPT_ENCODING.equals( headerName )
-                && !HttpHeaders.TRANSFER_ENCODING.equals( headerName )
-                && !HttpHeaders.CONTENT_LENGTH.equals( headerName )
-                && !HttpHeaders.CONTENT_ENCODING.equals( headerName ) )
+            for ( Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements(); )
             {
-                req.setHeader( headerName, orig.getHeader( headerName ) );
+                String headerName = e.nextElement();
+                if ( !HttpHeaders.CONNECTION.equals( headerName ) && !HttpHeaders.HOST.equals( headerName )
+                    && !HttpHeaders.ACCEPT_ENCODING.equals( headerName )
+                    && !HttpHeaders.TRANSFER_ENCODING.equals( headerName )
+                    && !HttpHeaders.CONTENT_LENGTH.equals( headerName )
+                    && !HttpHeaders.CONTENT_ENCODING.equals( headerName ) )
+                {
+                    req.setHeader( headerName, orig.getHeader( headerName ) );
+                }
             }
         }
         req.setHeader( "X-Brain-Version", version );
@@ -241,7 +259,10 @@ public class SaasClient
     {
         UriBuilder uriBuilder = UriBuilder.fromUri( config.getServerUrl() );
         uriBuilder.path( path );
-        uriBuilder.replaceQuery( base.getQueryString() );
+        if ( base != null )
+        {
+            uriBuilder.replaceQuery( base.getQueryString() );
+        }
         return uriBuilder.build( (Object[]) params ).toString();
     }
 

@@ -200,11 +200,13 @@ public class ApplicationResource
         }
         catch ( IllegalArgumentException e )
         {
+            log.debug( "Invalid icon uploaded for new application " );
             applicationDAO.delete( application );
             throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
         }
         catch ( IOException e )
         {
+            log.debug( "Invalid icon uploaded for new application " );
             applicationDAO.delete( application );
             throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
         }

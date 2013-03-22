@@ -114,7 +114,14 @@ public class SaasClient
         }
         finally
         {
-            EntityUtils.consume( response.getEntity() );
+            try
+            {
+                EntityUtils.consume( response.getEntity() );
+            }
+            catch ( IOException e )
+            {
+                log.error( "Failed to consume response entity", e );
+            }
         }
     }
 

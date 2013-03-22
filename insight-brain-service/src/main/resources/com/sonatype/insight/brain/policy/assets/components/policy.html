@@ -11,8 +11,8 @@
 	    <div class="policy-item" ng-repeat="policy in state.policyList">
 			<div style="float:right;" class='btn-group'><button class="btn btn-mini policy-button" title="Edit Policy" ng-click="viewEditPolicy(policy)"><i class="icon-pencil" style="margin-top:0px;"></i></button><button class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy($index)"><i class="icon-trash" style="margin-top:0px;"></i></button></div>
 	        <div>
-				<b>{{policy.name}}</b><br>
-				Threat Level: <div class="threat-box threat-level-{{policy.threatLevel}}">{{policy.threatLevel}}</div><br>
+				<div><b>{{policy.name}}</b></div>
+				<div><span style='vertical-align:middle'>Threat Level: </span><span class="threat-box threat-level-{{policy.threatLevel}}"></span></div>
 				<span ng-pluralize count='policy.summary.constraintCount'
 					when="{ '0': 'No constraints to be evaluated',
 							'1': '1 Constraint to be evaluated',

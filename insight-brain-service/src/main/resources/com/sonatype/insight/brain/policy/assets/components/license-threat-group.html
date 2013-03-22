@@ -10,7 +10,7 @@
             </tr>
             </thead>
             <tr ng-repeat='group in licenseGroups | orderBy: group.name'>
-                <td style='height:24px'><span class='threat-level-{{group.threatLevel}} threat-box' style='width:8px'></span>&nbsp;<span style='vertical-align:middle'>{{group.name}}</span></td>
+                <td style='height:24px'><span class='threat-level-{{group.threatLevel}} threat-box'></span>&nbsp;<span style='vertical-align:middle'>{{group.name}}</span></td>
                 <td style='width:60px'>
 					<div class='btn-group'>
                         <button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit'

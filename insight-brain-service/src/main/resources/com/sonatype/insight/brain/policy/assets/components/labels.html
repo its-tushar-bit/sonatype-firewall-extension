@@ -10,16 +10,18 @@
             <tr ng-repeat="label in labels | orderBy:'label'">
                 <td style='height:24px'><span class="clmLabel {{label.color}}Label">{{label.label}}</span></td>
                 <td style='width:60px'>
-                    <button ng-click='editLabel(label)' class="btn btn-mini btn-edit hover-vis" title="Edit Label"><i
+					<div class='btn-group'>
+                        <button ng-click='editLabel(label)' class="btn btn-mini btn-edit" title="Edit Label"><i
                             class="icon-pencil" style="margin-top:0px;"></i></button>
-                    <button ng-click='confirmDeleteLabel(label)' class="btn btn-mini btn-delete hover-vis"
+                        <button ng-click='confirmDeleteLabel(label)' class="btn btn-mini btn-delete"
                             title="Delete Label"><i class="icon-trash" style="margin-top:0px;"></i></button>
+					</div>
                 </td>
             </tr>
             <tfoot>
             <tr>
-                <td colspan='2' style='text-align:right;'>
-                    <button class='btn btn-add btn-info' ng-click='editLabel()'><i
+                <td colspan='2' style='text-align:center;'>
+                    <button class='btn btn-add btn-info' ng-click='editLabel()' style='width:80%'><i
                             class='icon-white icon-plus-sign'> </i> Add Label
                     </button>
                 </td>

@@ -12,18 +12,20 @@
             <tr ng-repeat='group in licenseGroups | orderBy: group.name'>
                 <td style='height:24px'><span class='threat-level-{{group.threatLevel}} threat-box' style='width:8px'></span>&nbsp;<span style='vertical-align:middle'>{{group.name}}</span></td>
                 <td style='width:60px'>
-                    <button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit hover-vis'
+					<div class='btn-group'>
+                        <button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit'
                             title='Edit License Threat Group'><i class='icon-pencil' style='margin-top:0px;'></i>
-                    </button>
-                    <button ng-click='confirmDeleteLicenseGroup(group);' class='btn btn-mini btn-delete hover-vis'
+                        </button>
+                        <button ng-click='confirmDeleteLicenseGroup(group);' class='btn btn-mini btn-delete'
                             title='Delete License Threat Group'><i class='icon-trash' style='margin-top:0px;'></i>
-                    </button>
+                        </button>
+					</div>
                 </td>
             </tr>
             <tfoot>
             <tr>
                 <td colspan='2' style='text-align:center;'>
-                    <button class='btn btn-add btn-info' ng-click='editLicenseGroup();'><i
+                    <button class='btn btn-add btn-info' ng-click='editLicenseGroup();' width='80%'><i
                             class='icon-white icon-plus-sign'> </i> Add License Threat Group
                     </button>
                 </td>

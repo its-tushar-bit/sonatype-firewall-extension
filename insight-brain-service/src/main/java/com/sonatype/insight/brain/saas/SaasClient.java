@@ -30,6 +30,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
@@ -48,6 +49,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.GatewayTimeoutException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
@@ -188,7 +190,14 @@ public class SaasClient
             throw new IllegalArgumentException( "Unknown request method " + request.getMethod() );
         }
         populateRequest( request, cloudReq );
-        return client.execute( cloudReq );
+        try
+        {
+            return client.execute( cloudReq );
+        }
+        catch ( HttpHostConnectException e )
+        {
+            throw new GatewayTimeoutException( e.getMessage(), e );
+        }
     }
 
     private void populateRequest( final HttpServletRequest orig, HttpUriRequest req )

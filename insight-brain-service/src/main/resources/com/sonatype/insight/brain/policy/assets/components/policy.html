@@ -15,20 +15,20 @@
 				<button class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy($index)"><i
 					class="icon-trash" style="margin-top:0px;"></i></button>
 			</div>
-	        <div>
-				<div><b>{{policy.name}}</b></div>
-				<div><span style='vertical-align:middle'>Threat Level: </span><span class="threat-box threat-level-{{policy.threatLevel}}"></span></div>
-				<span ng-pluralize count='policy.summary.constraintCount'
-					when="{ '0': 'No constraints to be evaluated',
-							'1': '1 Constraint to be evaluated',
-							'other': '{{policy.summary.constraintCount}} Constraints to be evaluated'
-					}"></span>
-				{{policy.summary.constraints}}<br>
-				<span ng-pluralize count='policy.summary.actionCount'
+			<div>
+				<span class="threat-box threat-level-{{policy.threatLevel}}"></span>&nbsp;<b style='vertical-align:middle'>{{policy.name}}</b>
+			</div>
+			<div ng-pluralize count='policy.summary.constraintCount'
+				when="{ '0': 'No constraints to be evaluated',
+						'1': '1 Constraint to be evaluated',
+						'other': '{{policy.summary.constraintCount}} Constraints to be evaluated'
+				}"></div>
+			<div>
+				<div ng-pluralize count='policy.summary.actionCount'
 					when="{ '0': 'No actions assigned',
 							'1': '1 Action assigned',
 							'other': '{{policy.summary.actionCount}} Actions assigned'
-					}"></span>
+					}"></div>
 				<ul style="list-style:none;"><li>{{policy.summary.actions}}</li></ul>
 			</div>
 	    </div>

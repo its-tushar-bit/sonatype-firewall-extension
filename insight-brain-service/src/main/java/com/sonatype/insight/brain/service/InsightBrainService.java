@@ -71,10 +71,11 @@ public class InsightBrainService
     @Override
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
-        bootstrap.addBundle(
-            new AssetsBundle( "/com/sonatype/insight/brain/application/assets/", APPLICATION_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/application/assets/",
+                                               APPLICATION_ASSET_PATH, "index.html" ) );
         bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/assets/", BRAIN_ASSET_PATH ) );
-        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/com/sonatype/insight/brain/policy/assets/", POLICY_ASSET_PATH,
+                                               "index.html" ) );
 
         // workaround to let us set different defaults in the core HTTP configuration
         bootstrap.getObjectMapperFactory().registerModule( new HttpConfig.Module() );

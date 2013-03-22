@@ -73,13 +73,6 @@
                 $scope.processedPolicyAlerts.sort(function(policyA, policyB) {
                     return policyA.threatLevel > policyB.threatLevel ? -11 : policyA.threatLevel < policyB.threatLevel ? 1 : 0;
                 });
-
-                $timeout(function() {
-                    $('.cip-policy').each(function() {
-                        $(this).height($(this).closest('td').height());
-                    });
-                }, 0, false);
-
             }
         }
 

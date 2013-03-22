@@ -8,15 +8,13 @@
 			<th class="cip-policy-table-header-last"><div>Condition Value</div></th>
 		</thead>
 		<tr ng-repeat="policyAlert in processedPolicyAlerts">
-			<td align="left" valign="top" style="padding: 0px;">
-				<div class="cip-policy cip-policy-{{policyAlert.color}}">
-					<div>
-						<b>{{policyAlert.name}}</b>
-					</div>
-					<ul style="color: #555555;">
-						<li ng-repeat="action in policyAlert.actions"><i>{{action}}</i></li>
-					</ul>
+			<td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{policyAlert.color}}">
+				<div>
+					<b>{{policyAlert.name}}</b>
 				</div>
+				<ul style="color: #555555;">
+					<li ng-repeat="action in policyAlert.actions"><i>{{action}}</i></li>
+				</ul>
 			</td>
 			<td valign="top" align="left">
 				<div ng-repeat="constraint in policyAlert.constraints">

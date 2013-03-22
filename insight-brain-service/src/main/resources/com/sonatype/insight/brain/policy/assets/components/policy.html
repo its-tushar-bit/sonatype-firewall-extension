@@ -35,8 +35,8 @@
 				<div class="control-group">
 					<label class="control-label" style="width:100px;">Name</label>
 					<div class="controls form-inline" style="margin-left:120px;">
-						<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
-						<label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
+						<div style='float:right'>
+							<label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
 							<select
 								style="width:100px;"
 								class="threat-level threat-level-{{state.currentPolicy.threatLevel}}"
@@ -44,6 +44,8 @@
 								ng-change="validatePolicy()"
 								ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
 							</select>
+						</div>
+						<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
 					</div>
 				</div>
 				<div class="control-group">

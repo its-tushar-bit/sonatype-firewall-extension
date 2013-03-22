@@ -146,28 +146,28 @@ public class ApplicationResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public ApplicationManagementSummary newApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
+    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
                                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return newApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
+        return addApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
     }
 
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response newApplicationSync( @FormDataParam( "applicationName" ) String applicationPublicId,
+    public Response addApplicationSync( @FormDataParam( "applicationName" ) String applicationPublicId,
                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        newApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
+        addApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
     }
 
-    public ApplicationManagementSummary newApplicationInternal( String applicationPublicId,
+    public ApplicationManagementSummary addApplicationInternal( String applicationPublicId,
                                                                 InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )
         throws IOException

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -43,7 +44,7 @@ public class PolicyClient
     }
 
     @Override
-    public ServletResult handle( final String path, final String query )
+    public ServletResult handle( final String path, final Map<String, String[]> query )
         throws IOException
     {
         if ( path == null || path.length() == 0 )

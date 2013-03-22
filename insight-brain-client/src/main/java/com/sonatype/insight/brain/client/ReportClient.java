@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.http.entity.StringEntity;
 
@@ -68,7 +69,7 @@ public final class ReportClient
         return path( "rest/report", appId, scanId, "auditLog", path ).query( params ).get();
     }
 
-    public ServletResult handleRelativeToReport( final String path, final String query )
+    public ServletResult handleRelativeToReport( final String path, final Map<String, String[]> query )
         throws IOException
     {
         return handle( UrlUtils.appendUrlPaths( "rest/report", appId, scanId, path ), query );

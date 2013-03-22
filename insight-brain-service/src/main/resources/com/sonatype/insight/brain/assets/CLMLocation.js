@@ -10,7 +10,7 @@
 	function getQueryString(key) {
 		var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.search);
 		if (results) {
-			return results[1].replace('+', '%20');
+			return results[1].replace(/\+/g, '%20');
 		}
 	}
 

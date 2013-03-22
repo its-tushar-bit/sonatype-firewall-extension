@@ -46,6 +46,7 @@
 
         $scope.registerNewApplication = function () {
             $('#addApplicationModal').modal('show');
+            angular.element('#inputApplicationId').focus();
         };
 
         $scope.addApplication = function () {

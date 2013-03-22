@@ -108,13 +108,13 @@ public class ApplicationDAO
         super.delete( em, application );
     }
 
-    public void setIcon( String applicationId, File dataDirectory, InputStream imageStream )
+    public void setIcon( String applicationId, File iconDirectory, InputStream imageStream )
         throws IOException, IllegalArgumentException
     {
-        File iconDirectory = new File( dataDirectory, applicationId );
-        if ( !iconDirectory.exists() )
+        File applicationIconDirectory = new File( iconDirectory, applicationId );
+        if ( !applicationIconDirectory.exists() )
         {
-            iconDirectory.mkdir();
+            applicationIconDirectory.mkdir();
         }
 
         final int dimension = 24;
@@ -123,18 +123,18 @@ public class ApplicationDAO
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage( image, 0, 0, dimension, dimension, null );
         g.dispose();
-        ImageIO.write( resizedImage, "png", new File( iconDirectory, "icon24px.png" ) );
+        ImageIO.write( resizedImage, "png", new File( applicationIconDirectory, "icon24px.png" ) );
     }
 
-    public byte[] getIcon( String applicationId, File dataDirectory )
+    public byte[] getIcon( String applicationId, File iconDirectory )
         throws IOException
     {
-        File iconDirectory = new File( dataDirectory, applicationId );
-        if ( !iconDirectory.exists() )
+        File applicationIconDirectory = new File( iconDirectory, applicationId );
+        if ( !applicationIconDirectory.exists() )
         {
             return null;
         }
-        File iconFile = new File( iconDirectory, "icon24px.png" );
+        File iconFile = new File( applicationIconDirectory, "icon24px.png" );
         if ( !iconFile.exists() )
         {
             return null;

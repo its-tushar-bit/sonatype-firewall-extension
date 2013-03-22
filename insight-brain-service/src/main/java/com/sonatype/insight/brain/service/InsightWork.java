@@ -36,11 +36,6 @@ public class InsightWork
         return insightConfig.getSonatypeWork();
     }
 
-    public File getDataDir()
-    {
-        return new File( insightConfig.getSonatypeWork(), "data" );
-    }
-
     public File getScanDir( final String appId )
     {
         return new File( insightConfig.getSonatypeWork(), "scan/" + appId );
@@ -59,6 +54,11 @@ public class InsightWork
     public File getReportFile( final String appId, final String scanId )
     {
         return new File( getReportDir( appId, scanId ), "report.zip" );
+    }
+
+    public File getIconDir()
+    {
+        return new File( insightConfig.getSonatypeWork(), "data/application" );
     }
 
     public String findOwningAppId( final String scanId )

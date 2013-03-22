@@ -117,7 +117,7 @@ public class ApplicationResource
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getDataDir() );
+        byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
         return Response.ok( imageBytes ).build();
     }
 
@@ -196,7 +196,7 @@ public class ApplicationResource
         }
         try
         {
-            applicationDAO.setIcon( application.getId(), work.getDataDir(), uploadedInputStream );
+            applicationDAO.setIcon( application.getId(), work.getIconDir(), uploadedInputStream );
         }
         catch ( IllegalArgumentException e )
         {

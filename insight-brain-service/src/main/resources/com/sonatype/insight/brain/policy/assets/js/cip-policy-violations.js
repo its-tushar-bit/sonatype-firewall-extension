@@ -45,7 +45,7 @@
                     var actions = [];
                     angular.forEach(policyAlert.actions, function(action, actionIndex) {
                         angular.forEach($scope.actionTypes, function(actionType, actionTypeIndex) {
-                            if (actionType.id === action.actionTypeId && actions.indexOf(actionType.summary) == -1) {
+                            if (actionType.id === action.actionTypeId && jQuery.inArray(actionType.summary, actions) === -1) {
                                 actions.push(actionType.summary);
                                 return false;
                             }

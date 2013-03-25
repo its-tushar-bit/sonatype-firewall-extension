@@ -146,46 +146,64 @@ public class ApplicationResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationName" ) String applicationPublicId,
+    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationId,
+                                                        @FormDataParam( "applicationName" ) String applicationPublicId,
                                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
+        return addApplicationInternal( applicationId, applicationPublicId, uploadedInputStream, fileDetail );
     }
 
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response addApplicationSync( @FormDataParam( "applicationName" ) String applicationPublicId,
+    public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
+                                        @FormDataParam( "applicationName" ) String applicationPublicId,
                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addApplicationInternal( applicationPublicId, uploadedInputStream, fileDetail );
+        addApplicationInternal( applicationId, applicationPublicId, uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
     }
 
-    public ApplicationManagementSummary addApplicationInternal( String applicationPublicId,
+    public ApplicationManagementSummary addApplicationInternal( String applicationId, String applicationPublicId,
                                                                 InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
-        if ( applicationPublicId == null || applicationPublicId.isEmpty() )
+        if ( applicationId == null || applicationId.trim().isEmpty() )
+        {
+            throw new BadRequestException( "ID is required." );
+        }
+        if ( applicationId.matches( "[^a-zA-Z0-9 ]" ) )
+        {
+            throw new BadRequestException( "ID must be alpha numeric." );
+        }
+
+        Application application = applicationDAO.getById( applicationId );
+        if ( application != null )
+        {
+            throw new BadRequestException( applicationId + " is already used as an ID." );
+        }
+
+        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
         {
             throw new BadRequestException( "Name is required." );
         }
-        if ( !applicationPublicId.matches( "^[a-zA-Z0-9]+$" ) )
+        if ( applicationPublicId.matches( "[^a-zA-Z0-9 ]" ) )
         {
             throw new BadRequestException( "Name must be alpha numeric." );
         }
 
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        application = applicationDAO.getByPublicId( applicationPublicId );
         if ( application != null )
         {
-            throw new BadRequestException( applicationPublicId + " is already used." );
+            throw new BadRequestException( applicationPublicId + " is already used as a name." );
         }
+
         application = new Application();
         application.setPublicId( applicationPublicId );
         applicationDAO.insert( application );

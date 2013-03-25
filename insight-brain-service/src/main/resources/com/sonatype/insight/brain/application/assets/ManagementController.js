@@ -190,11 +190,19 @@
 		};
 
 		function applicationRules() {
+			var applicationId = angular.element('#applicationId');
+			$scope.applicationEditor.applicationId.$setValidity('required', applicationId.val());
+			$scope.applicationEditor.applicationId.$setValidity('alphaNumeric', !applicationId.val().match(/[^a-z0-9 ]/i));
+			var isDuplicateName = $scope.applications.some(function (application) {
+				return application.id === applicationId.val();
+			});
+			$scope.applicationEditor.applicationId.$setValidity('duplicate', !isDuplicateName);
+
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
-			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', applicationName.val().match(/^[a-z0-9]+$/i));
-			var isDuplicateName = $scope.applications.some(function (application) {
-				return application.publicId.replace(/\s/g, "") === applicationName.val().replace(/\s/g, "");
+			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^a-z0-9 ]/i));
+			isDuplicateName = $scope.applications.some(function (application) {
+				return application.publicId.replace(/\s/g, "").toLowerCase() === applicationName.val().replace(/\s/g, "").toLowerCase();
 			});
 			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
 		}

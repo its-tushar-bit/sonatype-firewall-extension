@@ -4,7 +4,22 @@
           name='applicationEditor' id='applicationEditor' class='form-horizontal' style='margin-bottom: 0px'>
         <div class='modal-body'>
             <div class='control-group'>
-                <label class='control-label' for='applicationName'>Name:</label>
+                <label class='control-label' for='applicationId'>ID</label>
+
+                <div class='controls'>
+                    <input id='applicationId' name='applicationId' type='text'
+                           class='input' maxlength='50' ng-model='selectedApplication.id'>
+                    <ul>
+                        <li ng-show="applicationEditor.applicationId.$error.required">ID is required.</li>
+                        <li ng-show="applicationEditor.applicationId.$error.alphaNumeric">Must be alpha numeric.</li>
+                        <li ng-show="applicationEditor.applicationId.$error.duplicate">
+                            {{selectedApplication.id}} is already used.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class='control-group'>
+                <label class='control-label' for='applicationName'>Name</label>
 
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
@@ -19,7 +34,7 @@
                 </div>
             </div>
             <div class='control-group'>
-                <label class='control-label' for='applicationIcon'>Icon:</label>
+                <label class='control-label' for='applicationIcon'>Icon</label>
 
                 <div class='controls'>
                     <div ng-show='hasIconSource'>

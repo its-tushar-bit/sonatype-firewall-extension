@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpHeaders;
@@ -19,7 +17,7 @@ import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
@@ -64,7 +62,7 @@ public class PolicyClient
         return super.handle( path, query );
     }
 
-    public List<PolicyAlert> evaluate( final String scanId, final Stage stage )
+    public PolicyEvaluation evaluate( final String scanId, final Stage stage )
         throws IOException
     {
         final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ) );
@@ -79,7 +77,7 @@ public class PolicyClient
         final String jsonResult = httpResult.text();
         try
         {
-            return Arrays.asList( JsonUtils.parse( jsonResult, PolicyAlert[].class ) );
+            return JsonUtils.parse( jsonResult, PolicyEvaluation.class );
         }
         catch ( final IOException e )
         {

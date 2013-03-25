@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
@@ -41,6 +40,7 @@ import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -70,8 +70,6 @@ public class PolicyEvaluateResource
 {
     public static final String SERVICE_PATH = "rest/policy/{applicationPublicId}/evaluate";
 
-    private static final Pattern CI_PLUGIN_PRE_2_6 = Pattern.compile( "Insight_CI_[A-Za-z]*/2\\.[45].*" );
-
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluateResource.class );
 
     private static Template policyThreatsTemplate;
@@ -93,9 +91,56 @@ public class PolicyEvaluateResource
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public List<PolicyAlert> evaluate( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                       @QueryParam( "scanId" ) final String scanId, final Stage stage,
-                                       @HeaderParam( "user-agent" ) final String userAgent )
+    public PolicyEvaluation eval( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                  @QueryParam( "scanId" ) final String scanId, final Stage stage,
+                                  @HeaderParam( "user-agent" ) final String userAgent )
+        throws IOException
+    {
+        final List<PolicyAlert> alerts = evaluate( applicationPublicId, scanId, stage, userAgent );
+
+        final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
+        for ( final PolicyAlert alert : alerts )
+        {
+            final PolicyFact trigger = alert.getTrigger();
+            final int policyThreatLevel = trigger.getThreatLevel();
+            for ( final ComponentFact component : trigger.getComponentFacts() )
+            {
+                final String id = component.getComponentId();
+                final Integer level = componentThreatLevels.get( id );
+                if ( level == null || level < policyThreatLevel )
+                {
+                    componentThreatLevels.put( id, policyThreatLevel );
+                }
+            }
+        }
+        int criticalCount = 0, severeCount = 0, moderateCount = 0;
+        for ( final int level : componentThreatLevels.values() )
+        {
+            if ( level >= 8 )
+            {
+                criticalCount++;
+            }
+            else if ( level >= 4 )
+            {
+                severeCount++;
+            }
+            else if ( level > 0 )
+            {
+                moderateCount++;
+            }
+        }
+
+        final PolicyEvaluation eval = new PolicyEvaluation();
+        eval.setAlerts( alerts );
+        eval.setAffectedComponentCount( componentThreatLevels.size() );
+        eval.setCriticalComponentCount( criticalCount );
+        eval.setSevereComponentCount( severeCount );
+        eval.setModerateComponentCount( moderateCount );
+        return eval;
+    }
+
+    private List<PolicyAlert> evaluate( final String applicationPublicId, final String scanId, final Stage stage,
+                                        final String userAgent )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}",
@@ -135,17 +180,6 @@ public class PolicyEvaluateResource
         if ( digest != null )
         {
             sendNotifications( applicationPublicId, appId, scanId, stage, digest );
-        }
-
-        if ( CI_PLUGIN_PRE_2_6.matcher( userAgent ).matches() )
-        {
-            /*
-             * Hide componentFacts list from older clients who can't deserialize it
-             */
-            for ( final PolicyAlert alert : alerts )
-            {
-                alert.getTrigger().setComponentFacts( null );
-            }
         }
 
         return alerts;

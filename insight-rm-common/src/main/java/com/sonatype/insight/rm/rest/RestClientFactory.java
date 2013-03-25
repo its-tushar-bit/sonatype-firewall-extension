@@ -7,10 +7,9 @@ package com.sonatype.insight.rm.rest;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ScanClient;
@@ -106,7 +105,7 @@ public class RestClientFactory
         }
 
         @Override
-        public List<PolicyAlert> evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
+        public PolicyEvaluation evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
             throws IOException
         {
             if ( stage == null )

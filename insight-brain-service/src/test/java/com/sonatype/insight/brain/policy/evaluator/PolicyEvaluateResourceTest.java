@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -111,10 +111,16 @@ public class PolicyEvaluateResourceTest
         // evaluate policy
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 7, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
+        List<PolicyAlert> policyAlerts = policyEval.getAlerts();
         Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 2, policyAlerts.length );
-        AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts[0] );
+        Assert.assertEquals( 2, policyAlerts.size() );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts.get( 0 ) );
 
         // check the calculated policy threat
         response = RestAccess.get( getThreatsURL( applicationPublicId, scanId ) );
@@ -136,10 +142,12 @@ public class PolicyEvaluateResourceTest
         // evaluate policy again
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        policyAlerts = policyEval.getAlerts();
         Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 2, policyAlerts.length );
-        AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts[0] );
+        Assert.assertEquals( 2, policyAlerts.size() );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts.get( 0 ) );
 
         // notification message should not have been sent since the results are the same
         Assert.assertTrue( messagesA.isEmpty() );
@@ -181,15 +189,17 @@ public class PolicyEvaluateResourceTest
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        List<PolicyAlert> policyAlerts = policyEval.getAlerts();
         Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.length );
-        AbstractPolicyEvaluationTest.assertFactCounts( 1, 3, policyAlerts[0] );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 3, policyAlerts.get( 0 ) );
         Component expectedComponent = new Component( "org.webjars", "select2", "3.2", MatchState.EXACT );
         expectedComponent.setHash( "f2e35e4a21f07d25710f" );
         AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponent, policy1.getId(), "Policy 1",
                                                                 FailActionType.ID, constraint1.getId(), "Constraint 1",
-                                                                LicenseConditionType.ID, Arrays.asList( policyAlerts ) );
+                                                                LicenseConditionType.ID, policyAlerts );
     }
 
     @Test
@@ -243,12 +253,12 @@ public class PolicyEvaluateResourceTest
 
         Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        PolicyAlert[] policyAlerts = JsonHelpers.fromJson( response.getResponseBody(), PolicyAlert[].class );
+        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        List<PolicyAlert> policyAlerts = policyEval.getAlerts();
         Map<String, Object> model =
-            PolicyEvaluateResource.createPolicyMailModel( serverUrl, applicationPublicId, scanId, stage,
-                                                          Arrays.asList( policyAlerts ) );
+            PolicyEvaluateResource.createPolicyMailModel( serverUrl, applicationPublicId, scanId, stage, policyAlerts );
         Assert.assertNotNull( model );
-        Assert.assertEquals( Arrays.asList( policyAlerts ), model.get( "policyAlerts" ) );
+        Assert.assertEquals( policyAlerts, model.get( "policyAlerts" ) );
         Assert.assertEquals( serverUrl, model.get( "serverUrl" ) );
         Assert.assertEquals( serverUrl + ReportResource.getReportPath( applicationPublicId, scanId ),
                              model.get( "detailedReportUrl" ) );

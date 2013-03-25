@@ -7,10 +7,9 @@ package com.sonatype.insight.rm.rest;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 
 public interface RestClient
 {
@@ -41,7 +40,7 @@ public interface RestClient
     interface Scan
     {
 
-        List<PolicyAlert> evaluatePolicies( Stage stage )
+        PolicyEvaluation evaluatePolicies( Stage stage )
             throws IOException;
 
     }

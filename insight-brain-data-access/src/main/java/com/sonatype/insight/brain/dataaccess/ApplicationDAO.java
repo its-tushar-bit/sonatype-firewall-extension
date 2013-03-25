@@ -117,13 +117,13 @@ public class ApplicationDAO
             applicationIconDirectory.mkdir();
         }
 
-        final int dimension = 24;
+        final int dimension = 36;
         Image image = ImageIO.read( imageStream );
         BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_BYTE_INDEXED );
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage( image, 0, 0, dimension, dimension, null );
         g.dispose();
-        ImageIO.write( resizedImage, "png", new File( applicationIconDirectory, "icon24px.png" ) );
+        ImageIO.write( resizedImage, "png", new File( applicationIconDirectory, "icon36px.png" ) );
     }
 
     public byte[] getIcon( String applicationId, File iconDirectory )
@@ -134,7 +134,7 @@ public class ApplicationDAO
         {
             return null;
         }
-        File iconFile = new File( applicationIconDirectory, "icon24px.png" );
+        File iconFile = new File( applicationIconDirectory, "icon36px.png" );
         if ( !iconFile.exists() )
         {
             return null;

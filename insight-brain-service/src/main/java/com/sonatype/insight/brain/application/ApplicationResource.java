@@ -208,25 +208,29 @@ public class ApplicationResource
         application.setPublicId( applicationPublicId );
         applicationDAO.insert( application );
 
-        if ( fileDetail.getSize() > 5242880 )
+        final long fileSize = fileDetail.getSize();
+        if ( fileSize > 0 )
         {
-            throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
-        }
-        try
-        {
-            applicationDAO.setIcon( application.getId(), work.getIconDir(), uploadedInputStream );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            log.debug( "Invalid icon uploaded for new application " );
-            applicationDAO.delete( application );
-            throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
-        }
-        catch ( IOException e )
-        {
-            log.debug( "Invalid icon uploaded for new application " );
-            applicationDAO.delete( application );
-            throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+            if ( fileSize > 5242880 )
+            {
+                throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+            }
+            try
+            {
+                applicationDAO.setIcon( application.getId(), work.getIconDir(), uploadedInputStream );
+            }
+            catch ( IllegalArgumentException e )
+            {
+                log.debug( "Invalid icon uploaded for new application " );
+                applicationDAO.delete( application );
+                throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+            }
+            catch ( IOException e )
+            {
+                log.debug( "Invalid icon uploaded for new application " );
+                applicationDAO.delete( application );
+                throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+            }
         }
 
         return getApplicationManagementSummary( applicationPublicId );

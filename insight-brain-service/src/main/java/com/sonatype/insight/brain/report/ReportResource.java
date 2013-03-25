@@ -145,7 +145,7 @@ public class ReportResource
 
         final ResponseBuilder response = Response.ok();
 
-        Report.printPdf( reportFile, StringUtils.defaultString( projectName, "insight" ), buildNumber, response );
+        Report.printPdf( reportFile, StringUtils.defaultString( projectName, "clm" ), buildNumber, response );
 
         return response.build();
     }

@@ -146,6 +146,7 @@ public class ApplicationResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
+    @Produces( MediaType.APPLICATION_JSON )
     public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationId,
                                                         @FormDataParam( "applicationName" ) String applicationPublicId,
                                                         @FormDataParam( "file" ) InputStream uploadedInputStream,

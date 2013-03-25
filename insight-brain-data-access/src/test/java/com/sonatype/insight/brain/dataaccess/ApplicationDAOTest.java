@@ -40,15 +40,18 @@ public class ApplicationDAOTest
         Assert.assertEquals( 2, licenseThreatGroups.get( 3 ).getThreatLevel() );
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
-            Assert.assertTrue( licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() ).size() > 0 );
+            Assert.assertTrue(
+                licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() ).size() > 0 );
         }
 
         // Update
         Application application = applicationDAO.getById( applicationId );
         application.setPublicId( "ApplicationDAOTest New public id" );
+        application.setName( "ApplicationDAOTest New name" );
         applicationDAO.update( application );
         application = applicationDAO.getById( applicationId );
         Assert.assertEquals( "ApplicationDAOTest New public id", application.getPublicId() );
+        Assert.assertEquals( "ApplicationDAOTest New name", application.getName() );
 
         // Get All
         List<Application> applications = applicationDAO.getAll();
@@ -91,5 +94,27 @@ public class ApplicationDAOTest
         application = applicationDAO.getByPublicId( appPublicId.toUpperCase( Locale.ENGLISH ) );
         Assert.assertNotNull( application );
         Assert.assertEquals( applicationId, application.getId() );
+    }
+
+    @Test
+    public void testNameIsCaseAndWhitespaceInsensitive()
+    {
+        String appName = "test string With Case and Whitespace";
+
+        Application application = new Application();
+        application.setName( appName );
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        applicationDAO.insert( application );
+
+        Assert.assertEquals( appName, application.getName() );
+        Assert.assertEquals( appName.replaceAll( "\\s", "" ).toLowerCase(),
+                             application.getNameLowercaseNoWhitespace() );
+
+        String appNameCaseAndWhiteSpace = "TEST String      With    cASE and      whitespace";
+        application = applicationDAO.getByName( appNameCaseAndWhiteSpace );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( appNameCaseAndWhiteSpace.replaceAll( "\\s", "" ).toLowerCase(),
+                             application.getNameLowercaseNoWhitespace() );
+        Assert.assertEquals( appName, application.getName() );
     }
 }

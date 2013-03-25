@@ -81,6 +81,31 @@ public class ApplicationDAO
         return application;
     }
 
+    private Application getByName( EntityManager em, String name )
+    {
+        if ( name == null || name.trim().isEmpty() )
+        {
+            throw new DataAccessException( "The application name cannot be null or empty." );
+        }
+        // Application Name is whitespace and case insensitive
+        name = name.replaceAll( "\\s", "" ).toLowerCase();
+        String sQuery = "SELECT entity FROM Application entity WHERE entity.name_lowercase_no_whitespace=?1";
+        return get( em, sQuery, name );
+    }
+
+    public Application getByName( String name )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByName( em, name );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
     public List<Application> getAll()
     {
         String sQuery = "SELECT entity FROM Application entity" + //

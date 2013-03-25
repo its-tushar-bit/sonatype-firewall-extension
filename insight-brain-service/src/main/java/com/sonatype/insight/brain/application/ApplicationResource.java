@@ -170,43 +170,39 @@ public class ApplicationResource
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
     }
 
-    public ApplicationManagementSummary addApplicationInternal( String applicationId, String applicationPublicId,
+    public ApplicationManagementSummary addApplicationInternal( String applicationPublicId, String applicationName,
                                                                 InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
-        if ( applicationId == null || applicationId.trim().isEmpty() )
+        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
         {
             throw new BadRequestException( "ID is required." );
         }
-        if ( applicationId.matches( "[^a-zA-Z0-9 ]" ) )
-        {
-            throw new BadRequestException( "ID must be alpha numeric." );
-        }
 
-        Application application = applicationDAO.getById( applicationId );
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
         if ( application != null )
         {
-            throw new BadRequestException( applicationId + " is already used as an ID." );
+            throw new BadRequestException( applicationPublicId + " is already used as an ID." );
         }
 
-        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
+        if ( applicationName == null || applicationName.trim().isEmpty() )
         {
             throw new BadRequestException( "Name is required." );
         }
-        if ( applicationPublicId.matches( "[^a-zA-Z0-9 ]" ) )
+        if ( applicationName.matches( "[^a-zA-Z0-9 ]" ) )
         {
             throw new BadRequestException( "Name must be alpha numeric." );
         }
 
-        application = applicationDAO.getByPublicId( applicationPublicId );
+        application = applicationDAO.getByName( applicationName );
         if ( application != null )
         {
-            throw new BadRequestException( applicationPublicId + " is already used as a name." );
+            throw new BadRequestException( applicationName + " is already used as a name." );
         }
 
         application = new Application();
-        application.setPublicId( applicationPublicId );
+        application.setPublicId( applicationName );
         applicationDAO.insert( application );
 
         final long fileSize = fileDetail.getSize();
@@ -234,7 +230,7 @@ public class ApplicationResource
             }
         }
 
-        return getApplicationManagementSummary( applicationPublicId );
+        return getApplicationManagementSummary( applicationName );
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( String applicationPublicId )

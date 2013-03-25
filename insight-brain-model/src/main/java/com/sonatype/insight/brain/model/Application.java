@@ -15,19 +15,25 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@Table( name = "application" )
+@Table(name = "application")
 public class Application
     implements HasStringId
 {
     @Id
-    @Column( name = "application_id" )
+    @Column(name = "application_id")
     private String id;
 
-    @Column( name = "public_id" )
+    @Column(name = "public_id")
     private String publicId;
 
-    @Column( name = "public_id_lowercase" )
+    @Column(name = "public_id_lowercase")
     private String publicIdLowercase;
+
+    @Column( name = "name" )
+    private String name;
+
+    @Column( name = "name_lowercase_no_whitespace" )
+    private String nameLowercaseNoWhitespace;
 
     @Override
     public String getId()
@@ -65,14 +71,41 @@ public class Application
         return publicIdLowercase;
     }
 
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        if ( name != null )
+        {
+            name = name.trim();
+            nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase();
+        }
+        this.name = name;
+    }
+
+    public String getNameLowercaseNoWhitespace()
+    {
+        return nameLowercaseNoWhitespace;
+    }
+
     /**
      * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-     * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
-     * directly via reflection, possibly setting it to an incorrect value.
-     * 
+     * publicIdLowercase, nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
+     * publicIdLowercase, nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
+     *
      * @deprecated This method should not be used explicitly.
      */
     public void setPublicIdLowercase( String publicIdLowercase )
+    {
+    }
+
+    /**
+     * @deprecated This method should not be used explicitly.
+     */
+    public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
     {
     }
 }

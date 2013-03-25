@@ -18,7 +18,7 @@ http:
   adminPort: 8071
 
 # Notification mail settings.
-mail:
+#mail:
 
   # The host running the SMTP server to use. 
   #hostname: "127.0.0.1"
@@ -30,7 +30,7 @@ mail:
   #systemEmail: "SonatypeCLM@localhost"
 
 # Proxy settings.
-proxy:
+#proxy:
 
   # The host running the proxy server to use.
   #hostname: "127.0.0.1"

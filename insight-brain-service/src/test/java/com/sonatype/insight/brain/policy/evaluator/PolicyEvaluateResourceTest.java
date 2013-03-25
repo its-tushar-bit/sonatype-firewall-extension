@@ -164,7 +164,7 @@ public class PolicyEvaluateResourceTest
         File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
         saasReportFile.delete();
 
-        Constraint constraint1 = new Constraint( null /* constyraintId */, "Constraint 1", LogicalOperator.AND );
+        Constraint constraint1 = new Constraint( null /* constraintId */, "Constraint 1", LogicalOperator.AND );
         Condition condition1 = new Condition( LicenseConditionType.ID, "is", "GPL-2.0" );
         constraint1.addCondition( condition1 );
 

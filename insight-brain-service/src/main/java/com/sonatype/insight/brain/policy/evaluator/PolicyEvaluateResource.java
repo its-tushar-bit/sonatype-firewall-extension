@@ -91,56 +91,9 @@ public class PolicyEvaluateResource
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public PolicyEvaluation eval( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                  @QueryParam( "scanId" ) final String scanId, final Stage stage,
-                                  @HeaderParam( "user-agent" ) final String userAgent )
-        throws IOException
-    {
-        final List<PolicyAlert> alerts = evaluate( applicationPublicId, scanId, stage, userAgent );
-
-        final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
-        for ( final PolicyAlert alert : alerts )
-        {
-            final PolicyFact trigger = alert.getTrigger();
-            final int policyThreatLevel = trigger.getThreatLevel();
-            for ( final ComponentFact component : trigger.getComponentFacts() )
-            {
-                final String id = component.getComponentId();
-                final Integer level = componentThreatLevels.get( id );
-                if ( level == null || level < policyThreatLevel )
-                {
-                    componentThreatLevels.put( id, policyThreatLevel );
-                }
-            }
-        }
-        int criticalCount = 0, severeCount = 0, moderateCount = 0;
-        for ( final int level : componentThreatLevels.values() )
-        {
-            if ( level >= 8 )
-            {
-                criticalCount++;
-            }
-            else if ( level >= 4 )
-            {
-                severeCount++;
-            }
-            else if ( level > 0 )
-            {
-                moderateCount++;
-            }
-        }
-
-        final PolicyEvaluation eval = new PolicyEvaluation();
-        eval.setAlerts( alerts );
-        eval.setAffectedComponentCount( componentThreatLevels.size() );
-        eval.setCriticalComponentCount( criticalCount );
-        eval.setSevereComponentCount( severeCount );
-        eval.setModerateComponentCount( moderateCount );
-        return eval;
-    }
-
-    private List<PolicyAlert> evaluate( final String applicationPublicId, final String scanId, final Stage stage,
-                                        final String userAgent )
+    public PolicyEvaluation evaluate( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                      @QueryParam( "scanId" ) final String scanId, final Stage stage,
+                                      @HeaderParam( "user-agent" ) final String userAgent )
         throws IOException
     {
         log.debug( "Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}",
@@ -182,7 +135,51 @@ public class PolicyEvaluateResource
             sendNotifications( applicationPublicId, appId, scanId, stage, digest );
         }
 
-        return alerts;
+        final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+        policyEvaluation.setAlerts( alerts );
+        calculateCounters( policyEvaluation );
+
+        return policyEvaluation;
+    }
+
+    private void calculateCounters( PolicyEvaluation policyEvaluation )
+    {
+        final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
+        for ( final PolicyAlert alert : policyEvaluation.getAlerts() )
+        {
+            final PolicyFact trigger = alert.getTrigger();
+            final int policyThreatLevel = trigger.getThreatLevel();
+            for ( final ComponentFact component : trigger.getComponentFacts() )
+            {
+                final String id = component.getComponentId();
+                final Integer level = componentThreatLevels.get( id );
+                if ( level == null || level < policyThreatLevel )
+                {
+                    componentThreatLevels.put( id, policyThreatLevel );
+                }
+            }
+        }
+        int criticalCount = 0, severeCount = 0, moderateCount = 0;
+        for ( final int level : componentThreatLevels.values() )
+        {
+            if ( level >= 8 )
+            {
+                criticalCount++;
+            }
+            else if ( level >= 4 )
+            {
+                severeCount++;
+            }
+            else if ( level >= 1 )
+            {
+                moderateCount++;
+            }
+        }
+
+        policyEvaluation.setAffectedComponentCount( componentThreatLevels.size() );
+        policyEvaluation.setCriticalComponentCount( criticalCount );
+        policyEvaluation.setSevereComponentCount( severeCount );
+        policyEvaluation.setModerateComponentCount( moderateCount );
     }
 
     protected List<PolicyAlert> findOldPolicyAlerts( final String applicationPublicId, String appId,

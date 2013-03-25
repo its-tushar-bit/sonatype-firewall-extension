@@ -171,7 +171,7 @@ public class PolicyEvaluateResourceTest
         Action action = new Action( FailActionType.ID );
 
         Policy policy1 = new Policy( null /* policyId */, "Policy 1" );
-        policy1.setThreatLevel( 8 );
+        policy1.setThreatLevel( 5 );
         policy1.addConstraint( constraint1 );
         policy1.addAction( BuildStageType.ID, action );
         Response response = addPolicy( applicationPublicId, policy1 );
@@ -191,6 +191,10 @@ public class PolicyEvaluateResourceTest
         assertResponseStatus( 200, response );
         PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
         Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 3, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 3, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
         List<PolicyAlert> policyAlerts = policyEval.getAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );

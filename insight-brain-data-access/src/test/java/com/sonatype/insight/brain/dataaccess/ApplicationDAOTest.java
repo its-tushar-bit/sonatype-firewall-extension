@@ -103,6 +103,7 @@ public class ApplicationDAOTest
 
         Application application = new Application();
         application.setName( appName );
+        application.setPublicId( "test public id" );
         ApplicationDAO applicationDAO = new ApplicationDAO();
         applicationDAO.insert( application );
 

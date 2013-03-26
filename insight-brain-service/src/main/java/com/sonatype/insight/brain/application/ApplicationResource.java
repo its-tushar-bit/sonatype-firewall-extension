@@ -191,7 +191,7 @@ public class ApplicationResource
             throw new BadRequestException( "Name is required." );
         }
         // Use explicit international characters to ensure the server response mimics the client
-        if ( applicationName.toLowerCase().matches( ".*[^/-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ].*" ) )
+        if ( applicationName.toLowerCase().matches( ".*[^-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ].*" ) )
         {
             throw new BadRequestException( "Name must be alpha numeric." );
         }

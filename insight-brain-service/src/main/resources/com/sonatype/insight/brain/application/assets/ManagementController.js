@@ -205,7 +205,7 @@
 
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
-			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^/-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ]/i));
+			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ]/i));
 			isDuplicateName = $scope.applications.some(function (application) {
 				return application.id !== $scope.selectedApplication.id && application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
 			});

@@ -190,9 +190,15 @@ public class ApplicationResource
         {
             throw new BadRequestException( "Name is required." );
         }
-        if ( applicationName.matches( "[^a-zA-Z0-9 ]" ) )
+        // Use explicit international characters to ensure the server response mimics the client
+        if ( applicationName.toLowerCase().matches( ".*[^a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ].*" ) )
         {
             throw new BadRequestException( "Name must be alpha numeric." );
+        }
+        if ( applicationName.matches( "^ |.* {2,}.*| $" ) )
+        {
+            throw new BadRequestException(
+                "Name must not have leading or trailing spaces, or have two spaces in a row" );
         }
 
         application = applicationDAO.getByName( applicationName );

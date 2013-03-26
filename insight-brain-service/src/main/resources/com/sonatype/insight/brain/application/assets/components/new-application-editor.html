@@ -23,10 +23,14 @@
 
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
-                           class='input' maxlength='50' ng-model='selectedApplication.name'>
+                           class='input' maxlength='50' ng-model='selectedApplication.name'
+                           onkeyup='angular.element(this).scope().applicationRules()'>
                     <ul>
                         <li ng-show="applicationEditor.applicationName.$error.required">Name is required.</li>
                         <li ng-show="applicationEditor.applicationName.$error.alphaNumeric">Must be alpha numeric.</li>
+                        <li ng-show="applicationEditor.applicationName.$error.spaces">Name must not have leading or
+                            trailing spaces, or have two spaces in a row
+                        </li>
                         <li ng-show="applicationEditor.applicationName.$error.duplicate">
                             {{selectedApplication.name}} is already used.
                         </li>

@@ -189,20 +189,29 @@
 			return true;
 		};
 
+		// This needs to be explicitly called by key up on the name rule as Angular ignores change events for leading
+		// and trailing spaces. This is fixed in Angular 1.1.1 with ng-trim directive
+		$scope.applicationRules = function () {
+			$scope.$apply(function () {
+				applicationRules();
+			});
+		};
+
 		function applicationRules() {
 			var applicationId = angular.element('#applicationId');
 			$scope.applicationEditor.applicationId.$setValidity('required', applicationId.val());
 			$scope.applicationEditor.applicationId.$setValidity('alphaNumeric', !applicationId.val().match(/[^a-z0-9 ]/i));
 			var isDuplicateName = $scope.applications.some(function (application) {
-				return application.id === applicationId.val();
+				return application.publicId === applicationId.val();
 			});
 			$scope.applicationEditor.applicationId.$setValidity('duplicate', !isDuplicateName);
 
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
 			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^a-z0-9 ]/i));
+			$scope.applicationEditor.applicationName.$setValidity('spaces', !applicationName.val().match(/^ | {2,}| $/));
 			isDuplicateName = $scope.applications.some(function (application) {
-				return application.publicId.replace(/\s/g, "").toLowerCase() === applicationName.val().replace(/\s/g, "").toLowerCase();
+				return application.name.toLowerCase() === applicationName.val().toLowerCase();
 			});
 			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
 		}

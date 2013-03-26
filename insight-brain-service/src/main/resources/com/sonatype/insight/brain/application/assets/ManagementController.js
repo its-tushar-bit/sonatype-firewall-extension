@@ -44,10 +44,13 @@
 			return names;
 		};
 
-		$scope.registerNewApplication = function () {
+		$scope.editApplication = function (application) {
 			$scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
 
-			$scope.selectedApplication = { id: null, publicId: null };
+			$scope.selectedApplication = { id: null, publicId: null, name: null };
+			if (application) {
+				$scope.selectedApplication = angular.extend($scope.selectedApplication, application);
+			}
 
 			$('#newApplicationModal').modal('show');
 		};
@@ -106,7 +109,7 @@
 		};
 	});
 
-	managementModule.controller('NewApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
+	managementModule.controller('EditApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.getAddApplicationSyncUrl();
 
@@ -196,7 +199,7 @@
 			var applicationId = angular.element('#applicationId');
 			$scope.applicationEditor.applicationId.$setValidity('required', applicationId.val());
 			var isDuplicateName = $scope.applications.some(function (application) {
-				return application.publicId === applicationId.val();
+				return application.id !== $scope.selectedApplication.id && application.publicId === applicationId.val();
 			});
 			$scope.applicationEditor.applicationId.$setValidity('duplicate', !isDuplicateName);
 
@@ -204,14 +207,14 @@
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
 			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^/-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ]/i));
 			isDuplicateName = $scope.applications.some(function (application) {
-				return application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
+				return application.id !== $scope.selectedApplication.id && application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
 			});
 			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
 
 			// Hide the spaces error when needed. We only show this error on saving to reduce gui clutter
 			if ($scope.applicationEditor.applicationName.$error.spaces) {
 				var whitespacePass = applicationName.val().match(/^ | {2,}| $/);
-				$scope.suggestedApplicationName = $scope.selectedApplication.name.replace(/^ | $/g, '').replace(/ {2,}/, ' ');
+				$scope.suggestedApplicationName = ($scope.selectedApplication.name || '').replace(/^ | $/g, '').replace(/ {2,}/, ' ');
 				$scope.applicationEditor.applicationName.$setValidity('spaces', !whitespacePass);
 			}
 		}
@@ -220,7 +223,7 @@
 			var applicationName = angular.element('#applicationName');
 			var whitespacePass = applicationName.val().match(/^ | {2,}| $/);
 			$scope.$apply(function () {
-				$scope.suggestedApplicationName = $scope.selectedApplication.name.replace(/^ | $/g, '').replace(/ {2,}/, ' ');
+				$scope.suggestedApplicationName = ($scope.selectedApplication.name || '').replace(/^ | $/g, '').replace(/ {2,}/, ' ');
 				$scope.applicationEditor.applicationName.$setValidity('spaces', !whitespacePass);
 			});
 			return !whitespacePass;

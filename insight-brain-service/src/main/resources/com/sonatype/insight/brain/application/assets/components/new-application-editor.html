@@ -1,25 +1,8 @@
-<div ng-controller='NewApplicationController'>
+<div ng-controller='EditApplicationController'>
     <form action='{{addApplication}}' method='post' enctype='multipart/form-data'
           onsubmit='return angular.element(this).scope().saveClick()'
           name='applicationEditor' id='applicationEditor' class='form-horizontal' style='margin-bottom: 0px'>
         <div class='modal-body'>
-            <div class='control-group' ng-class='{ error : applicationEditor.applicationId.$error.required
-                    || applicationEditor.applicationId.$error.alphaNumeric || applicationEditor.applicationId.$error.duplicate }'>
-                <label class='control-label' for='applicationId'>ID</label>
-
-                <div class='controls'>
-                    <input id='applicationId' name='applicationId' type='text'
-                           class='input' maxlength='50' ng-model='selectedApplication.publicId'>
-
-                    <div>
-                        <span ng-show="applicationEditor.applicationId.$error.required" class="help-inline">ID is required.</span>
-                        <span ng-show="applicationEditor.applicationId.$error.alphaNumeric" class="help-inline">Must be` alpha numeric.</span>
-                        <span ng-show="applicationEditor.applicationId.$error.duplicate" class="help-inline">
-                            {{selectedApplication.publicId}} is already used.
-                        </span>
-                    </div>
-                </div>
-            </div>
             <div class='control-group' ng-class='{ error : applicationEditor.applicationName.$error.required
                     || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces
                     || applicationEditor.applicationName.$error.duplicate }'>
@@ -37,6 +20,23 @@
                         </span>
                         <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">
                             {{selectedApplication.name}} is already used.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class='control-group' ng-class='{ error : applicationEditor.applicationId.$error.required
+                    || applicationEditor.applicationId.$error.alphaNumeric || applicationEditor.applicationId.$error.duplicate }'>
+                <label class='control-label' for='applicationId'>ID</label>
+
+                <div class='controls'>
+                    <input id='applicationId' name='applicationId' type='text'
+                           class='input' maxlength='50' ng-model='selectedApplication.publicId'>
+
+                    <div>
+                        <span ng-show="applicationEditor.applicationId.$error.required" class="help-inline">ID is required.</span>
+                        <span ng-show="applicationEditor.applicationId.$error.alphaNumeric" class="help-inline">Must be` alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationId.$error.duplicate" class="help-inline">
+                            {{selectedApplication.publicId}} is already used.
                         </span>
                     </div>
                 </div>

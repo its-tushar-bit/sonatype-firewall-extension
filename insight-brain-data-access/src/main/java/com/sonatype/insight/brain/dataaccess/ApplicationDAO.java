@@ -89,7 +89,7 @@ public class ApplicationDAO
         }
         // Application Name is whitespace and case insensitive
         name = name.replaceAll( "\\s", "" ).toLowerCase();
-        String sQuery = "SELECT entity FROM Application entity WHERE entity.name_lowercase_no_whitespace=?1";
+        String sQuery = "SELECT entity FROM Application entity WHERE entity.nameLowercaseNoWhitespace=?1";
         return get( em, sQuery, name );
     }
 

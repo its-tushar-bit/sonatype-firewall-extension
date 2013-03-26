@@ -109,7 +109,7 @@
 		};
 	});
 
-	managementModule.controller('EditApplicationController', ['$scope', 'hudson', 'CLMLocations', function ($scope, hudson, clmLocations) {
+	managementModule.controller('EditApplicationController', ['$scope', 'hudson', 'CLMLocations', 'regexFactory', function ($scope, hudson, clmLocations, regexFactory) {
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.getAddApplicationSyncUrl();
 
@@ -195,6 +195,13 @@
 			return true;
 		};
 
+		// Angular automatically trims input so when removing leading or trailing spaces, the rules are not automatically fired
+		$scope.applicationRules = function () {
+			$scope.$apply(function () {
+				liveApplicationRules();
+			});
+		};
+
 		function liveApplicationRules() {
 			var applicationId = angular.element('#applicationId');
 			$scope.applicationEditor.applicationId.$setValidity('required', applicationId.val());
@@ -205,7 +212,7 @@
 
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
-			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ]/i));
+			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i')));
 			isDuplicateName = $scope.applications.some(function (application) {
 				return application.id !== $scope.selectedApplication.id && application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
 			});

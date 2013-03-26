@@ -16,7 +16,7 @@ describe('AngularCommon', function () {
 	});
 
 	it('provides regex to match unicode characters', function () {
-		var allLettersRegex = regex.allLetters();
+		var allLettersRegex = new RegExp('[' + regex.allLetters().source + ']');
 		expect('a'.match(allLettersRegex)).toBeTruthy();
 		expect('ñ'.match(allLettersRegex)).toBeTruthy();
 		expect('Ҙ'.match(allLettersRegex)).toBeTruthy();

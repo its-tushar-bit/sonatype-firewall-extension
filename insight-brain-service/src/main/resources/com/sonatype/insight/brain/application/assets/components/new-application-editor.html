@@ -10,7 +10,8 @@
 
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
-                           class='input' maxlength='50' ng-model='selectedApplication.name'>
+                           class='input' maxlength='50' ng-model='selectedApplication.name'
+                           onkeyup='angular.element(this).scope().fireLiveApplicationRules()'>
 
                     <div>
                         <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required.</span>

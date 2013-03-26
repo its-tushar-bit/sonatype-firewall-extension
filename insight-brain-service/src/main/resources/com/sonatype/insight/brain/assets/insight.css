@@ -85,15 +85,6 @@ tr:hover .hover-invis {
     filter: alpha(opacity = 40);
 }
 
-/* Bootstap Overrides */
-.form-horizontal .controls {
-    margin-left: 140px;
-}
-
-.form-horizontal .control-label {
-    width: 120px;
-}
-
 /* Page content */
 html, body, .page-content {
     height: 100%;

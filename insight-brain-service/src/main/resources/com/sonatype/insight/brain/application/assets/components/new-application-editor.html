@@ -10,12 +10,14 @@
                 <div class='controls'>
                     <input id='applicationId' name='applicationId' type='text'
                            class='input' maxlength='50' ng-model='selectedApplication.publicId'>
-                    <span ng-show="applicationEditor.applicationId.$error.required"
-                          class="help-inline">ID is required.</span>
-                    <span ng-show="applicationEditor.applicationId.$error.alphaNumeric" class="help-inline">Must be` alpha numeric.</span>
-                    <span ng-show="applicationEditor.applicationId.$error.duplicate" class="help-inline">
-                        {{selectedApplication.publicId}} is already used.
-                    </span>
+
+                    <div>
+                        <span ng-show="applicationEditor.applicationId.$error.required" class="help-inline">ID is required.</span>
+                        <span ng-show="applicationEditor.applicationId.$error.alphaNumeric" class="help-inline">Must be` alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationId.$error.duplicate" class="help-inline">
+                            {{selectedApplication.publicId}} is already used.
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class='control-group' ng-class='{ error : applicationEditor.applicationName.$error.required
@@ -26,14 +28,17 @@
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
                            class='input' maxlength='50' ng-model='selectedApplication.name'>
-                    <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required.</span>
-                    <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
-                    <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">Name must not have leading or
-                        trailing spaces, or have two spaces in a row. Suggested name: {{suggestedApplicationName}}
-                    </span>
-                    <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">
-                        {{selectedApplication.name}} is already used.
-                    </span>
+
+                    <div>
+                        <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required.</span>
+                        <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">Name must not have leading or
+                            trailing spaces, or have two spaces in a row. Suggested name: {{suggestedApplicationName}}
+                        </span>
+                        <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">
+                            {{selectedApplication.name}} is already used.
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class='control-group'>

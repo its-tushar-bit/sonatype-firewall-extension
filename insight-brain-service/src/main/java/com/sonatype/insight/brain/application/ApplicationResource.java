@@ -207,17 +207,18 @@ public class ApplicationResource
             throw new BadRequestException( applicationName + " is already used as a name." );
         }
 
+        final long fileSize = fileDetail.getSize();
+        if ( fileSize > 5242880 )
+        {
+            throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+        }
+
         application = new Application();
         application.setPublicId( applicationName );
         applicationDAO.insert( application );
 
-        final long fileSize = fileDetail.getSize();
         if ( fileSize > 0 )
         {
-            if ( fileSize > 5242880 )
-            {
-                throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
-            }
             try
             {
                 applicationDAO.setIcon( application.getId(), work.getIconDir(), uploadedInputStream );

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.application;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -191,7 +193,7 @@ public class ApplicationResource
             throw new BadRequestException( "Name is required." );
         }
         // Use explicit international characters to ensure the server response mimics the client
-        if ( applicationName.toLowerCase().matches( ".*[^-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ].*" ) )
+        if ( applicationName.toLowerCase().matches( ".*[^-a-zàèìòùáéíóú?âêîôûãñõäëïöüçßøåæ????0-9 ].*" ) )
         {
             throw new BadRequestException( "Name must be alpha numeric." );
         }
@@ -207,21 +209,28 @@ public class ApplicationResource
             throw new BadRequestException( applicationName + " is already used as a name." );
         }
 
-        final long fileSize = fileDetail.getSize();
-        if ( fileSize > 5242880 )
+        // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
+        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+        for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
         {
-            throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+            if ( imageOutputStream.size() > 5242880 )
+            {
+                throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+            }
+            imageOutputStream.write( b );
         }
+        final byte[] imageByteArray = imageOutputStream.toByteArray();
 
         application = new Application();
         application.setPublicId( applicationName );
         applicationDAO.insert( application );
 
-        if ( fileSize > 0 )
+        if ( imageByteArray.length > 0 )
         {
             try
             {
-                applicationDAO.setIcon( application.getId(), work.getIconDir(), uploadedInputStream );
+                InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
+                applicationDAO.setIcon( application.getId(), work.getIconDir(), sizeCheckedInputStream );
             }
             catch ( IllegalArgumentException e )
             {

@@ -136,19 +136,26 @@ public class ApplicationDAO
     public void setIcon( String applicationId, File iconDirectory, InputStream imageStream )
         throws IOException, IllegalArgumentException
     {
-        File applicationIconDirectory = new File( iconDirectory, applicationId );
-        if ( !applicationIconDirectory.exists() )
-        {
-            applicationIconDirectory.mkdir();
-        }
-
         final int dimension = 36;
         Image image = ImageIO.read( imageStream );
         BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_BYTE_INDEXED );
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage( image, 0, 0, dimension, dimension, null );
         g.dispose();
-        ImageIO.write( resizedImage, "png", new File( applicationIconDirectory, "icon36px.png" ) );
+
+        File applicationIconDirectory = new File( iconDirectory, applicationId );
+        if ( !applicationIconDirectory.exists() )
+        {
+            applicationIconDirectory.mkdirs();
+        }
+
+        File iconFile = new File( applicationIconDirectory, "icon36px.png" );
+        if ( !iconFile.exists() )
+        {
+            iconFile.createNewFile();
+        }
+
+        ImageIO.write( resizedImage, "png", iconFile );
     }
 
     public byte[] getIcon( String applicationId, File iconDirectory )

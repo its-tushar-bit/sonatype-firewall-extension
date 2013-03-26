@@ -76,7 +76,6 @@ tr .hover-vis {
     display: none;
 }
 
-
 tr:hover .hover-invis {
     display: none;
 }
@@ -84,6 +83,15 @@ tr:hover .hover-invis {
 .disabled img {
     opacity: 0.4;
     filter: alpha(opacity = 40);
+}
+
+/* Bootstap Overrides */
+.form-horizontal .controls {
+    margin-left: 140px;
+}
+
+.form-horizontal .control-label {
+    width: 120px;
 }
 
 /* Page content */

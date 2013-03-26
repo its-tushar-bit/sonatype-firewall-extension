@@ -148,14 +148,17 @@
 		};
 
 		$scope.canSaveEdit = function () {
-			applicationRules();
+			liveApplicationRules();
 			return $scope.applicationEditor.$valid && !$scope.submitActive;
 		};
 
 		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
 		$scope.saveClick = function () {
-			applicationRules();
+			liveApplicationRules();
 			if (!$scope.applicationEditor.$valid) {
+				return false;
+			}
+			if (!preSaveRules()) {
 				return false;
 			}
 
@@ -189,18 +192,9 @@
 			return true;
 		};
 
-		// This needs to be explicitly called by key up on the name rule as Angular ignores change events for leading
-		// and trailing spaces. This is fixed in Angular 1.1.1 with ng-trim directive
-		$scope.applicationRules = function () {
-			$scope.$apply(function () {
-				applicationRules();
-			});
-		};
-
-		function applicationRules() {
+		function liveApplicationRules() {
 			var applicationId = angular.element('#applicationId');
 			$scope.applicationEditor.applicationId.$setValidity('required', applicationId.val());
-			$scope.applicationEditor.applicationId.$setValidity('alphaNumeric', !applicationId.val().match(/[^a-z0-9 ]/i));
 			var isDuplicateName = $scope.applications.some(function (application) {
 				return application.publicId === applicationId.val();
 			});
@@ -208,12 +202,28 @@
 
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
-			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^a-z0-9 ]/i));
-			$scope.applicationEditor.applicationName.$setValidity('spaces', !applicationName.val().match(/^ | {2,}| $/));
+			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(/[^/-a-zàèìòùáéíóúýâêîôûãñõäëïöüçßøåæÞþÐð0-9 ]/i));
 			isDuplicateName = $scope.applications.some(function (application) {
-				return application.name.toLowerCase() === applicationName.val().toLowerCase();
+				return application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
 			});
 			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
+
+			// Hide the spaces error when needed. We only show this error on saving to reduce gui clutter
+			if ($scope.applicationEditor.applicationName.$error.spaces) {
+				var whitespacePass = applicationName.val().match(/^ | {2,}| $/);
+				$scope.suggestedApplicationName = $scope.selectedApplication.name.replace(/^ | $/g, '').replace(/ {2,}/, ' ');
+				$scope.applicationEditor.applicationName.$setValidity('spaces', !whitespacePass);
+			}
+		}
+
+		function preSaveRules() {
+			var applicationName = angular.element('#applicationName');
+			var whitespacePass = applicationName.val().match(/^ | {2,}| $/);
+			$scope.$apply(function () {
+				$scope.suggestedApplicationName = $scope.selectedApplication.name.replace(/^ | $/g, '').replace(/ {2,}/, ' ');
+				$scope.applicationEditor.applicationName.$setValidity('spaces', !whitespacePass);
+			});
+			return !whitespacePass;
 		}
 	}]);
 }());

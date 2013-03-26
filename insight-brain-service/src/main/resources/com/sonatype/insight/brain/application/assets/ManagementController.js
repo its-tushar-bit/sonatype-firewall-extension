@@ -196,7 +196,7 @@
 		};
 
 		// Angular automatically trims input so when removing leading or trailing spaces, the rules are not automatically fired
-		$scope.applicationRules = function () {
+		$scope.fireLiveApplicationRules = function () {
 			$scope.$apply(function () {
 				liveApplicationRules();
 			});

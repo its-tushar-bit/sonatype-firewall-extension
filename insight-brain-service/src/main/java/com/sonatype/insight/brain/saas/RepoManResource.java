@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.saas;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.PUT;
@@ -16,7 +17,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -44,7 +44,7 @@ public class RepoManResource
 
     private static final Logger log = LoggerFactory.getLogger( RepoManResource.class );
 
-    final ScanUploader uploader = new DefaultScanUploader( log, false );
+    private final ScanUploader uploader = new DefaultScanUploader( log, false );
 
     @Context
     private InsightWork work;
@@ -57,9 +57,9 @@ public class RepoManResource
     @PUT
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response uploadScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                @QueryParam( "instanceId" ) final String instanceId, final InputStream data )
-        throws Exception
+    public ScanReceipt uploadScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                   @QueryParam( "instanceId" ) final String instanceId, final InputStream data )
+        throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
@@ -92,6 +92,6 @@ public class RepoManResource
         receipt.setTimeToReport( result.getTimeToReport() );
         receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, result.getScanId() ) );
 
-        return Response.ok( receipt ).build();
+        return receipt;
     }
 }

@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.saas;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.net.URL;
@@ -15,8 +15,10 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+import com.yammer.dropwizard.testing.JsonHelpers;
 
 public class RepoManResourceTest
     extends AbstractResourceTest
@@ -28,7 +30,7 @@ public class RepoManResourceTest
     }
 
     @Test
-    public void testScan()
+    public void testUploadScan()
         throws Exception
     {
         final String applicationPublicId = "RepoManResourceTest_AppId";
@@ -43,7 +45,12 @@ public class RepoManResourceTest
 
         assertResponseStatus( 200, response );
 
-        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( FileUtils.fileRead( saasScanFile, "UTF-8" ) ) );
+        ScanReceipt scanReceipt = JsonHelpers.fromJson( response.getResponseBody(), ScanReceipt.class );
+        assertNotNull( scanReceipt );
+        assertEquals( "f75365d9d93b4f1ea2dd8457a25dc44d", scanReceipt.getScanId() );
+        assertEquals( Long.valueOf( 30 ), scanReceipt.getTimeToReport() );
+        assertEquals( "rest/report/RepoManResourceTest_AppId/f75365d9d93b4f1ea2dd8457a25dc44d/embedReport/",
+                      scanReceipt.getReportUrl() );
     }
 
 }

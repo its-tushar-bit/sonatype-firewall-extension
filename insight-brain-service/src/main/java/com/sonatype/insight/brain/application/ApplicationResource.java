@@ -33,15 +33,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
-import com.sonatype.insight.scan.upload.DefaultScanUploader;
-import com.sonatype.insight.scan.upload.ScanUploader;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -242,8 +238,8 @@ public class ApplicationResource
         }
 
         Application application = applicationDAO.getByName( applicationName );
-        if ( application != null && !isEdit
-            || application != null && isEdit && application.getPublicId() != applicationPublicId )
+        if ( application != null && !isEdit || application != null && isEdit && !application.getPublicId().equals(
+            applicationPublicId ) )
         {
             throw new BadRequestException( applicationName + " is already used as a name." );
         }

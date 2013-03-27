@@ -191,8 +191,8 @@ public class ApplicationResource
         for ( int i = 0; i < applicationName.length(); i++ )
         {
             Character applicationNameCharacter = applicationName.charAt( i );
-            if ( !Character.isLetter( applicationNameCharacter ) && !Character.isDigit( applicationNameCharacter )
-                && applicationNameCharacter != '-' && applicationNameCharacter != ' ' )
+            if ( !Character.isLetterOrDigit( applicationNameCharacter ) && applicationNameCharacter != '-'
+                && applicationNameCharacter != ' ' )
             {
                 throw new BadRequestException( "Name must be alpha numeric." );
             }

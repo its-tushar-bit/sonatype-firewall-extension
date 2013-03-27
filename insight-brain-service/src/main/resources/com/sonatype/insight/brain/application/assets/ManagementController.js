@@ -10,7 +10,7 @@
 	var managementModule = angular.module('Management', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
 	managementModule.controller('ManagementController', ['$scope', '$location', '$http', 'hudson', 'CLMLocations', function ($scope, $location, $http, hudson, clmLocations) {
-		$scope.orderColumn = 'publicId';
+		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 
 		function onAddApplicationError(data, status, headersFn, config) {
@@ -38,7 +38,7 @@
 			var names = [];
 			if ($scope.applications) {
 				for (var i = 0; i < $scope.applications.length; i++) {
-					names.push($scope.applications[i].publicId);
+					names.push($scope.applications[i].name);
 				}
 			}
 			return names;
@@ -95,8 +95,8 @@
 		};
 
 		$scope.orderBy = function (application) {
-			if ($scope.orderColumn === 'publicId') {
-				return application.publicId;
+			if ($scope.orderColumn === 'name') {
+				return application.name;
 			} else if ($scope.orderColumn === application.policyEvaluation.stage.stageTypeId) {
 				return application.policyEvaluation.time;
 			}

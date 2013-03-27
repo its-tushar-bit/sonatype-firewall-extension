@@ -91,9 +91,8 @@ public class ApplicationResource
             log.debug( "Found application with public id {}", application.getPublicId() );
 
             final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
-            final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-            applicationManagement.setId( application.getId() );
-            applicationManagement.setPublicId( application.getPublicId() );
+            final ApplicationManagementSummary applicationManagement =
+                ApplicationManagementSummary.fromApplication( application );
             applicationManagement.setPolicyEvaluation( policyEvaluation );
 
             applicationManagements.add( applicationManagement );
@@ -138,10 +137,7 @@ public class ApplicationResource
         if ( "OK".equals( result ) )
         {
             Application application = applicationDAO.getByPublicId( applicationPublicId );
-            ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-            applicationManagement.setId( application.getId() );
-            applicationManagement.setPublicId( application.getPublicId() );
-            return applicationManagement;
+            return ApplicationManagementSummary.fromApplication( application );
         }
         throw new BadRequestException( "Invalid application id " + applicationPublicId );
     }
@@ -196,7 +192,7 @@ public class ApplicationResource
         {
             Character applicationNameCharacter = applicationName.charAt( i );
             if ( !Character.isLetter( applicationNameCharacter ) && !Character.isDigit( applicationNameCharacter )
-                && applicationNameCharacter != '-' )
+                && applicationNameCharacter != '-' && applicationNameCharacter != ' ' )
             {
                 throw new BadRequestException( "Name must be alpha numeric." );
             }
@@ -261,9 +257,8 @@ public class ApplicationResource
         log.debug( "Found application with public id {}", application.getPublicId() );
 
         final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
-        final ApplicationManagementSummary applicationManagement = new ApplicationManagementSummary();
-        applicationManagement.setId( application.getId() );
-        applicationManagement.setPublicId( application.getPublicId() );
+        final ApplicationManagementSummary applicationManagement =
+            ApplicationManagementSummary.fromApplication( application );
         applicationManagement.setPolicyEvaluation( policyEvaluation );
 
         return applicationManagement;

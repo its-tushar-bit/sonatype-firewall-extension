@@ -12,12 +12,12 @@
             <thead>
             <tr>
                 <th style='padding: 0px'>
-                    <button ng-class="{ 'buttonColumn' : orderColumn != 'publicId', 'buttonColumn buttonColumnSorted' : orderColumn == 'publicId' }"
-                            style='width: 100%' ng-click="order('publicId');">
+                    <button ng-class="{ 'buttonColumn' : orderColumn != 'name', 'buttonColumn buttonColumnSorted' : orderColumn == 'name' }"
+                            style='width: 100%' ng-click="order('name');">
                         Application Id
-                        <i ng-class="{ 'icon-chevron-down' : orderColumn == 'publicId' && orderDirection,
-                            'icon-chevron-up' : orderColumn == 'publicId' && !orderDirection,
-                            'emptyIconGlyph' : orderColumn != 'publicId' }"></i>
+                        <i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
+                            'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
+                            'emptyIconGlyph' : orderColumn != 'name' }"></i>
                     </button>
                 </th>
                 <th ng-repeat='stage in stages | filterReportColumns' style='padding: 0px'>
@@ -40,7 +40,7 @@
                             title='Delete Application'><i class='icon-trash' style='margin-top:0px;'></i>
                     </button>
                     <img ng-src='../rest/application/icon/{{application.publicId}}'/>
-                    <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.publicId}}</a>
+                    <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
                     <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'

@@ -219,7 +219,9 @@
 					url: clmLocations.getApplicationsUrl(),
 					data: formData,
 					success: function (data, status, jqXHR) {
-						$scope.applications.push(data);
+						$scope.$apply(function () {
+							$scope.applications.push(data);
+						});
 						$('#newApplicationModal').modal('hide');
 					},
 					error: function (jqXHR) {

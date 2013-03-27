@@ -56,10 +56,10 @@
 		$scope.editApplication = function (application) {
 			$scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
 
-			// Must access DOM element for the form to reset the file input
-			var editApplicationForm = angular.element('#applicationEditor');
-			if (editApplicationForm.length > 0) {
-				editApplicationForm[0].reset();
+			// Must access DOM element for the icon input to reset the file input
+			var applicationIconInput = angular.element('#file');
+			if (applicationIconInput.length > 0) {
+				applicationIconInput.replaceWith(applicationIconInput.val('').clone(true));
 			}
 
 			$scope.selectedApplication = { id: null, publicId: null, name: null };

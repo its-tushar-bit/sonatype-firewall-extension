@@ -47,9 +47,24 @@
 		$scope.editApplication = function (application) {
 			$scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
 
+			// Must access DOM element for the form to reset the file input
+			var editApplicationForm = angular.element('#applicationEditor');
+			if (editApplicationForm.length > 0) {
+				editApplicationForm[0].reset();
+			}
+
 			$scope.selectedApplication = { id: null, publicId: null, name: null };
 			if (application) {
+				$scope.isEditMode = true;
 				$scope.selectedApplication = angular.extend($scope.selectedApplication, application);
+				$scope.hasIconSource = true;
+				// After the image source is set to blob (see below), angular will not respond to changing ng-src
+				// Image source adjustments need to be done through attr
+				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + $scope.selectedApplication.publicId);
+			} else {
+				$scope.isEditMode = false;
+				$scope.hasIconSource = false;
+				angular.element('#applicationIcon').attr('src', null);
 			}
 
 			$('#newApplicationModal').modal('show');
@@ -113,6 +128,10 @@
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.getAddApplicationSyncUrl();
 
+		// On the first instantiation of the edit modal, setting the source in editApplication in the ManagementController
+		// Has no effect because applicationIcon does not exist in the DOM. Set it here instead
+		angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + $scope.selectedApplication.publicId);
+
 		function onError(jqXHR) {
 			var contentType = jqXHR.getResponseHeader('Content-Type');
 			if ($scope.applicationEditor) {
@@ -122,7 +141,7 @@
 					$scope.errorResponse = jqXHR.responseText;
 				}
 			}
-		};
+		}
 
 		$scope.fileChanged = function (element) {
 			if (element.files.length > 0) {
@@ -136,7 +155,8 @@
 				if (src) {
 					$scope.$apply(function () {
 						$scope.hasIconSource = true;
-						$scope.applicationIconSource = src;
+						angular.element('#applicationIcon').attr('src', src);
+						//$scope.applicationIconSource = src;
 					});
 				} else {
 					$scope.$apply(function () {

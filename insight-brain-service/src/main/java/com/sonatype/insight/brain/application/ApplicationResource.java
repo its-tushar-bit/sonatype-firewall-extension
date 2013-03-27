@@ -226,7 +226,8 @@ public class ApplicationResource
         final byte[] imageByteArray = imageOutputStream.toByteArray();
 
         application = new Application();
-        application.setPublicId( applicationName );
+        application.setPublicId( applicationPublicId );
+        application.setName( applicationName );
         applicationDAO.insert( application );
 
         if ( imageByteArray.length > 0 )

@@ -26,17 +26,13 @@ public class LicenseDAO
 
     private static volatile Map<String, License> licensesById = null;
 
-    public LicenseDAO()
-    {
-        if ( licenses == null )
-        {
-            load();
-        }
-    }
-
     @Override
     public License getById( String id )
     {
+        if ( licensesById == null )
+        {
+            load();
+        }
         return licensesById.get( id );
     }
 
@@ -57,9 +53,9 @@ public class LicenseDAO
             long start = System.currentTimeMillis();
 
             String sQuery = "SELECT license FROM License license";
-            licenses = new ArrayList<License>();
-            licenses.addAll( getList( sQuery ) );
-            Collections.sort( licenses, new Comparator<License>()
+            List<License> _licenses = new ArrayList<License>();
+            _licenses.addAll( getList( sQuery ) );
+            Collections.sort( _licenses, new Comparator<License>()
             {
                 @Override
                 public int compare( License license1, License license2 )
@@ -67,14 +63,15 @@ public class LicenseDAO
                     return license1.getShortDisplayName().toLowerCase( Locale.ENGLISH ).compareTo( license2.getShortDisplayName().toLowerCase( Locale.ENGLISH ) );
                 }
             } );
-            licenses = Collections.unmodifiableList( licenses );
 
             Map<String, License> _licensesById = new LinkedHashMap<String, License>();
-            for ( License license : licenses )
+            for ( License license : _licenses )
             {
                 _licensesById.put( license.getId(), license );
             }
-            licensesById = _licensesById;
+
+            licenses = Collections.unmodifiableList( _licenses );
+            licensesById = Collections.unmodifiableMap( _licensesById );
 
             log.debug( "Loaded all licenses in {} ms.", System.currentTimeMillis() - start );
         }
@@ -102,6 +99,10 @@ public class LicenseDAO
 
     public List<License> getAll()
     {
+        if ( licenses == null )
+        {
+            load();
+        }
         return licenses;
     }
 }

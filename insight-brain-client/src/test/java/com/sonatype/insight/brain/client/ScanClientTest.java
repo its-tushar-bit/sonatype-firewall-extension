@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
@@ -83,7 +85,7 @@ public class ScanClientTest
         Configuration config = brain.getClientConfiguration();
         ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
         assertEquals( "SCAN-ID", receipt.getScanId() );
-        assertNotNull( receipt.getReportUrl() );
+        assertEquals( "rest/report/ScanClientTest_AppId/SCAN-ID/embedReport/", receipt.getReportUrl() );
     }
 
     @Test

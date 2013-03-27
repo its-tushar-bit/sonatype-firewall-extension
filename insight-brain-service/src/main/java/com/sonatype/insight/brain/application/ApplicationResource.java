@@ -251,7 +251,7 @@ public class ApplicationResource
             }
         }
 
-        return getApplicationManagementSummary( applicationName );
+        return getApplicationManagementSummary( applicationPublicId );
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( String applicationPublicId )

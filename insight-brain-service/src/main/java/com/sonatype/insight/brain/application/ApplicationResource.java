@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,11 +148,15 @@ public class ApplicationResource
     @Produces( MediaType.APPLICATION_JSON )
     public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationId,
                                                         @FormDataParam( "applicationName" ) String applicationPublicId,
+                                                        @FormDataParam( "isEditMode" ) boolean isEdit,
+                                                        @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                                                        @FormDataParam( "robotHash" ) String robotHash,
                                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addApplicationInternal( applicationId, applicationPublicId, uploadedInputStream, fileDetail );
+        return addApplicationInternal( applicationId, applicationPublicId, isEdit, hasRobotSource, robotHash,
+                                       uploadedInputStream, fileDetail );
     }
 
     @POST
@@ -159,17 +164,22 @@ public class ApplicationResource
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
                                         @FormDataParam( "applicationName" ) String applicationPublicId,
+                                        @FormDataParam( "isEditMode" ) boolean isEdit,
+                                        @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                                        @FormDataParam( "robotHash" ) String robotHash,
                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addApplicationInternal( applicationId, applicationPublicId, uploadedInputStream, fileDetail );
+        addApplicationInternal( applicationId, applicationPublicId, isEdit, hasRobotSource, robotHash,
+                                uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
     }
 
     public ApplicationManagementSummary addApplicationInternal( String applicationPublicId, String applicationName,
-                                                                InputStream uploadedInputStream,
+                                                                boolean isEdit, boolean hasRobotSource,
+                                                                String robotHash, InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
@@ -207,6 +217,12 @@ public class ApplicationResource
         if ( application != null )
         {
             throw new BadRequestException( applicationName + " is already used as a name." );
+        }
+
+        if ( hasRobotSource )
+        {
+            URL robotURL = new URL( "http://robohash.org/" + robotHash );
+            uploadedInputStream = robotURL.openStream();
         }
 
         // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)

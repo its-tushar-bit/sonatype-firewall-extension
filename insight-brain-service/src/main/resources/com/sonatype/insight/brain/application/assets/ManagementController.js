@@ -66,6 +66,8 @@
 				$scope.hasIconSource = false;
 				angular.element('#applicationIcon').attr('src', null);
 			}
+			$scope.hasRobotSource = false;
+			$scope.robotHash = null;
 
 			$('#newApplicationModal').modal('show');
 		};
@@ -143,8 +145,22 @@
 			}
 		}
 
+		$scope.generateIcon = function () {
+			var name = $scope.selectedApplication.name;
+			var hash = 0;
+			for (var i = 0; i < name.length; i++) {
+				var charAtI = name.charCodeAt(i);
+				hash = ((hash << 5) - hash) + charAtI;
+				hash = hash & hash;
+			}
+			$scope.robotHash = hash;
+			$scope.hasIconSource = false;
+			$scope.hasRobotSource = true;
+		}
+
 		$scope.fileChanged = function (element) {
 			if (element.files.length > 0) {
+				$scope.hasRobotSource = false;
 				var file = element.files[0],
 				src;
 				if (window.URL) {
@@ -183,6 +199,11 @@
 			if (!preSaveRules()) {
 				return false;
 			}
+
+			// Angular modal does not adjust value of form element so when posting these values need to be set
+			angular.element('[name=isEditMode]').val($scope.isEditMode);
+			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
+			angular.element('[name=robotHash]').val($scope.robotHash);
 
 			if (window.FormData) {
 				var formData = new FormData(angular.element('#applicationEditor')[0]);

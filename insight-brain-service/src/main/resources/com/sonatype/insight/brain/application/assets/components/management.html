@@ -39,7 +39,7 @@
                     <button ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete'
                             title='Delete Application'><i class='icon-trash' style='margin-top:0px;'></i>
                     </button>
-                    <img ng-src='../rest/application/icon/{{application.publicId}}'/>
+                    <img ng-src='../rest/application/icon/{{application.publicId}}' width='48px' height='48px'/>
                     <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>

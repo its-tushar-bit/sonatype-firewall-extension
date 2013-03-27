@@ -183,17 +183,6 @@ public class ApplicationResource
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
-        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
-        {
-            throw new BadRequestException( "ID is required." );
-        }
-
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
-        if ( application != null )
-        {
-            throw new BadRequestException( applicationPublicId + " is already used as an ID." );
-        }
-
         if ( applicationName == null || applicationName.trim().isEmpty() )
         {
             throw new BadRequestException( "Name is required." );
@@ -213,10 +202,27 @@ public class ApplicationResource
                 "Name must not have leading or trailing spaces, or have two spaces in a row" );
         }
 
-        application = applicationDAO.getByName( applicationName );
-        if ( application != null )
+        Application application = applicationDAO.getByName( applicationName );
+        if ( application != null && !isEdit
+            || application != null && isEdit && application.getPublicId() != applicationPublicId )
         {
             throw new BadRequestException( applicationName + " is already used as a name." );
+        }
+
+        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
+        {
+            throw new BadRequestException( "ID is required." );
+        }
+
+        application = applicationDAO.getByPublicId( applicationPublicId );
+        if ( application != null && !isEdit )
+        {
+            throw new BadRequestException( applicationPublicId + " is already used as an ID." );
+        }
+        if ( application == null && isEdit )
+        {
+            throw new BadRequestException(
+                "Attempting to edit an application that doesn't exist. ID " + applicationPublicId );
         }
 
         if ( hasRobotSource )
@@ -237,10 +243,20 @@ public class ApplicationResource
         }
         final byte[] imageByteArray = imageOutputStream.toByteArray();
 
-        application = new Application();
+        if ( !isEdit )
+        {
+            application = new Application();
+        }
         application.setPublicId( applicationPublicId );
         application.setName( applicationName );
-        applicationDAO.insert( application );
+        if ( !isEdit )
+        {
+            applicationDAO.insert( application );
+        }
+        else
+        {
+            applicationDAO.update( application );
+        }
 
         if ( imageByteArray.length > 0 )
         {

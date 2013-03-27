@@ -200,6 +200,8 @@
 				return false;
 			}
 
+			$scope.submitActive = true;
+
 			// Angular modal does not adjust value of form element so when posting these values need to be set
 			angular.element('[name=isEditMode]').val($scope.isEditMode);
 			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
@@ -219,9 +221,22 @@
 					url: clmLocations.getApplicationsUrl(),
 					data: formData,
 					success: function (data, status, jqXHR) {
-						$scope.$apply(function () {
-							$scope.applications.push(data);
-						});
+						if (!$scope.isEditMode) {
+							$scope.$apply(function () {
+								$scope.applications.push(data);
+								$scope.submitActive = false;
+							});
+						} else {
+							angular.forEach($scope.applications, function (application, key) {
+								if (data.id === application.id) {
+									$scope.$apply(function () {
+										$scope.applications[key] = data;
+										$scope.submitActive = false;
+									});
+									return false;
+								}
+							});
+						}
 						$('#newApplicationModal').modal('hide');
 					},
 					error: function (jqXHR) {

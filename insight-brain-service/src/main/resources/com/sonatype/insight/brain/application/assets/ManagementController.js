@@ -156,7 +156,6 @@
 					$scope.$apply(function () {
 						$scope.hasIconSource = true;
 						angular.element('#applicationIcon').attr('src', src);
-						//$scope.applicationIconSource = src;
 					});
 				} else {
 					$scope.$apply(function () {
@@ -186,7 +185,6 @@
 			}
 
 			if (window.FormData) {
-				$scope.uploadInProgress = true;
 				var formData = new FormData(angular.element('#applicationEditor')[0]);
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
@@ -200,11 +198,11 @@
 					url: clmLocations.getApplicationsUrl(),
 					data: formData,
 					success: function (data, status, jqXHR) {
-						alert(status);
+						$scope.applications.push(data);
+						$('#newApplicationModal').modal('hide');
 					},
 					error: function (jqXHR) {
 						$scope.$apply(function () {
-							$scope.uploadInProgress = false;
 							$scope.submitActive = false;
 							onError(jqXHR);
 						});

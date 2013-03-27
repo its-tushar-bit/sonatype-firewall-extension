@@ -247,13 +247,14 @@ public class PolicyEvaluateResource
         return JsonUtils.aaDataNode( componentThreats.values() );
     }
 
-    static Map<String, Object> createPolicyMailModel( final String serverUrl, final String applicationPublicId,
-                                                      final String scanId, final Stage stage,
-                                                      final List<PolicyAlert> policyAlerts )
+    static Map<String, Object> createPolicyMailModel( final String serverUrl, final String cdnUrl,
+                                                      final String applicationPublicId, final String scanId,
+                                                      final Stage stage, final List<PolicyAlert> policyAlerts )
     {
         MailPolicyAlertCounts counts = new MailPolicyAlertCounts( policyAlerts );
 
-        Collections.sort( policyAlerts, new Comparator<PolicyAlert>(){
+        Collections.sort( policyAlerts, new Comparator<PolicyAlert>()
+        {
             @Override
             public int compare( PolicyAlert o1, PolicyAlert o2 )
             {
@@ -267,11 +268,12 @@ public class PolicyEvaluateResource
                                                                o2.getTrigger().getPolicyName() );
                 }
                 return r;
-            }} );
+            }
+        } );
 
         final Map<String, Object> model = new HashMap<String, Object>();
 
-        model.put( "serverUrl", serverUrl );
+        model.put( "cdnUrl", cdnUrl );
         model.put( "detailedReportUrl", serverUrl + ReportResource.getReportPath( applicationPublicId, scanId ) );
         model.put( "policyAlerts", policyAlerts );
         model.put( "policyThreatStage", StageTypes.getById( stage.getStageTypeId() ).getName() );
@@ -318,7 +320,7 @@ public class PolicyEvaluateResource
         throws IOException
     {
         final Map<String, Object> model =
-            createPolicyMailModel( baseUrl.get(), applicationPublicId, scanId, stage, policyAlerts );
+            createPolicyMailModel( baseUrl.get(), mail.getCdnUrl(), applicationPublicId, scanId, stage, policyAlerts );
         return TemplateUtils.render( getPolicyThreatsTemplate(), model );
     }
 

@@ -46,6 +46,10 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
+    private String cdnUrl = "http://cdn.sonatype.com/";
+
+    @NotNull
+    @JsonProperty
     private String sonatypeWork = "sonatype-work/clm-server";
 
     @NotNull
@@ -151,6 +155,36 @@ public class InsightConfig
         catch ( Exception e )
         {
             log.error( "Invalid mail.systemEmail: {}", e.getMessage() );
+            return false;
+        }
+    }
+
+    public String getCdnUrl()
+    {
+        return cdnUrl;
+    }
+
+    public void setCdnUrl( String cdnUrl )
+    {
+        this.cdnUrl = cdnUrl;
+        if ( cdnUrl != null && !cdnUrl.endsWith( "/" ) )
+        {
+            this.cdnUrl += '/';
+        }
+    }
+
+    @ValidationMethod( message = "cdnUrl is invalid" )
+    public boolean isValidCdnUrl()
+    {
+        try
+        {
+            String url = getCdnUrl();
+            new URL( url );
+            return true;
+        }
+        catch ( Exception e )
+        {
+            log.error( "Invalid cndUrl: {}", e.getMessage() );
             return false;
         }
     }

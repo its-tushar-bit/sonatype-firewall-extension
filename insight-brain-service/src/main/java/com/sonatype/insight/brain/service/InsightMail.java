@@ -42,9 +42,17 @@ public class InsightMail
 {
     private final InsightMailer insightMailer;
 
+    private final InsightConfig config;
+
     public InsightMail( final InsightConfig config )
     {
+        this.config = config;
         insightMailer = new InsightMailer( buildEmailer(), config.getMailConfig() );
+    }
+
+    public String getCdnUrl()
+    {
+        return config.getCdnUrl();
     }
 
     public void sendHtml( final String mailId, final List<Address> to, final String subject, final String body )

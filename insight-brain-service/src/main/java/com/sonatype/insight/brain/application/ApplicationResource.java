@@ -355,6 +355,7 @@ public class ApplicationResource
             {
                 Application application = new Application();
                 application.setPublicId( applicationPublicId );
+                application.setName( applicationPublicId );
                 applicationDAO.insert( application );
             }
         }

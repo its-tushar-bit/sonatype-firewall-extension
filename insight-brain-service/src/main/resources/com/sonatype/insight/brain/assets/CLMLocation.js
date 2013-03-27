@@ -61,7 +61,7 @@
 
 			getLicenseGroupLicensesUrl: function (group) {
 				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + this.getAppId() + '/'
-					+ group.id;
+				+ group.id;
 			},
 
 			getLicensesUrl: function () {
@@ -98,6 +98,10 @@
 
 			getApplicationsUrl: function () {
 				return this.getBaseUrl() + '/rest/application';
+			},
+
+			getCanGetHashIcon: function () {
+				return this.getBaseUrl() + '/rest/application/canGetHashIcon';
 			}
 		};
 	});

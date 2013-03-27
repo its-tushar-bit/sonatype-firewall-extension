@@ -9,8 +9,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +52,8 @@ public class ApplicationResource
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
     public static final String GET_APPLICATION_ICON_PATH = "icon/{applicationPublicId}";
+
+    public static final String GET_CAN_ACCESS_ROBOHASH_PATH = "canGetHashIcon";
 
     public static final String ADD_APPLICATION_SYNC_PATH = "sync";
 
@@ -177,6 +181,43 @@ public class ApplicationResource
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
     }
 
+    @GET
+    @Path( GET_CAN_ACCESS_ROBOHASH_PATH )
+    @Produces( MediaType.APPLICATION_JSON )
+    public boolean canAccessRobohash()
+    {
+        boolean canAccess = false;
+        Socket socket = null;
+        try
+        {
+            socket = new Socket( "robohash.org", 80 );
+            canAccess = true;
+        }
+        catch ( UnknownHostException e )
+        {
+            canAccess = false;
+        }
+        catch ( IOException e )
+        {
+            canAccess = false;
+        }
+        finally
+        {
+            if ( socket != null )
+            {
+                try
+                {
+                    socket.close();
+                }
+                catch ( IOException e )
+                {
+                    canAccess = false;
+                }
+            }
+        }
+        return canAccess;
+    }
+
     public ApplicationManagementSummary addApplicationInternal( String applicationPublicId, String applicationName,
                                                                 boolean isEdit, boolean hasRobotSource,
                                                                 String robotHash, InputStream uploadedInputStream,
@@ -227,21 +268,32 @@ public class ApplicationResource
 
         if ( hasRobotSource )
         {
-            URL robotURL = new URL( "http://robohash.org/" + robotHash );
-            uploadedInputStream = robotURL.openStream();
+            try
+            {
+                URL robotURL = new URL( "http://robohash.org/" + robotHash );
+                uploadedInputStream = robotURL.openStream();
+            }
+            catch ( UnknownHostException ex )
+            {
+                uploadedInputStream = null;
+            }
         }
 
-        // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
-        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-        for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
+        byte[] imageByteArray = null;
+        if ( uploadedInputStream != null )
         {
-            if ( imageOutputStream.size() > 5242880 )
+            // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
+            ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+            for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
             {
-                throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+                if ( imageOutputStream.size() > 5242880 )
+                {
+                    throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+                }
+                imageOutputStream.write( b );
             }
-            imageOutputStream.write( b );
+            imageByteArray = imageOutputStream.toByteArray();
         }
-        final byte[] imageByteArray = imageOutputStream.toByteArray();
 
         if ( !isEdit )
         {
@@ -258,7 +310,7 @@ public class ApplicationResource
             applicationDAO.update( application );
         }
 
-        if ( imageByteArray.length > 0 )
+        if ( imageByteArray != null && imageByteArray.length > 0 )
         {
             try
             {

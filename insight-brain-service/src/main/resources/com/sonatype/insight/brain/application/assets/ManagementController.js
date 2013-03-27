@@ -12,6 +12,7 @@
 	managementModule.controller('ManagementController', ['$scope', '$location', '$http', 'hudson', 'CLMLocations', function ($scope, $location, $http, hudson, clmLocations) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
+		$scope.canGetRobotIcon = false;
 
 		function onAddApplicationError(data, status, headersFn, config) {
 			var header = headersFn();
@@ -21,6 +22,14 @@
 				$scope.addApplicationError = data;
 			}
 		}
+
+		$http.get(clmLocations.getCanGetHashIcon(), {
+			params: { timestamp: new Date().getTime() }
+		}).success(function (data) {
+			if (data && data === "true") {
+				$scope.canGetRobotIcon = true;
+			}
+		});
 
 		$http.get(clmLocations.getActionStageUrl(), {
 			params: { timestamp: new Date().getTime() }
@@ -148,10 +157,14 @@
 		$scope.generateIcon = function () {
 			var name = $scope.selectedApplication.name;
 			var hash = 0;
-			for (var i = 0; i < name.length; i++) {
-				var charAtI = name.charCodeAt(i);
-				hash = ((hash << 5) - hash) + charAtI;
-				hash = hash & hash;
+			if (!name) {
+				hash = Math.floor(Math.random() * 100);
+			} else {
+				for (var i = 0; i < name.length; i++) {
+					var charAtI = name.charCodeAt(i);
+					hash = ((hash << 5) - hash) + charAtI;
+					hash = hash & hash;
+				}
 			}
 			$scope.robotHash = hash;
 			$scope.hasIconSource = false;

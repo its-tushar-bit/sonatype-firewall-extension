@@ -56,6 +56,11 @@ public class InsightWork
         return new File( getReportDir( appId, scanId ), "report.zip" );
     }
 
+    public File getIconDir()
+    {
+        return new File( insightConfig.getSonatypeWork(), "data/application" );
+    }
+
     public String findOwningAppId( final String scanId )
     {
         final File rootDir = new File( insightConfig.getSonatypeWork(), "report" );

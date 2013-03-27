@@ -86,15 +86,21 @@ public abstract class AbstractResourceTest
         throws IOException
     {
         final int actualStatus = response.getStatusCode();
-        Assert.assertEquals( "URI:" + response.getUri() + ", StatusText:" + response.getStatusText()
-            + ", ResponseBody:" + response.getResponseBody(), expectedStatus, actualStatus );
+        Assert.assertEquals( "URI:" + response.getUri() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
+                                 + response.getResponseBody(), expectedStatus, actualStatus );
     }
 
     protected Application createApplication( String publicId )
     {
+        return createApplication( publicId, "DUMMYNAME" );
+    }
+
+    protected Application createApplication( String publicId, String name )
+    {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
         application.setPublicId( publicId );
+        application.setName( name );
         applicationDAO.insert( application );
         applicationsToDelete.add( application );
         return application;

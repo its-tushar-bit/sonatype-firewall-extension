@@ -34,7 +34,7 @@
                     return this.baseUrl;
                 }
 
-                this.baseUrl = '';
+				this.baseUrl = '';
 
                 var idx = window.location.href.indexOf('/policy-assets/');
                 if (idx > -1) {
@@ -44,9 +44,7 @@
                 if (idx > -1) {
                     this.baseUrl = window.location.href.substring(0, idx);
                 }
-
-                return this.baseUrl;
-            },
+			},
 
             getLabelsUrl: function () {
                 return this.getBaseUrl() + '/rest/label/application/' + getAppId();
@@ -68,22 +66,22 @@
                 return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getAppId() + '/'
                     + group.id;
             },
+				
+			getLicensesUrl: function () {
+				return this.getBaseUrl() + '/rest/license';
+			},
 
-            getLicensesUrl: function () {
-                return this.getBaseUrl() + '/rest/license';
-            },
+			getConditionTypeUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/conditionType';
+			},
 
-            getConditionTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/conditionType';
-            },
+			getActionTypeUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/actionType';
+			},
 
-            getActionTypeUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/actionType';
-            },
-
-            getActionStageUrl: function () {
-                return this.getBaseUrl() + '/rest/policy/stageType';
-            },
+			getActionStageUrl: function () {
+				return this.getBaseUrl() + '/rest/policy/stageType';
+			},
 
             getConditionValueTypeUrl: function () {
                 return this.getBaseUrl() + '/rest/conditionValueType/' + getAppId();
@@ -96,10 +94,18 @@
             getApplicationUrl: function (applicationId) {
                 return this.getBaseUrl() + '/rest/application/' +  encodeURIComponent(applicationId);
             },
+				
+			getAddApplicationSyncUrl: function () {
+				return this.getBaseUrl() + '/rest/application/sync';
+			},
 
-            getApplicationsUrl: function () {
-                return this.getBaseUrl() + '/rest/application';
-            }
-        };
-    });
+			getApplicationsUrl: function () {
+				return this.getBaseUrl() + '/rest/application';
+			},
+
+			getCanGetHashIcon: function () {
+				return this.getBaseUrl() + '/rest/application/canGetHashIcon';
+			}
+		};
+	});
 }());

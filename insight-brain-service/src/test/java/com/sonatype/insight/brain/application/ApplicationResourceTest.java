@@ -88,7 +88,8 @@ public class ApplicationResourceTest
     {
         // Test GetApplications
         final String applicationPublicId = "ApplicationResourceTest_getApplicationsTest_AppId";
-        Application application = createApplication( applicationPublicId );
+        final String applicationName = "ApplicationResourceTest_getApplicationsTest_Name";
+        Application application = createApplication( applicationPublicId, applicationName );
 
         Response response = RestAccess.get( getServiceURL() );
         assertResponseStatus( 200, response );
@@ -99,6 +100,7 @@ public class ApplicationResourceTest
         // Freemium application created by super
         Assert.assertEquals( 2, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
+        Assert.assertEquals( application.getName(), applications[0].getName() );
 
         // Test GetApplication
         response = RestAccess.get( getApplicationServiceUrl( applicationPublicId ) );
@@ -108,6 +110,7 @@ public class ApplicationResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
         Assert.assertNotNull( applicationSummary );
         Assert.assertEquals( application.getId(), applicationSummary.getId() );
+        Assert.assertEquals( application.getName(), applicationSummary.getName() );
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

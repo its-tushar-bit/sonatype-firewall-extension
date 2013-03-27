@@ -9,6 +9,8 @@ CREATE TABLE application (
   application_id varchar(50) NOT NULL,
   public_id varchar(60) NOT NULL,
   public_id_lowercase varchar(60) NOT NULL,
+  name varchar(60) NULL,
+  name_lowercase_no_whitespace varchar(60) NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase)
 );

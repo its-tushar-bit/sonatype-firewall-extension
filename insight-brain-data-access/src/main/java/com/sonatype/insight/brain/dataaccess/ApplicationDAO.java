@@ -5,9 +5,16 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
+import javax.imageio.ImageIO;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -74,6 +81,31 @@ public class ApplicationDAO
         return application;
     }
 
+    private Application getByName( EntityManager em, String name )
+    {
+        if ( name == null || name.trim().isEmpty() )
+        {
+            throw new DataAccessException( "The application name cannot be null or empty." );
+        }
+        // Application Name is whitespace and case insensitive
+        name = name.replaceAll( "\\s", "" ).toLowerCase();
+        String sQuery = "SELECT entity FROM Application entity WHERE entity.nameLowercaseNoWhitespace=?1";
+        return get( em, sQuery, name );
+    }
+
+    public Application getByName( String name )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByName( em, name );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
     public List<Application> getAll()
     {
         String sQuery = "SELECT entity FROM Application entity" + //
@@ -99,5 +131,50 @@ public class ApplicationDAO
             licenseThreatGroupDAO.delete( em, licenseThreatGroup );
         }
         super.delete( em, application );
+    }
+
+    public void setIcon( String applicationId, File iconDirectory, InputStream imageStream )
+        throws IOException, IllegalArgumentException
+    {
+        final int dimension = 420;
+        Image image = ImageIO.read( imageStream );
+        BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_INT_ARGB );
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage( image, 0, 0, dimension, dimension, null );
+        g.dispose();
+
+        File applicationIconDirectory = new File( iconDirectory, applicationId );
+        if ( !applicationIconDirectory.exists() )
+        {
+            applicationIconDirectory.mkdirs();
+        }
+
+        File iconFile = new File( applicationIconDirectory, "icon420px.png" );
+        if ( !iconFile.exists() )
+        {
+            iconFile.createNewFile();
+        }
+
+        ImageIO.write( resizedImage, "png", iconFile );
+    }
+
+    public byte[] getIcon( String applicationId, File iconDirectory )
+        throws IOException
+    {
+        File applicationIconDirectory = new File( iconDirectory, applicationId );
+        if ( !applicationIconDirectory.exists() )
+        {
+            return null;
+        }
+        File iconFile = new File( applicationIconDirectory, "icon420px.png" );
+        if ( !iconFile.exists() )
+        {
+            return null;
+        }
+
+        BufferedImage image = ImageIO.read( iconFile );
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write( image, "png", byteArrayOutputStream );
+        return byteArrayOutputStream.toByteArray();
     }
 }

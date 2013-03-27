@@ -8,6 +8,8 @@ public class ApplicationManagementSummary
 
     private String publicId;
 
+    private String name;
+
     private PolicyEvaluation policyEvaluation;
 
     public String getId()
@@ -30,6 +32,16 @@ public class ApplicationManagementSummary
         this.publicId = publicId;
     }
 
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
     public PolicyEvaluation getPolicyEvaluation()
     {
         return policyEvaluation;
@@ -38,5 +50,14 @@ public class ApplicationManagementSummary
     public void setPolicyEvaluation( PolicyEvaluation policyEvaluation )
     {
         this.policyEvaluation = policyEvaluation;
+    }
+
+    public static ApplicationManagementSummary fromApplication( Application application )
+    {
+        ApplicationManagementSummary summary = new ApplicationManagementSummary();
+        summary.setId( application.getId() );
+        summary.setName( application.getName() );
+        summary.setPublicId( application.getPublicId() );
+        return summary;
     }
 }

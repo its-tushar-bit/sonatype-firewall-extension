@@ -1,0 +1,76 @@
+<div ng-controller='EditApplicationController'>
+    <form action='{{addApplication}}' method='post' enctype='multipart/form-data'
+          onsubmit='return angular.element(this).scope().saveClick()'
+          name='applicationEditor' id='applicationEditor' class='form-horizontal' style='margin-bottom: 0px'>
+        <div class='modal-body'>
+            <div class='control-group' ng-class='{ error : applicationEditor.applicationName.$error.required
+                    || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces
+                    || applicationEditor.applicationName.$error.duplicate }'>
+                <label class='control-label' for='applicationName'>Name</label>
+
+                <div class='controls'>
+                    <input id='applicationName' name='applicationName' type='text'
+                           class='input' maxlength='50' ng-model='selectedApplication.name'
+                           onkeyup='angular.element(this).scope().fireLiveApplicationRules()'>
+
+                    <div>
+                        <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required.</span>
+                        <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">Name must not have leading or
+                            trailing spaces, or have two spaces in a row. Suggested name: {{suggestedApplicationName}}
+                        </span>
+                        <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">
+                            {{selectedApplication.name}} is already used.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class='control-group'
+                 ng-show='!isEditMode'
+                 ng-class='{ error : applicationEditor.applicationId.$error.required
+                    || applicationEditor.applicationId.$error.alphaNumeric || applicationEditor.applicationId.$error.duplicate }'>
+                <label class='control-label' for='applicationId'>ID</label>
+
+                <div class='controls'>
+                    <input id='applicationId' name='applicationId' type='text'
+                           class='input' maxlength='50' ng-model='selectedApplication.publicId'>
+
+                    <div>
+                        <span ng-show="applicationEditor.applicationId.$error.required" class="help-inline">ID is required.</span>
+                        <span ng-show="applicationEditor.applicationId.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationId.$error.duplicate" class="help-inline">
+                            {{selectedApplication.publicId}} is already used.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class='control-group'>
+                <label class='control-label' for='applicationIcon'>Icon</label>
+
+                <div class='controls'>
+                    <div>
+                        <img ng-show='hasIconSource' id='applicationIcon' width='48px' height='48px'/>
+                        <img ng-show='hasRobotSource' id='robotIcon' width='48px' height='48px'
+                             ng-src='http://robohash.org/{{robotHash}}'/>
+                    </div>
+                    <input name='file' id='file' type='file' accept='image/*' style='display:block;'
+                           onchange='angular.element(this).scope().fileChanged(this)'/>
+                    <a ng-show='canGetRobotIcon' ng-click='generateIcon()'>No icon? Want a robot?</a>
+                </div>
+            </div>
+            <div ng-show='errorResponse'>
+                <div class='alert alert-error'>
+                    <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
+                    <strong>Error</strong> {{errorResponse}}
+                </div>
+            </div>
+            <input name='isEditMode' ng-model='isEditMode' type='hidden'/>
+            <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
+            <input name='robotHash' ng-model='robotHash' type='hidden'/>
+        </div>
+        <div class='modal-footer'>
+            <button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
+        </div>
+    </form>
+</div>

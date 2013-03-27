@@ -1,6 +1,9 @@
 .threat-box {
-    border-radius: 2px 2px 2px 2px;
     display: inline-block;
+}
+
+.threat-container, .threat-box {
+    border-radius: 2px 2px 2px 2px;
     height: 18px;
     width: 18px;
     padding: 0px;

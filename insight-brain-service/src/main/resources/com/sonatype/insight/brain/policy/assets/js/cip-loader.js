@@ -20,7 +20,6 @@
 
 	$.each(scripts, function(key, scriptSrc) {
 		var script = document.createElement('script');
-		script.async = 'async';
 		script.type = 'text/javascript';
 		script.src = CLM.path + scriptSrc;
 		$('head')[0].appendChild(script);

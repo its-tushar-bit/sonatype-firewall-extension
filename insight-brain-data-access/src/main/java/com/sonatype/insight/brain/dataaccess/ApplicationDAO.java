@@ -196,7 +196,7 @@ public class ApplicationDAO
 
         if ( applicationName == null || applicationName.trim().isEmpty() )
         {
-            throw new IllegalArgumentException( "Name is required." );
+            throw new InvalidApplicationException( "Name is required." );
         }
         for ( int i = 0; i < applicationName.length(); i++ )
         {
@@ -204,12 +204,12 @@ public class ApplicationDAO
             if ( !Character.isLetterOrDigit( applicationNameCharacter ) && applicationNameCharacter != '-'
                 && applicationNameCharacter != ' ' )
             {
-                throw new BadRequestException( "Name must be alpha numeric." );
+                throw new InvalidApplicationException( "Name must be alpha numeric." );
             }
         }
         if ( applicationName.matches( "^ |.* {2,}.*| $" ) )
         {
-            throw new BadRequestException(
+            throw new InvalidApplicationException(
                 "Name must not have leading or trailing spaces, or have two spaces in a row" );
         }
 
@@ -218,22 +218,22 @@ public class ApplicationDAO
             || existingApplication != null && applicationId != null && !existingApplication.getPublicId().equals(
             applicationPublicId ) )
         {
-            throw new BadRequestException( applicationName + " is already used as a name." );
+            throw new InvalidApplicationException( applicationName + " is already used as a name." );
         }
 
         if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
         {
-            throw new BadRequestException( "ID is required." );
+            throw new InvalidApplicationException( "ID is required." );
         }
 
         existingApplication = this.getByPublicId( applicationPublicId );
         if ( existingApplication != null && applicationId == null )
         {
-            throw new BadRequestException( applicationPublicId + " is already used as an ID." );
+            throw new InvalidApplicationException( applicationPublicId + " is already used as an ID." );
         }
         if ( existingApplication == null && applicationId != null )
         {
-            throw new BadRequestException(
+            throw new InvalidApplicationException(
                 "Attempting to edit an application that doesn't exist. ID " + applicationPublicId );
         }
     }

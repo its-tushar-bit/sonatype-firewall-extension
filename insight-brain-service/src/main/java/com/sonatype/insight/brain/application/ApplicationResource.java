@@ -276,20 +276,13 @@ public class ApplicationResource
         application.setPublicId( applicationPublicId );
         application.setName( applicationName );
 
-        try
+        if ( applicationId == null || applicationId.isEmpty() )
         {
-            if ( applicationId == null || applicationId.isEmpty() )
-            {
-                applicationDAO.insert( application );
-            }
-            else
-            {
-                applicationDAO.update( application );
-            }
+            applicationDAO.insert( application );
         }
-        catch ( IllegalArgumentException ex )
+        else
         {
-            throw new BadRequestException( ex.getMessage() );
+            applicationDAO.update( application );
         }
 
         if ( imageByteArray != null && imageByteArray.length > 0 )

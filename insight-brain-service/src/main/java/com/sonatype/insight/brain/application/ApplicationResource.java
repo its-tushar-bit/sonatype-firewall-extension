@@ -212,7 +212,7 @@ public class ApplicationResource
         return canAccess;
     }
 
-    public ApplicationManagementSummary addApplicationInternal( String applicationPublicId, String applicationName,
+    private ApplicationManagementSummary addApplicationInternal( String applicationPublicId, String applicationName,
                                                                 boolean isEdit, boolean hasRobotSource,
                                                                 String robotHash, InputStream uploadedInputStream,
                                                                 FormDataContentDisposition fileDetail )

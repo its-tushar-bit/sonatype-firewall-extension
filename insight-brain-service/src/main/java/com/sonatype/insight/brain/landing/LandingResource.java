@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import java.net.URI;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;

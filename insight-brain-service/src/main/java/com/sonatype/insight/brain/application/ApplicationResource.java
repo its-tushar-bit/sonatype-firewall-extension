@@ -145,33 +145,34 @@ public class ApplicationResource
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.APPLICATION_JSON )
     public ApplicationManagementSummary addEditApplication( @FormDataParam( "applicationId" ) String applicationId,
-                                                        @FormDataParam(
-                                                            "applicationPublicId" ) String applicationPublicId,
-                                                        @FormDataParam( "applicationName" ) String applicationName,
-                                                        @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
-                                                        @FormDataParam( "robotHash" ) String robotHash,
-                                                        @FormDataParam( "file" ) InputStream uploadedInputStream,
-                                                        @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+                                                            @FormDataParam(
+                                                                "applicationPublicId" ) String applicationPublicId,
+                                                            @FormDataParam( "applicationName" ) String applicationName,
+                                                            @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                                                            @FormDataParam( "robotHash" ) String robotHash,
+                                                            @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                                            @FormDataParam(
+                                                                "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
-                                       uploadedInputStream, fileDetail );
+        return addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource,
+                                           robotHash, uploadedInputStream, fileDetail );
     }
 
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     public Response addEditApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
-                                        @FormDataParam( "applicationPublicId" ) String applicationPublicId,
-                                        @FormDataParam( "applicationName" ) String applicationName,
-                                        @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
-                                        @FormDataParam( "robotHash" ) String robotHash,
-                                        @FormDataParam( "file" ) InputStream uploadedInputStream,
-                                        @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+                                            @FormDataParam( "applicationPublicId" ) String applicationPublicId,
+                                            @FormDataParam( "applicationName" ) String applicationName,
+                                            @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                                            @FormDataParam( "robotHash" ) String robotHash,
+                                            @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                            @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
         addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
-                                uploadedInputStream, fileDetail );
+                                    uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
     }
@@ -214,9 +215,9 @@ public class ApplicationResource
     }
 
     private ApplicationManagementSummary addEditApplicationInternal( String applicationId, String applicationPublicId,
-                                                                 String applicationName, boolean hasRobotSource,
-                                                                 String robotHash, InputStream uploadedInputStream,
-                                                                 FormDataContentDisposition fileDetail )
+                                                                     String applicationName, boolean hasRobotSource,
+                                                                     String robotHash, InputStream uploadedInputStream,
+                                                                     FormDataContentDisposition fileDetail )
         throws IOException
     {
         if ( hasRobotSource )

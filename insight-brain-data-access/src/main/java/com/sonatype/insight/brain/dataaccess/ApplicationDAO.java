@@ -215,7 +215,7 @@ public class ApplicationDAO
 
         Application existingApplication = this.getByName( applicationName );
         if ( existingApplication != null && applicationId == null
-            || application != null && applicationId != null && !application.getPublicId().equals(
+            || existingApplication != null && applicationId != null && !existingApplication.getPublicId().equals(
             applicationPublicId ) )
         {
             throw new BadRequestException( applicationName + " is already used as a name." );

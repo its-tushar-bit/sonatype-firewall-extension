@@ -27,18 +27,18 @@
             </div>
             <div class='control-group'
                  ng-show='!isEditMode'
-                 ng-class='{ error : applicationEditor.applicationId.$error.required
-                    || applicationEditor.applicationId.$error.alphaNumeric || applicationEditor.applicationId.$error.duplicate }'>
-                <label class='control-label' for='applicationId'>ID</label>
+                 ng-class='{ error : applicationEditor.applicationPublicId.$error.required
+                    || applicationEditor.applicationPublicId.$error.alphaNumeric || applicationEditor.applicationPublicId.$error.duplicate }'>
+                <label class='control-label' for='applicationPublicId'>ID</label>
 
                 <div class='controls'>
-                    <input id='applicationId' name='applicationId' type='text'
+                    <input id='applicationPublicId' name='applicationPublicId' type='text'
                            class='input' maxlength='50' ng-model='selectedApplication.publicId'>
 
                     <div>
-                        <span ng-show="applicationEditor.applicationId.$error.required" class="help-inline">ID is required.</span>
-                        <span ng-show="applicationEditor.applicationId.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
-                        <span ng-show="applicationEditor.applicationId.$error.duplicate" class="help-inline">
+                        <span ng-show="applicationEditor.applicationPublicId.$error.required" class="help-inline">ID is required.</span>
+                        <span ng-show="applicationEditor.applicationPublicId.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline">
                             {{selectedApplication.publicId}} is already used.
                         </span>
                     </div>
@@ -64,7 +64,7 @@
                     <strong>Error</strong> {{errorResponse}}
                 </div>
             </div>
-            <input name='isEditMode' ng-model='isEditMode' type='hidden'/>
+            <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>
         </div>

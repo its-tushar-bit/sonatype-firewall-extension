@@ -54,7 +54,7 @@
 		};
 
 		$scope.editApplication = function (application) {
-			$scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
+			$scope.newApplicationUrl = 'components/new-application-editor.html?' + new Date();// clmBuildTimestamp;
 
 			// Must access DOM element for the icon input to reset the file input
 			var applicationIconInput = angular.element('#file');
@@ -216,7 +216,7 @@
 			$scope.submitActive = true;
 
 			// Angular modal does not adjust value of form element so when posting these values need to be set
-			angular.element('[name=isEditMode]').val($scope.isEditMode);
+			angular.element('[name=applicationId]').val($scope.selectedApplication.id);
 			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
 			angular.element('[name=robotHash]').val($scope.robotHash);
 
@@ -272,12 +272,12 @@
 		};
 
 		function liveApplicationRules() {
-			var applicationId = angular.element('#applicationId');
-			$scope.applicationEditor.applicationId.$setValidity('required', applicationId.val());
+			var applicationId = angular.element('#applicationPublicId');
+			$scope.applicationEditor.applicationPublicId.$setValidity('required', applicationId.val());
 			var isDuplicateName = $scope.applications.some(function (application) {
 				return application.id !== $scope.selectedApplication.id && application.publicId === applicationId.val();
 			});
-			$scope.applicationEditor.applicationId.$setValidity('duplicate', !isDuplicateName);
+			$scope.applicationEditor.applicationPublicId.$setValidity('duplicate', !isDuplicateName);
 
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());

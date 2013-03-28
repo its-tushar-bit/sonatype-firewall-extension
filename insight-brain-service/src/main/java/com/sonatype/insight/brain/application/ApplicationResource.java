@@ -144,32 +144,33 @@ public class ApplicationResource
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationPublicId,
+    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationId,
+                                                        @FormDataParam(
+                                                            "applicationPublicId" ) String applicationPublicId,
                                                         @FormDataParam( "applicationName" ) String applicationName,
-                                                        @FormDataParam( "isEditMode" ) boolean isEdit,
                                                         @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
                                                         @FormDataParam( "robotHash" ) String robotHash,
                                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addApplicationInternal( applicationPublicId, applicationName, isEdit, hasRobotSource, robotHash,
+        return addApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                        uploadedInputStream, fileDetail );
     }
 
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationPublicId,
+    public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
+                                        @FormDataParam( "applicationPublicId" ) String applicationPublicId,
                                         @FormDataParam( "applicationName" ) String applicationName,
-                                        @FormDataParam( "isEditMode" ) boolean isEdit,
                                         @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
                                         @FormDataParam( "robotHash" ) String robotHash,
                                         @FormDataParam( "file" ) InputStream uploadedInputStream,
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addApplicationInternal( applicationPublicId, applicationName, isEdit, hasRobotSource, robotHash,
+        addApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                 uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
@@ -212,10 +213,10 @@ public class ApplicationResource
         return canAccess;
     }
 
-    private ApplicationManagementSummary addApplicationInternal( String applicationPublicId, String applicationName,
-                                                                boolean isEdit, boolean hasRobotSource,
-                                                                String robotHash, InputStream uploadedInputStream,
-                                                                FormDataContentDisposition fileDetail )
+    private ApplicationManagementSummary addApplicationInternal( String applicationId, String applicationPublicId,
+                                                                 String applicationName, boolean hasRobotSource,
+                                                                 String robotHash, InputStream uploadedInputStream,
+                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
         if ( hasRobotSource )
@@ -263,13 +264,28 @@ public class ApplicationResource
             }
         }
 
-        Application application = new Application();
+        Application application;
+        if ( applicationId == null || applicationId.isEmpty() )
+        {
+            application = new Application();
+        }
+        else
+        {
+            application = applicationDAO.getByIdNotNull( applicationId );
+        }
         application.setPublicId( applicationPublicId );
         application.setName( applicationName );
 
         try
         {
-            applicationDAO.insert( application );
+            if ( applicationId == null || applicationId.isEmpty() )
+            {
+                applicationDAO.insert( application );
+            }
+            else
+            {
+                applicationDAO.update( application );
+            }
         }
         catch ( IllegalArgumentException ex )
         {

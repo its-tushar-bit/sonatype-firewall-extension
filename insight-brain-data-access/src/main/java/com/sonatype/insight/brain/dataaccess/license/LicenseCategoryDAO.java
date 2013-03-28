@@ -63,30 +63,33 @@ public class LicenseCategoryDAO
         return licenseCategory;
     }
 
-    private synchronized void load()
+    private void load()
     {
-        long start = System.currentTimeMillis();
-
-        String sQuery = "SELECT entity FROM LicenseCategory entity" + //
-            " ORDER BY entity.severity DESC";
-        List<LicenseCategory> licenseCategories = getList( sQuery );
-
-        Map<String, LicenseCategory> _licenseCategoriesById = new LinkedHashMap<String, LicenseCategory>();
-        for ( LicenseCategory licenseCategory : licenseCategories )
+        synchronized ( getClass() )
         {
-            _licenseCategoriesById.put( licenseCategory.getId(), licenseCategory );
-        }
-        licenseCategoriesById = _licenseCategoriesById;
+            long start = System.currentTimeMillis();
 
-        Map<String, LicenseCategory> _licenseCategoriesByName =
-            new TreeMap<String, LicenseCategory>( String.CASE_INSENSITIVE_ORDER );
-        for ( LicenseCategory licenseCategory : licenseCategories )
-        {
-            _licenseCategoriesByName.put( licenseCategory.getName(), licenseCategory );
-        }
-        licenseCategoriesByName = _licenseCategoriesByName;
+            String sQuery = "SELECT entity FROM LicenseCategory entity" + //
+                " ORDER BY entity.severity DESC";
+            List<LicenseCategory> licenseCategories = getList( sQuery );
 
-        log.debug( "Loaded all license categories in {} ms.", System.currentTimeMillis() - start );
+            Map<String, LicenseCategory> _licenseCategoriesById = new LinkedHashMap<String, LicenseCategory>();
+            for ( LicenseCategory licenseCategory : licenseCategories )
+            {
+                _licenseCategoriesById.put( licenseCategory.getId(), licenseCategory );
+            }
+            licenseCategoriesById = _licenseCategoriesById;
+
+            Map<String, LicenseCategory> _licenseCategoriesByName =
+                new TreeMap<String, LicenseCategory>( String.CASE_INSENSITIVE_ORDER );
+            for ( LicenseCategory licenseCategory : licenseCategories )
+            {
+                _licenseCategoriesByName.put( licenseCategory.getName(), licenseCategory );
+            }
+            licenseCategoriesByName = _licenseCategoriesByName;
+
+            log.debug( "Loaded all license categories in {} ms.", System.currentTimeMillis() - start );
+        }
     }
 
     @Override

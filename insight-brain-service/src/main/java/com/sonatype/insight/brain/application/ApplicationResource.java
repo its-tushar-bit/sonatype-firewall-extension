@@ -267,9 +267,13 @@ public class ApplicationResource
                 URL robotURL = new URL( "http://robohash.org/" + robotHash );
                 uploadedInputStream = robotURL.openStream();
             }
-            catch ( UnknownHostException ex )
+            catch ( Exception ex )
             {
-                uploadedInputStream = null;
+                if ( uploadedInputStream != null )
+                {
+                    uploadedInputStream.close();
+                    uploadedInputStream = null;
+                }
             }
         }
 
@@ -278,15 +282,27 @@ public class ApplicationResource
         {
             // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
             ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-            for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
+            try
             {
-                if ( imageOutputStream.size() > 5242880 )
+                for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
                 {
-                    throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+                    if ( imageOutputStream.size() > 5242880 )
+                    {
+                        throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
+                    }
+                    imageOutputStream.write( b );
                 }
-                imageOutputStream.write( b );
+                imageByteArray = imageOutputStream.toByteArray();
             }
-            imageByteArray = imageOutputStream.toByteArray();
+            catch ( BadRequestException ex )
+            {
+                throw ex;
+            }
+            finally
+            {
+                imageOutputStream.close();
+                uploadedInputStream.close();
+            }
         }
 
         if ( !isEdit )
@@ -306,9 +322,9 @@ public class ApplicationResource
 
         if ( imageByteArray != null && imageByteArray.length > 0 )
         {
+            InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
             try
             {
-                InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
                 applicationDAO.setIcon( application.getId(), work.getIconDir(), sizeCheckedInputStream );
             }
             catch ( IllegalArgumentException e )
@@ -322,6 +338,10 @@ public class ApplicationResource
                 log.debug( "Invalid icon uploaded for new application " );
                 applicationDAO.delete( application );
                 throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+            }
+            finally
+            {
+                sizeCheckedInputStream.close();
             }
         }
 

@@ -22,6 +22,7 @@ public abstract class AbstractDbDAOTest
         // Create an application
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
+        application.setName( "AbstractDbDAOTest" );
         application.setPublicId( "AbstractDbDAOTest_AppId" );
         applicationDAO.insert( application );
         applicationId = application.getId();

@@ -44,6 +44,7 @@ public class ScanClientTest
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
+        application.setName( "test" );
         application.setPublicId( APP_ID );
         applicationDAO.insert( application );
     }

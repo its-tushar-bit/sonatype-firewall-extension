@@ -70,6 +70,7 @@ public class ApplicationDAOTest
         String appPublicId = "testPublicIdIsCaseInsensitive";
 
         Application application = new Application();
+        application.setName( "test" );
         application.setPublicId( appPublicId );
         ApplicationDAO applicationDAO = new ApplicationDAO();
         applicationDAO.insert( application );

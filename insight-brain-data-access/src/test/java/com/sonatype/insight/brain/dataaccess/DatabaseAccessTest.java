@@ -135,6 +135,7 @@ public class DatabaseAccessTest
             try
             {
                 Application application = new Application();
+                application.setName( "test" );
                 application.setPublicId( appPublicId );
                 applicationDAO.insert( application );
             }

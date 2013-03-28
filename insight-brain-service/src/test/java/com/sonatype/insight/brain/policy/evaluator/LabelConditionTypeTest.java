@@ -62,6 +62,7 @@ public class LabelConditionTypeTest
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
+        application.setName( "test" );
         application.setPublicId( applicationPublicId );
         applicationDAO.insert( application );
         applicationId = application.getId();

@@ -36,6 +36,7 @@ public class ReportClientTest
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
+        application.setName( "test" );
         application.setPublicId( applicationPublicId );
         applicationDAO.insert( application );
     }

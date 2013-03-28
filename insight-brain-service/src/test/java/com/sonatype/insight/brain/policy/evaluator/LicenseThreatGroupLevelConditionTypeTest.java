@@ -46,6 +46,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     public static void beforeClass()
     {
         Application application = new Application();
+        application.setName( "test" );
         application.setPublicId( "LicenseThreatGroupLevelConditionTypeTest_AppId" );
         new ApplicationDAO().insert( application );
         applicationId = application.getId();

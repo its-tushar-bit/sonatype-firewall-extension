@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -25,6 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,6 +141,13 @@ public class ApplicationResource
         throw new BadRequestException( "Invalid application id " + applicationPublicId );
     }
 
+    /**
+     * This is one of two service methods used for editing and adding applications. This method is used for AJAX
+     * calls since its return type is a JSON object.
+     *
+     * @return ApplicationManagementSummary object of the application data which was posted for editing or adding.
+     * @throws IOException
+     */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.APPLICATION_JSON )
@@ -159,6 +166,13 @@ public class ApplicationResource
                                            robotHash, uploadedInputStream, fileDetail );
     }
 
+    /**
+     * This is one of two service methods used for editing and adding applications. This method is used for synchronous
+     * calls since it returns a HTTP Response.
+     *
+     * @return HTTP Response redirect to the application management page.
+     * @throws IOException
+     */
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
@@ -173,8 +187,10 @@ public class ApplicationResource
     {
         addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                     uploadedInputStream, fileDetail );
-        return Response.seeOther( URI.create(
-            baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
+
+        UriBuilder uriBuilder =
+            baseUrl.redirect().path( InsightBrainService.APPLICATION_ASSET_PATH ).path( "index.html" );
+        return Response.seeOther( uriBuilder.build() ).build();
     }
 
     @GET

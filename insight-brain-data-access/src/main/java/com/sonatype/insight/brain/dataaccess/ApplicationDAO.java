@@ -20,6 +20,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationDAO
@@ -116,9 +117,18 @@ public class ApplicationDAO
     @Override
     public void insert( EntityManager em, Application application )
     {
+        runApplicationRules( application );
+
         super.insert( em, application );
 
         new LicenseThreatGroupDAO().createDefaultGroups( em, application.getId() );
+    }
+
+    @Override
+    public void update( EntityManager em, Application application )
+    {
+        runApplicationRules( application );
+        super.update( em, application );
     }
 
     @Override
@@ -176,5 +186,55 @@ public class ApplicationDAO
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write( image, "png", byteArrayOutputStream );
         return byteArrayOutputStream.toByteArray();
+    }
+
+    private void runApplicationRules( Application application )
+    {
+        final String applicationName = application.getName();
+        final String applicationId = application.getId();
+        final String applicationPublicId = application.getPublicId();
+
+        if ( applicationName == null || applicationName.trim().isEmpty() )
+        {
+            throw new IllegalArgumentException( "Name is required." );
+        }
+        for ( int i = 0; i < applicationName.length(); i++ )
+        {
+            Character applicationNameCharacter = applicationName.charAt( i );
+            if ( !Character.isLetterOrDigit( applicationNameCharacter ) && applicationNameCharacter != '-'
+                && applicationNameCharacter != ' ' )
+            {
+                throw new BadRequestException( "Name must be alpha numeric." );
+            }
+        }
+        if ( applicationName.matches( "^ |.* {2,}.*| $" ) )
+        {
+            throw new BadRequestException(
+                "Name must not have leading or trailing spaces, or have two spaces in a row" );
+        }
+
+        Application existingApplication = this.getByName( applicationName );
+        if ( existingApplication != null && applicationId == null
+            || application != null && applicationId != null && !application.getPublicId().equals(
+            applicationPublicId ) )
+        {
+            throw new BadRequestException( applicationName + " is already used as a name." );
+        }
+
+        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
+        {
+            throw new BadRequestException( "ID is required." );
+        }
+
+        existingApplication = this.getByPublicId( applicationPublicId );
+        if ( existingApplication != null && applicationId == null )
+        {
+            throw new BadRequestException( applicationPublicId + " is already used as an ID." );
+        }
+        if ( existingApplication == null && applicationId != null )
+        {
+            throw new BadRequestException(
+                "Attempting to edit an application that doesn't exist. ID " + applicationPublicId );
+        }
     }
 }

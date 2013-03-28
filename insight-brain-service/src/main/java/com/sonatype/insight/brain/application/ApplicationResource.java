@@ -144,8 +144,8 @@ public class ApplicationResource
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationId,
-                                                        @FormDataParam( "applicationName" ) String applicationPublicId,
+    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationPublicId,
+                                                        @FormDataParam( "applicationName" ) String applicationName,
                                                         @FormDataParam( "isEditMode" ) boolean isEdit,
                                                         @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
                                                         @FormDataParam( "robotHash" ) String robotHash,
@@ -153,15 +153,15 @@ public class ApplicationResource
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addApplicationInternal( applicationId, applicationPublicId, isEdit, hasRobotSource, robotHash,
+        return addApplicationInternal( applicationPublicId, applicationName, isEdit, hasRobotSource, robotHash,
                                        uploadedInputStream, fileDetail );
     }
 
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
-                                        @FormDataParam( "applicationName" ) String applicationPublicId,
+    public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationPublicId,
+                                        @FormDataParam( "applicationName" ) String applicationName,
                                         @FormDataParam( "isEditMode" ) boolean isEdit,
                                         @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
                                         @FormDataParam( "robotHash" ) String robotHash,
@@ -169,7 +169,7 @@ public class ApplicationResource
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addApplicationInternal( applicationId, applicationPublicId, isEdit, hasRobotSource, robotHash,
+        addApplicationInternal( applicationPublicId, applicationName, isEdit, hasRobotSource, robotHash,
                                 uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
@@ -218,48 +218,6 @@ public class ApplicationResource
                                                                 FormDataContentDisposition fileDetail )
         throws IOException
     {
-        if ( applicationName == null || applicationName.trim().isEmpty() )
-        {
-            throw new BadRequestException( "Name is required." );
-        }
-        for ( int i = 0; i < applicationName.length(); i++ )
-        {
-            Character applicationNameCharacter = applicationName.charAt( i );
-            if ( !Character.isLetterOrDigit( applicationNameCharacter ) && applicationNameCharacter != '-'
-                && applicationNameCharacter != ' ' )
-            {
-                throw new BadRequestException( "Name must be alpha numeric." );
-            }
-        }
-        if ( applicationName.matches( "^ |.* {2,}.*| $" ) )
-        {
-            throw new BadRequestException(
-                "Name must not have leading or trailing spaces, or have two spaces in a row" );
-        }
-
-        Application application = applicationDAO.getByName( applicationName );
-        if ( application != null && !isEdit || application != null && isEdit && !application.getPublicId().equals(
-            applicationPublicId ) )
-        {
-            throw new BadRequestException( applicationName + " is already used as a name." );
-        }
-
-        if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
-        {
-            throw new BadRequestException( "ID is required." );
-        }
-
-        application = applicationDAO.getByPublicId( applicationPublicId );
-        if ( application != null && !isEdit )
-        {
-            throw new BadRequestException( applicationPublicId + " is already used as an ID." );
-        }
-        if ( application == null && isEdit )
-        {
-            throw new BadRequestException(
-                "Attempting to edit an application that doesn't exist. ID " + applicationPublicId );
-        }
-
         if ( hasRobotSource )
         {
             try
@@ -305,19 +263,17 @@ public class ApplicationResource
             }
         }
 
-        if ( !isEdit )
-        {
-            application = new Application();
-        }
+        Application application = new Application();
         application.setPublicId( applicationPublicId );
         application.setName( applicationName );
-        if ( !isEdit )
+
+        try
         {
             applicationDAO.insert( application );
         }
-        else
+        catch ( IllegalArgumentException ex )
         {
-            applicationDAO.update( application );
+            throw new BadRequestException( ex.getMessage() );
         }
 
         if ( imageByteArray != null && imageByteArray.length > 0 )

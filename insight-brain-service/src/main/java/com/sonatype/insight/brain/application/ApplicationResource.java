@@ -270,10 +270,6 @@ public class ApplicationResource
                 }
                 imageByteArray = imageOutputStream.toByteArray();
             }
-            catch ( BadRequestException ex )
-            {
-                throw ex;
-            }
             finally
             {
                 imageOutputStream.close();

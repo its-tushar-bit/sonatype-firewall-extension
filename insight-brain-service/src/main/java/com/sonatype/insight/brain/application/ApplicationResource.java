@@ -144,7 +144,7 @@ public class ApplicationResource
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary addApplication( @FormDataParam( "applicationId" ) String applicationId,
+    public ApplicationManagementSummary addEditApplication( @FormDataParam( "applicationId" ) String applicationId,
                                                         @FormDataParam(
                                                             "applicationPublicId" ) String applicationPublicId,
                                                         @FormDataParam( "applicationName" ) String applicationName,
@@ -154,14 +154,14 @@ public class ApplicationResource
                                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
+        return addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                        uploadedInputStream, fileDetail );
     }
 
     @POST
     @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response addApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
+    public Response addEditApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
                                         @FormDataParam( "applicationPublicId" ) String applicationPublicId,
                                         @FormDataParam( "applicationName" ) String applicationName,
                                         @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
@@ -170,7 +170,7 @@ public class ApplicationResource
                                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
+        addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                 uploadedInputStream, fileDetail );
         return Response.seeOther( URI.create(
             baseUrl.get() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" ) ).build();
@@ -213,7 +213,7 @@ public class ApplicationResource
         return canAccess;
     }
 
-    private ApplicationManagementSummary addApplicationInternal( String applicationId, String applicationPublicId,
+    private ApplicationManagementSummary addEditApplicationInternal( String applicationId, String applicationPublicId,
                                                                  String applicationName, boolean hasRobotSource,
                                                                  String robotHash, InputStream uploadedInputStream,
                                                                  FormDataContentDisposition fileDetail )

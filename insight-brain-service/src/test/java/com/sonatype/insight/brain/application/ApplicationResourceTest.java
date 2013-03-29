@@ -26,7 +26,7 @@ public class ApplicationResourceTest
     public void testValidate()
         throws Exception
     {
-        final String applicationPublicId = "ApplicationResourceTest_testValidate_AppId";
+        final String applicationPublicId = "ApplicationResourceTest-testValidate-AppId";
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
@@ -50,7 +50,7 @@ public class ApplicationResourceTest
     public void testAddApplication()
         throws Exception
     {
-        final String applicationPublicId = "ApplicationResourceTest_testAddApplication_AppId";
+        final String applicationPublicId = "ApplicationResourceTest-testAddApplication-AppId";
 
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 200, response );
@@ -74,7 +74,7 @@ public class ApplicationResourceTest
     public void testAddApplication_InvalidApplicationPublicId()
         throws Exception
     {
-        String applicationPublicId = "testAddApplication_InvalidApplicationPublicId";
+        String applicationPublicId = "testAddApplication-InvalidApplicationPublicId";
         setSaasResponseForURI( "rest/ci/validate/" + applicationPublicId, "invalid", 200 /* status */ );
 
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
@@ -87,8 +87,8 @@ public class ApplicationResourceTest
         throws Exception
     {
         // Test GetApplications
-        final String applicationPublicId = "ApplicationResourceTest_getApplicationsTest_AppId";
-        final String applicationName = "ApplicationResourceTest_getApplicationsTest_Name";
+        final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
+        final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
         Application application = createApplication( applicationPublicId, applicationName );
 
         Response response = RestAccess.get( getServiceURL() );

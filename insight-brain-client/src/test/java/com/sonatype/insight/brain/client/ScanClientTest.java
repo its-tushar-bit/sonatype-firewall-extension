@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
+import java.util.Date;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -24,11 +21,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class ScanClientTest
     extends AbstractBrainServiceTest
 {
 
-    private static final String APP_ID = "ScanClientTest_AppId";
+    private static final String APP_ID = "ScanClientTest-AppId";
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -44,7 +45,8 @@ public class ScanClientTest
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
-        application.setName( "test" );
+        // Name must be unique
+        application.setName( "test" + new Date().getTime() );
         application.setPublicId( APP_ID );
         applicationDAO.insert( application );
     }
@@ -86,7 +88,7 @@ public class ScanClientTest
         Configuration config = brain.getClientConfiguration();
         ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
         assertEquals( "SCAN-ID", receipt.getScanId() );
-        assertEquals( "rest/report/ScanClientTest_AppId/SCAN-ID/embedReport/", receipt.getReportUrl() );
+        assertEquals( "rest/report/ScanClientTest-AppId/SCAN-ID/embedReport/", receipt.getReportUrl() );
     }
 
     @Test

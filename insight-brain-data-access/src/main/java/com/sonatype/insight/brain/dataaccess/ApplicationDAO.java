@@ -20,7 +20,6 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationDAO
@@ -224,6 +223,15 @@ public class ApplicationDAO
         if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
         {
             throw new InvalidApplicationException( "ID is required." );
+        }
+
+        existingApplication = this.getById( applicationId );
+        if ( existingApplication != null )
+        {
+            if ( existingApplication.getPublicId() != applicationPublicId )
+            {
+                throw new InvalidApplicationException( "Cannot adjust Public ID of existing application." );
+            }
         }
 
         existingApplication = this.getByPublicId( applicationPublicId );

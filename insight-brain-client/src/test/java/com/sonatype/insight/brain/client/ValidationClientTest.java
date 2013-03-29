@@ -5,18 +5,24 @@
  */
 package com.sonatype.insight.brain.client;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class ValidationClientTest
     extends AbstractBrainServiceTest
 {
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     private void assertMatch( String pattern, String text )
     {
@@ -144,6 +150,8 @@ public class ValidationClientTest
     public void testValidateApplicationId_SpecialCharacters()
         throws Exception
     {
+        exception.expect( IOException.class );
+        exception.expectMessage( "Error code 400: Name must be alpha numeric." );
         new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "id : % &" );
     }
 

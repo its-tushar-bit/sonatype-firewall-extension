@@ -5,11 +5,6 @@
  */
 package com.sonatype.insight.brain.saas;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.stringContainsInOrder;
-
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -25,6 +20,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.stringContainsInOrder;
+
 public class CIResourceTest
     extends AbstractResourceTest
 {
@@ -32,7 +32,7 @@ public class CIResourceTest
     public void testValidate()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest_testValidate_AppId";
+        final String applicationPublicId = "CIResourceTest-testValidate-AppId";
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
@@ -56,7 +56,7 @@ public class CIResourceTest
     public void testScan()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest_AppId";
+        final String applicationPublicId = "CIResourceTest-AppId";
         createApplication( applicationPublicId );
         final File saasScanFile = getScanResponseFile( applicationPublicId );
         saasScanFile.delete();
@@ -75,7 +75,7 @@ public class CIResourceTest
     public void testReport()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest_AppId";
+        final String applicationPublicId = "CIResourceTest-AppId";
         createApplication( applicationPublicId );
         final String scanId = "CIResourceTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,7 +93,8 @@ public abstract class AbstractResourceTest
 
     protected Application createApplication( String publicId )
     {
-        return createApplication( publicId, "DUMMYNAME" );
+        // Application Name must be unique
+        return createApplication( publicId, "DUMMYNAME" + new Date().getTime() );
     }
 
     protected Application createApplication( String publicId, String name )

@@ -46,17 +46,15 @@ public class ApplicationDAOTest
 
         // Update
         Application application = applicationDAO.getById( applicationId );
-        application.setPublicId( "ApplicationDAOTest New public id" );
         application.setName( "ApplicationDAOTest New name" );
         applicationDAO.update( application );
         application = applicationDAO.getById( applicationId );
-        Assert.assertEquals( "ApplicationDAOTest New public id", application.getPublicId() );
         Assert.assertEquals( "ApplicationDAOTest New name", application.getName() );
 
         // Get All
         List<Application> applications = applicationDAO.getAll();
         Assert.assertEquals( 1, applications.size() );
-        Assert.assertEquals( "ApplicationDAOTest New public id", applications.get( 0 ).getPublicId() );
+        Assert.assertEquals( applicationId, applications.get( 0 ).getId() );
 
         // Delete
         applicationDAO.delete( application );

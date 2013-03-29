@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -191,6 +192,20 @@ public class ApplicationResource
         UriBuilder uriBuilder =
             baseUrl.redirect().path( InsightBrainService.APPLICATION_ASSET_PATH ).path( "index.html" );
         return Response.seeOther( uriBuilder.build() ).build();
+    }
+
+    @DELETE
+    @Path( GET_APPLICATION_PATH )
+    public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+        throws IOException
+    {
+        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
+        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        {
+            throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
+        }
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        applicationDAO.delete( application );
     }
 
     @GET

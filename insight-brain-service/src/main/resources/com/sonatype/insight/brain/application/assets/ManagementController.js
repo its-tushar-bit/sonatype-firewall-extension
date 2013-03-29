@@ -92,6 +92,25 @@
 			}).error(onAddApplicationError);
 		};
 
+		$scope.confirmDeleteApplication = function (application) {
+			$scope.selectedApplication = application;
+			$scope.deletedEnabled = true;
+			$('#deleteApplicationModal').modal('show');
+		};
+
+		$scope.deleteApplication = function () {
+			$scope.deletedEnabled = false;
+			$http['delete'](clmLocations.getApplicationUrl($scope.selectedApplication.publicId)).success(function () {
+				angular.forEach($scope.applications, function (applicationCandidate, key) {
+					if (applicationCandidate.id === $scope.selectedApplication.id) {
+						$scope.applications.splice(key, 1);
+						return false;
+					}
+				});
+				$('#deleteApplicationModal').modal('hide');
+			}).error($scope.showServerError);
+		};
+
 		$scope.clearAddApplicationError = function () {
 			$scope.addApplicationError = null;
 		};

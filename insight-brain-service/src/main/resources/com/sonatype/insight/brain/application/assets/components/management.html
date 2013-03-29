@@ -29,16 +29,12 @@
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
                     </button>
                 </th>
+                <td>
+                </td>
             </tr>
             </thead>
             <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
                 <td>
-                    <button ng-click='editApplication(application);' class='btn btn-mini btn-edit'
-                            title='Edit Application'><i class='icon-pencil' style='margin-top:0px;'></i>
-                    </button>
-                    <button ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete'
-                            title='Delete Application'><i class='icon-trash' style='margin-top:0px;'></i>
-                    </button>
                     <img ng-src='../rest/application/icon/{{application.publicId}}'
                          onerror="this.src='../assets/img/defaulticon_application.png';" width='48px' height='48px'/>
                     <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
@@ -47,6 +43,15 @@
                     <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
                        href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
                         {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
+                </td>
+                <td>
+                    <button ng-click='editApplication(application);' class='btn btn-mini btn-edit'
+                            title='Edit Application'><i class='icon-pencil' style='margin-top:0px;'></i>
+                    </button>
+                    <button ng-show='!application.policyEvaluation'
+                            ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete'
+                            title='Delete Application'><i class='icon-trash' style='margin-top:0px;'></i>
+                    </button>
                 </td>
             </tr>
         </table>
@@ -83,6 +88,20 @@
             </div>
             <div class='modal-footer'>
                 <button class='btn btn-primary' ng-click='addApplication()' ng-disabled='!applicationPublicId'>Add
+                </button>
+            </div>
+        </div>
+        <div id='deleteApplicationModal' data-backdrop='static' class='modal hide'>
+            <div class='modal-header'>
+                <button type='button' class='close' data-dismiss='modal'>&times;</button>
+                <h3>Delete Application</h3>
+            </div>
+            <div class='modal-body'>
+                <p>Are you sure you want to delete the application {{selectedApplication.name}}?</p>
+            </div>
+            <div class='modal-footer'>
+                <button class='btn' data-dismiss='modal'>Cancel</button>
+                <button class='btn btn-primary' ng-disabled='!deletedEnabled' ng-click='deleteApplication();'>Delete
                 </button>
             </div>
         </div>

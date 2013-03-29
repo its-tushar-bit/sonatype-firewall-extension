@@ -16,14 +16,18 @@ public abstract class AbstractDbDAOTest
 {
     protected static String applicationId;
 
+    public final static String applicationPublicId = "AbstractDbDAOTest_AppId";
+
+    public final static String applicationName = "AbstractDbDAOTest";
+
     @BeforeClass
     public static void setUp()
     {
         // Create an application
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
-        application.setName( "AbstractDbDAOTest" );
-        application.setPublicId( "AbstractDbDAOTest_AppId" );
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
         applicationDAO.insert( application );
         applicationId = application.getId();
         Assert.assertNotNull( applicationId );

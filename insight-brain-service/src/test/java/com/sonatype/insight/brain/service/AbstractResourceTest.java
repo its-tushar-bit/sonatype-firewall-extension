@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 public abstract class AbstractResourceTest
     extends AbstractBrainServiceTest
 {
-    private Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
+    protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
 
     @After
     public void cleanup()

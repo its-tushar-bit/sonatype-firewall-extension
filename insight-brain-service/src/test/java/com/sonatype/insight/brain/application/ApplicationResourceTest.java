@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.application;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,7 +45,7 @@ public class ApplicationResourceTest
         assertThat( response.getResponseBody(), equalTo( "Expired" ) );
 
         application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        applicationDAO.delete( application );
+        applicationsToDelete.add( application );
     }
 
     @Test
@@ -60,10 +62,11 @@ public class ApplicationResourceTest
 
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        applicationsToDelete.add( application );
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
         Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
 
-        //Verify validate fails when application already exists in brain
+        // Verify addApplication fails when application already exists in brain
         response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "An application with id " + applicationPublicId + " already exists",
@@ -98,7 +101,7 @@ public class ApplicationResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary[].class );
         Assert.assertNotNull( applications );
 
-        Assert.assertEquals( 2, applications.length );
+        Assert.assertEquals( Arrays.asList( applications ).toString(), 1, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
         Assert.assertEquals( application.getName(), applications[0].getName() );
 

@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.stringContainsInOrder;
+
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -20,11 +25,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.stringContainsInOrder;
-
 public class CIResourceTest
     extends AbstractResourceTest
 {
@@ -37,9 +37,17 @@ public class CIResourceTest
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
 
+        // First validation will create an application with the given applicationPublicId
         Response response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "OK" ) );
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
+
+        // Validation should not fail if the application exists
+        response = RestAccess.get( getServiceURL() + "/validate/" + applicationPublicId );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), equalTo( "OK" ) );
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         invalidateAppId( applicationPublicId, "Expired" );
 

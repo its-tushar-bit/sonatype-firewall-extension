@@ -60,4 +60,10 @@ public class ApplicationManagementSummary
         summary.setPublicId( application.getPublicId() );
         return summary;
     }
+
+    @Override
+    public String toString()
+    {
+        return "ApplicationManagementSummary [publicId=" + publicId + ", name=" + name + "]";
+    }
 }

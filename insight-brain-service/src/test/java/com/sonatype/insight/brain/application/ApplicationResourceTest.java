@@ -47,7 +47,7 @@ public class ApplicationResourceTest
     }
 
     @Test
-    public void testAddApplication()
+    public void testAddApplicationFromSaaS()
         throws Exception
     {
         final String applicationPublicId = "ApplicationResourceTest-testAddApplication-AppId";
@@ -97,8 +97,9 @@ public class ApplicationResourceTest
         ApplicationManagementSummary[] applications =
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary[].class );
         Assert.assertNotNull( applications );
+
         // Freemium application created by super
-        Assert.assertEquals( 2, applications.length );
+        Assert.assertEquals( 3, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
         Assert.assertEquals( application.getName(), applications[0].getName() );
 

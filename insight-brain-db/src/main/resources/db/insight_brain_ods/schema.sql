@@ -12,7 +12,8 @@ CREATE TABLE application (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
-  CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase)
+  CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase),
+  CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
 );
 
 CREATE TABLE label (

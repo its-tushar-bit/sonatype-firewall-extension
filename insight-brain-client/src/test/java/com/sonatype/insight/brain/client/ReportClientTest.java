@@ -44,7 +44,6 @@ public class ReportClientTest
     @Test
     public void testScanIdNull()
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
         try
         {
             new ReportClient( brain.getClientConfiguration(), applicationPublicId, null /* scanId */);
@@ -58,7 +57,6 @@ public class ReportClientTest
     @Test
     public void testScanIdEmpty()
     {
-        final String applicationPublicId = "ReportClientTest_AppId";
         try
         {
             new ReportClient( brain.getClientConfiguration(), applicationPublicId, " " /* scanId */);

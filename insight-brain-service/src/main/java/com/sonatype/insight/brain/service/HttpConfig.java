@@ -33,6 +33,6 @@ public class HttpConfig
     public HttpConfig()
     {
         setPort( 8070 );
-        setAdminPort( 8070 );
+        setAdminPort( 8071 );
     }
 }

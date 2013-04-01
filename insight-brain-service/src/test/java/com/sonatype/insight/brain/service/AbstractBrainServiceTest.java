@@ -31,9 +31,11 @@ public abstract class AbstractBrainServiceTest
 
     private static final Logger log = LoggerFactory.getLogger( AbstractBrainServiceTest.class );
 
-    private static int saasPort = findFreePort( 8071 );
+    private static int saasPort = findFreePort( 8090 );
 
     private static int brainPort = findFreePort( 8070 );
+
+    private static int brainAdminPort = findFreePort( 8071 );
 
     private static File saasWork = new File( "target/mock-saas-work/" );
 
@@ -73,6 +75,7 @@ public abstract class AbstractBrainServiceTest
         {
             brain = new TestInsightBrainService();
             brain.setHttpPort( brainPort );
+            brain.setHttpAdminPort( brainAdminPort );
             brain.setSaasAddress( saas.getHttpUrl() );
             if ( getClass().getName().endsWith( "ProxyTest" ) )
             {

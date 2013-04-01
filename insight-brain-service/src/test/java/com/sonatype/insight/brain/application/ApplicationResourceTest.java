@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.application;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,9 +18,6 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -98,8 +98,7 @@ public class ApplicationResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary[].class );
         Assert.assertNotNull( applications );
 
-        // Freemium application created by super
-        Assert.assertEquals( 3, applications.length );
+        Assert.assertEquals( 2, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
         Assert.assertEquals( application.getName(), applications[0].getName() );
 

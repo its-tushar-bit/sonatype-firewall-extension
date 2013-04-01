@@ -28,6 +28,8 @@ public class TestInsightBrainService
 
     private int testPort;
 
+    private int testAdminPort;
+
     private String testSaasAddress;
 
     private String testBaseUrl;
@@ -41,6 +43,11 @@ public class TestInsightBrainService
     public void setHttpPort( final int port )
     {
         testPort = port;
+    }
+
+    public void setHttpAdminPort( final int port )
+    {
+        testAdminPort = port;
     }
 
     public void setSaasAddress( final String saasAddress )
@@ -71,6 +78,7 @@ public class TestInsightBrainService
     {
         final Configuration configuration = new Configuration();
         configuration.setServerUrl( "http://localhost:" + testPort );
+        configuration.setServerAdminUrl( "http://localhost:" + testAdminPort );
         return configuration;
     }
 
@@ -162,7 +170,7 @@ public class TestInsightBrainService
         throws Exception
     {
         config.getHttpConfiguration().setPort( testPort );
-        config.getHttpConfiguration().setAdminPort( testPort );
+        config.getHttpConfiguration().setAdminPort( testAdminPort );
         config.getHttpConfiguration().setShutdownGracePeriod( Duration.milliseconds( 1 ) );
         config.setSonatypeWork( getWorkDir().getPath() );
         config.setSaasAddress( testSaasAddress );
@@ -211,7 +219,7 @@ public class TestInsightBrainService
         public boolean check()
             throws Exception
         {
-            return path( "rest/ci/validate/freemium" ).get().status() == 200;
+            return adminPath( "healthcheck" ).get().status() == 200;
         }
     }
 

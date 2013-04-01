@@ -16,9 +16,9 @@ public abstract class AbstractDbDAOTest
 {
     protected static String applicationId;
 
-    public final static String applicationPublicId = "AbstractDbDAOTest_AppId";
+    protected final static String applicationPublicId = "AbstractDbDAOTest_AppId";
 
-    public final static String applicationName = "AbstractDbDAOTest";
+    protected final static String applicationName = "AbstractDbDAOTest";
 
     @BeforeClass
     public static void setUp()

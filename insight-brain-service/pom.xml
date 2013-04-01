@@ -19,7 +19,9 @@
   <properties>
     <drools.version>5.5.0.Final</drools.version>
     <freemarker.version>2.3.19</freemarker.version>
-    <dropwizard.version>0.6.1</dropwizard.version>
+    <dropwizard.version>0.6.2</dropwizard.version>
+    <!-- The jersey.version must match the the jersey version used by dropwizard -->
+    <jersey.version>1.17.1</jersey.version>
   </properties>
 
   <dependencies>
@@ -359,7 +361,7 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-multipart</artifactId>
-      <version>1.15</version>
+      <version>${jersey.version}</version>
     </dependency>
   </dependencies>
 

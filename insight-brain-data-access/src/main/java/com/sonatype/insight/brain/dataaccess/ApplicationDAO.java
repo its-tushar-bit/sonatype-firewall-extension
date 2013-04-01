@@ -230,7 +230,7 @@ public class ApplicationDAO
         {
             if ( existingApplication.getPublicId() != applicationPublicId )
             {
-                throw new InvalidApplicationException( "Cannot adjust Public ID of existing application." );
+                throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
             }
         }
 

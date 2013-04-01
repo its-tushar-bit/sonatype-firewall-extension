@@ -126,7 +126,7 @@ public class ApplicationDAOTest
 
         application.setPublicId( "newPublicID" );
         exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( "Cannot adjust Public ID of existing application." );
+        exception.expectMessage( "Cannot change Public ID of existing application." );
         applicationDAO.update( application );
 
         application.setId( "newID" );

@@ -13,10 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
@@ -28,26 +25,9 @@ public class ApplicationDAOTest
     public void testCRUD()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
         // Create
         // The super class creates an application by default
-        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( applicationId );
-        Assert.assertEquals( 4, licenseThreatGroups.size() );
-        Assert.assertEquals( "Copyleft", licenseThreatGroups.get( 0 ).getName() );
-        Assert.assertEquals( 9, licenseThreatGroups.get( 0 ).getThreatLevel() );
-        Assert.assertEquals( "Liberal", licenseThreatGroups.get( 1 ).getName() );
-        Assert.assertEquals( 0, licenseThreatGroups.get( 1 ).getThreatLevel() );
-        Assert.assertEquals( "Non Standard", licenseThreatGroups.get( 2 ).getName() );
-        Assert.assertEquals( 6, licenseThreatGroups.get( 2 ).getThreatLevel() );
-        Assert.assertEquals( "Weak Copyleft", licenseThreatGroups.get( 3 ).getName() );
-        Assert.assertEquals( 2, licenseThreatGroups.get( 3 ).getThreatLevel() );
-        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-        {
-            Assert.assertTrue(
-                licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() ).size() > 0 );
-        }
 
         // Update
         Application application = applicationDAO.getById( applicationId );

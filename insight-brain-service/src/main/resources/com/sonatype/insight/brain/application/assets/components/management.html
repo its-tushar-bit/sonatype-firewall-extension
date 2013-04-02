@@ -1,7 +1,7 @@
 <div class='container'>
     <div id='applicationManagement' class='content-container' style='padding: 20px;'>
-        <button class='btn floatRight' ng-click='editApplication()'><i class='icon-plus'></i> Register New
-            Application
+        <button class='btn btn-info floatRight' ng-click='editApplication()'><i class='icon-white icon-plus-sign'></i>
+            Register New Application
         </button>
         <div class='input-prepend floatLeft'>
         <span class='add-on'><i ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"
@@ -11,20 +11,19 @@
         <table class='table table-striped table-bordered' style='margin-bottom:0px; margin-right: 10px;'>
             <thead>
             <tr>
-                <th style='padding: 0px'>
-                    <button ng-class="{ 'buttonColumn' : orderColumn != 'name', 'buttonColumn buttonColumnSorted' : orderColumn == 'name' }"
-                            style='width: 100%' ng-click="order('name');">
-                        Application Name
-                        <i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
+                <th style='padding: 4px'
+                    ng-class="{ 'buttonColumn' : orderColumn != 'publicId', 'buttonColumn buttonColumnSorted' : orderColumn == 'publicId' }"
+                    ng-click="order('publicId');">
+                    Application Name
+                    <i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
                             'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
                             'emptyIconGlyph' : orderColumn != 'name' }"></i>
-                    </button>
                 </th>
-                <th ng-repeat='stage in stages | filterReportColumns' style='padding: 0px'>
-                    <button ng-class="{ 'buttonColumn' : orderColumn != stage.id, 'buttonColumn buttonColumnSorted' : orderColumn == stage.id }"
-                            style='width: 100%' ng-click="order(stage.id);">
-                        {{stage.name}} Report
-                        <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
+                <th ng-repeat='stage in stages | filterReportColumns' style='padding: 4px'
+                    ng-class="{ 'buttonColumn' : orderColumn != stage.id, 'buttonColumn buttonColumnSorted' : orderColumn == stage.id }"
+                    ng-click="order(stage.id);">
+                    {{stage.name}} Report
+                    <i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
                             'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
                     </button>

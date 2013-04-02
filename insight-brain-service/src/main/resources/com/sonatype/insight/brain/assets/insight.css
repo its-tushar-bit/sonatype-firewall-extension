@@ -76,10 +76,6 @@ tr .hover-vis {
     display: none;
 }
 
-tr:hover .hover-invis {
-    display: none;
-}
-
 .disabled img {
     opacity: 0.4;
     filter: alpha(opacity = 40);

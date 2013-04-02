@@ -83,6 +83,10 @@ public class Application
             name = name.trim();
             nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
         }
+        else
+        {
+            nameLowercaseNoWhitespace = null;
+        }
         this.name = name;
     }
 
@@ -93,9 +97,9 @@ public class Application
 
     /**
      * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-     * publicIdLowercase, nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-     * publicIdLowercase, nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-     *
+     * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
+     * directly via reflection, possibly setting it to an incorrect value.
+     * 
      * @deprecated This method should not be used explicitly.
      */
     public void setPublicIdLowercase( String publicIdLowercase )
@@ -103,6 +107,10 @@ public class Application
     }
 
     /**
+     * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+     * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
+     * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
+     * 
      * @deprecated This method should not be used explicitly.
      */
     public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )

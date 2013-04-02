@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
+import com.sonatype.insight.brain.application.ApplicationProfileResource;
 import com.sonatype.insight.brain.application.ApplicationResource;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -118,6 +119,7 @@ public class InsightBrainService
         OperationalDataStoreProvider.init( odsDatabaseConfig );
 
         env.addResource( ApplicationResource.class );
+        env.addResource( ApplicationProfileResource.class );
         env.addResource( FeaturesResource.class );
         env.addResource( ComponentLabelResource.class );
         env.addResource( LabelResource.class );

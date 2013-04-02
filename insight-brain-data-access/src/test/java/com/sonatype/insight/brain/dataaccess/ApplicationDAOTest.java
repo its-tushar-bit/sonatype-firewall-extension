@@ -180,13 +180,13 @@ public class ApplicationDAOTest
         applicationDAO.insert( application );
 
         Assert.assertEquals( appName, application.getName() );
-        Assert.assertEquals( appName.replaceAll( "\\s", "" ).toLowerCase(),
+        Assert.assertEquals( appName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ),
                              application.getNameLowercaseNoWhitespace() );
 
         String appNameCaseAndWhiteSpace = "TEST String      With    cASE and      whitespace";
         application = applicationDAO.getByName( appNameCaseAndWhiteSpace );
         Assert.assertNotNull( application );
-        Assert.assertEquals( appNameCaseAndWhiteSpace.replaceAll( "\\s", "" ).toLowerCase(),
+        Assert.assertEquals( appNameCaseAndWhiteSpace.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ),
                              application.getNameLowercaseNoWhitespace() );
         Assert.assertEquals( appName, application.getName() );
     }

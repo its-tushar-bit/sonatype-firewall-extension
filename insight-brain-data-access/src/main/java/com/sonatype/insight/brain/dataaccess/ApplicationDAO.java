@@ -88,7 +88,7 @@ public class ApplicationDAO
             throw new DataAccessException( "The application name cannot be null or empty." );
         }
         // Application Name is whitespace and case insensitive
-        name = name.replaceAll( "\\s", "" ).toLowerCase();
+        name = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
         String sQuery = "SELECT entity FROM Application entity WHERE entity.nameLowercaseNoWhitespace=?1";
         return get( em, sQuery, name );
     }

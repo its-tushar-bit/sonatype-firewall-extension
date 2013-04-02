@@ -81,7 +81,7 @@ public class Application
         if ( name != null )
         {
             name = name.trim();
-            nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase();
+            nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
         }
         this.name = name;
     }

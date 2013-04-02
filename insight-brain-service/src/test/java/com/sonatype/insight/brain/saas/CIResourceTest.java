@@ -32,7 +32,7 @@ public class CIResourceTest
     public void testValidate()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest-testValidate-AppId";
+        final String applicationPublicId = "CIResourceTest_testValidate_AppId";
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
@@ -64,7 +64,7 @@ public class CIResourceTest
     public void testScan()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest-AppId";
+        final String applicationPublicId = "CIResourceTest_AppId";
         createApplication( applicationPublicId );
         final File saasScanFile = getScanResponseFile( applicationPublicId );
         saasScanFile.delete();
@@ -76,14 +76,15 @@ public class CIResourceTest
 
         assertResponseStatus( 200, response );
 
-        assertThat( response.getResponseBody(), equalToIgnoringWhiteSpace( FileUtils.fileRead( saasScanFile, "UTF-8" ) ) );
+        assertThat( response.getResponseBody(),
+                    equalToIgnoringWhiteSpace( FileUtils.fileRead( saasScanFile, "UTF-8" ) ) );
     }
 
     @Test
     public void testReport()
         throws Exception
     {
-        final String applicationPublicId = "CIResourceTest-AppId";
+        final String applicationPublicId = "CIResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "CIResourceTest_ScanId";
         final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
@@ -114,11 +115,9 @@ public class CIResourceTest
         response = RestAccess.get( response.getHeader( "Location" ) );
         assertResponseStatus( 200, response );
 
-        assertThat( response.getResponseBody(), stringContainsInOrder( Arrays.asList( "\"groupId\"",
-                                                                                      "\"org.springframework\"",
-                                                                                      "\"artifactId\"",
-                                                                                      "\"spring-core\"", "\"version\"",
-                                                                                      "\"2.5.6\"" ) ) );
+        assertThat( response.getResponseBody(), stringContainsInOrder(
+            Arrays.asList( "\"groupId\"", "\"org.springframework\"", "\"artifactId\"", "\"spring-core\"", "\"version\"",
+                           "\"2.5.6\"" ) ) );
     }
 
     private String getServiceURL()

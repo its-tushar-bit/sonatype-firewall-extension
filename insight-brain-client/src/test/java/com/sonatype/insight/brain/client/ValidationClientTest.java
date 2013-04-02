@@ -150,8 +150,6 @@ public class ValidationClientTest
     public void testValidateApplicationId_SpecialCharacters()
         throws Exception
     {
-        exception.expect( IOException.class );
-        exception.expectMessage( "Error code 400: Name must be alpha numeric." );
         new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "id : % &" );
     }
 

@@ -368,7 +368,17 @@ public class ApplicationResource
             {
                 Application application = new Application();
                 application.setPublicId( applicationPublicId );
-                application.setName( applicationPublicId );
+
+                // Names must consist of only alpha numeric or dashes
+                StringBuilder nameBuilder = new StringBuilder();
+                for ( char character : applicationPublicId.toCharArray() )
+                {
+                    if ( Character.isLetterOrDigit( character ) || character == '-' )
+                    {
+                        nameBuilder.append( character );
+                    }
+                }
+                application.setName( nameBuilder.toString() );
                 applicationDAO.insert( application );
             }
         }

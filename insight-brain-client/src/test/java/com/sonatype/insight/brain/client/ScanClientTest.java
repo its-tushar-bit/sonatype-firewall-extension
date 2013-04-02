@@ -29,7 +29,7 @@ public class ScanClientTest
     extends AbstractBrainServiceTest
 {
 
-    private static final String APP_ID = "ScanClientTest-AppId";
+    private static final String APP_ID = "ScanClientTest_AppId";
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -88,7 +88,7 @@ public class ScanClientTest
         Configuration config = brain.getClientConfiguration();
         ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
         assertEquals( "SCAN-ID", receipt.getScanId() );
-        assertEquals( "rest/report/ScanClientTest-AppId/SCAN-ID/embedReport/", receipt.getReportUrl() );
+        assertEquals( "rest/report/ScanClientTest_AppId/SCAN-ID/embedReport/", receipt.getReportUrl() );
     }
 
     @Test

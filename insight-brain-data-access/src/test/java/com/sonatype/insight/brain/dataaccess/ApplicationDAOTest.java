@@ -91,7 +91,9 @@ public class ApplicationDAOTest
             applicationDAO.insert( application );
         }
 
-        final String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space" };
+        final String[] invalidSpacingNames =
+            { " leading space", "trailing space ", "double  space", "  starts with double space",
+                "ends with double space  " };
         for ( String name : invalidSpacingNames )
         {
             application.setName( name );

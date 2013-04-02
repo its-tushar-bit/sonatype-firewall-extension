@@ -278,6 +278,9 @@ public final class Report
         cache( getCacheFile( reportFile, "licensethreats.json" ), JsonUtils.generate( licenseThreatsJson ) );
     }
 
+    /**
+     * @deprecated As of INSIGHT-4409, key findings are now longer included in the reports.
+     */
     private static void filterKeyFindings( final ObjectNode data, final ContainerNode<?> security )
     {
         final Set<String> textSet = new HashSet<String>();

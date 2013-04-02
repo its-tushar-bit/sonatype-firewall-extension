@@ -1,7 +1,7 @@
-describe('LabelController itemLabel tests', function() {
+describe('LabelController itemLabel tests', function () {
 	var scope,
-	    compileElement,
-	    setInput;
+		compileInput,
+		setInput;
 
 	beforeEach(module('Labels'));
 
@@ -13,14 +13,14 @@ describe('LabelController itemLabel tests', function() {
 			var formElement = angular.element("<form name='form'></form>");
 			formElement.append(inputElement);
 			$compile(formElement)(scope);
-		}
+		};
 		setInput = function (val) {
 			inputElement.val(val);
 
 			var evt = document.createEvent('HTMLEvents');
 			evt.initEvent(($sniffer.hasEvent('input')) ? 'input' : 'change', false, false);
 			inputElement[0].dispatchEvent(evt);
-		}
+		};
 	}));
 
 	it('Test No Spaces', function () {
@@ -48,7 +48,9 @@ describe('LabelController itemLabel tests', function() {
 	it('Test Duplicate', function () {
 		scope.selectedLabel = {};
 		compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label'  item-label />");
-		scope.labels = [{ id : 'bar', label : 'bar' }];
+		scope.labels = [
+			{ id: 'bar', label: 'bar' }
+		];
 		setInput('foo');
 		expect(scope.form.$invalid).toEqual(false);
 		expect(scope.form.label.$error.duplicate).toEqual(false);

@@ -79,6 +79,7 @@
 			$scope.robotHash = null;
 
 			$('#newApplicationModal').modal('show');
+			angular.element('#applicationName').focus();
 		};
 
 		$scope.addApplication = function () {
@@ -127,16 +128,14 @@
 		$scope.orderBy = function (application) {
 			if ($scope.orderColumn === 'name') {
 				return application.name;
-			} else if ($scope.orderColumn === application.policyEvaluation.stage.stageTypeId) {
+			} else if (application.policyEvaluation && $scope.orderColumn === application.policyEvaluation.stage.stageTypeId) {
 				return application.policyEvaluation.time;
 			}
 			// return max value to prevent empty values showing up as low
 			return Number.MAX_VALUE;
 		};
 
-		$scope.encodeURIComponent = function (value) {
-			return encodeURIComponent(value);
-		}
+		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
 
 	managementModule.filter('filterReportColumns', function () {
@@ -145,7 +144,7 @@
 			if (items) {
 				var validReportColumns = ['Build', 'Stage Release', 'Release'];
 				for (var i = 0; i < items.length; i++) {
-					if (validReportColumns.indexOf(items[i].name) > -1) {
+					if (jQuery.inArray(items[i].name, validReportColumns) > -1) {
 						arrayToReturn.push(items[i]);
 					}
 				}

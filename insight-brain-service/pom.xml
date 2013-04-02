@@ -377,12 +377,12 @@
       <resource>
         <directory>src/main/brain-client</directory>
         <filtering>true</filtering>
-        <targetPath>${project.build.outputDirectory}/com/sonatype/insight/brain/policy/assets/js/</targetPath>
+        <targetPath>${project.build.outputDirectory}/assets/policy/js/</targetPath>
       </resource>
       <resource>
         <directory>src/main/brain-client</directory>
         <filtering>true</filtering>
-        <targetPath>${project.build.outputDirectory}/com/sonatype/insight/brain/assets/js/</targetPath>
+        <targetPath>${project.build.outputDirectory}/assets/assets/js/</targetPath>
       </resource>
     </resources>
     <plugins>
@@ -426,19 +426,19 @@
           <specIncludes>
             <include>assets/angular-mocks-1.0.5.js</include>
             <include>assets/MockData.js</include>
-            <include>policy/assets/PolicyMockData.js</include>
-            <include>policy/assets/LicenseGroupMockData.js</include>
-            <include>policy/assets/InsightPolicyControllerSpec.js</include>
-            <include>policy/assets/InsightLicenseGroupControllerSpec.js</include>
-            <include>policy/assets/CIPLabelEditorSpec.js</include>
-            <include>policy/assets/LabelControllerSpec.js</include>
-            <include>policy/assets/notification-management-spec.js</include>
-            <include>application/assets/ApplicationMockData.js</include>
-            <include>application/assets/ManagementControllerSpec.js</include>
+            <include>policy/PolicyMockData.js</include>
+            <include>policy/LicenseGroupMockData.js</include>
+            <include>policy/InsightPolicyControllerSpec.js</include>
+            <include>policy/InsightLicenseGroupControllerSpec.js</include>
+            <include>policy/CIPLabelEditorSpec.js</include>
+            <include>policy/LabelControllerSpec.js</include>
+            <include>policy/notification-management-spec.js</include>
+            <include>application/ApplicationMockData.js</include>
+            <include>application/ManagementControllerSpec.js</include>
             <include>assets/AngularCommonSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
-          <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain</jsTestSrcDir>
+          <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
         </configuration>
       </plugin>
       <plugin>

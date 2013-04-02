@@ -408,10 +408,10 @@
         </executions>
         <configuration>
           <sourceIncludes>
-            <include>assets/jquery/jquery-1.8.3.min.js</include>
-            <include>assets/bootstrap/bootstrap-2.3.1.min.js</include>
-            <include>assets/angular/angular-1.0.5.js</include>
-            <include>assets/angular/angular-sanitize-1.0.5.js</include>
+            <include>assets/jquery/jquery-*.min.js</include>
+            <include>assets/bootstrap/bootstrap-*.min.js</include>
+            <include>assets/angular/angular-*.min.js</include>
+            <include>assets/angular/angular-sanitize-*.min.js</include>
             <include>assets/CLMLocation.js</include>
             <include>assets/AngularCommon.js</include>
             <include>policy/PolicyApp.js</include>
@@ -424,7 +424,7 @@
             <include>application/ManagementController.js</include>
           </sourceIncludes>
           <specIncludes>
-            <include>assets/angular-mocks-1.0.5.js</include>
+            <include>assets/angular-mocks-*.js</include>
             <include>assets/MockData.js</include>
             <include>policy/PolicyMockData.js</include>
             <include>policy/LicenseGroupMockData.js</include>

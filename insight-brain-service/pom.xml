@@ -414,14 +414,14 @@
             <include>assets/angular/angular-sanitize-1.0.5.js</include>
             <include>assets/CLMLocation.js</include>
             <include>assets/AngularCommon.js</include>
-            <include>policy/assets/PolicyApp.js</include>
-            <include>policy/assets/InsightPolicyController.js</include>
-            <include>policy/assets/InsightLicenseGroupController.js</include>
-            <include>policy/assets/LabelController.js</include>
-            <include>policy/assets/js/cip-label-editor.js</include>
-            <include>policy/assets/js/notification-management.js</include>
-            <include>application/assets/ClmManagementApp.js</include>
-            <include>application/assets/ManagementController.js</include>
+            <include>policy/PolicyApp.js</include>
+            <include>policy/InsightPolicyController.js</include>
+            <include>policy/InsightLicenseGroupController.js</include>
+            <include>policy/LabelController.js</include>
+            <include>policy/js/cip-label-editor.js</include>
+            <include>policy/js/notification-management.js</include>
+            <include>application/ClmManagementApp.js</include>
+            <include>application/ManagementController.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>assets/angular-mocks-1.0.5.js</include>
@@ -437,7 +437,7 @@
             <include>application/assets/ManagementControllerSpec.js</include>
             <include>assets/AngularCommonSpec.js</include>
           </specIncludes>
-          <jsSrcDir>${project.basedir}/src/main/resources/com/sonatype/insight/brain</jsSrcDir>
+          <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/com/sonatype/insight/brain</jsTestSrcDir>
         </configuration>
       </plugin>

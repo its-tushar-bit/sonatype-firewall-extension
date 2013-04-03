@@ -16,6 +16,9 @@
     text-align: left;
     cursor: pointer;
     font-weight: bold;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
 }
 
 .buttonColumnSorted {
@@ -30,6 +33,9 @@
     background-image: linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#f5f9fa', endColorstr = '#b5c6e0', GradientType = 0);
     font-size: 12px;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
 }
 
 .reportTitle {

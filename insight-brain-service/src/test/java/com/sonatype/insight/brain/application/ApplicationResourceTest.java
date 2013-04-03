@@ -5,21 +5,31 @@
  */
 package com.sonatype.insight.brain.application;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.concurrent.Future;
+
+import javax.imageio.ImageIO;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
+import com.ning.http.multipart.ByteArrayPartSource;
+import com.ning.http.multipart.FilePart;
+import com.ning.http.multipart.StringPart;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -83,6 +93,107 @@ public class ApplicationResourceTest
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "Invalid application id " + applicationPublicId, response.getResponseBody() );
+    }
+
+    @Test
+    public void testAddApplication()
+        throws Exception
+    {
+        final String applicationPublicId = "testID";
+        final String applicationName = "test-application-name";
+
+        // Test Get Icon (default icon)
+        ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
+        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
+        Assert.assertNotNull( iconStream );
+        byte[] defaultIconByteArray = null;
+        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+        try
+        {
+            for ( int b = 0; ( b = iconStream.read() ) != -1; )
+            {
+                imageOutputStream.write( b );
+            }
+            defaultIconByteArray = imageOutputStream.toByteArray();
+        }
+        finally
+        {
+            imageOutputStream.close();
+            iconStream.close();
+        }
+
+        Assert.assertNotNull( defaultIconByteArray );
+        Assert.assertNotEquals( 0, defaultIconByteArray.length );
+
+        // Test Add Application
+        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getServiceURL() );
+        builder.addBodyPart( new StringPart( "applicationName", applicationName ) );
+        builder.addBodyPart( new StringPart( "applicationPublicId", applicationPublicId ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        builder.addBodyPart(
+            new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", defaultIconByteArray ) ) );
+        Future<Response> futureResponse = builder.execute();
+
+        Response response = futureResponse.get();
+        assertResponseStatus( 200, response );
+
+        ApplicationManagementSummary applicationManagementSummary =
+            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
+
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        applicationsToDelete.add( application );
+
+        Assert.assertNotNull( application );
+        Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
+        Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
+        Assert.assertEquals( applicationName, applicationManagementSummary.getName() );
+
+        // Test Get Icon (from added application)
+        Response iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
+
+        assertResponseStatus( 200, iconResponse );
+        iconStream = iconResponse.getResponseBodyAsStream();
+        BufferedImage icon = null;
+        try
+        {
+            icon = ImageIO.read( iconStream );
+        }
+        finally
+        {
+            iconStream.close();
+        }
+        Assert.assertNotNull( icon );
+        Assert.assertEquals( 420, icon.getHeight() );
+        Assert.assertEquals( 420, icon.getWidth() );
+
+        // Test update
+        builder = RestAccess.getClient().preparePost( getServiceURL() );
+
+        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
+        builder.addBodyPart( new StringPart( "applicationName", applicationName + "updated" ) );
+        builder.addBodyPart( new StringPart( "applicationPublicId", applicationPublicId ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        futureResponse = builder.execute();
+        response = futureResponse.get();
+
+        assertResponseStatus( 200, response );
+        applicationManagementSummary =
+            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
+
+        Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
+        Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
+        Assert.assertEquals( applicationName + "updated", applicationManagementSummary.getName() );
+
+        // Verify non alpha numeric name fails
+        builder = RestAccess.getClient().preparePost( getServiceURL() );
+        builder.addBodyPart( new StringPart( "applicationName", "Non Alphanumeric Name !!!!!" ) );
+        builder.addBodyPart( new StringPart( "applicationPublicId", applicationPublicId ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        futureResponse = builder.execute();
+
+        response = futureResponse.get();
+        assertResponseStatus( 400, response );
     }
 
     @Test

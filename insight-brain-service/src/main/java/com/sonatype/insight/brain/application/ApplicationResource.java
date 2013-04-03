@@ -205,7 +205,7 @@ public class ApplicationResource
             throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
         }
         Application application = applicationDAO.getByPublicId( applicationPublicId );
-        applicationDAO.delete( application );
+        applicationDAO.deleteWithIcon( application, work.getIconDir() );
     }
 
     @GET

@@ -96,7 +96,7 @@ public class ApplicationResourceTest
     }
 
     @Test
-    public void testAddApplication()
+    public void testAddDeleteApplication()
         throws Exception
     {
         final String applicationPublicId = "testID";
@@ -142,7 +142,6 @@ public class ApplicationResourceTest
 
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        applicationsToDelete.add( application );
 
         Assert.assertNotNull( application );
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
@@ -194,6 +193,16 @@ public class ApplicationResourceTest
 
         response = futureResponse.get();
         assertResponseStatus( 400, response );
+
+        // Test delete
+        response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+        application = applicationDAO.getByPublicId( applicationPublicId );
+
+        assertResponseStatus( 204, response );
+        Assert.assertNull( application );
+
+        iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
+        assertResponseStatus( 404, iconResponse );
     }
 
     @Test

@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.Application;
@@ -23,7 +26,24 @@ public class ApplicationDAOTest
 {
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private Application application = new Application();
+    private Application application;
+
+    @Before
+    public void setupApplication()
+    {
+        application = new Application();
+        application.setName( "valid name" + new Date().getTime() );
+        application.setPublicId( "valid public id" + new Date().getTime() );
+    }
+
+    @After
+    public void deleteApplication()
+    {
+        if ( applicationDAO.getById( application.getId() ) != null )
+        {
+            applicationDAO.delete( application );
+        }
+    }
 
     @Test
     public void testCRUD()
@@ -50,12 +70,78 @@ public class ApplicationDAOTest
     }
 
     @Test
-    public void testValidateNullName_Insert()
+    public void testValidateNullPublicId_Insert()
     {
+        application.setPublicId( null );
         try
         {
             applicationDAO.insert( application );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidApplicationException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "ID is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateNullPublicId_Update()
+    {
+        applicationDAO.insert( application );
+        application.setPublicId( " " );
+        application.setName( application.getName() + "1" );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidApplicationException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "ID is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testPublicIdIsCaseInsensitive()
+    {
+        String appPublicId = "testPublicIdIsCaseInsensitive";
+
+        Application application = new Application();
+        application.setName( "test" );
+        application.setPublicId( appPublicId );
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        applicationDAO.insert( application );
+        String applicationId = application.getId();
+
+        Assert.assertEquals( appPublicId, application.getPublicId() );
+        Assert.assertEquals( appPublicId.toLowerCase( Locale.ENGLISH ), application.getPublicIdLowercase() );
+
+        application = applicationDAO.getById( applicationId );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( appPublicId, application.getPublicId() );
+        Assert.assertEquals( appPublicId.toLowerCase( Locale.ENGLISH ), application.getPublicIdLowercase() );
+
+        application = applicationDAO.getByPublicId( appPublicId );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( applicationId, application.getId() );
+
+        application = applicationDAO.getByPublicId( appPublicId.toLowerCase( Locale.ENGLISH ) );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( applicationId, application.getId() );
+
+        application = applicationDAO.getByPublicId( appPublicId.toUpperCase( Locale.ENGLISH ) );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( applicationId, application.getId() );
+    }
+
+    @Test
+    public void testValidateNullName_Insert()
+    {
+        application.setName( null );
+        try
+        {
+            applicationDAO.insert( application );
+            fail( "Expected InvalidApplicationException" );
         }
         catch ( InvalidApplicationException expected )
         {
@@ -75,7 +161,7 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.update( application );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidApplicationException" );
         }
         catch ( InvalidApplicationException expected )
         {
@@ -90,7 +176,7 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.insert( application );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidApplicationException" );
         }
         catch ( InvalidApplicationException expected )
         {
@@ -110,7 +196,7 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.update( application );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidApplicationException" );
         }
         catch ( InvalidApplicationException expected )
         {
@@ -128,7 +214,7 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.insert( application );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidApplicationException" );
             }
             catch ( InvalidApplicationException expected )
             {
@@ -149,7 +235,7 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.update( application );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidApplicationException" );
             }
             catch ( InvalidApplicationException expected )
             {
@@ -170,7 +256,7 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.insert( application );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidApplicationException" );
             }
             catch ( InvalidApplicationException expected )
             {
@@ -195,7 +281,7 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.update( application );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidApplicationException" );
             }
             catch ( InvalidApplicationException expected )
             {
@@ -233,11 +319,11 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.insert( application1 );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidApplicationException" );
         }
         catch ( InvalidApplicationException expected )
         {
-            assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
+            assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
         }
     }
 
@@ -248,6 +334,7 @@ public class ApplicationDAOTest
         applicationDAO.insert( application );
 
         Application application1 = new Application();
+        application1.setPublicId( "testpublicid1" );
         application1.setName( "testDuplicateName1" );
         applicationDAO.insert( application1 );
 
@@ -255,44 +342,11 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.update( application1 );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidApplicationException" );
         }
         catch ( InvalidApplicationException expected )
         {
-            assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
+            assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
         }
-    }
-
-    @Test
-    public void testPublicIdIsCaseInsensitive()
-    {
-        String appPublicId = "testPublicIdIsCaseInsensitive";
-
-        Application application = new Application();
-        application.setName( "test" );
-        application.setPublicId( appPublicId );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        applicationDAO.insert( application );
-        String applicationId = application.getId();
-
-        Assert.assertEquals( appPublicId, application.getPublicId() );
-        Assert.assertEquals( appPublicId.toLowerCase( Locale.ENGLISH ), application.getPublicIdLowercase() );
-
-        application = applicationDAO.getById( applicationId );
-        Assert.assertNotNull( application );
-        Assert.assertEquals( appPublicId, application.getPublicId() );
-        Assert.assertEquals( appPublicId.toLowerCase( Locale.ENGLISH ), application.getPublicIdLowercase() );
-
-        application = applicationDAO.getByPublicId( appPublicId );
-        Assert.assertNotNull( application );
-        Assert.assertEquals( applicationId, application.getId() );
-
-        application = applicationDAO.getByPublicId( appPublicId.toLowerCase( Locale.ENGLISH ) );
-        Assert.assertNotNull( application );
-        Assert.assertEquals( applicationId, application.getId() );
-
-        application = applicationDAO.getByPublicId( appPublicId.toUpperCase( Locale.ENGLISH ) );
-        Assert.assertNotNull( application );
-        Assert.assertEquals( applicationId, application.getId() );
     }
 }

@@ -40,7 +40,7 @@ public class ApplicationDAO
         Application application = getById( id );
         if ( application == null )
         {
-            throw new NotFoundException( "Cannot find application with id " + id );
+            throw new NotFoundException( "Cannot find application with id " + id + "." );
         }
         return application;
     }
@@ -76,7 +76,7 @@ public class ApplicationDAO
         Application application = getByPublicId( publicId );
         if ( application == null )
         {
-            throw new NotFoundException( "Cannot find application with public id " + publicId );
+            throw new NotFoundException( "Cannot find application with public id " + publicId + "." );
         }
         return application;
     }
@@ -128,6 +128,16 @@ public class ApplicationDAO
     {
         runApplicationRules( application );
         super.update( em, application );
+    }
+
+    public void deleteWithIcon( Application application, File iconDirectory )
+    {
+        File applicationIconDirectory = new File( iconDirectory, application.getId() );
+        if ( applicationIconDirectory.exists() )
+        {
+            applicationIconDirectory.delete();
+        }
+        super.delete( application );
     }
 
     @Override
@@ -206,10 +216,10 @@ public class ApplicationDAO
                 throw new InvalidApplicationException( "Name must be alpha numeric." );
             }
         }
-        if ( applicationName.matches( "^ |.* {2,}.*| $" ) )
+        if ( applicationName.matches( "^ .*|.* {2,}.*|.* $" ) )
         {
             throw new InvalidApplicationException(
-                "Name must not have leading or trailing spaces, or have two spaces in a row" );
+                "Name must not have leading or trailing spaces, or have two spaces in a row." );
         }
 
         Application existingApplication = this.getByName( applicationName );

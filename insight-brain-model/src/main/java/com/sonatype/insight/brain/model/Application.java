@@ -29,10 +29,10 @@ public class Application
     @Column(name = "public_id_lowercase")
     private String publicIdLowercase;
 
-    @Column( name = "name" )
+    @Column(name = "name")
     private String name;
 
-    @Column( name = "name_lowercase_no_whitespace" )
+    @Column(name = "name_lowercase_no_whitespace")
     private String nameLowercaseNoWhitespace;
 
     @Override
@@ -80,7 +80,6 @@ public class Application
     {
         if ( name != null )
         {
-            name = name.trim();
             nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
         }
         else
@@ -99,7 +98,7 @@ public class Application
      * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
      * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
      * directly via reflection, possibly setting it to an incorrect value.
-     * 
+     *
      * @deprecated This method should not be used explicitly.
      */
     public void setPublicIdLowercase( String publicIdLowercase )
@@ -110,7 +109,7 @@ public class Application
      * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
      * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
      * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-     * 
+     *
      * @deprecated This method should not be used explicitly.
      */
     public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )

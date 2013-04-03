@@ -79,4 +79,19 @@ var angularCommon;
 			}
 		};
 	});
+
+	angularCommon.factory('commonCodeFactory', function () {
+		return {
+			// URI Encoded Query Parameter
+			getQueryString: function (key, spaceChar) {
+				var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.search);
+				if (results) {
+					if (!spaceChar) {
+						spaceChar = '%20';
+					}
+					return results[1].replace(/\+/g, spaceChar);
+				}
+			}
+		};
+	});
 }());

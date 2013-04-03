@@ -9,10 +9,15 @@
 
 	var managementModule = angular.module('Management', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-	managementModule.controller('ManagementController', ['$scope', '$location', '$http', 'hudson', 'CLMLocations', function ($scope, $location, $http, hudson, clmLocations) {
+	managementModule.controller('ManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, commonCodeFactory) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 		$scope.canGetRobotIcon = false;
+
+		var error = commonCodeFactory.getQueryString('errorMessage', ' ');
+		if (error) {
+			$scope.syncErrorResponse = error;
+		}
 
 		function onAddApplicationError(data, status, headersFn, config) {
 			var header = headersFn();
@@ -114,6 +119,10 @@
 			$scope.addApplicationError = null;
 		};
 
+		$scope.clearSyncEditError = function () {
+			$scope.syncErrorResponse = null;
+		};
+
 		$scope.order = function (column) {
 			if ($scope.orderColumn === column) {
 				$scope.orderDirection = !$scope.orderDirection;
@@ -169,6 +178,10 @@
 				}
 			}
 		}
+
+		$scope.clearEditError = function () {
+			$scope.errorResponse = null;
+		};
 
 		$scope.generateIcon = function () {
 			var name = $scope.selectedApplication.name;
@@ -237,7 +250,7 @@
 			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
 			angular.element('[name=robotHash]').val($scope.robotHash);
 
-			if (window.FormData) {
+			if (false) { //window.FormData) {
 				var formData = new FormData(angular.element('#applicationEditor')[0]);
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {

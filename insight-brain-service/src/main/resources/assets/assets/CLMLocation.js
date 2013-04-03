@@ -6,15 +6,7 @@
 (function () {
 	"use strict";
 
-	// URI Encoded Query Parameter
-	function getQueryString(key) {
-		var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.search);
-		if (results) {
-			return results[1].replace(/\+/g, '%20');
-		}
-	}
-
-	angular.module('CLMLocation', []).factory('CLMLocations', function () {
+	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', ['commonCodeFactory', function (commonCodeFactory) {
 		// URI encoded ApplicationID
 		var getAppId = (function () {
 			var appId = null;
@@ -22,7 +14,7 @@
 				if (appId) {
 					return appId;
 				}
-				appId = getQueryString('appId');
+				appId = commonCodeFactory.getQueryString('appId');
 
 				return appId;
 			};
@@ -65,8 +57,7 @@
 			},
 
 			getLicenseGroupLicensesUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getAppId() + '/'
-				+ group.id;
+				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getAppId() + '/' + group.id;
 			},
 
 			getLicensesUrl: function () {
@@ -117,5 +108,5 @@
 			    return this.getProfilesUrl() + '/' + profile.id;
 			}
 		};
-	});
+	}]);
 }());

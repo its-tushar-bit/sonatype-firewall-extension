@@ -57,8 +57,7 @@ public class LabelResourceTest
         policy.setConstraints( constraints );
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
         response =
-            RestAccess.post( getRestBaseUrl()
-                                 + PolicyResource.SERVICE_PATH.replace( "{applicationPublicId}", appPublicId ),
+            RestAccess.post( getRestBaseUrl() + PolicyResource.SERVICE_PATH.replace( "{policyOwnerId}", appPublicId ),
                              JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
 

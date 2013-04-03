@@ -43,10 +43,10 @@ public class PolicyDAO
         this.workDir = workDir;
     }
 
-    public List<Policy> getByApplicationId( final String appId )
+    public List<Policy> getByOwnerId( final String ownerId )
     {
         final List<Policy> result = new ArrayList<Policy>();
-        final JsonStore store = policyStore( appId );
+        final JsonStore store = policyStore( ownerId );
         try
         {
             final ArrayNode policies = loadPolicies( store );
@@ -60,15 +60,15 @@ public class PolicyDAO
         return result;
     }
 
-    public Policy insert( final String applicationId, final Policy policy )
+    public Policy insert( final String ownerId, final Policy policy )
     {
-        ValidationResult validationResult = policy.validate( applicationId );
+        ValidationResult validationResult = policy.validate( ownerId );
         if ( validationResult != null && !validationResult.isValid() )
         {
             throw new InvalidPolicyException( validationResult );
         }
 
-        final JsonStore store = policyStore( applicationId );
+        final JsonStore store = policyStore( ownerId );
         try
         {
             final ArrayNode policiesJson = loadPolicies( store );
@@ -99,15 +99,15 @@ public class PolicyDAO
         return policy;
     }
 
-    public Policy update( final String applicationId, final Policy policy )
+    public Policy update( final String ownerId, final Policy policy )
     {
-        ValidationResult validationResult = policy.validate( applicationId );
+        ValidationResult validationResult = policy.validate( ownerId );
         if ( validationResult != null && !validationResult.isValid() )
         {
             throw new InvalidPolicyException( validationResult );
         }
 
-        final JsonStore store = policyStore( applicationId );
+        final JsonStore store = policyStore( ownerId );
         try
         {
             boolean updated = false;
@@ -157,9 +157,9 @@ public class PolicyDAO
         return policy;
     }
 
-    public void delete( final String appId, final String policyId )
+    public void delete( final String ownerId, final String policyId )
     {
-        final JsonStore store = policyStore( appId );
+        final JsonStore store = policyStore( ownerId );
         try
         {
             final ArrayNode policies = loadPolicies( store );
@@ -202,9 +202,9 @@ public class PolicyDAO
         store.commit( POLICY_FILENAME, JsonUtils.stamp( user, ip, where, policies ) );
     }
 
-    private JsonStore policyStore( final String appId )
+    private JsonStore policyStore( final String ownerId )
     {
-        return JsonUtils.fileStore( new File( workDir, "policy/" + appId ) );
+        return JsonUtils.fileStore( new File( workDir, "policy/" + ownerId ) );
     }
 
     private static String newUUID()

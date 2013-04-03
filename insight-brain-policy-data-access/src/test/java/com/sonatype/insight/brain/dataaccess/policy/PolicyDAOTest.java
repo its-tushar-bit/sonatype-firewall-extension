@@ -162,7 +162,7 @@ public class PolicyDAOTest
         Assert.assertNotNull( constraint1.getId() );
         String constraintId1 = constraint1.getId();
 
-        List<Policy> policies = policyDAO.getByApplicationId( applicationId );
+        List<Policy> policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 1, policies.size() );
         assertPolicy( policy, policies.get( 0 ) );
@@ -186,7 +186,7 @@ public class PolicyDAOTest
         Assert.assertNotNull( constraint2.getId() );
         String constraintId2 = constraint2.getId();
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 1, policies.size() );
         assertPolicy( policy, policies.get( 0 ) );
@@ -218,7 +218,7 @@ public class PolicyDAOTest
         Assert.assertNotEquals( constraintId3, constraint3.getId() );
         constraintId3 = constraint3.getId();
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 1, policies.size() );
         assertPolicy( policy, policies.get( 0 ) );
@@ -248,7 +248,7 @@ public class PolicyDAOTest
         policy1.addConstraint( constraint1 );
         policyDAO.insert( applicationId, policy1 );
 
-        List<Policy> policies = policyDAO.getByApplicationId( applicationId );
+        List<Policy> policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 1, policies.size() );
         assertPolicy( policy1, policies.get( 0 ) );
@@ -261,7 +261,7 @@ public class PolicyDAOTest
         policy2.addConstraint( constraint2 );
         policyDAO.insert( applicationId, policy2 );
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 2, policies.size() );
         assertPolicy( policy1, policies.get( 0 ) );
@@ -271,7 +271,7 @@ public class PolicyDAOTest
         policy1.setName( "PolicyDAOTest updated policy 1" );
         policyDAO.update( applicationId, policy1 );
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 2, policies.size() );
         assertPolicy( policy1, policies.get( 0 ) );
@@ -281,7 +281,7 @@ public class PolicyDAOTest
         policy2.setName( "PolicyDAOTest updated policy 2" );
         policyDAO.update( applicationId, policy2 );
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 2, policies.size() );
         assertPolicy( policy1, policies.get( 0 ) );
@@ -290,7 +290,7 @@ public class PolicyDAOTest
         // Delete a policy
         policyDAO.delete( applicationId, policy1.getId() );
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 1, policies.size() );
         assertPolicy( policy2, policies.get( 0 ) );
@@ -298,7 +298,7 @@ public class PolicyDAOTest
         // Delete another policy
         policyDAO.delete( applicationId, policy2.getId() );
 
-        policies = policyDAO.getByApplicationId( applicationId );
+        policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 0, policies.size() );
     }

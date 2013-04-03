@@ -33,69 +33,74 @@ import com.sonatype.insight.client.utils.AuditUtils;
 @Path( PolicyResource.SERVICE_PATH )
 public class PolicyResource
 {
-    public static final String SERVICE_PATH = "rest/policy/{applicationPublicId}";
+    public static final String SERVICE_PATH = "rest/policy/{policyOwnerId}";
 
     private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
 
     @Context
     private InsightWork work;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    private String getInternalPolicyOwnerId( String policyOwnerId )
+    {
+        if ( Policy.ORGANIZATION_OWNER_ID.equals( policyOwnerId ) )
+        {
+            return Policy.ORGANIZATION_OWNER_ID;
+        }
+
+        Application application = new ApplicationDAO().getByPublicIdNotNull( policyOwnerId );
+        return application.getId();
+    }
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<Policy> getPolicies( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+    public List<Policy> getPolicies( @PathParam( "policyOwnerId" ) final String policyOwnerId )
     {
-        log.debug( "Received request to get all policies for appId {}", applicationPublicId );
+        log.debug( "Received request to get all policies for policyOwnerId {}", policyOwnerId );
 
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 
-        return policyDAO().getByApplicationId( appId );
+        return policyDAO().getByOwnerId( internalPolicyOwnerId );
     }
 
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Policy addPolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, final Policy policy,
+    public Policy addPolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId, final Policy policy,
                              @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
                              @Context final HttpServletRequest request )
     {
-        log.debug( "Received request to add policy for appId {}", applicationPublicId );
+        log.debug( "Received request to add policy for policyOwnerId {}", policyOwnerId );
 
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 
-        return policyDAO().session( user, AuditUtils.findIP( request ), where ).insert( appId, policy );
+        return policyDAO().session( user, AuditUtils.findIP( request ), where ).insert( internalPolicyOwnerId, policy );
     }
 
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Policy updatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+    public Policy updatePolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId,
                                 final Policy policy, @QueryParam( "user" ) final String user,
                                 @QueryParam( "where" ) final String where, @Context final HttpServletRequest request )
     {
-        log.debug( "Received request to update policy for appId {}, policyId {}", applicationPublicId, policy.getId() );
+        log.debug( "Received request to update policy for policyOwnerId {}, policyId {}", policyOwnerId, policy.getId() );
 
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 
-        return policyDAO().session( user, AuditUtils.findIP( request ), where ).update( appId, policy );
+        return policyDAO().session( user, AuditUtils.findIP( request ), where ).update( internalPolicyOwnerId, policy );
     }
 
     @DELETE
     @Path( "{policyId}" )
-    public void deletePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+    public void deletePolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId,
                               @PathParam( "policyId" ) final String policyId, @QueryParam( "user" ) final String user,
                               @QueryParam( "where" ) final String where, @Context final HttpServletRequest request )
     {
-        log.debug( "Received request to delete policy for appId {}, policyId {}", applicationPublicId, policyId );
+        log.debug( "Received request to delete policy for policyOwnerId {}, policyId {}", policyOwnerId, policyId );
 
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 
-        policyDAO().session( user, AuditUtils.findIP( request ), where ).delete( appId, policyId );
+        policyDAO().session( user, AuditUtils.findIP( request ), where ).delete( internalPolicyOwnerId, policyId );
     }
 
     private PolicyDAO policyDAO()

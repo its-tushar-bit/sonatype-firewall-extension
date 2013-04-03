@@ -103,7 +103,7 @@ public class PolicyEvaluateResource
         String appId = application.getId();
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        final List<Policy> policies = policyDAO.getByApplicationId( appId );
+        final List<Policy> policies = policyDAO.getByOwnerId( appId );
 
         final File reportFile = ReportResource.fetchReport( work, proxy, applicationPublicId, appId, scanId, true );
 

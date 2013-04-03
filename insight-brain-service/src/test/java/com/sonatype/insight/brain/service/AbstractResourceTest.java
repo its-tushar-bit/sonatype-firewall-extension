@@ -48,7 +48,7 @@ public abstract class AbstractResourceTest
     protected void cleanupApplication( Application application )
     {
         PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
-        List<Policy> policies = policyDAO.getByApplicationId( application.getId() );
+        List<Policy> policies = policyDAO.getByOwnerId( application.getId() );
         for ( Policy policy : policies )
         {
             policyDAO.delete( application.getId(), policy.getId() );

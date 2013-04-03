@@ -104,7 +104,7 @@ public class LabelResource
 
         // Verify that the label is not used in a policy condition
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        for ( Policy policy : policyDAO.getByApplicationId( appId ) )
+        for ( Policy policy : policyDAO.getByOwnerId( appId ) )
         {
             for ( Constraint constraint : policy.getConstraints() )
             {

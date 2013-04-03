@@ -174,7 +174,7 @@ public class ComponentInfoResource
         // Evaluate the policies
         List<PolicyAlert> policyAlerts =
             evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
-                                policyDAO().getByApplicationId( applicationId ), Collections.singletonList( component ) );
+                                policyDAO().getByOwnerId( applicationId ), Collections.singletonList( component ) );
         componentDetails.setPolicyAlerts( policyAlerts );
 
         return componentDetails;

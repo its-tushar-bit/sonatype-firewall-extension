@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
 public class Policy
 {
+    public static final String ORGANIZATION_OWNER_ID = "organization";
+
     private static final Logger log = LoggerFactory.getLogger( Policy.class );
 
     private String id;

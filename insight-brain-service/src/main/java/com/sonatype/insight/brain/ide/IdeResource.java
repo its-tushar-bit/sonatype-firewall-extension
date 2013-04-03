@@ -96,7 +96,7 @@ public class IdeResource
                 componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
             List<PolicyAlert> policyAlerts =
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ),
-                                    policyDAO().getByApplicationId( applicationId ),
+                                    policyDAO().getByOwnerId( applicationId ),
                                     Collections.singletonList( component ) );
             ideComponent.setAlerts( policyAlerts );
         }

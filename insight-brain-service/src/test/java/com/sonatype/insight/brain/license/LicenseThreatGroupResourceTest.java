@@ -9,7 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -45,7 +45,7 @@ public class LicenseThreatGroupResourceTest
         assertResponseStatus( 200, response );
         LicenseThreatGroup[] groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
-        Assert.assertEquals( ApplicationDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
+        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
         assertLicenseThreatGroup( application1.getId(), "AAA My group", 4, groups[0] );
     }
 
@@ -62,7 +62,7 @@ public class LicenseThreatGroupResourceTest
         assertResponseStatus( 200, response );
         LicenseThreatGroup[] groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
-        Assert.assertEquals( ApplicationDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, groups.length );
+        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, groups.length );
 
         // Add a group
         LicenseThreatGroup group = new LicenseThreatGroup();
@@ -79,7 +79,7 @@ public class LicenseThreatGroupResourceTest
         assertResponseStatus( 200, response );
         groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
-        Assert.assertEquals( ApplicationDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
+        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
         assertLicenseThreatGroup( application.getId(), "AAA My group", 10, groups[0] );
 
         // Update a group
@@ -94,7 +94,7 @@ public class LicenseThreatGroupResourceTest
         assertResponseStatus( 200, response );
         groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
-        Assert.assertEquals( ApplicationDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
+        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
         assertLicenseThreatGroup( application.getId(), "AAA My updated group", 10, groups[0] );
 
         // Delete a group
@@ -106,7 +106,7 @@ public class LicenseThreatGroupResourceTest
         assertResponseStatus( 200, response );
         groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
-        Assert.assertEquals( ApplicationDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, groups.length );
+        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, groups.length );
     }
 
     private void assertLicenseThreatGroup( String applicationId, String name, int threatLevel, LicenseThreatGroup actual )

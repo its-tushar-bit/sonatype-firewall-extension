@@ -24,6 +24,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
+    public static final int DEFAULT_LICENSE_THREAT_GROUP_COUNT = 4;
+
     private static final Logger log = LoggerFactory.getLogger( LicenseThreatGroupDAO.class );
 
     public List<LicenseThreatGroup> getByApplicationId( String applicationId )

@@ -27,8 +27,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class ApplicationDAO
     extends AbstractOperationalSqlDAO<Application>
 {
-    public static final int DEFAULT_LICENSE_THREAT_GROUP_COUNT = 4;
-
     @Override
     protected Application getById( EntityManager em, String id )
     {

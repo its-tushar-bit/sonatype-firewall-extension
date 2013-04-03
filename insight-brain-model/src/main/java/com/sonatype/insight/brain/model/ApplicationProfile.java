@@ -66,23 +66,13 @@ public class ApplicationProfile
 
     /**
      * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-     * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
-     * directly via reflection, possibly setting it to an incorrect value.
-     * 
-     * @deprecated This method should not be used explicitly.
-     */
-    public void setPublicIdLowercase( String publicIdLowercase )
-    {
-    }
-
-    /**
-     * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
      * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
      * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
      * 
      * @deprecated This method should not be used explicitly.
      */
-    public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
+    @SuppressWarnings( "unused" )
+    private void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
     {
     }
 }

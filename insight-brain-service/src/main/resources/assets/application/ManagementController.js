@@ -54,7 +54,7 @@
 		};
 
 		$scope.editApplication = function (application) {
-			$scope.newApplicationUrl = 'components/new-application-editor.html?' + new Date();// clmBuildTimestamp;
+			$scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
 
 			// Must access DOM element for the icon input to reset the file input
 			var applicationIconInput = angular.element('#file');
@@ -66,13 +66,11 @@
 			if (application) {
 				$scope.isEditMode = true;
 				$scope.selectedApplication = angular.extend($scope.selectedApplication, application);
-				$scope.hasIconSource = true;
 				// After the image source is set to blob (see below), angular will not respond to changing ng-src
 				// Image source adjustments need to be done through attr
 				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + $scope.selectedApplication.publicId);
 			} else {
 				$scope.isEditMode = false;
-				$scope.hasIconSource = false;
 				angular.element('#applicationIcon').attr('src', null);
 			}
 			$scope.hasRobotSource = false;
@@ -185,7 +183,6 @@
 				}
 			}
 			$scope.robotHash = hash;
-			$scope.hasIconSource = false;
 			$scope.hasRobotSource = true;
 		}
 
@@ -201,17 +198,19 @@
 				}
 				if (src) {
 					$scope.$apply(function () {
-						$scope.hasIconSource = true;
 						angular.element('#applicationIcon').attr('src', src);
+						$scope.hasRobotSource = false;
 					});
 				} else {
 					$scope.$apply(function () {
-						$scope.hasIconSource = false;
+						angular.element('#applicationIcon').attr('src', null);
+						$scope.hasRobotSource = false;
 					});
 				}
 			} else {
 				$scope.$apply(function () {
-					$scope.hasIconSource = false;
+					angular.element('#applicationIcon').attr('src', null);
+					$scope.hasRobotSource = false;
 				});
 			}
 		};

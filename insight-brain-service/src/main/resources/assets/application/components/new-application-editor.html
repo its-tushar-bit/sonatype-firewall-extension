@@ -49,7 +49,8 @@
 
                 <div class='controls'>
                     <div>
-                        <img ng-show='hasIconSource' id='applicationIcon' width='48px' height='48px'/>
+                        <img ng-show='!hasRobotSource' id='applicationIcon' width='48px' height='48px'
+                             onerror="this.src='../assets/img/defaulticon_application.png';"/>
                         <img ng-show='hasRobotSource' id='robotIcon' width='48px' height='48px'
                              ng-src='http://robohash.org/{{robotHash}}'/>
                     </div>

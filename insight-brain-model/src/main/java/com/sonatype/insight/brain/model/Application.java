@@ -78,14 +78,7 @@ public class Application
 
     public void setName( String name )
     {
-        if ( name != null )
-        {
-            nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
-        }
-        else
-        {
-            nameLowercaseNoWhitespace = null;
-        }
+        nameLowercaseNoWhitespace = NameNormalizer.normalize( name );
         this.name = name;
     }
 

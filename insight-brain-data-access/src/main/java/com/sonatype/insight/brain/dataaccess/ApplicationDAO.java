@@ -20,6 +20,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.NameNormalizer;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -89,7 +90,7 @@ public class ApplicationDAO
             throw new DataAccessException( "The application name cannot be null or empty." );
         }
         // Application Name is whitespace and case insensitive
-        name = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
+        name = NameNormalizer.normalize( name );
         String sQuery = "SELECT entity FROM Application entity WHERE entity.nameLowercaseNoWhitespace=?1";
         return get( em, sQuery, name );
     }

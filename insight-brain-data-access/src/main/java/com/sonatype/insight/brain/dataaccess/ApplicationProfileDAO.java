@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
-import java.util.Locale;
 
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.model.ApplicationProfile;
+import com.sonatype.insight.brain.model.NameNormalizer;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationProfileDAO
@@ -77,7 +77,7 @@ public class ApplicationProfileDAO
             throw new DataAccessException( "The application profile name cannot be null or empty." );
         }
         // The name is whitespace and case insensitive
-        name = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
+        name = NameNormalizer.normalize( name );
         String sQuery = "SELECT entity FROM ApplicationProfile entity WHERE entity.nameLowercaseNoWhitespace=?1";
         return get( em, sQuery, name );
     }

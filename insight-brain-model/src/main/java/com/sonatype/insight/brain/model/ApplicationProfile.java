@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model;
 
-import java.util.Locale;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -48,14 +46,7 @@ public class ApplicationProfile
 
     public void setName( String name )
     {
-        if ( name != null )
-        {
-            nameLowercaseNoWhitespace = name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
-        }
-        else
-        {
-            nameLowercaseNoWhitespace = null;
-        }
+        nameLowercaseNoWhitespace = NameNormalizer.normalize( name );
         this.name = name;
     }
 

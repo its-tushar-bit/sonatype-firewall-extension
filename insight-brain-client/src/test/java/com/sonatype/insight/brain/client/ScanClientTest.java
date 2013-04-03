@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
-import java.util.Date;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -21,15 +24,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 public class ScanClientTest
     extends AbstractBrainServiceTest
 {
-
     private static final String APP_ID = "ScanClientTest_AppId";
+
+    private static Application application;
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -37,6 +37,10 @@ public class ScanClientTest
     @AfterClass
     public static void afterClass()
     {
+        if ( application != null )
+        {
+            new ApplicationDAO().delete( application );
+        }
         DataSourceFactory.clear_ForTestsOnly();
     }
 
@@ -44,9 +48,8 @@ public class ScanClientTest
     public static void createApplication()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = new Application();
-        // Name must be unique
-        application.setName( "test" + new Date().getTime() );
+        application = new Application();
+        application.setName( "test" );
         application.setPublicId( APP_ID );
         applicationDAO.insert( application );
     }

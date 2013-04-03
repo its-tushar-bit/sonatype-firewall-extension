@@ -25,9 +25,15 @@ public class ReportClientTest
 {
     private static String applicationPublicId = "ReportClientTest_AppId";
 
+    private static Application application;
+
     @AfterClass
     public static void afterClass()
     {
+        if ( application != null )
+        {
+            new ApplicationDAO().delete( application );
+        }
         DataSourceFactory.clear_ForTestsOnly();
     }
 
@@ -35,7 +41,7 @@ public class ReportClientTest
     public static void createApplication()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = new Application();
+        application = new Application();
         application.setName( "test" );
         application.setPublicId( applicationPublicId );
         applicationDAO.insert( application );

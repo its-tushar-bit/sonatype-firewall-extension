@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -186,8 +187,24 @@ public class ApplicationResource
                                             @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
-                                    uploadedInputStream, fileDetail );
+        try
+        {
+            addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
+                                        uploadedInputStream, fileDetail );
+        }
+        catch ( InvalidApplicationException ex )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error: " + ex.getMessage() ).build();
+        }
+        catch ( BadRequestException ex )
+        {
+            return Response.status( Response.Status.BAD_REQUEST ).entity( "Error: " + ex.getMessage() ).build();
+        }
+        // Catch all exceptions so the response details an error occurred rather than the post endpoint not existing
+        catch ( Exception ex )
+        {
+            return Response.serverError().build();
+        }
 
         UriBuilder uriBuilder =
             baseUrl.redirect().path( InsightBrainService.APPLICATION_ASSET_PATH ).path( "index.html" );

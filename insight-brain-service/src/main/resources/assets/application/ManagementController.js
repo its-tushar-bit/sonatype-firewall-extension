@@ -291,17 +291,17 @@
 		function liveApplicationRules() {
 			var applicationId = angular.element('#applicationPublicId');
 			$scope.applicationEditor.applicationPublicId.$setValidity('required', applicationId.val());
-			var isDuplicateName = $scope.applications.some(function (application) {
+			var isDuplicateName = jQuery.grep($scope.applications,function (application) {
 				return application.id !== $scope.selectedApplication.id && application.publicId === applicationId.val();
-			});
+			}).length > 0;
 			$scope.applicationEditor.applicationPublicId.$setValidity('duplicate', !isDuplicateName);
 
 			var applicationName = angular.element('#applicationName');
 			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
 			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i')));
-			isDuplicateName = $scope.applications.some(function (application) {
+			isDuplicateName = jQuery.grep($scope.applications,function (application) {
 				return application.id !== $scope.selectedApplication.id && application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
-			});
+			}).length > 0;
 			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
 
 			// Hide the spaces error when needed. We only show this error on saving to reduce gui clutter

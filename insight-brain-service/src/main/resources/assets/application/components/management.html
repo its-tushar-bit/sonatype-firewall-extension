@@ -35,7 +35,8 @@
             <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
                 <td>
                     <img ng-src='../rest/application/icon/{{application.publicId}}'
-                         onerror="this.src='../assets/img/defaulticon_application.png';" width='48px' height='48px'/>
+                         onerror="this.src='../assets/img/defaulticon_application.png';"
+                         style='height: 48px; width: 48px;'/>
                     <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>

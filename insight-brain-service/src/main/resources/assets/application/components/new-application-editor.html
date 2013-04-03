@@ -1,5 +1,5 @@
 <div ng-controller='EditApplicationController'>
-    <form action='{{addApplication}}' method='post' enctype='multipart/form-data'
+    <form action='{{addApplicationSync}}' method='post' enctype='multipart/form-data'
           onsubmit='return angular.element(this).scope().saveClick()'
           name='applicationEditor' id='applicationEditor' class='form-horizontal' style='margin-bottom: 0px'>
         <div class='modal-body'>
@@ -49,9 +49,9 @@
 
                 <div class='controls'>
                     <div>
-                        <img ng-show='!hasRobotSource' id='applicationIcon' width='48px' height='48px'
+                        <img ng-show='!hasRobotSource' id='applicationIcon' style='height: 48px; width: 48px;'
                              onerror="this.src='../assets/img/defaulticon_application.png';"/>
-                        <img ng-show='hasRobotSource' id='robotIcon' width='48px' height='48px'
+                        <img ng-show='hasRobotSource' id='robotIcon' style='height: 48px; width: 48px;'
                              ng-src='http://robohash.org/{{robotHash}}'/>
                     </div>
                     <input name='file' id='file' type='file' accept='image/*' style='display:block;'

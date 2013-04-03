@@ -121,6 +121,7 @@
 
 		$scope.clearSyncEditError = function () {
 			$scope.syncErrorResponse = null;
+			location.search = '';
 		};
 
 		$scope.order = function (column) {

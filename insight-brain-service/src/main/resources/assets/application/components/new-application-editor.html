@@ -10,7 +10,7 @@
 
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
-                           class='input' maxlength='50' ng-model='selectedApplication.name'
+                           class='input' maxlength='60' ng-model='selectedApplication.name'
                            onkeyup='angular.element(this).scope().fireLiveApplicationRules()'>
 
                     <div>
@@ -33,7 +33,7 @@
 
                 <div class='controls'>
                     <input id='applicationPublicId' name='applicationPublicId' type='text'
-                           class='input' maxlength='50' ng-model='selectedApplication.publicId'>
+                           class='input' maxlength='60' ng-model='selectedApplication.publicId'>
 
                     <div>
                         <span ng-show="applicationEditor.applicationPublicId.$error.required" class="help-inline">ID is required.</span>

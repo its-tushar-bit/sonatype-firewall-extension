@@ -22,10 +22,10 @@
 			hudson = true;
 			tested = true;
 			complete();
-		}).error(function (xhr, msg) {
+		}).error(function (xhr, status) {
 				tested = true;
-				if (xhr && xhr.status !== 404 && console) {
-					console.log('Got (' + xhr.status + ') while checking for Hudson API');
+				if (status !== 404 && console) {
+					console.log('Got (' + status + ') while checking for Hudson API');
 				}
 				complete();
 			});

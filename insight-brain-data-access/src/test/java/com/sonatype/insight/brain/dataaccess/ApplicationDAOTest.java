@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -32,8 +31,8 @@ public class ApplicationDAOTest
     public void setupApplication()
     {
         application = new Application();
-        application.setName( "valid name" + new Date().getTime() );
-        application.setPublicId( "valid public id" + new Date().getTime() );
+        application.setName( "valid name" );
+        application.setPublicId( "valid public id" );
     }
 
     @After

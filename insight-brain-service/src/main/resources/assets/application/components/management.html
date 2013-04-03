@@ -12,8 +12,8 @@
             <thead>
             <tr>
                 <th style='padding: 4px'
-                    ng-class="{ 'buttonColumn' : orderColumn != 'publicId', 'buttonColumn buttonColumnSorted' : orderColumn == 'publicId' }"
-                    ng-click="order('publicId');">
+                    ng-class="{ 'buttonColumn' : orderColumn != 'name', 'buttonColumn buttonColumnSorted' : orderColumn == 'name' }"
+                    ng-click="order('name');">
                     Application Name
                     <i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
                             'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
@@ -28,7 +28,7 @@
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
                     </button>
                 </th>
-                <td>
+                <td class='buttonColumn'>
                 </td>
             </tr>
             </thead>

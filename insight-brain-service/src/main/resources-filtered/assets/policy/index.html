@@ -37,11 +37,7 @@
         <div style='width:950px;margin:auto'>
             <a class="title brand" href="#"><img src='../assets/img/sonatype-32.png' alt='Logo'/> <span
                     class='brand-header'>Sonatype CLM</span></a>
-            <ul class="nav pull-right" style='padding-right:25px;' ng-controller='TabController'>
-                <li ng-class='{ active : tabUrl == "/management"}' data-placement='bottom'
-                    data-title='Application Management' tip><a href="../application-assets/index.html"><img
-                        style='height: 25px;' src='../assets/img/worldIcon_24.png'
-                        alt='Application Management'/></a></li>
+            <ul class="nav pull-right" ng-controller='TabController'>
                 <li ng-class='{ active : tabUrl == "/policy"}' data-placement='bottom' data-title='Policies' tip><a
                         href="#" ng-click="policyTabClick($event)"><img src='../assets/img/glyphicons_263_bank.png'
                                                                         alt='Policies'/></a></li>
@@ -51,6 +47,17 @@
                 <li ng-class='{ active : tabUrl == "/license-threat-group"}' data-placement='bottom'
                     data-title='License Threat Groups' tip><a href="#" ng-click="licenseGroupTabClick($event)"><img
                         src='../assets/img/glyphicons_332_certificate.png' alt='License Threat Groups'/></a></li>
+				<li class='divider-vertical'></li>
+				<li class='dropdown'>
+					<a href="#" class='dropdown-toggle' data-toggle='dropdown'>
+						<img style='height: 25px;' src='../assets/img/worldIcon_24.png' alt='Application Management'/>
+						<b class='caret'></b>
+					</a>
+					<ul class='dropdown-menu'>
+						<li><a href='../application-assets/index.html#/management'><img src='../assets/img/icon_application.png'> Applications</a></li>
+						<li><a href='../application-assets/index.html#/profiles'><img src='../assets/img/icon_profile.png'> Profiles</a></li>
+					</ul>
+				</li>
             </ul>
         </div>
     </div>

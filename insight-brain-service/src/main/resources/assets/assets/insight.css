@@ -45,7 +45,9 @@ input.editor-checkbox {
 }
 
 .emptyIconGlyph {
-    padding-left: 18px;
+	width: 14px;
+	height: 14px;
+	display: inline-block;
 }
 
 .navbar .brand {

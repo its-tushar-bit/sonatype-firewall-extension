@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -192,7 +193,11 @@ public class ApplicationResource
             addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                         uploadedInputStream, fileDetail );
         }
-        catch ( Exception ex )
+        catch ( InvalidApplicationException ex )
+        {
+            errorMessage = ex.getMessage();
+        }
+        catch ( BadRequestException ex )
         {
             errorMessage = ex.getMessage();
         }

@@ -26,6 +26,7 @@
     <script type='text/javascript' src='../assets/AngularCommon.js?${build.timestamp}'></script>
     <script type='text/javascript' src='ClmManagementApp.js?${build.timestamp}'></script>
     <script type='text/javascript' src='ManagementController.js?${build.timestamp}'></script>
+    <script type='text/javascript' src='ProfileController.js?${build.timestamp}'></script>
     <script type='text/javascript' src='ReportController.js?${build.timestamp}'></script>
     <script type='text/javascript' src='../assets/js/Hudson.js?${build.timestamp}'></script>
 </head>
@@ -33,20 +34,20 @@
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
         <div style='width:950px; margin:auto;'>
-            <a class="title brand" href="#"><img src='../assets/img/sonatype-32.png' alt='Logo'/> <span
-                    class='brand-header'>Sonatype CLM</span></a>
-            <ul class="nav pull-right" ng-controller='TabController'>
-                <li ng-class='{ active : tabUrl == "/management"}' data-placement='bottom'
-                    data-title='Application Management' tip><a
-                        href="#" ng-click="managementTabClick($event)"><img style='height: 25px;'
-                                                                            src='../assets/img/worldIcon_24.png'
-                                                                            alt='Application Management'/></a></li>
-                <li class='disabled'><a ng-disabled="true"><img src='../assets/img/glyphicons_263_bank.png'
-                                                                alt='Policies'/></a></li>
-                <li class='disabled'><a ng-disabled="true"><img src='../assets/img/glyphicons_065_tag.png'
-                                                                alt='Labels'/></a></li>
-                <li class='disabled'><a ng-disabled="true"><img
-                        src='../assets/img/glyphicons_332_certificate.png' alt='License Threat Groups'/></a></li>
+			<a class="title brand" href="#">
+				<img src='../assets/img/sonatype-32.png' alt='Logo'/> <span class='brand-header'>Sonatype CLM</span>
+			</a>
+			<ul class="nav pull-right" ng-controller='TabController'>
+				<li class='dropdown'>
+					<a href="#" class='dropdown-toggle' data-toggle='dropdown'>
+						<img style='height: 25px;' src='../assets/img/worldIcon_24.png' alt='Application Management'/>
+						<b class='caret'></b>
+					</a>
+					<ul class='dropdown-menu'>
+						<li><a href='#/management'><img src='../assets/img/icon_application.png'> Applications</a></li>
+						<li><a href='#/profiles'><img src='../assets/img/icon_profile.png'> Profiles</a></li>
+					</ul>
+				</li>
             </ul>
         </div>
     </div>

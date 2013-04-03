@@ -1,0 +1,76 @@
+<div class='container'>
+	<div class='row'>
+		<div class='span4 content-container'>
+			<table class='table table-striped' style='margin-bottom:0px'>
+				<thead>
+					<tr>
+						<th colspan='2'>Profiles</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-show='!profiles'>
+						<td colspan='2'><i class='icon-time'></i> Loading</td>
+					</tr>
+					<tr ng-repeat="profile in profiles" ng-class='{"selected" : selectedProfile.id == profile.id}'>
+						<td style='height:24px'>{{profile.name}}</td>
+						<td style='width:60px'>
+							<div class='btn-group'>
+								<button ng-click='editProfile(profile)' class="btn btn-mini btn-edit" title="Edit Profile">
+									<i class="icon-pencil" style="margin-top:0px;"></i>
+								</button>
+								<button ng-click='confirmDeleteProfile(profile)' class="btn btn-mini btn-delete" title="Delete Profile">
+									<i class="icon-trash" style="margin-top:0px;"></i>
+								</button>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan='2' style='text-align:center;'>
+							<button class='btn btn-add btn-info' ng-click='editProfile()' style='width:80%'>
+								<i class='icon-white icon-plus-sign'></i> Add Profile
+							</button>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+		<div class='span7'>
+			<div class='content-container' ng-show='!(selectedProfile != null && edit)'>Select a Profile</div>
+			<div class='content-container' ng-show='selectedProfile != null && edit'>
+				<div class='modal-header'>
+					<h4><span ng-show='selectedProfile.id != null'>Edit</span><span ng-show='selectedProfile.id == null'>Add</span> Profile</h4>
+				</div>
+				<form name='editProfileForm' ng-submit='submitProfile()' class='form-horizontal' style='margin:0px'>
+					<div class='modal-body'>
+			            <div class='control-group'>
+			                <label class='control-label' for='selectedProfileNameInput'>Name:</label>
+			                <div class='controls'>
+			                    <input type='text' ng-model='selectedProfile.name' id='selectedProfileNameInput'>
+			                </div>
+			            </div>
+					</div>
+					<div class='modal-footer'>
+						<button class='btn' ng-click='deselectProfile()'>Cancel</button>
+						<button class='btn btn-primary' type='submit'>Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+    <div id="deleteProfileModal" data-backdrop="static" class="modal hide">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>Delete Profile?</h3>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete the profile {{selectedProfile.name}}?
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" ng-click="deleteProfile()">Delete</button>
+        </div>
+    </div>
+</div>

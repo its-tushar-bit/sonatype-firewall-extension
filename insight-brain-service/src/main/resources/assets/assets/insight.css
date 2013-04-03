@@ -114,7 +114,6 @@ body {
     border: 1px solid #999;
     border: 1px solid rgba(0, 0, 0, 0.3);
     border-radius: 6px;
-    margin: 10px;
     -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
     -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
     box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
@@ -122,4 +121,9 @@ body {
 
 .content-container .page-header {
     padding-left: 20px;
+}
+
+tr.selected, tr.selected td {
+	background-color: #dff0d8 !important;
+	color: #468847;
 }

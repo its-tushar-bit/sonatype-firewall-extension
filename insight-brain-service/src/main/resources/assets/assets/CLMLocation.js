@@ -107,6 +107,14 @@
 
 			getCanGetHashIcon: function () {
 				return this.getBaseUrl() + '/rest/application/canGetHashIcon';
+			},
+
+			getProfilesUrl : function () {
+			    return this.getBaseUrl() + '/rest/applicationProfile';
+			},
+
+			getDeleteProfileUrl : function (profile) {
+			    return this.getProfilesUrl() + '/' + profile.id;
 			}
 		};
 	});

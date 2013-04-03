@@ -8,10 +8,14 @@ var clmManagementApp;
 (function () {
     "use strict";
 
-    clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'Management', 'Report'], ['$routeProvider', function ($routeProvider) {
+    clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'Management', 'Report', 'Profile'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/management', {
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ManagementController'
+        });
+        $routeProvider.when('/profiles', {
+            templateUrl: 'components/profiles.html?' + clmBuildTimestamp,
+            controller: 'ProfileController'
         });
         $routeProvider.when('/report/:encodedApplicationId/:encodedScanId', {
             templateUrl: 'components/report.html?' + clmBuildTimestamp,

@@ -59,9 +59,6 @@ public class CIResource
     @Context
     private InsightProxy proxy;
 
-    @Context
-    private SaasClient client;
-
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
     /**
@@ -73,7 +70,7 @@ public class CIResource
     public String validateToken( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws Exception
     {
-        return ApplicationResource.validateApplicationPublicId( applicationPublicId, client );
+        return ApplicationResource.validateApplicationPublicIdInternal( applicationPublicId );
     }
 
     @PUT
@@ -159,6 +156,7 @@ public class CIResource
             applicationPublicId = applicationDAO.getByIdNotNull( appId ).getPublicId();
         }
         return Response.temporaryRedirect( URI.create( "rest/report/" + applicationPublicId + '/' + scanId //
-            + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
+                                                           + "/artifactDetails" + "?groupId=" + groupId + "&artifactId="
+                                                           + artifactId + "&version=" + version ) ).build();
     }
 }

@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -66,9 +65,6 @@ public class ApplicationResource
     private InsightWork work;
 
     @Context
-    private SaasClient client;
-
-    @Context
     private BaseUrl baseUrl;
 
     @GET
@@ -77,7 +73,7 @@ public class ApplicationResource
     public String validateApplicationPublicId( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        return validateApplicationPublicId( applicationPublicId, client );
+        return validateApplicationPublicIdInternal( applicationPublicId );
     }
 
     @GET
@@ -134,7 +130,7 @@ public class ApplicationResource
             throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
         }
 
-        String result = validateApplicationPublicId( applicationPublicId, client );
+        String result = validateApplicationPublicIdInternal( applicationPublicId );
         if ( "OK".equals( result ) )
         {
             Application application = applicationDAO.getByPublicId( applicationPublicId );
@@ -373,34 +369,15 @@ public class ApplicationResource
         return applicationManagement;
     }
 
-    public static String validateApplicationPublicId( String applicationPublicId, SaasClient client )
+    public static String validateApplicationPublicIdInternal( String applicationPublicId )
         throws IOException
     {
-        String result = client.get( String.class, "rest/ci/validate/{appId}", applicationPublicId );
-        log.debug( "validateApplicationPublicId({}) result:{}", applicationPublicId, result );
-
-        if ( "OK".equals( result ) )
+        if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
         {
-            // The token is valid. Create an application object for it if it doesn't exist already.
-            if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
-            {
-                Application application = new Application();
-                application.setPublicId( applicationPublicId );
-
-                // Names must consist of only alpha numeric or dashes
-                StringBuilder nameBuilder = new StringBuilder();
-                for ( char character : applicationPublicId.toCharArray() )
-                {
-                    if ( Character.isLetterOrDigit( character ) || character == '-' )
-                    {
-                        nameBuilder.append( character );
-                    }
-                }
-                application.setName( nameBuilder.toString() );
-                applicationDAO.insert( application );
-            }
+            return "Invalid application id " + applicationPublicId;
         }
 
-        return result;
+        log.debug( "Found application with public id {}", applicationPublicId );
+        return "OK";
     }
 }

@@ -113,11 +113,6 @@ public abstract class AbstractBrainServiceTest
         log.debug( "Stopped test servers in {}", System.currentTimeMillis() - start );
     }
 
-    protected void invalidateAppId( final String appId, final String reason )
-    {
-        saas.invalidateAppId( appId, reason );
-    }
-
     protected static File getJsonResponseDirectory()
     {
         return new File( saasWork, "json" );

@@ -19,15 +19,6 @@
 			$scope.syncErrorResponse = error;
 		}
 
-		function onAddApplicationError(data, status, headersFn, config) {
-			var header = headersFn();
-			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-				$scope.addApplicationError = 'Server Error';
-			} else {
-				$scope.addApplicationError = data;
-			}
-		}
-
 		$http.get(clmLocations.getCanGetHashIcon(), {
 			params: { timestamp: new Date().getTime() }
 		}).success(function (data) {
@@ -83,17 +74,6 @@
 
 			$('#newApplicationModal').modal('show');
 			angular.element('#applicationName').focus();
-		};
-
-		$scope.addApplication = function () {
-			if (!$scope.applicationPublicId) {
-				$scope.addApplicationError = 'Please enter a value for the Application Id';
-			}
-			hudson.post(clmLocations.getApplicationsUrl(), $scope.applicationPublicId).success(function (application) {
-				$scope.applications.push(application);
-				$scope.clearAddApplicationError();
-				$('#addApplicationModal').modal('hide');
-			}).error(onAddApplicationError);
 		};
 
 		$scope.confirmDeleteApplication = function (application) {

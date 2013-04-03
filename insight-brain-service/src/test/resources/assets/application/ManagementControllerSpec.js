@@ -46,14 +46,6 @@ describe('ApplicationManagementController', function () {
 		expect(scope.stages.length).toEqual(5);
 	});
 
-	it('adds an application from the SaaS.', function () {
-		httpBackend.expectPOST(clmLocations.getApplicationsUrl()).respond(ApplicationMockData.getApplicationsData());
-
-		scope.applicationPublicId = 'mockApplicationId';
-
-		scope.addApplication();
-	});
-
 	it('generates an icon', function () {
 		scope.generateIcon();
 

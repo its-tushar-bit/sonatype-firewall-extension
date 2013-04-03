@@ -43,44 +43,21 @@ public class ApplicationResourceTest
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
 
+        application = new Application();
+        application.setPublicId( applicationPublicId );
+        application.setName( "ApplicationResourceTest-testValidate-AppName" );
+        applicationDAO.insert( application );
+
         Response response = RestAccess.get( getValidateApplicationIdServiceURL( applicationPublicId ) );
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "OK" ) );
 
-        invalidateAppId( applicationPublicId, "Expired" );
+        applicationDAO.delete( application );
 
         // validate service always returns 200, the actual result is in the response body
         response = RestAccess.get( getValidateApplicationIdServiceURL( applicationPublicId ) );
         assertResponseStatus( 200, response );
-        assertThat( response.getResponseBody(), equalTo( "Expired" ) );
-
-        application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        applicationsToDelete.add( application );
-    }
-
-    @Test
-    public void testAddApplicationFromSaaS()
-        throws Exception
-    {
-        final String applicationPublicId = "ApplicationResourceTest-testAddApplication-AppId";
-
-        Response response = RestAccess.post( getServiceURL(), applicationPublicId );
-        assertResponseStatus( 200, response );
-
-        ApplicationManagementSummary applicationManagementSummary =
-            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
-
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        applicationsToDelete.add( application );
-        Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
-        Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
-
-        // Verify addApplication fails when application already exists in brain
-        response = RestAccess.post( getServiceURL(), applicationPublicId );
-        assertResponseStatus( 400, response );
-        Assert.assertEquals( "An application with id " + applicationPublicId + " already exists",
-                             response.getResponseBody() );
+        assertThat( response.getResponseBody(), equalTo( "Invalid application id " + applicationPublicId ) );
     }
 
     @Test
@@ -88,7 +65,6 @@ public class ApplicationResourceTest
         throws Exception
     {
         String applicationPublicId = "testAddApplication-InvalidApplicationPublicId";
-        setSaasResponseForURI( "rest/ci/validate/" + applicationPublicId, "invalid", 200 /* status */ );
 
         Response response = RestAccess.post( getServiceURL(), applicationPublicId );
         assertResponseStatus( 400, response );

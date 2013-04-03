@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
@@ -143,21 +146,21 @@ public class ValidationClientTest
     public void testValidateApplicationId_AllGood()
         throws Exception
     {
-        new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "valid-id" );
-    }
+        Application application = new Application();
+        application.setPublicId( "valid-id" );
+        application.setName( "valid-name" );
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        applicationDAO.insert( application );
 
-    @Test
-    public void testValidateApplicationId_SpecialCharacters()
-        throws Exception
-    {
-        new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "id : % &" );
+        new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "valid-id" );
+
+        applicationDAO.delete( application );
     }
 
     @Test
     public void testValidateApplicationId_UnknownId()
         throws Exception
     {
-        invalidateAppId( "unknown-id", "Not Found" );
         try
         {
             new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "unknown-id" );
@@ -165,7 +168,7 @@ public class ValidationClientTest
         }
         catch ( IOException e )
         {
-            assertMatch( "(?i).*invalid.*not found.*", e.getMessage() );
+            Assert.assertEquals( "Invalid application ID: Invalid application id unknown-id", e.getMessage() );
         }
     }
 

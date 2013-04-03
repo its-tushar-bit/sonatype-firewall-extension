@@ -34,7 +34,7 @@
                             'emptyIconGlyph' : orderColumn != stage.id }"></i>
                     </button>
                 </th>
-                <td class='buttonColumn'>
+                <td class='buttonColumn' style='width: 123px;'>
                 </td>
             </tr>
             </thead>
@@ -42,7 +42,7 @@
                 <td>
                     <img ng-src='../rest/application/icon/{{application.publicId}}'
                          onerror="this.src='../assets/img/defaulticon_application.png';"
-                         style='height: 48px; width: 48px;'/>
+                         style='height: 24px; width: 24px;'/>
                     <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
@@ -50,12 +50,12 @@
                        href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
                         {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
                 </td>
-                <td>
-                    <button ng-click='editApplication(application);' class='btn btn-mini btn-edit'
+                <td style="vertical-align: middle; text-align:center;">
+                    <button ng-click='editApplication(application);' class='btn btn-mini btn-edit hover-vis'
                             title='Edit Application'><i class='icon-pencil' style='margin-top:0px;'></i>
                     </button>
                     <button ng-show='!application.policyEvaluation'
-                            ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete'
+                            ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete hover-vis'
                             title='Delete Application'><i class='icon-trash' style='margin-top:0px;'></i>
                     </button>
                 </td>

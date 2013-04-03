@@ -46,11 +46,11 @@ public class ApplicationProfileDAO
     @Override
     public void insert( EntityManager em, ApplicationProfile applicationProfile )
     {
-        validateName( applicationProfile.getName() );
+        NameValidator.validate( applicationProfile.getName() );
 
         if ( getByName( em, applicationProfile.getName() ) != null )
         {
-            throw new InvalidApplicationProfileException( "An application profile with the same name already exists." );
+            throw new InvalidNameException( "An application profile with the same name already exists." );
         }
 
         super.insert( em, applicationProfile );
@@ -59,35 +59,15 @@ public class ApplicationProfileDAO
     @Override
     public void update( EntityManager em, ApplicationProfile applicationProfile )
     {
-        validateName( applicationProfile.getName() );
+        NameValidator.validate( applicationProfile.getName() );
 
         ApplicationProfile otherApplicationProfile = getByName( em, applicationProfile.getName() );
         if ( otherApplicationProfile != null && !otherApplicationProfile.getId().equals( applicationProfile.getId() ) )
         {
-            throw new InvalidApplicationProfileException( "An application profile with the same name already exists." );
+            throw new InvalidNameException( "An application profile with the same name already exists." );
         }
 
         super.update( em, applicationProfile );
-    }
-
-    private void validateName( String name )
-    {
-        if ( name == null || name.trim().isEmpty() )
-        {
-            throw new InvalidApplicationProfileException( "Name is required." );
-        }
-        for ( char c : name.toCharArray() )
-        {
-            if ( !Character.isLetterOrDigit( c ) && c != '-' && c != ' ' )
-            {
-                throw new InvalidApplicationProfileException( "Name must be alpha numeric." );
-            }
-        }
-        if ( name.startsWith( " " ) || name.endsWith( " " ) || name.indexOf( "  " ) > 0 )
-        {
-            throw new InvalidApplicationProfileException(
-                                                          "Name must not have leading or trailing spaces, or have two spaces in a row." );
-        }
     }
 
     private ApplicationProfile getByName( EntityManager em, String name )

@@ -4,10 +4,10 @@ import com.sonatype.insight.error.HttpStatusCode;
 
 @SuppressWarnings( "serial" )
 @HttpStatusCode( 400 )
-public class InvalidApplicationProfileException
+public class InvalidNameException
     extends RuntimeException
 {
-    public InvalidApplicationProfileException( String message )
+    public InvalidNameException( String message )
     {
         super( message );
     }

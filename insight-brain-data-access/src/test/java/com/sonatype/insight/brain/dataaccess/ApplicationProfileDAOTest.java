@@ -71,9 +71,9 @@ public class ApplicationProfileDAOTest
         try
         {
             dao.insert( applicationProfile );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationProfileException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -91,9 +91,9 @@ public class ApplicationProfileDAOTest
         try
         {
             dao.update( applicationProfile );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationProfileException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -106,9 +106,9 @@ public class ApplicationProfileDAOTest
         try
         {
             dao.insert( applicationProfile );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationProfileException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -126,9 +126,9 @@ public class ApplicationProfileDAOTest
         try
         {
             dao.update( applicationProfile );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationProfileException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -144,9 +144,9 @@ public class ApplicationProfileDAOTest
             try
             {
                 dao.insert( applicationProfile );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationProfileException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must be alpha numeric.", expected.getMessage() );
             }
@@ -165,9 +165,9 @@ public class ApplicationProfileDAOTest
             try
             {
                 dao.update( applicationProfile );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationProfileException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must be alpha numeric.", expected.getMessage() );
             }
@@ -186,9 +186,9 @@ public class ApplicationProfileDAOTest
             try
             {
                 dao.insert( applicationProfile );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationProfileException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
                               expected.getMessage() );
@@ -211,9 +211,9 @@ public class ApplicationProfileDAOTest
             try
             {
                 dao.update( applicationProfile );
-                fail( "Expected InvalidApplicationProfileException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationProfileException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
                               expected.getMessage() );
@@ -249,9 +249,9 @@ public class ApplicationProfileDAOTest
         try
         {
             dao.insert( applicationProfile1 );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationProfileException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
         }
@@ -271,9 +271,9 @@ public class ApplicationProfileDAOTest
         try
         {
             dao.update( applicationProfile1 );
-            fail( "Expected InvalidApplicationProfileException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationProfileException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
         }

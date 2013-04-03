@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -203,31 +204,14 @@ public class ApplicationDAO
         final String applicationId = application.getId();
         final String applicationPublicId = application.getPublicId();
 
-        if ( applicationName == null || applicationName.trim().isEmpty() )
-        {
-            throw new InvalidApplicationException( "Name is required." );
-        }
-        for ( int i = 0; i < applicationName.length(); i++ )
-        {
-            Character applicationNameCharacter = applicationName.charAt( i );
-            if ( !Character.isLetterOrDigit( applicationNameCharacter ) && applicationNameCharacter != '-'
-                && applicationNameCharacter != ' ' )
-            {
-                throw new InvalidApplicationException( "Name must be alpha numeric." );
-            }
-        }
-        if ( applicationName.matches( "^ .*|.* {2,}.*|.* $" ) )
-        {
-            throw new InvalidApplicationException(
-                "Name must not have leading or trailing spaces, or have two spaces in a row." );
-        }
+        NameValidator.validate( applicationName );
 
         Application existingApplication = this.getByName( applicationName );
         if ( existingApplication != null && applicationId == null
             || existingApplication != null && applicationId != null && !existingApplication.getPublicId().equals(
             applicationPublicId ) )
         {
-            throw new InvalidApplicationException( applicationName + " is already used as a name." );
+            throw new InvalidNameException( applicationName + " is already used as a name." );
         }
 
         if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )

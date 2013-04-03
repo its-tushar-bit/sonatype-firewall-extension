@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -14,11 +19,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.Application;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
@@ -140,9 +140,9 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.insert( application );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -160,9 +160,9 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.update( application );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -175,9 +175,9 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.insert( application );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -195,9 +195,9 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.update( application );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
@@ -213,9 +213,9 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.insert( application );
-                fail( "Expected InvalidApplicationException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must be alpha numeric.", expected.getMessage() );
             }
@@ -234,9 +234,9 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.update( application );
-                fail( "Expected InvalidApplicationException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must be alpha numeric.", expected.getMessage() );
             }
@@ -255,9 +255,9 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.insert( application );
-                fail( "Expected InvalidApplicationException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
                               expected.getMessage() );
@@ -280,9 +280,9 @@ public class ApplicationDAOTest
             try
             {
                 applicationDAO.update( application );
-                fail( "Expected InvalidApplicationException" );
+                fail( "Expected InvalidNameException" );
             }
-            catch ( InvalidApplicationException expected )
+            catch ( InvalidNameException expected )
             {
                 assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
                               expected.getMessage() );
@@ -318,9 +318,9 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.insert( application1 );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
         }
@@ -341,9 +341,9 @@ public class ApplicationDAOTest
         try
         {
             applicationDAO.update( application1 );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
             assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
         }

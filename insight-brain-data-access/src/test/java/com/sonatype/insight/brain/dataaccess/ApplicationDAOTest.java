@@ -9,23 +9,25 @@ import java.util.List;
 import java.util.Locale;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import com.sonatype.insight.brain.model.Application;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
 {
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+    private Application application = new Application();
 
     @Test
     public void testCRUD()
     {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-
         // Create
         // The super class creates an application by default
 
@@ -48,73 +50,217 @@ public class ApplicationDAOTest
     }
 
     @Test
-    public void testApplicationRules()
+    public void testValidateNullName_Insert()
     {
-        final String appPublicId = "testApplicationRulesPublicID";
-        final String appName = "añҘ長-AppName 34AppName";
+        try
+        {
+            applicationDAO.insert( application );
+            fail( "Expected InvalidApplicationProfileException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
 
-        Application application = new Application();
-        application.setPublicId( appPublicId );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-
-        // Name Rules
-        exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( "Name is required." );
+    @Test
+    public void testValidateNullName_Update()
+    {
+        application.setName( "testValidateNullName" );
+        assertEquals( "testvalidatenullname", application.getNameLowercaseNoWhitespace() );
         applicationDAO.insert( application );
 
-        final String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+        application.setName( null );
+        assertNull( application.getNameLowercaseNoWhitespace() );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidApplicationProfileException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateEmptyName_Insert()
+    {
+        application.setName( " " );
+        try
+        {
+            applicationDAO.insert( application );
+            fail( "Expected InvalidApplicationProfileException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateEmptyName_Update()
+    {
+        application.setName( "testValidateEmptyName" );
+        assertEquals( "testvalidateemptyname", application.getNameLowercaseNoWhitespace() );
+        applicationDAO.insert( application );
+
+        application.setName( " " );
+        assertEquals( "", application.getNameLowercaseNoWhitespace() );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidApplicationProfileException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateNameInvalidChars_Insert()
+    {
+        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
         for ( String name : invalidAlphaNumericNames )
         {
             application.setName( name );
-            exception.expect( InvalidApplicationException.class );
-            exception.expectMessage( "Name must be alpha numeric." );
-            applicationDAO.insert( application );
+            try
+            {
+                applicationDAO.insert( application );
+                fail( "Expected InvalidApplicationProfileException" );
+            }
+            catch ( InvalidApplicationException expected )
+            {
+                assertEquals( "Name must be alpha numeric.", expected.getMessage() );
+            }
         }
+    }
 
-        final String[] invalidSpacingNames =
+    @Test
+    public void testValidateNameInvalidChars_Update()
+    {
+        application.setName( "testValidateNameInvalidChars" );
+        applicationDAO.insert( application );
+        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+        for ( String name : invalidAlphaNumericNames )
+        {
+            application.setName( name );
+            try
+            {
+                applicationDAO.update( application );
+                fail( "Expected InvalidApplicationProfileException" );
+            }
+            catch ( InvalidApplicationException expected )
+            {
+                assertEquals( "Name must be alpha numeric.", expected.getMessage() );
+            }
+        }
+    }
+
+    @Test
+    public void testValidateNameSpaces_Insert()
+    {
+        String[] invalidSpacingNames =
             { " leading space", "trailing space ", "double  space", "  starts with double space",
                 "ends with double space  " };
         for ( String name : invalidSpacingNames )
         {
             application.setName( name );
-            exception.expect( InvalidApplicationException.class );
-            exception.expectMessage( "Name must not have leading or trailing spaces, or have two spaces in a row" );
-            applicationDAO.insert( application );
+            try
+            {
+                applicationDAO.insert( application );
+                fail( "Expected InvalidApplicationProfileException" );
+            }
+            catch ( InvalidApplicationException expected )
+            {
+                assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
+                              expected.getMessage() );
+            }
         }
+    }
 
-        // Application with this name is created by super
-        application.setName( ApplicationDAOTest.applicationName );
-        exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( ApplicationDAOTest.applicationName + " is already used as a name." );
+    @Test
+    public void testValidateNameSpaces_Update()
+    {
+        application.setName( "testValidateNameSpaces" );
         applicationDAO.insert( application );
 
-        application.setName( appName );
-        application.setPublicId( "" );
-        exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( "ID is required." );
+        String[] invalidSpacingNames =
+            { " leading space", "trailing space ", "double  space", "  starts with double space",
+                "ends with double space  " };
+        for ( String name : invalidSpacingNames )
+        {
+            application.setName( name );
+            try
+            {
+                applicationDAO.update( application );
+                fail( "Expected InvalidApplicationProfileException" );
+            }
+            catch ( InvalidApplicationException expected )
+            {
+                assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
+                              expected.getMessage() );
+            }
+        }
+    }
+
+    @Test
+    public void testNameIsCaseAndWhitespaceInsensitive()
+    {
+        String name = "test string With Case and Whitespace";
+
+        application.setName( name );
         applicationDAO.insert( application );
 
-        application.setPublicId( ApplicationDAOTest.applicationPublicId );
-        exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( ApplicationDAOTest.applicationPublicId + " is already used as an ID." );
+        assertEquals( name, application.getName() );
+        assertEquals( "teststringwithcaseandwhitespace", application.getNameLowercaseNoWhitespace() );
+
+        String name1 = "TEST String      With    cASE and      whitespace";
+        Application application1 = applicationDAO.getByName( name1 );
+        assertNotNull( application1 );
+        assertEquals( application.getId(), application1.getId() );
+    }
+
+    @Test
+    public void testDuplicateName_Insert()
+    {
+        application.setName( "testDuplicateName" );
         applicationDAO.insert( application );
 
-        application.setPublicId( appPublicId );
+        Application application1 = new Application();
+        application1.setName( "Test Duplicate Name" );
+        try
+        {
+            applicationDAO.insert( application1 );
+            fail( "Expected InvalidApplicationProfileException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testDuplicateName_Update()
+    {
+        application.setName( "testDuplicateName" );
         applicationDAO.insert( application );
 
-        application = applicationDAO.getByPublicId( appPublicId );
-        Assert.assertNotNull( application );
-        Assert.assertEquals( appName, application.getName() );
+        Application application1 = new Application();
+        application1.setName( "testDuplicateName1" );
+        applicationDAO.insert( application1 );
 
-        application.setPublicId( "newPublicID" );
-        exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( "Cannot change Public ID of existing application." );
-        applicationDAO.update( application );
-
-        application.setId( "newID" );
-        exception.expect( InvalidApplicationException.class );
-        exception.expectMessage( "Attempting to edit an application that doesn't exist. ID " + appPublicId );
-        applicationDAO.update( application );
+        application1.setName( "Test Duplicate Name" );
+        try
+        {
+            applicationDAO.update( application1 );
+            fail( "Expected InvalidApplicationProfileException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
+        }
     }
 
     @Test
@@ -148,28 +294,5 @@ public class ApplicationDAOTest
         application = applicationDAO.getByPublicId( appPublicId.toUpperCase( Locale.ENGLISH ) );
         Assert.assertNotNull( application );
         Assert.assertEquals( applicationId, application.getId() );
-    }
-
-    @Test
-    public void testNameIsCaseAndWhitespaceInsensitive()
-    {
-        String appName = "test string With Case and Whitespace";
-
-        Application application = new Application();
-        application.setName( appName );
-        application.setPublicId( "test public id" );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        applicationDAO.insert( application );
-
-        Assert.assertEquals( appName, application.getName() );
-        Assert.assertEquals( appName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ),
-                             application.getNameLowercaseNoWhitespace() );
-
-        String appNameCaseAndWhiteSpace = "TEST String      With    cASE and      whitespace";
-        application = applicationDAO.getByName( appNameCaseAndWhiteSpace );
-        Assert.assertNotNull( application );
-        Assert.assertEquals( appNameCaseAndWhiteSpace.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ),
-                             application.getNameLowercaseNoWhitespace() );
-        Assert.assertEquals( appName, application.getName() );
     }
 }

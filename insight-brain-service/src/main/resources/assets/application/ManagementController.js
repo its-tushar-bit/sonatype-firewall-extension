@@ -231,7 +231,7 @@
 			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
 			angular.element('[name=robotHash]').val($scope.robotHash);
 
-			if (false) { //window.FormData) {
+			if (window.FormData) {
 				var formData = new FormData(angular.element('#applicationEditor')[0]);
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {

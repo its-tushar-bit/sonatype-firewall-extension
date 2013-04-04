@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -274,7 +273,7 @@ public class ApplicationResource
         {
             throw new BadRequestException( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID." );
         }
-        
+
         applicationDAO.insert( application );
 
         return getApplication( application.getPublicId() );
@@ -296,13 +295,29 @@ public class ApplicationResource
     public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
-        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        if ( isApplicationInUse( applicationPublicId ) )
         {
             throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
         }
+
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         applicationDAO.deleteWithIcon( application, work.getIconDir() );
+    }
+
+    private boolean isApplicationInUse( final String applicationPublicId )
+        throws IOException
+    {
+        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
+        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        {
+            return true;
+        }
+        File[] scans = work.getScanDir( applicationManagementSummary.getId() ).listFiles();
+        if ( scans != null && scans.length > 0 )
+        {
+            return true;
+        }
+        return false;
     }
 
     @GET

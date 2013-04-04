@@ -307,7 +307,7 @@
 
 			var form = angular.element('#applicationEditor');
 
-			if (false) { //window.FormData) {
+			if (window.FormData) {
 				var formData = new FormData(form[0]);
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {

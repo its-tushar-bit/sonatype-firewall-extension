@@ -77,7 +77,6 @@ public class ApplicationResource
     @Path( VALIDATE_PATH )
     @Produces( MediaType.TEXT_PLAIN )
     public String validateApplicationPublicId( @PathParam( "applicationPublicId" ) final String applicationPublicId )
-        throws IOException
     {
         return validateApplicationPublicIdInternal( applicationPublicId );
     }
@@ -147,7 +146,6 @@ public class ApplicationResource
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
     public ApplicationManagementSummary addApplication( String applicationPublicId )
-        throws IOException
     {
         if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
         {

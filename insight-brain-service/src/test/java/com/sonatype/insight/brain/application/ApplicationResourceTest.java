@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.application;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
@@ -28,9 +31,6 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
@@ -219,15 +219,16 @@ public class ApplicationResourceTest
     {
         final String applicationPublicId = "ApplicationResourceTest-getApplicationNamesTest-AppId";
         final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
-        Application application = createApplication( applicationPublicId, applicationName );
+        createApplication( applicationPublicId, applicationName );
 
         Response response = RestAccess.get( getServiceURL() + "/services/names" );
         assertResponseStatus( 200, response );
 
-        HashMap<String, String> applicationNames = JsonHelpers.fromJson( response.getResponseBody(), HashMap.class );
+        @SuppressWarnings( "unchecked" )
+        Map<String, String> applicationNames = JsonHelpers.fromJson( response.getResponseBody(), Map.class );
         Assert.assertNotNull( applicationNames );
 
-        Assert.assertEquals( Arrays.asList( applicationNames ).toString(), 1, applicationNames.size() );
+        Assert.assertEquals( applicationNames.toString(), 1, applicationNames.size() );
         Assert.assertTrue( applicationNames.containsKey( applicationPublicId ) );
         Assert.assertTrue( applicationNames.containsValue( applicationName ) );
     }

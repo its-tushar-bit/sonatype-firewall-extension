@@ -88,16 +88,20 @@
 				return this.getBaseUrl() + '/rest/application/' + encodeURIComponent(applicationId);
 			},
 
-			getAddApplicationSyncUrl: function () {
-				return this.getBaseUrl() + '/rest/application/services/sync';
-			},
-
 			getApplicationsUrl: function () {
 				return this.getBaseUrl() + '/rest/application';
 			},
 
 			getCanGetHashIcon: function () {
 				return this.getBaseUrl() + '/rest/application/services/canGetHashIcon';
+			},
+
+			addIcon: function () {
+				return this.getBaseUrl() + '/rest/application/icon';
+			},
+
+			addIconSync: function () {
+				return this.getBaseUrl() + '/rest/application/icon/sync';
 			},
 
 			getProfilesUrl: function () {

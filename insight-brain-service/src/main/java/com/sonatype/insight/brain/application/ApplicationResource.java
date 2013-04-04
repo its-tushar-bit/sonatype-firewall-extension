@@ -22,6 +22,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -56,11 +57,13 @@ public class ApplicationResource
 
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
-    public static final String GET_APPLICATION_ICON_PATH = "icon/{applicationPublicId}";
+    public static final String APPLICATION_ICON_PATH = "icon/";
+
+    public static final String APPLICATION_ICON_PATH_SYNC = APPLICATION_ICON_PATH + "sync";
+
+    public static final String GET_APPLICATION_ICON_PATH = APPLICATION_ICON_PATH + "{applicationPublicId}";
 
     public static final String GET_CAN_ACCESS_ROBOHASH_PATH = "services/canGetHashIcon";
-
-    public static final String ADD_APPLICATION_SYNC_PATH = "services/sync";
 
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
@@ -140,54 +143,44 @@ public class ApplicationResource
     }
 
     /**
-     * This is one of two service methods used for editing and adding applications. This method is used for AJAX
+     * This is one of two service methods used for editing and adding icons. This method is used for AJAX
      * calls since its return type is a JSON object.
      *
-     * @return ApplicationManagementSummary object of the application data which was posted for editing or adding.
      * @throws IOException
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary addEditApplication( @FormDataParam( "applicationId" ) String applicationId,
-                                                            @FormDataParam(
-                                                                "applicationPublicId" ) String applicationPublicId,
-                                                            @FormDataParam( "applicationName" ) String applicationName,
-                                                            @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
-                                                            @FormDataParam( "robotHash" ) String robotHash,
-                                                            @FormDataParam( "file" ) InputStream uploadedInputStream,
-                                                            @FormDataParam(
-                                                                "file" ) FormDataContentDisposition fileDetail )
+    @Path( APPLICATION_ICON_PATH )
+    public void addEditIcon( @FormDataParam( "applicationId" ) String applicationId,
+                             @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                             @FormDataParam( "robotHash" ) String robotHash,
+                             @FormDataParam( "file" ) InputStream uploadedInputStream,
+                             @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        return addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource,
-                                           robotHash, uploadedInputStream, fileDetail );
+        addIconInternal( applicationId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
     }
 
     /**
-     * This is one of two service methods used for editing and adding applications. This method is used for synchronous
+     * This is one of two service methods used for editing and adding icons. This method is used for synchronous
      * calls since it returns a HTTP Response.
      *
      * @return HTTP Response redirect to the application management page.
      * @throws IOException
      */
     @POST
-    @Path( ADD_APPLICATION_SYNC_PATH )
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public Response addEditApplicationSync( @FormDataParam( "applicationId" ) String applicationId,
-                                            @FormDataParam( "applicationPublicId" ) String applicationPublicId,
-                                            @FormDataParam( "applicationName" ) String applicationName,
-                                            @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
-                                            @FormDataParam( "robotHash" ) String robotHash,
-                                            @FormDataParam( "file" ) InputStream uploadedInputStream,
-                                            @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
-        throws IOException
+    @Path( APPLICATION_ICON_PATH_SYNC )
+    public Response addEditIconSync( @FormDataParam( "applicationId" ) String applicationId,
+                                     @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                                     @FormDataParam( "robotHash" ) String robotHash,
+                                     @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                     @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
     {
         String errorMessage = null;
         try
         {
-            addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
-                                        uploadedInputStream, fileDetail );
+            addIconInternal( applicationId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
         }
         catch ( Exception e )
         {
@@ -204,85 +197,10 @@ public class ApplicationResource
         return Response.seeOther( uriBuilder.build() ).build();
     }
 
-    @DELETE
-    @Path( GET_APPLICATION_PATH )
-    public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+    public void addIconInternal( String applicationId, boolean hasRobotSource, String robotHash,
+                                 InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
         throws IOException
     {
-        if ( isApplicationInUse( applicationPublicId ) )
-        {
-            throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
-        }
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
-        applicationDAO.deleteWithIcon( application, work.getIconDir() );
-        PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        policyDAO.deleteAll( application.getId() );
-    }
-
-    private boolean isApplicationInUse( final String applicationPublicId )
-        throws IOException
-    {
-        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
-        if ( applicationManagementSummary.getPolicyEvaluation() != null )
-        {
-            return true;
-        }
-        File[] scans = work.getScanDir( applicationManagementSummary.getId() ).listFiles();
-        if ( scans != null && scans.length > 0 )
-        {
-            return true;
-        }
-        return false;
-    }
-
-    @GET
-    @Path( GET_CAN_ACCESS_ROBOHASH_PATH )
-    @Produces( MediaType.APPLICATION_JSON )
-    public boolean canAccessRobohash()
-    {
-        boolean canAccess = false;
-        Socket socket = null;
-        try
-        {
-            socket = new Socket( "robohash.org", 80 );
-            canAccess = true;
-        }
-        catch ( UnknownHostException e )
-        {
-            canAccess = false;
-        }
-        catch ( IOException e )
-        {
-            canAccess = false;
-        }
-        finally
-        {
-            if ( socket != null )
-            {
-                try
-                {
-                    socket.close();
-                }
-                catch ( IOException e )
-                {
-                    canAccess = false;
-                }
-            }
-        }
-        return canAccess;
-    }
-
-    private ApplicationManagementSummary addEditApplicationInternal( String applicationId, String applicationPublicId,
-                                                                     String applicationName, boolean hasRobotSource,
-                                                                     String robotHash, InputStream uploadedInputStream,
-                                                                     FormDataContentDisposition fileDetail )
-        throws IOException
-    {
-        if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( applicationPublicId ) )
-        {
-            throw new BadRequestException( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID." );
-        }
-
         if ( hasRobotSource )
         {
             try
@@ -322,55 +240,106 @@ public class ApplicationResource
                 imageOutputStream.close();
                 uploadedInputStream.close();
             }
-        }
 
-        Application application;
-        if ( applicationId == null || applicationId.isEmpty() )
-        {
-            application = new Application();
-        }
-        else
-        {
-            application = applicationDAO.getByIdNotNull( applicationId );
-        }
-        application.setPublicId( applicationPublicId );
-        application.setName( applicationName );
-
-        if ( applicationId == null || applicationId.isEmpty() )
-        {
-            applicationDAO.insert( application );
-        }
-        else
-        {
-            applicationDAO.update( application );
-        }
-
-        if ( imageByteArray != null && imageByteArray.length > 0 )
-        {
-            InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
-            try
+            if ( imageByteArray != null && imageByteArray.length > 0 )
             {
-                applicationDAO.setIcon( application.getId(), work.getIconDir(), sizeCheckedInputStream );
-            }
-            catch ( IllegalArgumentException e )
-            {
-                log.debug( "Invalid icon uploaded for new application " );
-                applicationDAO.delete( application );
-                throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
-            }
-            catch ( IOException e )
-            {
-                log.debug( "Invalid icon uploaded for new application " );
-                applicationDAO.delete( application );
-                throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
-            }
-            finally
-            {
-                sizeCheckedInputStream.close();
+                InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
+                try
+                {
+                    applicationDAO.setIcon( applicationId, work.getIconDir(), sizeCheckedInputStream );
+                }
+                catch ( IllegalArgumentException e )
+                {
+                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+                }
+                catch ( IOException e )
+                {
+                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+                }
+                finally
+                {
+                    sizeCheckedInputStream.close();
+                }
             }
         }
+    }
 
-        return getApplicationManagementSummary( application );
+    @POST
+    @Consumes( MediaType.APPLICATION_JSON )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ApplicationManagementSummary addApplication( Application application )
+        throws IOException
+    {
+        if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( application.getPublicId() ) )
+        {
+            throw new BadRequestException( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID." );
+        }
+        
+        applicationDAO.insert( application );
+
+        return getApplication( application.getPublicId() );
+    }
+
+    @PUT
+    @Consumes( MediaType.APPLICATION_JSON )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ApplicationManagementSummary editApplication( Application application )
+        throws IOException
+    {
+        applicationDAO.update( application );
+
+        return getApplication( application.getPublicId() );
+    }
+
+    @DELETE
+    @Path( GET_APPLICATION_PATH )
+    public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+        throws IOException
+    {
+        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
+        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        {
+            throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
+        }
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        applicationDAO.deleteWithIcon( application, work.getIconDir() );
+    }
+
+    @GET
+    @Path( GET_CAN_ACCESS_ROBOHASH_PATH )
+    @Produces( MediaType.APPLICATION_JSON )
+    public boolean canAccessRobohash()
+    {
+        boolean canAccess = false;
+        Socket socket = null;
+        try
+        {
+            socket = new Socket( "robohash.org", 80 );
+            canAccess = true;
+        }
+        catch ( UnknownHostException e )
+        {
+            canAccess = false;
+        }
+        catch ( IOException e )
+        {
+            canAccess = false;
+        }
+        finally
+        {
+            if ( socket != null )
+            {
+                try
+                {
+                    socket.close();
+                }
+                catch ( IOException e )
+                {
+                    canAccess = false;
+                }
+            }
+        }
+        return canAccess;
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( final Application application )

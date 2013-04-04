@@ -91,6 +91,26 @@ public class ApplicationResourceTest
         final String applicationPublicId = "testID";
         final String applicationName = "test-application-name";
 
+        // Test Add Application
+        Application application = new Application();
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
+
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
+
+        assertResponseStatus( 200, response );
+
+        ApplicationManagementSummary applicationManagementSummary =
+            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
+
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+
+        Assert.assertNotNull( application );
+        Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
+        Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
+        Assert.assertEquals( applicationName, applicationManagementSummary.getName() );
+
         // Test Get Icon (default icon)
         ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
         InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
@@ -114,28 +134,16 @@ public class ApplicationResourceTest
         Assert.assertNotNull( defaultIconByteArray );
         Assert.assertNotEquals( 0, defaultIconByteArray.length );
 
-        // Test Add Application
-        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getServiceURL() );
-        builder.addBodyPart( new StringPart( "applicationName", applicationName ) );
-        builder.addBodyPart( new StringPart( "applicationPublicId", applicationPublicId ) );
+        // Test Add Application Icon
+        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
+        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
         builder.addBodyPart(
             new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", defaultIconByteArray ) ) );
         Future<Response> futureResponse = builder.execute();
 
-        Response response = futureResponse.get();
-        assertResponseStatus( 200, response );
-
-        ApplicationManagementSummary applicationManagementSummary =
-            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
-
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-
-        Assert.assertNotNull( application );
-        Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
-        Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
-        Assert.assertEquals( applicationName, applicationManagementSummary.getName() );
+        response = futureResponse.get();
+        assertResponseStatus( 204, response );
 
         // Test Get Icon (from added application)
         Response iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
@@ -155,17 +163,11 @@ public class ApplicationResourceTest
         Assert.assertEquals( 420, icon.getHeight() );
         Assert.assertEquals( 420, icon.getWidth() );
 
-        // Test update
-        builder = RestAccess.getClient().preparePost( getServiceURL() );
+        // Test application update
+        application.setName( applicationName + "updated" );
 
-        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
-        builder.addBodyPart( new StringPart( "applicationName", applicationName + "updated" ) );
-        builder.addBodyPart( new StringPart( "applicationPublicId", applicationPublicId ) );
-        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
-        futureResponse = builder.execute();
-        response = futureResponse.get();
+        response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
 
-        assertResponseStatus( 200, response );
         applicationManagementSummary =
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
 
@@ -173,14 +175,21 @@ public class ApplicationResourceTest
         Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
         Assert.assertEquals( applicationName + "updated", applicationManagementSummary.getName() );
 
-        // Verify non alpha numeric name fails
-        builder = RestAccess.getClient().preparePost( getServiceURL() );
-        builder.addBodyPart( new StringPart( "applicationName", "Non Alphanumeric Name !!!!!" ) );
-        builder.addBodyPart( new StringPart( "applicationPublicId", applicationPublicId ) );
+        // Test icon update
+        builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
+
+        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
         futureResponse = builder.execute();
-
         response = futureResponse.get();
+
+        assertResponseStatus( 204, response );
+
+        // Verify non alpha numeric name fails
+        application.setName( "Non Alphanumeric Name !!!!!" );
+
+        response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
+
         assertResponseStatus( 400, response );
 
         // Create policy to be deleted along app
@@ -246,8 +255,8 @@ public class ApplicationResourceTest
         Response response = RestAccess.get( getServiceURL() + "/services/names" );
         assertResponseStatus( 200, response );
 
-        @SuppressWarnings( "unchecked" )
-        Map<String, String> applicationNames = JsonHelpers.fromJson( response.getResponseBody(), Map.class );
+        @SuppressWarnings("unchecked") Map<String, String> applicationNames =
+            JsonHelpers.fromJson( response.getResponseBody(), Map.class );
         Assert.assertNotNull( applicationNames );
 
         Assert.assertEquals( applicationNames.toString(), 1, applicationNames.size() );
@@ -265,6 +274,11 @@ public class ApplicationResourceTest
     {
         return getServiceURL() + '/' + ApplicationResource.GET_APPLICATION_PATH.replace( "{applicationPublicId}",
                                                                                          applicationPublicId );
+    }
+
+    private String getIconServiceUrl()
+    {
+        return getServiceURL() + "/icon";
     }
 
     private String getServiceURL()

@@ -1,13 +1,13 @@
 <div ng-show='syncErrorResponse'>
     <div class='alert alert-error'>
         <button type='button' class='close' ng-click='clearSyncEditError()'>&times;</button>
-        <strong>Save Failed:</strong> {{syncErrorResponse}}
+        <strong>Image Save Failed:</strong> {{syncErrorResponse}}
     </div>
 </div>
 <div class='container'>
     <div id='applicationManagement' class='content-container' style='padding: 20px;'>
         <button class='btn btn-info floatRight' ng-click='editApplication()'><i class='icon-white icon-plus-sign'></i>
-            Register New Application
+            New Application
         </button>
         <div class='input-prepend floatLeft'>
         <span class='add-on'><i ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"

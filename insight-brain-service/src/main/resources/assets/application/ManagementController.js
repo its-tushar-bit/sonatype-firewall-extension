@@ -39,6 +39,19 @@
 			$scope.applications = data;
 		}).error($scope.showServerError);
 
+		$('#newApplicationModal').on('hide', function () {
+			// AngularJS barfs if $apply is made unnecessarily, however hide may or may not be called within scope
+			// $scope.$$phase is "$digest" while processing, null otherwise, this is undocumented
+			// https://groups.google.com/forum/#!topic/angular/FJwxJ-XbJaE
+			if ($scope.$$phase) {
+				$scope.newApplicationUrl = ''; // unloads form, resets state
+			} else {
+				$scope.$apply(function () {
+					$scope.newApplicationUrl = ''; // unloads form, resets state
+				});
+			}
+		});
+
 		$scope.getApplicationNames = function () {
 			var names = [];
 			if ($scope.applications) {
@@ -70,6 +83,7 @@
 				angular.element('#applicationIcon').attr('src', null);
 			}
 			$scope.hasRobotSource = false;
+			$scope.iconChanged = false;
 			$scope.robotHash = null;
 
 			$('#newApplicationModal').modal('show');
@@ -141,9 +155,9 @@
 		};
 	});
 
-	managementModule.controller('EditApplicationController', ['$scope', 'hudson', 'CLMLocations', 'regexFactory', function ($scope, hudson, clmLocations, regexFactory) {
+	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', 'regexFactory', function ($scope, $http, hudson, clmLocations, regexFactory) {
 		$scope.submitActive = false;
-		$scope.addApplicationSync = clmLocations.getAddApplicationSyncUrl();
+		$scope.addApplicationSync = clmLocations.addIconSync();
 
 		// On the first instantiation of the edit modal, setting the source in editApplication in the ManagementController
 		// Has no effect because applicationIcon does not exist in the DOM. Set it here instead
@@ -158,6 +172,16 @@
 					$scope.errorResponse = jqXHR.responseText;
 				}
 			}
+		}
+
+		function onAJAXError(data, status, headersFn, config) {
+			var header = headersFn();
+			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+				$scope.errorResponse = 'Server Error';
+			} else {
+				$scope.errorResponse = data;
+			}
+			element.modal('show');
 		}
 
 		$scope.clearEditError = function () {
@@ -178,6 +202,7 @@
 			}
 			$scope.robotHash = hash;
 			$scope.hasRobotSource = true;
+			$scope.iconChanged = true;
 		}
 
 		$scope.fileChanged = function (element) {
@@ -207,6 +232,7 @@
 					$scope.hasRobotSource = false;
 				});
 			}
+			$scope.iconChanged = true;
 		};
 
 		$scope.canSaveEdit = function () {
@@ -216,6 +242,10 @@
 
 		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
 		$scope.saveClick = function () {
+			if ($scope.submitActive) {
+				return true;
+			}
+
 			liveApplicationRules();
 			if (!$scope.applicationEditor.$valid) {
 				return false;
@@ -224,43 +254,74 @@
 				return false;
 			}
 
+			if (window.FormData) {
+				var icon = angular.element('#file')[0];
+				if (icon.files.length > 0) {
+					if (icon.files[0].size > 5242880) {
+						$scope.errorResponse.push('Icon file size must be smaller than 5 MB.')
+					}
+				}
+			}
+
 			$scope.submitActive = true;
+
+			var application = {
+				id: $scope.selectedApplication.id,
+				publicId: $scope.selectedApplication.publicId,
+				name: $scope.selectedApplication.name
+			};
+
+			if (!$scope.isEditMode) {
+				hudson.post(clmLocations.getApplicationsUrl(), application).success(function (data) {
+					$scope.applications.push(data);
+					$scope.selectedApplication = data;
+					$scope.isEditMode = true;
+					saveIcon();
+				}).error(onAJAXError);
+			} else {
+				$http.put(clmLocations.getApplicationsUrl(), application).success(function (data) {
+					angular.forEach($scope.applications, function (application, key) {
+						if (data.id === application.id) {
+							$scope.applications[key] = data;
+							$scope.selectedApplication = data;
+							return false;
+						}
+					});
+					saveIcon();
+				}).error(onAJAXError);
+			}
+
+			return false;
+		};
+
+		function saveIcon() {
+			if (!$scope.iconChanged) {
+				$('#newApplicationModal').modal('hide');
+				return;
+			}
 
 			// Angular modal does not adjust value of form element so when posting these values need to be set
 			angular.element('[name=applicationId]').val($scope.selectedApplication.id);
 			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
 			angular.element('[name=robotHash]').val($scope.robotHash);
 
-			if (window.FormData) {
-				var formData = new FormData(angular.element('#applicationEditor')[0]);
+			var form = angular.element('#applicationEditor');
+
+			if (false) { //window.FormData) {
+				var formData = new FormData(form[0]);
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
-					if (icon.files[0].size > 5242880) {
-						$scope.errorResponse.push('Icon file size must be smaller than 5 MB.')
-					}
 					formData.append('file', icon.files[0]);
 				}
 
 				hudson.ajaxPost({
-					url: clmLocations.getApplicationsUrl(),
+					url: clmLocations.addIcon(),
 					data: formData,
 					success: function (data, status, jqXHR) {
-						if (!$scope.isEditMode) {
-							$scope.$apply(function () {
-								$scope.applications.push(data);
-								$scope.submitActive = false;
-							});
-						} else {
-							angular.forEach($scope.applications, function (application, key) {
-								if (data.id === application.id) {
-									$scope.$apply(function () {
-										$scope.applications[key] = data;
-										$scope.submitActive = false;
-									});
-									return false;
-								}
-							});
-						}
+						// We need to regrab the icon here because it doesn't exist when the browser first requests
+						var iconSource = "../rest/application/icon/" + $scope.selectedApplication.publicId;
+						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource);
+						$scope.submitActive = false;
 						$('#newApplicationModal').modal('hide');
 					},
 					error: function (jqXHR) {
@@ -270,10 +331,10 @@
 						});
 					}
 				});
-				return false;
+			} else {
+				form.submit();
 			}
-			return true;
-		};
+		}
 
 		// Angular automatically trims input so when removing leading or trailing spaces, the rules are not automatically fired
 		$scope.fireLiveApplicationRules = function () {

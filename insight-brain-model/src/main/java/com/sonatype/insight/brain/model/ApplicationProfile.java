@@ -77,4 +77,10 @@ public class ApplicationProfile
     private void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
     {
     }
+
+    @Override
+    public String toString()
+    {
+        return "ApplicationProfile [name=" + name + "]";
+    }
 }

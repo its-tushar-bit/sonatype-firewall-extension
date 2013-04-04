@@ -278,6 +278,8 @@ public class ApplicationProfileDAOTest
         {
             assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
         }
+
+        dao.delete( applicationProfile1 );
     }
 
     @Test
@@ -303,5 +305,22 @@ public class ApplicationProfileDAOTest
 
         application.setApplicationProfileId( null );
         applicationDAO.update( application );
+    }
+
+    @Test
+    public void testDeleteLastApplicationProfile()
+    {
+        List<ApplicationProfile> applicationProfiles = dao.getAll();
+        assertEquals( applicationProfiles.toString(), 1, applicationProfiles.size() );
+
+        try
+        {
+            dao.delete( applicationProfiles.get( 0 ) );
+            fail( "Expected BadRequestException" );
+        }
+        catch ( BadRequestException expected )
+        {
+            assertEquals( "Cannot delete the last application profile.", expected.getMessage() );
+        }
     }
 }

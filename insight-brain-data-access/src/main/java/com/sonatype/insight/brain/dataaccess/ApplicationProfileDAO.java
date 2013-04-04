@@ -39,9 +39,22 @@ public class ApplicationProfileDAO
 
     public List<ApplicationProfile> getAll()
     {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getAll( em );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public List<ApplicationProfile> getAll( EntityManager em )
+    {
         String sQuery = "SELECT entity FROM ApplicationProfile entity" + //
             " ORDER BY entity.nameLowercaseNoWhitespace";
-        return getList( sQuery );
+        return getList( em, sQuery );
     }
 
     @Override
@@ -99,6 +112,11 @@ public class ApplicationProfileDAO
     @Override
     public void delete( EntityManager em, ApplicationProfile entity )
     {
+        if ( getAll( em ).size() <= 1 )
+        {
+            throw new BadRequestException( "Cannot delete the last application profile." );
+        }
+
         if ( !new ApplicationDAO().getByApplicationProfileId( em, entity.getId() ).isEmpty() )
         {
             throw new BadRequestException( "Cannot delete an application profile that is used by applications." );

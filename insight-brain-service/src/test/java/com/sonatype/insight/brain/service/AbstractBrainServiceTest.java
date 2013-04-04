@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -19,7 +23,19 @@ import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.mock.InsightMockServer;
 
 public abstract class AbstractBrainServiceTest
@@ -42,6 +58,8 @@ public abstract class AbstractBrainServiceTest
     private InsightMockServer saas;
 
     protected TestInsightBrainService brain;
+
+    protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
 
     @Rule
     public TestName testName = new TestName();
@@ -98,6 +116,8 @@ public abstract class AbstractBrainServiceTest
         throws Exception
     {
         long start = System.currentTimeMillis();
+
+        cleanupApplications();
 
         if ( brain != null )
         {
@@ -216,6 +236,72 @@ public abstract class AbstractBrainServiceTest
         catch ( IOException e )
         {
             throw new IllegalStateException( e );
+        }
+    }
+
+    protected Application createApplication( String publicId )
+    {
+        // Application Name must be unique
+        return createApplication( publicId, "DUMMY-NAME-" + UUID.randomUUID().toString() );
+    }
+
+    protected Application createApplication( String publicId, String name )
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = new Application();
+        application.setPublicId( publicId );
+        application.setName( name );
+        applicationDAO.insert( application );
+        applicationsToDelete.add( application );
+        return application;
+    }
+
+    private void cleanupApplications()
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        for ( Application application : applicationsToDelete )
+        {
+            cleanupApplication( application );
+            applicationDAO.delete( application );
+        }
+        applicationsToDelete.clear();
+    }
+
+    protected void cleanupApplication( Application application )
+    {
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        List<Policy> policies = policyDAO.getByOwnerId( application.getId() );
+        for ( Policy policy : policies )
+        {
+            policyDAO.delete( application.getId(), policy.getId() );
+        }
+
+        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+        List<ComponentLabel> componentLabels = componentLabelDAO.getByApplicationId( application.getId() );
+        for ( ComponentLabel componentLabel : componentLabels )
+        {
+            componentLabelDAO.delete( componentLabel );
+        }
+
+        LabelDAO labelDAO = new LabelDAO();
+        List<Label> labels = labelDAO.getByApplicationId( application.getId() );
+        for ( Label label : labels )
+        {
+            labelDAO.delete( label );
+        }
+
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( application.getId() );
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        {
+            List<LicenseThreatGroupLicense> licenses =
+                licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() );
+            for ( LicenseThreatGroupLicense license : licenses )
+            {
+                licenseThreatGroupLicenseDAO.delete( license );
+            }
+            licenseThreatGroupDAO.delete( licenseThreatGroup );
         }
     }
 }

@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -142,15 +141,9 @@ public class ValidationClientTest
     public void testValidateApplicationId_AllGood()
         throws Exception
     {
-        Application application = new Application();
-        application.setPublicId( "valid-id" );
-        application.setName( "valid-name" );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        applicationDAO.insert( application );
+        Application app = createApplication( "valid-id" );
 
-        new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( "valid-id" );
-
-        applicationDAO.delete( application );
+        new ValidationClient( brain.getClientConfiguration() ).validateApplicationId( app.getPublicId() );
     }
 
     @Test

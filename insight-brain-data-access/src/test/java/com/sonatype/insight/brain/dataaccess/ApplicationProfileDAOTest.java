@@ -247,8 +247,7 @@ public class ApplicationProfileDAOTest
         applicationProfile.setName( "testDuplicateName" );
         dao.insert( applicationProfile );
 
-        ApplicationProfile applicationProfile1 = new ApplicationProfile();
-        applicationProfile1.setName( "Test Duplicate Name" );
+        ApplicationProfile applicationProfile1 = new ApplicationProfile( "Test Duplicate Name" );
         try
         {
             dao.insert( applicationProfile1 );
@@ -266,8 +265,7 @@ public class ApplicationProfileDAOTest
         applicationProfile.setName( "testDuplicateName" );
         dao.insert( applicationProfile );
 
-        ApplicationProfile applicationProfile1 = new ApplicationProfile();
-        applicationProfile1.setName( "testDuplicateName1" );
+        ApplicationProfile applicationProfile1 = new ApplicationProfile( "testDuplicateName1" );
         dao.insert( applicationProfile1 );
 
         applicationProfile1.setName( "Test Duplicate Name" );

@@ -365,8 +365,8 @@ public class PolicyDAOTest
         throws Exception
     {
         ApplicationProfileDAO applicationProfileDAO = new ApplicationProfileDAO();
-        ApplicationProfile applicationProfile = new ApplicationProfile();
-        applicationProfile.setName( "testDeletePolicyAssociatedWithApplicationProfile" );
+        ApplicationProfile applicationProfile =
+            new ApplicationProfile( "testDeletePolicyAssociatedWithApplicationProfile" );
         applicationProfileDAO.insert( applicationProfile );
         ApplicationProfilePolicyDAO applicationProfilePolicyDAO = new ApplicationProfilePolicyDAO();
         Set<String> policyIds = new LinkedHashSet<String>();

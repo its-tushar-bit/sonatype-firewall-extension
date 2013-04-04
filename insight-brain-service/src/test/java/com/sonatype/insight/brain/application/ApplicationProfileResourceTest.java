@@ -26,8 +26,7 @@ public class ApplicationProfileResourceTest
         throws Exception
     {
         // Add
-        ApplicationProfile applicationProfile = new ApplicationProfile();
-        applicationProfile.setName( "My app profile" );
+        ApplicationProfile applicationProfile = new ApplicationProfile( "My app profile" );
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( applicationProfile ) );
         assertResponseStatus( 200, response );
         applicationProfile = JsonHelpers.fromJson( response.getResponseBody(), ApplicationProfile.class );

@@ -40,8 +40,7 @@ public class ApplicationProfilePolicyResourceTest
         throws Exception
     {
         ApplicationProfileDAO applicationProfileDAO = new ApplicationProfileDAO();
-        applicationProfile = new ApplicationProfile();
-        applicationProfile.setName( "My app profile" );
+        applicationProfile = new ApplicationProfile( "My app profile" );
         applicationProfileDAO.insert( applicationProfile );
         String applicationProfileId = applicationProfile.getId();
 

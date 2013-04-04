@@ -5,8 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -264,7 +263,7 @@ public class ApplicationDAO
         existingApplication = this.getById( applicationId );
         if ( existingApplication != null )
         {
-            if ( existingApplication.getPublicId() != applicationPublicId )
+            if ( !existingApplication.getPublicId().equals( applicationPublicId ) )
             {
                 throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
             }

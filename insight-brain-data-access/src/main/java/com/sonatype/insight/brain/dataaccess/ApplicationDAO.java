@@ -221,6 +221,10 @@ public class ApplicationDAO
     {
         if ( application.getApplicationProfileId() == null || application.getApplicationProfileId().trim().isEmpty() )
         {
+            if ( new ApplicationProfileDAO().getById( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID ) == null )
+            {
+                throw new InvalidApplicationException( "The application must have an application profile." );
+            }
             application.setApplicationProfileId( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID );
         }
 

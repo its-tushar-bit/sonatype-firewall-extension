@@ -51,7 +51,7 @@ public class PolicyResourceTest
 
         Assert.assertEquals( 0, store.modificationCount() );
 
-        testCRUD( Policy.ORGANIZATION_OWNER_ID, store );
+        testCRUD( Policy.ORGANIZATION_OWNER_PUBLIC_ID, store );
     }
 
     private void testCRUD( String policyOwnerId, JsonStore store )

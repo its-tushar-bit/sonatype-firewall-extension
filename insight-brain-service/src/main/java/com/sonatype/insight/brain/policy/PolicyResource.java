@@ -42,7 +42,7 @@ public class PolicyResource
 
     private String getInternalPolicyOwnerId( String policyOwnerId )
     {
-        if ( Policy.ORGANIZATION_OWNER_ID.equals( policyOwnerId ) )
+        if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( policyOwnerId ) )
         {
             return Policy.ORGANIZATION_OWNER_ID;
         }

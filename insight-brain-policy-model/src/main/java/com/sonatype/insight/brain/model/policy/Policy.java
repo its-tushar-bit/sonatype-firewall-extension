@@ -22,6 +22,8 @@ public class Policy
 {
     public static final String ORGANIZATION_OWNER_ID = "organization";
 
+    public static final String ORGANIZATION_OWNER_PUBLIC_ID = "orgf0367c36c57a42f2a494ecb1ba26b7e7";
+
     private static final Logger log = LoggerFactory.getLogger( Policy.class );
 
     private String id;

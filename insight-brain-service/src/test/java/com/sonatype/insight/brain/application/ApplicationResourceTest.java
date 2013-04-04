@@ -28,6 +28,7 @@ import com.ning.http.multipart.StringPart;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -35,6 +36,23 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ApplicationResourceTest
     extends AbstractResourceTest
 {
+    @Test
+    public void testReservedApplicationId()
+        throws Exception
+    {
+        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getServiceURL() );
+        builder.addBodyPart( new StringPart( "applicationName", "testReservedApplicationId" ) );
+        builder.addBodyPart( new StringPart( "applicationPublicId", Policy.ORGANIZATION_OWNER_PUBLIC_ID ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        builder.addBodyPart( new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", new byte[0] ) ) );
+        Future<Response> futureResponse = builder.execute();
+
+        Response response = futureResponse.get();
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID.",
+                             response.getResponseBody() );
+    }
+
     @Test
     public void testValidate()
         throws Exception

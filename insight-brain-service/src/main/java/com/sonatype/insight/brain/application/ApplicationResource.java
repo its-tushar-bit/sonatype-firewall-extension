@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -264,6 +265,11 @@ public class ApplicationResource
                                                                      FormDataContentDisposition fileDetail )
         throws IOException
     {
+        if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( applicationPublicId ) )
+        {
+            throw new BadRequestException( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID." );
+        }
+
         if ( hasRobotSource )
         {
             try

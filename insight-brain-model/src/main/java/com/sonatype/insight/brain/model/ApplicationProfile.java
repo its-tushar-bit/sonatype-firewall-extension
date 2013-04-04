@@ -17,6 +17,8 @@ import com.sonatype.insight.model.HasStringId;
 public class ApplicationProfile
     implements HasStringId
 {
+    public static final String DEFAULT_APPLICATION_PROFILE_ID = "default_application_profile";
+
     @Id
     @Column( name = "application_profile_id" )
     private String id;
@@ -26,6 +28,15 @@ public class ApplicationProfile
 
     @Column( name = "name_lowercase_no_whitespace" )
     private String nameLowercaseNoWhitespace;
+
+    public ApplicationProfile()
+    {
+    }
+
+    public ApplicationProfile( String name )
+    {
+        setName( name );
+    }
 
     @Override
     public String getId()

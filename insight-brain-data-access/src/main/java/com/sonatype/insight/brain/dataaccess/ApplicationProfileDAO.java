@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.ApplicationProfilePolicy;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationProfileDAO
@@ -98,6 +99,11 @@ public class ApplicationProfileDAO
     @Override
     public void delete( EntityManager em, ApplicationProfile entity )
     {
+        if ( !new ApplicationDAO().getByApplicationProfileId( entity.getId() ).isEmpty() )
+        {
+            throw new BadRequestException( "Cannot delete an application profile that is used by applications." );
+        }
+
         ApplicationProfilePolicyDAO applicationProfilePolicyDAO = new ApplicationProfilePolicyDAO();
         List<ApplicationProfilePolicy> applicationProfilePolicies =
             applicationProfilePolicyDAO.getByApplicationProfileId( entity.getId() );

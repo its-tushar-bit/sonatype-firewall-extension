@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -120,6 +121,14 @@ public class ApplicationDAO
         return getList( sQuery );
     }
 
+    public List<Application> getByApplicationProfileId( String applicationProfileId )
+    {
+        String sQuery = "SELECT entity FROM Application entity" + //
+            " WHERE entity.applicationProfileId=?1" + //
+            " ORDER BY entity.nameLowercaseNoWhitespace";
+        return getList( sQuery, applicationProfileId );
+    }
+
     @Override
     public void insert( EntityManager em, Application application )
     {
@@ -210,6 +219,11 @@ public class ApplicationDAO
 
     private void runApplicationRules( Application application )
     {
+        if ( application.getApplicationProfileId() == null || application.getApplicationProfileId().trim().isEmpty() )
+        {
+            application.setApplicationProfileId( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID );
+        }
+
         final String applicationName = application.getName();
         final String applicationId = application.getId();
         final String applicationPublicId = application.getPublicId();

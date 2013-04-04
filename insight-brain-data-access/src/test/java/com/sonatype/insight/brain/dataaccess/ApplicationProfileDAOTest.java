@@ -15,8 +15,10 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 public class ApplicationProfileDAOTest
     extends AbstractDbDAOTest
@@ -278,5 +280,30 @@ public class ApplicationProfileDAOTest
         {
             assertEquals( "An application profile with the same name already exists.", expected.getMessage() );
         }
+    }
+
+    @Test
+    public void testDeleteProfileUsedByApplication()
+    {
+        applicationProfile.setName( "testDeleteProfileUsedByApplication" );
+        dao.insert( applicationProfile );
+
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByIdNotNull( applicationId );
+        application.setApplicationProfileId( applicationProfile.getId() );
+        applicationDAO.update( application );
+
+        try
+        {
+            dao.delete( applicationProfile );
+            fail( "Expected BadRequestException" );
+        }
+        catch ( BadRequestException expected )
+        {
+            assertEquals( "Cannot delete an application profile that is used by applications.", expected.getMessage() );
+        }
+
+        application.setApplicationProfileId( null );
+        applicationDAO.update( application );
     }
 }

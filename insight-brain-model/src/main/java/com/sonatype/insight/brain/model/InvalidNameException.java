@@ -1,4 +1,4 @@
-package com.sonatype.insight.brain.dataaccess;
+package com.sonatype.insight.brain.model;
 
 import com.sonatype.insight.error.HttpStatusCode;
 

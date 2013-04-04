@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.InvalidNameException;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest

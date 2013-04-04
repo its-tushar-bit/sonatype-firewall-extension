@@ -46,7 +46,7 @@ public class ApplicationProfile
 
     public void setName( String name )
     {
-        nameLowercaseNoWhitespace = NameNormalizer.normalize( name );
+        nameLowercaseNoWhitespace = NameHelper.normalize( name );
         this.name = name;
     }
 

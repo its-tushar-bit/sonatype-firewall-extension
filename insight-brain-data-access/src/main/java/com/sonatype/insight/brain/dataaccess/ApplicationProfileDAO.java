@@ -11,7 +11,8 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.ApplicationProfilePolicy;
-import com.sonatype.insight.brain.model.NameNormalizer;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationProfileDAO
@@ -45,7 +46,7 @@ public class ApplicationProfileDAO
     @Override
     public void insert( EntityManager em, ApplicationProfile applicationProfile )
     {
-        NameValidator.validate( applicationProfile.getName() );
+        NameHelper.validate( applicationProfile.getName() );
 
         if ( getByName( em, applicationProfile.getName() ) != null )
         {
@@ -58,7 +59,7 @@ public class ApplicationProfileDAO
     @Override
     public void update( EntityManager em, ApplicationProfile applicationProfile )
     {
-        NameValidator.validate( applicationProfile.getName() );
+        NameHelper.validate( applicationProfile.getName() );
 
         ApplicationProfile otherApplicationProfile = getByName( em, applicationProfile.getName() );
         if ( otherApplicationProfile != null && !otherApplicationProfile.getId().equals( applicationProfile.getId() ) )
@@ -76,7 +77,7 @@ public class ApplicationProfileDAO
             throw new DataAccessException( "The application profile name cannot be null or empty." );
         }
         // The name is whitespace and case insensitive
-        name = NameNormalizer.normalize( name );
+        name = NameHelper.normalize( name );
         String sQuery = "SELECT entity FROM ApplicationProfile entity WHERE entity.nameLowercaseNoWhitespace=?1";
         return get( em, sQuery, name );
     }

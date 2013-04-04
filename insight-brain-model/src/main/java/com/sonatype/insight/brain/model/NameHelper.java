@@ -3,10 +3,29 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess;
+package com.sonatype.insight.brain.model;
 
-public class NameValidator
+import java.util.Locale;
+
+public class NameHelper
 {
+    private NameHelper()
+    {
+    }
+
+    public static String normalize( String name )
+    {
+        if ( name != null )
+        {
+            // The name is whitespace and case insensitive
+            return name.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public static void validate( String name )
     {
         if ( name == null || name.trim().isEmpty() )

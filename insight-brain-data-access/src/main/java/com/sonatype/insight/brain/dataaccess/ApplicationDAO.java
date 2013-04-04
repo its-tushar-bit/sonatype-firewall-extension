@@ -177,7 +177,8 @@ public class ApplicationDAO
     public void delete( EntityManager em, Application application )
     {
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( application.getId() );
+        List<LicenseThreatGroup> licenseThreatGroups =
+            licenseThreatGroupDAO.getByApplicationId( em, application.getId() );
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
             licenseThreatGroupDAO.delete( em, licenseThreatGroup );

@@ -28,12 +28,25 @@ public class LicenseThreatGroupDAO
 
     private static final Logger log = LoggerFactory.getLogger( LicenseThreatGroupDAO.class );
 
-    public List<LicenseThreatGroup> getByApplicationId( String applicationId )
+    public List<LicenseThreatGroup> getByApplicationId( EntityManager em, String applicationId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
             " WHERE entity.applicationId=?1" + //
             " ORDER BY entity.name";
-        return getList( sQuery, applicationId );
+        return getList( em, sQuery, applicationId );
+    }
+
+    public List<LicenseThreatGroup> getByApplicationId( String applicationId )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByApplicationId( em, applicationId );
+        }
+        finally
+        {
+            close( em );
+        }
     }
 
     public LicenseThreatGroup getByApplicationIdAndLicenseId( String applicationId, String licenseId )

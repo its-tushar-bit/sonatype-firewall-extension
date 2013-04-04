@@ -18,6 +18,10 @@ import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.persistence.EntityManager;
 
+import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -28,6 +32,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class ApplicationDAO
     extends AbstractOperationalSqlDAO<Application>
 {
+    private static final Logger log = LoggerFactory.getLogger( ApplicationDAO.class );
+
     @Override
     protected Application getById( EntityManager em, String id )
     {
@@ -134,9 +140,13 @@ public class ApplicationDAO
     public void deleteWithIcon( Application application, File iconDirectory )
     {
         File applicationIconDirectory = new File( iconDirectory, application.getId() );
-        if ( applicationIconDirectory.exists() )
+        try
         {
-            applicationIconDirectory.delete();
+            FileUtils.deleteDirectory( applicationIconDirectory );
+        }
+        catch ( IOException e )
+        {
+            log.error( "Could not delete application icons: {}" + applicationIconDirectory, e );
         }
         super.delete( application );
     }

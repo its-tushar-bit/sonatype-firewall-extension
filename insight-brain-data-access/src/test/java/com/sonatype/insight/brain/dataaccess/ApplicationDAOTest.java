@@ -10,13 +10,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -27,6 +31,9 @@ public class ApplicationDAOTest
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
     private Application application;
+
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setupApplication()
@@ -47,9 +54,15 @@ public class ApplicationDAOTest
 
     @Test
     public void testCRUD()
+        throws Exception
     {
         // Create
         // The super class creates an application by default
+        File iconDir = tmpDir.newFolder();
+        File appIconDir = new File( iconDir, applicationId );
+        Assert.assertFalse( appIconDir.exists() );
+        applicationDAO.setIcon( applicationId, iconDir, new ByteArrayInputStream( new byte[0] ) );
+        Assert.assertTrue( appIconDir.isDirectory() );
 
         // Update
         Application application = applicationDAO.getById( applicationId );
@@ -64,9 +77,10 @@ public class ApplicationDAOTest
         Assert.assertEquals( applicationId, applications.get( 0 ).getId() );
 
         // Delete
-        applicationDAO.delete( application );
+        applicationDAO.deleteWithIcon( application, iconDir );
         application = applicationDAO.getById( applicationId );
         Assert.assertNull( application );
+        Assert.assertFalse( appIconDir.getAbsolutePath(), appIconDir.exists() );
     }
 
     @Test

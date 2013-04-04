@@ -308,6 +308,8 @@
 			var form = angular.element('#applicationEditor');
 
 			if (window.FormData) {
+				$scope.isUploadingIcon = true;
+
 				var formData = new FormData(form[0]);
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
@@ -322,10 +324,12 @@
 						var iconSource = "../rest/application/icon/" + $scope.selectedApplication.publicId;
 						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource);
 						$scope.submitActive = false;
+						$scope.isUploadingIcon = false;
 						$('#newApplicationModal').modal('hide');
 					},
 					error: function (jqXHR) {
 						$scope.$apply(function () {
+							$scope.isUploadingIcon = false;
 							$scope.submitActive = false;
 							onError(jqXHR);
 						});

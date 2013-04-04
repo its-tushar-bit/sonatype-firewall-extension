@@ -65,6 +65,11 @@
                     <strong>Error</strong> {{errorResponse}}
                 </div>
             </div>
+            <div ng-show='isUploadingIcon'>
+                <div class="alert alert-info">
+                    <strong>Uploading Icon...</strong>
+                </div>
+            </div>
             <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>

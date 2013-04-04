@@ -390,7 +390,6 @@ public class ApplicationResource
     }
 
     public static String validateApplicationPublicIdInternal( String applicationPublicId )
-        throws IOException
     {
         if ( applicationDAO.getByPublicId( applicationPublicId ) == null )
         {

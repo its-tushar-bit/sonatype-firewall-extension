@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -24,8 +22,6 @@ import static org.junit.Assert.fail;
 public class ValidationClientTest
     extends AbstractBrainServiceTest
 {
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     private void assertMatch( String pattern, String text )
     {

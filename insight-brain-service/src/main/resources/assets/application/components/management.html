@@ -54,9 +54,9 @@
                     <button ng-click='editApplication(application);' class='btn btn-mini btn-edit hover-vis'
                             title='Edit Application'><i class='icon-pencil' style='margin-top:0px;'></i>
                     </button>
-                    <button ng-show='!application.policyEvaluation'
+                    <button ng-disabled='application.policyEvaluation'
                             ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete hover-vis'
-                            title='Delete Application'><i class='icon-trash' style='margin-top:0px;'></i>
+                            title="{{ application.deleteMessage }}"><i class='icon-trash' style='margin-top:0px;'></i>
                     </button>
                 </td>
             </tr>

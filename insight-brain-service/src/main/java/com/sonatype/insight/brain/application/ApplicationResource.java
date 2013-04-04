@@ -13,7 +13,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -110,7 +110,7 @@ public class ApplicationResource
     public Map<String, String> getApplicationNames()
     {
         final List<Application> applications = applicationDAO.getAll();
-        HashMap<String, String> applicationPublicIDNamePairs = new HashMap<String, String>();
+        Map<String, String> applicationPublicIDNamePairs = new LinkedHashMap<String, String>();
 
         for ( Application application : applications )
         {

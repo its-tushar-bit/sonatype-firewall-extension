@@ -49,15 +49,15 @@ public class ApplicationResource
 {
     public static final String SERVICE_PATH = "rest/application";
 
-    public static final String GET_APPLICATION_NAMES = "names";
+    public static final String GET_APPLICATION_NAMES = "services/names";
 
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
     public static final String GET_APPLICATION_ICON_PATH = "icon/{applicationPublicId}";
 
-    public static final String GET_CAN_ACCESS_ROBOHASH_PATH = "canGetHashIcon";
+    public static final String GET_CAN_ACCESS_ROBOHASH_PATH = "services/canGetHashIcon";
 
-    public static final String ADD_APPLICATION_SYNC_PATH = "sync";
+    public static final String ADD_APPLICATION_SYNC_PATH = "services/sync";
 
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 

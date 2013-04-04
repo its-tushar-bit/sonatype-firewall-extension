@@ -89,7 +89,7 @@
 			},
 
 			getAddApplicationSyncUrl: function () {
-				return this.getBaseUrl() + '/rest/application/sync';
+				return this.getBaseUrl() + '/rest/application/services/sync';
 			},
 
 			getApplicationsUrl: function () {
@@ -97,15 +97,15 @@
 			},
 
 			getCanGetHashIcon: function () {
-				return this.getBaseUrl() + '/rest/application/canGetHashIcon';
+				return this.getBaseUrl() + '/rest/application/services/canGetHashIcon';
 			},
 
-			getProfilesUrl : function () {
-			    return this.getBaseUrl() + '/rest/applicationProfile';
+			getProfilesUrl: function () {
+				return this.getBaseUrl() + '/rest/applicationProfile';
 			},
 
-			getDeleteProfileUrl : function (profile) {
-			    return this.getProfilesUrl() + '/' + profile.id;
+			getDeleteProfileUrl: function (profile) {
+				return this.getProfilesUrl() + '/' + profile.id;
 			}
 		};
 	}]);

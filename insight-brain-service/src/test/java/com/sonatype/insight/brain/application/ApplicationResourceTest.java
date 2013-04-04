@@ -221,7 +221,7 @@ public class ApplicationResourceTest
         final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
         Application application = createApplication( applicationPublicId, applicationName );
 
-        Response response = RestAccess.get( getServiceURL() + "/names" );
+        Response response = RestAccess.get( getServiceURL() + "/services/names" );
         assertResponseStatus( 200, response );
 
         HashMap<String, String> applicationNames = JsonHelpers.fromJson( response.getResponseBody(), HashMap.class );

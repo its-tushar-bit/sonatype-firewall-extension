@@ -14,7 +14,7 @@
 		$scope.orderDirection = true;
 		$scope.canGetRobotIcon = false;
 
-		var error = commonCodeFactory.getQueryString('errorMessage');
+		var error = commonCodeFactory.getEncodedQueryString('errorMessage');
 		if (error) {
 			$scope.syncErrorResponse = decodeURIComponent(error);
 		}

@@ -83,7 +83,7 @@ var angularCommon;
 	angularCommon.factory('commonCodeFactory', function () {
 		return {
 			// URI Encoded Query Parameter
-			getQueryString: function (key) {
+			getEncodedQueryString: function (key) {
 				var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.search);
 				if (results) {
 					return results[1].replace(/\+/g, '%20');

@@ -14,7 +14,7 @@
 				if (appId) {
 					return appId;
 				}
-				appId = commonCodeFactory.getQueryString('appId');
+				appId = commonCodeFactory.getEncodedQueryString('appId');
 
 				return appId;
 			};

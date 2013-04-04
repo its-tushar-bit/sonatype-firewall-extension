@@ -13,7 +13,9 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -46,6 +48,8 @@ import com.sun.jersey.multipart.FormDataParam;
 public class ApplicationResource
 {
     public static final String SERVICE_PATH = "rest/application";
+
+    public static final String GET_APPLICATION_NAMES = "names";
 
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
@@ -97,6 +101,24 @@ public class ApplicationResource
 
         return applicationManagements;
     }
+
+    @GET
+    @Path( GET_APPLICATION_NAMES )
+    @Produces( MediaType.APPLICATION_JSON )
+    public Map<String, String> getApplicationNames()
+    {
+        final List<Application> applications = applicationDAO.getAll();
+        HashMap<String, String> applicationPublicIDNamePairs = new HashMap<String, String>();
+
+        for ( Application application : applications )
+        {
+            log.debug( "Found application with public id {}", application.getPublicId() );
+            applicationPublicIDNamePairs.put( application.getPublicId(), application.getName() );
+        }
+
+        return applicationPublicIDNamePairs;
+    }
+
 
     @GET
     @Path( GET_APPLICATION_PATH )

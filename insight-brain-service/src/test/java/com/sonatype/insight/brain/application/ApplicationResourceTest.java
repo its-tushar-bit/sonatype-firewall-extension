@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
@@ -210,6 +211,25 @@ public class ApplicationResourceTest
         Assert.assertNotNull( applicationSummary );
         Assert.assertEquals( application.getId(), applicationSummary.getId() );
         Assert.assertEquals( application.getName(), applicationSummary.getName() );
+    }
+
+    @Test
+    public void testGetApplicationNames()
+        throws Exception
+    {
+        final String applicationPublicId = "ApplicationResourceTest-getApplicationNamesTest-AppId";
+        final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
+        Application application = createApplication( applicationPublicId, applicationName );
+
+        Response response = RestAccess.get( getServiceURL() + "/names" );
+        assertResponseStatus( 200, response );
+
+        HashMap<String, String> applicationNames = JsonHelpers.fromJson( response.getResponseBody(), HashMap.class );
+        Assert.assertNotNull( applicationNames );
+
+        Assert.assertEquals( Arrays.asList( applicationNames ).toString(), 1, applicationNames.size() );
+        Assert.assertTrue( applicationNames.containsKey( applicationPublicId ) );
+        Assert.assertTrue( applicationNames.containsValue( applicationName ) );
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

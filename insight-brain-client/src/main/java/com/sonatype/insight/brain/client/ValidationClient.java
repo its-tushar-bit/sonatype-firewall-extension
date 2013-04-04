@@ -83,7 +83,7 @@ public final class ValidationClient
         }
         if ( !"OK".equals( text ) )
         {
-            throw new IOException( "Invalid application ID: " + text );
+            throw new IOException( text );
         }
     }
 }

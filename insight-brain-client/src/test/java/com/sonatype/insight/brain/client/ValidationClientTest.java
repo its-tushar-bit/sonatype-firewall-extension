@@ -157,7 +157,7 @@ public class ValidationClientTest
         }
         catch ( IOException e )
         {
-            Assert.assertEquals( "Invalid application ID: Invalid application id unknown-id", e.getMessage() );
+            Assert.assertEquals( "Invalid application id unknown-id", e.getMessage() );
         }
     }
 

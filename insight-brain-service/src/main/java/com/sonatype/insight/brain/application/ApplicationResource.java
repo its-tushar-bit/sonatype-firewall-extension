@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -302,6 +303,8 @@ public class ApplicationResource
 
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         applicationDAO.deleteWithIcon( application, work.getIconDir() );
+        PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
+        policyDAO.deleteAll( application.getId() );
     }
 
     private boolean isApplicationInUse( final String applicationPublicId )

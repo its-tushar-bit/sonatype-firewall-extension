@@ -93,14 +93,7 @@ public class ApplicationResource
         final List<Application> applications = applicationDAO.getAll();
         for ( Application application : applications )
         {
-            log.debug( "Found application with public id {}", application.getPublicId() );
-
-            final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
-            final ApplicationManagementSummary applicationManagement =
-                ApplicationManagementSummary.fromApplication( application );
-            applicationManagement.setPolicyEvaluation( policyEvaluation );
-
-            applicationManagements.add( applicationManagement );
+            applicationManagements.add( getApplicationManagementSummary( application ) );
         }
 
         return applicationManagements;
@@ -131,7 +124,8 @@ public class ApplicationResource
         @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        return getApplicationManagementSummary( applicationPublicId );
+        final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        return getApplicationManagementSummary( application );
     }
 
     @GET
@@ -376,13 +370,12 @@ public class ApplicationResource
             }
         }
 
-        return getApplicationManagementSummary( applicationPublicId );
+        return getApplicationManagementSummary( application );
     }
 
-    private ApplicationManagementSummary getApplicationManagementSummary( String applicationPublicId )
+    private ApplicationManagementSummary getApplicationManagementSummary( final Application application )
         throws IOException
     {
-        final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         log.debug( "Found application with public id {}", application.getPublicId() );
 
         final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );

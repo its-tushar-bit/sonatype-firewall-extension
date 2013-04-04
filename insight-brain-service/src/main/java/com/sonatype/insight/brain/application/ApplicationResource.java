@@ -33,13 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -70,6 +70,8 @@ public class ApplicationResource
 
     @Context
     private BaseUrl baseUrl;
+
+    private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
 
     @GET
     @Path( VALIDATE_PATH )
@@ -211,13 +213,9 @@ public class ApplicationResource
             addEditApplicationInternal( applicationId, applicationPublicId, applicationName, hasRobotSource, robotHash,
                                         uploadedInputStream, fileDetail );
         }
-        catch ( InvalidApplicationException ex )
+        catch ( Exception e )
         {
-            errorMessage = ex.getMessage();
-        }
-        catch ( BadRequestException ex )
-        {
-            errorMessage = ex.getMessage();
+            errorMessage = errorResponseGenerator.mapException( e ).getMessageBody();
         }
 
         UriBuilder uriBuilder =

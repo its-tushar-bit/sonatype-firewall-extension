@@ -142,25 +142,6 @@ public class ApplicationResource
         return Response.ok( imageBytes ).build();
     }
 
-    @POST
-    @Consumes( MediaType.APPLICATION_JSON )
-    @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary addApplication( String applicationPublicId )
-    {
-        if ( applicationDAO.getByPublicId( applicationPublicId ) != null )
-        {
-            throw new BadRequestException( "An application with id " + applicationPublicId + " already exists" );
-        }
-
-        String result = validateApplicationPublicIdInternal( applicationPublicId );
-        if ( "OK".equals( result ) )
-        {
-            Application application = applicationDAO.getByPublicId( applicationPublicId );
-            return ApplicationManagementSummary.fromApplication( application );
-        }
-        throw new BadRequestException( "Invalid application id " + applicationPublicId );
-    }
-
     /**
      * This is one of two service methods used for editing and adding applications. This method is used for AJAX
      * calls since its return type is a JSON object.

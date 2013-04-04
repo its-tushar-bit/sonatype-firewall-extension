@@ -62,17 +62,6 @@ public class ApplicationResourceTest
     }
 
     @Test
-    public void testAddApplication_InvalidApplicationPublicId()
-        throws Exception
-    {
-        String applicationPublicId = "testAddApplication-InvalidApplicationPublicId";
-
-        Response response = RestAccess.post( getServiceURL(), applicationPublicId );
-        assertResponseStatus( 400, response );
-        Assert.assertEquals( "Invalid application id " + applicationPublicId, response.getResponseBody() );
-    }
-
-    @Test
     public void testAddDeleteApplication()
         throws Exception
     {

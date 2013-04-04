@@ -45,14 +45,11 @@ public class ApplicationResourceTest
     public void testReservedApplicationId()
         throws Exception
     {
-        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getServiceURL() );
-        builder.addBodyPart( new StringPart( "applicationName", "testReservedApplicationId" ) );
-        builder.addBodyPart( new StringPart( "applicationPublicId", Policy.ORGANIZATION_OWNER_PUBLIC_ID ) );
-        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
-        builder.addBodyPart( new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", new byte[0] ) ) );
-        Future<Response> futureResponse = builder.execute();
+        Application application = new Application();
+        application.setName( "testReservedApplicationId" );
+        application.setPublicId( Policy.ORGANIZATION_OWNER_PUBLIC_ID );
 
-        Response response = futureResponse.get();
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
         assertResponseStatus( 400, response );
         Assert.assertEquals( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID.",
                              response.getResponseBody() );

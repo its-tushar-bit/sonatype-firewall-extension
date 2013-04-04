@@ -10,6 +10,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.model.ApplicationProfile;
+import com.sonatype.insight.brain.model.ApplicationProfilePolicy;
 import com.sonatype.insight.brain.model.NameNormalizer;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -91,5 +92,18 @@ public class ApplicationProfileDAO
         {
             close( em );
         }
+    }
+
+    @Override
+    public void delete( EntityManager em, ApplicationProfile entity )
+    {
+        ApplicationProfilePolicyDAO applicationProfilePolicyDAO = new ApplicationProfilePolicyDAO();
+        List<ApplicationProfilePolicy> applicationProfilePolicies =
+            applicationProfilePolicyDAO.getByApplicationProfileId( entity.getId() );
+        for ( ApplicationProfilePolicy applicationProfilePolicy : applicationProfilePolicies )
+        {
+            applicationProfilePolicyDAO.delete( em, applicationProfilePolicy );
+        }
+        super.delete( em, entity );
     }
 }

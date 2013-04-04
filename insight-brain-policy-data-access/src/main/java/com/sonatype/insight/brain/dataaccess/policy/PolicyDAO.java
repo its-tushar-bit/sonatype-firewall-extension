@@ -17,10 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.insight.brain.dataaccess.ApplicationProfilePolicyDAO;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -159,6 +161,14 @@ public class PolicyDAO
 
     public void delete( final String ownerId, final String policyId )
     {
+        if (Policy.ORGANIZATION_OWNER_ID.equals( ownerId ))
+        {
+            if ( !new ApplicationProfilePolicyDAO().getByPolicyId( policyId ).isEmpty() )
+            {
+                throw new BadRequestException( "Cannot delete a policy associated with an application profile." );
+            }
+        }
+        
         final JsonStore store = policyStore( ownerId );
         try
         {

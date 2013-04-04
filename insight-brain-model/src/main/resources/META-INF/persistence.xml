@@ -11,6 +11,7 @@
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
     <class>com.sonatype.insight.brain.model.Application</class>
     <class>com.sonatype.insight.brain.model.ApplicationProfile</class>
+    <class>com.sonatype.insight.brain.model.ApplicationProfilePolicy</class>
     <class>com.sonatype.insight.brain.model.label.Label</class>
     <class>com.sonatype.insight.brain.model.label.ComponentLabel</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>

@@ -14,6 +14,15 @@ CREATE TABLE application_profile (
 
 INSERT INTO application_profile (application_profile_id, name, name_lowercase_no_whitespace) VALUES ('default_application_profile', 'Default Application Profile', 'defaultapplicationprofile');
 
+CREATE TABLE application_profile_policy (
+  application_profile_policy_id varchar(50) NOT NULL,
+  application_profile_id varchar(50) NOT NULL,
+  policy_id varchar(50) NOT NULL,
+  CONSTRAINT application_profile_policy_pk PRIMARY KEY (application_profile_policy_id),
+  CONSTRAINT application_profile_policy_uk UNIQUE KEY (application_profile_id, policy_id),
+  CONSTRAINT application_profile_policy_profile_fk FOREIGN KEY (application_profile_id) REFERENCES application_profile(application_profile_id)
+);
+
 -- The public_id column is what we expose as AppID to the user
 CREATE TABLE application (
   application_id varchar(50) NOT NULL,

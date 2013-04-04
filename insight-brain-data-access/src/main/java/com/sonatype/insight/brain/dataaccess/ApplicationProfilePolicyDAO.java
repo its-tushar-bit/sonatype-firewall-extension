@@ -41,7 +41,7 @@ public class ApplicationProfilePolicyDAO
         return getList( sQuery, policyId );
     }
 
-    private List<ApplicationProfilePolicy> getByApplicationProfileId( EntityManager em, String applicationProfileId )
+    public List<ApplicationProfilePolicy> getByApplicationProfileId( EntityManager em, String applicationProfileId )
     {
         String sQuery = "SELECT entity FROM ApplicationProfilePolicy entity" + //
             " WHERE entity.applicationProfileId=?1" + //

@@ -123,10 +123,23 @@ public class ApplicationDAO
 
     public List<Application> getByApplicationProfileId( String applicationProfileId )
     {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByApplicationProfileId( em, applicationProfileId );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public List<Application> getByApplicationProfileId( EntityManager em, String applicationProfileId )
+    {
         String sQuery = "SELECT entity FROM Application entity" + //
             " WHERE entity.applicationProfileId=?1" + //
             " ORDER BY entity.nameLowercaseNoWhitespace";
-        return getList( sQuery, applicationProfileId );
+        return getList( em, sQuery, applicationProfileId );
     }
 
     @Override

@@ -99,14 +99,14 @@ public class ApplicationProfileDAO
     @Override
     public void delete( EntityManager em, ApplicationProfile entity )
     {
-        if ( !new ApplicationDAO().getByApplicationProfileId( entity.getId() ).isEmpty() )
+        if ( !new ApplicationDAO().getByApplicationProfileId( em, entity.getId() ).isEmpty() )
         {
             throw new BadRequestException( "Cannot delete an application profile that is used by applications." );
         }
 
         ApplicationProfilePolicyDAO applicationProfilePolicyDAO = new ApplicationProfilePolicyDAO();
         List<ApplicationProfilePolicy> applicationProfilePolicies =
-            applicationProfilePolicyDAO.getByApplicationProfileId( entity.getId() );
+            applicationProfilePolicyDAO.getByApplicationProfileId( em, entity.getId() );
         for ( ApplicationProfilePolicy applicationProfilePolicy : applicationProfilePolicies )
         {
             applicationProfilePolicyDAO.delete( em, applicationProfilePolicy );

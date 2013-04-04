@@ -26,9 +26,14 @@ import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -178,12 +183,22 @@ public class ApplicationResourceTest
         response = futureResponse.get();
         assertResponseStatus( 400, response );
 
+        // Create policy to be deleted along app
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        Policy policy1 = new Policy();
+        policy1.setName( "PolicyDAOTest new policy 1" );
+        Constraint constraint1 = new Constraint( null, "PolicyDAOTest new constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy1.addConstraint( constraint1 );
+        policyDAO.insert( application.getId(), policy1 );
+
         // Test delete
         response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
         application = applicationDAO.getByPublicId( applicationPublicId );
 
         assertResponseStatus( 204, response );
         Assert.assertNull( application );
+        Assert.assertEquals( 0, policyDAO.getByOwnerId( applicationManagementSummary.getId() ).size() );
 
         iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
         assertResponseStatus( 404, iconResponse );

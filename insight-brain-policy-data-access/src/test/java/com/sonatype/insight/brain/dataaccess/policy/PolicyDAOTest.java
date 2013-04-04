@@ -361,7 +361,8 @@ public class PolicyDAOTest
     }
 
     @Test
-    public void testDeletePolicyAssociatedWithApplicationProfile() throws Exception
+    public void testDeletePolicyAssociatedWithApplicationProfile()
+        throws Exception
     {
         ApplicationProfileDAO applicationProfileDAO = new ApplicationProfileDAO();
         ApplicationProfile applicationProfile = new ApplicationProfile();
@@ -386,6 +387,29 @@ public class PolicyDAOTest
         }
         
         applicationProfileDAO.delete( applicationProfile );
+    }
+
+    @Test
+    public void testDeleteAllApplicationPolicies()
+        throws Exception
+    {
+        final File dataStoreDir = tempDir.newFolder();
+        final PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        final String applicationId = "PolicyDAOTest_BulkDelete";
+        final File policyDir = policyDAO.getPolicyDir( applicationId );
+
+        final Policy policy1 = new Policy();
+        policy1.setName( "PolicyDAOTest new policy 1" );
+        final Constraint constraint1 = new Constraint( null, "PolicyDAOTest new constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy1.addConstraint( constraint1 );
+        policyDAO.insert( applicationId, policy1 );
+        Assert.assertEquals( 1, policyDAO.getByOwnerId( applicationId ).size() );
+        Assert.assertEquals( true, policyDir.isDirectory() );
+
+        policyDAO.deleteAll( applicationId );
+        Assert.assertEquals( 0, policyDAO.getByOwnerId( applicationId ).size() );
+        Assert.assertEquals( false, policyDir.exists() );
     }
 
     private static void assertPolicy( final Policy expected, final Policy actual )

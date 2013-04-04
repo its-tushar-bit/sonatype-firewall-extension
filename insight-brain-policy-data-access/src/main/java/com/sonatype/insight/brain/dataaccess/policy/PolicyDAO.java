@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,7 @@ public class PolicyDAO
         }
         catch ( final IOException e )
         {
-            log.error( "Failed to insert policy " + policy, e );
+            log.error( "Failed to insert policy {}", policy, e );
             throw new IllegalStateException( e );
         }
         return policy;
@@ -153,7 +154,7 @@ public class PolicyDAO
         }
         catch ( final IOException e )
         {
-            log.error( "Failed to update policy " + policy, e );
+            log.error( "Failed to update policy {}", policy, e );
             throw new IllegalStateException( e );
         }
         return policy;
@@ -186,7 +187,25 @@ public class PolicyDAO
         }
         catch ( final IOException e )
         {
-            log.error( "Failed to delete policy " + policyId, e );
+            log.error( "Failed to delete policy {}", policyId, e );
+            throw new IllegalStateException( e );
+        }
+    }
+
+    public void deleteAll( final String ownerId )
+    {
+        if ( Policy.ORGANIZATION_OWNER_ID.equals( ownerId ) )
+        {
+            throw new BadRequestException( "Cannot bulk delete policies associated with an application profile." );
+        }
+        final File policyDir = getPolicyDir( ownerId );
+        try
+        {
+            FileUtils.deleteDirectory( policyDir );
+        }
+        catch ( IOException e )
+        {
+            log.error( "Failed to bulk delete policies for {}", ownerId, e );
             throw new IllegalStateException( e );
         }
     }
@@ -214,7 +233,12 @@ public class PolicyDAO
 
     private JsonStore policyStore( final String ownerId )
     {
-        return JsonUtils.fileStore( new File( workDir, "policy/" + ownerId ) );
+        return JsonUtils.fileStore( getPolicyDir( ownerId ) );
+    }
+
+    File getPolicyDir( final String ownerId )
+    {
+        return new File( workDir, "policy/" + ownerId );
     }
 
     private static String newUUID()

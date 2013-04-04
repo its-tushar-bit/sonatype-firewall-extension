@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.application;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -33,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -213,13 +215,30 @@ public class ApplicationResource
     public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
-        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        if ( isApplicationInUse( applicationPublicId ) )
         {
             throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
         }
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         applicationDAO.deleteWithIcon( application, work.getIconDir() );
+        PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
+        policyDAO.deleteAll( application.getId() );
+    }
+
+    private boolean isApplicationInUse( final String applicationPublicId )
+        throws IOException
+    {
+        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
+        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        {
+            return true;
+        }
+        File[] scans = work.getScanDir( applicationManagementSummary.getId() ).listFiles();
+        if ( scans != null && scans.length > 0 )
+        {
+            return true;
+        }
+        return false;
     }
 
     @GET

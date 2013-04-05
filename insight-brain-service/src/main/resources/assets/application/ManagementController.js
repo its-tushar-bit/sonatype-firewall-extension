@@ -77,7 +77,7 @@
 				$scope.selectedApplication = angular.extend($scope.selectedApplication, application);
 				// After the image source is set to blob (see below), angular will not respond to changing ng-src
 				// Image source adjustments need to be done through attr
-				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + $scope.selectedApplication.publicId);
+				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId));
 			} else {
 				$scope.isEditMode = false;
 				angular.element('#applicationIcon').attr('src', null);
@@ -165,7 +165,7 @@
 
 		// On the first instantiation of the edit modal, setting the source in editApplication in the ManagementController
 		// Has no effect because applicationIcon does not exist in the DOM. Set it here instead
-		angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + $scope.selectedApplication.publicId);
+		angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId));
 
 		function onError(jqXHR) {
 			var contentType = jqXHR.getResponseHeader('Content-Type');
@@ -325,7 +325,7 @@
 					data: formData,
 					success: function (data, status, jqXHR) {
 						// We need to regrab the icon here because it doesn't exist when the browser first requests
-						var iconSource = "../rest/application/icon/" + $scope.selectedApplication.publicId;
+						var iconSource = "../rest/application/icon/" + encodeURIComponent($scope.selectedApplication.publicId);
 						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource);
 						$scope.submitActive = false;
 						$scope.isUploadingIcon = false;

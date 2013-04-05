@@ -40,15 +40,15 @@
             </thead>
             <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
                 <td>
-                    <img ng-src='../rest/application/icon/{{application.publicId}}'
+                    <img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
                          onerror="this.src='../assets/img/defaulticon_application.png';"
                          style='height: 24px; width: 24px;'/>
-                    <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
+                    <a href='../policy-assets/index.html?appId={{encodeURIComponent(application.publicId)}}'>{{application.name}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
                     <a ng-show='policyEvaluation.stage.stageTypeId == stage.id'
                        ng-repeat='policyEvaluation in application.policyEvaluations'
-                       href='#/report/{{application.publicId}}/{{stage.id}}'>
+                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
                         {{policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
                 </td>
                 <td style="vertical-align: middle; text-align:center;">

@@ -294,7 +294,7 @@ public class PolicyEvaluateResourceTest
     private String getServiceURL( final String appId, final String scanId )
     {
         return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}", appId )
-            + "?scanId=" + scanId + "&stageTypeId=" + BuildStageType.ID;
+            + "?scanId=" + scanId;
     }
 
     private String getThreatsURL( final String applicationPublicId, final String scanId )

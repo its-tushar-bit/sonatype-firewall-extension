@@ -28,13 +28,6 @@ public class ComponentLabelDAOTest
     @After
     public void cleanUp()
     {
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByApplicationIdAndHash( applicationId, hash );
-        for ( ComponentLabel componentLabel : componentLabels )
-        {
-            dao.delete( componentLabel );
-        }
-
         LabelDAO labelDAO = new LabelDAO();
         List<Label> labels = labelDAO.getByApplicationId( applicationId );
         for ( Label label : labels )

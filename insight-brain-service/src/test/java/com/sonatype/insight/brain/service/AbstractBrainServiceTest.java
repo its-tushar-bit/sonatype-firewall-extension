@@ -24,13 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
-import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.mock.InsightMockServer;
 
@@ -270,20 +266,6 @@ public abstract class AbstractBrainServiceTest
         for ( Policy policy : policies )
         {
             policyDAO.delete( application.getId(), policy.getId() );
-        }
-
-        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = componentLabelDAO.getByApplicationId( application.getId() );
-        for ( ComponentLabel componentLabel : componentLabels )
-        {
-            componentLabelDAO.delete( componentLabel );
-        }
-
-        LabelDAO labelDAO = new LabelDAO();
-        List<Label> labels = labelDAO.getByApplicationId( application.getId() );
-        for ( Label label : labels )
-        {
-            labelDAO.delete( label );
         }
     }
 }

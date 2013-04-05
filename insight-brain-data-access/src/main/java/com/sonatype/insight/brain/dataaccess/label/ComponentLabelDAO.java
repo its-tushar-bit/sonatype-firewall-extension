@@ -29,13 +29,6 @@ public class ComponentLabelDAO
         return getList( em, sQuery, labelId );
     }
 
-    public List<ComponentLabel> getByApplicationId( String applicationId )
-    {
-        String sQuery = "SELECT label FROM ComponentLabel label" + //
-            " WHERE label.applicationId=?1";
-        return getList( sQuery, applicationId );
-    }
-
     public List<ComponentLabel> getByApplicationIdAndHash( String applicationId, String hash )
     {
         EntityManager em = createEntityManager();

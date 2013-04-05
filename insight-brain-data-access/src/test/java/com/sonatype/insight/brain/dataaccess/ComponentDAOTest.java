@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,12 +90,6 @@ public class ComponentDAOTest
     @After
     public void exit()
     {
-        List<ComponentLabel> componentLabels = componentLabelDAO.getByApplicationIdAndHash( applicationId, COMP_HASH );
-        for ( ComponentLabel componentLabel : componentLabels )
-        {
-            componentLabelDAO.delete( componentLabel );
-        }
-
         List<Label> labels = labelDAO.getByApplicationId( applicationId );
         for ( Label label : labels )
         {

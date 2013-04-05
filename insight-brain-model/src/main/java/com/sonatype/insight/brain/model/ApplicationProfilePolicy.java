@@ -30,6 +30,16 @@ public class ApplicationProfilePolicy
     @Column( name = "policy_id" )
     private String policyId;
 
+    public ApplicationProfilePolicy()
+    {
+    }
+
+    public ApplicationProfilePolicy( String applicationProfileId, String policyId )
+    {
+        this.applicationProfileId = applicationProfileId;
+        this.policyId = policyId;
+    }
+
     @Override
     public String getId()
     {

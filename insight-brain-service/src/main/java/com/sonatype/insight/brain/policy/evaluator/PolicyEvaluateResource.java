@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -101,7 +100,6 @@ public class PolicyEvaluateResource
         String appId = application.getId();
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        final List<Policy> policies = policyDAO.getByOwnerId( appId );
 
         final File reportFile = ReportResource.fetchReport( work, proxy, applicationPublicId, appId, scanId, true );
 
@@ -112,7 +110,7 @@ public class PolicyEvaluateResource
         final List<Component> components =
             new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf );
 
-        final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policies, components );
+        final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policyDAO, components );
 
         Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );

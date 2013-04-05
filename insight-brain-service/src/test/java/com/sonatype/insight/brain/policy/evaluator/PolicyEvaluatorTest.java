@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,13 +13,22 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationProfileDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationProfilePolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationProfile;
+import com.sonatype.insight.brain.model.ApplicationProfilePolicy;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
@@ -40,9 +50,87 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 public class PolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {
-    // TODO We need a lot more tests here
+    @Rule
+    public TemporaryFolder tempDir = new TemporaryFolder();
 
     private String applicationId = "PolicyEvaluatorTest_AppId";
+
+    @Test
+    public void testEvaluate_PolicyFromApplicationProfile()
+        throws Exception
+    {
+        // Create an application profile
+        ApplicationProfile applicationProfile = new ApplicationProfile( "testEvaluate-PolicyFromApplicationProfile" );
+        ApplicationProfileDAO applicationProfileDAO = new ApplicationProfileDAO();
+        applicationProfileDAO.insert( applicationProfile );
+
+        // Create an application associated with the profile
+        Application application = new Application();
+        application.setPublicId( "testEvaluate_PolicyFromApplicationProfile" );
+        application.setName( "testEvaluate-PolicyFromApplicationProfile" );
+        application.setApplicationProfileId( applicationProfile.getId() );
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        applicationDAO.insert( application );
+        applicationId = application.getId();
+
+        // Create a policy for the profile
+        Policy profilePolicy = new Policy( null /* id */, "Profile Policy" );
+        Constraint profileConstraint = new Constraint( null /* id */, "Profile Constraint", LogicalOperator.AND );
+        Condition profileCondition = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        profileConstraint.addCondition( profileCondition );
+        profilePolicy.addConstraint( profileConstraint );
+        Stage stage = new Stage( BuildStageType.ID );
+        profilePolicy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+        File dataStoreDir = tempDir.newFolder( "testEvaluate_PolicyFromApplicationProfile" );
+        PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        policyDAO.insert( Policy.ORGANIZATION_OWNER_ID, profilePolicy );
+        ApplicationProfilePolicy applicationProfilePolicy = new ApplicationProfilePolicy( applicationProfile.getId(), profilePolicy.getId() );
+        new ApplicationProfilePolicyDAO().insert( applicationProfilePolicy );
+
+        List<Component> components = new ArrayList<Component>();
+        // A component with one security vulnerability
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
+        component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
+        components.add( component1 );
+        // A component with Apache-2.0 license
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
+        component2.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate( applicationId, stage, policyDAO, components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
+        assertContainsPolicyAlert( component1, profilePolicy.getId(), "Profile Policy", FailActionType.ID,
+                                   profileConstraint.getId(), "Profile Constraint",
+                                   SecurityVulnerabilityConditionType.ID, policyAlerts );
+
+        // Add a policy for the application
+        Policy appPolicy = new Policy( null /* id */, "App Policy" );
+        Constraint appConstraint = new Constraint( null /* id */, "App Constraint", LogicalOperator.AND );
+        Condition appCondition = new Condition( LicenseConditionType.ID, "is", "Apache-2.0" );
+        appConstraint.addCondition( appCondition );
+        appPolicy.addConstraint( appConstraint );
+        appPolicy.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+        policyDAO.insert( applicationId, appPolicy );
+
+        // Evaluate the policy
+        policyAlerts = new PolicyEvaluator().evaluate( applicationId, stage, policyDAO, components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 2, policyAlerts.size() );
+        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
+        Assert.assertEquals( 1, policyAlerts.get( 1 ).getTrigger().getComponentFacts().size() );
+        assertContainsPolicyAlert( component1, profilePolicy.getId(), "Profile Policy", FailActionType.ID,
+                                   profileConstraint.getId(), "Profile Constraint",
+                                   SecurityVulnerabilityConditionType.ID, policyAlerts );
+        assertContainsPolicyAlert( component2, appPolicy.getId(), "App Policy", FailActionType.ID,
+                                   appConstraint.getId(), "App Constraint", LicenseConditionType.ID, policyAlerts );
+
+        // Cleanup
+        applicationDAO.delete( application );
+        applicationProfileDAO.delete( applicationProfile );
+    }
 
     @Test
     public void testEvaluate_TwoConstraintsWithConditions()

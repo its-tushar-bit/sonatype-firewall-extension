@@ -12,9 +12,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseFactory;
@@ -34,6 +36,11 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationProfilePolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationProfilePolicy;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -62,7 +69,38 @@ public class PolicyEvaluator
         }
     };
 
-    public List<PolicyAlert> evaluate( final String applicationId, final Stage stage, final List<Policy> policies,
+    public List<PolicyAlert> evaluate( String applicationId, Stage stage, PolicyDAO policyDAO,
+                                       List<Component> components )
+    {
+        List<Policy> policies = new ArrayList<Policy>();
+        policies.addAll( policyDAO.getByOwnerId( applicationId ) );
+
+        Application application = new ApplicationDAO().getByIdNotNull( applicationId );
+        List<ApplicationProfilePolicy> applicationProfilePolicies =
+            new ApplicationProfilePolicyDAO().getByApplicationProfileId( application.getApplicationProfileId() );
+        if ( !applicationProfilePolicies.isEmpty() )
+        {
+            Set<String> profilePolicyIds = new LinkedHashSet<String>();
+            for ( ApplicationProfilePolicy applicationProfilePolicy : applicationProfilePolicies )
+            {
+                profilePolicyIds.add( applicationProfilePolicy.getPolicyId() );
+            }
+
+            List<Policy> organizationPolicies = policyDAO.getByOwnerId( Policy.ORGANIZATION_OWNER_ID );
+            for ( Policy policy : organizationPolicies )
+            {
+                if ( profilePolicyIds.contains( policy.getId() ) )
+                {
+                    policies.add( policy );
+                }
+            }
+        }
+
+        return evaluate( applicationId, stage, policies, components );
+    }
+
+    // Package visibility for tests only
+    List<PolicyAlert> evaluate( final String applicationId, final Stage stage, final List<Policy> policies,
                                        final List<Component> components )
     {
         final long start = System.currentTimeMillis();

@@ -26,15 +26,11 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.mock.InsightMockServer;
 
@@ -288,20 +284,6 @@ public abstract class AbstractBrainServiceTest
         for ( Label label : labels )
         {
             labelDAO.delete( label );
-        }
-
-        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( application.getId() );
-        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-        {
-            List<LicenseThreatGroupLicense> licenses =
-                licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroup.getId() );
-            for ( LicenseThreatGroupLicense license : licenses )
-            {
-                licenseThreatGroupLicenseDAO.delete( license );
-            }
-            licenseThreatGroupDAO.delete( licenseThreatGroup );
         }
     }
 }

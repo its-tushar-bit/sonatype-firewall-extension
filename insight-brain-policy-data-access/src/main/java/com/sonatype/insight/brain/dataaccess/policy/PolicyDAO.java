@@ -192,7 +192,7 @@ public class PolicyDAO
         }
     }
 
-    public void deleteAll( final String ownerId )
+    public void deleteByOwnerId( final String ownerId )
     {
         if ( Policy.ORGANIZATION_OWNER_ID.equals( ownerId ) )
         {

@@ -303,7 +303,7 @@ public class ApplicationResource
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         applicationDAO.deleteWithIcon( application, work.getIconDir() );
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        policyDAO.deleteAll( application.getId() );
+        policyDAO.deleteByOwnerId( application.getId() );
     }
 
     private boolean isApplicationInUse( final String applicationPublicId )

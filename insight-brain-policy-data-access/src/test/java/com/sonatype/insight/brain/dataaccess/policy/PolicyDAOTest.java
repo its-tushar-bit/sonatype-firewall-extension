@@ -407,7 +407,7 @@ public class PolicyDAOTest
         Assert.assertEquals( 1, policyDAO.getByOwnerId( applicationId ).size() );
         Assert.assertEquals( true, policyDir.isDirectory() );
 
-        policyDAO.deleteAll( applicationId );
+        policyDAO.deleteByOwnerId( applicationId );
         Assert.assertEquals( 0, policyDAO.getByOwnerId( applicationId ).size() );
         Assert.assertEquals( false, policyDir.exists() );
     }

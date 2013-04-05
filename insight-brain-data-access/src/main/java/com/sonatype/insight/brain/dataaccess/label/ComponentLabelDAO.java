@@ -29,19 +29,6 @@ public class ComponentLabelDAO
         return getList( em, sQuery, labelId );
     }
 
-    public List<ComponentLabel> getByLabelId( String labelId )
-    {
-        EntityManager em = createEntityManager();
-        try
-        {
-            return getByLabelId( em, labelId );
-        }
-        finally
-        {
-            close( em );
-        }
-    }
-
     public List<ComponentLabel> getByApplicationId( String applicationId )
     {
         String sQuery = "SELECT label FROM ComponentLabel label" + //

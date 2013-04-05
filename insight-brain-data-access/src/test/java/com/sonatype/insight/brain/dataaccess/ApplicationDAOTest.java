@@ -22,9 +22,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.Label;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
@@ -399,5 +402,18 @@ public class ApplicationDAOTest
         {
             assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
         }
+    }
+
+    @Test
+    public void testCascadeDeleteToLabels()
+    {
+        application.setName( "testCascadeDeleteToLabels" );
+        applicationDAO.insert( application );
+
+        LabelDAO labelDAO = new LabelDAO();
+        Label label = new Label( application.getId(), "testCascadeDeleteToLabels", Color.blue );
+        labelDAO.insert( label );
+
+        applicationDAO.delete( application );
     }
 }

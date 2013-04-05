@@ -22,11 +22,13 @@ import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -207,6 +209,7 @@ public class ApplicationDAO
     @Override
     public void delete( EntityManager em, Application application )
     {
+        // Cascade to license threat groups
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
         List<LicenseThreatGroup> licenseThreatGroups =
             licenseThreatGroupDAO.getByApplicationId( em, application.getId() );
@@ -214,6 +217,15 @@ public class ApplicationDAO
         {
             licenseThreatGroupDAO.delete( em, licenseThreatGroup );
         }
+
+        // Cascade to labels
+        LabelDAO labelDAO = new LabelDAO();
+        List<Label> labels = labelDAO.getByApplicationId( em, application.getId() );
+        for ( Label label : labels )
+        {
+            labelDAO.delete( em, label );
+        }
+
         super.delete( em, application );
     }
 

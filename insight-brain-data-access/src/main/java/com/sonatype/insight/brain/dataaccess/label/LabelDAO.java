@@ -18,10 +18,23 @@ public class LabelDAO
 {
     public List<Label> getByApplicationId( String applicationId )
     {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByApplicationId( em, applicationId );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public List<Label> getByApplicationId( EntityManager em, String applicationId )
+    {
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE label.applicationId=?1" + //
             " ORDER BY label.labelLowercase";
-        return getList( sQuery, applicationId );
+        return getList( em, sQuery, applicationId );
     }
 
     public List<Label> getByApplicationIdAndHash( String applicationId, String hash )

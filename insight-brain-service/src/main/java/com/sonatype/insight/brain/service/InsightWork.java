@@ -9,19 +9,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.json.store.JsonStore;
-import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 
 public class InsightWork
     extends AbstractInjectable<InsightWork>
@@ -90,26 +86,14 @@ public class InsightWork
         throws IOException
     {
         final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
-        final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
-        final ContainerNode<?> auditContainer = auditStore.history( null, "policyevaluations.json" );
-        if ( auditContainer != null )
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( getAuditDir( appId ) );
+        for ( StageType stageType : StageTypes.getAll() )
         {
-            final int stageTypeCount = StageTypes.getAll().size();
-            final Map<String, PolicyEvaluation> perStage = new TreeMap<String, PolicyEvaluation>();
-            for ( final JsonNode auditNode : auditContainer.get( "aaData" ) )
+            PolicyEvaluation eval = evalLog.last( stageType.getId() );
+            if ( eval != null )
             {
-                final PolicyEvaluation eval = JsonUtils.asPojo( auditNode, PolicyEvaluation.class );
-                final String stage = eval.getStage().getStageTypeId();
-                if ( !perStage.containsKey( stage ) )
-                {
-                    perStage.put( stage, eval );
-                    if ( perStage.size() >= stageTypeCount )
-                    {
-                        break;
-                    }
-                }
+                policyEvaluations.add( eval );
             }
-            policyEvaluations.addAll( perStage.values() );
         }
         return policyEvaluations;
     }

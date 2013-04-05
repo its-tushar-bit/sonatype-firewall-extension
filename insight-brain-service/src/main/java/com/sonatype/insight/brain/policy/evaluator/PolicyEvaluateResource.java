@@ -36,7 +36,6 @@ import org.sonatype.micromailer.Address;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -60,7 +59,6 @@ import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.TemplateUtils;
-import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import freemarker.template.Template;
@@ -186,17 +184,14 @@ public class PolicyEvaluateResource
                                                      final String scanId, final Stage stage )
         throws IOException
     {
-        // create log entry for current stage and use it to retrieve last known scanId
-        final ObjectNode logEntry = JsonUtils.asTree( ImmutableMap.of( "stage", stage ) );
-        final JsonStore auditStore = JsonUtils.fileStore( work.getAuditDir( appId ) );
-        auditStore.augment( logEntry, "policyevaluations.json" );
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
 
-        // swap current scanId into the working copy
-        final String oldScanId =
-            JsonUtils.getNullableString( logEntry.replace( "scanId", logEntry.textNode( scanId ) ) );
+        // retrieve last known scanId for stage
+        com.sonatype.insight.brain.model.policy.PolicyEvaluation last = evalLog.last( stage.getStageTypeId() );
+        final String oldScanId = ( last != null ) ? last.getScanId() : null;
 
-        // commit as new entry in the rolling log (TODO: populate invoker's details)
-        auditStore.commit( "policyevaluations.json", JsonUtils.stamp( "anonymous", "127.0.0.1", "", logEntry ) );
+        // add new entry in the rolling log (TODO: populate invoker's details)
+        evalLog.add( stage, scanId, "anonymous", "127.0.0.1" );
 
         if ( !StringUtils.isBlank( oldScanId ) )
         {

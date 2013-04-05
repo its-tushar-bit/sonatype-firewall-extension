@@ -17,7 +17,7 @@ var clmManagementApp;
             templateUrl: 'components/profiles.html?' + clmBuildTimestamp,
             controller: 'ProfileController'
         });
-        $routeProvider.when('/report/:encodedApplicationId/:encodedScanId', {
+        $routeProvider.when('/report/:encodedApplicationId/:encodedStageId', {
             templateUrl: 'components/report.html?' + clmBuildTimestamp,
             controller: 'ReportController'
         });

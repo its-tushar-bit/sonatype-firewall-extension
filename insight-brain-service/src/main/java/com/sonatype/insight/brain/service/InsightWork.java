@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
@@ -16,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -82,17 +86,31 @@ public class InsightWork
         return null;
     }
 
-    public PolicyEvaluation getPolicyEvaluation( final String appId )
+    public List<PolicyEvaluation> getMostRecentPolicyEvaluations( final String appId )
         throws IOException
     {
+        final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
         final JsonStore auditStore = JsonUtils.fileStore( getAuditDir( appId ) );
         final ContainerNode<?> auditContainer = auditStore.history( null, "policyevaluations.json" );
         if ( auditContainer != null )
         {
-            JsonNode latestAuditNode = auditContainer.get( "aaData" ).get( 0 );
-            return JsonUtils.asPojo( latestAuditNode, PolicyEvaluation.class );
+            final int stageTypeCount = StageTypes.getAll().size();
+            final Map<String, PolicyEvaluation> perStage = new TreeMap<String, PolicyEvaluation>();
+            for ( final JsonNode auditNode : auditContainer.get( "aaData" ) )
+            {
+                final PolicyEvaluation eval = JsonUtils.asPojo( auditNode, PolicyEvaluation.class );
+                final String stage = eval.getStage().getStageTypeId();
+                if ( !perStage.containsKey( stage ) )
+                {
+                    perStage.put( stage, eval );
+                    if ( perStage.size() >= stageTypeCount )
+                    {
+                        break;
+                    }
+                }
+            }
+            policyEvaluations.addAll( perStage.values() );
         }
-        // Valid response as there have been no policy evaluations for this application
-        return null;
+        return policyEvaluations;
     }
 }

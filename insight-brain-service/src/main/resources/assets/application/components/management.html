@@ -46,15 +46,16 @@
                     <a href='../policy-assets/index.html?appId={{application.publicId}}'>{{application.name}}</a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
-                    <a ng-show='application.policyEvaluation.stage.stageTypeId == stage.id'
-                       href='#/report/{{application.publicId}}/{{application.policyEvaluation.scanId}}'>
-                        {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
+                    <a ng-show='policyEvaluation.stage.stageTypeId == stage.id'
+                       ng-repeat='policyEvaluation in application.policyEvaluations'
+                       href='#/report/{{application.publicId}}/{{stage.id}}'>
+                        {{policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
                 </td>
                 <td style="vertical-align: middle; text-align:center;">
                     <button ng-click='editApplication(application);' class='btn btn-mini btn-edit hover-vis'
                             title='Edit Application'><i class='icon-pencil' style='margin-top:0px;'></i>
                     </button>
-                    <button ng-disabled='application.policyEvaluation'
+                    <button ng-disabled='application.policyEvaluations.length > 0'
                             ng-click='confirmDeleteApplication(application);' class='btn btn-mini btn-delete hover-vis'
                             title="{{ application.deleteMessage }}"><i class='icon-trash' style='margin-top:0px;'></i>
                     </button>

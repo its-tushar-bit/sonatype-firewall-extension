@@ -13,20 +13,26 @@
         $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
+                var stageId = decodeURIComponent($routeParams.encodedStageId);
+                for (var i = 0; i < data.policyEvaluations.length; i++) {
+                    if (data.policyEvaluations[i].stage.stageTypeId == stageId) {
+                        $scope.policyEvaluation = data.policyEvaluations[i];
+                        break;
+                    }
+                }
+                $scope.application = data;
+                $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html?readonly=true';
                 $http.get(clmLocations.getActionStageUrl(), {
                     params: { timestamp: new Date().getTime() }
                 }).success(function (stages) {
                         for (var i = 0; i < stages.length; i++) {
-                            if (stages[i].id == data.policyEvaluation.stage.stageTypeId) {
-                                data.policyEvaluation.stage.stageName = stages[i].name;
+                            if (stages[i].id == $scope.policyEvaluation.stage.stageTypeId) {
+                                $scope.policyEvaluation.stage.stageName = stages[i].name;
                                 break;
                             }
                         }
-                        $scope.application = data;
                     });
             });
-
-        $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + $routeParams.encodedScanId + '/embedReport/index.html?readonly=true';
     }]);
 
     reportModule.directive('expandableIframe', function () {

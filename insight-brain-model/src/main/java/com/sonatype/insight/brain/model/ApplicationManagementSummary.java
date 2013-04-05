@@ -1,5 +1,8 @@
 package com.sonatype.insight.brain.model;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 
 public class ApplicationManagementSummary
@@ -10,7 +13,7 @@ public class ApplicationManagementSummary
 
     private String name;
 
-    private PolicyEvaluation policyEvaluation;
+    private List<PolicyEvaluation> policyEvaluations;
 
     public String getId()
     {
@@ -42,14 +45,14 @@ public class ApplicationManagementSummary
         this.name = name;
     }
 
-    public PolicyEvaluation getPolicyEvaluation()
+    public List<PolicyEvaluation> getPolicyEvaluations()
     {
-        return policyEvaluation;
+        return ( policyEvaluations != null ) ? policyEvaluations : Collections.<PolicyEvaluation> emptyList();
     }
 
-    public void setPolicyEvaluation( PolicyEvaluation policyEvaluation )
+    public void setPolicyEvaluations( List<PolicyEvaluation> policyEvaluations )
     {
-        this.policyEvaluation = policyEvaluation;
+        this.policyEvaluations = policyEvaluations;
     }
 
     public static ApplicationManagementSummary fromApplication( Application application )

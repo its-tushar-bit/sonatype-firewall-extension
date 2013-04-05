@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,6 +27,7 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -34,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -219,7 +223,34 @@ public class ApplicationResourceTest
         final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
         Application application = createApplication( applicationPublicId, applicationName );
 
-        Response response = RestAccess.get( getServiceURL() );
+        // Create policy
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        Policy policy1 = new Policy();
+        policy1.setName( "policy 1" );
+        Constraint constraint1 = new Constraint( null, "constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy1.addConstraint( constraint1 );
+        policyDAO.insert( application.getId(), policy1 );
+        final String scanId1 = "ScanId1", scanId2 = "ScanId2";
+        final File saasReportFile1 = getReportResponseFile( applicationPublicId, scanId1 );
+        FileUtils.copyURLToFile( getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" ), saasReportFile1 );
+        FileUtils.copyFile( saasReportFile1, getReportResponseFile( applicationPublicId, scanId2 ) );
+
+        // Eval policy
+        Response response =
+            RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
+                             JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
+        assertResponseStatus( 200, response );
+        response =
+            RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
+                             JsonHelpers.asJson( new Stage( Stage.ID_RELEASE ) ) );
+        assertResponseStatus( 200, response );
+        response =
+            RestAccess.post( getEvalURL( applicationPublicId, scanId2 ),
+                             JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
+        assertResponseStatus( 200, response );
+
+        response = RestAccess.get( getServiceURL() );
         assertResponseStatus( 200, response );
 
         ApplicationManagementSummary[] applications =
@@ -229,6 +260,14 @@ public class ApplicationResourceTest
         Assert.assertEquals( Arrays.asList( applications ).toString(), 1, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
         Assert.assertEquals( application.getName(), applications[0].getName() );
+        Assert.assertNotNull( applications[0].getPolicyEvaluations() );
+        Assert.assertEquals( 2, applications[0].getPolicyEvaluations().size() );
+        Assert.assertEquals( Stage.ID_BUILD,
+                             applications[0].getPolicyEvaluations().get( 0 ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( 0 ).getScanId() );
+        Assert.assertEquals( Stage.ID_RELEASE,
+                             applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
 
         // Test GetApplication
         response = RestAccess.get( getApplicationServiceUrl( applicationPublicId ) );
@@ -239,6 +278,14 @@ public class ApplicationResourceTest
         Assert.assertNotNull( applicationSummary );
         Assert.assertEquals( application.getId(), applicationSummary.getId() );
         Assert.assertEquals( application.getName(), applicationSummary.getName() );
+        Assert.assertNotNull( applications[0].getPolicyEvaluations() );
+        Assert.assertEquals( 2, applications[0].getPolicyEvaluations().size() );
+        Assert.assertEquals( Stage.ID_BUILD,
+                             applications[0].getPolicyEvaluations().get( 0 ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( 0 ).getScanId() );
+        Assert.assertEquals( Stage.ID_RELEASE,
+                             applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
     }
 
     @Test
@@ -281,5 +328,11 @@ public class ApplicationResourceTest
     private String getServiceURL()
     {
         return getRestBaseUrl() + ApplicationResource.SERVICE_PATH;
+    }
+
+    private String getEvalURL( final String appId, final String scanId )
+    {
+        return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}", appId )
+            + "?scanId=" + scanId;
     }
 }

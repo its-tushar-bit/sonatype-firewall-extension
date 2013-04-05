@@ -1,8 +1,8 @@
 <div class="container" style="width: 990px;">
     <div class='content-container'>
         <div class='reportTitle'>
-            {{application.publicId}}: {{application.policyEvaluation.time | date:'yyyy-MM-dd'}}
-            {{application.policyEvaluation.stage.stageName}} Report
+            {{application.publicId}}: {{policyEvaluation.time | date:'yyyy-MM-dd'}}
+            {{policyEvaluation.stage.stageName}} Report
         </div>
         <div expandable-Iframe></div>
     </div>

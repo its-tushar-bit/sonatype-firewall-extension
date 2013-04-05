@@ -38,8 +38,8 @@
 		}).success(function (data) {
 			for (var i = 0; i < data.length; i++) {
 				var application = data[i];
-				if (application.policyEvaluation) {
-					application.deleteMessage = "Used applications can't be	deleted.";
+				if (application.policyEvaluations.length > 0) {
+					application.deleteMessage = "Used applications can't be deleted.";
 				} else {
 					application.deleteMessage = 'Delete Application';
 				}
@@ -138,8 +138,12 @@
 		$scope.orderBy = function (application) {
 			if ($scope.orderColumn === 'name') {
 				return application.name;
-			} else if (application.policyEvaluation && $scope.orderColumn === application.policyEvaluation.stage.stageTypeId) {
-				return application.policyEvaluation.time;
+			} else {
+				for (var i = 0; i < application.policyEvaluations.length; i++) {
+					if ($scope.orderColumn === application.policyEvaluations[i].stage.stageTypeId) {
+						return application.policyEvaluations[i].time;
+					}
+				}
 			}
 			// return max value to prevent empty values showing up as low
 			return Number.MAX_VALUE;

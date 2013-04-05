@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -311,7 +310,7 @@ public class ApplicationResource
         throws IOException
     {
         ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
-        if ( applicationManagementSummary.getPolicyEvaluation() != null )
+        if ( !applicationManagementSummary.getPolicyEvaluations().isEmpty() )
         {
             return true;
         }
@@ -365,10 +364,9 @@ public class ApplicationResource
     {
         log.debug( "Found application with public id {}", application.getPublicId() );
 
-        final PolicyEvaluation policyEvaluation = work.getPolicyEvaluation( application.getId() );
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
-        applicationManagement.setPolicyEvaluation( policyEvaluation );
+        applicationManagement.setPolicyEvaluations( work.getMostRecentPolicyEvaluations( application.getId() ) );
 
         return applicationManagement;
     }

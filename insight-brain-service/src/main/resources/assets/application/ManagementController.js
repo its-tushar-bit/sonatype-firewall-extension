@@ -39,7 +39,7 @@
 			for (var i = 0; i < data.length; i++) {
 				var application = data[i];
 				if (application.policyEvaluation) {
-					application.deleteMessage = 'Can not delete an application which has been used.';
+					application.deleteMessage = "Used applications can't be	deleted.";
 				} else {
 					application.deleteMessage = 'Delete Application';
 				}

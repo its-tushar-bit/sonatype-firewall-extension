@@ -365,6 +365,7 @@ public class ApplicationDAOTest
         applicationDAO.insert( application );
 
         Application application1 = new Application();
+        application1.setPublicId( "testDuplicateName1" );
         application1.setName( "Test Duplicate Name" );
         try
         {

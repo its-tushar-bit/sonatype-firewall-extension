@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -144,7 +145,16 @@ public class ApplicationDAO
     @Override
     public void insert( EntityManager em, Application application )
     {
-        runApplicationRules( application );
+        validate( application );
+
+        if ( getByName( em, application.getName() ) != null )
+        {
+            throw new InvalidNameException( application.getName() + " is already used as a name." );
+        }
+        if ( getByPublicId( em, application.getPublicId() ) != null )
+        {
+            throw new InvalidApplicationException( application.getPublicId() + " is already used as an ID." );
+        }
 
         super.insert( em, application );
 
@@ -154,7 +164,29 @@ public class ApplicationDAO
     @Override
     public void update( EntityManager em, Application application )
     {
-        runApplicationRules( application );
+        validate( application );
+
+        Application existingApplication = getById( em, application.getId() );
+        if ( existingApplication == null )
+        {
+            throw new InvalidApplicationException( "Attempting to edit an application that doesn't exist. ID "
+                + application.getPublicId() );
+        }
+        if ( !existingApplication.getPublicId().equals( application.getPublicId() ) )
+        {
+            throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
+        }
+        existingApplication = getByName( em, application.getName() );
+        if ( existingApplication != null && !existingApplication.getId().equals( application.getId() ) )
+        {
+            throw new InvalidNameException( application.getName() + " is already used as a name." );
+        }
+        existingApplication = getByPublicId( em, application.getPublicId() );
+        if ( existingApplication != null && !existingApplication.getId().equals( application.getId() ) )
+        {
+            throw new InvalidApplicationException( application.getPublicId() + " is already used as an ID." );
+        }
+
         super.update( em, application );
     }
 
@@ -230,7 +262,7 @@ public class ApplicationDAO
         return byteArrayOutputStream.toByteArray();
     }
 
-    private void runApplicationRules( Application application )
+    private void validate( Application application )
     {
         if ( application.getApplicationProfileId() == null || application.getApplicationProfileId().trim().isEmpty() )
         {
@@ -241,43 +273,12 @@ public class ApplicationDAO
             application.setApplicationProfileId( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID );
         }
 
-        final String applicationName = application.getName();
-        final String applicationId = application.getId();
+        NameHelper.validate( application.getName() );
+
         final String applicationPublicId = application.getPublicId();
-
-        NameHelper.validate( applicationName );
-
-        Application existingApplication = this.getByName( applicationName );
-        if ( existingApplication != null && applicationId == null
-            || existingApplication != null && applicationId != null && !existingApplication.getPublicId().equals(
-            applicationPublicId ) )
-        {
-            throw new InvalidNameException( applicationName + " is already used as a name." );
-        }
-
         if ( applicationPublicId == null || applicationPublicId.trim().isEmpty() )
         {
             throw new InvalidApplicationException( "ID is required." );
-        }
-
-        existingApplication = this.getById( applicationId );
-        if ( existingApplication != null )
-        {
-            if ( !existingApplication.getPublicId().equals( applicationPublicId ) )
-            {
-                throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
-            }
-        }
-
-        existingApplication = this.getByPublicId( applicationPublicId );
-        if ( existingApplication != null && applicationId == null )
-        {
-            throw new InvalidApplicationException( applicationPublicId + " is already used as an ID." );
-        }
-        if ( existingApplication == null && applicationId != null )
-        {
-            throw new InvalidApplicationException(
-                "Attempting to edit an application that doesn't exist. ID " + applicationPublicId );
         }
     }
 }

@@ -349,11 +349,11 @@ public final class JsonFileStore
 
     private static CountingLock lockFor( final File folder )
     {
-        CountingLock lock = LOCK_TABLE.get( folder.getName() );
+        CountingLock lock = LOCK_TABLE.get( folder.getAbsolutePath() );
         if ( lock == null )
         {
             final CountingLock newLock = new CountingLock( folder.exists() ? 1 : 0 );
-            lock = LOCK_TABLE.putIfAbsent( folder.getName(), newLock );
+            lock = LOCK_TABLE.putIfAbsent( folder.getAbsolutePath(), newLock );
             if ( lock == null )
             {
                 lock = newLock;

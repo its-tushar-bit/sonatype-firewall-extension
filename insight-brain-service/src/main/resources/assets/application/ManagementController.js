@@ -36,14 +36,6 @@
 		$http.get(clmLocations.getApplicationsUrl(), {
 			params: { timestamp: new Date().getTime() }
 		}).success(function (data) {
-			for (var i = 0; i < data.length; i++) {
-				var application = data[i];
-				if (application.policyEvaluations.length > 0) {
-					application.deleteMessage = "Used applications can't be deleted.";
-				} else {
-					application.deleteMessage = 'Delete Application';
-				}
-			}
 			$scope.applications = data;
 		}).error($scope.showServerError);
 

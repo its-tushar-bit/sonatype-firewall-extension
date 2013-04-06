@@ -1,0 +1,200 @@
+<div ng-controller='PolicyEditorController' class='content-container span8 offset2'>
+	<div class="page-header">
+		<h4 ng-show='state.currentPolicy.id == null'>Create a New Policy</h4>
+		<h4 ng-show='state.currentPolicy.id != null'>Edit Policy</h4>
+	</div>
+	<form class="form-horizontal" style='margin-bottom:0px'>
+		<div style="width:600px;">
+			<div class="control-group">
+				<label class="control-label" style="width:100px;" for='policyName'>Name</label>
+				<div class="controls form-inline" style="margin-left:120px;">
+					<div style='float:right'>
+						<label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
+						<select id='policyThreatLevel'
+							style="width:100px;"
+							class="threat-level threat-level-{{state.currentPolicy.threatLevel}}"
+							ng-model="state.currentPolicy.threatLevel"
+							ng-change="validatePolicy()"
+							ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
+						</select>
+					</div>
+					<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" style="width:100px;">Constraints</label>
+				<div class='controls' style="margin-left:120px;">
+					<div ng-show="state.currentPolicy.constraints.length > 0">
+						<div style="max-height:120px;" class='tableBox'>
+							<table class="table-striped table-condensed">
+								<tr style="text-align:left;" ng-repeat="constraint in state.currentPolicy.constraints">
+									<td width="99%" style='vertical-align:middle'>{{constraint.name}}</td>
+									<td>
+										<div class="btn-group">
+											<button class="btn btn-small" ng-click="viewRemoveConstraint($index)" title="Remove Constraint"><i class="icon-minus-sign"></i></button>
+											<button class="btn btn-small" ng-click="viewAddConstraint()" title="Add Constraint"><i class="icon-plus-sign"></i></button>
+											<button class="btn btn-small" ng-click="viewEditConstraint(constraint)" title="Edit Constraint"><i class="icon-pencil"></i></button>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+					<div ng-show="state.currentPolicy.constraints.length < 1">
+						<div class="alert alert-info" style="text-align: center;margin-bottom:0px">
+							<a href="#" ng-click="viewAddConstraint($event)"><strong>Create</strong></a> a new Constraint.
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" style="width:100px;">Actions</label>
+				<div class="controls" style="margin-left:120px;">
+					<table class="table table-striped table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th style="vertical-align:bottom;">
+									<div style="margin:auto;display:inline;">Stage</div>
+									<button class="btn btn-mini" ng-class="{ active : state.actionEditMode }" style="float:right;" ng-click="state.actionEditMode = !state.actionEditMode" title="Edit Actions"><i class="icon-pencil"></i></button>
+								</th>
+								<th style="text-align:center;">Fail</th>
+								<th style="text-align:center;">Warn</th>
+								<th style="text-align:center;">Do Nothing</th>
+								<th style="text-align:center;" colspan='2' ng-show='features.notification'>Notify</th>
+							</tr>
+						</thead>
+						<tr ng-repeat="stage in actionStages">
+							<td style="width:29%;">{{stage.name}}</td>
+							<td style="width:15%;text-align:center;">
+								<input ng-model="state.actions[stage.id].action" value="fail" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
+								<img src="img/tick.png" ng-show="!state.actionEditMode && state.actions[stage.id].action == 'fail'">
+							</td>
+							<td style="width:15%;text-align:center;">
+								<input ng-model="state.actions[stage.id].action" value="warn" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
+								<img src="img/tick.png" ng-show="!state.actionEditMode && state.actions[stage.id].action == 'warn'">
+							</td>
+							<td style="width:25%;text-align:center;">
+								<input ng-model="state.actions[stage.id].action" value="none" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
+								<img src="img/tick.png" ng-show="!state.actionEditMode && (state.actions[stage.id].action == 'none' || state.actions[stage.id].action == null)">
+							</td>
+							<td style="width:15%;max-width:50px;overflow:hidden;text-align:center;" ng-show='features.notification'>
+								<div style="display:inline;overflow:hidden;"><i class="icon-user"></i> {{state.actions[stage.id].notify.length}}</div>
+							</td>
+							<td style="width:1%;" ng-show="state.actionEditMode && features.notification">
+								<div><button class="btn btn-mini" ng-click="editNotification(state.actions[stage.id].notify)" title="Edit Notifications"><i class="icon-pencil"></i></button></div>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
+			<button type='none' class='btn' ng-click="viewCancelPolicy()">Cancel</button>
+			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="!isPolicyValid()">Save</button>
+		</div>
+	</form>
+	<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 860px;margin-left:-430px" ng-controller='ConstraintEditorController'>
+		<div class="modal-header">
+		    <h3>Policy Constraint</h3>
+		</div>
+		<div class="modal-body">
+		    <form name='constrainteditor' class='form-horizontal' style='margin-bottom:0px'>
+		    	<table>
+		    		<tr>
+		    			<td>
+					    	<div class='control-group' style="padding-right:10px;margin-bottom:10px;">
+							    <label class='control-label' style="width:40px;">Name</label>
+								<div class='controls' style='text-align:left;margin-left:50px;'>
+									<input type="text" id="constraintName" ng-model="currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...' required>
+								</div>
+							</div>
+						</td>
+						<td>
+							<div class='control-group' style="margin-bottom:10px;">
+							    <label class='control-label' style="width:40px;">Include</label>
+								<div class='controls' style='text-align:left;margin-left:50px;'>
+									<select ng-model="currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]"" style="vertical-align:top;" required>
+									</select>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</table>
+				<div class='control-group' style="margin-bottom:0px;">
+					<div class='well' style="width:790px;min-height:120px;max-height:120px;overflow:auto;">
+						<div style="text-align:left;" ng-repeat="condition in currentConstraint.conditions">
+							<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged(condition)" ng-options="conditionType.id as conditionType.name for (key,conditionType) in conditionTypes" style="vertical-align:top;">
+							</select>
+							<select ng-model="condition.operator" ng-change="validateConstraint()" ng-options="operator for operator in conditionTypes[condition.conditionTypeId].supportedOperators" style="vertical-align:top;">
+							</select>
+							<span ng-switch on='conditionTypes[condition.conditionTypeId].valueTypeId'>
+								<select ng-model="condition.value" ng-switch-when="LicenseCategoryValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select ng-model="condition.value" ng-switch-when="LicenseValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.shortDisplayName for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select ng-model="condition.value" ng-switch-when="LicenseThreatGroupValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select ng-model="condition.value" ng-switch-when="LicenseStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select ng-model="condition.value" ng-switch-when="MatchStateValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select ng-model="condition.value" ng-switch-when="SecurityVulnerabilityStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<select ng-model="condition.value" ng-switch-when="LabelValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.label for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+								</select>
+								<span ng-switch-when="AgeInDaysValueType">
+									<input type="text" style="width:100px;" ng-model="condition.v" placeholder='{{condition.conditionType.valueHint}}' ng-change="updateAge(condition);validateConstraint();" style="vertical-align:top;" required>
+									<select style="width:100px;" ng-model="condition.valueModifier" ng-change="updateAge(condition);validateConstraint();" ng-options="timeSpan.value as timeSpan.name for timeSpan in [{'value':1, 'name':'Days'},{'value':30, 'name':'Months'},{'value':365, 'name':'Years'}]"" style="vertical-align:top;" required>
+									</select>
+								</span>
+								<input type="number" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="PercentageValueType" min='0' max='100' ng-change="validateConstraint()" style="vertical-align:top;" required>
+								<span ng-switch-default ng-switch on='conditionTypes[condition.conditionTypeId].valueType.dataType'>
+									<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="String" ng-change="validateConstraint()" style="vertical-align:top;" required>
+									<input type="number" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" min='0' max='10' ng-change="validateConstraint()" style="vertical-align:top;" required>
+									<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Float" ng-pattern='/^\d+(\.\d+)?$/' ng-change="validateConstraint()" style="vertical-align:top;" required>
+								</span>
+							</span>
+							<div class="btn-group" style="float:right; padding-right:10px;">
+								<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="currentConstraint.conditions.length <= 1"><i class="icon-minus-sign"></i></button>
+								<button class="btn" type='button' ng-click="addCondition()" title="Add Condition"><i class="icon-plus-sign"></i></button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<div>
+				<div style="padding-top:5px; float:left;" ng-show="state.constraintValidationMsg">
+					<span style="color: #b94a48;">{{state.constraintValidationMsg}}</span>
+				</div>
+				<button class="btn" ng-click="cancelConstraint()">Cancel</button>
+			    <button class="btn btn-primary" ng-click="addConstraint()" ng-disabled="state.constraintValidationMsg && constrainteditor.$invalid">Done</button>
+			</div>
+		</div>
+	</div>
+	<div id="confirmationModal" data-backdrop="static" class="modal hide">
+		<div class="modal-header">
+			<h3>{{state.confirmationHeader}}</h3>
+		</div>
+		<div class="modal-body">
+			<p>{{state.confirmationBody}}</p>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" ng-click="confirmationDecline()">{{state.confirmationDeclineText}}</button>
+		    <button class="btn btn-primary" ng-click="confirmationAccept()">{{state.confirmationAcceptText}}</button>
+		</div>
+	</div>
+	<div notification-management></div>
+	<div id="httpErrorModal" data-backdrop="static" class="modal hide">
+		<div class="modal-header">
+		    <h3>{{state.httpErrorHeader}}</h3>
+		</div>
+		<div class="modal-body">
+			<div ng-bind-html="state.httpErrorBody | escape"></div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal">OK</button>
+		</div>
+	</div>
+</div>

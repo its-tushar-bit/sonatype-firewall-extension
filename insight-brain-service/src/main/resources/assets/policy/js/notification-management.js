@@ -25,19 +25,12 @@
                 $scope.neditor.email.$setViewValue('');
             });
 		}
-
-		$scope.$on('editNotification', function (event, actionData) {
+		var addressArray = null;
+		$scope.$on('editNotification', function (event, addresses) {
             resetInput();
-            $scope.notificationEmailList = [];
-            $scope.currentActionStep = actionData;
-			if ($scope.currentActionStep) {
-				angular.forEach($scope.currentActionStep.actions, function (item, index) {
-					if (item.action === 'notify') {
-						$scope.notificationEmailList.push(item.target);
-					}
-				});
-				sort($scope.notificationEmailList)
-			}
+            addressArray = addresses;
+            $scope.notificationEmailList = angular.copy(addresses);
+			sort($scope.notificationEmailList)
             $('#editNotificationsModal').modal('show');
             $('#editNotificationsModal input').focus();
 		});
@@ -55,20 +48,9 @@
         };
 
         $scope.doneNotificationEmail = function() {
+        	addressArray.splice(addressArray.length);
+        	angular.copy($scope.notificationEmailList, addressArray);
             $('#editNotificationsModal').modal('hide');
-			for ( var i = $scope.currentActionStep.actions.length - 1; i >= 0; i--) {
-				if ($scope.currentActionStep.actions[i].action === 'notify') {
-					$scope.currentActionStep.actions.splice(i, 1);
-				}
-			}
-			$scope.currentActionStep.notifyCount = 0;
-			for ( var i = 0; i < $scope.notificationEmailList.length; i++) {
-				$scope.currentActionStep.actions.push({
-					action : 'notify',
-					target : $scope.notificationEmailList[i]
-				});
-				$scope.currentActionStep.notifyCount++;
-			}
         };
 
         $scope.removeNotificationEmail = function(index) {

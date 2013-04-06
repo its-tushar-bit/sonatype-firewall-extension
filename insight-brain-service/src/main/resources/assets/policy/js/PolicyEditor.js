@@ -3,15 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular */
+/*global angular, $, window */
 (function () {
 	'use strict';
-	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule']),
-		port = window.location.origin.match(/:/g).length > 1 ? window.location.origin.substring(window.location.origin.lastIndexOf(':')) : null;
-
-	function escapeUrl(url) {
-		return port === null ? url : url.replace(port, '\\' + port)
-	}
+	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule']);
 
 	module.service('PolicyStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
 		var policyStore = clmResource.getStore({
@@ -31,7 +26,7 @@
 				var serializedActions = [];
 				if (stage.action !== null && stage.action !== 'none') {
 					serializedActions.push({ actionTypeId : stage.action });
-				} 
+				}
 				angular.forEach(stage.notify, function (email) {
 					serializedActions.push({ actionTypeId : 'notify', target : email });
 				});
@@ -94,68 +89,7 @@
 			}
 		};
 	}]);
-/*
-	module.service('PoliciesService', ['CLMLocations', '$resource', '$q', 'CLMResource', function (clmLocations, $resource, $q, clmResource) {
-		var deferred = $q.defer(),
-			actionTypeStore = clmResource.getStore({
-				id : 'id',
-				url : clmLocations.getActionTypeUrl()
-			}),
-			actionStageStore = clmResource.getStore({
-				id : 'id',
-				url : clmLocations.getActionStageUrl()
-			}),
-			actionPromise = $q.all([actionTypeStore.get(), actionStageStore.get()]),
-			policyStore = clmResource.getStore({
-				id : 'id',
-				url : clmLocations.getPolicyUrl() + '?timestamp=' + new Date().getTime()
-			});
 
-		return {
-			'getPolicyStore' : function () {
-				return policyStore;
-			},
-			'getActions' : function () {
-				return actionPromise;
-			},
-			'save' : function (policy) {
-
-			},
-			'serializeActions' : function (uiActions) {
-				var policyActions = {};
-				angular.forEach(uiActions, function (stage, stageName) {
-					var serializedActions = [];
-					if (stage.action !== null && stage.action !== 'none') {
-						serializedActions.push({ actionTypeId : stage.action });
-					} 
-					angular.forEach(stage.notify, function (email) {
-						serializedActions.push({ actionTypeId : 'notify', target : email });
-					});
-					policyActions[stageName] = serializedActions;
-				});
-				return policyActions;
-			},
-			'deserializeActions' : function (policyActions) {
-				//Re-arrange action data for UI
-				var uiActions = {};
-				angular.forEach(policyActions, function (actions, stageName) {
-					uiActions[stageName] = {
-						action : null,
-						notify : []
-					};
-					angular.forEach(actions, function (action, index) {
-						if (action.actionTypeId === 'notify') {
-							uiActions[stageName].notify.push(action.target);
-						} else {
-							uiActions[stageName].action = action.actionTypeId;
-						}
-					});
-				});
-				return uiActions;
-			}
-		};
-	}]);
-*/
 	module.controller('PolicyEditorController', ['$scope', '$routeParams', '$q', 'PolicyStore', 'ActionStore', function ($scope, $routeParams, $q, policyStore, actionStore) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
@@ -174,6 +108,13 @@
 			} else {
 				$scope.$broadcast('editPolicyDone');
 			}
+		}
+
+		function handleHttpError(headerText, bodyText, status) {
+			hideHttpMask();
+			$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
+			$scope.state.httpErrorHeader = headerText;
+			$('#httpErrorModal').modal('show');
 		}
 
 		$scope.savePolicy = function () {
@@ -240,7 +181,7 @@
 			return uniqueName && $scope.state.currentPolicy.name
 					&& $scope.state.currentPolicy.threatLevel >= 0
 					&& $scope.state.currentPolicy.constraints.length > 0;
-		}
+		};
 
 		$scope.viewRemoveConstraint = function (constraintIndex) {
 			viewConfirmation("Delete Constraint?",
@@ -267,13 +208,6 @@
 			$scope.state.currentConstraint = angular.copy(constraint);
 		};
 
-		function handleHttpError(headerText, bodyText, status) {
-			hideHttpMask();
-			$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
-			$scope.state.httpErrorHeader = headerText;
-			$('#httpErrorModal').modal('show');
-		}
-
 		$scope.editNotification = function (addresses) {
 			$scope.$broadcast('editNotification', addresses);
 		};
@@ -291,7 +225,7 @@
 				});
 			}
 			$scope.state.currentConstraint = null;
-		}); 
+		});
 
 		function getActions(actionStages) {
 			var actions = {};
@@ -307,10 +241,10 @@
 					state = {
 						currentPolicy : policyStore.create(),
 						actions : {}
-					 };
+					};
 				state.actions = getActions(actionStages);
 
-				$scope.actionStages = actionStages,
+				$scope.actionStages = actionStages;
 				$scope.state = state;
 			}, function (data, status, headers, config) {
 				handleHttpError('Policy Initialization Error', data, status);
@@ -321,7 +255,7 @@
 					actionStages = results[1][1];
 				$scope.policies = policies;
 				angular.forEach(policies, function (policy, index) {
-					 if (policy.id === $routeParams.policyId) {
+					if (policy.id === $routeParams.policyId) {
 						angular.extend($scope,  {
 							state : {
 								currentPolicy : angular.copy(policy)
@@ -355,7 +289,7 @@
 
 		$scope.updateAge = function (condition) {
 			condition.value = (condition.v !== '' && condition.v != null && condition.valueModifier) ? condition.v * condition.valueModifier : null;
-		}
+		};
 
 		$scope.validateConstraint = function () {
 			var i;
@@ -426,7 +360,7 @@
 					});
 				}
 				$('#editConstraintModal').modal('show');
-				$('#constraintName').focus()
+				$('#constraintName').focus();
 			} else if (newValue === null || angular.isUndefined(newValue)) {
 				$('#editConstraintModal').modal('hide');
 				$scope.currentConstraint = null;

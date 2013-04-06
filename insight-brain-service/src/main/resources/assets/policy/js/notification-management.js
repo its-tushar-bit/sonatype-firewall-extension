@@ -6,7 +6,7 @@
  */
 /* global angular, $ */
 /* jslint plusplus: true */
-(function() {
+(function () {
     'use strict';
 
     var module = angular.module('NotificationManagement', []);

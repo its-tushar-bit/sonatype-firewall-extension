@@ -1,17 +1,22 @@
-//< needs(../angular/angular-1.0.5.min.js)
+/**
+ * @license Copyright (c) 2012-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*global angular */
 (function () {
 	'use strict';
 	var module = angular.module('ResourceModule', []);
 
 	function getErrorFn(deferred) {
-		return function(data, status, headers, config) {
+		return function (data, status, headers, config) {
 			deferred.reject({
 				data: data,
 				status : status,
 				headers : headers,
 				config : config
 			});
-		}
+		};
 	}
 
 	module.service('CLMResource', ['$q', '$http', 'hudson', function ($q, $http, hudson) {
@@ -27,7 +32,7 @@
 
 					this.isDirty = function () {
 						return angular.equals(me, original);
-					}
+					};
 					this.$updateOriginal = function (updated) {
 						original = updated;
 						angular.extend(me, original);
@@ -71,7 +76,7 @@
 									index = candidateIndex;
 								}
 							});
-							if (index != -1) {
+							if (index !== -1) {
 								store.splice(index, 1);
 							}
 						}).error(getErrorFn(deferred));
@@ -80,15 +85,15 @@
 
 				return {
 					'get' : function () {
-						var localDeferred = storeDeferred = storeDeferred || $q.defer();
+						var localDeferred = storeDeferred === null ? (storeDeferred = $q.defer) : storeDeferred;
 						$http.get(config.url, { params : config.params }).success(function (data) {
-							if (localDeferred == storeDeferred) {
+							if (localDeferred === storeDeferred) {
 								var result = [];
 								angular.forEach(data, function (obj, i) {
 									result.push(new Resource(obj));
 								});
 								store.splice(store.length);
-								angular.extend(store, result)
+								angular.extend(store, result);
 								storeDeferred.resolve(store);
 							}
 						}).error(getErrorFn(storeDeferred));

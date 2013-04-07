@@ -38,7 +38,6 @@ import com.yammer.metrics.core.HealthCheck;
 public abstract class SisuService<T extends Configuration>
     extends Service<T>
 {
-
     private static final Logger logger = LoggerFactory.getLogger( SisuService.class );
 
     @Override
@@ -63,7 +62,6 @@ public abstract class SisuService<T extends Configuration>
         modules.add( spaceModule );
         for ( Module m : modules( configuration ) )
         {
-            System.out.println( "Adding " + m );
             modules.add( m );
         }
         return Guice.createInjector( new WireModule( modules ) );
@@ -103,7 +101,7 @@ public abstract class SisuService<T extends Configuration>
         {
             Managed managed = managedBeanEntry.getValue();
             environment.manage( managed );
-            logger.info( "Added managed: " + managed );
+            logger.debug( "Added managed: {}", managed );
         }
     }
 
@@ -113,7 +111,7 @@ public abstract class SisuService<T extends Configuration>
         {
             Task task = taskBeanEntry.getValue();
             environment.addTask( task );
-            logger.info( "Added task: " + task );
+            logger.debug( "Added task: {}", task );
         }
     }
 
@@ -123,7 +121,7 @@ public abstract class SisuService<T extends Configuration>
         {
             HealthCheck healthCheck = healthCheckBeanEntry.getValue();
             environment.addHealthCheck( healthCheck );
-            logger.info( "Added healthCheck: " + healthCheck );
+            logger.debug( "Added healthCheck: {}", healthCheck );
         }
     }
 
@@ -134,7 +132,7 @@ public abstract class SisuService<T extends Configuration>
         {
             InjectableProvider injectableProvider = injectableProviderBeanEntry.getValue();
             environment.addProvider( injectableProvider );
-            logger.info( "Added injectableProvider: " + injectableProvider );
+            logger.debug( "Added injectableProvider: {}", injectableProvider );
         }
     }
 
@@ -144,7 +142,7 @@ public abstract class SisuService<T extends Configuration>
         {
             Provider provider = providerBeanEntry.getValue();
             environment.addProvider( provider );
-            logger.info( "Added provider class: " + provider );
+            logger.debug( "Added provider: {}", provider );
         }
     }
 
@@ -162,7 +160,7 @@ public abstract class SisuService<T extends Configuration>
             {
                 Object resource = resourceBeanEntry.getValue();
                 environment.addResource( resource );
-                logger.info( "Added resource class: " + resource );
+                logger.debug( "Added resource: {}", resource );
             }
         }
     }

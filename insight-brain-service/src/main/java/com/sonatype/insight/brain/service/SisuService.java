@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.Path;
@@ -22,28 +23,27 @@ import org.sonatype.guice.bean.reflect.URLClassSpace;
 import org.sonatype.inject.BeanEntry;
 import org.sonatype.inject.BeanScanning;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.sun.jersey.spi.inject.InjectableProvider;
 import com.yammer.dropwizard.Service;
-import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.lifecycle.Managed;
 import com.yammer.dropwizard.tasks.Task;
 import com.yammer.metrics.core.HealthCheck;
 
+/**
+ * Local copy of SisuService from https://github.com/tesla/dropwizard-sisu with various tweaks for CLM.
+ */
+@SuppressWarnings( { "unchecked", "rawtypes" } )
 public abstract class SisuService<T extends Configuration>
     extends Service<T>
 {
     private static final Logger logger = LoggerFactory.getLogger( SisuService.class );
-
-    @Override
-    public void initialize( Bootstrap<T> bootstrap )
-    {
-    }
 
     @Override
     public void run( T configuration, Environment environment )
@@ -54,16 +54,21 @@ public abstract class SisuService<T extends Configuration>
         runWithInjector( configuration, environment, injector );
     }
 
-    private Injector createInjector( T configuration )
+    private Injector createInjector( final T configuration )
     {
         ClassSpace space = new URLClassSpace( getClass().getClassLoader() );
         SpaceModule spaceModule = new SpaceModule( space, BeanScanning.CACHE );
         List<Module> modules = new ArrayList<Module>();
         modules.add( spaceModule );
-        for ( Module m : modules( configuration ) )
+        Collections.addAll( modules, modules( configuration ) );
+        modules.add( new AbstractModule()
         {
-            modules.add( m );
-        }
+            @Override
+            protected void configure()
+            {
+                bind( (Class) configuration.getClass() ).toInstance( configuration );
+            }
+        } );
         return Guice.createInjector( new WireModule( modules ) );
     }
 
@@ -72,19 +77,18 @@ public abstract class SisuService<T extends Configuration>
     //
     protected Module[] modules( T configuration )
     {
-        return new Module[] {};
+        return new Module[0];
     }
 
+    //
+    // Allow the application to customize the environment
+    //
     protected void customize( T configuration, Environment environment )
     {
     }
 
     private void runWithInjector( T configuration, Environment environment, Injector injector )
-        throws Exception
     {
-        //
-        // Allow customization of the environment
-        //
         customize( configuration, environment );
         BeanLocator locator = injector.getInstance( BeanLocator.class );
         addHealthChecks( environment, locator );
@@ -95,7 +99,7 @@ public abstract class SisuService<T extends Configuration>
         addManaged( environment, locator );
     }
 
-    private void addManaged( Environment environment, BeanLocator locator )
+    private static void addManaged( Environment environment, BeanLocator locator )
     {
         for ( BeanEntry<Annotation, Managed> managedBeanEntry : locator.locate( Key.get( Managed.class ) ) )
         {
@@ -105,7 +109,7 @@ public abstract class SisuService<T extends Configuration>
         }
     }
 
-    private void addTasks( Environment environment, BeanLocator locator )
+    private static void addTasks( Environment environment, BeanLocator locator )
     {
         for ( BeanEntry<Annotation, Task> taskBeanEntry : locator.locate( Key.get( Task.class ) ) )
         {
@@ -115,7 +119,7 @@ public abstract class SisuService<T extends Configuration>
         }
     }
 
-    private void addHealthChecks( Environment environment, BeanLocator locator )
+    private static void addHealthChecks( Environment environment, BeanLocator locator )
     {
         for ( BeanEntry<Annotation, HealthCheck> healthCheckBeanEntry : locator.locate( Key.get( HealthCheck.class ) ) )
         {
@@ -125,8 +129,7 @@ public abstract class SisuService<T extends Configuration>
         }
     }
 
-    @SuppressWarnings( "rawtypes" )
-    private void addInjectableProviders( Environment environment, BeanLocator locator )
+    private static void addInjectableProviders( Environment environment, BeanLocator locator )
     {
         for ( BeanEntry<Annotation, InjectableProvider> injectableProviderBeanEntry : locator.locate( Key.get( InjectableProvider.class ) ) )
         {
@@ -136,7 +139,7 @@ public abstract class SisuService<T extends Configuration>
         }
     }
 
-    private void addProviders( Environment environment, BeanLocator locator )
+    private static void addProviders( Environment environment, BeanLocator locator )
     {
         for ( BeanEntry<Annotation, Provider> providerBeanEntry : locator.locate( Key.get( Provider.class ) ) )
         {
@@ -146,7 +149,7 @@ public abstract class SisuService<T extends Configuration>
         }
     }
 
-    private void addResources( Environment environment, BeanLocator locator )
+    private static void addResources( Environment environment, BeanLocator locator )
     {
         //
         // Unfortunately @Path is not a qualifier in JSR330, so we need to check all known bindings.

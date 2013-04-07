@@ -39,6 +39,10 @@
       <artifactId>sisu-guice</artifactId>
       <classifier>no_aop</classifier>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.sisu</groupId>
+      <artifactId>sisu-inject-bean</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
@@ -67,12 +71,6 @@
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-portal-mail</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.sonatype.sisu</groupId>
-          <artifactId>sisu-inject-bean</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

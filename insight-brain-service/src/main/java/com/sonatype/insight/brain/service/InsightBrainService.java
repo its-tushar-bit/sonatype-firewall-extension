@@ -47,14 +47,13 @@ import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 import com.sun.jersey.api.core.ResourceConfig;
-import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
 
 public class InsightBrainService
-    extends Service<InsightConfig>
+    extends SisuService<InsightConfig>
 {
     private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
 
@@ -94,8 +93,7 @@ public class InsightBrainService
     }
 
     @Override
-    public void run( final InsightConfig config, final Environment env )
-        throws Exception
+    protected void customize( final InsightConfig config, final Environment env )
     {
         replaceGenericExceptionMapper( env );
 

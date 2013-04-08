@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.util.UUID;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Server;
@@ -87,7 +88,7 @@ public class TestInsightBrainService
     public Application createApplication( String applicationPublicId )
     {
         Application application = new Application();
-        application.setName( "test" );
+        application.setName( "DUMMY-NAME-" + UUID.randomUUID().toString() );
         application.setPublicId( applicationPublicId );
         new ApplicationDAO().insert( application );
         return application;

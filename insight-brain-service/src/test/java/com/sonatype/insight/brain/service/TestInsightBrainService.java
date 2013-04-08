@@ -97,7 +97,7 @@ public class TestInsightBrainService
     @Override
     protected BeanScanning scanning( InsightConfig configuration )
     {
-        return BeanScanning.INDEX;
+        return BeanScanning.CACHE;
     }
 
     public void start()

@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.service;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
@@ -44,6 +46,8 @@ public abstract class SisuService<T extends Configuration>
     extends Service<T>
 {
     private static final Logger logger = LoggerFactory.getLogger( SisuService.class );
+    
+    private final Set<Module> initModules = new HashSet<Module>();
 
     @Override
     public void run( T configuration, Environment environment )
@@ -66,6 +70,8 @@ public abstract class SisuService<T extends Configuration>
                 bind( (Class) configuration.getClass() ).toInstance( configuration );
             }
         } );
+        
+        modules.addAll( initModules );
 
         modules.addAll( modules( configuration ) );
 
@@ -108,6 +114,17 @@ public abstract class SisuService<T extends Configuration>
         addResources( environment, locator );
         addTasks( environment, locator );
         addManaged( environment, locator );
+    }
+    
+    // Allow modules to be added manually
+    public void addModule( Module module )
+    {
+        this.initModules.add( module );
+    }
+    
+    public void addModules( Set<Module> modules )
+    {
+        this.initModules.addAll( modules );
     }
 
     private static void addManaged( Environment environment, BeanLocator locator )

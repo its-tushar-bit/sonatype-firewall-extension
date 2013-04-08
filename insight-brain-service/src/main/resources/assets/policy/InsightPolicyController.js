@@ -10,7 +10,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor']);
 
-	policyModule.controller('InsightPolicyController', ['$scope', 'global', '$http', 'hudson', '$timeout', 'CLMLocations', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, global, $http, hudson, $timeout, clmLocations, $rootScope, $q, policyStore, actionStore) {
+	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', 'CLMLocations', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $http, hudson, $timeout, clmLocations, $rootScope, $q, policyStore, actionStore) {
 
 		function capitalize(text) {
 		    if (text && text.length > 1) {
@@ -62,19 +62,11 @@
 			return actions;
 		};
 
-		function showHttpMask(bodyText) {
-			$scope.state.httpMaskBody = bodyText;
-			$('#httpMaskModal').modal('show');
-		}
-
-		function hideHttpMask() {
-			$('#httpMaskModal').modal('hide');
-		}
-
 		function handleHttpError(headerText, bodyText, status) {
-			hideHttpMask();
-			$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
-			$scope.state.httpErrorHeader = headerText;
+			$scope.httpError = {
+				body : status === 0 ? 'Unable to connect to server.' : bodyText,
+				header : headerText
+			};
 			$('#httpErrorModal').modal('show');
 		}
 
@@ -82,12 +74,10 @@
 			delete $scope.state.policyChanged;
 			delete $scope.state.policyWatchStopFn;
 			delete $scope.state.currentPolicy;
-			delete $scope.state.showAddPolicyScreen;
 		}
 
 		function postLoad() {
 			reset();
-			hideHttpMask();
 		}
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
@@ -139,15 +129,14 @@
 		});
 
 
-		$scope.state = global;
 		$q.all([policyStore.get(), actionStore.get()]).then(function (results) {
-			$scope.state.policyList = results[0];
-			$scope.state.actionStageList = results[1][1];
+			$scope.state = {
+				policyList : results[0],
+				actionStageList : results[1][1]
+			};
 			postLoad();
-		}, function (data, status, headers, config) {
-			handleHttpError('Policy Initialization Error', data, status);
+		}, function (error) {
+			handleHttpError('Policy Initialization Error', error.data, error.status);
 		});
-
-		showHttpMask('Loading data from server...');
 	}]);
 }());

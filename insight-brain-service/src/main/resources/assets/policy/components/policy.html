@@ -1,55 +1,55 @@
 <div id="policy">
-	<div class='row' ng-show="!state.showAddPolicyScreen">
-		<div class='span4 offset4'>
-			<div class="content-container" style='text-align:center; padding-top:10px'>
-				<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
-				<p><a href="#/policy/new">Create</a> a new Policy.</p>
+	<div class='content-container span4 offset4' ng-show='!state && !httpError' style='text-align:center'>
+		<h5><i class='icon-time'></i> Loading...</h5>
+	</div>
+	<div class='fade' ng-class='{in : state}'>
+		<div class='row'>
+			<div class='span4 offset4'>
+				<div class="content-container" style='text-align:center; padding-top:10px'>
+					<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
+					<p><a href="#/policy/new">Create</a> a new Policy.</p>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div ng-show="!state.showAddPolicyScreen && state.policyList.length">
-	    <div class="policy-item" ng-repeat="policy in state.policyList">
-			<div style="float:right;" class='btn-group'>
-				<a class="btn btn-mini policy-button" title="Edit Policy" ng-href='#/policy/{{policy.id}}'"><i
-					class="icon-pencil" style="margin-top:0px;"></i></a>
-				<a class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy(policy)"><i
-					class="icon-trash" style="margin-top:0px;"></i></a>
-			</div>
-			<div>
-				<span class="threat-box threat-level-{{policy.threatLevel}}"></span>&nbsp;<b style='vertical-align:middle'>{{policy.name}}</b>
-			</div>
-			<div ng-pluralize count='policy.constraints.length'
-				when="{ '0': 'No constraints to be evaluated',
-						'1': '1 Constraint to be evaluated',
-						'other': '{{policy.constraints.length}} Constraints to be evaluated'
-				}"></div>
-			<div>
-				<div ng-pluralize count='getActionCount(policy)'
-					when="{ '0': 'No actions assigned',
-							'1': '1 Action assigned',
-							'other': '{{policy.summary.actionCount}} Actions assigned'
+		<div >
+		    <div class="policy-item" ng-repeat="policy in state.policyList">
+				<div style="float:right;" class='btn-group'>
+					<a class="btn btn-mini policy-button" title="Edit Policy" ng-href='#/policy/{{policy.id}}'"><i
+						class="icon-pencil" style="margin-top:0px;"></i></a>
+					<a class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy(policy)"><i
+						class="icon-trash" style="margin-top:0px;"></i></a>
+				</div>
+				<div>
+					<span class="threat-box threat-level-{{policy.threatLevel}}"></span>&nbsp;<b style='vertical-align:middle'>{{policy.name}}</b>
+				</div>
+				<div ng-pluralize count='policy.constraints.length'
+					when="{ '0': 'No constraints to be evaluated',
+							'1': '1 Constraint to be evaluated',
+							'other': '{{policy.constraints.length}} Constraints to be evaluated'
 					}"></div>
-				<ul style="list-style:none;"><li>{{getActions(policy)}}</li></ul>
-			</div>
-	    </div>
-	</div>
-	<div id="httpMaskModal" data-backdrop="static" class="modal hide">
-		<div class="modal-body">
-			<p>{{state.httpMaskBody}}</p>
+				<div>
+					<div ng-pluralize count='getActionCount(policy)'
+						when="{ '0': 'No actions assigned',
+								'1': '1 Action assigned',
+								'other': '{{policy.summary.actionCount}} Actions assigned'
+						}"></div>
+					<ul style="list-style:none;"><li>{{getActions(policy)}}</li></ul>
+				</div>
+		    </div>
 		</div>
 	</div>
-	<div id="httpErrorModal" data-backdrop="static" class="modal hide">
+	<div id="httpErrorModal" data-backdrop="static" class="modal fade">
 		<div class="modal-header">
-		    <h3>{{state.httpErrorHeader}}</h3>
+		    <h3>{{httpError.header}}</h3>
 		</div>
 		<div class="modal-body">
-			<div ng-bind-html="state.httpErrorBody | escape"></div>
+			<div ng-bind-html="httpError.body | escape"></div>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" data-dismiss="modal">OK</button>
 		</div>
 	</div>
-	<div id="confirmationModal" data-backdrop="static" class="modal hide">
+	<div id="confirmationModal" data-backdrop="static" class="modal fade">
 		<div class="modal-header">
 			<h3>{{state.confirm.header}}</h3>
 		</div>

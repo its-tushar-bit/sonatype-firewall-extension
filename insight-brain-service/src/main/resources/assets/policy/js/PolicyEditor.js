@@ -110,14 +110,11 @@
 			}
 		}
 
-		function hideHttpMask() {
-			$('#httpMaskModal').modal('hide');
-		}
-
 		function handleHttpError(headerText, bodyText, status) {
-			hideHttpMask();
-			$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
-			$scope.state.httpErrorHeader = headerText;
+			$scope.httpError = {
+				body : status === 0 ? 'Unable to connect to server.' : bodyText,
+				header : headerText
+			};
 			$('#httpErrorModal').modal('show');
 		}
 
@@ -239,8 +236,8 @@
 				};
 
 			$scope.state = state;
-		    $scope.policies = policies;
-		    $scope.actionStages = actionStages;
+			$scope.policies = policies;
+			$scope.actionStages = actionStages;
 
 			if ($routeParams.policyId === 'new') {
 				state.currentPolicy = policyStore.create();
@@ -254,12 +251,12 @@
 				// TODO If currentPolicy === null, show error
 			}
 			$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
-		}, function (data, status, headers, config) {
-			handleHttpError('Policy Initialization Error', data, status);
+		}, function (error) {
+			handleHttpError('Policy Initialization Error', error.data, error.status);
 		});
 	}]);
 
-	module.controller('ConstraintEditorController', ['$scope', 'ConstraintStore', function ($scope, constraints) {
+	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
 		$scope.cancelConstraint = function () {
 			$('#editConstraintModal').modal('hide');
 		};
@@ -333,28 +330,36 @@
 
 		$scope.$on('policy.editConstraint', function (event, constraint) {
 			event.preventDefault();
+			// Possibility that the conditions bits haven't been loaded yet.
+			var fn = function () {
+				if ($scope.conditionTypes) {
+					$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: 'OR' };
 
-			$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: 'OR' };
-
-			if ($scope.currentConstraint.conditions.length === 0) {
-				$scope.addCondition();
-			} else {
-				angular.forEach($scope.currentConstraint.conditions, function (condition) {
-					if (condition.conditionTypeId === "AgeInDays") {
-						if (condition.value >= 365 && condition.value % 365 === 0) {
-							condition.valueModifier = 365;
-						} else if (condition.value >= 30 && condition.value % 30 === 0) {
-							condition.valueModifier = 30;
-						} else {
-							condition.valueModifier = 1;
-						}
-						condition.v = condition.value / condition.valueModifier;
+					if ($scope.currentConstraint.conditions.length === 0) {
+						$scope.addCondition();
+					} else {
+						angular.forEach($scope.currentConstraint.conditions, function (condition) {
+							if (condition.conditionTypeId === "AgeInDays") {
+								if (condition.value >= 365 && condition.value % 365 === 0) {
+									condition.valueModifier = 365;
+								} else if (condition.value >= 30 && condition.value % 30 === 0) {
+									condition.valueModifier = 30;
+								} else {
+									condition.valueModifier = 1;
+								}
+								condition.v = condition.value / condition.valueModifier;
+							}
+						});
 					}
-				});
-			}
-			$scope.validateConstraint();
+					$scope.validateConstraint();
+					$('#constraintName').focus();
+				} else {
+					$timeout(fn, 100);
+				}
+			};
+			
+			fn();
 			$('#editConstraintModal').modal('show');
-			$('#constraintName').focus();
 		});
 
 		constraints.get().then(function (results) {
@@ -368,9 +373,8 @@
 				type.valueType = typeValue;
 				$scope.conditionTypes[type.id] = type;
 			});
-		}, function () {
-			// error handling
+		}, function (error) {
+//			handleHttpError('Policy Initialization Error', error.data, error.status);
 		});
-
 	}]);
 }());

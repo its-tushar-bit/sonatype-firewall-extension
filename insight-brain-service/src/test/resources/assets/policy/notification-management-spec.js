@@ -1,5 +1,6 @@
 describe('notification-management tests', function() {
-    var scope;
+    var scope,
+        emailList = [ 'email1@email.com', 'email2@email.com', 'email3@email.com' ];
 
     beforeEach(module('NotificationManagement'));
     beforeEach(inject(function($rootScope, $controller) {
@@ -21,133 +22,50 @@ describe('notification-management tests', function() {
     });
 
     it('Test open edit notification modal', inject(function($rootScope) {
-        $rootScope.$broadcast('editNotification', {
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 3,
-            actions : [ {
-                action : 'notify',
-                target : 'email3@email.com'
-            }, {
-                action : 'notify',
-                target : 'email2@email.com'
-            }, {
-                action : 'notify',
-                target : 'email1@email.com'
-            } ],
-            action : 'none'
-        });
+        var emails = angular.copy(emailList);
+        $rootScope.$broadcast('editNotification', emails);
 
         expect(scope.notificationEmailList).toEqual([ 'email1@email.com', 'email2@email.com', 'email3@email.com' ]);
-        expect(scope.currentActionStep).toEqual({
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 3,
-            actions : [ {
-                action : 'notify',
-                target : 'email3@email.com'
-            }, {
-                action : 'notify',
-                target : 'email2@email.com'
-            }, {
-                action : 'notify',
-                target : 'email1@email.com'
-            } ],
-            action : 'none'
-        });
+        scope.currentNotificationEmail = 'aaa@email.com';
+        scope.addNotificationEmail();
+        expect(scope.notificationEmailList.length).toEqual(4);
+
+        scope.removeNotificationEmail(2);
+        expect(scope.notificationEmailList.length).toEqual(3);
 
         scope.cancelNotificationEmail();
+        expect(emails).toEqual(emailList);
     }));
 
     it('Test add notification to list', inject(function($rootScope) {
-        $rootScope.$broadcast('editNotification', {
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 1,
-            actions : [ {
-                action : 'notify',
-                target : 'email1@email.com'
-            } ],
-            action : 'none'
-        });
+        var emails = ['email1@email.com'];
+        $rootScope.$broadcast('editNotification', emails);
 
         expect(scope.currentNotificationEmail).toBeUndefined();
         expect(scope.notificationEmailList).toEqual([ 'email1@email.com' ]);
-        expect(scope.currentActionStep).toEqual({
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 1,
-            actions : [ {
-                action : 'notify',
-                target : 'email1@email.com'
-            } ],
-            action : 'none'
-        });
 
         scope.currentNotificationEmail = 'email2@email.com';
         scope.addNotificationEmail();
+        expect(emails.length).toEqual(1); // verify list is not modified until submission
+
         scope.currentNotificationEmail = 'aaa@email.com';
         scope.addNotificationEmail();
+        expect(emails.length).toEqual(1); // verify list is not modified until submission
 
         expect(scope.currentNotificationEmail).toBeUndefined();
         expect(scope.notificationEmailList).toEqual([ 'aaa@email.com', 'email1@email.com', 'email2@email.com' ]);
 
         scope.doneNotificationEmail();
 
-        expect(scope.currentActionStep).toEqual({
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 3,
-            actions : [ {
-                action : 'notify',
-                target : 'aaa@email.com'
-            }, {
-                action : 'notify',
-                target : 'email1@email.com'
-            }, {
-                action : 'notify',
-                target : 'email2@email.com'
-            } ],
-            action : 'none'
-        });
+        expect(emails).toEqual([ 'aaa@email.com', 'email1@email.com', 'email2@email.com' ]);
     }));
 
     it('Test remove notification from list', inject(function($rootScope) {
-        $rootScope.$broadcast('editNotification', {
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 3,
-            actions : [ {
-                action : 'notify',
-                target : 'email1@email.com'
-            }, {
-                action : 'notify',
-                target : 'email2@email.com'
-            }, {
-                action : 'notify',
-                target : 'email3@email.com'
-            } ],
-            action : 'none'
-        });
+        var emails = angular.copy(emailList);
+        $rootScope.$broadcast('editNotification', emails);
 
         expect(scope.currentNotificationEmail).toBeUndefined();
         expect(scope.notificationEmailList).toEqual([ 'email1@email.com', 'email2@email.com', 'email3@email.com' ]);
-        expect(scope.currentActionStep).toEqual({
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 3,
-            actions : [ {
-                action : 'notify',
-                target : 'email1@email.com'
-            }, {
-                action : 'notify',
-                target : 'email2@email.com'
-            }, {
-                action : 'notify',
-                target : 'email3@email.com'
-            } ],
-            action : 'none'
-        });
 
         scope.removeNotificationEmail(1);
         expect(scope.notificationEmailList).toEqual([ 'email1@email.com', 'email3@email.com' ]);
@@ -158,12 +76,6 @@ describe('notification-management tests', function() {
 
         scope.doneNotificationEmail();
 
-        expect(scope.currentActionStep).toEqual({
-            id : 'stageId',
-            name : 'stageName',
-            notifyCount : 0,
-            actions : [],
-            action : 'none'
-        });
+        expect(emails).toEqual([]);
     }));
 });

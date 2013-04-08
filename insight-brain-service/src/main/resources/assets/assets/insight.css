@@ -124,7 +124,39 @@ body {
 .content-container .page-header {
     padding-left: 20px;
 }
+.content-list {
+	max-height: 100%;
+}
+.content-list > .header, .content-list > .footer, .content-list > .body > div  {
+	overflow: hidden;
+	padding: 8px;
+}
+.content-list > .body {
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+.content-list > .body > div {
+	border-bottom: 1px solid #dddddd;
+}
+.content-list > .body > div:nth-last-child(1) {
+	border-bottom: 0px;
+}
 
+.content-list > .header, .content-list > .footer {
+	overflow: hidden;
+}
+
+.content-list > .header {
+	font-weight: bold;
+	border-bottom: 1px solid #dddddd;
+}
+
+.content-list > .footer {
+	border-top: 1px solid #dddddd;
+}
+.content-list > .body > div:nth-child(odd) {
+background-color: red;
+}
 tr.selected, tr.selected td {
 	background-color: #dff0d8 !important;
 	color: #468847;

@@ -14,6 +14,10 @@ MockData = {
                 "id": "build"
             },
             {
+                "name": "Stage Release",
+                "id": "stage-release"
+            },
+            {
                 "name": "Release",
                 "id": "release"
             },

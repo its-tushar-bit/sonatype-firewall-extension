@@ -8,7 +8,7 @@ var policyApp;
 (function () {
     "use strict";
 
-    policyApp = angular.module('policyApp', ['AngularCommon', 'Labels', 'Policy', 'LicenseGroup', 'NotificationManagement', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+    policyApp = angular.module('policyApp', ['AngularCommon', 'Labels', 'Policy', 'PolicyEditor', 'LicenseGroup', 'NotificationManagement', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/policy', {
             templateUrl: 'components/policy.html?' + clmBuildTimestamp,
             controller: 'InsightPolicyController'
@@ -16,6 +16,10 @@ var policyApp;
         $routeProvider.when('/labels', {
             templateUrl: 'components/labels.html?' + clmBuildTimestamp,
             controller: 'LabelController'
+        });
+        $routeProvider.when('/policy/:policyId', {
+            templateUrl: 'components/policy-editor.html?' + clmBuildTimestamp,
+            controller: 'PolicyEditorController'
         });
         $routeProvider.when('/license-threat-group', {
             templateUrl: 'components/license-threat-group.html?' + clmBuildTimestamp,

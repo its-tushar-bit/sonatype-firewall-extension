@@ -110,6 +110,10 @@
 
 			getDeleteProfileUrl: function (profile) {
 				return this.getProfilesUrl() + '/' + profile.id;
+			},
+			
+			getLicenseUploadUrl: function() {
+			    return this.getBaseUrl() + '/rest/productlicense';
 			}
 		};
 	}]);

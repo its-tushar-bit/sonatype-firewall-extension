@@ -48,7 +48,7 @@ public class ProductLicenseResourceTest
 
         WebResource resource = Client.create().resource( getServiceURL() );
 
-        resource.type( MediaType.MULTIPART_FORM_DATA ).put( form );
+        resource.type( MediaType.MULTIPART_FORM_DATA ).post( form );
 
         Assert.assertTrue( licenseManager.isValid() );
     }

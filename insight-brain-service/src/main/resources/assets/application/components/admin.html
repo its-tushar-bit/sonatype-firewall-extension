@@ -1,0 +1,39 @@
+<div class='container'>
+	<div class='row'>
+		<div class='span4 content-container'>
+			<table class='table table-striped' style='margin-bottom: 0px'>
+				<thead>
+					<tr>
+						<th colspan='2'>Licensing</th>
+					</tr>
+				</thead>
+				<tfoot>
+					<tr>
+						<td colspan='2' style='text-align: center;'>
+							<button class='btn btn-add btn-info' ng-click='viewInstallLicense()' style='width: 80%'>
+								<i class='icon-white icon-plus-sign'></i> Install License
+							</button>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+		<div class='span7' ng-show='showInstall'>
+			<div class='content-container'>
+				<div class='modal-header'>
+					<h4>
+						<span>Install License</span>
+					</h4>
+				</div>
+				<form ng-upload='installLicense()' action='{{uploadUrl}}' class='form-horizontal' style='margin: 0px' method='post'>
+					<div class='modal-body'>
+						<div class='control-group'>
+							<label>Select a license file to upload:</label> <input type="file" name="file" /> <input type="submit" class="btn upload-submit"
+								value="Submit" />
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

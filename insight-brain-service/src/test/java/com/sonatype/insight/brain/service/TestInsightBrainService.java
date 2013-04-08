@@ -88,6 +88,7 @@ public class TestInsightBrainService
     {
         Application application = new Application();
         application.setPublicId( applicationPublicId );
+        application.setName( applicationPublicId );
         new ApplicationDAO().insert( application );
         return application;
     }

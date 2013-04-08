@@ -57,7 +57,7 @@ public abstract class SisuService<T extends Configuration>
     private Injector createInjector( final T configuration )
     {
         ClassSpace space = new URLClassSpace( getClass().getClassLoader() );
-        SpaceModule spaceModule = new SpaceModule( space, BeanScanning.CACHE );
+        SpaceModule spaceModule = new SpaceModule( space, scanning( configuration ) );
         List<Module> modules = new ArrayList<Module>();
         modules.add( spaceModule );
         Collections.addAll( modules, modules( configuration ) );
@@ -70,6 +70,14 @@ public abstract class SisuService<T extends Configuration>
             }
         } );
         return Guice.createInjector( new WireModule( modules ) );
+    }
+
+    //
+    // Allow the application to customize the scanning
+    //
+    protected BeanScanning scanning( T configuration )
+    {
+        return BeanScanning.ON;
     }
 
     //

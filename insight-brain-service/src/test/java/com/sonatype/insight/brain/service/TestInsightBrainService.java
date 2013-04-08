@@ -11,6 +11,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.inject.BeanScanning;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -88,6 +89,12 @@ public class TestInsightBrainService
         application.setPublicId( applicationPublicId );
         new ApplicationDAO().insert( application );
         return application;
+    }
+
+    @Override
+    protected BeanScanning scanning( InsightConfig configuration )
+    {
+        return BeanScanning.INDEX;
     }
 
     public void start()

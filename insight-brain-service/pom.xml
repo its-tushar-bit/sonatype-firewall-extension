@@ -385,6 +385,19 @@
     </resources>
     <plugins>
       <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>sisu-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>index-service</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>index</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <argLine>-XX:MaxPermSize=128m</argLine>
@@ -538,6 +551,19 @@
                     <goals>
                       <goal>test</goal>
                       <goal>testResources</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>sisu-maven-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>index</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>

@@ -110,11 +110,23 @@
 			}
 		}
 
+		function hideHttpMask() {
+			$('#httpMaskModal').modal('hide');
+		}
+
 		function handleHttpError(headerText, bodyText, status) {
 			hideHttpMask();
 			$scope.state.httpErrorBody = status === 0 ? 'Unable to connect to server.' : bodyText;
 			$scope.state.httpErrorHeader = headerText;
 			$('#httpErrorModal').modal('show');
+		}
+
+		function getActions(actionStages) {
+			var actions = {};
+			angular.forEach(actionStages, function (stage) {
+				actions[stage.id] = [];
+			});
+			return policyStore.deserializeActions(actions);
 		}
 
 		$scope.savePolicy = function () {
@@ -178,9 +190,9 @@
 					uniqueName = false;
 				}
 			});
-			return uniqueName && $scope.state.currentPolicy.name
+			return (uniqueName && $scope.state.currentPolicy.name
 					&& $scope.state.currentPolicy.threatLevel >= 0
-					&& $scope.state.currentPolicy.constraints.length > 0;
+					&& $scope.state.currentPolicy.constraints.length > 0) == true;
 		};
 
 		$scope.viewRemoveConstraint = function (constraintIndex) {
@@ -193,119 +205,99 @@
 				});
 		};
 
-		$scope.viewAddConstraint = function ($event) {
-			if ($event) {
-				$event.preventDefault();
-			}
-			$scope.state.currentConstraint = {
-				conditions: [],
-				operator: 'OR'
-			};
-		};
-
-		$scope.viewEditConstraint = function (constraint) {
-			//copy so we dont update data in the current list
-			$scope.state.currentConstraint = angular.copy(constraint);
+		$scope.editConstraint = function (constraint) {
+			$scope.$broadcast('policy.editConstraint', constraint);
 		};
 
 		$scope.editNotification = function (addresses) {
 			$scope.$broadcast('editNotification', addresses);
 		};
 
-		$scope.$on('constraintChanged', function (event, constraint) {
+		// Respond to constraint change
+		$scope.$on('policy.constraintSaved', function (event, constraint) {
 			event.stopPropagation();
 			if (angular.isUndefined(constraint.id)) {
+				// New constraint
 				$scope.state.currentPolicy.constraints.push(constraint);
-			} else if ($scope.state.currentConstraint !== null) {
-				$scope.state.currentConstraint.conditions = null; // Don't want to merge condition array
+			} else {
+				// Update existing constraint
 				angular.forEach($scope.state.currentPolicy.constraints, function (candidate) {
 					if (candidate.id === constraint.id) {
-						angular.extend(candidate, constraint);
+						candidate.conditions = constraint.conditions;
+						candidate.name = constraint.name;
 					}
 				});
 			}
-			$scope.state.currentConstraint = null;
 		});
 
-		function getActions(actionStages) {
-			var actions = {};
-			angular.forEach(actionStages, function (stage) {
-				actions[stage.id] = [];
-			});
-			return policyStore.deserializeActions(actions);
-		}
+		$q.all([policyStore.get(), actionStore.get()]).then(function (results) {
+			var policies = results[0],
+				actionStages = results[1][1],
+				state = {
+					currentPolicy : null,
+					actions : {}
+				};
 
-		if ($routeParams.policyId === 'new') {
-			actionStore.get().then(function (results) {
-				var actionStages = results[1],
-					state = {
-						currentPolicy : policyStore.create(),
-						actions : {}
-					};
-				state.actions = getActions(actionStages);
+			$scope.state = state;
+		    $scope.policies = policies;
+		    $scope.actionStages = actionStages;
 
-				$scope.actionStages = actionStages;
-				$scope.state = state;
-			}, function (data, status, headers, config) {
-				handleHttpError('Policy Initialization Error', data, status);
-			});
-		} else {
-			$q.all([policyStore.get(), actionStore.get()]).then(function (results) {
-				var policies = results[0],
-					actionStages = results[1][1];
-				$scope.policies = policies;
+			if ($routeParams.policyId === 'new') {
+				state.currentPolicy = policyStore.create();
+			} else {
 				angular.forEach(policies, function (policy, index) {
 					if (policy.id === $routeParams.policyId) {
-						angular.extend($scope,  {
-							state : {
-								currentPolicy : angular.copy(policy)
-							},
-							actionStages : actionStages
-						});
+						state.currentPolicy = angular.copy(policy);
 						return false;
 					}
 				});
 				// TODO If currentPolicy === null, show error
-				$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
-			}, function (data, status, headers, config) {
-				handleHttpError('Policy Initialization Error', data, status);
-			});
-		}
+			}
+			$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
+		}, function (data, status, headers, config) {
+			handleHttpError('Policy Initialization Error', data, status);
+		});
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', 'ConstraintStore', function ($scope, constraints) {
 		$scope.cancelConstraint = function () {
-			$scope.state.currentConstraint = null;
+			$('#editConstraintModal').modal('hide');
 		};
 
-		$scope.addConstraint = function () {
+		$scope.saveConstraint = function () {
 			angular.forEach($scope.currentConstraint.conditions, function (condition) {
+				// Remove temporary values used by the UI
 				delete condition.v;
 				delete condition.valueModifier;
 			});
-			$scope.$emit('constraintChanged', $scope.currentConstraint);
-			$scope.condition = null;
+			$scope.$emit('policy.constraintSaved', $scope.currentConstraint);
+			$('#editConstraintModal').modal('hide');
 		};
 
 		$scope.updateAge = function (condition) {
+			// Kludge to allow the UI to show two fields but combine them behind the scenes.  The value should only be set when both fields are valid
 			condition.value = (condition.v !== '' && condition.v != null && condition.valueModifier) ? condition.v * condition.valueModifier : null;
 		};
 
 		$scope.validateConstraint = function () {
-			var i;
-			delete $scope.state.constraintValidationMsg;
+			var i,
+				conditions = $scope.currentConstraint.conditions,
+				conditionType;
+
+			delete $scope.constraintValidationMsg;
 
 			if (!$scope.currentConstraint.name) {
-				$scope.state.constraintValidationMsg = 'Please enter a name for this constraint';
+				$scope.constraintValidationMsg = 'Please enter a name for this constraint';
 				return;
 			}
-
-			for (i = 0; i < $scope.currentConstraint.conditions.length; i++) {
-				if ($scope.currentConstraint.conditions[i].value === null || angular.isUndefined($scope.currentConstraint.conditions[i].value)) {
-					$scope.state.constraintValidationMsg = 'Please enter a value for condition #' + (i + 1);
+			
+			for (i = 0; i < conditions.length; i++) {
+				conditionType = $scope.conditionTypes[conditions[i].conditionTypeId];
+				if (conditionType === null || angular.isUndefined(conditionType)) {
+					$scope.constraintValidationMsg = 'Please select a valid condition type for condition #' + (i + 1);
 					return;
-				} else if (!$scope.currentConstraint.conditions[i].conditionTypeId) {
-					$scope.state.constraintValidationMsg = 'Please select a valid condition type for condition #' + (i + 1);
+				} else if (conditionType.valueTypeId && (conditions[i].value === null || angular.isUndefined(conditions[i].value))) {
+					$scope.constraintValidationMsg = 'Please enter a value for condition #' + (i + 1);
 					return;
 				}
 			}
@@ -313,6 +305,8 @@
 
 		$scope.conditionTypeChanged = function (condition) {
 			condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
+
+			// Remove values that were entered with the previous condition type
 			delete condition.value;
 			delete condition.v;
 			delete condition.valueModifier;
@@ -321,14 +315,11 @@
 		};
 
 		$scope.addCondition = function () {
-			var conditionType = $scope.conditionTypes['AgeInDays'],
-				valueType = conditionType.valueType;
+			var conditionType = $scope.conditionTypes['AgeInDays'];
 
 			$scope.currentConstraint.conditions.push({
 				conditionTypeId: conditionType.id,
-				conditionType: conditionType,
 				operator: conditionType.supportedOperators[0],
-				valueType: valueType,
 				valueModifier: 365
 			});
 
@@ -340,31 +331,30 @@
 			$scope.validateConstraint();
 		};
 
-		$scope.$watch('state.currentConstraint', function (newValue, oldValue) {
-			if (newValue !== null && angular.isDefined(newValue)) {
-				$scope.currentConstraint = angular.copy(newValue);
-				if ($scope.currentConstraint.conditions.length === 0) {
-					$scope.addCondition();
-				} else {
-					angular.forEach($scope.currentConstraint.conditions, function (condition) {
-						if (condition.conditionTypeId === "AgeInDays") {
-							if (condition.value >= 365 && condition.value % 365 === 0) {
-								condition.valueModifier = 365;
-							} else if (condition.value >= 30 && condition.value % 30 === 0) {
-								condition.valueModifier = 30;
-							} else {
-								condition.valueModifier = 1;
-							}
-							condition.v = condition.value / condition.valueModifier;
+		$scope.$on('policy.editConstraint', function (event, constraint) {
+			event.preventDefault();
+
+			$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: 'OR' };
+
+			if ($scope.currentConstraint.conditions.length === 0) {
+				$scope.addCondition();
+			} else {
+				angular.forEach($scope.currentConstraint.conditions, function (condition) {
+					if (condition.conditionTypeId === "AgeInDays") {
+						if (condition.value >= 365 && condition.value % 365 === 0) {
+							condition.valueModifier = 365;
+						} else if (condition.value >= 30 && condition.value % 30 === 0) {
+							condition.valueModifier = 30;
+						} else {
+							condition.valueModifier = 1;
 						}
-					});
-				}
-				$('#editConstraintModal').modal('show');
-				$('#constraintName').focus();
-			} else if (newValue === null || angular.isUndefined(newValue)) {
-				$('#editConstraintModal').modal('hide');
-				$scope.currentConstraint = null;
+						condition.v = condition.value / condition.valueModifier;
+					}
+				});
 			}
+			$scope.validateConstraint();
+			$('#editConstraintModal').modal('show');
+			$('#constraintName').focus();
 		});
 
 		constraints.get().then(function (results) {

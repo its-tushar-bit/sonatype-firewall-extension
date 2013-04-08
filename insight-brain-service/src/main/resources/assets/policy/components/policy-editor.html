@@ -14,11 +14,10 @@
 							style="width:100px;"
 							class="threat-level threat-level-{{state.currentPolicy.threatLevel}}"
 							ng-model="state.currentPolicy.threatLevel"
-							ng-change="validatePolicy()"
 							ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
 						</select>
 					</div>
-					<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-change="validatePolicy()" ng-model="state.currentPolicy.name" >
+					<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-model="state.currentPolicy.name" >
 				</div>
 			</div>
 			<div class="control-group">
@@ -32,8 +31,8 @@
 									<td>
 										<div class="btn-group">
 											<button class="btn btn-small" ng-click="viewRemoveConstraint($index)" title="Remove Constraint"><i class="icon-minus-sign"></i></button>
-											<button class="btn btn-small" ng-click="viewAddConstraint()" title="Add Constraint"><i class="icon-plus-sign"></i></button>
-											<button class="btn btn-small" ng-click="viewEditConstraint(constraint)" title="Edit Constraint"><i class="icon-pencil"></i></button>
+											<button class="btn btn-small" ng-click="editConstraint(null)" title="Add Constraint"><i class="icon-plus-sign"></i></button>
+											<button class="btn btn-small" ng-click="editConstraint(constraint)" title="Edit Constraint"><i class="icon-pencil"></i></button>
 										</div>
 									</td>
 								</tr>
@@ -165,11 +164,11 @@
 		</div>
 		<div class="modal-footer">
 			<div>
-				<div style="padding-top:5px; float:left;" ng-show="state.constraintValidationMsg">
-					<span style="color: #b94a48;">{{state.constraintValidationMsg}}</span>
+				<div style="padding-top:5px; float:left;" ng-show="constraintValidationMsg">
+					<span style="color: #b94a48;">{{constraintValidationMsg}}</span>
 				</div>
 				<button class="btn" ng-click="cancelConstraint()">Cancel</button>
-			    <button class="btn btn-primary" ng-click="addConstraint()" ng-disabled="state.constraintValidationMsg && constrainteditor.$invalid">Done</button>
+			    <button class="btn btn-primary" ng-click="saveConstraint()" ng-disabled="constraintValidationMsg && constrainteditor.$invalid">Done</button>
 			</div>
 		</div>
 	</div>

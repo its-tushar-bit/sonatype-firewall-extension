@@ -51,14 +51,14 @@
 	</div>
 	<div id="confirmationModal" data-backdrop="static" class="modal hide">
 		<div class="modal-header">
-			<h3>{{state.confirmationHeader}}</h3>
+			<h3>{{state.confirm.header}}</h3>
 		</div>
 		<div class="modal-body">
-			<p>{{state.confirmationBody}}</p>
+			<p>{{state.confirm.body}}</p>
 		</div>
 		<div class="modal-footer">
-			<button class="btn" data-dismiss='modal'>{{state.confirmationDeclineText}}</button>
-		    <button class="btn btn-primary" ng-click="confirmationAccept()">{{state.confirmationAcceptText}}</button>
+			<button class="btn" data-dismiss='modal'>{{state.confirm.declineText}}</button>
+		    <button class="btn btn-primary" ng-click="state.confirm.acceptFn()">{{state.confirm.acceptText}}</button>
 		</div>
 	</div>
 </div>

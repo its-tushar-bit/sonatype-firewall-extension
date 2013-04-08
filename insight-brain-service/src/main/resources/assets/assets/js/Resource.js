@@ -85,7 +85,7 @@
 
 				return {
 					'get' : function () {
-						var localDeferred = storeDeferred === null ? (storeDeferred = $q.defer) : storeDeferred;
+						var localDeferred = storeDeferred === null ? (storeDeferred = $q.defer()) : storeDeferred;
 						$http.get(config.url, { params : config.params }).success(function (data) {
 							if (localDeferred === storeDeferred) {
 								var result = [];

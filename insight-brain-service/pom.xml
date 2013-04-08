@@ -413,9 +413,11 @@
             <include>assets/angular/angular-*.min.js</include>
             <include>assets/angular/angular-sanitize-*.min.js</include>
             <include>assets/CLMLocation.js</include>
+            <include>assets/js/Resource.js</include>
             <include>assets/AngularCommon.js</include>
             <include>policy/PolicyApp.js</include>
             <include>policy/InsightPolicyController.js</include>
+            <include>policy/js/PolicyEditor.js</include>
             <include>policy/InsightLicenseGroupController.js</include>
             <include>policy/LabelController.js</include>
             <include>policy/js/cip-label-editor.js</include>
@@ -433,6 +435,7 @@
             <include>policy/CIPLabelEditorSpec.js</include>
             <include>policy/LabelControllerSpec.js</include>
             <include>policy/notification-management-spec.js</include>
+            <include>policy/PolicyEditorSpec.js</include>
             <include>application/ApplicationMockData.js</include>
             <include>application/ManagementControllerSpec.js</include>
             <include>assets/AngularCommonSpec.js</include>

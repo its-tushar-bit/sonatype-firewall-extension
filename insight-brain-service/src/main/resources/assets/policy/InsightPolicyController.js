@@ -14,7 +14,7 @@
 
 		function capitalize(text) {
 		    if (text && text.length > 1) {
-		        return text.substring(0,1).toUpperCase() + text.substring(1);
+		        return text.substring(0, 1).toUpperCase() + text.substring(1);
 		    }
 		    return text;
 		}
@@ -91,17 +91,21 @@
 		}
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
-			$scope.state.confirmationHeader = header;
-			$scope.state.confirmationBody = body;
-			$scope.state.confirmationDeclineText = declineText;
-			$scope.state.confirmationAcceptText = acceptText;
-			$scope.state.confirmationDeclineFn = function () {
-				$('#confirmationModal').modal('hide');
-				declineFn();
-			};
-			$scope.confirmationAccept = function () {
-				$('#confirmationModal').modal('hide');
-				acceptFn();
+			$scope.state.confirm = {
+			    header : header,
+			    body : body,
+			    declineText : declineText,
+			    acceptText : acceptText,
+				acceptFn : function () {
+					delete $scope.state.confirm;
+					$('#confirmationModal').modal('hide');
+					acceptFn();
+				},
+			    declineFn : function () {
+					delete $scope.state.confirm;
+					$('#confirmationModal').modal('hide');
+					declineFn();
+				}
 			};
 			$('#confirmationModal').modal('show');
 		}

@@ -79,7 +79,8 @@ public class TestInsightBrainService
     {
         final Configuration configuration = new Configuration();
         configuration.setServerUrl( "http://localhost:" + testPort );
-        configuration.setServerAdminUrl( "http://localhost:" + testAdminPort );
+        configuration.setServerAdminUrl( "http://localhost:" + testAdminPort
+            + ( testAdminPort != testPort ? "" : "/admin" ) );
         return configuration;
     }
 

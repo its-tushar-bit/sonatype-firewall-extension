@@ -11,6 +11,9 @@ import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -57,8 +60,10 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+@Named
+@Singleton
 public class SaasClient
-    extends AbstractInjectable<InsightProxy>
+    extends AbstractInjectable<SaasClient>
 {
     private final Logger log = LoggerFactory.getLogger( SaasClient.class );
 
@@ -68,6 +73,7 @@ public class SaasClient
 
     private static volatile String version;
 
+    @Inject
     public SaasClient( final InsightProxy proxy )
     {
         config = proxy.contextualize( new Configuration() );

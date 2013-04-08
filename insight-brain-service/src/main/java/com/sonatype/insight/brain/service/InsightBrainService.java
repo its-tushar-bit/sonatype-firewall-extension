@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.saas.ComponentInfoResource;
 import com.sonatype.insight.brain.saas.EnvironmentResource;
 import com.sonatype.insight.brain.saas.RepoManResource;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
@@ -101,15 +100,6 @@ public class InsightBrainService
 
         env.enableJerseyFeature( ResourceConfig.FEATURE_CANONICALIZE_URI_PATH );
         env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
-
-        env.addHealthCheck( new InsightHealth( config ) );
-
-        InsightProxy proxy = new InsightProxy( config );
-        env.addProvider( new InsightWork( config ) );
-        env.addProvider( proxy );
-        env.addProvider( new InsightMail( config ) );
-        env.addProvider( new SaasClient( proxy ) );
-        env.addProvider( new BaseUrl( config ) );
 
         File databaseDir = new File( config.getSonatypeWork(), "data" );
         DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );

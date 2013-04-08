@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +23,8 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 
+@Named
+@Singleton
 public class InsightWork
     extends AbstractInjectable<InsightWork>
 {
@@ -26,6 +32,7 @@ public class InsightWork
 
     private final InsightConfig insightConfig;
 
+    @Inject
     public InsightWork( final InsightConfig insightConfig )
     {
         this.insightConfig = insightConfig;

@@ -5,14 +5,21 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
+@Named
+@Singleton
 public class InsightProxy
     extends AbstractInjectable<InsightProxy>
 {
     private final InsightConfig insightConfig;
 
+    @Inject
     public InsightProxy( final InsightConfig insightConfig )
     {
         this.insightConfig = insightConfig;

@@ -5,17 +5,24 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.yammer.metrics.core.HealthCheck;
 
 /**
  * This is a Dropwizard health check. It has nothing to do with Insight's Health Check features like "Application Health
  * Check" or "Repository Health Check". :)
  */
+@Named
+@Singleton
 public class InsightHealth
     extends HealthCheck
 {
     private final InsightConfig insightConfig;
 
+    @Inject
     public InsightHealth( final InsightConfig insightConfig )
     {
         super( "insight-brain-service" );

@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.micromailer.Address;
 import org.sonatype.micromailer.EMailer;
 import org.sonatype.micromailer.MailComposer;
@@ -37,6 +41,8 @@ import com.sonatype.insight.portal.mail.EmailUtil;
 import com.sonatype.insight.portal.mail.InsightMailType;
 import com.sonatype.insight.portal.mail.InsightMailer;
 
+@Named
+@Singleton
 public class InsightMail
     extends AbstractInjectable<InsightMail>
 {
@@ -44,6 +50,7 @@ public class InsightMail
 
     private final InsightConfig config;
 
+    @Inject
     public InsightMail( final InsightConfig config )
     {
         this.config = config;

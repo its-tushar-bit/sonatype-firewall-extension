@@ -7,19 +7,24 @@ package com.sonatype.insight.brain.service;
 
 import java.net.URI;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+@Named
+@Singleton
 public class BaseUrl
     extends AbstractInjectable<BaseUrl>
 {
-
     private final InsightConfig appConfig;
 
     @Context
     private final UriInfo uriInfo;
 
+    @Inject
     public BaseUrl( final InsightConfig appConfig )
     {
         this.appConfig = appConfig;

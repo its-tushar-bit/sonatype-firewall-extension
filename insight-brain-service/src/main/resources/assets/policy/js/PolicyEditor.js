@@ -243,7 +243,8 @@
 				state.currentPolicy = policyStore.create();
 			} else {
 				angular.forEach(policies, function (policy, index) {
-					if (policy.id === $routeParams.policyId) {
+					// == required for Rhino here
+					if (policy.id == $routeParams.policyId) {
 						state.currentPolicy = angular.copy(policy);
 						return false;
 					}

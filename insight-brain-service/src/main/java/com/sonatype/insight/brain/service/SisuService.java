@@ -56,11 +56,8 @@ public abstract class SisuService<T extends Configuration>
 
     private Injector createInjector( final T configuration )
     {
-        ClassSpace space = new URLClassSpace( getClass().getClassLoader() );
-        SpaceModule spaceModule = new SpaceModule( space, scanning( configuration ) );
         List<Module> modules = new ArrayList<Module>();
-        modules.add( spaceModule );
-        Collections.addAll( modules, modules( configuration ) );
+
         modules.add( new AbstractModule()
         {
             @Override
@@ -69,6 +66,12 @@ public abstract class SisuService<T extends Configuration>
                 bind( (Class) configuration.getClass() ).toInstance( configuration );
             }
         } );
+
+        modules.addAll( modules( configuration ) );
+
+        ClassSpace space = new URLClassSpace( getClass().getClassLoader() );
+        modules.add( new SpaceModule( space, scanning( configuration ) ) );
+
         return Guice.createInjector( new WireModule( modules ) );
     }
 
@@ -83,9 +86,9 @@ public abstract class SisuService<T extends Configuration>
     //
     // Allow the application to customize the modules
     //
-    protected Module[] modules( T configuration )
+    protected List<Module> modules( T configuration )
     {
-        return new Module[0];
+        return Collections.emptyList();
     }
 
     //
@@ -169,9 +172,16 @@ public abstract class SisuService<T extends Configuration>
             Class<?> impl = resourceBeanEntry.getImplementationClass();
             if ( impl != null && impl.isAnnotationPresent( Path.class ) )
             {
-                Object resource = resourceBeanEntry.getValue();
-                environment.addResource( resource );
-                logger.debug( "Added resource: {}", resource );
+                try
+                {
+                    Object resource = resourceBeanEntry.getValue();
+                    environment.addResource( resource );
+                    logger.debug( "Added resource: {}", resource );
+                }
+                catch ( Exception e )
+                {
+                    logger.warn( "Unable to add resource: {}", impl, e );
+                }
             }
         }
     }

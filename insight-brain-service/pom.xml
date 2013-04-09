@@ -433,11 +433,11 @@
             <include>assets/AngularCommon.js</include>
             <include>policy/PolicyApp.js</include>
             <include>policy/InsightPolicyController.js</include>
-            <include>policy/js/PolicyEditor.js</include>
+            <include>assets/components/policy-editor/PolicyEditor.js</include>
             <include>policy/InsightLicenseGroupController.js</include>
             <include>policy/LabelController.js</include>
             <include>policy/js/cip-label-editor.js</include>
-            <include>policy/js/notification-management.js</include>
+            <include>assets/components/notification-manager/NotificationManager.js</include>
             <include>application/ClmManagementApp.js</include>
             <include>application/ManagementController.js</include>
           </sourceIncludes>

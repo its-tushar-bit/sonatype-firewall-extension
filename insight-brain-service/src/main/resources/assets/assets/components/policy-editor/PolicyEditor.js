@@ -239,7 +239,7 @@
 			$scope.policies = policies;
 			$scope.actionStages = actionStages;
 
-			if ($routeParams.policyId === 'new') {
+			if ($routeParams.policyId === 'new' || angular.isUndefined($routeParams.policyId)) {
 				state.currentPolicy = policyStore.create();
 			} else {
 				angular.forEach(policies, function (policy, index) {

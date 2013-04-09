@@ -18,7 +18,7 @@ var policyApp;
             controller: 'LabelController'
         });
         $routeProvider.when('/policy/:policyId', {
-            templateUrl: 'components/policy-editor.html?' + clmBuildTimestamp,
+            templateUrl: 'templates/policy-edit-page.html?' + clmBuildTimestamp,
             controller: 'PolicyEditorController'
         });
         $routeProvider.when('/license-threat-group', {

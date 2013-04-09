@@ -99,7 +99,7 @@
             restrict : 'A',
             replace : true,
             transclude : true,
-            templateUrl : 'components/notification-management.html?' + clmBuildTimestamp
+            templateUrl : '../assets/components/notification-manager/notification-manager.html?' + clmBuildTimestamp
         }
     });
 }());

@@ -80,7 +80,7 @@
 				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId));
 			} else {
 				$scope.isEditMode = false;
-				angular.element('#applicationIcon').attr('src', null);
+				angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
 			}
 			$scope.hasRobotSource = false;
 			$scope.iconChanged = false;
@@ -210,7 +210,7 @@
 		}
 
 		$scope.fileChanged = function (element) {
-			if (element.files.length > 0) {
+			if (element.files && element.files.length > 0) {
 				$scope.hasRobotSource = false;
 				var file = element.files[0],
 				src;
@@ -226,13 +226,13 @@
 					});
 				} else {
 					$scope.$apply(function () {
-						angular.element('#applicationIcon').attr('src', null);
+						angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
 						$scope.hasRobotSource = false;
 					});
 				}
 			} else {
 				$scope.$apply(function () {
-					angular.element('#applicationIcon').attr('src', null);
+					angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
 					$scope.hasRobotSource = false;
 				});
 			}

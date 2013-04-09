@@ -8,7 +8,7 @@ ALTER TABLE application
 
 UPDATE application SET name = public_id;
 
-UPDATE application SET name_lowercase_no_whitespace = REPLACE(public_id_lowercase, ' ', '')
+UPDATE application SET name_lowercase_no_whitespace = REPLACE(public_id_lowercase, ' ', '');
 
 ALTER TABLE application
   ALTER COLUMN name varchar(60) NOT NULL;

@@ -103,11 +103,7 @@
 		}
 
 		function returnFn() {
-			if ($scope.shouldForward !== false) {
-				window.location.hash = '#/policy';
-			} else {
-				$scope.$broadcast('editPolicyDone');
-			}
+			$scope.$emit('editPolicyComplete');
 		}
 
 		function handleHttpError(headerText, bodyText, status) {

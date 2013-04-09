@@ -1,76 +1,121 @@
 <div class='container'>
 	<div class='row'>
-		<div class='span4 content-container'>
-			<table class='table table-striped' style='margin-bottom:0px'>
-				<thead>
-					<tr>
-						<th colspan='2'>Profiles</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr ng-show='!profiles'>
-						<td colspan='2'><i class='icon-time'></i> Loading</td>
-					</tr>
-					<tr ng-repeat="profile in profiles" ng-class='{"selected" : selectedProfile.id == profile.id}'>
-						<td style='height:24px'>{{profile.name}}</td>
-						<td style='width:60px'>
-							<div class='btn-group'>
-								<button ng-click='editProfile(profile)' class="btn btn-mini btn-edit" title="Edit Profile">
-									<i class="icon-pencil" style="margin-top:0px;"></i>
+		<div class='span4'>
+			<div class='content-container'>
+				<table class='table table-striped' style='margin-bottom:0px'>
+					<thead>
+						<tr>
+							<th colspan='2'>Application Profiles</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-show='!profiles'>
+							<td colspan='2'><i class='icon-time'></i> Loading</td>
+						</tr>
+						<tr ng-repeat="profile in profiles" ng-class='{"selected" : selectedProfile.id == profile.id}'>
+							<td style='height:24px;overflow:hidden'>{{profile.name}}</td>
+							<td style='width:60px'>
+								<div class='btn-group'>
+									<button type='button' ng-click='editProfile(profile)' class="btn btn-mini btn-edit" title="Edit Profile">
+										<i class="icon-pencil" style="margin-top:0px;"></i>
+									</button>
+									<button type='button' ng-click='confirmDeleteProfile(profile)' class="btn btn-mini btn-delete" title="Delete Profile">
+										<i class="icon-trash" style="margin-top:0px;"></i>
+									</button>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan='2' style='text-align:center;'>
+								<button class='btn btn-add btn-info' ng-click='editProfile()' style='width:80%'>
+									<i class='icon-white icon-plus-sign'></i> Add Profile
 								</button>
-								<button ng-click='confirmDeleteProfile(profile)' class="btn btn-mini btn-delete" title="Delete Profile">
-									<i class="icon-trash" style="margin-top:0px;"></i>
-								</button>
-							</div>
-						</td>
-					</tr>
-				</tbody>
-				<tfoot>
-					<tr>
-						<td colspan='2' style='text-align:center;'>
-							<button class='btn btn-add btn-info' ng-click='editProfile()' style='width:80%'>
-								<i class='icon-white icon-plus-sign'></i> Add Profile
-							</button>
-						</td>
-					</tr>
-				</tfoot>
-			</table>
+							</td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
 		</div>
-		<div class='span7'>
-			<div class='content-container' ng-show='!(selectedProfile != null && edit)'>Select a Profile</div>
-			<div class='content-container' ng-show='selectedProfile != null && edit'>
-				<div class='modal-header'>
-					<h4><span ng-show='selectedProfile.id != null'>Edit</span><span ng-show='selectedProfile.id == null'>Add</span> Profile</h4>
+		<div class='span8'>
+			<div class='content-container' ng-show='selectedProfile == null'>Select a Profile</div>
+			<div ng-switch on='policyEdit' ng-show='selectedProfile != null'>
+				<div ng-switch-when='true' style='fade in'  ng-include='"../assets/components/policy-editor/policy-editor.html"' ng-controller='PolicyEditorController'>
 				</div>
-				<form name='editProfileForm' ng-submit='submitProfile()' class='form-horizontal' style='margin:0px'>
-					<div class='modal-body'>
-			            <div class='control-group'>
-			                <label class='control-label' for='selectedProfileNameInput'>Name:</label>
-			                <div class='controls'>
-			                    <input type='text' ng-model='selectedProfile.name' id='selectedProfileNameInput'>
-			                </div>
-			            </div>
+				<div ng-switch-default ng-controller='ProfileController'>
+					<div class='content-container' ng-show='profilePolicies == null'>
+						<h5><i class='icon-time'></i> Loading</h5>
 					</div>
-					<div class='modal-footer'>
-						<button class='btn' ng-click='deselectProfile()'>Cancel</button>
-						<button class='btn btn-primary' type='submit'>Save</button>
+					<div class='content-container fade' ng-class='{ in : profilePolicies != null }'>
+						<div class='modal-header'>
+							<h4><span ng-show='selectedProfile.id != null'>Edit</span><span ng-show='selectedProfile.id == null'>Add</span> Application Profile</h4>
+						</div>
+						<form name='editProfileForm' ng-submit='submitProfile()' class='form-horizontal' style='margin:0px'>
+							<div class='modal-body'>
+								<div class='control-group' ng-class='{ error : editProfileForm.selectedProfileName.$error.unique }'>
+									<label class='control-label' for='selectedProfileNameInput'>Application Profile Name</label>
+									<div class='controls'>
+										<input type='text' class='input-xlarge' ng-model='selectedProfile.name' name='selectedProfileName' id='selectedProfileNameInput' required unique-profile-name>
+										<span class='help-inline' ng-show='editProfileForm.selectedProfileName.$error.unique'>Duplicate</span>
+									</div>
+								</div>
+								<div>
+									<div>
+										<label class='control-label' for='policiesFilter'>Policies</label>
+										<div class='controls'>
+											<div class="input-prepend"><span class="add-on"><i class='icon-search'></i></span><input ng-model='policyFilter' type='text' style='width:243px' id='policiesFilter'></div>
+											<button ng-click='editPolicy()' class='btn btn-info' type='button'><i class=' icon-white icon-plus-sign'></i> Create New</button>
+										</div>
+									</div>
+									<div style='display:inline-block;width:49.5%;vertical-align:top'>
+										<h5 style='padding-left:10px'>Applied Policies</h5>
+
+										<div class='licenseContainer'>
+											<div>
+												<div ng-repeat='profilePolicyId in profilePolicies | filter: filterName | orderBy: profileIdMap[profilePolicyId].name'>
+													<i class='icon-minus-sign' ng-click='removeProfilePolicy(profilePolicyId)'></i>&nbsp;
+													<span title='{{profileIdMap[profilePolicyId].name}}'>{{profileIdMap[profilePolicyId].name}}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div style='display:inline-block;width:49.5%;vertical-align:top'>
+										<h5 style='padding-left:5px'>Available Policies</h5>
+
+										<div class='licenseContainer'>
+											<div>
+												<div ng-repeat='policy in policies | filter:filterAvailablePolicies | orderBy: policy.name'>
+													<i class='icon-plus-sign' ng-click='addProfilePolicy(policy)'></i>&nbsp;
+													<span title='{{policy.name}}'>{{policy.name}}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class='modal-footer'>
+								<button class='btn' ng-click='deselectProfile()' type='button'>Cancel</button>
+								<button class='btn btn-primary' type='submit' ng-disabled='editProfileForm.$invalid'>Save</button>
+							</div>
+						</form>
 					</div>
-				</form>
+				</div>
 			</div>
 		</div>
 	</div>
-    <div id="deleteProfileModal" data-backdrop="static" class="modal hide">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h3>Delete Profile?</h3>
-        </div>
-        <div class="modal-body">
-            <p>Are you sure you want to delete the profile {{selectedProfile.name}}?
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn" data-dismiss="modal">Cancel</button>
-            <button class="btn btn-primary" ng-click="deleteProfile()">Delete</button>
-        </div>
-    </div>
+	<div id="deleteProfileModal" data-backdrop="static" class="modal hide">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h3>Delete Profile?</h3>
+		</div>
+		<div class="modal-body">
+			<p>Are you sure you want to delete the profile {{selectedProfile.name}}?
+			</p>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal">Cancel</button>
+			<button class="btn btn-primary" ng-click="deleteProfile()">Delete</button>
+		</div>
+	</div>
 </div>

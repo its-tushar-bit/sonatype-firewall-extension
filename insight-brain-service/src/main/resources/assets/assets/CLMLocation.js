@@ -101,6 +101,9 @@
 			
 			getLicenseUploadUrl: function() {
 			    return this.getBaseUrl() + '/rest/product/license';
+			},
+			getApplicationProfilePoliciesUrl : function (applicationProfileId) {
+				return this.getBaseUrl() + '/rest/applicationProfilePolicy/' + encodeURIComponent(applicationProfileId);
 			}
 		};
 	}]);

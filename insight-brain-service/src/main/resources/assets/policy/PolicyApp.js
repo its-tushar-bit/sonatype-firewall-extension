@@ -59,6 +59,10 @@ var policyApp;
             $scope.tabUrl = $location.path();
             angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
         });
+
+        $rootScope.$on('editPolicyComplete', function () {
+            window.location.hash = '#/policy';
+        });
     }]);
 
     policyApp.run(['$http', '$rootScope', function ($http, $rootScope) {

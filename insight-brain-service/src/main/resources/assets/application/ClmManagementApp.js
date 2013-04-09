@@ -15,7 +15,7 @@ var clmManagementApp;
         });
         $routeProvider.when('/profiles', {
             templateUrl: 'components/profiles.html?' + clmBuildTimestamp,
-            controller: 'ProfileController'
+            controller: 'ProfilePageController'
         });
         $routeProvider.when('/admin', {
             templateUrl: 'components/admin.html?' + clmBuildTimestamp,

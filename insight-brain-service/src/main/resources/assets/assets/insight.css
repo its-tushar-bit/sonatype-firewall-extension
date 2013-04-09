@@ -161,3 +161,21 @@ tr.selected, tr.selected td {
 	background-color: #dff0d8 !important;
 	color: #468847;
 }
+
+
+.licenseContainer {
+    overflow: auto;
+    height: 200px;
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.licenseContainer > div {
+    overflow: auto;
+    height: 100%;
+}
+
+.licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
+    cursor: pointer
+}

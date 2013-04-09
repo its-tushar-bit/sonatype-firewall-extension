@@ -2,31 +2,37 @@ var clmTimestamp = '';
 
 describe('InsightLicenseGroupController', function() {
 	var scope, mockGroup;
-	
+
 	function toRegExp( getUrl ) {
 		return new RegExp( getUrl + '\\?timestamp=[0-9]+' );
 	}
-	
+
+    angular.module('ApplicationId',[]).service('ApplicationId', function () {
+		return {
+			encoded : 'bom1-12345678'
+		};
+    });
+
 	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
 		return $http;
 	}]);
-	
-	beforeEach(module('LicenseGroup', 'CLMLocation', 'Hudson'));
+
+	beforeEach(module('LicenseGroup', 'CLMLocation', 'Hudson', 'ApplicationId'));
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations) {
 		CLMLocations.appId = 'myAppId';
-		
+
 		mockGroup = LicenseGroupMockData.getLicenseGroupData()[0];
 		$httpBackend.whenGET(toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
 		$httpBackend.whenGET(toRegExp(CLMLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
 		$httpBackend.whenGET(toRegExp(CLMLocations.getLicenseGroupLicensesUrl(mockGroup))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
-		
+
 		scope = $rootScope.$new();
-		
+
 		$controller('InsightLicenseGroupController', {$scope: scope});
-		
+
 		$httpBackend.flush();
     }));
-	
+
 	it('shows the GUI', function() {
 		expect(scope.features.licenseGroup).toBeTruthy();
 	});
@@ -58,13 +64,13 @@ describe('InsightLicenseGroupController', function() {
 	it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, hudson, CLMLocations) {
 		$httpBackend.expectPOST(CLMLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
 		$httpBackend.expectPOST(CLMLocations.getLicenseGroupLicensesUrl(mockGroup)).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
-		
+
 		scope.editLicenseGroup(mockGroup);
-		
+
 		$controller('InsightLicenseGroupEditorController', {$scope: scope, hudson: hudson});
-		
+
 		scope.licenseGroupEditor = { $isValid: true };
-		
+
 		scope.saveClick();
 	}));
 	it('shows the Delete modal', function() {
@@ -73,9 +79,9 @@ describe('InsightLicenseGroupController', function() {
 	});
 	it('deletes a group.', inject(function($httpBackend, CLMLocations) {
 		$httpBackend.expectDELETE(CLMLocations.getDeleteLicenseGroupUrl(mockGroup)).respond({});
-		
+
 		scope.confirmDeleteLicenseGroup(mockGroup);
 		scope.deleteLicenseGroup();
-		
+
 	}));
 });

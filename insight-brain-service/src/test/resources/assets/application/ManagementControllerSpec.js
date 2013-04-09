@@ -1,17 +1,23 @@
 var clmTimestamp = '';
 
-describe('ApplicationManagementController', function () {
+describe('ManagementController', function () {
 	var scope, httpBackend, rootScope, clmLocations, compile, mockApplication;
 
 	function toRegExp(getUrl) {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
 	}
 
+    angular.module('ApplicationId',[]).service('ApplicationId', function () {
+		return {
+			encoded : 'bom1-12345678'
+		};
+    });
+
 	angular.module('Hudson', []).factory('hudson', ['$http', function ($http) {
 		return $http;
 	}]);
 
-	beforeEach(module('Management', 'AngularCommon', 'CLMLocation', 'Hudson'));
+	beforeEach(module('ApplicationId', 'Management', 'AngularCommon', 'CLMLocation', 'Hudson'));
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;

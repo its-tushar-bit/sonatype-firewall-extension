@@ -52,4 +52,10 @@ var clmManagementApp;
             angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
         });
     }]);
+
+	clmManagementApp.service('ApplicationId', function () {
+		return {
+			encoded : 'orgf0367c36c57a42f2a494ecb1ba26b7e7'
+		};
+	});
 }());

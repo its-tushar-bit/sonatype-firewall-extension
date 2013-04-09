@@ -6,20 +6,7 @@
 (function () {
 	"use strict";
 
-	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', ['commonCodeFactory', function (commonCodeFactory) {
-		// URI encoded ApplicationID
-		var getAppId = (function () {
-			var appId = null;
-			return function () {
-				if (appId) {
-					return appId;
-				}
-				appId = commonCodeFactory.getEncodedQueryString('appId');
-
-				return appId;
-			};
-		}());
-
+	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', ['ApplicationId', function (appId) {
 		return {
 			getBaseUrl: function () {
 				if (this.baseUrl) {
@@ -41,23 +28,23 @@
 			},
 
 			getLabelsUrl: function () {
-				return this.getBaseUrl() + '/rest/label/application/' + getAppId();
+				return this.getBaseUrl() + '/rest/label/application/' + appId.encoded;
 			},
 
 			getDeleteLabelsUrl: function (label) {
-				return this.getBaseUrl() + '/rest/label/application/' + getAppId() + '/' + encodeURIComponent(label.id);
+				return this.getBaseUrl() + '/rest/label/application/' + appId.encoded + '/' + encodeURIComponent(label.id);
 			},
 
 			getLicenseGroupsUrl: function () {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getAppId();
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + appId.encoded;
 			},
 
 			getDeleteLicenseGroupUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getAppId() + '/' + encodeURIComponent(group.id);
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + appId.encoded + '/' + encodeURIComponent(group.id);
 			},
 
 			getLicenseGroupLicensesUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getAppId() + '/' + group.id;
+				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + appId.encoded + '/' + group.id;
 			},
 
 			getLicensesUrl: function () {
@@ -77,11 +64,11 @@
 			},
 
 			getConditionValueTypeUrl: function () {
-				return this.getBaseUrl() + '/rest/conditionValueType/' + getAppId();
+				return this.getBaseUrl() + '/rest/conditionValueType/' + appId.encoded;
 			},
 
 			getPolicyUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/' + getAppId();
+				return this.getBaseUrl() + '/rest/policy/' + appId.encoded;
 			},
 
 			getApplicationUrl: function (applicationId) {

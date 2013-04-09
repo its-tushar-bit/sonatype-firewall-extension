@@ -94,4 +94,10 @@ var policyApp;
     policyApp.factory('global', function ($rootScope) {
         return {};
     });
+
+    policyApp.service('ApplicationId', ['commonCodeFactory', function (commonCodeFactory) {
+        return {
+            encoded : commonCodeFactory.getEncodedQueryString('appId')
+        }
+    }]);
 }());

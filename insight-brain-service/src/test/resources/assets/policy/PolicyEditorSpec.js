@@ -1,6 +1,6 @@
 var clmBuildTimestamp = '';
 
-describe('InsightPolicyController tests', function() {
+describe('PolicyEditor', function() {
 	var sampleData = [{"id":"c2e1bf404e6d4f5d9458069a04a5cf11","name":"Policy1","enabled":true,"threatLevel":8,"constraints":[{"id":"f52c8ce2958743d5b5e10b176bfce67b","name":"Constraint1","enabled":true,"operator":"OR","conditions":[{"conditionTypeId":"AgeInDays","operator":"older than","value":"365"}]}],"actions":{"procure":[{"actionTypeId":"fail","target":null}],"develop":[{"actionTypeId":"warn","target":null}],"build":[],"stage-release":[{"actionTypeId":"fail","target":null}],"release":[],"operate":[]}}],
 		sampleActions = { build : [ { actionTypeId : 'notify', target : 'test@example.org' } ], develop : [], operate : [], procure : [{ actionTypeId : 'fail' }], release : [], 'stage-release' : []};
 
@@ -56,11 +56,17 @@ describe('InsightPolicyController tests', function() {
 		});
 	}
 
+    angular.module('ApplicationId',[]).service('ApplicationId', function () {
+		return {
+			encoded : 'bom1-12345678'
+		};
+    });
+
 	angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
 		return $http;
 	} ]);
 
-	beforeEach(module('PolicyEditor'));
+	beforeEach(module('ApplicationId', 'PolicyEditor'));
 
 	it('Test Create New Policy', inject(function ($httpBackend, $routeParams) {
 		$routeParams.policyId = 'new';

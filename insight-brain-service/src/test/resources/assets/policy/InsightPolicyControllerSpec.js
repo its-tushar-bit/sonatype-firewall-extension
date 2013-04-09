@@ -10,7 +10,13 @@ describe('InsightPolicyController tests', function() {
         return $http;
     } ]);
 
-    beforeEach(module('Policy'));
+    angular.module('ApplicationId',[]).service('ApplicationId', function () {
+		return {
+			encoded : 'bom1-12345678'
+		};
+    });
+
+    beforeEach(module('ApplicationId', 'Policy'));
     // setup our http backend to return what we want
     beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations) {
 

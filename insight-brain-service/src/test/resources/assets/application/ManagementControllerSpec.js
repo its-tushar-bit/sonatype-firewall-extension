@@ -43,7 +43,7 @@ describe('ApplicationManagementController', function () {
 
 	it('loads stages', function () {
 		expect(scope.stages).not.toBeUndefined();
-		expect(scope.stages.length).toEqual(5);
+		expect(scope.stages.length).toEqual(MockData.getActionStageData().length);
 	});
 
 	it('generates an icon', function () {

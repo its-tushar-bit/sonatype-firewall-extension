@@ -18,6 +18,8 @@ public class DataSourceFactory
 {
     private static Map<String, DataSource> dataSources = new LinkedHashMap<String, DataSource>();
 
+    private static Map<DataSource, Boolean> newDataSources = new LinkedHashMap<DataSource, Boolean>();
+
     @Override
     protected Map<String, DataSource> getDataSources()
     {
@@ -28,9 +30,15 @@ public class DataSourceFactory
     protected DataSource loadDataSource( DatabaseConfig databaseConfig, String databaseName )
     {
         DataSource dataSource = super.loadDataSource( databaseConfig, databaseName );
-        populateDatabaseSchema( dataSource, databaseName );
+        boolean isNew = populateDatabaseSchema( dataSource, databaseName );
+        newDataSources.put( dataSource, isNew );
 
         return dataSource;
+    }
+
+    boolean isNewDataSource( DataSource dataSource )
+    {
+        return newDataSources.get( dataSource );
     }
 
     public static void clear_ForTestsOnly()

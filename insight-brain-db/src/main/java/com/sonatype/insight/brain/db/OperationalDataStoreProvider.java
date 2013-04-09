@@ -21,6 +21,8 @@ public class OperationalDataStoreProvider
 {
     private static final Logger log = LoggerFactory.getLogger( OperationalDataStoreProvider.class );
 
+    public static final int DESIRED_DATABASE_VERSION = 11;
+
     public static final String ID = "insight_brain_ods";
 
     private static DataSource dataSource;
@@ -44,6 +46,7 @@ public class OperationalDataStoreProvider
         long start = System.currentTimeMillis();
 
         dataSource = new DataSourceFactory().newDataSource( databaseConfig, ID );
+        new H2DatabaseMigrator().migrate( databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 6 /* defaultCurrentVersion */);
         Map<String, Object> props = new LinkedHashMap<String, Object>();
         props.put( "openjpa.ConnectionFactory", dataSource );
         entityManagerFactory = Persistence.createEntityManagerFactory( "InsightBrainODS", props );

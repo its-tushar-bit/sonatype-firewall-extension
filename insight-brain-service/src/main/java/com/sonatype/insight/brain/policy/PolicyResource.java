@@ -40,7 +40,7 @@ public class PolicyResource
     @Context
     private InsightWork work;
 
-    private String getInternalPolicyOwnerId( String policyOwnerId )
+    static String getInternalPolicyOwnerId( String policyOwnerId )
     {
         if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( policyOwnerId ) )
         {

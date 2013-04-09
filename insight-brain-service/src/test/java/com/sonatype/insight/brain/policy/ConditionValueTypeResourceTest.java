@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -17,7 +18,7 @@ public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
 {
     @Test
-    public void testGetConditionValueTypes()
+    public void testGetConditionValueTypes_Application()
         throws Exception
     {
         String appPublicId = "ConditionValueTypeResourceTest_AppId";
@@ -30,8 +31,19 @@ public class ConditionValueTypeResourceTest
         Assert.assertTrue( conditionValueTypes.length > 0 );
     }
 
-    private String getServiceURL( String appId )
+    @Test
+    public void testGetConditionValueTypes_Organization()
+        throws Exception
     {
-        return getRestBaseUrl() + ConditionValueTypeResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
+        final Response response = RestAccess.get( getServiceURL( Policy.ORGANIZATION_OWNER_PUBLIC_ID ) );
+        assertResponseStatus( 200, response );
+        final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
+        Assert.assertNotNull( conditionValueTypes );
+        Assert.assertTrue( conditionValueTypes.length > 0 );
+    }
+
+    private String getServiceURL( String policyOwnerId )
+    {
+        return getRestBaseUrl() + ConditionValueTypeResource.SERVICE_PATH.replace( "{policyOwnerId}", policyOwnerId );
     }
 }

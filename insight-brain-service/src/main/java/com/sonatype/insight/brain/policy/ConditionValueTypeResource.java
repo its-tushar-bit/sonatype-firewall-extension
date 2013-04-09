@@ -16,28 +16,24 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 
 @Path( ConditionValueTypeResource.SERVICE_PATH )
 public class ConditionValueTypeResource
 {
-    public static final String SERVICE_PATH = "rest/conditionValueType/{applicationPublicId}";
+    public static final String SERVICE_PATH = "rest/conditionValueType/{policyOwnerId}";
 
     private static final Logger log = LoggerFactory.getLogger( ConditionValueTypeResource.class );
-
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
 
     @GET
     @Produces( MediaType.APPLICATION_JSON )
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public Collection<ConditionValueType> getConditionValueTypes( @PathParam( "applicationPublicId" ) String applicationPublicId )
+    public Collection<ConditionValueType> getConditionValueTypes( @PathParam( "policyOwnerId" ) String policyOwnerId )
     {
-        log.debug( "Received request to get all condition value types for application ID {}", applicationPublicId );
+        log.debug( "Received request to get all condition value types for policyOwnerId ID {}", policyOwnerId );
 
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        return (Collection) ConditionValueTypes.getAll( application.getId() );
+        String internalPolicyOwnerId = PolicyResource.getInternalPolicyOwnerId( policyOwnerId );
+        return (Collection) ConditionValueTypes.getAll( internalPolicyOwnerId );
     }
 }

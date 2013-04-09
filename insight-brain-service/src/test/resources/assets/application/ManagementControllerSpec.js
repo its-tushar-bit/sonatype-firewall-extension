@@ -57,7 +57,7 @@ describe('ApplicationManagementController', function () {
 	it('adds an application', function () {
 		var nameInput = angular.element("<input id='applicationName' name='applicationName' type='text' ng-model='selectedApplication.name' />");
 		var idInput = angular.element("<input id='applicationPublicId' name='applicationPublicId' type='text' ng-model='selectedApplication.publicId' />");
-		var body = angular.element('body').html("<form name='applicationEditor'></form>").find('form').append(nameInput).append(idInput);
+		var body = angular.element('body').append("<form id='applicationEditor' name='applicationEditor'></form>").find('#applicationEditor').append(nameInput).append(idInput);
 
 		compile(body)(scope);
 
@@ -93,6 +93,8 @@ describe('ApplicationManagementController', function () {
 		scope.saveClick();
 		expect(scope.applicationEditor.applicationName.$valid).not.toBeTruthy();
 		expect(scope.applicationEditor.applicationPublicId.$valid).toBeTruthy();
+
+		angular.element('#applicationEditor').remove();
 	});
 
 	it('deletes an application', function () {

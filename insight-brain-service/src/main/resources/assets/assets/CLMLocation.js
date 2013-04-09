@@ -113,7 +113,7 @@
 			},
 			
 			getLicenseUploadUrl: function() {
-			    return this.getBaseUrl() + '/rest/productlicense';
+			    return this.getBaseUrl() + '/rest/product/license';
 			}
 		};
 	}]);

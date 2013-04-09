@@ -1,7 +1,7 @@
+// pulled from http://ng-upload.eu01.aws.af.cm/libs/js/ng-upload.js
 // Version 0.2.0 
 // AngularJS simple file upload directive
 // this directive uses an iframe as a target
-// pulled from http://ng-upload.eu01.aws.af.cm/libs/js/ng-upload.js
 // to enable the uploading of files without
 // losing focus in the ng-app.
 //

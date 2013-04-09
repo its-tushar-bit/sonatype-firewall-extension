@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.policy.ConditionValueTypeResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.productlicense.ProductLicenseResource;
+import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphHealthCheck;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;

@@ -1,4 +1,4 @@
-package com.sonatype.insight.brain.productlicense;
+package com.sonatype.insight.brain.product.license;
 
 import javax.inject.Named;
 

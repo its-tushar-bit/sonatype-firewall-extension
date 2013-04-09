@@ -1,4 +1,4 @@
-package com.sonatype.insight.brain.productlicense;
+package com.sonatype.insight.brain.product.license;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +20,7 @@ import com.sun.jersey.multipart.FormDataParam;
 @Named
 public class ProductLicenseResource
 {
-    public static final String SERVICE_PATH = "rest/productlicense";
+    public static final String SERVICE_PATH = "rest/product/license";
 
     private final ProductLicenseManager licenseManager;
 

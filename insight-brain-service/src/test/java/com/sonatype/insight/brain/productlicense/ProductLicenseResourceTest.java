@@ -12,6 +12,7 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 
 import com.google.inject.AbstractModule;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
 import com.sun.jersey.api.client.Client;

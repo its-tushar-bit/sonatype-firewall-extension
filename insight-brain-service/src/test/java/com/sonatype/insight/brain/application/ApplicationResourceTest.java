@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -38,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -237,17 +239,14 @@ public class ApplicationResourceTest
         FileUtils.copyFile( saasReportFile1, getReportResponseFile( applicationPublicId, scanId2 ) );
 
         // Eval policy
-        Response response =
-            RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
-                             JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
+        Response response = RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
+                                             JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
         assertResponseStatus( 200, response );
-        response =
-            RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
-                             JsonHelpers.asJson( new Stage( Stage.ID_RELEASE ) ) );
+        response = RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
+                                    JsonHelpers.asJson( new Stage( Stage.ID_RELEASE ) ) );
         assertResponseStatus( 200, response );
-        response =
-            RestAccess.post( getEvalURL( applicationPublicId, scanId2 ),
-                             JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
+        response = RestAccess.post( getEvalURL( applicationPublicId, scanId2 ),
+                                    JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
         assertResponseStatus( 200, response );
 
         response = RestAccess.get( getServiceURL() );
@@ -268,6 +267,22 @@ public class ApplicationResourceTest
         Assert.assertEquals( Stage.ID_RELEASE,
                              applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
         Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
+
+        // Scans count
+        final File saasScanFile = getScanResponseFile( applicationPublicId );
+        saasScanFile.delete();
+
+        final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
+        FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
+
+        RestAccess.put( getScanURL( applicationPublicId ), "" );
+
+        response = RestAccess.get( getServiceURL() );
+        assertResponseStatus( 200, response );
+
+        applications = JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary[].class );
+        Assert.assertNotNull( applications );
+        Assert.assertEquals( 1, applications[0].getScansCount() );
 
         // Test GetApplication
         response = RestAccess.get( getApplicationServiceUrl( applicationPublicId ) );
@@ -299,7 +314,7 @@ public class ApplicationResourceTest
         Response response = RestAccess.get( getServiceURL() + "/services/names" );
         assertResponseStatus( 200, response );
 
-        @SuppressWarnings("unchecked") Map<String, String> applicationNames =
+        @SuppressWarnings( "unchecked" ) Map<String, String> applicationNames =
             JsonHelpers.fromJson( response.getResponseBody(), Map.class );
         Assert.assertNotNull( applicationNames );
 
@@ -334,5 +349,10 @@ public class ApplicationResourceTest
     {
         return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}", appId )
             + "?scanId=" + scanId;
+    }
+
+    private String getScanURL( final String appId )
+    {
+        return getRestBaseUrl() + CIResource.SERVICE_PATH + "/scan/" + appId;
     }
 }

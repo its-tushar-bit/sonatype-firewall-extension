@@ -314,8 +314,7 @@ public class ApplicationResource
         {
             return true;
         }
-        File[] scans = work.getScanDir( applicationManagementSummary.getId() ).listFiles();
-        if ( scans != null && scans.length > 0 )
+        if ( applicationManagementSummary.getScansCount() != 0 )
         {
             return true;
         }
@@ -367,6 +366,8 @@ public class ApplicationResource
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
         applicationManagement.setPolicyEvaluations( work.getMostRecentPolicyEvaluations( application.getId() ) );
+        File[] scans = work.getScanDir( applicationManagement.getId() ).listFiles();
+        applicationManagement.setScansCount( scans != null ? scans.length : 0 );
 
         return applicationManagement;
     }

@@ -1,0 +1,35 @@
+.tableBox {
+    overflow: auto;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.tableBox tr:last-child td {
+    border-bottom-width: 0px;
+}
+
+.tableBox td {
+    border-bottom: 1px solid #ddd;
+}
+
+.tick {
+	background: url(img/tick.png) no-repeat;
+	display: inline-block;
+	height : 16px;
+	width : 16px;
+}
+
+table.policy-table > thead > tr, table.policy-table th {
+	text-align:center
+}
+
+table.policy-table input[type=radio] {
+	margin-top: -3px;
+}
+
+.policy-table th + th {
+	width: 80px;
+}
+.policy-table th + th, .policy-table td + td {
+	text-align:center;
+}

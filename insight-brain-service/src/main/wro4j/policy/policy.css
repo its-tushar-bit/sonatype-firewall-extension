@@ -12,35 +12,6 @@
     vertical-align: middle;
 }
 
-/* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */
-.threat-level-0, .threat-level option[value="10"] {
-    border: 1px solid #6185B7;
-    background-color: #6E99D0;
-    font-weight: bold;
-    color: #DDD;
-}
-
-.threat-level-1, .threat-level-2, .threat-level-3, .threat-level option[value="7"], .threat-level option[value="8"], .threat-level option[value="9"] {
-    border: 1px solid #DDBE18;
-    background-color: #FEDF15;
-    font-weight: bold;
-    color: #555;
-}
-
-.threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level option[value="3"], .threat-level option[value="4"], .threat-level option[value="5"], .threat-level option[value="6"] {
-    border: 1px solid #C67A22;
-    background-color: #F7941D;
-    font-weight: bold;
-    color: #DDD;
-}
-
-.threat-level-8, .threat-level-9, .threat-level-10, .threat-level option[value="0"], .threat-level option[value="1"], .threat-level option[value="2"] {
-    border: 1px solid #B71218;
-    background-color: #EE1B24;
-    font-weight: bold;
-    color: #DDD;
-}
-
 .policy-item {
     border: 1px solid #e5e5e5;
     float: left;
@@ -151,18 +122,4 @@
 
 .licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
     cursor: pointer
-}
-
-.tableBox {
-    overflow: auto;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-}
-
-.tableBox tr:last-child td {
-    border-bottom-width: 0px;
-}
-
-.tableBox td {
-    border-bottom: 1px solid #ddd;
 }

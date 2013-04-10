@@ -32,28 +32,24 @@
                     <input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-Down
                            prevent-Submit/>
                 </div>
-                <div class='controls' style='clear: both;'>
-                    <div class='halfSize floatLeft'>
-                        <h5>Applied Licenses</h5>
-
-                        <div class='licenseContainer'>
-                            <div>
-                                <div ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-                                    <i class='icon-minus-sign' ng-click='setIsApplied(l, false)'></i>&nbsp;<span
-                                        title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-                                </div>
+                <div class='selectList'>
+                    <h5>Applied Licenses</h5>
+                    <div>
+                        <div>
+                            <div ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
+                                <i class='icon-minus-sign' ng-click='setIsApplied(l, false)'></i>&nbsp;<span
+                                    title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
                             </div>
                         </div>
                     </div>
-                    <div class='halfSize floatRight'>
-                        <h5>Available Licenses</h5>
-
-                        <div class='licenseContainer'>
-                            <div>
-                                <div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-                                    <i class='icon-plus-sign' ng-click='setIsApplied(l, true)'></i>&nbsp;<span
-                                        title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-                                </div>
+                </div>
+                <div class='selectList'>
+                    <h5>Available Licenses</h5>
+                    <div>
+                        <div>
+                            <div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
+                                <i class='icon-plus-sign' ng-click='setIsApplied(l, true)'></i>&nbsp;<span
+                                    title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
                             </div>
                         </div>
                     </div>

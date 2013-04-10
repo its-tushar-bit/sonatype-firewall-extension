@@ -5,13 +5,13 @@
 				<div class="header">Application Profiles</div>
 				<div ng-show='!profiles'><i class='icon-time'></i> Loading</div>
 				<div class="body">
-					<div ng-repeat="profile in profiles | orderBy:profile.name" ng-class="{'selected' : selectedProfile.id == profile.id}"  ng-click='editProfile(profile)' style='cursor:pointer'>
+					<div ng-repeat="profile in profiles | orderBy:profile.name" ng-class="{'selected' : selectedProfile.id == profile.id}"  ng-click='editProfile(profile)'>
 						<i class='icon-chevron-right' style='float:right'></i>
 						{{profile.name}}
 					</div>
 				</div>
 				<div class="footer">
-					<button class="btn btn-add btn-info" ng-click="editProfile()" style="width:80%">
+					<button class="btn btn-add btn-info" ng-click="editProfile()">
 						<i class="icon-white icon-plus-sign"></i> Add Profile
 					</button>
 				</div>
@@ -48,10 +48,9 @@
 											<button ng-click='editPolicy()' class='btn btn-info' type='button'><i class=' icon-white icon-plus-sign'></i> Create New</button>
 										</div>
 									</div>
-									<div style='display:inline-block;width:49.5%;vertical-align:top'>
+									<div class='selectList'>
 										<h5 style='padding-left:10px'>Applied Policies</h5>
-
-										<div class='licenseContainer'>
+										<div class=''>
 											<div>
 												<div ng-repeat='profilePolicyId in profilePolicies | filter: filterName | orderBy: profileIdMap[profilePolicyId].name'>
 													<i class='icon-minus-sign' ng-click='removeProfilePolicy(profilePolicyId)'></i>&nbsp;
@@ -60,10 +59,9 @@
 											</div>
 										</div>
 									</div>
-									<div style='display:inline-block;width:49.5%;vertical-align:top'>
+									<div class='selectList'>
 										<h5 style='padding-left:5px'>Available Policies</h5>
-
-										<div class='licenseContainer'>
+										<div>
 											<div>
 												<div ng-repeat='policy in policies | filter:filterAvailablePolicies | orderBy: policy.name'>
 													<i class='icon-plus-sign' ng-click='addProfilePolicy(policy)'></i>&nbsp;

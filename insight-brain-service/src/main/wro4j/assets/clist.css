@@ -1,0 +1,44 @@
+.content-list {
+	max-height: 100%;
+}
+.content-list > .header, .content-list > .footer, .content-list > .body > div  {
+	overflow: hidden;
+	padding: 8px;
+}
+.content-list > .header, .content-list > .footer {
+	overflow: hidden;
+}
+
+.content-list > .header {
+	font-weight: bold;
+	border-bottom: 1px solid #dddddd;
+}
+
+.content-list > .body > div:nth-child(odd) {
+	background-color: #f9f9f9;
+}
+.content-list > .body {
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+.content-list > .body > div {
+	border-bottom: 1px solid #dddddd;
+	word-wrap: break-word;
+	cursor: pointer;
+}
+.content-list > .body > div:nth-last-child(1) {
+	border-bottom: 0px;
+}
+.content-list > .footer {
+	border-top: 1px solid #dddddd;
+	text-align: center;
+}
+.content-list > .footer > button {
+	width: 80%;
+}
+
+.content-list .selected {
+	background-color: #dff0d8 !important;
+	color: #468847;
+}
+

@@ -22,6 +22,7 @@
     <dropwizard.version>0.6.2</dropwizard.version>
     <!-- The jersey.version must match the the jersey version used by dropwizard -->
     <jersey.version>1.17.1</jersey.version>
+    <wro4j.version>1.6.3</wro4j.version>
   </properties>
 
   <dependencies>
@@ -523,6 +524,51 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>ro.isdc.wro4j</groupId>
+        <artifactId>wro4j-maven-plugin</artifactId>
+        <version>${wro4j.version}</version>
+        <executions>
+          <execution>
+            <id>css-assets</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+	          <targetGroups>insight</targetGroups>
+	          <cssDestinationFolder>${project.build.directory}/classes/assets/assets/</cssDestinationFolder>
+            </configuration>
+          </execution>
+          <execution>
+            <id>css-policy-assets</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+	          <targetGroups>policy</targetGroups>
+	          <cssDestinationFolder>${project.build.directory}/classes/assets/policy/</cssDestinationFolder>
+            </configuration>
+          </execution>
+          <execution>
+            <id>css-application-assets</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+	          <targetGroups>application</targetGroups>
+	          <cssDestinationFolder>${project.build.directory}/classes/assets/application/</cssDestinationFolder>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <contextFolder>${basedir}/src/main/wro4j</contextFolder>
+          <wroFile>${basedir}/wro.xml</wroFile>
+          <ignoreMissingResources>false</ignoreMissingResources>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>

@@ -52,37 +52,37 @@
 			<div class="control-group">
 				<label class="control-label" style="width:100px;">Actions</label>
 				<div class="controls" style="margin-left:120px;">
-					<table class="table table-striped table-bordered table-condensed">
+					<table class="table table-striped table-bordered table-condensed policy-table">
 						<thead>
 							<tr>
-								<th style="vertical-align:bottom;">
+								<th style="vertical-align:bottom;text-align:left">
 									<div style="margin:auto;display:inline;">Stage</div>
 									<button class="btn btn-mini" ng-class="{ active : state.actionEditMode }" style="float:right;" ng-click="state.actionEditMode = !state.actionEditMode" title="Edit Actions"><i class="icon-pencil"></i></button>
 								</th>
-								<th style="text-align:center;">Fail</th>
-								<th style="text-align:center;">Warn</th>
-								<th style="text-align:center;">Do Nothing</th>
-								<th style="text-align:center;" colspan='2' ng-show='features.notification'>Notify</th>
+								<th>Fail</th>
+								<th>Warn</th>
+								<th>Do Nothing</th>
+								<th style='width:90px' colspan='2'>Notify</th>
 							</tr>
 						</thead>
 						<tr ng-repeat="stage in actionStages">
-							<td style="width:29%;">{{stage.name}}</td>
-							<td style="width:15%;text-align:center;">
+							<td>{{stage.name}}</td>
+							<td style="height:22px">
 								<input ng-model="state.actions[stage.id].action" value="fail" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
-								<img src="img/tick.png" ng-show="!state.actionEditMode && state.actions[stage.id].action == 'fail'">
+								<i class='tick' ng-show="!state.actionEditMode && state.actions[stage.id].action == 'fail'"></i>
 							</td>
-							<td style="width:15%;text-align:center;">
+							<td>
 								<input ng-model="state.actions[stage.id].action" value="warn" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
-								<img src="img/tick.png" ng-show="!state.actionEditMode && state.actions[stage.id].action == 'warn'">
+								<i class='tick' ng-show="!state.actionEditMode && state.actions[stage.id].action == 'warn'"></i>
 							</td>
-							<td style="width:25%;text-align:center;">
+							<td>
 								<input ng-model="state.actions[stage.id].action" value="none" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
-								<img src="img/tick.png" ng-show="!state.actionEditMode && (state.actions[stage.id].action == 'none' || state.actions[stage.id].action == null)">
+								<i class='tick' ng-show="!state.actionEditMode && (state.actions[stage.id].action == 'none' || state.actions[stage.id].action == null)"></i>
 							</td>
-							<td style="width:15%;max-width:50px;overflow:hidden;text-align:center;" ng-show='features.notification'>
+							<td style="overflow:hidden;">
 								<div style="display:inline;overflow:hidden;"><i class="icon-user"></i> {{state.actions[stage.id].notify.length}}</div>
 							</td>
-							<td style="width:1%;" ng-show="state.actionEditMode && features.notification">
+							<td ng-show="state.actionEditMode">
 								<div><button class="btn btn-mini" ng-click="editNotification(state.actions[stage.id].notify)" title="Edit Notifications"><i class="icon-pencil"></i></button></div>
 							</td>
 						</tr>

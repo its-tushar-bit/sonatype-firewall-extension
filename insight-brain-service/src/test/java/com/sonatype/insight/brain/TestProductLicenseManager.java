@@ -47,6 +47,10 @@ public class TestProductLicenseManager
     public ProductLicenseKey getLicenseDetails()
         throws LicensingException
     {
+        if ( !valid )
+        {
+            throw new LicensingException( "Not licensed" );
+        }
         return key;
     }
 
@@ -54,6 +58,10 @@ public class TestProductLicenseManager
     public ProductLicenseKey getLicenseDetails( final InputStream licenseFile )
         throws IOException, LicensingException
     {
+        if ( !valid )
+        {
+            throw new LicensingException( "Not licensed" );
+        }
         return key;
     }
 

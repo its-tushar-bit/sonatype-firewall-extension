@@ -47,12 +47,14 @@ public abstract class SisuService<T extends Configuration>
     private static final Logger logger = LoggerFactory.getLogger( SisuService.class );
 
     private final List<Module> initModules = new ArrayList<Module>();
+    
+    private Injector injector = null;
 
     @Override
     public void run( T configuration, Environment environment )
         throws Exception
     {
-        Injector injector = createInjector( configuration );
+        injector = createInjector( configuration );
         injector.injectMembers( this );
         runWithInjector( configuration, environment, injector );
     }
@@ -124,6 +126,11 @@ public abstract class SisuService<T extends Configuration>
     public void addModules( Collection<Module> modules )
     {
         this.initModules.addAll( modules );
+    }
+    
+    protected Injector getInjector()
+    {
+        return injector;
     }
 
     private static void addManaged( Environment environment, BeanLocator locator )

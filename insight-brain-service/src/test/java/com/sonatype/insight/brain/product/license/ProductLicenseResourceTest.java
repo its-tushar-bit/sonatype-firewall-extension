@@ -1,18 +1,20 @@
-package com.sonatype.insight.brain.productlicense;
+package com.sonatype.insight.brain.product.license;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.licensing.product.ProductLicenseManager;
 
 import com.google.inject.AbstractModule;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
 import com.sun.jersey.api.client.Client;
@@ -65,6 +67,47 @@ public class ProductLicenseResourceTest
         resource.delete();
 
         Assert.assertFalse( licenseManager.isValid() );
+    }
+
+    @Test
+    public void testProperHtmlRetrieved()
+        throws Exception
+    {
+        testInstallLicense();
+        assertHtmlContents( getApplicationIndexUrl(), "<!-- unlicensed -->", false );
+        testUninstallLicense();
+        assertHtmlContents( getApplicationIndexUrl(), "<!-- unlicensed -->", true );
+        testInstallLicense();
+        assertHtmlContents( getPolicyIndexUrl(), "<!-- unlicensed -->", false );
+        testUninstallLicense();
+        assertHtmlContents( getPolicyIndexUrl(), "<!-- unlicensed -->", true );
+    }
+
+    private void assertHtmlContents( String path, String contents, boolean match )
+        throws IOException
+    {
+        InputStream is = Client.create().resource( path ).get( InputStream.class );
+
+        try
+        {
+            String html = IOUtils.toString( is );
+
+            Assert.assertEquals( match, html.contains( contents ) );
+        }
+        finally
+        {
+            is.close();
+        }
+    }
+
+    private String getApplicationIndexUrl()
+    {
+        return getRestBaseUrl() + "application-assets/index.html";
+    }
+
+    private String getPolicyIndexUrl()
+    {
+        return getRestBaseUrl() + "policy-assets/index.html";
     }
 
     private String getServiceURL()

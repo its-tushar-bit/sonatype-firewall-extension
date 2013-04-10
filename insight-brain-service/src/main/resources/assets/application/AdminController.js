@@ -10,6 +10,12 @@
 
     var adminModule = angular.module('Admin', [ 'AngularCommon', 'CLMLocation', 'ngUpload' ]);
 
+    adminModule.service('ApplicationId', function() {
+        return {
+            encoded : 'orgf0367c36c57a42f2a494ecb1ba26b7e7'
+        };
+    });
+
     adminModule.controller('AdminController', [ '$scope', 'CLMLocations', function($scope, clmLocations) {
         $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
 
@@ -21,5 +27,9 @@
             $scope.showInstall = false;
             $('#licenseInstalledModal').modal('show');
         };
+        
+        $scope.licenseInstalled = function() {
+            window.location.reload();
+        }
     } ]);
 }());

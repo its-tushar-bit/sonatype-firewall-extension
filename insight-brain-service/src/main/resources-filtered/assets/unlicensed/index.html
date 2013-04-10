@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<!-- unlicensed -->
+<html lang="en" ng-app="Admin">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Sonatype CLM Server</title>
+<link type="text/css" href="../assets/bootstrap/bootstrap-2.3.1.min.css" rel="stylesheet" />
+<link type="text/css" href="../assets/insight.css?${build.timestamp}" rel="stylesheet" />
+<link rel='shortcut icon' href='../assets/favicon.ico' />
+<script type='text/javascript'>
+    var clmBuildTimestamp = '${build.timestamp}';
+</script>
+<script type='text/javascript' src='../assets/jquery/jquery-1.8.3.min.js'></script>
+<script type='text/javascript' src='../assets/bootstrap/bootstrap-2.3.1.min.js'></script>
+<script type='text/javascript' src='../assets/angular/angular-1.0.5.min.js'></script>
+<script type='text/javascript' src='../assets/angular/angular-sanitize-1.0.5.min.js'></script>
+<script type='text/javascript' src='../assets/angular/ng-upload-0.2.0.js'></script>
+<script type='text/javascript' src='../assets/CLMLocation.js?${build.timestamp}'></script>
+<script type='text/javascript' src='../assets/AngularCommon.js?${build.timestamp}'></script>
+<script type='text/javascript' src='../application-assets/AdminController.js?${build.timestamp}'></script>
+</head>
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div style='width: 950px; margin: auto;'>
+				<a class="title brand" href="#"> <img src='../assets/img/sonatype-32.png' alt='Logo' /> <span class='brand-header'>Sonatype CLM</span>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class='page-content' ng-controller='AdminController'>
+		<div class='container'>
+			<div class='row'>
+				<div class='span4 content-container'>
+					<table class='table table-striped' style='margin-bottom: 0px'>
+						<thead>
+							<tr>
+								<th colspan='2'>Licensing</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<tr>
+								<td colspan='2' style='text-align: center;'>
+									<button class='btn btn-add btn-info' ng-click='viewInstallLicense()' style='width: 80%'>
+										<i class='icon-white icon-plus-sign'></i> Install License
+									</button>
+								</td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+				<div class='span7' ng-show='showInstall'>
+					<div class='content-container'>
+						<div class='modal-header'>
+							<h4>
+								<span>Install License</span>
+							</h4>
+						</div>
+						<form ng-upload='installLicense()' action='{{uploadUrl}}' class='form-horizontal' style='margin: 0px' method='post'>
+							<div class='modal-body'>
+								<div class='control-group'>
+									<label>Select a license file to upload:</label> <input type="file" name="file" /> <input type="submit" class="btn btn-primary upload-submit"
+										value="Submit" />
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div id="licenseInstalledModal" data-backdrop="static" class="modal hide">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h3>License Installed!</h3>
+				</div>
+				<div class="modal-body">
+					<p>Your license has been installed.</p>
+				</div>
+				<div class="modal-footer">
+					<button class="btn" ng-click="licenseInstalled()">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

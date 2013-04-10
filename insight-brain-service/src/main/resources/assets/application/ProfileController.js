@@ -41,7 +41,6 @@
 
 		$scope.confirmDeleteProfile = function (profile) {
 			// open modal
-			$scope.selectedProfile = profile;
 			$('#deleteProfileModal').modal('show');
 		};
 

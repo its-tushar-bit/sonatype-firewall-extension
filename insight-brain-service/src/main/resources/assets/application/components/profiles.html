@@ -1,45 +1,24 @@
-<div class='container'>
-	<div class='row'>
-		<div class='span4'>
-			<div class='content-container'>
-				<table class='table table-striped' style='margin-bottom:0px'>
-					<thead>
-						<tr>
-							<th colspan='2'>Application Profiles</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-show='!profiles'>
-							<td colspan='2'><i class='icon-time'></i> Loading</td>
-						</tr>
-						<tr ng-repeat="profile in profiles" ng-class='{"selected" : selectedProfile.id == profile.id}'>
-							<td style='height:24px;overflow:hidden'>{{profile.name}}</td>
-							<td style='width:60px'>
-								<div class='btn-group'>
-									<button type='button' ng-click='editProfile(profile)' class="btn btn-mini btn-edit" title="Edit Profile">
-										<i class="icon-pencil" style="margin-top:0px;"></i>
-									</button>
-									<button type='button' ng-click='confirmDeleteProfile(profile)' class="btn btn-mini btn-delete" title="Delete Profile">
-										<i class="icon-trash" style="margin-top:0px;"></i>
-									</button>
-								</div>
-							</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr>
-							<td colspan='2' style='text-align:center;'>
-								<button class='btn btn-add btn-info' ng-click='editProfile()' style='width:80%'>
-									<i class='icon-white icon-plus-sign'></i> Add Profile
-								</button>
-							</td>
-						</tr>
-					</tfoot>
-				</table>
+<div class='container' style='height:100%'>
+	<div class='row' style='height:100%'>
+		<div class='span4' style='height:100%'>
+			<div class="content-container content-list" clist>
+				<div class="header">Application Profiles</div>
+				<div ng-show='!profiles'><i class='icon-time'></i> Loading</div>
+				<div class="body">
+					<div ng-repeat="profile in profiles | orderBy:profile.name" ng-class="{'selected' : selectedProfile.id == profile.id}"  ng-click='editProfile(profile)' style='cursor:pointer'>
+						<i class='icon-chevron-right' style='float:right'></i>
+						{{profile.name}}
+					</div>
+				</div>
+				<div class="footer">
+					<button class="btn btn-add btn-info" ng-click="editProfile()" style="width:80%">
+						<i class="icon-white icon-plus-sign"></i> Add Profile
+					</button>
+				</div>
 			</div>
 		</div>
 		<div class='span8'>
-			<div class='content-container' ng-show='selectedProfile == null'>Select a Profile</div>
+			<div class='content-container' ng-show='selectedProfile == null' style='width:50%;margin:auto;padding:15px;text-align:center'>Select a Profile</div>
 			<div ng-switch on='policyEdit' ng-show='selectedProfile != null'>
 				<div ng-switch-when='true' style='fade in'  ng-include='"../assets/components/policy-editor/policy-editor.html"' ng-controller='PolicyEditorController'>
 				</div>
@@ -49,6 +28,7 @@
 					</div>
 					<div class='content-container fade' ng-class='{ in : profilePolicies != null }'>
 						<div class='modal-header'>
+							<div style='float:right'><button type='button' class='btn btn-mini'ng-click='confirmDeleteProfile(profile)'><i class='icon-trash'></i></button></div>
 							<h4><span ng-show='selectedProfile.id != null'>Edit</span><span ng-show='selectedProfile.id == null'>Add</span> Application Profile</h4>
 						</div>
 						<form name='editProfileForm' ng-submit='submitProfile()' class='form-horizontal' style='margin:0px'>

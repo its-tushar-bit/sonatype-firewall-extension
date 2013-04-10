@@ -34,6 +34,28 @@ var angularCommon;
 		};
 	});
 
+	angularCommon.directive('clist', function () {
+		return {
+			restrict : 'A',
+			scope : false,
+			link : function (scope, element) {
+				function update() {
+					var availableHeight = element.parent().innerHeight(),
+						footerHeight = angular.element('.footer', element).outerHeight(),
+						headerHeight = angular.element('.header', element).outerHeight();
+
+					angular.element('.body', element).css('max-height', (availableHeight - footerHeight - headerHeight - 10) + 'px');
+				}
+
+				scope.$on('$destroy', function () {
+					$(window).unbind('resize', update);
+				});
+				$(window).bind('resize', update);
+				update();
+			}
+		};
+	});
+
 	angularCommon.directive('typeAhead', ['$parse', function ($parse) {
 		'use strict';
 

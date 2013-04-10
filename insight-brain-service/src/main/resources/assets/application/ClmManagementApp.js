@@ -4,11 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, $, clmBuildTimestamp */
-var clmManagementApp;
 (function () {
     "use strict";
 
-    clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'Management', 'Report', 'Profile', 'Admin'], ['$routeProvider', function ($routeProvider) {
+    var clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'Management', 'Report', 'Profile', 'Admin'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/management', {
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ManagementController'

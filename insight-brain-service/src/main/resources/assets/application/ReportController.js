@@ -39,10 +39,12 @@
         return {
             template: "<iframe ng-src='{{reportUrl}}' width='100%' height='1000px' border='0' frameborder='0' scrolling='yes' style='overflow:auto;'/>",
             compile: function () {
+                var resizeTimeoutId;
+
                 function setDimensions() {
                     var iframe = angular.element('iframe');
                     if (!iframe) {
-                        clearTimeout(setDimensions);
+                        clearTimeout(resizeTimeoutId);
                         return;
                     }
                     var windowHeight = (window.innerHeight) ? window.innerHeight : $(document.body).getHeight(),
@@ -58,7 +60,6 @@
                     resizeTimeoutId = setTimeout(setDimensions, 100);
                 }
 
-                var resizeTimeoutId;
                 setTimeout(setDimensions, 100);
                 window.onresize = dedupe;
             }

@@ -179,7 +179,7 @@
 			link: function (scope, element, attrs, ctrl) {
 				var validator = function (newValue) {
 					if (!newValue) {
-						return false;
+						return undefined;
 					}
 
 					var unique = true;

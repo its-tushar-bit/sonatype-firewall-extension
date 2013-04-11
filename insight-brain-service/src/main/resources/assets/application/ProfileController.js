@@ -186,14 +186,18 @@
 		$scope.$watch('selectedProfile', function (newValue) {
 			delete $scope.profilePolicies;
 			if (newValue !== null && angular.isDefined(newValue)) {
-				$http.get(clmLocations.getApplicationProfilePoliciesUrl(newValue.id)).success(function (data) {
-					if ($scope.selectedProfile && $scope.selectedProfile.id === newValue.id) {
-						$scope.profilePolicies = [];
-						angular.forEach(data, function (applicationProfilePolicy) {
-							$scope.profilePolicies.push(applicationProfilePolicy.policyId);
-						});
-					}
-				}).error($scope.errorLoading);
+				if (newValue.id !== null) {
+					$http.get(clmLocations.getApplicationProfilePoliciesUrl(newValue.id)).success(function (data) {
+						if ($scope.selectedProfile && $scope.selectedProfile.id === newValue.id) {
+							$scope.profilePolicies = [];
+							angular.forEach(data, function (applicationProfilePolicy) {
+								$scope.profilePolicies.push(applicationProfilePolicy.policyId);
+							});
+						}
+					}).error($scope.errorLoading);
+				} else {
+					$scope.profilePolicies = [];
+				}
 			}
 		});
 

@@ -1,6 +1,6 @@
 var clmTimestamp = '';
 
-describe('ManagementController', function () {
+describe('ApplicationManagementController', function () {
 	var scope, httpBackend, rootScope, clmLocations, compile, mockApplication;
 
 	function toRegExp(getUrl) {
@@ -17,7 +17,7 @@ describe('ManagementController', function () {
 		return $http;
 	}]);
 
-	beforeEach(module('ApplicationId', 'Management', 'AngularCommon', 'CLMLocation', 'Hudson'));
+	beforeEach(module('ApplicationId', 'ApplicationManagement', 'AngularCommon', 'CLMLocation', 'Hudson'));
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
@@ -29,10 +29,11 @@ describe('ManagementController', function () {
 		httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(applicationsData);
 		httpBackend.whenGET(toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
 		httpBackend.whenGET(toRegExp(CLMLocations.getCanGetHashIcon())).respond("true");
+		httpBackend.whenGET(toRegExp(CLMLocations.getProfilesUrl())).respond([]);
 
 		scope = $rootScope.$new();
 
-		$controller('ManagementController', {$scope: scope, hudson: hudson});
+		$controller('ApplicationManagementController', {$scope: scope, hudson: hudson});
 
 		// Edit Controller needs an application to be selected
 		scope.selectedApplication = { id: null, publicId: null, name: null };

@@ -88,8 +88,6 @@
             }
         }
 
-        $scope.submitActive = false;
-
         $scope.setColor = function (color) {
             $scope.selectedLabel.color = color;
         };
@@ -99,7 +97,7 @@
 		};
 
         $scope.canSaveEdit = function (valid) {
-            return valid && !$scope.submitActive && $scope.selectedLabel != null && $scope.selectedLabel.label.length > 0;
+            return valid && !$scope.submitActive && $scope.selectedLabel != null && $scope.selectedLabel.label;
         };
 
         $scope.saveLabelClick = function () {
@@ -132,6 +130,12 @@
                 $scope.labelEditor.editErrorResponse = null;
             }
         };
+
+		$scope.$watch('selectedLabel', function (newValue) {
+			if (newValue) {
+				$scope.submitActive = false;
+			}
+		});
     }]);
 
     labelModule.directive('itemLabel', function () {

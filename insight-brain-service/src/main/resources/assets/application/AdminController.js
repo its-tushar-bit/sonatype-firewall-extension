@@ -16,19 +16,34 @@
         };
     });
 
-    adminModule.controller('AdminController', [ '$scope', 'CLMLocations', function($scope, clmLocations) {
+    adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function($http, $scope, clmLocations) {
         $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
 
         $scope.viewInstallLicense = function() {
             $scope.showInstall = true;
         };
+        
+        $scope.viewUninstallLicense = function() {
+            $('#licenseUninstallConfirmationModal').modal('show');
+        }
 
         $scope.installLicense = function() {
             $scope.showInstall = false;
             $('#licenseInstalledModal').modal('show');
         };
         
+        $scope.uninstallLicense = function() {
+            $http.delete($scope.uploadUrl).success(function (data) {
+                $('#licenseUninstallConfirmationModal').modal('hide');
+                $('#licenseUninstalledModal').modal('show');
+            });
+        }
+        
         $scope.licenseInstalled = function() {
+            window.location.reload();
+        }
+        
+        $scope.licenseUninstalled = function() {
             window.location.reload();
         }
     } ]);

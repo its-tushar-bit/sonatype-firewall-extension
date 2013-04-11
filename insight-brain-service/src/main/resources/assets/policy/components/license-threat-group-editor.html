@@ -8,7 +8,7 @@
                 <div class='controls'>
                     <input id='licenseGroupEditorName' name='name' type='text'
                            class='input' maxlength='50' ng-model='selectedGroup.name'
-                           item-label> <span
+                           required> <span
                         ng-show='licenseGroupEditor.name.$error.empty' class='help-inline'>Required</span>
 					<span ng-show='licenseGroupEditor.name.$error.duplicate'
                           class='help-inline'>Duplicate Label</span>
@@ -63,7 +63,7 @@
             </div>
         </div>
         <div class='modal-footer'>
-            <button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+            <button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
             <button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
         </div>
     </form>

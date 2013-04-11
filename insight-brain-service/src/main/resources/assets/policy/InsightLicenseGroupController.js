@@ -10,12 +10,6 @@
     var licenseGroupModule = angular.module('LicenseGroup', ['AngularCommon']);
 
     licenseGroupModule.controller('InsightLicenseGroupController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
-        if (typeof($scope.features) === 'undefined') {
-            $scope.features = {};
-        }
-        $scope.features.licenseGroup = true;
-        $scope.allLicenses = null;
-
         function sortLicense(a, b) {
             if (a.id < b.id) {
                 return -1;
@@ -35,6 +29,19 @@
             }
             return 0;
         }
+
+		function deselect() {
+			delete $scope.selectedGroup;
+		}
+
+        $scope.editorUrl = 'components/license-threat-group-editor.html?' + clmBuildTimestamp;
+
+        if (typeof($scope.features) === 'undefined') {
+            $scope.features = {};
+        }
+        $scope.features.licenseGroup = true;
+        $scope.allLicenses = null;
+
 
         $http.get(clmLocations.getLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
@@ -59,7 +66,6 @@
             }).error($scope.showServerError);
 
         $scope.editLicenseGroup = function (group) {
-            $scope.editorUrl = 'components/license-threat-group-editor.html?' + clmBuildTimestamp;
 
             $scope.selectedGroup = { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 };
             if (group) {
@@ -103,8 +109,6 @@
             }
 
             $scope.licenses = availableLicenses;
-
-            $('#licenseGoupEditModal').modal('show');
         };
 
         $scope.confirmDeleteLicenseGroup = function (group) {
@@ -122,14 +126,19 @@
                         return false;
                     }
                 });
+                deselect();
                 $('#deleteLicenseGroupModal').modal('hide');
             }).error($scope.showServerError);
         };
+
+		$scope.$on('license.cancelLicenseGroupEdit', function (event, licenseGroup) {
+			if (!licenseGroup || licenseGroup.id === $scope.selectedGroup.id) {
+				deselect();
+			}
+		});
     }]);
 
     licenseGroupModule.controller('InsightLicenseGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', function ($scope, $filter, $http, hudson, clmLocations) {
-        $scope.submitActive = false;
-
         $scope.threatLevels = [
             {'value': 10, 'name': '10'},
             {'value': 9, 'name': '9'},
@@ -171,7 +180,7 @@
         };
 
         $scope.canSaveEdit = function (valid) {
-            return valid && !$scope.submitActive && $scope.selectedGroup != null && $scope.selectedGroup.name.length > 0;
+            return valid && !$scope.submitActive && $scope.selectedGroup != null && $scope.selectedGroup.name;
         };
 
         $scope.saveClick = function () {
@@ -194,7 +203,7 @@
                             $scope.licenseGroups.push(group);
                         }).error(onError);
                         // Modal will close regardless of whether licenses are persisted or not. This will prevent creating two of the same group.
-                        $('#licenseGoupEditModal').modal('hide');
+                        $scope.$emit('license.cancelLicenseGroupEdit');
                     }).error(onError);
                 } else {
                     $http.put(clmLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
@@ -206,7 +215,7 @@
                                     return false;
                                 }
                             });
-                            $('#licenseGoupEditModal').modal('hide');
+                            $scope.$emit('license.cancelLicenseGroupEdit', licenseGroup);
                         }).error(onError);
                     }).error(onError);
                 }
@@ -220,10 +229,22 @@
                 }
             };
         };
+
+		$scope.cancelLicenseGroupEdit = function () {
+			$scope.$emit('license.cancelLicenseGroupEdit');
+		}
+		$scope.$watch('selectedLabel', function (newValue) {
+			if (newValue) {
+				$scope.submitActive = false;
+			}
+		});
     }]);
 
     licenseGroupModule.filter('filterLicenses', function () {
         return function (items, filter) {
+			if (!angular.isArray(items)) {
+				return;
+			}
             var isApplied = filter.isApplied;
             var searchLicense = filter.searchLicense;
 

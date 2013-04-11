@@ -1,48 +1,35 @@
-<div id='licenseGroup'>
+<div id='licenseGroup' class='row' style='height:100%'>
     <div ng-show='!features.licenseGroup' class='span6 offset4 no-content'>License Threat Group content is under
         development.
     </div>
-    <div ng-show='features.licenseGroup' class='span4 content-container'>
-        <table class='table table-striped' style='margin-bottom:0px'>
-            <thead>
-            <tr>
-                <th colspan='2'>License Threat Groups</th>
-            </tr>
-            </thead>
-            <tr ng-repeat='group in licenseGroups | orderBy: group.name'>
-                <td style='height:24px'><span class='threat-level-{{group.threatLevel}} threat-box'></span>&nbsp;<span style='vertical-align:middle'>{{group.name}}</span></td>
-                <td style='width:60px'>
-					<div class='btn-group'>
-                        <button ng-click='editLicenseGroup(group);' class='btn btn-mini btn-edit'
-                            title='Edit License Threat Group'><i class='icon-pencil' style='margin-top:0px;'></i>
-                        </button>
-                        <button ng-click='confirmDeleteLicenseGroup(group);' class='btn btn-mini btn-delete'
-                            title='Delete License Threat Group'><i class='icon-trash' style='margin-top:0px;'></i>
-                        </button>
-					</div>
-                </td>
-            </tr>
-            <tfoot>
-            <tr>
-                <td colspan='2' style='text-align:center;'>
-                    <button class='btn btn-add btn-info' ng-click='editLicenseGroup();' width='80%'><i
-                            class='icon-white icon-plus-sign'> </i> Add License Threat Group
-                    </button>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
-    </div>
-    <div id='licenseGoupEditModal' data-backdrop='static' class='modal hide'>
-        <div class='modal-header'>
-            <button type='button' class='close' data-dismiss='modal'>&times;</button>
-            <h3 ng-show='selectedGroup.id == null'>Add License Threat Group</h3>
-
-            <h3 ng-show='selectedGroup.id != null'>Edit License Threat Group</h3>
-        </div>
-        <div ng-include='editorUrl'>
-        </div>
-    </div>
+	<div ng-show='features.licenseGroup' class='span4' style='height:100%'>
+		<div class="content-container content-list" clist>
+			<div class="header">License Threat Groups</div>
+			<div ng-show='!licenseGroups'><i class='icon-time'></i> Loading</div>
+			<div class="body">
+				<div ng-repeat='group in licenseGroups | orderBy: group.name' ng-class="{'selected' : selectedGroup.id == group.id}"  ng-click='editLicenseGroup(group)'>
+					<i class='icon-chevron-right' style='float:right'></i>
+					<span class='threat-level-{{group.threatLevel}} threat-box'></span>&nbsp;<span style='vertical-align:middle'>{{group.name}}</span>
+				</div>
+			</div>
+			<div class="footer">
+				<button class="btn btn-add btn-info" ng-click="editLicenseGroup()">
+					<i class="icon-white icon-plus-sign"></i> Add License Threat Group
+				</button>
+			</div>
+		</div>
+	</div>
+	<div class='span8'>
+		<div class='content-container' ng-show='selectedGroup == null' style='width:50%;margin:auto;padding:15px;text-align:center'>Select a License Threat Group</div>
+		<div class='content-container' ng-show='selectedGroup != null'>
+			<div class='modal-header'>
+				<button type="button" class="btn btn-mini" style='float:right' ng-click='confirmDeleteLicenseGroup(selectedGroup)' ng-show='selectedGroup.id != null'><i class='icon-trash'></i></button>
+				<h3 ng-show='selectedGroup.id == null'>Add License Threat Group</h3>
+				<h3 ng-show='selectedGroup.id != null'>Edit License Threat Group</h3>
+			</div>
+			<div ng-include='editorUrl'></div>
+		</div>
+	</div>
     <div id='deleteLicenseGroupModal' data-backdrop='static' class='modal hide'>
         <div class='modal-header'>
             <button type='button' class='close' data-dismiss='modal'>&times;</button>

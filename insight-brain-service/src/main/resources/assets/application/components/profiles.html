@@ -1,5 +1,9 @@
 <div class='container' style='height:100%'>
-	<div class='row' style='height:100%'>
+	<div class='alert alert-error alert-block' ng-show='error' style='width:50%;margin:auto'>
+		<h4>Error</h4>
+		<p>{{error}}</p>
+	</div>
+	<div class='row' style='height:100%'ng-show='!error'>
 		<div class='span4' style='height:100%'>
 			<div class="content-container content-list" clist>
 				<div class="header">Application Profiles</div>
@@ -27,7 +31,7 @@
 					<strong>Error!</strong> {{alert}}
 				</div>
 				<div ng-switch-default ng-controller='ProfileController'>
-					<div class='content-container' ng-show='profilePolicies == null'>
+					<div class='content-container' ng-show='profilePolicies == null' style='width:50%;margin:auto;padding:15px;text-align:center'>
 						<h5><i class='icon-time'></i> Loading</h5>
 					</div>
 					<div class='content-container fade' ng-class='{ in : profilePolicies != null }'>

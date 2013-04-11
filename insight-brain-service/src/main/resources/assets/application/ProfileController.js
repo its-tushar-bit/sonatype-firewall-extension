@@ -24,14 +24,17 @@
 		return profileStore;
 	}]);
 
-	function httpErrorFn() {
-		// TODO Adequate Error Handling ;)
-		console.log(arguments);
-		window.alert('hi!');
+	function getErrorString(status, data) {
+		if (status === 0) {
+			return 'Unable to contact server';
+		} else {
+			return data + ' (' + status + ')';
+		}
 	}
 
 	profileModule.controller('ProfilePageController', ['$scope', '$timeout', '$q', '$http', 'hudson', 'CLMLocations', 'ProfileStore', 'PolicyStore', function ($scope, $timeout, $q, $http, hudson, clmLocations, profileStore, policyStore) {
-		function errorLoading() {
+		$scope.errorLoading = function (data, status) {
+			$scope.error = getErrorString(status, data);
 		}
 
 		$scope.errorSaving = function (error) {
@@ -39,11 +42,7 @@
 				$scope.alerts.push('An unexpected error occurred');
 			} else {
 				angular.forEach(arguments, function (error) {
-					if (error.status === 0) {
-						$scope.alerts.push('Unable to contact server');
-					} else {
-						$scope.alerts.push(error.data + ' (' + error.status + ')');
-					}
+					$scope.alerts.push(getErrorString(error.status, error.data));
 				});
 			}
 		};
@@ -112,7 +111,7 @@
 		});
 		profileStore.get().then(function (result) {
 			$scope.profiles = result;
-		}, httpErrorFn);
+		}, $scope.errorLoading);
 	}]);
 
 	profileModule.controller('ProfileController', ['$scope',  '$q', '$http', 'hudson', 'CLMLocations', 'ProfileStore', 'PolicyStore', function ($scope, $q, $http, hudson, clmLocations, profileStore, policyStore) {
@@ -194,14 +193,14 @@
 							$scope.profilePolicies.push(applicationProfilePolicy.policyId);
 						});
 					}
-				}).error($scope.errorSaving);
+				}).error($scope.errorLoading);
 			}
 		});
 
 		// Load Data
 		policyStore.get().then(function (policies) {
 			$scope.policies = policies;
-		}, httpErrorFn);
+		}, $scope.errorLoading);
 	}]);
 
 	profileModule.directive('uniqueProfileName', function () {

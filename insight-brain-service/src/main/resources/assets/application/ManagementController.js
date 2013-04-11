@@ -7,9 +7,9 @@
 (function () {
 	'use strict';
 
-	var managementModule = angular.module('Management', ['AngularCommon', 'Hudson', 'CLMLocation']);
+	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-	managementModule.controller('ManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, commonCodeFactory) {
+	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', 'ProfileStore', function ($scope, $http, hudson, clmLocations, commonCodeFactory, profileStore) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 		$scope.canGetRobotIcon = false;

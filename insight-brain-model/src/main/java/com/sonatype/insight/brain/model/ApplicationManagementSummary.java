@@ -13,6 +13,8 @@ public class ApplicationManagementSummary
 
     private String name;
 
+    private String applicationProfileId;
+
     private List<PolicyEvaluation> policyEvaluations;
 
     private int scansCount;
@@ -73,6 +75,7 @@ public class ApplicationManagementSummary
         summary.setId( application.getId() );
         summary.setName( application.getName() );
         summary.setPublicId( application.getPublicId() );
+        summary.setApplicationProfileId( application.getApplicationProfileId() );
         return summary;
     }
 
@@ -80,5 +83,15 @@ public class ApplicationManagementSummary
     public String toString()
     {
         return "ApplicationManagementSummary [publicId=" + publicId + ", name=" + name + "]";
+    }
+
+    public String getApplicationProfileId()
+    {
+        return applicationProfileId;
+    }
+
+    public void setApplicationProfileId( String applicationProfileId )
+    {
+        this.applicationProfileId = applicationProfileId;
     }
 }

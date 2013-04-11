@@ -5,7 +5,7 @@
 				<div class="header">Application Profiles</div>
 				<div ng-show='!profiles'><i class='icon-time'></i> Loading</div>
 				<div class="body">
-					<div ng-repeat="profile in profiles | orderBy:profile.name" ng-class="{'selected' : selectedProfile.id == profile.id}"  ng-click='editProfile(profile)'>
+					<div ng-repeat="profile in profiles | orderBy:'name'" ng-class="{'selected' : selectedProfile.id == profile.id}"  ng-click='editProfile(profile)'>
 						<i class='icon-chevron-right' style='float:right'></i>
 						{{profile.name}}
 					</div>
@@ -22,6 +22,10 @@
 			<div ng-switch on='policyEdit' ng-show='selectedProfile != null'>
 				<div ng-switch-when='true' style='fade in'  ng-include='"../assets/components/policy-editor/policy-editor.html"' ng-controller='PolicyEditorController'>
 				</div>
+				<div ng-repeat='alert in alerts' class='alert alert-error fade in'>
+					<button class='close' type='button' ng-click='hideAlert($index)'>&times;</button>
+					<strong>Error!</strong> {{alert}}
+				</div>
 				<div ng-switch-default ng-controller='ProfileController'>
 					<div class='content-container' ng-show='profilePolicies == null'>
 						<h5><i class='icon-time'></i> Loading</h5>
@@ -33,10 +37,10 @@
 						</div>
 						<form name='editProfileForm' ng-submit='submitProfile()' class='form-horizontal' style='margin:0px'>
 							<div class='modal-body'>
-								<div class='control-group' ng-class='{ error : editProfileForm.selectedProfileName.$error.unique }'>
+								<div class='control-group' ng-class='{ error : editProfileForm.selectedProfileName.$invalid }'>
 									<label class='control-label' for='selectedProfileNameInput'>Application Profile Name</label>
 									<div class='controls'>
-										<input type='text' class='input-xlarge' ng-model='selectedProfile.name' name='selectedProfileName' id='selectedProfileNameInput' required unique-profile-name>
+										<input type='text' class='input-xlarge' ng-model='selectedProfile.name' name='selectedProfileName' id='selectedProfileNameInput' required unique-profile-name ng-maxlength='60' maxlength='60'>
 										<span class='help-inline' ng-show='editProfileForm.selectedProfileName.$error.unique'>Duplicate</span>
 									</div>
 								</div>

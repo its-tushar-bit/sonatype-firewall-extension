@@ -30,7 +30,30 @@
 		window.alert('hi!');
 	}
 
-	profileModule.controller('ProfilePageController', ['$scope', '$q', '$http', 'hudson', 'CLMLocations', 'ProfileStore', 'PolicyStore', function ($scope, $q, $http, hudson, clmLocations, profileStore, policyStore) {
+	profileModule.controller('ProfilePageController', ['$scope', '$timeout', '$q', '$http', 'hudson', 'CLMLocations', 'ProfileStore', 'PolicyStore', function ($scope, $timeout, $q, $http, hudson, clmLocations, profileStore, policyStore) {
+		function errorLoading() {
+		}
+
+		$scope.errorSaving = function (error) {
+			if (arguments.length === 0) {
+				$scope.alerts.push('An unexpected error occurred');
+			} else {
+				angular.forEach(arguments, function (error) {
+					if (error.status === 0) {
+						$scope.alerts.push('Unable to contact server');
+					} else {
+						$scope.alerts.push(error.data + ' (' + error.status + ')');
+					}
+				});
+			}
+		};
+
+		$scope.alerts = [];
+
+		$scope.hideAlert = function (index) {
+			$scope.alerts.splice(index,1);
+		};
+
 		$scope.editProfile = function (profile) {
 			if (profile) {
 				$scope.selectedProfile = angular.copy(profile);
@@ -61,7 +84,17 @@
 					delete $scope.selectedProfile;
 				}
 				$('#deleteProfileModal').modal('hide');
-			}).error(httpErrorFn);
+			}).error(function () {
+				var args = arguments
+				$timeout(function () {
+					// Asynchronous for aesthetic reasons
+					$scope.errorSaving({
+						status : args[1],
+						data : args[0]
+					});
+				}, 150);
+				$('#deleteProfileModal').modal('hide');
+			});
 		};
 
 		$scope.deselectProfile = function () {
@@ -94,6 +127,7 @@
 			var selectedProfile = $scope.selectedProfile,
 				profilePolicies = $scope.profilePolicies,
 				promise;
+
 			if (selectedProfile.id === null) {
 				promise = $scope.selectedProfile.$save().then(function (data) {
 					if (profilePolicies.length > 0) {
@@ -105,10 +139,7 @@
 			}
 			promise.then(function () {
 				$scope.deselectProfile();
-			}, function () {
-				// TODO Show an error message in the view
-				window.alert('Oh the horror');
-			});
+			}, $scope.errorSaving);
 		};
 
 		$scope.filterName = function (profilePolicyId) {
@@ -163,7 +194,7 @@
 							$scope.profilePolicies.push(applicationProfilePolicy.policyId);
 						});
 					}
-				}).error(httpErrorFn);
+				}).error($scope.errorSaving);
 			}
 		});
 

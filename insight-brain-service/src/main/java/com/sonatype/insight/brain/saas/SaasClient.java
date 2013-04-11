@@ -45,6 +45,7 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractInjectable;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionResource;
@@ -70,12 +71,15 @@ public class SaasClient
     private final Configuration config;
 
     private final HttpClient client;
+    
+    private final CLMLicenseManager licenseManager;
 
     private static volatile String version;
 
     @Inject
-    public SaasClient( final InsightProxy proxy )
+    public SaasClient( final InsightProxy proxy, final CLMLicenseManager licenseManager )
     {
+        this.licenseManager = licenseManager;
         config = proxy.contextualize( new Configuration() );
         client = HttpClientUtils.createConfig( config );
         client.getParams().setParameter( ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME,
@@ -224,6 +228,7 @@ public class SaasClient
             }
         }
         req.setHeader( "X-Brain-Version", version );
+        req.setHeader( "X-CLM-Token", licenseManager.getLicenseFingerprint() );
     }
 
     private Response buildResponse( final HttpResponse response )

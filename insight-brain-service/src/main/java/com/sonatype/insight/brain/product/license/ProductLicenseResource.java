@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 
 import org.sonatype.licensing.LicensingException;
-import org.sonatype.licensing.product.ProductLicenseManager;
 
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -22,10 +21,10 @@ public class ProductLicenseResource
 {
     public static final String SERVICE_PATH = "rest/product/license";
 
-    private final ProductLicenseManager licenseManager;
+    private final CLMLicenseManager licenseManager;
 
     @Inject
-    public ProductLicenseResource( ProductLicenseManager licenseManager )
+    public ProductLicenseResource( CLMLicenseManager licenseManager )
     {
         this.licenseManager = licenseManager;
     }

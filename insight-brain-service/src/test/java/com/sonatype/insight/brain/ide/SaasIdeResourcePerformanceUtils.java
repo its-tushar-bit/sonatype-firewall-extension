@@ -11,12 +11,15 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.mockito.Mockito;
 
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -79,7 +82,7 @@ public class SaasIdeResourcePerformanceUtils
         field.setAccessible( true );
         InsightConfig config = new InsightConfig();
         config.setSaasAddress( saasAddress );
-        SaasClient client = new SaasClient( new InsightProxy( config ) );
+        SaasClient client = new SaasClient( new InsightProxy( config ), new CLMLicenseManager( new TestLicenseFingerprinter(), new TestProductLicenseManager( true ) ) );
         field.set( o, client );
     }
 

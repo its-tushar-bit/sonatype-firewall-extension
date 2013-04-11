@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -36,7 +34,7 @@ import com.sonatype.insight.brain.policy.ConditionValueTypeResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.product.license.LicenseAwareAssetsBundle;
+import com.sonatype.insight.brain.product.license.LicenseAwareFilter;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphHealthCheck;
@@ -69,7 +67,7 @@ public class InsightBrainService
 
     private static final String POLICY_ASSET_PATH = "/policy-assets/";
     
-    private List<AssetsBundle> assetBundles = new ArrayList<AssetsBundle>();
+    public static final String UNLICENSED_ASSET_PATH = "/unlicensed-assets/";
 
     public static void main( final String[] args )
         throws Exception
@@ -80,15 +78,11 @@ public class InsightBrainService
     @Override
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
-        assetBundles.add( new LicenseAwareAssetsBundle( "/assets/application/", "/assets/unlicensed/", APPLICATION_ASSET_PATH, "index.html" ) );
-        assetBundles.add( new AssetsBundle( "/assets/assets/", BRAIN_ASSET_PATH )  );
-        assetBundles.add( new LicenseAwareAssetsBundle( "/assets/policy/", "/assets/unlicensed/", POLICY_ASSET_PATH, "index.html" ));
-        
-        for ( AssetsBundle bundle : assetBundles )
-        {
-            bootstrap.addBundle( bundle );
-        }
-        
+        bootstrap.addBundle( new AssetsBundle( "/assets/application/", APPLICATION_ASSET_PATH, "index.html" ) );
+        bootstrap.addBundle( new AssetsBundle( "/assets/assets/", BRAIN_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/assets/policy/", POLICY_ASSET_PATH, "index.html" ) );
+        bootstrap.addBundle( new AssetsBundle( "/assets/unlicensed/", UNLICENSED_ASSET_PATH, "index.html" ) );
+
         // workaround to let us set different defaults in the core HTTP configuration
         bootstrap.getObjectMapperFactory().registerModule( new HttpConfig.Module() );
     }
@@ -107,17 +101,7 @@ public class InsightBrainService
 
     @Override
     protected void customize( final InsightConfig config, final Environment env )
-    {
-        //this is a hack to get injected members into the assets bundle, there is already other work in progress by stuart to allow
-        //proper injection of asset bundles
-        for ( AssetsBundle bundle : assetBundles )
-        {
-            if ( bundle instanceof LicenseAwareAssetsBundle )
-            {
-                getInjector().injectMembers( ( (LicenseAwareAssetsBundle) bundle ).getServlet() );
-            }
-        }
-        
+    {        
         replaceGenericExceptionMapper( env );
 
         config.getSonatypeWork().mkdirs();
@@ -163,6 +147,14 @@ public class InsightBrainService
         env.addTask( new ReleaseGraphTask( cache ) );
 
         env.addResource( LandingResource.class );
+        
+        LicenseAwareFilter filter = new LicenseAwareFilter();
+        
+        //this is a hack to get injected members into the filter, until they can be injected with sisu magic, this will have to do
+        getInjector().injectMembers( filter );
+        
+        env.addFilter( filter, APPLICATION_ASSET_PATH + "index.html" );
+        env.addFilter( filter, POLICY_ASSET_PATH + "index.html" );
 
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );

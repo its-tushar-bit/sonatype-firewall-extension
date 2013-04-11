@@ -20,6 +20,11 @@
             $('#labelErrorModal').modal('show');
         }
 
+		function deselect() {
+			delete $scope.selectedLabel;
+			$scope.editorUrl = '';
+		}
+
         $http.get(clmLocations.getLabelsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
@@ -28,19 +33,6 @@
 
         $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
-        $('#labelEditModal').on('hide', function () {
-            // AngularJS barfs if $apply is made unnecessarily, however hide may or may not be called within scope
-            // $scope.$$phase is "$digest" while processing, null otherwise, this is undocumented
-            // https://groups.google.com/forum/#!topic/angular/FJwxJ-XbJaE
-            if ($scope.$$phase) {
-                $scope.editorUrl = ''; // unloads form, resets state
-            } else {
-                $scope.$apply(function () {
-                    $scope.editorUrl = ''; // unloads form, resets state
-                });
-            }
-        });
-
         $scope.editLabel = function (label) {
             $scope.editorUrl = 'components/labels-editor.html?' + clmBuildTimestamp; // loads form
 
@@ -48,12 +40,9 @@
             if (label) {
                 $scope.selectedLabel = angular.extend($scope.selectedLabel, label);
             }
-
-            $('#labelEditModal').modal('show');
         };
 
-        $scope.confirmDeleteLabel = function (label) {
-            $scope.selectedLabel = angular.extend({id: null, applicationId: null, label: null, labelLowercase: null, color: null}, label);
+        $scope.confirmDeleteLabel = function () {
             $scope.deletedEnabled = true;
             $('#deleteLabelModal').modal('show');
         };
@@ -69,12 +58,20 @@
                     }
                 });
                 $scope.labels.splice(index, 1);
+                deselect();
                 $('#deleteLabelModal').modal('hide');
             }).error(function () {
-                    $('#deleteLabelModal').modal('hide');
-                    $scope.showServerError.apply(this, arguments);
-                });
+                $('#deleteLabelModal').modal('hide');
+                $scope.showServerError.apply(this, arguments);
+            });
         };
+
+		$scope.$on('labels.cancelEditLabel', function (event, label) {
+			event.stopPropagation();
+			if (!label || label === $scope.selectedLabel) {
+				deselect();
+			}
+		});
     }]);
 
     labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
@@ -97,6 +94,10 @@
             $scope.selectedLabel.color = color;
         };
 
+		$scope.cancelEditLabel = function () {
+			$scope.$emit('labels.cancelEditLabel');
+		};
+
         $scope.canSaveEdit = function (valid) {
             return valid && !$scope.submitActive && $scope.selectedLabel != null && $scope.selectedLabel.label.length > 0;
         };
@@ -111,7 +112,7 @@
             if (label.id == null) {
                 hudson.post(clmLocations.getLabelsUrl(), label).success(function (data) {
                     $scope.labels.push(data);
-                    $('#labelEditModal').modal('hide');
+					$scope.$emit('labels.cancelEditLabel', label);
                 }).error(errorFn);
             } else {
                 $http.put(clmLocations.getLabelsUrl(), label).success(function (data) {
@@ -121,7 +122,7 @@
                             return false;
                         }
                     });
-                    $('#labelEditModal').modal('hide');
+					$scope.$emit('labels.cancelEditLabel', label);
                 }).error(errorFn);
             }
         };
@@ -138,20 +139,20 @@
             require: 'ngModel',
             link: function (scope, element, attrs, ctrl) {
                 ctrl.$parsers.unshift(function (newValue) {
-                    var nonDuplicate = true,
+                    var unique = true,
                         notEmpty = newValue.length !== 0,
                         notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
                     ctrl.$setValidity('empty', notEmpty);
 
                     angular.forEach(scope.labels, function (item, key) {
                         if (item.id !== scope.selectedLabel.id) {
-                            nonDuplicate = nonDuplicate && (item.label.toLowerCase() !== newValue.toLowerCase());
+                            unique = unique && (item.label.toLowerCase() !== newValue.toLowerCase());
                         }
                     });
-                    ctrl.$setValidity('duplicate', nonDuplicate);
+                    ctrl.$setValidity('duplicate', unique);
                     ctrl.$setValidity('invalid', notInvalid);
 
-                    return (notEmpty && nonDuplicate && notInvalid) ? newValue : undefined;
+                    return (notEmpty && unique && notInvalid) ? newValue : undefined;
                 });
             }
         };

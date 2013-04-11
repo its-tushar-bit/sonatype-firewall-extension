@@ -40,7 +40,7 @@
         }
         
         $scope.licenseInstalled = function() {
-            window.location.reload();
+            window.location.href='/application-assets/index.html';
         }
         
         $scope.licenseUninstalled = function() {

@@ -28,7 +28,7 @@
 					</div>
 					<div class='content-container fade' ng-class='{ in : profilePolicies != null }'>
 						<div class='modal-header'>
-							<div style='float:right'><button type='button' class='btn btn-mini'ng-click='confirmDeleteProfile(profile)'><i class='icon-trash'></i></button></div>
+							<button ng-click='confirmDeleteProfile(profile)' ng-show='selectedProfile.id != null' type='button' class='btn btn-mini' style='float:right'><i class='icon-trash'></i></button>
 							<h4><span ng-show='selectedProfile.id != null'>Edit</span><span ng-show='selectedProfile.id == null'>Add</span> Application Profile</h4>
 						</div>
 						<form name='editProfileForm' ng-submit='submitProfile()' class='form-horizontal' style='margin:0px'>

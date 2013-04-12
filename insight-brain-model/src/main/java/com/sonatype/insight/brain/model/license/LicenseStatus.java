@@ -26,6 +26,8 @@ public class LicenseStatus
 
     public static final LicenseStatus OVERRIDDEN = new LicenseStatus( "OVERRIDDEN", "Overridden" );
 
+    public static final LicenseStatus SELECTED = new LicenseStatus( "SELECTED", "Selected" );
+
     public static final LicenseStatus CONFIRMED = new LicenseStatus( "CONFIRMED", "Confirmed" );
 
     private final String id;

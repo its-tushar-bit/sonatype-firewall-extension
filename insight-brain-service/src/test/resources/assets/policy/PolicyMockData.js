@@ -115,6 +115,9 @@ PolicyMockData = {
                 "id" : "OVERRIDDEN",
                 "name" : "Overridden"
               }, {
+                "id" : "SELECTED",
+                "name" : "Selected"
+              }, {
                 "id" : "CONFIRMED",
                 "name" : "Confirmed"
               }]

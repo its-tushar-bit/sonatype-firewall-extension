@@ -2,11 +2,19 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.feature.Feature;
+import org.sonatype.licensing.feature.Features;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.internal.DefaultLicenseKey;
+
+import com.sonatype.insight.brain.product.license.CLMFeature;
 
 /**
  * Simple replacement for a ProductLicenseManager.
@@ -26,6 +34,11 @@ public class TestProductLicenseManager
     public TestProductLicenseManager( boolean valid )
     {
         this.valid = valid;
+
+        if ( this.valid )
+        {
+            createKey();
+        }
     }
 
     @Override
@@ -33,6 +46,20 @@ public class TestProductLicenseManager
         throws IOException, LicensingException
     {
         valid = true;
+        createKey();
+    }
+
+    private void createKey()
+    {
+        Map<String, Feature> featureMap = new HashMap<String, Feature>();
+        featureMap.put( CLMFeature.ID, new CLMFeature() );
+        Properties properties = new Properties();
+        properties.put( "enforcementPoints", "Procure, Develop, Build, StageRelease, Release" );
+        properties.put( "licensedApplications", "100" );
+        key = new DefaultLicenseKey( new Features( featureMap ) );
+        key.setEffectiveDate( new Date( System.currentTimeMillis() - 10000 ) );
+        key.setExpirationDate( new Date( System.currentTimeMillis() + 10000 ) );
+        key.setProperties( properties );
     }
 
     @Override

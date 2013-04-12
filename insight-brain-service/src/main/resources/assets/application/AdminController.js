@@ -17,6 +17,14 @@
     });
 
     adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function($http, $scope, clmLocations) {
+        var installDone = function(){
+            window.location.href='/application-assets/index.html';
+        };
+        
+        var uninstallDone = function(){
+            window.location.reload();
+        };
+        
         $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
 
         $scope.viewInstallLicense = function() {
@@ -30,21 +38,25 @@
         $scope.installLicense = function() {
             $scope.showInstall = false;
             $('#licenseInstalledModal').modal('show');
+            setTimeout(installDone,5000);
         };
         
         $scope.uninstallLicense = function() {
             $http.delete($scope.uploadUrl).success(function (data) {
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
+                setTimeout(uninstallDone,5000);
             });
         }
         
         $scope.licenseInstalled = function() {
-            window.location.href='/application-assets/index.html';
+            clearTimeout(installDone);
+            installDone();
         }
         
         $scope.licenseUninstalled = function() {
-            window.location.reload();
+            clearTimeout(uninstallDone);
+            uninstallDone();
         }
     } ]);
 }());

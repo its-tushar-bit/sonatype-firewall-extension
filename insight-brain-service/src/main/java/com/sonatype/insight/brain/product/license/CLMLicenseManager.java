@@ -21,9 +21,7 @@ public class CLMLicenseManager
 
     private final LicenseFingerprinter licenseFingerprinter;
 
-    private String licenseFingerprint = null;
-
-    private Boolean licenseInstalled = null;
+    private volatile String licenseFingerprint = null;
 
     private static final Logger log = LoggerFactory.getLogger( CLMLicenseManager.class );
 
@@ -40,7 +38,7 @@ public class CLMLicenseManager
      * 
      * @return
      */
-    public synchronized String getLicenseFingerprint()
+    public String getLicenseFingerprint()
     {
         if ( licenseFingerprint != null )
         {
@@ -51,9 +49,9 @@ public class CLMLicenseManager
         {
             licenseFingerprint = licenseFingerprinter.calculate( licenseManager.getLicenseDetails() );
         }
-        catch ( LicensingException e )
+        catch ( Throwable t )
         {
-            log.debug( "Attempted to retrieve a license fingerprint with no license installed", e );
+            log.debug( "Attempted to retrieve a license fingerprint and failed", t );
             licenseFingerprint = null;
         }
 
@@ -66,7 +64,6 @@ public class CLMLicenseManager
         licenseManager.installLicense( is );
         log.info( "License installed successfully" );
         licenseFingerprint = null;
-        licenseInstalled = Boolean.TRUE;
     }
 
     public synchronized void uninstallLicense()
@@ -75,26 +72,10 @@ public class CLMLicenseManager
         licenseManager.uninstallLicense();
         log.info( "License uninstalled successfully" );
         licenseFingerprint = null;
-        licenseInstalled = Boolean.FALSE;
     }
 
-    public synchronized boolean isLicensedInstalled()
+    public boolean isLicensedInstalled()
     {
-        if ( licenseInstalled != null )
-        {
-            return licenseInstalled;
-        }
-
-        try
-        {
-            licenseManager.getLicenseDetails();
-            licenseInstalled = true;
-        }
-        catch ( LicensingException e )
-        {
-            licenseInstalled = false;
-        }
-
-        return licenseInstalled;
+        return getLicenseFingerprint() != null;
     }
 }

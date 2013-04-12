@@ -12,8 +12,10 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.AbstractModule;
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
@@ -27,6 +29,8 @@ public class ProductLicenseResourceTest
 {
     private final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
+    private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
+
     @Override
     protected void configureBrain( TestInsightBrainService brain )
     {
@@ -36,6 +40,7 @@ public class ProductLicenseResourceTest
             protected void configure()
             {
                 bind( ProductLicenseManager.class ).toInstance( licenseManager );
+                bind( LicenseFingerprinter.class ).toInstance( licenseFingerprinter );
             }
         } );
     }

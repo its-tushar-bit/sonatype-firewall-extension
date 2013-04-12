@@ -200,14 +200,14 @@ public class ComponentDAO
         return component;
     }
 
-    public Component getComponent( String applicationId, JsonNode componentJson )
+    public Component getComponent( String applicationId, JsonNode jsonLicenseNode )
     {
         Component component = new Component();
-        component.setArtifactId( componentJson.get( "artifactId" ).asText() );
-        component.setGroupId( componentJson.get( "groupId" ).asText() );
-        component.setVersion( componentJson.get( "version" ).asText() );
+        component.setArtifactId( jsonLicenseNode.get( "artifactId" ).asText() );
+        component.setGroupId( jsonLicenseNode.get( "groupId" ).asText() );
+        component.setVersion( jsonLicenseNode.get( "version" ).asText() );
 
-        processJsonLicenseData( component, componentJson );
+        processJsonLicenseData( component, jsonLicenseNode );
 
         loadLicenseThreatGroups( applicationId, component );
 

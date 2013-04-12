@@ -458,6 +458,7 @@
             <include>application/ManagementControllerSpec.js</include>
             <include>application/ProfileControllerSpec.js</include>
             <include>assets/AngularCommonSpec.js</include>
+            <include>assets/ResourceSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>

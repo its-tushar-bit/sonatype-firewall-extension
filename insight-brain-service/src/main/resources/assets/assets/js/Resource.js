@@ -23,6 +23,7 @@
 		return {
 			'getStore' : function (config) {
 				var store = [],
+					error = false,
 					storeDeferred = null;
 				config.id = config.id || 'id';
 
@@ -39,6 +40,26 @@
 					};
 
 					this.$updateOriginal(originalObject);
+				}
+
+				function doLoad() {
+					var localDeferred = null;
+
+					storeDeferred = localDeferred = $q.defer();
+
+					$http.get(config.url, { params : config.params }).success(function (data) {
+						if (localDeferred === storeDeferred) {
+							var result = [];
+							angular.forEach(data, function (obj, i) {
+								result.push(new Resource(obj));
+							});
+							store.splice(0, store.length)
+							store.push.apply(store, result);
+							storeDeferred.resolve(store);
+						}
+					}).error(function () {
+						error = true;
+					}).error(getErrorFn(storeDeferred));
 				}
 
 				Resource.prototype['$save'] = function () {
@@ -85,24 +106,21 @@
 
 				return {
 					'get' : function () {
-						var localDeferred = storeDeferred === null ? (storeDeferred = $q.defer()) : storeDeferred;
-						$http.get(config.url, { params : config.params }).success(function (data) {
-							if (localDeferred === storeDeferred) {
-								var result = [];
-								angular.forEach(data, function (obj, i) {
-									result.push(new Resource(obj));
-								});
-								store.splice(store.length);
-								angular.extend(store, result);
-								storeDeferred.resolve(store);
-							}
-						}).error(getErrorFn(storeDeferred));
+						if (error || !storeDeferred) {
+							// An error occured previously, or the store hasn't been loaded
+							error = false;
+							doLoad();
+						}
 						return storeDeferred.promise;
 					},
 					'create' : function () {
 						return new Resource(config.template || {});
 					},
-					'refresh' : function () {}
+					'refresh' : function () {
+						error = false;
+						doLoad();
+						return storeDeferred.promise;
+					}
 				};
 			}
 		};

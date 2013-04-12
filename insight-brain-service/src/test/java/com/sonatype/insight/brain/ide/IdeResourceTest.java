@@ -26,8 +26,10 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -388,7 +390,7 @@ public class IdeResourceTest
         Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
-        Condition condition1 = new Condition( LicenseStatusConditionType.ID, "is", "OVERRIDDEN" );
+        Condition condition1 = new Condition( LicenseStatusConditionType.ID, "is", LicenseStatus.OVERRIDDEN.getId() );
         constraint1.addCondition( condition1 );
         Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
         policy1.setThreatLevel( 8 );
@@ -438,7 +440,9 @@ public class IdeResourceTest
         Application application = createApplication( applicationPublicId );
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
-        Condition condition1 = new Condition( SecurityVulnerabilityStatusConditionType.ID, "is", "ACKNOWLEDGED" );
+        Condition condition1 =
+            new Condition( SecurityVulnerabilityStatusConditionType.ID, "is",
+                           SecurityVulnerabilityStatus.ACKNOWLEDGED.getId() );
         constraint1.addCondition( condition1 );
         Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
         policy1.setThreatLevel( 8 );

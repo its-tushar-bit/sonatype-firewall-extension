@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.saas;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -32,12 +35,14 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -185,4 +190,58 @@ public class ComponentInfoResource
         return new PolicyDAO( work.getWorkDir() );
     }
 
+    @GET
+    @Path( "selectableLicenses/{applicationPublicId}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Set<License> getSelectableLicenses( @Context HttpServletRequest servletRequest,
+                                               @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                               @QueryParam( "instanceId" ) String instanceId,
+                                               @QueryParam( "groupId" ) String groupId,
+                                               @QueryParam( "artifactId" ) String artifactId,
+                                               @QueryParam( "version" ) String version )
+        throws IOException
+    {
+        applicationDAO.getByPublicIdNotNull( applicationPublicId );
+
+        // Get component details from the SAAS server
+        ComponentDetails componentDetails =
+                client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details/{appId}",
+                            applicationPublicId );
+
+        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+        Set<License> result = new LinkedHashSet<License>();
+        Set<License> licenses = new LinkedHashSet<License>();
+        licenses.addAll( componentDetails.getDeclaredLicenses() );
+        licenses.addAll( componentDetails.getObservedLicenses() );
+        Iterator<License> licenseIter = licenses.iterator();
+        while ( licenseIter.hasNext() )
+        {
+            License license = licenseIter.next();
+            MultiLicense multiLicense = multiLicenseDAO.getById( license.getLicenseId() );
+            if ( multiLicense.isUnspecified() )
+            {
+                continue;
+            }
+            Set<com.sonatype.insight.brain.model.license.License> _licenses =
+                multiLicenseDAO.getLicensesByMultiLicenseId( multiLicense.getId() );
+            for ( com.sonatype.insight.brain.model.license.License _license : _licenses )
+            {
+                if ( _license.getId().endsWith( "-UNSPECIFIED" ) )
+                {
+                    String licenseIdPrefix =
+                        _license.getId().substring( 0, _license.getId().length() - "UNSPECIFIED".length() );
+                    for ( com.sonatype.insight.brain.model.license.License otherLicense : licenseDAO.getAll() )
+                    {
+                        if ( otherLicense.getId().startsWith( licenseIdPrefix )
+                            && !_license.getId().equals( otherLicense.getId() ) )
+                        {
+                            result.add( new License( otherLicense.getId(), otherLicense.getShortDisplayName() ) );
+                        }
+                    }
+                }
+                result.add( new License( _license.getId(), _license.getShortDisplayName() ) );
+            }
+        }
+        return result;
+    }
 }

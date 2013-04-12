@@ -49,9 +49,9 @@ public class CLMLicenseManager
         {
             licenseFingerprint = licenseFingerprinter.calculate( licenseManager.getLicenseDetails() );
         }
-        catch ( Throwable t )
+        catch ( Exception e )
         {
-            log.debug( "Attempted to retrieve a license fingerprint and failed", t );
+            log.debug( "Attempted to retrieve a license fingerprint and failed", e );
             licenseFingerprint = null;
         }
 

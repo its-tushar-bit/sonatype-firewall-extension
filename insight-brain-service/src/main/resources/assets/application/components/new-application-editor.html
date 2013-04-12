@@ -26,13 +26,12 @@
                 </div>
             </div>
             <div class='control-group'
-                 ng-show='!isEditMode'
                  ng-class='{ error : applicationEditor.applicationPublicId.$error.required
                     || applicationEditor.applicationPublicId.$error.alphaNumeric || applicationEditor.applicationPublicId.$error.duplicate }'>
                 <label class='control-label' for='applicationPublicId'>ID</label>
 
                 <div class='controls'>
-                    <input id='applicationPublicId' name='applicationPublicId' type='text'
+                    <input ng-disabled='isEditMode' id='applicationPublicId' name='applicationPublicId' type='text'
                            class='input' maxlength='60' ng-model='selectedApplication.publicId'>
 
                     <div>

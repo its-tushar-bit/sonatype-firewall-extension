@@ -4,16 +4,16 @@
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
 	<group name='insight'>
-		<css>/assets/components/policy-editor.css</css>
-		<css>/assets/clist.css</css>
-		<css>/assets/insight.css</css>
+		<css>/components/policy-editor.css</css>
+		<css>/clist.css</css>
+		<css>/insight.css</css>
 	</group>
 
 	<group name='policy'>
-		<css>/policy/policy.css</css>
+		<css>/policy.css</css>
 	</group>
 
 	<group name='application'>
-		<css>/applications/application.css</css>
+		<css>/application.css</css>
 	</group>
 </groups>

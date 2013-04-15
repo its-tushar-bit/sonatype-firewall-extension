@@ -544,7 +544,8 @@
             </goals>
             <configuration>
 	          <targetGroups>insight</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/assets/</cssDestinationFolder>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
+	          <contextFolder>${basedir}/src/main/wro4j/assets</contextFolder>
             </configuration>
           </execution>
           <execution>
@@ -555,7 +556,8 @@
             </goals>
             <configuration>
 	          <targetGroups>policy</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/policy/</cssDestinationFolder>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/policy/css/</cssDestinationFolder>
+	          <contextFolder>${basedir}/src/main/wro4j/policy</contextFolder>
             </configuration>
           </execution>
           <execution>
@@ -566,12 +568,12 @@
             </goals>
             <configuration>
 	          <targetGroups>application</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/application/</cssDestinationFolder>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/application/css/</cssDestinationFolder>
+	          <contextFolder>${basedir}/src/main/wro4j/applications</contextFolder>
             </configuration>
           </execution>
         </executions>
         <configuration>
-          <contextFolder>${basedir}/src/main/wro4j</contextFolder>
           <wroFile>${basedir}/wro.xml</wroFile>
           <ignoreMissingResources>false</ignoreMissingResources>
         </configuration>

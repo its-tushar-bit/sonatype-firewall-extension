@@ -120,7 +120,7 @@ html, body, .page-content {
 
 body {
     background-color: rgb(85, 85, 85);
-    background-image: url(img/margin-bg.png);
+    background-image: url(./img/margin-bg.png);
 }
 
 .brand-header {

@@ -35,7 +35,7 @@ public class CLMLicenseManager
             this.applicationCount = applicationCount;
             this.enforcementPoints.addAll( enforcementPoints );
         }
-    };
+    }
 
     private final static String PROPERTY_APPLICATION_COUNT = "licensedApplications";
 
@@ -106,8 +106,6 @@ public class CLMLicenseManager
 
     /**
      * Get a license fingerprint, if there is no license, null will be returned
-     * 
-     * @return
      */
     public String getLicenseFingerprint()
     {

@@ -30,17 +30,17 @@
 			<div ng-include='editorUrl'></div>
 		</div>
 	</div>
-    <div id='deleteLicenseGroupModal' data-backdrop='static' class='modal hide'>
+    <div id='deleteLicenseGroupModal' data-backdrop='static' class='modal fade'>
         <div class='modal-header'>
             <button type='button' class='close' data-dismiss='modal'>&times;</button>
             <h3>Delete License Threat Group?</h3>
         </div>
         <div class='modal-body'>
-            <p>Are you sure you want to delete the license threat group {{selectedGroup.name}}?</p>
+            <p>Are you sure you want to delete the license threat group <strong>{{selectedGroup.name}}?</strong></p>
         </div>
         <div class='modal-footer'>
             <button class='btn' data-dismiss='modal'>Cancel</button>
-            <button class='btn btn-primary' ng-disabled='!deletedEnabled' ng-click='deleteLicenseGroup();'>Delete
+            <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='deleteLicenseGroup();'>Delete
             </button>
         </div>
     </div>

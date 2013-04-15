@@ -77,12 +77,12 @@
                 <h3>Delete Application</h3>
             </div>
             <div class='modal-body'>
-                <p>Are you sure you want to delete the application {{selectedApplication.name}}? This will delete all
+                <p>Are you sure you want to delete the application <strong>{{selectedApplication.name}}</strong>? This will delete all
                     policies and license groups associated with this application.</p>
             </div>
             <div class='modal-footer'>
                 <button class='btn' data-dismiss='modal'>Cancel</button>
-                <button class='btn btn-primary' ng-disabled='!deletedEnabled' ng-click='deleteApplication();'>Delete
+                <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='deleteApplication();'>Delete
                 </button>
             </div>
         </div>

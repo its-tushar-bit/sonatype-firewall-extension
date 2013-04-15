@@ -375,6 +375,9 @@
         <directory>src/main/resources</directory>
       </resource>
       <resource>
+        <directory>${project.build.directory}/generated</directory>
+      </resource>
+      <resource>
         <directory>src/main/resources-filtered</directory>
         <filtering>true</filtering>
       </resource>
@@ -541,7 +544,7 @@
             </goals>
             <configuration>
 	          <targetGroups>insight</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/classes/assets/assets/</cssDestinationFolder>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/assets/</cssDestinationFolder>
             </configuration>
           </execution>
           <execution>
@@ -552,7 +555,7 @@
             </goals>
             <configuration>
 	          <targetGroups>policy</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/classes/assets/policy/</cssDestinationFolder>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/policy/</cssDestinationFolder>
             </configuration>
           </execution>
           <execution>
@@ -563,7 +566,7 @@
             </goals>
             <configuration>
 	          <targetGroups>application</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/classes/assets/application/</cssDestinationFolder>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/application/</cssDestinationFolder>
             </configuration>
           </execution>
         </executions>

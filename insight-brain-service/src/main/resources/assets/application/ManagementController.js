@@ -113,10 +113,6 @@
 			}).error($scope.showServerError);
 		};
 
-		$scope.clearAddApplicationError = function () {
-			$scope.addApplicationError = null;
-		};
-
 		$scope.clearSyncEditError = function () {
 			$scope.syncErrorResponse = null;
 			location.search = '';

@@ -152,10 +152,12 @@
 		return function (items) {
 			var arrayToReturn = [];
 			if (items) {
-				var validReportColumns = ['Build', 'Stage Release', 'Release'];
 				for (var i = 0; i < items.length; i++) {
-					if (jQuery.inArray(items[i].name, validReportColumns) > -1) {
-						arrayToReturn.push(items[i]);
+					switch (items[i].name) {
+						case 'Build':
+						case 'Stage Release':
+						case 'Release':
+						    arrayToReturn.push(items[i]);
 					}
 				}
 			}

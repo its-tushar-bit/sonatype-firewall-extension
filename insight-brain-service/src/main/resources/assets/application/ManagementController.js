@@ -79,13 +79,11 @@
 
 			$scope.selectedApplication = { id: null, publicId: null, name: null };
 			if (application) {
-				$scope.isEditMode = true;
 				$scope.selectedApplication = angular.extend($scope.selectedApplication, application);
 				// After the image source is set to blob (see below), angular will not respond to changing ng-src
 				// Image source adjustments need to be done through attr
 				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId));
 			} else {
-				$scope.isEditMode = false;
 				angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
 			}
 			$scope.hasRobotSource = false;
@@ -282,11 +280,10 @@
 				applicationProfileId : $scope.selectedApplication.applicationProfileId
 			};
 
-			if (!$scope.isEditMode) {
+			if (!application.id) {
 				hudson.post(clmLocations.getApplicationsUrl(), application).success(function (data) {
 					$scope.applications.push(data);
 					$scope.selectedApplication = data;
-					$scope.isEditMode = true;
 					saveIcon();
 				}).error(onAJAXError);
 			} else {

@@ -70,6 +70,7 @@ public abstract class AbstractBrainServiceTest
 
         if ( saas == null )
         {
+            log.debug( "Starting InsightMockServer on port {}", saasPort );
             saas = new InsightMockServer();
             saas.setHttpPort( saasPort );
             saas.setJsonResponseDirectory( getJsonResponseDirectory() );

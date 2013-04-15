@@ -84,6 +84,7 @@ public abstract class AbstractBrainServiceTest
         }
         if ( brain == null )
         {
+            log.debug( "Starting TestInsightBrainService on port {}, admin port {}", brainPort, brainAdminPort );
             brain = new TestInsightBrainService();
             brain.setHttpPort( brainPort );
             brain.setHttpAdminPort( brainAdminPort );

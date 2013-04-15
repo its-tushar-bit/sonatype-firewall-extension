@@ -22,13 +22,13 @@
 			</div>
 		</div>
 		<div class='span8'>
+			<div ng-repeat='alert in alerts' class='alert alert-error fade in'>
+				<button class='close' type='button' ng-click='hideAlert($index)'>&times;</button>
+				<strong>Error!</strong> {{alert}}
+			</div>
 			<div class='content-container' ng-show='selectedProfile == null' style='width:50%;margin:auto;padding:15px;text-align:center'>Select a Profile</div>
 			<div ng-switch on='policyEdit' ng-show='selectedProfile != null'>
 				<div ng-switch-when='true' style='fade in'  ng-include='"../assets/components/policy-editor/policy-editor.html"' ng-controller='PolicyEditorController'>
-				</div>
-				<div ng-repeat='alert in alerts' class='alert alert-error fade in'>
-					<button class='close' type='button' ng-click='hideAlert($index)'>&times;</button>
-					<strong>Error!</strong> {{alert}}
 				</div>
 				<div ng-switch-default ng-controller='ProfileController'>
 					<div class='content-container' ng-show='profilePolicies == null' style='width:50%;margin:auto;padding:15px;text-align:center'>

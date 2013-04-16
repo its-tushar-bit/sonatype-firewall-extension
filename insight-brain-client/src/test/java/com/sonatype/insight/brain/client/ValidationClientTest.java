@@ -5,21 +5,21 @@
  */
 package com.sonatype.insight.brain.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.AbstractLicenseTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 public class ValidationClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractLicenseTest
 {
 
     private void assertMatch( String pattern, String text )

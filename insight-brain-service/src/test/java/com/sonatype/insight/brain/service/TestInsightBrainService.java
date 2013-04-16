@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
@@ -229,7 +230,8 @@ public class TestInsightBrainService
         public boolean check()
             throws Exception
         {
-            return adminPath( "healthcheck" ).get().status() == 200;
+            Result result = adminPath( "healthcheck" ).timeout( 5000 ).get();
+            return result.status() == 200;
         }
     }
 

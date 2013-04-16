@@ -25,7 +25,9 @@
 				var store = [],
 					error = false,
 					storeDeferred = null;
+
 				config.id = config.id || 'id';
+				config.template = config.template || {};
 
 				function Resource(originalObject) {
 					var original,
@@ -114,7 +116,7 @@
 						return storeDeferred.promise;
 					},
 					'create' : function () {
-						return new Resource(config.template || {});
+						return new Resource(angular.copy(config.template));
 					},
 					'refresh' : function () {
 						error = false;

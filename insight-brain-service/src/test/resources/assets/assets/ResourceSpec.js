@@ -91,4 +91,29 @@ describe('Resource', function () {
 		$httpBackend.flush();
 		expect(spy).not.toHaveBeenCalled();
 	}));
+
+	it('Create', inject(function (CLMResource, $httpBackend) {
+		var store = CLMResource.getStore({
+				id : 'id',
+				url : storeUrl,
+				template : { data : [], id : null }
+			}),
+			spy = jasmine.createSpy('spy'),
+			errorSpy = jasmine.createSpy('errorSpy'),
+			firstObj = store.create();
+
+		firstObj.data.push('foo');
+		expect(firstObj.data).toEqual(['foo']);
+		expect(store.create().data).toEqual([]);
+
+		$httpBackend.expectPOST(storeUrl).respond({ data : ['foo'], id : 'bar' });
+		firstObj.$save().then(spy, errorSpy);
+		$httpBackend.flush();
+
+		expect(spy).toHaveBeenCalledWith({ data : ['foo'], id : 'bar', isDirty : jasmine.any(Function), $updateOriginal : jasmine.any(Function), $save : jasmine.any(Function), $delete : jasmine.any(Function) });
+		expect(errorSpy).not.toHaveBeenCalled();
+
+		expect(firstObj.data).toEqual(['foo']);
+		expect(firstObj.id).toEqual('bar');
+	}));
 });

@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -83,6 +84,17 @@ public class ComponentInfoResourceTest
         throws Exception
     {
         uninstallLicense();
+        Response response = RestAccess.get( getSelectableLicensesServiceURL( "unlicensedappid", "ulg", "ula", "ulv" ) );
+        assertResponseStatus( 402, response );
+    }
+    
+    @Test
+    public void testGetSelectableLicenses_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
         Response response = RestAccess.get( getSelectableLicensesServiceURL( "unlicensedappid", "ulg", "ula", "ulv" ) );
         assertResponseStatus( 402, response );
     }

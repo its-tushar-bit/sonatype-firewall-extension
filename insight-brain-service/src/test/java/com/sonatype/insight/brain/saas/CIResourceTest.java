@@ -17,6 +17,7 @@ import org.junit.Test;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -70,6 +71,17 @@ public class CIResourceTest
         Response response = RestAccess.get( getServiceURL() + "/validate/unlicensedapp" );
         assertResponseStatus( 402, response );
     }
+    
+    @Test
+    public void testValidate_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
+        Response response = RestAccess.get( getServiceURL() + "/validate/unlicensedapp" );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testScan()
@@ -96,6 +108,17 @@ public class CIResourceTest
         throws Exception
     {
         uninstallLicense();
+        Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedapp", "" );
+        assertResponseStatus( 402, response );
+    }
+    
+    @Test
+    public void testScan_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
         Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedapp", "" );
         assertResponseStatus( 402, response );
     }
@@ -130,6 +153,17 @@ public class CIResourceTest
         Response response = RestAccess.get( getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid" );
         assertResponseStatus( 402, response );
     }
+    
+    @Test
+    public void testReport_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
+        Response response = RestAccess.get( getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid" );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testArtifact()
@@ -154,6 +188,17 @@ public class CIResourceTest
         throws Exception
     {
         uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv" );
+        assertResponseStatus( 402, response );
+    }
+    
+    @Test
+    public void testArtifact_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
         Response response = RestAccess.get( getServiceURL() + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv" );
         assertResponseStatus( 402, response );
     }

@@ -124,4 +124,26 @@ public class TestProductLicenseManager
     {
         this.key = key;
     }
+
+    public void setEnforcementPoints( CLMEnforcementPoint... enforcementPoints )
+    {
+        if ( valid )
+        {
+            if ( key == null )
+            {
+                createKey();
+            }
+
+            StringBuilder eps = new StringBuilder();
+
+            for ( CLMEnforcementPoint enforcementPoint : enforcementPoints )
+            {
+                eps.append( enforcementPoint.name() ).append( "," );
+            }
+
+            eps.setLength( eps.length() - 1 );
+
+            key.getProperties().put( CLMLicenseManager.PROPERTY_ENFORCEMENT_POINTS, eps.toString() );
+        }
+    }
 }

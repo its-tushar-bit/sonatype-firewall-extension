@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -261,6 +262,17 @@ public class IdeResourceTest
         throws Exception
     {
         uninstallLicense();
+        Response response = RestAccess.get( getComponentDetailsUrl( "unlicensedappId", "ulg", "ula", "ulv", "ulh","unknown" ) );
+        assertResponseStatus( 402, response );
+    }
+    
+    @Test
+    public void testGetComponentDetails_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
         Response response = RestAccess.get( getComponentDetailsUrl( "unlicensedappId", "ulg", "ula", "ulv", "ulh","unknown" ) );
         assertResponseStatus( 402, response );
     }
@@ -612,6 +624,17 @@ public class IdeResourceTest
         Response response = RestAccess.get( getScanSimpleUrl( "unlicensedappId", "ulh" ) );
         assertResponseStatus( 402, response );
     }
+    
+    @Test
+    public void testDoScan_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
+        Response response = RestAccess.get( getScanSimpleUrl( "unlicensedappId", "ulh" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testDoScan_unknown_enhanced()
@@ -651,6 +674,17 @@ public class IdeResourceTest
         Response response = RestAccess.get( getScanEnhancedUrl( "unlicensedappId", "ulh" ) );
         assertResponseStatus( 402, response );
     }
+    
+    @Test
+    public void testDoScan_enhanced_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
+        Response response = RestAccess.get( getScanEnhancedUrl( "unlicensedappId", "ulh" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testGetComponentVersions()
@@ -671,6 +705,17 @@ public class IdeResourceTest
         Response response = RestAccess.get( getComponentVersionsUrl( "ulg", "ula" ) );
         assertResponseStatus( 402, response );
     }
+    
+    @Test
+    public void testGetComponentVersions_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
+        Response response = RestAccess.get( getComponentVersionsUrl( "ulg", "ula" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testGetAsset()
@@ -687,6 +732,17 @@ public class IdeResourceTest
         throws Exception
     {
         uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
+        assertResponseStatus( 402, response );
+    }
+    
+    @Test
+    public void testGetAsset_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
         Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
         assertResponseStatus( 402, response );
     }

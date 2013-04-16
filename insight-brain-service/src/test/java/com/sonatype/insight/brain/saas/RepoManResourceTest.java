@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -62,4 +63,14 @@ public class RepoManResourceTest
         assertResponseStatus( 402, response );
     }
 
+    @Test
+    public void testUploadScan_EnforcementPointUnlicensed()
+        throws Exception
+    {
+        //note this enforcement point should not apply to this request
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+
+        Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedappid", "" );
+        assertResponseStatus( 402, response );
+    }
 }

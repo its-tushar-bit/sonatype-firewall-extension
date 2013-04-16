@@ -13,7 +13,7 @@
 			id : 'id',
 			url : clmLocations.getPolicyUrl(),
 			template : {
-				threatLevel : 0,
+				threatLevel : 5,
 				constraints : []
 			},
 			params : {

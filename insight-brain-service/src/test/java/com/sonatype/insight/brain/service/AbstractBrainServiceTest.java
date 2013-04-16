@@ -82,6 +82,9 @@ public abstract class AbstractBrainServiceTest
             }
             saas.start();
         }
+        log.debug( "Started InsightMockServer in {}", System.currentTimeMillis() - start );
+
+        start = System.currentTimeMillis();
         if ( brain == null )
         {
             log.debug( "Starting TestInsightBrainService on port {}, admin port {}", brainPort, brainAdminPort );
@@ -97,7 +100,7 @@ public abstract class AbstractBrainServiceTest
             brain.start();
         }
 
-        log.debug( "Started test servers in {}", System.currentTimeMillis() - start );
+        log.debug( "Started TestInsightBrainService in {}", System.currentTimeMillis() - start );
     }
 
     protected void configureBrain( final TestInsightBrainService brain )

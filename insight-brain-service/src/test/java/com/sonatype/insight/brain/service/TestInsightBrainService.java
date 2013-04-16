@@ -172,7 +172,7 @@ public class TestInsightBrainService
             log.error( serverStartException.getMessage(), serverStartException );
             throw serverStartException;
         }
-        System.out.println( "Detected server started in " + ( System.currentTimeMillis() - start ) );
+        log.debug( "Detected server started in {}", System.currentTimeMillis() - start );
     }
 
     @Override

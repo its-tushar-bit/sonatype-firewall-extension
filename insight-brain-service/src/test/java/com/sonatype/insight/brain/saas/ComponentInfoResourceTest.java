@@ -77,6 +77,15 @@ public class ComponentInfoResourceTest
         assertContainsLicenseId( "EPL-1.0", licenses );
         assertContainsLicenseId( "GPL-2.0", licenses );
     }
+    
+    @Test
+    public void testGetSelectableLicenses_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getSelectableLicensesServiceURL( "unlicensedappid", "ulg", "ula", "ulv" ) );
+        assertResponseStatus( 402, response );
+    }
 
     private void assertContainsLicenseId( String licenseId, License[] licenses )
     {

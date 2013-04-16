@@ -22,6 +22,8 @@ public class LandingResourceTest
     @Override
     protected void configureBrain( TestInsightBrainService brain )
     {
+        super.configureBrain( brain );
+        
         if ( testName.getMethodName().endsWith( "ConfiguredBaseUrl" ) )
         {
             brain.setBaseUrl( "http://clm.sonatype.com/test" );

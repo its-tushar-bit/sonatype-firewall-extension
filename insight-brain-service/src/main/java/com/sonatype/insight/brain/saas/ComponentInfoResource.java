@@ -12,6 +12,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -45,10 +47,14 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 @Path( ComponentInfoResource.SERVICE_PATH )
+@Named
 public class ComponentInfoResource
 {
     public static final String SERVICE_PATH = "rest/{tool : ide|ci}/component/details";
@@ -66,6 +72,15 @@ public class ComponentInfoResource
 
     @Context
     private InsightWork work;
+    
+    @Inject
+    private CLMLicenseManager licenseManager;
+    
+    private void validate()
+        throws InvalidLicenseException
+    {
+        licenseManager.validateEnforcementPoint( CLMEnforcementPoint.Develop );
+    }
 
     @GET
     @Path( "versions/{applicationPublicId}" )
@@ -79,6 +94,7 @@ public class ComponentInfoResource
                                                 @QueryParam( "version" ) String version )
         throws IOException
     {
+        validate();
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", tool,
                    applicationPublicId, groupId, artifactId, version );
         return client.doProxy( servletRequest, "rest/ide/component/details/versions/{appId}", applicationPublicId );
@@ -98,6 +114,7 @@ public class ComponentInfoResource
                                                  @QueryParam( "matchState" ) String matchState )
         throws IOException
     {
+        validate();
         log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", tool, applicationPublicId,
                    groupId, artifactId, version, hash );
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -201,6 +218,7 @@ public class ComponentInfoResource
                                                @QueryParam( "version" ) String version )
         throws IOException
     {
+        validate();
         applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         // Get component details from the SAAS server

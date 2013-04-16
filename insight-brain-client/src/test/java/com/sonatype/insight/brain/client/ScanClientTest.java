@@ -21,11 +21,11 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.AbstractLicenseTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 public class ScanClientTest
-    extends AbstractBrainServiceTest
+    extends AbstractLicenseTest
 {
     private static final String APP_ID = "ScanClientTest_AppId";
 

@@ -589,6 +589,9 @@
               <includes>
                 <include>**/AbstractBrainServiceTest*</include>
                 <include>**/TestInsightBrainService*</include>
+                <include>**/AbstractLicenseTest*</include>
+                <include>**/TestLicenseFingerprinter*</include>
+                <include>**/TestProductLicenseManager*</include>
               </includes>
             </configuration>
           </execution>

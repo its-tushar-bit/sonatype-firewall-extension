@@ -63,9 +63,9 @@ public class InsightBrainService
 
     public static final String APPLICATION_ASSET_PATH = "/application-assets/";
 
-    private static final String BRAIN_ASSET_PATH = "/assets/";
+    public static final String BRAIN_ASSET_PATH = "/assets/";
 
-    private static final String POLICY_ASSET_PATH = "/policy-assets/";
+    public static final String POLICY_ASSET_PATH = "/policy-assets/";
     
     public static final String UNLICENSED_ASSET_PATH = "/unlicensed-assets/";
 
@@ -153,8 +153,7 @@ public class InsightBrainService
         //this is a hack to get injected members into the filter, until they can be injected with sisu magic, this will have to do
         getInjector().injectMembers( filter );
         
-        env.addFilter( filter, APPLICATION_ASSET_PATH + "index.html" );
-        env.addFilter( filter, POLICY_ASSET_PATH + "index.html" );
+        env.addFilter( filter, "*" );
 
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );

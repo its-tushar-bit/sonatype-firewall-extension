@@ -52,5 +52,14 @@ public class RepoManResourceTest
         assertEquals( "rest/report/RepoManResourceTest_AppId/f75365d9d93b4f1ea2dd8457a25dc44d/embedReport/",
                       scanReceipt.getReportUrl() );
     }
+    
+    @Test
+    public void testUploadScan_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedappid", "" );
+        assertResponseStatus( 402, response );
+    }
 
 }

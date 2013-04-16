@@ -37,9 +37,9 @@ public class CLMLicenseManager
         }
     }
 
-    private final static String PROPERTY_APPLICATION_COUNT = "licensedApplications";
+    public final static String PROPERTY_APPLICATION_COUNT = "licensedApplications";
 
-    private final static String PROPERTY_ENFORCEMENT_POINTS = "enforcementPoints";
+    public final static String PROPERTY_ENFORCEMENT_POINTS = "enforcementPoints";
 
     private final ProductLicenseManager licenseManager;
 
@@ -119,11 +119,6 @@ public class CLMLicenseManager
         return licenseCache.fingerprint;
     }
 
-    public boolean isLicensedInstalled()
-    {
-        return getLicenseFingerprint() != null;
-    }
-
     public int getApplicationCountLimit()
     {
         if ( licenseCache != null )
@@ -136,21 +131,30 @@ public class CLMLicenseManager
         return licenseCache.applicationCount;
     }
 
-    public boolean isEnforcementPointLicensed( CLMEnforcementPoint enforcementPoint )
+    public void validate()
+        throws InvalidLicenseException
+    {
+        if ( getLicenseFingerprint() == null )
+        {
+            String msg = "CLM is not licensed!";
+            log.error( msg );
+            throw new InvalidLicenseException( msg );
+        }
+    }
+
+    public void validateEnforcementPoint( CLMEnforcementPoint enforcementPoint )
+        throws InvalidLicenseException
     {
         if ( licenseCache == null )
         {
             populateLicenseCache();
         }
 
-        for ( CLMEnforcementPoint ep : licenseCache.enforcementPoints )
+        if ( !licenseCache.enforcementPoints.contains( enforcementPoint ) )
         {
-            if ( ep.equals( enforcementPoint ) )
-            {
-                return true;
-            }
+            String msg = "Enforcement Point " + enforcementPoint.name() + " is not licensed!";
+            log.error( msg );
+            throw new InvalidLicenseException( msg );
         }
-
-        return false;
     }
 }

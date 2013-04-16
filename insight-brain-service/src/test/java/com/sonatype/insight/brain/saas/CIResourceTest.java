@@ -61,6 +61,15 @@ public class CIResourceTest
         assertResponseStatus( 200, response );
         assertThat( response.getResponseBody(), equalTo( "Invalid application id " + applicationPublicId ) );
     }
+    
+    @Test
+    public void testValidate_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() + "/validate/unlicensedapp" );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testScan()
@@ -80,6 +89,15 @@ public class CIResourceTest
 
         assertThat( response.getResponseBody(),
                     equalToIgnoringWhiteSpace( FileUtils.fileRead( saasScanFile, "UTF-8" ) ) );
+    }
+    
+    @Test
+    public void testScan_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedapp", "" );
+        assertResponseStatus( 402, response );
     }
 
     @Test
@@ -103,6 +121,15 @@ public class CIResourceTest
         assertThat( IOUtil.toByteArray( response.getResponseBodyAsStream() ),
                     equalTo( IOUtil.toByteArray( testReportResultUrl.openStream() ) ) );
     }
+    
+    @Test
+    public void testReport_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid" );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testArtifact()
@@ -120,6 +147,15 @@ public class CIResourceTest
         assertThat( response.getResponseBody(), stringContainsInOrder(
             Arrays.asList( "\"groupId\"", "\"org.springframework\"", "\"artifactId\"", "\"spring-core\"", "\"version\"",
                            "\"2.5.6\"" ) ) );
+    }
+    
+    @Test
+    public void testArtifact_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv" );
+        assertResponseStatus( 402, response );
     }
 
     private String getServiceURL()

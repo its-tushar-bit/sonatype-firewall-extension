@@ -14,7 +14,9 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultLicenseKey;
 
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.CLMFeature;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
 /**
  * Simple replacement for a ProductLicenseManager.
@@ -54,8 +56,10 @@ public class TestProductLicenseManager
         Map<String, Feature> featureMap = new HashMap<String, Feature>();
         featureMap.put( CLMFeature.ID, new CLMFeature() );
         Properties properties = new Properties();
-        properties.put( "enforcementPoints", "Procure, Develop, Build, StageRelease, Release" );
-        properties.put( "licensedApplications", "100" );
+        properties.put( CLMLicenseManager.PROPERTY_ENFORCEMENT_POINTS, CLMEnforcementPoint.Procure.name() + ","
+            + CLMEnforcementPoint.Develop.name() + "," + CLMEnforcementPoint.Build.name() + ","
+            + CLMEnforcementPoint.StageRelease.name() + "," + CLMEnforcementPoint.Release.name() );
+        properties.put( CLMLicenseManager.PROPERTY_APPLICATION_COUNT, "100" );
         key = new DefaultLicenseKey( new Features( featureMap ) );
         key.setEffectiveDate( new Date( System.currentTimeMillis() - 10000 ) );
         key.setExpirationDate( new Date( System.currentTimeMillis() + 10000 ) );

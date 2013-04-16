@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,12 +35,16 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.saas.AugmentUtil;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 
 @Path( IdeResource.SERVICE_PATH )
+@Named
 public class IdeResource
 {
     public static final String SERVICE_PATH = "rest/ide";
@@ -55,12 +61,23 @@ public class IdeResource
 
     @Context
     private BaseUrl baseUrl;
+    
+    @Inject
+    private CLMLicenseManager licenseManager;
+    
+    private void validate()
+        throws InvalidLicenseException
+    {
+        licenseManager.validateEnforcementPoint( CLMEnforcementPoint.Develop );
+    }
+                    
 
     @GET
     @Path( "asset/{path:.*}" )
     public Response getAsset( @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
+        validate();
         return client.doProxy( req, "ide/{path}", path );
     }
 
@@ -72,6 +89,7 @@ public class IdeResource
                                        @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
+        validate();
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String applicationId = app.getId();
 
@@ -110,6 +128,7 @@ public class IdeResource
                                          @PathParam( "path" ) String path, @Context HttpServletRequest req )
         throws IOException
     {
+        validate();
         return doScan( scanType, applicationPublicId, path, req );
     }
 
@@ -136,6 +155,7 @@ public class IdeResource
     public Response getVersions( @Context HttpServletRequest req )
         throws IOException
     {
+        validate();
         return client.doProxy( req, "rest/ide/artifact/versions" );
     }
 
@@ -143,6 +163,7 @@ public class IdeResource
     @Path( "brain/{path:.*}" )
     public Response brainGet( final @PathParam( "path" ) String path )
     {
+        validate();
         UriBuilder uriBuilder = baseUrl.redirect().path( path );
 
         return Response.temporaryRedirect( uriBuilder.build() ).build();

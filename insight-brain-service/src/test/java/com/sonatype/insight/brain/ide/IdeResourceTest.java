@@ -255,6 +255,15 @@ public class IdeResourceTest
         Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
         Assert.assertEquals( version, componentDetails.getVersion() );
     }
+    
+    @Test
+    public void testGetComponentDetails_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getComponentDetailsUrl( "unlicensedappId", "ulg", "ula", "ulv", "ulh","unknown" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testDoScan_Simple()
@@ -594,6 +603,15 @@ public class IdeResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
     }
+    
+    @Test
+    public void testDoScan_simple_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getScanSimpleUrl( "unlicensedappId", "ulh" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testDoScan_unknown_enhanced()
@@ -624,6 +642,15 @@ public class IdeResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 1, policyAlerts.size() );
     }
+    
+    @Test
+    public void testDoScan_enhanced_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getScanEnhancedUrl( "unlicensedappId", "ulh" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testGetComponentVersions()
@@ -635,6 +662,15 @@ public class IdeResourceTest
         String[] versions = JsonHelpers.fromJson( response.getResponseBody(), String[].class );
         Assert.assertEquals( Arrays.asList( "1.1", "2.0" ), Arrays.asList( versions ) );
     }
+    
+    @Test
+    public void testGetComponentVersions_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getComponentVersionsUrl( "ulg", "ula" ) );
+        assertResponseStatus( 402, response );
+    }
 
     @Test
     public void testGetAsset()
@@ -644,6 +680,15 @@ public class IdeResourceTest
         Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
         assertResponseStatus( 200, response );
         Assert.assertEquals( "OK", response.getResponseBody() );
+    }
+    
+    @Test
+    public void testGetAsset_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
+        assertResponseStatus( 402, response );
     }
 
     private String getServiceURL()

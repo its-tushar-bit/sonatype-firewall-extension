@@ -10,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,6 +29,9 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -36,6 +41,7 @@ import com.sonatype.insight.scan.upload.RepoManScanUploadRequest;
 import com.sonatype.insight.scan.upload.ScanUploader;
 
 @Path( RepoManResource.SERVICE_PATH )
+@Named
 public class RepoManResource
 {
     public static final String SERVICE_PATH = "rest/rm";
@@ -51,8 +57,17 @@ public class RepoManResource
 
     @Context
     private InsightProxy proxy;
+    
+    @Inject
+    private CLMLicenseManager licenseManager;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+    private void validate()
+        throws InvalidLicenseException
+    {
+        licenseManager.validateEnforcementPoint( CLMEnforcementPoint.Release );
+    }
 
     @PUT
     @Path( "scan/{applicationPublicId}" )
@@ -61,6 +76,7 @@ public class RepoManResource
                                    @QueryParam( "instanceId" ) final String instanceId, final InputStream data )
         throws IOException
     {
+        validate();
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 

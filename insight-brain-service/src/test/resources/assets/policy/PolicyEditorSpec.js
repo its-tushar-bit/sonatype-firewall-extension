@@ -222,4 +222,11 @@ describe('PolicyEditor', function() {
 	}));
 
 	// TODO Test Response of PolicyEditorController to events from Constraint Controller
+	describe('PolicyStore', function () {
+		it('Default Values', inject(function (PolicyStore) {
+			 var newPolicy = PolicyStore.create();
+			 expect(newPolicy.threatLevel).toEqual(5);
+			 expect(newPolicy.constraints).toEqual([]);
+		}));
+	});
 });

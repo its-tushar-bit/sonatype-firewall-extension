@@ -76,7 +76,7 @@
 								<i class='tick' ng-show="!state.actionEditMode && state.actions[stage.id].action == 'warn'"></i>
 							</td>
 							<td>
-								<input ng-model="state.actions[stage.id].action" value="none" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
+								<input ng-model="state.actions[stage.id].action" ng-value="null" name="{{stage.id}}" ng-show="state.actionEditMode" type="radio">
 								<i class='tick' ng-show="!state.actionEditMode && (state.actions[stage.id].action == 'none' || state.actions[stage.id].action == null)"></i>
 							</td>
 							<td style="overflow:hidden;">

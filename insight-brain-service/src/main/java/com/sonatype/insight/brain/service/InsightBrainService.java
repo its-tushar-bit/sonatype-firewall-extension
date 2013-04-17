@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
-import com.sonatype.insight.brain.landing.LandingResource;
 import com.sonatype.insight.brain.license.LicenseResource;
 import com.sonatype.insight.brain.license.LicenseThreatGroupLicenseResource;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource;
@@ -145,8 +144,6 @@ public class InsightBrainService
         env.addResource( new ReleaseGraphResource( cache ) );
         env.addHealthCheck( new ReleaseGraphHealthCheck( cache ) );
         env.addTask( new ReleaseGraphTask( cache ) );
-
-        env.addResource( LandingResource.class );
         
         LicenseAwareFilter filter = new LicenseAwareFilter();
         

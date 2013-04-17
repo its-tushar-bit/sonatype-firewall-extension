@@ -45,50 +45,55 @@ public class LicenseAwareFilter
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
-        String fullUrl = req.getRequestURL().toString();
+        String uri = req.getRequestURI();
 
-        //not 100% happy with this logic, ultimately I would like to have some annotations in the Resource objects that i could check
-        boolean isHtmlRequest = fullUrl.contains( "/index.html" );
-        boolean isLicenseHtmlRequest = fullUrl.contains( InsightBrainService.UNLICENSED_ASSET_PATH ) && isHtmlRequest;
-        boolean isLicenseNotRequired =
-            fullUrl.contains( InsightBrainService.APPLICATION_ASSET_PATH )
-                || fullUrl.contains( InsightBrainService.BRAIN_ASSET_PATH )
-                || fullUrl.contains( InsightBrainService.POLICY_ASSET_PATH )
-                || fullUrl.contains( InsightBrainService.UNLICENSED_ASSET_PATH )
-                || fullUrl.contains( ProductLicenseResource.SERVICE_PATH );
-
-        // allow any non-index.html asset through, or any request that is required for licensing
-        if ( isLicenseNotRequired && ( !isHtmlRequest || isLicenseHtmlRequest ) )
+        if ( uri.equals( "/" ) )
         {
-            chain.doFilter( request, response );
+            String redirectUrl = InsightBrainService.APPLICATION_ASSET_PATH + "index.html";
+
+            resp.sendRedirect( redirectUrl );
         }
         else
         {
-            try
+            // not 100% happy with this logic, ultimately I would like to have some annotations in the Resource objects
+            // that i could check
+            boolean isHtmlRequest = uri.contains( "/index.html" );
+            boolean isLicenseHtmlRequest = uri.contains( InsightBrainService.UNLICENSED_ASSET_PATH ) && isHtmlRequest;
+            boolean isLicenseNotRequired =
+                uri.contains( InsightBrainService.APPLICATION_ASSET_PATH )
+                    || uri.contains( InsightBrainService.BRAIN_ASSET_PATH )
+                    || uri.contains( InsightBrainService.POLICY_ASSET_PATH )
+                    || uri.contains( InsightBrainService.UNLICENSED_ASSET_PATH )
+                    || uri.contains( ProductLicenseResource.SERVICE_PATH );
+
+            // allow any non-index.html asset through, or any request that is required for licensing
+            if ( isLicenseNotRequired && ( !isHtmlRequest || isLicenseHtmlRequest ) )
             {
-                licenseManager.validate();
                 chain.doFilter( request, response );
             }
-            catch ( InvalidLicenseException e )
+            else
             {
-                log.error( e.getMessage(), e );
-
-                if ( fullUrl.contains( "/index.html" ) && !fullUrl.contains( InsightBrainService.UNLICENSED_ASSET_PATH ) )
+                try
                 {
-                    String path = req.getRequestURI();
-
-                    String redirectUrl =
-                        fullUrl.substring( 0, fullUrl.indexOf( path ) ) + InsightBrainService.UNLICENSED_ASSET_PATH
-                            + "index.html";
-
-                    resp.sendRedirect( redirectUrl );
+                    licenseManager.validate();
+                    chain.doFilter( request, response );
                 }
-                else
+                catch ( InvalidLicenseException e )
                 {
-                    resp.sendError( 402, e.getMessage() );
+                    log.error( e.getMessage(), e );
+
+                    if ( uri.contains( "/index.html" ) && !uri.contains( InsightBrainService.UNLICENSED_ASSET_PATH ) )
+                    {
+                        String redirectUrl = InsightBrainService.UNLICENSED_ASSET_PATH + "index.html";
+
+                        resp.sendRedirect( redirectUrl );
+                    }
+                    else
+                    {
+                        resp.sendError( 402, e.getMessage() );
+                    }
                 }
             }
         }
-
     }
 }

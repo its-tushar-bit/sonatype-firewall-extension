@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -50,6 +52,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -63,6 +66,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import freemarker.template.Template;
 
 @Path( PolicyEvaluateResource.SERVICE_PATH )
+@Named
 public class PolicyEvaluateResource
 {
     public static final String SERVICE_PATH = "rest/policy/{applicationPublicId}/evaluate";
@@ -85,6 +89,14 @@ public class PolicyEvaluateResource
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
+    private final CLMLicenseManager licenseManager;
+
+    @Inject
+    public PolicyEvaluateResource( CLMLicenseManager licenseManager )
+    {
+        this.licenseManager = licenseManager;
+    }
+
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
@@ -101,7 +113,8 @@ public class PolicyEvaluateResource
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
 
-        final File reportFile = ReportResource.fetchReport( work, proxy, applicationPublicId, appId, scanId, true );
+        final File reportFile =
+            ReportResource.fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, true );
 
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
@@ -196,7 +209,8 @@ public class PolicyEvaluateResource
             try
             {
                 final File reportFile =
-                    ReportResource.fetchReport( work, proxy, applicationPublicId, appId, oldScanId, true );
+                    ReportResource.fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, oldScanId,
+                                                true );
                 final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
                 if ( reportEntry != null )
                 {

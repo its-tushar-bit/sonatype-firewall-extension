@@ -78,7 +78,10 @@ public class ReportClientTest
         throws Exception
     {
         final String scanId = "ReportClientTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         // The report is not available
@@ -106,7 +109,10 @@ public class ReportClientTest
         throws Exception
     {
         final String scanId = "ReportClientTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         // The report is not available
@@ -129,7 +135,10 @@ public class ReportClientTest
         throws Exception
     {
         final String scanId = "ReportClientTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
         final String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
 
@@ -145,7 +154,10 @@ public class ReportClientTest
         throws Exception
     {
         final String scanId = "ReportClientTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
         final String jsonData = "[ { \"data\" : [ { \"principle\" : \"true\", \"scream\" : \"Eureka\" } ] } ]";
 

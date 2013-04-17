@@ -140,14 +140,14 @@ public abstract class AbstractBrainServiceTest
         return new File( saasWork, "zip" );
     }
 
-    protected static File getScanResponseFile( final String appId )
+    protected static File getScanResponseFile( final String licenseFingerprint )
     {
-        return new File( getJsonResponseDirectory(), appId + ".json" );
+        return new File( getJsonResponseDirectory(), licenseFingerprint + ".json" );
     }
 
-    protected static File getReportResponseFile( final String appId, final String scanId )
+    protected static File getReportResponseFile( final String licenseFingerprint, final String scanId )
     {
-        return new File( getZipResponseDirectory(), appId + '-' + scanId + ".zip" );
+        return new File( getZipResponseDirectory(), licenseFingerprint + '-' + scanId + ".zip" );
     }
 
     protected static int findFreePort( final int defaultPort )

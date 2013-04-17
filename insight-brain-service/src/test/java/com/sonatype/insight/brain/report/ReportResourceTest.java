@@ -51,10 +51,12 @@ public class ReportResourceTest
         final String applicationPublicId = "ReportResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -130,10 +132,12 @@ public class ReportResourceTest
         final String applicationPublicId = "ReportResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -185,10 +189,12 @@ public class ReportResourceTest
         final String applicationPublicId = "ReportResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -269,10 +275,12 @@ public class ReportResourceTest
         Application application = createApplication( applicationPublicId );
         String appId = application.getId();
         final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -327,10 +335,12 @@ public class ReportResourceTest
         final String applicationPublicId = "ReportResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );

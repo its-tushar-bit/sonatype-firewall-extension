@@ -39,8 +39,8 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequest;
+import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequestWithLicense;
+import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequestWithLicense;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
@@ -101,7 +101,8 @@ public class CIResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        final BOMCheckScanUploadRequest request = new BOMCheckScanUploadRequest( applicationPublicId, null, null );
+        final BOMCheckScanUploadRequestWithLicense request =
+            new BOMCheckScanUploadRequestWithLicense( licenseManager.getLicenseFingerprint(), null, null );
         final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", work.getScanDir( appId ) );
         final File scanDir = scanFile.getParentFile();
 
@@ -138,8 +139,8 @@ public class CIResource
         validate();
         applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
-        final BOMCheckReportDownloadRequest request =
-            new BOMCheckReportDownloadRequest( applicationPublicId, scanId, null );
+        final BOMCheckReportDownloadRequestWithLicense request =
+            new BOMCheckReportDownloadRequestWithLicense( licenseManager.getLicenseFingerprint(), scanId, null );
 
         return new StreamingOutput()
         {

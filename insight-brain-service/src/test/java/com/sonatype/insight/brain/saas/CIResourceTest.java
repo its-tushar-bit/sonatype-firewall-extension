@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.stringContainsInOrder;
+
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -20,11 +25,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.stringContainsInOrder;
 
 public class CIResourceTest
     extends AbstractResourceTest
@@ -88,8 +88,11 @@ public class CIResourceTest
         throws Exception
     {
         final String applicationPublicId = "CIResourceTest_AppId";
+        final String licenseFingerprint = "CIResourceTest_LicenseFingerprint";
         createApplication( applicationPublicId );
-        final File saasScanFile = getScanResponseFile( applicationPublicId );
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasScanFile = getScanResponseFile( licenseFingerprint );
         saasScanFile.delete();
 
         final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
@@ -130,7 +133,10 @@ public class CIResourceTest
         final String applicationPublicId = "CIResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "CIResourceTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        final String licenseFingerprint = "CIResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/CIResourceTest/report.zip" );

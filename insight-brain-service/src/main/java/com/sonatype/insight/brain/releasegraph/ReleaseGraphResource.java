@@ -2,6 +2,7 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.util.Date;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.LoadingCache;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.HttpStatusCode;
@@ -33,6 +35,9 @@ public class ReleaseGraphResource
 
     private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
 
+    @Inject
+    private CLMLicenseManager licenseManager;
+
     public ReleaseGraphResource( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         this.cache = cache;
@@ -47,7 +52,9 @@ public class ReleaseGraphResource
         try
         {
             return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version,
-                                                                new ReportItemKey( applicationPublicId, scanId, work,
+                                                                new ReportItemKey(
+                                                                                   licenseManager.getLicenseFingerprint(),
+                                                                                   applicationPublicId, scanId, work,
                                                                                    proxy ) ) ), "image/png" ).expires( new Date(
                                                                                                                                  System.currentTimeMillis()
                                                                                                                                      + YEAR ) ).build();

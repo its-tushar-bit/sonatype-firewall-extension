@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 import com.sonatype.insight.scan.upload.DefaultScanUploader;
-import com.sonatype.insight.scan.upload.RepoManScanUploadRequest;
+import com.sonatype.insight.scan.upload.RepoManScanUploadRequestWithLicense;
 import com.sonatype.insight.scan.upload.ScanUploader;
 
 @Path( RepoManResource.SERVICE_PATH )
@@ -94,7 +94,8 @@ public class RepoManResource
             IOUtil.close( os );
         }
 
-        final RepoManScanUploadRequest request = new RepoManScanUploadRequest( applicationPublicId, scanFile, null );
+        final RepoManScanUploadRequestWithLicense request =
+            new RepoManScanUploadRequestWithLicense( licenseManager.getLicenseFingerprint(), scanFile, null );
         request.setInstanceId( instanceId );
 
         final BOMCheckScanUploadResult result = uploader.upload( proxy.contextualize( request ) );

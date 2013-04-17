@@ -5,6 +5,8 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 public class ReportItemKey
 {
+    private String licenseFingerprint;
+
     private String applicationPublicId;
 
     private String scanId;
@@ -13,8 +15,10 @@ public class ReportItemKey
 
     private InsightProxy proxy;
 
-    public ReportItemKey( String applicationPublicId, String scanId, InsightWork work, InsightProxy proxy )
+    public ReportItemKey( String licenseFingerprint, String applicationPublicId, String scanId, InsightWork work,
+                          InsightProxy proxy )
     {
+        this.licenseFingerprint = licenseFingerprint;
         this.applicationPublicId = applicationPublicId;
         this.scanId = scanId;
         this.work = work;
@@ -36,6 +40,11 @@ public class ReportItemKey
         return applicationPublicId;
     }
 
+    public String getLicenseFingerprint()
+    {
+        return licenseFingerprint;
+    }
+
     public String getScanId()
     {
         return scanId;
@@ -48,6 +57,7 @@ public class ReportItemKey
         int result = 1;
         result = prime * result + ( ( applicationPublicId == null ) ? 0 : applicationPublicId.hashCode() );
         result = prime * result + ( ( scanId == null ) ? 0 : scanId.hashCode() );
+        result = prime * result + ( ( licenseFingerprint == null ) ? 0 : licenseFingerprint.hashCode() );
         return result;
     }
 
@@ -74,6 +84,13 @@ public class ReportItemKey
                 return false;
         }
         else if ( !scanId.equals( other.scanId ) )
+            return false;
+        if ( licenseFingerprint == null )
+        {
+            if ( other.licenseFingerprint != null )
+                return false;
+        }
+        else if ( !licenseFingerprint.equals( other.licenseFingerprint ) )
             return false;
         return true;
     }

@@ -64,7 +64,10 @@ public class PolicyEvaluateResourceTest
         final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final Constraint constraint1 =
@@ -161,7 +164,10 @@ public class PolicyEvaluateResourceTest
         String applicationPublicId = "testEvaluate_MultiLicense_AppId";
         createApplication( applicationPublicId );
         String scanId = "testEvaluate_MultiLicense_ScanId";
-        File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        String licenseFingerprint = "testEvaluate_MultiLicense_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         Constraint constraint1 = new Constraint( null /* constraintId */, "Constraint 1", LogicalOperator.AND );
@@ -213,7 +219,10 @@ public class PolicyEvaluateResourceTest
         final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
         createApplication( applicationPublicId );
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
-        final File saasReportFile = getReportResponseFile( applicationPublicId, scanId );
+        String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final Constraint constraint1 =

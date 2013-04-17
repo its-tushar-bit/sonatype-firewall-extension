@@ -17,6 +17,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -46,6 +48,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -55,13 +58,14 @@ import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequest;
+import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequestWithLicense;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
-import com.sonatype.insight.scan.upload.ReportDataRequest;
+import com.sonatype.insight.scan.upload.ReportDataRequestWithLicense;
 import com.sonatype.insight.scan.upload.ReportDataResult;
 import com.sonatype.insight.scan.upload.ReportDownloader;
 
 @Path( ReportResource.SERVICE_PATH )
+@Named
 public class ReportResource
 {
     public static final String SERVICE_PATH = "rest/report/{applicationPublicId}/{scanId}";
@@ -89,6 +93,14 @@ public class ReportResource
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
+    private final CLMLicenseManager licenseManager;
+
+    @Inject
+    public ReportResource( CLMLicenseManager licenseManager )
+    {
+        this.licenseManager = licenseManager;
+    }
+
     @GET
     @Path( "embedReport/{path:.*}" )
     public Response embedReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
@@ -100,7 +112,7 @@ public class ReportResource
         String appId = application.getId();
 
         final String name = Report.toEntryName( path );
-        final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, false );
+        final File reportFile = fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, false );
         ReportEntry reportEntry = null;
         try
         {
@@ -141,7 +153,7 @@ public class ReportResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, true );
+        final File reportFile = fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, true );
 
         final ResponseBuilder response = Response.ok();
 
@@ -170,7 +182,8 @@ public class ReportResource
             Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
             String appId = application.getId();
 
-            final File reportFile = fetchReport( work, proxy, applicationPublicId, appId, scanId, false );
+            final File reportFile =
+                fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
             final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
@@ -183,7 +196,8 @@ public class ReportResource
             log.debug( "No report available, details will not be augmented", e );
         }
 
-        final ReportDataRequest request = new ReportDataRequest( "rest/ci/artifact/" + scanId + //
+        final ReportDataRequestWithLicense request =
+            new ReportDataRequestWithLicense( licenseManager.getLicenseFingerprint(), "rest/ci/artifact/" + scanId + //
             "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
 
         final ReportDataResult result = downloader.fetch( proxy.contextualize( request ) );
@@ -295,7 +309,7 @@ public class ReportResource
         return Response.temporaryRedirect( uriBuilder.build() ).build();
     }
 
-    public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String applicationPublicId,
+    public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String licenseFingerprint,
                                     final String appId, final String scanId, final boolean waitForReport )
         throws IOException
     {
@@ -314,7 +328,7 @@ public class ReportResource
             if ( !reportFile.exists() )
             {
                 final File tempFile = FileUtils.createTempFile( "temp-", ".zip", reportFile.getParentFile() );
-                if ( !downloadReport( proxy, applicationPublicId, scanId, tempFile, waitForReport ) )
+                if ( !downloadReport( proxy, licenseFingerprint, scanId, tempFile, waitForReport ) )
                 {
                     throw new NotFoundException( "Could not download the report for scan id " + scanId );
                 }
@@ -347,11 +361,11 @@ public class ReportResource
         MODIFICATION_COUNTS.remove( appId + '-' + scanId );
     }
 
-    private static boolean downloadReport( final InsightProxy proxy, final String applicationPublicId,
+    private static boolean downloadReport( final InsightProxy proxy, final String licenseFingerprint,
                                            final String scanId, final File reportFile, final boolean waitForReport )
     {
-        final BOMCheckReportDownloadRequest request =
-            new BOMCheckReportDownloadRequest( applicationPublicId, scanId, null );
+        final BOMCheckReportDownloadRequestWithLicense request =
+            new BOMCheckReportDownloadRequestWithLicense( licenseFingerprint, scanId, null );
 
         if ( waitForReport )
         {

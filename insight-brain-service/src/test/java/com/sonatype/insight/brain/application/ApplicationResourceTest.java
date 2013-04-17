@@ -223,7 +223,9 @@ public class ApplicationResourceTest
         // Test GetApplications
         final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
         final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
+        final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
         Application application = createApplication( applicationPublicId, applicationName );
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
 
         // Create policy
         PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
@@ -234,9 +236,9 @@ public class ApplicationResourceTest
         policy1.addConstraint( constraint1 );
         policyDAO.insert( application.getId(), policy1 );
         final String scanId1 = "ScanId1", scanId2 = "ScanId2";
-        final File saasReportFile1 = getReportResponseFile( applicationPublicId, scanId1 );
+        final File saasReportFile1 = getReportResponseFile( licenseFingerprint, scanId1 );
         FileUtils.copyURLToFile( getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" ), saasReportFile1 );
-        FileUtils.copyFile( saasReportFile1, getReportResponseFile( applicationPublicId, scanId2 ) );
+        FileUtils.copyFile( saasReportFile1, getReportResponseFile( licenseFingerprint, scanId2 ) );
 
         // Eval policy
         Response response = RestAccess.post( getEvalURL( applicationPublicId, scanId1 ),
@@ -269,7 +271,7 @@ public class ApplicationResourceTest
         Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
 
         // Scans count
-        final File saasScanFile = getScanResponseFile( applicationPublicId );
+        final File saasScanFile = getScanResponseFile( licenseFingerprint );
         saasScanFile.delete();
 
         final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );

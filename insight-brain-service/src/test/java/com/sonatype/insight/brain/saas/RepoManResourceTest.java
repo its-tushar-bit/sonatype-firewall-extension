@@ -35,8 +35,11 @@ public class RepoManResourceTest
         throws Exception
     {
         final String applicationPublicId = "RepoManResourceTest_AppId";
+        final String licenseFingerprint = "RepoManResourceTest_LicenseFingerprint";
         createApplication( applicationPublicId );
-        final File saasScanFile = getScanResponseFile( applicationPublicId );
+        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+
+        final File saasScanFile = getScanResponseFile( licenseFingerprint );
         saasScanFile.delete();
 
         final URL testScanResultUrl = getClass().getResource( "/RepoManResourceTest/scan.json" );

@@ -31,8 +31,7 @@ public class ProductLicenseResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public void installLicense( @FormDataParam( "file" )
-    InputStream is )
+    public void installLicense( @FormDataParam( "file" ) InputStream is )
     {
         try
         {

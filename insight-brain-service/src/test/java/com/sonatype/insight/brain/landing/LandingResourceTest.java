@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.landing;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -31,6 +32,7 @@ public class LandingResourceTest
     }
 
     @Test
+    @Ignore
     public void testHome_RequestBaseUrl()
         throws Exception
     {
@@ -41,6 +43,7 @@ public class LandingResourceTest
     }
 
     @Test
+    @Ignore
     public void testHome_ConfiguredBaseUrl()
         throws Exception
     {

@@ -80,7 +80,7 @@
 			 * @since version 1.4
 			 */
 			'getArtifactLicensesUrl' : function (arg) {
-				return '/rest/ci/component/details/selectableLicenses/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });				 
+				return '/rest/ci/component/details/selectableLicenses/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
 			 }
 		},
 		'ide' : {
@@ -89,7 +89,7 @@
 			 * @since version 1.2
 			 */
 			'getArtifactInfoUrl' : function (arg) {
-				return basePath + 'rest/ide/component/details/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId, ts : new Date().getTime() });
+				return basePath + 'rest/ide/component/details/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, hash : arg.hash, instanceId : arg.instanceId, ts : new Date().getTime() });
 			},
 			/**
 			 * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)

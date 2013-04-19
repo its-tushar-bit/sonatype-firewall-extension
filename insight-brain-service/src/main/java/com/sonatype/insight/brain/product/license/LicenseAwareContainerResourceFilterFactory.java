@@ -9,12 +9,13 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sun.jersey.api.model.AbstractMethod;
 import com.sun.jersey.spi.container.ContainerRequest;
@@ -37,15 +38,15 @@ public class LicenseAwareContainerResourceFilterFactory
 
         private final Set<CLMEnforcementPoint> enforcementPoints;
 
-        private final boolean unlicensed;
-
         private final Logger log = LoggerFactory.getLogger( Filter.class );
 
-        public Filter( CLMLicenseManager licenseManager, Set<CLMEnforcementPoint> enforcementPoints, boolean unlicensed )
+        @Context
+        private BaseUrl baseUrl;
+
+        public Filter( CLMLicenseManager licenseManager, Set<CLMEnforcementPoint> enforcementPoints )
         {
             this.licenseManager = licenseManager;
             this.enforcementPoints = enforcementPoints;
-            this.unlicensed = unlicensed;
         }
 
         @Override
@@ -53,46 +54,42 @@ public class LicenseAwareContainerResourceFilterFactory
         {
             String path = request.getPath();
 
-            if ( !unlicensed )
+            try
             {
-                try
+                boolean passed = enforcementPoints.isEmpty();
+                licenseManager.validate();
+                for ( CLMEnforcementPoint enforcementPoint : enforcementPoints )
                 {
-                    boolean passed = enforcementPoints.isEmpty() ? true : false;
-                    licenseManager.validate();
-                    for ( CLMEnforcementPoint enforcementPoint : enforcementPoints )
+                    try
                     {
-                        try
-                        {
-                            licenseManager.validateEnforcementPoint( enforcementPoint );
-                            passed = true;
-                            break;
-                        }
-                        catch ( InvalidLicenseException e )
-                        {
-                            log.debug( "EnforcementPoint " + enforcementPoint.name() + " NOT licensed." );
-                        }
+                        licenseManager.validateEnforcementPoint( enforcementPoint );
+                        passed = true;
+                        break;
                     }
-
-                    if ( !passed )
+                    catch ( InvalidLicenseException e )
                     {
-                        throw new InvalidLicenseException( "Unable to validate the license." );
+                        log.debug( "EnforcementPoint " + enforcementPoint.name() + " NOT licensed." );
                     }
                 }
-                catch ( InvalidLicenseException e )
-                {
-                    log.error( e.getMessage(), e );
 
-                    if ( path.equals( InsightBrainService.APPLICATION_ASSET_PATH + "index.html" )
-                        || path.equals( InsightBrainService.POLICY_ASSET_PATH + "index.html" ) )
-                    {
-                        Response response =
-                            Response.seeOther( UriBuilder.fromPath( InsightBrainService.UNLICENSED_ASSET_PATH + "index.html" ).build( (Object[]) null ) ).build();
-                        throw new WebApplicationException( response );
-                    }
-                    else
-                    {
-                        throw e;
-                    }
+                if ( !passed )
+                {
+                    throw new InvalidLicenseException( "Unable to validate the license." );
+                }
+            }
+            catch ( InvalidLicenseException e )
+            {
+                log.error( e.getMessage(), e );
+
+                if ( path.equals( InsightBrainService.APPLICATION_ASSET_PATH + "index.html" )
+                    || path.equals( InsightBrainService.POLICY_ASSET_PATH + "index.html" ) )
+                {
+                    throw new WebApplicationException(
+                                                       Response.seeOther( baseUrl.redirect().path( InsightBrainService.UNLICENSED_ASSET_PATH ).path( "index.html" ).build() ).build() );
+                }
+                else
+                {
+                    throw e;
                 }
             }
 
@@ -115,6 +112,13 @@ public class LicenseAwareContainerResourceFilterFactory
     @Override
     public List<ResourceFilter> create( AbstractMethod am )
     {
+        if ( am.isAnnotationPresent( UnlicensedPath.class )
+            || am.getMethod().getDeclaringClass().isAnnotationPresent( UnlicensedPath.class ) )
+        {
+            // unlicensed, so no filter necessary
+            return null;
+        }
+
         Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
         ProductLicenseEnforcementPoint ep = am.getAnnotation( ProductLicenseEnforcementPoint.class );
@@ -131,14 +135,6 @@ public class LicenseAwareContainerResourceFilterFactory
             enforcementPoints.addAll( Arrays.asList( ep.value() ) );
         }
 
-        boolean unlicensed = false;
-
-        if ( am.isAnnotationPresent( UnlicensedPath.class )
-            || am.getMethod().getDeclaringClass().isAnnotationPresent( UnlicensedPath.class ) )
-        {
-            unlicensed = true;
-        }
-
-        return Collections.<ResourceFilter> singletonList( new Filter( licenseManager, enforcementPoints, unlicensed ) );
+        return Collections.<ResourceFilter> singletonList( new Filter( licenseManager, enforcementPoints ) );
     }
 }

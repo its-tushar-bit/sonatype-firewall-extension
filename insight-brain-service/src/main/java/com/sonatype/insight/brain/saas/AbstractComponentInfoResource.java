@@ -12,15 +12,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -46,19 +39,17 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
-import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
-import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-@Path( ComponentInfoResource.SERVICE_PATH )
-@ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Develop, CLMEnforcementPoint.Build } )
-@Named
-public class ComponentInfoResource
+/**
+ * Ideally all of the GET methods in the child classes would just be here and they would simply contain the proper PATH,
+ * however, my annotation scanning in the ResourceFilter can't locate the annotations from the child class, needs some investigation
+ *
+ */
+public abstract class AbstractComponentInfoResource
 {
-    public static final String SERVICE_PATH = "rest/{tool : ide|ci}/component/details";
-
-    private static final Logger log = LoggerFactory.getLogger( ComponentInfoResource.class );
+    private static final Logger log = LoggerFactory.getLogger( AbstractComponentInfoResource.class );
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -71,40 +62,25 @@ public class ComponentInfoResource
 
     @Context
     private InsightWork work;
-    
-    @GET
-    @Path( "versions/{applicationPublicId}" )
-    @Produces( MediaType.APPLICATION_JSON )
-    public Response getComponentVersionDetails( @Context HttpServletRequest servletRequest,
-                                                @PathParam( "tool" ) String tool,
-                                                @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                                @QueryParam( "instanceId" ) String instanceId,
-                                                @QueryParam( "groupId" ) String groupId,
-                                                @QueryParam( "artifactId" ) String artifactId,
-                                                @QueryParam( "version" ) String version )
+
+    @Context
+    private HttpServletRequest request;
+
+    protected Response doGetComponentVersionDetails( String applicationPublicId, String instanceId, String groupId,
+                                                     String artifactId, String version )
         throws IOException
     {
-        log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", tool,
+        log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
                    applicationPublicId, groupId, artifactId, version );
-        return client.doProxy( servletRequest, "rest/ide/component/details/versions/{appId}", applicationPublicId );
+        return client.doProxy( request, "rest/ide/component/details/versions/{appId}", applicationPublicId );
     }
 
-    @GET
-    @Path( "{applicationPublicId}" )
-    @Produces( MediaType.APPLICATION_JSON )
-    public ComponentDetails getComponentDetails( @Context HttpServletRequest servletRequest,
-                                                 @PathParam( "tool" ) String tool,
-                                                 @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                                 @QueryParam( "instanceId" ) String instanceId,
-                                                 @QueryParam( "groupId" ) String groupId,
-                                                 @QueryParam( "artifactId" ) String artifactId,
-                                                 @QueryParam( "version" ) String version,
-                                                 @QueryParam( "hash" ) String hash,
-                                                 @QueryParam( "matchState" ) String matchState )
+    protected ComponentDetails doGetComponentDetails( String applicationPublicId, String instanceId, String groupId,
+                                                      String artifactId, String version, String hash, String matchState )
         throws IOException
     {
-        log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", tool, applicationPublicId,
-                   groupId, artifactId, version, hash );
+        log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
+                   applicationPublicId, groupId, artifactId, version, hash );
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String applicationId = app.getId();
 
@@ -113,8 +89,7 @@ public class ComponentInfoResource
         try
         {
             componentDetails =
-                client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details/{appId}",
-                            applicationPublicId );
+                client.get( request, ComponentDetails.class, "rest/ide/component/details/{appId}", applicationPublicId );
         }
         catch ( NotFoundException e )
         {
@@ -195,23 +170,15 @@ public class ComponentInfoResource
         return new PolicyDAO( work.getWorkDir() );
     }
 
-    @GET
-    @Path( "selectableLicenses/{applicationPublicId}" )
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public Set<License> getSelectableLicenses( @Context HttpServletRequest servletRequest,
-                                               @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                               @QueryParam( "instanceId" ) String instanceId,
-                                               @QueryParam( "groupId" ) String groupId,
-                                               @QueryParam( "artifactId" ) String artifactId,
-                                               @QueryParam( "version" ) String version )
+    protected Set<License> doGetSelectableLicenses( String applicationPublicId, String instanceId, String groupId,
+                                                  String artifactId, String version )
         throws IOException
     {
         applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         // Get component details from the SAAS server
         ComponentDetails componentDetails =
-                client.get( servletRequest, ComponentDetails.class, "rest/ide/component/details/{appId}",
-                            applicationPublicId );
+            client.get( request, ComponentDetails.class, "rest/ide/component/details/{appId}", applicationPublicId );
 
         MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
         Set<License> result = new LinkedHashSet<License>();
@@ -249,4 +216,6 @@ public class ComponentInfoResource
         }
         return result;
     }
+
+    protected abstract String getToolName();
 }

@@ -137,6 +137,6 @@ public class ComponentInfoResourceTest
 
     private String getServiceURL()
     {
-        return getRestBaseUrl() + ComponentInfoResource.SERVICE_PATH.replace( "{tool : ide|ci}", "ci" );
+        return getRestBaseUrl() + CIComponentInfoResource.SERVICE_PATH;
     }
 }

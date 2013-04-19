@@ -34,8 +34,6 @@ public class LicenseAwareContainerResourceFilterFactory
     private class Filter
         implements ResourceFilter, ContainerRequestFilter
     {
-        private final CLMLicenseManager licenseManager;
-
         private final Set<CLMEnforcementPoint> enforcementPoints;
 
         private final Logger log = LoggerFactory.getLogger( Filter.class );
@@ -43,9 +41,8 @@ public class LicenseAwareContainerResourceFilterFactory
         @Context
         private BaseUrl baseUrl;
 
-        public Filter( CLMLicenseManager licenseManager, Set<CLMEnforcementPoint> enforcementPoints )
+        public Filter( Set<CLMEnforcementPoint> enforcementPoints )
         {
-            this.licenseManager = licenseManager;
             this.enforcementPoints = enforcementPoints;
         }
 
@@ -135,6 +132,6 @@ public class LicenseAwareContainerResourceFilterFactory
             enforcementPoints.addAll( Arrays.asList( ep.value() ) );
         }
 
-        return Collections.<ResourceFilter> singletonList( new Filter( licenseManager, enforcementPoints ) );
+        return Collections.<ResourceFilter> singletonList( new Filter( enforcementPoints ) );
     }
 }

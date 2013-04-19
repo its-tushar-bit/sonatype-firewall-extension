@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.util.List;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+@Named
 @Path( LicenseThreatGroupResource.SERVICE_PATH )
 public class LicenseThreatGroupResource
 {

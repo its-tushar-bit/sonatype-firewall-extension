@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.label;
 
 import java.util.List;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
 
+@Named
 @Path( ComponentLabelResource.SERVICE_PATH )
 public class ComponentLabelResource
 {

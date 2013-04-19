@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.application;
 
 import java.util.List;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.ApplicationProfileDAO;
 import com.sonatype.insight.brain.model.ApplicationProfile;
 
+@Named
 @Path( ApplicationProfileResource.SERVICE_PATH )
 public class ApplicationProfileResource
 {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
+@Named
 @Path( LandingResource.SERVICE_PATH )
 @UnlicensedPath
 public class LandingResource

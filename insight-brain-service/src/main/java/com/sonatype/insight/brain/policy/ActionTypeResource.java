@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Collection;
 
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
+@Named
 @Path( ActionTypeResource.SERVICE_PATH )
 public class ActionTypeResource
 {

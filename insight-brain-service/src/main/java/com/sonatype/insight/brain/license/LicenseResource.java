@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.license;
 
 import java.util.List;
+
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -13,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.license.License;
 
+@Named
 @Path( LicenseResource.SERVICE_PATH )
 public class LicenseResource
 {

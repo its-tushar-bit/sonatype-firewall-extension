@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.application;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.ApplicationProfilePolicyDAO;
 import com.sonatype.insight.brain.model.ApplicationProfilePolicy;
 
+@Named
 @Path( ApplicationProfilePolicyResource.SERVICE_PATH )
 public class ApplicationProfilePolicyResource
 {

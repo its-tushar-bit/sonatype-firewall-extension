@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.license;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
+@Named
 @Path( LicenseThreatGroupLicenseResource.SERVICE_PATH )
 public class LicenseThreatGroupLicenseResource
 {

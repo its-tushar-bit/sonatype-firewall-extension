@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.label;
 
 import java.util.List;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+@Named
 @Path( LabelResource.SERVICE_PATH )
 public class LabelResource
 {

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.codehaus.plexus.util.IOUtil;
 
+@Named
 @Path( VersionResource.SERVICE_PATH )
 public class VersionResource
 {

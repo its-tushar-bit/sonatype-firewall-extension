@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.List;
 
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.AuditUtils;
 
+@Named
 @Path( PolicyResource.SERVICE_PATH )
 public class PolicyResource
 {

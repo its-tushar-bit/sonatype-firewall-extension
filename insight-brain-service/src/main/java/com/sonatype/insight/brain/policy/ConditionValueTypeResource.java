@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Collection;
 
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 
+@Named
 @Path( ConditionValueTypeResource.SERVICE_PATH )
 public class ConditionValueTypeResource
 {

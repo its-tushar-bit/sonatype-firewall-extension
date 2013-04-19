@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 
+@Named
 @Path( IdeResource.SERVICE_PATH )
 @ProductLicenseEnforcementPoint(CLMEnforcementPoint.Develop)
 public class IdeResource

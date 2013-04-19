@@ -47,14 +47,14 @@ public class H2DatabaseMigrator
         {
             if ( new DataSourceFactory().isNewDataSource( dataSource ) )
             {
-                FileUtils.fileWrite( databaseVersionFile, String.valueOf( desiredVersion ) );
+                FileUtils.fileWrite( databaseVersionFile, "UTF-8", String.valueOf( desiredVersion ) );
                 return;
             }
 
             int currentVersion;
             if ( databaseVersionFile.exists() )
             {
-                String sCurrentVersion = FileUtils.fileRead( databaseVersionFile );
+                String sCurrentVersion = FileUtils.fileRead( databaseVersionFile, "UTF-8" );
                 currentVersion = Integer.parseInt( sCurrentVersion );
             }
             else
@@ -88,7 +88,7 @@ public class H2DatabaseMigrator
             }
             runScripts( dataSource, scriptNames );
 
-            FileUtils.fileWrite( databaseVersionFile, "" + desiredVersion );
+            FileUtils.fileWrite( databaseVersionFile, "UTF-8", String.valueOf( desiredVersion ) );
             FileUtils.deleteDirectory( backupDir );
         }
         catch ( IOException e )

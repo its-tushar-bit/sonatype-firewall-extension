@@ -54,7 +54,7 @@ public class H2DatabaseMigrator
             int currentVersion;
             if ( databaseVersionFile.exists() )
             {
-                String sCurrentVersion = FileUtils.fileRead( databaseVersionFile, "UTF-8" );
+                String sCurrentVersion = FileUtils.fileRead( databaseVersionFile, "UTF-8" ).trim();
                 currentVersion = Integer.parseInt( sCurrentVersion );
             }
             else

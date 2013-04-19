@@ -48,11 +48,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-/**
- * Ideally all of the GET methods in the child classes would just be here and they would simply contain the proper PATH,
- * however, my annotation scanning in the ResourceFilter can't locate the annotations from the child class, needs some
- * investigation
- */
 public abstract class AbstractComponentInfoResource
 {
     private static final Logger log = LoggerFactory.getLogger( AbstractComponentInfoResource.class );

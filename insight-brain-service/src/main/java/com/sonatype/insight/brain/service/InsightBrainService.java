@@ -86,12 +86,6 @@ public class InsightBrainService
         env.enableJerseyFeature( ResourceConfig.FEATURE_CANONICALIZE_URI_PATH );
         env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
 
-        File databaseDir = new File( config.getSonatypeWork(), "data" );
-        DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );
-        DatamartProvider.init( dmDatabaseConfig );
-        DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
-        OperationalDataStoreProvider.init( odsDatabaseConfig );
-
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );
     }
@@ -119,6 +113,13 @@ public class InsightBrainService
     @Override
     protected List<Module> modules( final InsightConfig config )
     {
+        // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
+        File databaseDir = new File( config.getSonatypeWork(), "data" );
+        DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );
+        DatamartProvider.init( dmDatabaseConfig );
+        DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
+        OperationalDataStoreProvider.init( odsDatabaseConfig );
+
         return Arrays.<Module> asList( new AbstractModule()
         {
             @Override

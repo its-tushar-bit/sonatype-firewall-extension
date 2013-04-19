@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -15,13 +17,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphHealthCheck;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphResource;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphTask;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 import com.sun.jersey.api.core.ResourceConfig;
@@ -89,13 +91,6 @@ public class InsightBrainService
         DatamartProvider.init( dmDatabaseConfig );
         DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
         OperationalDataStoreProvider.init( odsDatabaseConfig );
-
-        LoadingCache<ReleaseGraphKey, byte[]> cache =
-            CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build(
-                new ReleaseGraphCacheLoader() );
-        env.addResource( new ReleaseGraphResource( cache ) );
-        env.addHealthCheck( new ReleaseGraphHealthCheck( cache ) );
-        env.addTask( new ReleaseGraphTask( cache ) );
         
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );
@@ -119,5 +114,22 @@ public class InsightBrainService
 
         // Add our own mapper for exceptions.
         environment.addProvider( new JaxRsExceptionMapper() );
+    }
+
+    @Override
+    protected List<Module> modules( final InsightConfig config )
+    {
+        return Arrays.<Module> asList( new AbstractModule()
+        {
+            @Override
+            protected void configure()
+            {
+                final LoadingCache<ReleaseGraphKey, byte[]> cache =
+                    CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build( new ReleaseGraphCacheLoader() );
+                bind( new TypeLiteral<LoadingCache<ReleaseGraphKey, byte[]>>()
+                {
+                } ).toInstance( cache );
+            }
+        } );
     }
 }

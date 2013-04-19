@@ -3,6 +3,7 @@ package com.sonatype.insight.brain.releasegraph;
 import java.util.Date;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.HttpStatusCode;
 
+@Named
 @Path( "rest/report/{applicationId}/{scanId}/releaseGraph" )
 public class ReleaseGraphResource
 {
@@ -38,6 +40,7 @@ public class ReleaseGraphResource
     @Inject
     private CLMLicenseManager licenseManager;
 
+    @Inject
     public ReleaseGraphResource( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         this.cache = cache;

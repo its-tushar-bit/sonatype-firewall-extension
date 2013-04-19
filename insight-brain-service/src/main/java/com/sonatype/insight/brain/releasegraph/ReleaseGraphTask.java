@@ -2,15 +2,20 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.io.PrintWriter;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMultimap;
 import com.yammer.dropwizard.tasks.Task;
 
+@Named
 public class ReleaseGraphTask
     extends Task
 {
     private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
+    @Inject
     public ReleaseGraphTask( LoadingCache<ReleaseGraphKey, byte[]> cache )
     {
         super( "clearReleaseGraphCache" );

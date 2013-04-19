@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequestWithLicense;
@@ -48,13 +48,14 @@ import com.sonatype.insight.scan.upload.ReportDownloader;
 import com.sonatype.insight.scan.upload.ScanUploader;
 
 @Path( CIResource.SERVICE_PATH )
+@ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Build } )
 @Named
 public class CIResource
 {
     public static final String SERVICE_PATH = "rest/ci";
 
     private static final Logger log = LoggerFactory.getLogger( CIResource.class );
-
+    
     final ScanUploader uploader = new DefaultScanUploader( log, false );
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
@@ -69,12 +70,6 @@ public class CIResource
     private CLMLicenseManager licenseManager;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
-    
-    private void validate()
-        throws InvalidLicenseException
-    {
-        licenseManager.validateEnforcementPoint( CLMEnforcementPoint.Build );
-    }
 
     /**
      * @deprecated Use ApplicationResource.validateApplicationPublicId() instead.
@@ -85,7 +80,6 @@ public class CIResource
     public String validateToken( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws Exception
     {
-        validate();
         return ApplicationResource.validateApplicationPublicIdInternal( applicationPublicId );
     }
 
@@ -97,7 +91,6 @@ public class CIResource
                              @QueryParam( "jobId" ) final String jobId, final InputStream data )
         throws Exception
     {
-        validate();
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
@@ -136,7 +129,6 @@ public class CIResource
     public StreamingOutput getReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                       @QueryParam( "scanId" ) final String scanId )
     {
-        validate();
         applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         final BOMCheckReportDownloadRequestWithLicense request =
@@ -168,7 +160,6 @@ public class CIResource
                                      @QueryParam( "artifactId" ) final String artifactId,
                                      @QueryParam( "version" ) final String version )
     {
-        validate();
         String applicationPublicId = "unknown";
         String appId = work.findOwningAppId( scanId );
         if ( appId != null )

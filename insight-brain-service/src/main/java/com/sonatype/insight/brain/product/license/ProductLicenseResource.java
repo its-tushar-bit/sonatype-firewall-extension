@@ -7,10 +7,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.licensing.LicensingException;
 
 import com.sun.jersey.multipart.FormDataParam;
@@ -23,6 +27,8 @@ public class ProductLicenseResource
 
     private final CLMLicenseManager licenseManager;
 
+    private final Logger log = LoggerFactory.getLogger( ProductLicenseResource.class );
+
     @Inject
     public ProductLicenseResource( CLMLicenseManager licenseManager )
     {
@@ -31,36 +37,47 @@ public class ProductLicenseResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    public void installLicense( @FormDataParam( "file" ) InputStream is )
+    @UnlicensedPath
+    public void installLicense( @FormDataParam( "file" )
+    InputStream is )
     {
         try
         {
             licenseManager.installLicense( is );
+            log.info( "CLM License successfully installed" );
         }
         catch ( IOException e )
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error( "Unable to install license", e );
         }
         catch ( LicensingException e )
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error( "Unable to install license", e );
         }
     }
 
     @DELETE
+    @UnlicensedPath
     public void uninstallLicense()
     {
         try
         {
             licenseManager.uninstallLicense();
+            log.info( "CLM License successfully uninstalled" );
         }
         catch ( LicensingException e )
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error( "Unable to uninstall license", e );
         }
+    }
+    
+    @GET
+    @UnlicensedPath
+    @Produces(MediaType.TEXT_PLAIN)
+    public String validate()
+    {
+        licenseManager.validate();
+        return "OK";
     }
 
 }

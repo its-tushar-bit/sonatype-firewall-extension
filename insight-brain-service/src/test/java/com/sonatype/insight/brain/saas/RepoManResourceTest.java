@@ -71,7 +71,7 @@ public class RepoManResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.Build );
 
         Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedappid", "" );
         assertResponseStatus( 402, response );

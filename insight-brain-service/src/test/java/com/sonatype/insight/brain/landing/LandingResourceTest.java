@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class LandingResourceTest
     {
         Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
         assertResponseStatus( 303, response );
-        assertEquals( "http://clm.sonatype.com/test" + InsightBrainService.APPLICATION_ASSET_PATH
+        assertEquals( "http://clm.sonatype.com/test/" + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 )
             + "index.html?x=y&a=b", response.getHeader( "Location" ) );
     }
 

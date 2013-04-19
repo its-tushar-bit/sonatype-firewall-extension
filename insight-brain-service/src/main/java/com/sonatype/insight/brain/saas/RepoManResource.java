@@ -12,6 +12,7 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -31,7 +32,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -41,6 +42,7 @@ import com.sonatype.insight.scan.upload.RepoManScanUploadRequestWithLicense;
 import com.sonatype.insight.scan.upload.ScanUploader;
 
 @Path( RepoManResource.SERVICE_PATH )
+@ProductLicenseEnforcementPoint( { CLMEnforcementPoint.StageRelease } )
 @Named
 public class RepoManResource
 {
@@ -63,20 +65,13 @@ public class RepoManResource
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private void validate()
-        throws InvalidLicenseException
-    {
-        licenseManager.validateEnforcementPoint( CLMEnforcementPoint.Release );
-    }
-
     @PUT
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
     public ScanReceipt uploadScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                   @QueryParam( "instanceId" ) final String instanceId, final InputStream data )
+                                   @QueryParam( "instanceId" ) final String instanceId, final InputStream data, @Context HttpServletRequest req )
         throws IOException
     {
-        validate();
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 

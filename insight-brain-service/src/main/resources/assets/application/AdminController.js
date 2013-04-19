@@ -17,15 +17,15 @@
     });
 
     adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function($http, $scope, clmLocations) {
-        var installDone = function(){
-            window.location.href='/application-assets/index.html';
+        var done = function(){
+            if (window.location.href.indexOf('unlicensed-assets') > -1 ) {
+                window.location.href = window.location.href.replace('unlicensed-assets','application-assets');
+            } else {
+                window.location.reload();
+            }
         };
         
-        var uninstallDone = function(){
-            window.location.reload();
-        };
-        
-        $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
+        $scope.uploadUrl = '../rest/product/license';
 
         $scope.viewInstallLicense = function() {
             $scope.showInstall = true;
@@ -38,24 +38,24 @@
         $scope.installLicense = function() {
             $scope.showInstall = false;
             $('#licenseInstalledModal').modal('show');
-            setTimeout(installDone,5000);
+            setTimeout(done,5000);
         };
         
         $scope.uninstallLicense = function() {
             $http.delete($scope.uploadUrl).success(function (data) {
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
-                setTimeout(uninstallDone,5000);
+                setTimeout(done,5000);
             });
         }
         
         $scope.licenseInstalled = function() {
-            clearTimeout(installDone);
+            clearTimeout(done);
             installDone();
         }
         
         $scope.licenseUninstalled = function() {
-            clearTimeout(uninstallDone);
+            clearTimeout(done);
             uninstallDone();
         }
     } ]);

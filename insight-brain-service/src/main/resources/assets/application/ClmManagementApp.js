@@ -7,7 +7,7 @@
 (function () {
     "use strict";
 
-    var clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'ApplicationManagement', 'Report', 'Profile', 'Admin'], ['$routeProvider', function ($routeProvider) {
+    var clmManagementApp = angular.module('clmManagementApp', ['AngularCommon', 'ApplicationManagement', 'Report', 'Profile', 'Admin', 'CLMLocation'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/management', {
             templateUrl: 'components/management.html?' + clmBuildTimestamp,
             controller: 'ApplicationManagementController'
@@ -49,6 +49,14 @@
         }, function () {
             $scope.tabUrl = $location.path();
             angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
+        });
+   }]);
+    
+    clmManagementApp.run(['$http', 'CLMLocations', function ($http, clmLocations) {
+        $http.get(clmLocations.getLicenseUploadUrl()).error(function(msg, status){
+            if ( status === 402 ) {
+                window.location.href = window.location.href.replace('application-assets','unlicensed-assets');
+            }
         });
     }]);
 

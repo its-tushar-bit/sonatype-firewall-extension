@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.label.LabelResource;
+import com.sonatype.insight.brain.landing.LandingResource;
 import com.sonatype.insight.brain.license.LicenseResource;
 import com.sonatype.insight.brain.license.LicenseThreatGroupLicenseResource;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource;
@@ -33,7 +35,7 @@ import com.sonatype.insight.brain.policy.ConditionValueTypeResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.product.license.LicenseAwareFilter;
+import com.sonatype.insight.brain.product.license.LicenseAwareContainerResourceFilterFactory;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphHealthCheck;
@@ -62,7 +64,7 @@ public class InsightBrainService
 
     public static final String APPLICATION_ASSET_PATH = "/application-assets/";
 
-    public static final String BRAIN_ASSET_PATH = "/assets/";
+    private static final String BRAIN_ASSET_PATH = "/assets/";
 
     public static final String POLICY_ASSET_PATH = "/policy-assets/";
     
@@ -100,13 +102,18 @@ public class InsightBrainService
 
     @Override
     protected void customize( final InsightConfig config, final Environment env )
-    {        
+    {              
         replaceGenericExceptionMapper( env );
 
         config.getSonatypeWork().mkdirs();
 
         env.enableJerseyFeature( ResourceConfig.FEATURE_CANONICALIZE_URI_PATH );
         env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
+        
+        LicenseAwareContainerResourceFilterFactory filterFactory = new LicenseAwareContainerResourceFilterFactory();
+        getInjector().injectMembers( filterFactory );
+        
+        env.setJerseyProperty( ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, Arrays.asList( filterFactory ) );
 
         File databaseDir = new File( config.getSonatypeWork(), "data" );
         DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );
@@ -137,6 +144,7 @@ public class InsightBrainService
         env.addResource( ComponentInfoResource.class );
         env.addResource( EnvironmentResource.class );
         env.addResource( ProductLicenseResource.class );
+        env.addResource( LandingResource.class );
 
         LoadingCache<ReleaseGraphKey, byte[]> cache =
             CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build(
@@ -145,13 +153,6 @@ public class InsightBrainService
         env.addHealthCheck( new ReleaseGraphHealthCheck( cache ) );
         env.addTask( new ReleaseGraphTask( cache ) );
         
-        LicenseAwareFilter filter = new LicenseAwareFilter();
-        
-        //this is a hack to get injected members into the filter, until they can be injected with sisu magic, this will have to do
-        getInjector().injectMembers( filter );
-        
-        env.addFilter( filter, "*" );
-
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );
     }

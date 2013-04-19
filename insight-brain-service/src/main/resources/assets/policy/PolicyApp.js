@@ -65,8 +65,13 @@ var policyApp;
         });
     }]);
 
-    policyApp.run(['$http', '$rootScope', function ($http, $rootScope) {
+    policyApp.run(['$http', '$rootScope', 'CLMLocations', function ($http, $rootScope, clmLocations) {
         $rootScope.features = {};
+        $http.get(clmLocations.getLicenseUploadUrl()).error(function(msg, status){
+            if ( status === 402 ) {
+                window.location.href = window.location.href.replace('policy-assets','unlicensed-assets');
+            }
+        });
         $http.get('../rest/features').success(function (data) {
             angular.forEach(data, function (value, key) {
                 $rootScope.features[value] = true;

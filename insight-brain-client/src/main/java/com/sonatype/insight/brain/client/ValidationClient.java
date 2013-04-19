@@ -23,6 +23,14 @@ public final class ValidationClient
         super( config );
     }
 
+    @SuppressWarnings( "unchecked" )
+    public Map<String, String> getApplicationIdNameMap()
+        throws IOException
+    {
+        Result result = path( "rest/application/services/names" ).get();
+        return (Map<String, String>) JsonUtils.parse( result.data(), Map.class );
+    }
+
     public void validateConfiguration()
         throws IOException
     {

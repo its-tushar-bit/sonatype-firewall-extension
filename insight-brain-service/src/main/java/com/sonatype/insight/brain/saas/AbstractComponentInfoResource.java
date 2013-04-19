@@ -13,7 +13,13 @@ import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -44,8 +50,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * Ideally all of the GET methods in the child classes would just be here and they would simply contain the proper PATH,
- * however, my annotation scanning in the ResourceFilter can't locate the annotations from the child class, needs some investigation
- *
+ * however, my annotation scanning in the ResourceFilter can't locate the annotations from the child class, needs some
+ * investigation
  */
 public abstract class AbstractComponentInfoResource
 {
@@ -66,8 +72,15 @@ public abstract class AbstractComponentInfoResource
     @Context
     private HttpServletRequest request;
 
-    protected Response doGetComponentVersionDetails( String applicationPublicId, String instanceId, String groupId,
-                                                     String artifactId, String version )
+    @GET
+    @Path( "versions/{applicationPublicId}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public Response getComponentVersionDetails( @PathParam( "applicationPublicId" )
+    String applicationPublicId, @QueryParam( "instanceId" )
+    String instanceId, @QueryParam( "groupId" )
+    String groupId, @QueryParam( "artifactId" )
+    String artifactId, @QueryParam( "version" )
+    String version )
         throws IOException
     {
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
@@ -75,8 +88,17 @@ public abstract class AbstractComponentInfoResource
         return client.doProxy( request, "rest/ide/component/details/versions/{appId}", applicationPublicId );
     }
 
-    protected ComponentDetails doGetComponentDetails( String applicationPublicId, String instanceId, String groupId,
-                                                      String artifactId, String version, String hash, String matchState )
+    @GET
+    @Path( "{applicationPublicId}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ComponentDetails getComponentDetails( @PathParam( "applicationPublicId" )
+    String applicationPublicId, @QueryParam( "instanceId" )
+    String instanceId, @QueryParam( "groupId" )
+    String groupId, @QueryParam( "artifactId" )
+    String artifactId, @QueryParam( "version" )
+    String version, @QueryParam( "hash" )
+    String hash, @QueryParam( "matchState" )
+    String matchState )
         throws IOException
     {
         log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
@@ -170,8 +192,15 @@ public abstract class AbstractComponentInfoResource
         return new PolicyDAO( work.getWorkDir() );
     }
 
-    protected Set<License> doGetSelectableLicenses( String applicationPublicId, String instanceId, String groupId,
-                                                  String artifactId, String version )
+    @GET
+    @Path( "selectableLicenses/{applicationPublicId}" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public Set<License> getSelectableLicenses( @PathParam( "applicationPublicId" )
+    String applicationPublicId, @QueryParam( "instanceId" )
+    String instanceId, @QueryParam( "groupId" )
+    String groupId, @QueryParam( "artifactId" )
+    String artifactId, @QueryParam( "version" )
+    String version )
         throws IOException
     {
         applicationDAO.getByPublicIdNotNull( applicationPublicId );

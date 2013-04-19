@@ -113,7 +113,7 @@ public class LicenseAwareContainerResourceFilterFactory
     public List<ResourceFilter> create( AbstractMethod am )
     {
         if ( am.isAnnotationPresent( UnlicensedPath.class )
-            || am.getMethod().getDeclaringClass().isAnnotationPresent( UnlicensedPath.class ) )
+            || am.getResource().isAnnotationPresent( UnlicensedPath.class ) )
         {
             // unlicensed, so no filter necessary
             return null;
@@ -128,7 +128,7 @@ public class LicenseAwareContainerResourceFilterFactory
             enforcementPoints.addAll( Arrays.asList( ep.value() ) );
         }
 
-        ep = am.getMethod().getDeclaringClass().getAnnotation( ProductLicenseEnforcementPoint.class );
+        ep = am.getResource().getAnnotation( ProductLicenseEnforcementPoint.class );
 
         if ( ep != null )
         {

@@ -54,7 +54,10 @@ public class ReleaseGraphResource
         log.debug( "Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId );
         try
         {
-            return Response.ok( cache.get( new ReleaseGraphKey( groupId, artifactId, version,
+            return Response.ok( cache.get( new ReleaseGraphKey(
+                                                                groupId,
+                                                                artifactId,
+                                                                version,
                                                                 new ReportItemKey(
                                                                                    licenseManager.getLicenseFingerprint(),
                                                                                    applicationPublicId, scanId, work,

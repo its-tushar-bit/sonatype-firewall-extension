@@ -43,13 +43,13 @@ public class InsightBrainService
     private static final String BRAIN_ASSET_PATH = "/assets/";
 
     public static final String POLICY_ASSET_PATH = "/policy-assets/";
-    
+
     public static final String UNLICENSED_ASSET_PATH = "/unlicensed-assets/";
 
     public static void main( final String[] args )
         throws Exception
     {
-        new InsightBrainService().run( args.length > 0 ? args : new String[]{ "server" } );
+        new InsightBrainService().run( args.length > 0 ? args : new String[] { "server" } );
     }
 
     @Override
@@ -69,7 +69,7 @@ public class InsightBrainService
         DatabaseConfig databaseConfig = new DatabaseConfig();
         databaseConfig.setDriverClassName( "org.h2.Driver" );
         databaseConfig.setUrl( "jdbc:h2:" + databaseDir.getAbsolutePath() + '/' + databaseName
-                                   + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
+            + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
         databaseConfig.setUsername( "sa" );
         databaseConfig.setPassword( "" );
         databaseConfig.setMaxConnections( 50 );
@@ -78,7 +78,7 @@ public class InsightBrainService
 
     @Override
     protected void customize( final InsightConfig config, final Environment env )
-    {              
+    {
         replaceGenericExceptionMapper( env );
 
         config.getSonatypeWork().mkdirs();
@@ -91,7 +91,7 @@ public class InsightBrainService
         DatamartProvider.init( dmDatabaseConfig );
         DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
         OperationalDataStoreProvider.init( odsDatabaseConfig );
-        
+
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );
     }

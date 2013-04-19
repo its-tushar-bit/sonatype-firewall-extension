@@ -198,7 +198,7 @@ public class ReportResource
 
         final ReportDataRequestWithLicense request =
             new ReportDataRequestWithLicense( licenseManager.getLicenseFingerprint(), "rest/ci/artifact/" + scanId + //
-            "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
+                "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
 
         final ReportDataResult result = downloader.fetch( proxy.contextualize( request ) );
 

@@ -59,7 +59,7 @@ public class RepoManResource
 
     @Context
     private InsightProxy proxy;
-    
+
     @Inject
     private CLMLicenseManager licenseManager;
 
@@ -69,7 +69,8 @@ public class RepoManResource
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
     public ScanReceipt uploadScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                   @QueryParam( "instanceId" ) final String instanceId, final InputStream data, @Context HttpServletRequest req )
+                                   @QueryParam( "instanceId" ) final String instanceId, final InputStream data,
+                                   @Context HttpServletRequest req )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );

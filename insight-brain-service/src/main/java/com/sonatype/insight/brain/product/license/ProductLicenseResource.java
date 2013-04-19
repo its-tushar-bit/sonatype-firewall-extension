@@ -38,8 +38,7 @@ public class ProductLicenseResource
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @UnlicensedPath
-    public void installLicense( @FormDataParam( "file" )
-    InputStream is )
+    public void installLicense( @FormDataParam( "file" ) InputStream is )
     {
         try
         {
@@ -70,10 +69,10 @@ public class ProductLicenseResource
             log.error( "Unable to uninstall license", e );
         }
     }
-    
+
     @GET
     @UnlicensedPath
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces( MediaType.TEXT_PLAIN )
     public String validate()
     {
         licenseManager.validate();

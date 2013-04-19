@@ -55,7 +55,7 @@ public class CIResource
     public static final String SERVICE_PATH = "rest/ci";
 
     private static final Logger log = LoggerFactory.getLogger( CIResource.class );
-    
+
     final ScanUploader uploader = new DefaultScanUploader( log, false );
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
@@ -65,7 +65,7 @@ public class CIResource
 
     @Context
     private InsightProxy proxy;
-    
+
     @Inject
     private CLMLicenseManager licenseManager;
 
@@ -167,7 +167,6 @@ public class CIResource
             applicationPublicId = applicationDAO.getByIdNotNull( appId ).getPublicId();
         }
         return Response.temporaryRedirect( URI.create( "rest/report/" + applicationPublicId + '/' + scanId //
-                                                           + "/artifactDetails" + "?groupId=" + groupId + "&artifactId="
-                                                           + artifactId + "&version=" + version ) ).build();
+            + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
     }
 }

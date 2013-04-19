@@ -81,9 +81,9 @@ public class PolicyResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Policy updatePolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId,
-                                final Policy policy, @QueryParam( "user" ) final String user,
-                                @QueryParam( "where" ) final String where, @Context final HttpServletRequest request )
+    public Policy updatePolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId, final Policy policy,
+                                @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
+                                @Context final HttpServletRequest request )
     {
         log.debug( "Received request to update policy for policyOwnerId {}, policyId {}", policyOwnerId, policy.getId() );
 

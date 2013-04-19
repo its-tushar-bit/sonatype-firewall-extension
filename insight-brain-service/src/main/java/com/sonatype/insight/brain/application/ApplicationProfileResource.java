@@ -26,12 +26,12 @@ import com.sonatype.insight.brain.model.ApplicationProfile;
 public class ApplicationProfileResource
 {
     public static final String SERVICE_PATH = "rest/applicationProfile";
-    
+
     private ApplicationProfileDAO applicationProfileDAO = new ApplicationProfileDAO();
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<ApplicationProfile> getApplicationProfiles( )
+    public List<ApplicationProfile> getApplicationProfiles()
     {
         return applicationProfileDAO.getAll();
     }

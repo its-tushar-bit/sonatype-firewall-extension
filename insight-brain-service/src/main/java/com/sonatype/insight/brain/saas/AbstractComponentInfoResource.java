@@ -70,12 +70,11 @@ public abstract class AbstractComponentInfoResource
     @GET
     @Path( "versions/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response getComponentVersionDetails( @PathParam( "applicationPublicId" )
-    String applicationPublicId, @QueryParam( "instanceId" )
-    String instanceId, @QueryParam( "groupId" )
-    String groupId, @QueryParam( "artifactId" )
-    String artifactId, @QueryParam( "version" )
-    String version )
+    public Response getComponentVersionDetails( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                                @QueryParam( "instanceId" ) String instanceId,
+                                                @QueryParam( "groupId" ) String groupId,
+                                                @QueryParam( "artifactId" ) String artifactId,
+                                                @QueryParam( "version" ) String version )
         throws IOException
     {
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
@@ -86,14 +85,13 @@ public abstract class AbstractComponentInfoResource
     @GET
     @Path( "{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public ComponentDetails getComponentDetails( @PathParam( "applicationPublicId" )
-    String applicationPublicId, @QueryParam( "instanceId" )
-    String instanceId, @QueryParam( "groupId" )
-    String groupId, @QueryParam( "artifactId" )
-    String artifactId, @QueryParam( "version" )
-    String version, @QueryParam( "hash" )
-    String hash, @QueryParam( "matchState" )
-    String matchState )
+    public ComponentDetails getComponentDetails( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                                 @QueryParam( "instanceId" ) String instanceId,
+                                                 @QueryParam( "groupId" ) String groupId,
+                                                 @QueryParam( "artifactId" ) String artifactId,
+                                                 @QueryParam( "version" ) String version,
+                                                 @QueryParam( "hash" ) String hash,
+                                                 @QueryParam( "matchState" ) String matchState )
         throws IOException
     {
         log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
@@ -190,12 +188,11 @@ public abstract class AbstractComponentInfoResource
     @GET
     @Path( "selectableLicenses/{applicationPublicId}" )
     @Produces( { MediaType.APPLICATION_JSON } )
-    public Set<License> getSelectableLicenses( @PathParam( "applicationPublicId" )
-    String applicationPublicId, @QueryParam( "instanceId" )
-    String instanceId, @QueryParam( "groupId" )
-    String groupId, @QueryParam( "artifactId" )
-    String artifactId, @QueryParam( "version" )
-    String version )
+    public Set<License> getSelectableLicenses( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                               @QueryParam( "instanceId" ) String instanceId,
+                                               @QueryParam( "groupId" ) String groupId,
+                                               @QueryParam( "artifactId" ) String artifactId,
+                                               @QueryParam( "version" ) String version )
         throws IOException
     {
         applicationDAO.getByPublicIdNotNull( applicationPublicId );

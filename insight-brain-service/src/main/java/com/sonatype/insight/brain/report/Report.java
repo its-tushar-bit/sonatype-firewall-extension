@@ -209,15 +209,15 @@ public final class Report
                 }
             }
         }
-        
+
         ComponentDAO componentDAO = new ComponentDAO();
         for ( JsonNode licenseJsonNode : licenses.get( "aaData" ) )
         {
             final Component component = componentDAO.getComponent( appId, licenseJsonNode );
             ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
             Integer threatLevel = component.getLicenseThreatLevel();
-            licenseNode.put( "effectiveLicenseThreat",  threatLevel);
-            
+            licenseNode.put( "effectiveLicenseThreat", threatLevel );
+
             if ( threatLevel != null )
             {
                 threatLevel = Math.min( 10, Math.max( 0, threatLevel ) );
@@ -242,7 +242,7 @@ public final class Report
 
         for ( JsonNode licenseJsonNode : partialMatched.get( "aaData" ) )
         {
-            final ArrayNode matchedComponentNodes = (ArrayNode)licenseJsonNode.get( "matchDetails" );
+            final ArrayNode matchedComponentNodes = (ArrayNode) licenseJsonNode.get( "matchDetails" );
             for ( JsonNode matchedComponentJsonNode : matchedComponentNodes )
             {
                 final Component matchedComponent = new ComponentDAO().getComponent( appId, matchedComponentJsonNode );

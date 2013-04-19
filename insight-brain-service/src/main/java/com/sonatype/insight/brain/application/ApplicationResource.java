@@ -120,12 +120,10 @@ public class ApplicationResource
         return applicationPublicIDNamePairs;
     }
 
-
     @GET
     @Path( GET_APPLICATION_PATH )
     @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary getApplication(
-        @PathParam( "applicationPublicId" ) final String applicationPublicId )
+    public ApplicationManagementSummary getApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
         final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -144,9 +142,9 @@ public class ApplicationResource
     }
 
     /**
-     * This is one of two service methods used for editing and adding icons. This method is used for AJAX
-     * calls since its return type is a JSON object.
-     *
+     * This is one of two service methods used for editing and adding icons. This method is used for AJAX calls since
+     * its return type is a JSON object.
+     * 
      * @throws IOException
      */
     @POST
@@ -163,9 +161,9 @@ public class ApplicationResource
     }
 
     /**
-     * This is one of two service methods used for editing and adding icons. This method is used for synchronous
-     * calls since it returns a HTTP Response.
-     *
+     * This is one of two service methods used for editing and adding icons. This method is used for synchronous calls
+     * since it returns a HTTP Response.
+     * 
      * @return HTTP Response redirect to the application management page.
      * @throws IOException
      */

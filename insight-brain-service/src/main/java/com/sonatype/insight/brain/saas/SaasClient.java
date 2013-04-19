@@ -71,7 +71,7 @@ public class SaasClient
     private final Configuration config;
 
     private final HttpClient client;
-    
+
     private final CLMLicenseManager licenseManager;
 
     private static volatile String version;

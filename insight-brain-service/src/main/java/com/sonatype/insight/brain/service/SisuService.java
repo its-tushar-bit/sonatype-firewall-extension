@@ -49,7 +49,7 @@ public abstract class SisuService<T extends Configuration>
     private static final Logger logger = LoggerFactory.getLogger( SisuService.class );
 
     private final List<Module> initModules = new ArrayList<Module>();
-    
+
     private Injector injector = null;
 
     @Override

@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 @Named
 @Path( IdeResource.SERVICE_PATH )
-@ProductLicenseEnforcementPoint(CLMEnforcementPoint.Develop)
+@ProductLicenseEnforcementPoint( CLMEnforcementPoint.Develop )
 public class IdeResource
 {
     public static final String SERVICE_PATH = "rest/ide";
@@ -59,7 +59,7 @@ public class IdeResource
     private InsightWork work;
 
     @Context
-    private BaseUrl baseUrl;                
+    private BaseUrl baseUrl;
 
     @GET
     @Path( "asset/{path:.*}" )
@@ -97,8 +97,7 @@ public class IdeResource
                                        matchedComponent.getSecurityVulnerabilities() );
 
             ComponentDAO componentDAO = new ComponentDAO();
-            Component component =
-                componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
+            Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
             List<PolicyAlert> policyAlerts =
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
                                     Collections.singletonList( component ) );

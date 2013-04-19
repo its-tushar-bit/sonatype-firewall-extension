@@ -19,8 +19,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class AugmentUtil
 {
 
-    public static ObjectNode getLicenseData( InsightWork work, String applicationId, String groupId,
-                                               String artifactId, String version )
+    public static ObjectNode getLicenseData( InsightWork work, String applicationId, String groupId, String artifactId,
+                                             String version )
         throws IOException
     {
         ArrayNode licenseData = new ArrayNode( JsonNodeFactory.instance );
@@ -34,9 +34,8 @@ public class AugmentUtil
         return (ObjectNode) licenseData.get( 0 );
     }
 
-    public static ArrayNode getSVData( InsightWork work, String applicationId, String groupId,
-                                                String artifactId, String version,
-                                                List<SecurityVulnerability> securityVulnerabilities )
+    public static ArrayNode getSVData( InsightWork work, String applicationId, String groupId, String artifactId,
+                                       String version, List<SecurityVulnerability> securityVulnerabilities )
         throws IOException
     {
         if ( securityVulnerabilities == null || securityVulnerabilities.isEmpty() )

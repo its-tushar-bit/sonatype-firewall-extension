@@ -101,7 +101,7 @@ public class PolicyEvaluator
 
     // Package visibility for tests only
     List<PolicyAlert> evaluate( final String applicationId, final Stage stage, final List<Policy> policies,
-                                       final List<Component> components )
+                                final List<Component> components )
     {
         final long start = System.currentTimeMillis();
 

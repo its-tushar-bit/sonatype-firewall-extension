@@ -28,7 +28,7 @@ public final class ValidationClient
         throws IOException
     {
         Result result = path( "rest/application/services/names" ).get();
-        return (Map<String, String>) JsonUtils.parse( result.data(), Map.class );
+        return JsonUtils.parse( result.data(), Map.class );
     }
 
     public void validateConfiguration()

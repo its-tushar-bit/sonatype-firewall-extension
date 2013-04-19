@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,6 +106,12 @@ public class ReportResourceTest
                 String actual = response.getResponseBody();
 
                 testPartialMatchedJsonApplyChanges( actual );
+            }
+            else if ( "index.html".equals( entry.getName() ) )
+            {
+                String actual = response.getResponseBody();
+                assertTrue( "The app public id was not included in the report",
+                            actual.contains( "applicationId = '" + applicationPublicId + "'" ) );
             }
             else if ( contentType.startsWith( "text" ) || contentType.endsWith( "json" ) )
             {

@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,8 +29,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -96,6 +99,18 @@ public final class Report
         return buf != null ? buf.toString() : path;
     }
 
+    private static void embedApplicationPublicId( String applicationId, File reportFile )
+        throws IOException
+    {
+        Application application = new ApplicationDAO().getByIdNotNull( applicationId );
+        String filename = "index.html";
+        ReportEntry reportEntry = extractEntry( reportFile, filename );
+        String indexHtmlContent = new String( reportEntry.buf, Charset.forName( "UTF-8" ) );
+        indexHtmlContent =
+            indexHtmlContent.replace( "applicationId = ''", "applicationId = '" + application.getPublicId() + "'" );
+        cache( getCacheFile( reportFile, filename ), indexHtmlContent.getBytes( "UTF-8" ) );
+    }
+
     public static int[] applyChanges( final String appId, final File reportFile, final File auditDir )
         throws IOException
     {
@@ -105,6 +120,8 @@ public final class Report
         {
             return new int[] { -1, -1 };
         }
+
+        embedApplicationPublicId( appId, reportFile );
 
         final ReportEntry policyReportEntry = getEntry( reportFile, "policythreats.json" );
 

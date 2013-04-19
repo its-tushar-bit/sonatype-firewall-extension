@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -35,7 +34,6 @@ import com.sonatype.insight.brain.policy.ConditionValueTypeResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.StageTypeResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.product.license.LicenseAwareContainerResourceFilterFactory;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphHealthCheck;
@@ -109,11 +107,6 @@ public class InsightBrainService
 
         env.enableJerseyFeature( ResourceConfig.FEATURE_CANONICALIZE_URI_PATH );
         env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
-        
-        LicenseAwareContainerResourceFilterFactory filterFactory = new LicenseAwareContainerResourceFilterFactory();
-        getInjector().injectMembers( filterFactory );
-        
-        env.setJerseyProperty( ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, Arrays.asList( filterFactory ) );
 
         File databaseDir = new File( config.getSonatypeWork(), "data" );
         DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );

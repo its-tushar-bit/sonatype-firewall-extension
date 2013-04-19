@@ -29,6 +29,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
+import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.spi.container.ResourceFilterFactory;
 import com.sun.jersey.spi.inject.InjectableProvider;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Configuration;
@@ -113,6 +115,7 @@ public abstract class SisuService<T extends Configuration>
         addProviders( environment, locator );
         addInjectableProviders( environment, locator );
         addResources( environment, locator );
+        addResourceFilterFactories( environment, locator );
         addTasks( environment, locator );
         addManaged( environment, locator );
     }
@@ -126,11 +129,6 @@ public abstract class SisuService<T extends Configuration>
     public void addModules( Collection<Module> modules )
     {
         this.initModules.addAll( modules );
-    }
-    
-    protected Injector getInjector()
-    {
-        return injector;
     }
 
     private static void addManaged( Environment environment, BeanLocator locator )
@@ -206,6 +204,21 @@ public abstract class SisuService<T extends Configuration>
                     logger.warn( "Unable to add resource: {}", impl, e );
                 }
             }
+        }
+    }
+
+    private static void addResourceFilterFactories( Environment environment, BeanLocator locator )
+    {
+        List<ResourceFilterFactory> resourceFilterFactories = new ArrayList<ResourceFilterFactory>();
+        for ( BeanEntry<Annotation, ResourceFilterFactory> beanEntry : locator.locate( Key.get( ResourceFilterFactory.class ) ) )
+        {
+            ResourceFilterFactory resourceFilterFactory = beanEntry.getValue();
+            logger.debug( "Added resource filter factory: {}", resourceFilterFactory );
+            resourceFilterFactories.add( resourceFilterFactory );
+        }
+        if ( !resourceFilterFactories.isEmpty() )
+        {
+            environment.setJerseyProperty( ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, resourceFilterFactories );
         }
     }
 }

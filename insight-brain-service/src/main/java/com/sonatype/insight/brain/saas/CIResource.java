@@ -5,15 +5,13 @@
  */
 package com.sonatype.insight.brain.saas;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -25,38 +23,29 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.application.ApplicationResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequestWithLicense;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadRequestWithLicense;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
-import com.sonatype.insight.scan.upload.DefaultScanUploader;
 import com.sonatype.insight.scan.upload.ReportDownloader;
-import com.sonatype.insight.scan.upload.ScanUploader;
 
 @Path( CIResource.SERVICE_PATH )
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Build } )
 @Named
 public class CIResource
+    extends AbstractSaasResource
 {
     public static final String SERVICE_PATH = "rest/ci";
 
     private static final Logger log = LoggerFactory.getLogger( CIResource.class );
-
-    final ScanUploader uploader = new DefaultScanUploader( log, false );
 
     final ReportDownloader downloader = new DefaultReportDownloader( log );
 
@@ -65,7 +54,7 @@ public class CIResource
 
     @Context
     private InsightProxy proxy;
-
+    
     @Inject
     private CLMLicenseManager licenseManager;
 
@@ -86,41 +75,14 @@ public class CIResource
     @PUT
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response putScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                             @QueryParam( "instanceId" ) final String instanceId,
-                             @QueryParam( "jobId" ) final String jobId, final InputStream data )
+    public Response putScan( @PathParam( "applicationPublicId" )
+    final String applicationPublicId, @QueryParam( "instanceId" )
+    final String instanceId, @QueryParam( "jobId" )
+    final String jobId, @Context
+    HttpServletRequest req )
         throws Exception
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
-
-        final BOMCheckScanUploadRequestWithLicense request =
-            new BOMCheckScanUploadRequestWithLicense( licenseManager.getLicenseFingerprint(), null, null );
-        final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", work.getScanDir( appId ) );
-        final File scanDir = scanFile.getParentFile();
-
-        scanDir.mkdirs();
-        final FileOutputStream os = new FileOutputStream( scanFile );
-        try
-        {
-            IOUtil.copy( data, os );
-        }
-        finally
-        {
-            IOUtil.close( os );
-        }
-
-        request.setScanFile( scanFile );
-        request.setInstanceId( instanceId );
-        request.setJobId( jobId );
-
-        final BOMCheckScanUploadResult result = uploader.upload( proxy.contextualize( request ) );
-        if ( StringUtils.isNotBlank( result.getScanId() ) )
-        {
-            FileUtils.rename( scanFile, new File( scanDir, "scan-" + result.getScanId() + ".xml.gz" ) );
-        }
-
-        return Response.ok( result ).build();
+        return Response.ok( doUpload( req, applicationPublicId, "rest/ci/scan", instanceId, jobId ) ).build();
     }
 
     @GET
@@ -167,6 +129,7 @@ public class CIResource
             applicationPublicId = applicationDAO.getByIdNotNull( appId ).getPublicId();
         }
         return Response.temporaryRedirect( URI.create( "rest/report/" + applicationPublicId + '/' + scanId //
-            + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version ) ).build();
+                                                           + "/artifactDetails" + "?groupId=" + groupId + "&artifactId="
+                                                           + artifactId + "&version=" + version ) ).build();
     }
 }

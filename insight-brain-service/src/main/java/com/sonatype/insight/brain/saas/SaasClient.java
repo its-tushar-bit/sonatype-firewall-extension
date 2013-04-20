@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,10 +73,12 @@ public class SaasClient
     private final Configuration config;
 
     private final HttpClient client;
-
+    
     private final CLMLicenseManager licenseManager;
 
     private static volatile String version;
+    
+    public static final String UPLOAD_FILE_ATTRIBUTE = "saas.upload.file";
 
     @Inject
     public SaasClient( final InsightProxy proxy, final CLMLicenseManager licenseManager )
@@ -115,6 +119,10 @@ public class SaasClient
                         if ( String.class.equals( clazz ) )
                         {
                             return clazz.cast( EntityUtils.toString( entity, "UTF-8" ) );
+                        }
+                        else if ( InputStream.class.equals( clazz ) )
+                        {
+                            return clazz.cast( entity.getContent() );
                         }
                         in = entity.getContent();
                         return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
@@ -182,14 +190,14 @@ public class SaasClient
         else if ( "POST".equals( request.getMethod() ) )
         {
             cloudReq = new HttpPost( buildUri( request, path, params ) );
-            HttpEntity entity = new InputStreamEntity( request.getInputStream(), request.getContentLength() );
-            ( (HttpPost) cloudReq ).setEntity( new BufferedHttpEntity( entity ) );
+            
+            ( (HttpPost) cloudReq ).setEntity( new BufferedHttpEntity( buildEntity( request ) ) );
         }
         else if ( "PUT".equals( request.getMethod() ) )
         {
             cloudReq = new HttpPut( buildUri( request, path, params ) );
-            HttpEntity entity = new InputStreamEntity( request.getInputStream(), request.getContentLength() );
-            ( (HttpPut) cloudReq ).setEntity( new BufferedHttpEntity( entity ) );
+            
+            ( (HttpPut) cloudReq ).setEntity( new BufferedHttpEntity( buildEntity( request ) ) );
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {
@@ -208,6 +216,29 @@ public class SaasClient
         {
             throw new GatewayTimeoutException( e.getMessage(), e );
         }
+    }
+    
+    //note i hide this warning because the http client should be handling closing the new stream i create below
+    @SuppressWarnings( "resource" )
+    private HttpEntity buildEntity( HttpServletRequest request )
+        throws IOException
+    {
+        File uploadFile = ( File ) request.getAttribute( UPLOAD_FILE_ATTRIBUTE );
+        
+        InputStream is = null;
+        long length = request.getContentLength();
+        
+        if ( uploadFile != null )
+        {
+            is = new FileInputStream( uploadFile );
+            length = uploadFile.length();
+        }
+        else
+        {
+            is = request.getInputStream();
+        }
+        
+        return new InputStreamEntity( is, length );
     }
 
     private void populateRequest( final HttpServletRequest orig, HttpUriRequest req )

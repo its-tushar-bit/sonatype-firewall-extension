@@ -40,7 +40,7 @@ public class RepoManResource
     HttpServletRequest req )
         throws IOException
     {
-        final BOMCheckScanUploadResult result = doUpload( req, applicationPublicId, "rest/rm/scan", instanceId );
+        final BOMCheckScanUploadResult result = doScanUpload( req, applicationPublicId, "rest/rm/scan", instanceId );
 
         final ScanReceipt receipt = new ScanReceipt();
         receipt.setScanId( result.getScanId() );

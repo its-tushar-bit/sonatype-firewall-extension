@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 
 import javax.inject.Inject;
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequestWithLicense;
 import com.sonatype.insight.scan.upload.DefaultReportDownloader;
 import com.sonatype.insight.scan.upload.ReportDownloader;
 
@@ -57,6 +55,9 @@ public class CIResource
     
     @Inject
     private CLMLicenseManager licenseManager;
+    
+    @Inject
+    private SaasClient client;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -76,42 +77,24 @@ public class CIResource
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
     public Response putScan( @PathParam( "applicationPublicId" )
-    final String applicationPublicId, @QueryParam( "instanceId" )
-    final String instanceId, @QueryParam( "jobId" )
-    final String jobId, @Context
+    final String applicationPublicId, @Context
     HttpServletRequest req )
-        throws Exception
+        throws IOException
     {
-        return Response.ok( doUpload( req, applicationPublicId, "rest/ci/scan", instanceId, jobId ) ).build();
+        return Response.ok( doScanUpload( req, applicationPublicId, "rest/ci/scan" ) ).build();
     }
 
     @GET
     @Path( "report/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_OCTET_STREAM )
-    public StreamingOutput getReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
-                                      @QueryParam( "scanId" ) final String scanId )
+    public StreamingOutput getReport( @PathParam( "applicationPublicId" )
+    final String applicationPublicId, @Context
+    final HttpServletRequest req )
+        throws IOException
     {
         applicationDAO.getByPublicIdNotNull( applicationPublicId );
-
-        final BOMCheckReportDownloadRequestWithLicense request =
-            new BOMCheckReportDownloadRequestWithLicense( licenseManager.getLicenseFingerprint(), scanId, null );
-
-        return new StreamingOutput()
-        {
-            @Override
-            public void write( final OutputStream os )
-                throws IOException
-            {
-                try
-                {
-                    downloader.download( proxy.contextualize( request ), os );
-                }
-                catch ( final InterruptedException e )
-                {
-                    throw new IOException( e.getMessage() );
-                }
-            }
-        };
+        
+        return StreamingOutput.class.cast( client.doProxy( req, "rest/ci/report" ).getEntity() );
     }
 
     @GET

@@ -26,8 +26,8 @@ public abstract class AbstractSaasResource
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    protected BOMCheckScanUploadResult doUpload( HttpServletRequest request, String applicationPublicId, String path,
-                                                 String... params )
+    protected BOMCheckScanUploadResult doScanUpload( HttpServletRequest request, String applicationPublicId,
+                                                     String path, String... params )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );

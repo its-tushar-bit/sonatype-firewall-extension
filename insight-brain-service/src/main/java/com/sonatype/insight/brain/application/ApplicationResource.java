@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -77,6 +79,9 @@ public class ApplicationResource
 
     @Context
     private BaseUrl baseUrl;
+    
+    @Inject
+    private CLMLicenseManager licenseManager;
 
     private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
 
@@ -272,6 +277,13 @@ public class ApplicationResource
         if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( application.getPublicId() ) )
         {
             throw new BadRequestException( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID." );
+        }
+        
+        int appLimit = licenseManager.getApplicationCountLimit();
+        
+        if ( applicationDAO.getAll().size() >= appLimit )
+        {
+            throw new BadRequestException( "You have exceeded the licensed limit of " + appLimit + " applications." );
         }
 
         applicationDAO.insert( application );

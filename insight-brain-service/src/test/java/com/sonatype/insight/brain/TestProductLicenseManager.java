@@ -146,4 +146,17 @@ public class TestProductLicenseManager
             key.getProperties().put( CLMLicenseManager.PROPERTY_ENFORCEMENT_POINTS, eps.toString() );
         }
     }
+    
+    public void setApplicationLimit( int applicationLimit )
+    {
+        if ( valid )
+        {
+            if ( key == null )
+            {
+                createKey();
+            }
+
+            key.getProperties().put( CLMLicenseManager.PROPERTY_APPLICATION_COUNT, Integer.toString( applicationLimit ) );
+        }
+    }
 }

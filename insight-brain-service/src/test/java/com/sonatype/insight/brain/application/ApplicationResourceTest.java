@@ -215,6 +215,24 @@ public class ApplicationResourceTest
         iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
         assertResponseStatus( 404, iconResponse );
     }
+    
+    @Test
+    public void testAddApplication_exceedsLicense()
+        throws Exception
+    {
+        getLicenseManager().setApplicationLimit( 1 );
+
+        createApplication( "testAddApplication_exceedsLicense_id" );
+
+        // Test Add Application, which should fail with 400 since we exceeded the limit
+        Application application = new Application();
+        application.setName( "testAddApplication_exceedsLicense_id_new_name" );
+        application.setPublicId( "testAddApplication_exceedsLicense_id_new_id" );
+
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
+
+        assertResponseStatus( 400, response );
+    }
 
     @Test
     public void testGetApplications()

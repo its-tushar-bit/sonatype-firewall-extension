@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -161,4 +162,16 @@ public class ValidationClientTest
         }
     }
 
+    @Test
+    public void testValidate_getApplicationIdNameMap()
+        throws Exception
+    {
+        Application app = createApplication( "valid-id" );
+
+        Map<String,String> map = new ValidationClient( brain.getClientConfiguration() ).getApplicationIdNameMap();
+
+        assertEquals( 1, map.size() );
+        assertTrue( map.containsKey( "valid-id" ) );
+        assertEquals( app.getName(), map.get( "valid-id" ) );
+    }
 }

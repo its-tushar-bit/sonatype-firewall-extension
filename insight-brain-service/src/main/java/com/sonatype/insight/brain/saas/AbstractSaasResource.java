@@ -33,8 +33,8 @@ public abstract class AbstractSaasResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", work.getScanDir( appId ) );
-        final File scanDir = scanFile.getParentFile();
+        final File scanDir = work.getScanDir( appId );
+        final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", scanDir );
 
         scanDir.mkdirs();
         final FileOutputStream os = new FileOutputStream( scanFile );

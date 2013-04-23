@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
-public class ComponentInfoResourceTest
+public class CIComponentInfoResourceTest
     extends AbstractResourceTest
 {
     @Test

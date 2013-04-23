@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
+import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -70,6 +71,9 @@ public abstract class AbstractComponentInfoResource
     @GET
     @Path( "versions/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
+    /**
+     * @deprecated Used by eclipse plugin < 2.1.1, ci plugin < 2.8
+     */
     public Response getComponentVersionDetails( @PathParam( "applicationPublicId" ) String applicationPublicId,
                                                 @QueryParam( "instanceId" ) String instanceId,
                                                 @QueryParam( "groupId" ) String groupId,
@@ -80,6 +84,31 @@ public abstract class AbstractComponentInfoResource
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
                    applicationPublicId, groupId, artifactId, version );
         return client.doProxy( request, "rest/ide/component/details/versions/{appId}", applicationPublicId );
+    }
+
+    @GET
+    @Path( "list/{applicationPublicId}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ComponentDetailsList getComponentDetailsList( @PathParam( "applicationPublicId" ) String applicationPublicId,
+                                                         @QueryParam( "groupId" ) String groupId,
+                                                         @QueryParam( "artifactId" ) String artifactId,
+                                                         @QueryParam( "version" ) String version )
+        throws IOException
+    {
+        log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
+                   applicationPublicId, groupId, artifactId, version );
+        Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String applicationId = app.getId();
+
+        ComponentDetailsList componentDetailsList =
+            client.get( request, ComponentDetailsList.class, "rest/ide/component/details/list" );
+
+        for ( ComponentDetails componentDetails : componentDetailsList.getList() )
+        {
+            loadComponent( applicationId, componentDetails );
+        }
+
+        return componentDetailsList;
     }
 
     @GET
@@ -125,6 +154,20 @@ public abstract class AbstractComponentInfoResource
             componentDetails.setMatchState( MatchState.EXACT.getId() );
         }
 
+        Component component = loadComponent( applicationId, componentDetails );
+
+        // Evaluate the policies
+        List<PolicyAlert> policyAlerts =
+            evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
+                                Collections.singletonList( component ) );
+        componentDetails.setPolicyAlerts( policyAlerts );
+
+        return componentDetails;
+    }
+
+    private Component loadComponent( String applicationId, ComponentDetails componentDetails )
+        throws IOException
+    {
         // Load the augmented data for licenses and security vulnerabilities
         ObjectNode licenseData =
             AugmentUtil.getLicenseData( work, applicationId, componentDetails.getGroupId(),
@@ -133,8 +176,6 @@ public abstract class AbstractComponentInfoResource
             AugmentUtil.getSVData( work, applicationId, componentDetails.getGroupId(),
                                    componentDetails.getArtifactId(), componentDetails.getVersion(),
                                    componentDetails.getSecurityVulnerabilities() );
-
-        // Load all data into a Component instance for policy evaluation
         ComponentDAO componentDAO = new ComponentDAO();
         Component component = componentDAO.getComponent( applicationId, componentDetails, licenseData, svData );
 
@@ -170,14 +211,7 @@ public abstract class AbstractComponentInfoResource
                 }
             }
         }
-
-        // Evaluate the policies
-        List<PolicyAlert> policyAlerts =
-            evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
-                                Collections.singletonList( component ) );
-        componentDetails.setPolicyAlerts( policyAlerts );
-
-        return componentDetails;
+        return component;
     }
 
     private PolicyDAO policyDAO()

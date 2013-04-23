@@ -5,13 +5,12 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -48,9 +47,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.report.ReportDownloader.ReportDownloadReponse;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
@@ -58,11 +56,6 @@ import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.upload.BOMCheckReportDownloadRequestWithLicense;
-import com.sonatype.insight.scan.upload.DefaultReportDownloader;
-import com.sonatype.insight.scan.upload.ReportDataRequestWithLicense;
-import com.sonatype.insight.scan.upload.ReportDataResult;
-import com.sonatype.insight.scan.upload.ReportDownloader;
 
 @Path( ReportResource.SERVICE_PATH )
 @Named
@@ -80,25 +73,20 @@ public class ReportResource
     static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS =
         CacheBuilder.newBuilder().maximumSize( 8192 ).<String, Integer> build().asMap();
 
-    final ReportDownloader downloader = new DefaultReportDownloader( log );
-
     @Context
     private InsightWork work;
-
-    @Context
-    private InsightProxy proxy;
 
     @Context
     private BaseUrl baseUrl;
 
     private ApplicationDAO applicationDAO = new ApplicationDAO();
-
-    private final CLMLicenseManager licenseManager;
+    
+    private final ReportDownloader reportDownloader;
 
     @Inject
-    public ReportResource( CLMLicenseManager licenseManager )
+    public ReportResource( ReportDownloader reportDownloader )
     {
-        this.licenseManager = licenseManager;
+        this.reportDownloader = reportDownloader;
     }
 
     @GET
@@ -112,7 +100,7 @@ public class ReportResource
         String appId = application.getId();
 
         final String name = Report.toEntryName( path );
-        final File reportFile = fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, false );
+        final File reportFile = fetchReport( reportDownloader, work, appId, scanId, false );
         ReportEntry reportEntry = null;
         try
         {
@@ -153,7 +141,7 @@ public class ReportResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        final File reportFile = fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, true );
+        final File reportFile = fetchReport( reportDownloader, work, appId, scanId, true );
 
         final ResponseBuilder response = Response.ok();
 
@@ -183,7 +171,7 @@ public class ReportResource
             String appId = application.getId();
 
             final File reportFile =
-                fetchReport( work, proxy, licenseManager.getLicenseFingerprint(), appId, scanId, false );
+                fetchReport( reportDownloader, work, appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
             final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
@@ -195,12 +183,14 @@ public class ReportResource
         {
             log.debug( "No report available, details will not be augmented", e );
         }
-
-        final ReportDataRequestWithLicense request =
-            new ReportDataRequestWithLicense( licenseManager.getLicenseFingerprint(), "rest/ci/artifact/" + scanId + //
-                "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version, null );
-
-        final ReportDataResult result = downloader.fetch( proxy.contextualize( request ) );
+        
+        Map<String,String> queryParams = new HashMap<String,String>();
+        
+        queryParams.put( "groupId", groupId );
+        queryParams.put( "artifactId", artifactId );
+        queryParams.put( "version", version );
+        
+        final ReportDownloadReponse result = reportDownloader.fetchReport( "rest/ci/artifact/" + scanId, queryParams );
 
         final ResponseBuilder response = Response.status( result.getStatusCode() );
 
@@ -309,8 +299,7 @@ public class ReportResource
         return Response.temporaryRedirect( uriBuilder.build() ).build();
     }
 
-    public static File fetchReport( final InsightWork work, final InsightProxy proxy, final String licenseFingerprint,
-                                    final String appId, final String scanId, final boolean waitForReport )
+    public static File fetchReport( final ReportDownloader reportDownloader, final InsightWork work, final String appId, final String scanId, final boolean waitForReport )
         throws IOException
     {
         final Lock lock = lockFor( appId, scanId );
@@ -327,8 +316,16 @@ public class ReportResource
         {
             if ( !reportFile.exists() )
             {
+                int attempts = 0;
+                int interval = 0;
+                
+                if ( waitForReport )
+                {
+                    attempts = 30;
+                    interval = 30;
+                }
                 final File tempFile = FileUtils.createTempFile( "temp-", ".zip", reportFile.getParentFile() );
-                if ( !downloadReport( proxy, licenseFingerprint, scanId, tempFile, waitForReport ) )
+                if ( !reportDownloader.downloadReport( scanId, tempFile, attempts, interval ) )
                 {
                     throw new NotFoundException( "Could not download the report for scan id " + scanId );
                 }
@@ -359,46 +356,6 @@ public class ReportResource
     public static void flushReportChanges( final String appId, final String scanId )
     {
         MODIFICATION_COUNTS.remove( appId + '-' + scanId );
-    }
-
-    private static boolean downloadReport( final InsightProxy proxy, final String licenseFingerprint,
-                                           final String scanId, final File reportFile, final boolean waitForReport )
-    {
-        final BOMCheckReportDownloadRequestWithLicense request =
-            new BOMCheckReportDownloadRequestWithLicense( licenseFingerprint, scanId, null );
-
-        if ( waitForReport )
-        {
-            request.setRetryAttempts( 30 );
-            request.setRetryInterval( 30 );
-        }
-        else
-        {
-            request.setRetryAttempts( 0 );
-            request.setRetryInterval( 10 );
-        }
-
-        reportFile.getAbsoluteFile().getParentFile().mkdirs();
-        try
-        {
-            final OutputStream os = new BufferedOutputStream( new FileOutputStream( reportFile ) );
-            try
-            {
-                new DefaultReportDownloader( log ).download( proxy.contextualize( request ), os );
-                return true;
-            }
-            finally
-            {
-                IOUtil.close( os );
-            }
-        }
-        catch ( final Exception e )
-        {
-            // don't leave an incomplete file around
-            log.error( e.getMessage(), e );
-            reportFile.delete();
-        }
-        return false;
     }
 
     private static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )

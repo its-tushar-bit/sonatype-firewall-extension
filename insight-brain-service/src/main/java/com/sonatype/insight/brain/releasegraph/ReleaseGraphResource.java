@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.LoadingCache;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.HttpStatusCode;
 
@@ -30,13 +30,13 @@ public class ReleaseGraphResource
     @Context
     private InsightWork work;
 
-    @Context
-    private InsightProxy proxy;
-
     private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
     private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
-
+    
+    @Inject
+    private ReportDownloader reportDownloader;
+    
     @Inject
     private CLMLicenseManager licenseManager;
 
@@ -59,9 +59,9 @@ public class ReleaseGraphResource
                                                                 artifactId,
                                                                 version,
                                                                 new ReportItemKey(
+                                                                                   reportDownloader,
                                                                                    licenseManager.getLicenseFingerprint(),
-                                                                                   applicationPublicId, scanId, work,
-                                                                                   proxy ) ) ), "image/png" ).expires( new Date(
+                                                                                   applicationPublicId, scanId, work) ) ), "image/png" ).expires( new Date(
                                                                                                                                  System.currentTimeMillis()
                                                                                                                                      + YEAR ) ).build();
         }

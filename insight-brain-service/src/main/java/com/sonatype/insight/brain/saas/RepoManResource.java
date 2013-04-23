@@ -13,7 +13,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -35,12 +34,11 @@ public class RepoManResource
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
     public ScanReceipt uploadScan( @PathParam( "applicationPublicId" )
-    final String applicationPublicId, @QueryParam( "instanceId" )
-    final String instanceId, @Context
+    final String applicationPublicId, @Context
     HttpServletRequest req )
         throws IOException
     {
-        final BOMCheckScanUploadResult result = doScanUpload( req, applicationPublicId, "rest/rm/scan", instanceId );
+        final BOMCheckScanUploadResult result = doScanUpload( req, applicationPublicId, "rest/rm/scan" );
 
         final ScanReceipt receipt = new ScanReceipt();
         receipt.setScanId( result.getScanId() );

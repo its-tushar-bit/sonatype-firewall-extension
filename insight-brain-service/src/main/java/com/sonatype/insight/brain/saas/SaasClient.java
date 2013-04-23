@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.inject.Inject;
@@ -91,17 +93,37 @@ public class SaasClient
         // TODO Need to determine if there is additional information we should be sending to the SaaS
         loadVersion();
     }
-
-    public <T> T get( Class<T> clazz, String path, String... params )
+    
+    public HttpResponse getResponse( HttpServletRequest request, String path, Map<String, String> queryParams,
+                                     String... uriParams )
         throws IOException
     {
-        return get( null, clazz, path, params );
+        return execute( request, path, queryParams, uriParams );
+    }
+    
+    public <T> T get( Class<T> clazz, String path, String... uriParams )
+        throws IOException
+    {
+        return get( null, clazz, path, null, uriParams );
     }
 
-    public <T> T get( HttpServletRequest request, Class<T> clazz, String path, String... params )
+    public <T> T get( Class<T> clazz, String path, Map<String,String> queryParams, String... uriParams )
         throws IOException
     {
-        HttpResponse response = execute( request, path, params );
+        return get( null, clazz, path, queryParams, uriParams );
+    }
+
+    public <T> T get( HttpServletRequest request, Class<T> clazz, String path, String... uriParams )
+        throws IOException
+    {
+        return get( request, clazz, path, null, uriParams );
+    }
+
+    public <T> T get( HttpServletRequest request, Class<T> clazz, String path, Map<String,String> queryParams, String... uriParams )
+        throws IOException
+    {
+        boolean usingStream = false;
+        HttpResponse response = getResponse( request, path, queryParams, uriParams );
         try
         {
             switch ( response.getStatusLine().getStatusCode() )
@@ -113,23 +135,27 @@ public class SaasClient
                     {
                         return null;
                     }
-                    InputStream in = null;
-                    try
+                    else if ( String.class.equals( clazz ) )
                     {
-                        if ( String.class.equals( clazz ) )
-                        {
-                            return clazz.cast( EntityUtils.toString( entity, "UTF-8" ) );
-                        }
-                        else if ( InputStream.class.equals( clazz ) )
-                        {
-                            return clazz.cast( entity.getContent() );
-                        }
-                        in = entity.getContent();
-                        return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
+                        return clazz.cast( EntityUtils.toString( entity, "UTF-8" ) );
                     }
-                    finally
+                    else if ( InputStream.class.equals( clazz ) )
                     {
-                        IOUtil.close( in );
+                        usingStream = true;
+                        return clazz.cast( entity.getContent() );
+                    }
+                    else
+                    {
+                        InputStream in = null;
+                        try
+                        {
+                            in = entity.getContent();
+                            return JsonUtils.parse( IOUtil.toByteArray( in ), clazz );
+                        }
+                        finally
+                        {
+                            IOUtil.close( in );
+                        }
                     }
                 case 400:
                     throw new BadRequestException( getErrorMessage( response ) );
@@ -149,13 +175,16 @@ public class SaasClient
         }
         finally
         {
-            try
+            if ( !usingStream )
             {
-                EntityUtils.consume( response.getEntity() );
-            }
-            catch ( IOException e )
-            {
-                log.error( "Failed to consume response entity", e );
+                try
+                {
+                    EntityUtils.consume( response.getEntity() );
+                }
+                catch ( IOException e )
+                {
+                    log.error( "Failed to consume response entity", e );
+                }
             }
         }
     }
@@ -172,36 +201,42 @@ public class SaasClient
         return response.getStatusLine().getReasonPhrase();
     }
 
-    public Response doProxy( HttpServletRequest request, String path, String... params )
+    public Response doProxy( HttpServletRequest request, String path, String... uriParams )
         throws IOException
     {
-        HttpResponse response = execute( request, path, params );
+        return doProxy( request, path, null, uriParams );
+    }
+
+    public Response doProxy( HttpServletRequest request, String path, Map<String,String> queryParams, String... uriParams )
+        throws IOException
+    {
+        HttpResponse response = getResponse( request, path, queryParams, uriParams );
         return buildResponse( response );
     }
 
-    private HttpResponse execute( HttpServletRequest request, String path, String... params )
+    private HttpResponse execute( HttpServletRequest request, String path, Map<String,String> queryParams, String... uriParams )
         throws IOException
     {
         HttpUriRequest cloudReq;
         if ( request == null || "GET".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpGet( buildUri( request, path, params ) );
+            cloudReq = new HttpGet( buildUri( request, path, queryParams, uriParams ) );
         }
         else if ( "POST".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPost( buildUri( request, path, params ) );
+            cloudReq = new HttpPost( buildUri( request, path, queryParams, uriParams ) );
             
             ( (HttpPost) cloudReq ).setEntity( new BufferedHttpEntity( buildEntity( request ) ) );
         }
         else if ( "PUT".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpPut( buildUri( request, path, params ) );
+            cloudReq = new HttpPut( buildUri( request, path, queryParams, uriParams ) );
             
             ( (HttpPut) cloudReq ).setEntity( new BufferedHttpEntity( buildEntity( request ) ) );
         }
         else if ( "DELETE".equals( request.getMethod() ) )
         {
-            cloudReq = new HttpDelete( buildUri( request, path, params ) );
+            cloudReq = new HttpDelete( buildUri( request, path, queryParams, uriParams ) );
         }
         else
         {
@@ -305,8 +340,8 @@ public class SaasClient
         }
         return builder.build();
     }
-
-    private String buildUri( HttpServletRequest base, String path, String... params )
+    
+    private String buildUri( HttpServletRequest base, String path, Map<String,String> queryParams, String... uriParams )
     {
         UriBuilder uriBuilder = UriBuilder.fromUri( config.getServerUrl() );
         uriBuilder.path( path );
@@ -314,7 +349,18 @@ public class SaasClient
         {
             uriBuilder.replaceQuery( base.getQueryString() );
         }
-        return uriBuilder.build( (Object[]) params ).toString();
+        
+        if ( queryParams != null )
+        {
+            for ( Entry<String, String> queryParam : queryParams.entrySet() )
+            {
+                uriBuilder.queryParam( queryParam.getKey(), queryParam.getValue() );
+            }
+        }
+        
+        String result = uriBuilder.build( (Object[]) uriParams ).toString();
+        log.debug( "Constructed Saas URI: " + result );
+        return result;
     }
 
     public static class PoolingClientConnectionManagerFactory

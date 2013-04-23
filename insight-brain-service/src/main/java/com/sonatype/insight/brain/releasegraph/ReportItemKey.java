@@ -1,6 +1,6 @@
 package com.sonatype.insight.brain.releasegraph;
 
-import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightWork;
 
 public class ReportItemKey
@@ -12,22 +12,16 @@ public class ReportItemKey
     private String scanId;
 
     private InsightWork work;
+    
+    private ReportDownloader reportDownloader;
 
-    private InsightProxy proxy;
-
-    public ReportItemKey( String licenseFingerprint, String applicationPublicId, String scanId, InsightWork work,
-                          InsightProxy proxy )
+    public ReportItemKey( ReportDownloader reportDownloader, String licenseFingerprint, String applicationPublicId, String scanId, InsightWork work )
     {
+        this.reportDownloader = reportDownloader;
         this.licenseFingerprint = licenseFingerprint;
         this.applicationPublicId = applicationPublicId;
         this.scanId = scanId;
         this.work = work;
-        this.proxy = proxy;
-    }
-
-    public InsightProxy getProxy()
-    {
-        return proxy;
     }
 
     public InsightWork getWork()
@@ -48,6 +42,11 @@ public class ReportItemKey
     public String getScanId()
     {
         return scanId;
+    }
+    
+    public ReportDownloader getReportDownloader()
+    {
+        return reportDownloader;
     }
 
     @Override

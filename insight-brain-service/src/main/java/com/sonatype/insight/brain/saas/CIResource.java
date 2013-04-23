@@ -22,18 +22,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.insight.brain.application.ApplicationResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.scan.upload.DefaultReportDownloader;
-import com.sonatype.insight.scan.upload.ReportDownloader;
 
 @Path( CIResource.SERVICE_PATH )
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Build } )
@@ -43,18 +36,8 @@ public class CIResource
 {
     public static final String SERVICE_PATH = "rest/ci";
 
-    private static final Logger log = LoggerFactory.getLogger( CIResource.class );
-
-    final ReportDownloader downloader = new DefaultReportDownloader( log );
-
     @Context
     private InsightWork work;
-
-    @Context
-    private InsightProxy proxy;
-    
-    @Inject
-    private CLMLicenseManager licenseManager;
     
     @Inject
     private SaasClient client;

@@ -76,6 +76,13 @@
 				return '/rest/ci/component/details/versions/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
 			},
 			/**
+			 * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
+			 * @since version 1.4
+			 */
+			'getComponentDetailsListUrl' : function (arg) {
+				return '/rest/ci/component/details/list/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+			},
+			/**
 			 * Get the selectable licenses for a particular gav
 			 * @since version 1.4
 			 */
@@ -97,6 +104,13 @@
 			 */
 			'getArtifactVersionInfoUrl' : function (arg) {
 				return basePath + 'rest/ide/component/details/versions/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
+			},
+			/**
+			 * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
+			 * @since version 1.4
+			 */
+			'getComponentDetailsListUrl' : function (arg) {
+				return basePath + 'rest/ide/component/details/list/' + encodeURIComponent(arg.appId) + '?' + param({ groupId : arg.groupId, artifactId : arg.artifactId, version : arg.version, instanceId : arg.instanceId });
 			}
 		}
 	};

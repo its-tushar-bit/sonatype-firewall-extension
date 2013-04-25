@@ -156,6 +156,7 @@ public class ApplicationResource
         }
         return new StreamingOutput()
         {
+            @Override
             public void write( OutputStream output )
                 throws IOException, WebApplicationException
             {
@@ -221,6 +222,7 @@ public class ApplicationResource
         }
         catch ( Exception e )
         {
+            log.error( e.getMessage(), e );
             errorMessage = errorResponseGenerator.mapException( e ).getMessageBody();
         }
 
@@ -246,8 +248,9 @@ public class ApplicationResource
                     client.getResponse( null, "rest/ci/icon/generate/" + robotHash, null, (String) null );
                 uploadedInputStream = iconResponse.getEntity().getContent();
             }
-            catch ( Exception ex )
+            catch ( Exception e )
             {
+                log.error( e.getMessage(), e );
                 if ( uploadedInputStream != null )
                 {
                     uploadedInputStream.close();
@@ -288,11 +291,11 @@ public class ApplicationResource
                 }
                 catch ( IllegalArgumentException e )
                 {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
                 }
                 catch ( IOException e )
                 {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image." );
+                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
                 }
                 finally
                 {

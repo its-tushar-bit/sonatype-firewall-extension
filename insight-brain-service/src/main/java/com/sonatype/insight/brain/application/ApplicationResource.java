@@ -177,7 +177,7 @@ public class ApplicationResource
         {
             throw new WebApplicationException( Response.Status.NOT_FOUND );
         }
-        return StreamingOutput.class.cast( client.doProxy( req, "rest/ci/icon/generate/" + hashcode ).getEntity() );
+        return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
     }
 
     /**
@@ -245,7 +245,7 @@ public class ApplicationResource
             try
             {
                 HttpResponse iconResponse =
-                    client.getResponse( null, "rest/ci/icon/generate/" + robotHash, null, (String) null );
+                    client.getResponse( null, "rest/application/icon/generate/" + robotHash, null, (String) null );
                 uploadedInputStream = iconResponse.getEntity().getContent();
             }
             catch ( Exception e )

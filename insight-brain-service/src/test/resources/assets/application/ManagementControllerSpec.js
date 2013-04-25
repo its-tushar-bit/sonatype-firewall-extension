@@ -28,7 +28,6 @@ describe('ApplicationManagementController', function () {
 		mockApplication = applicationsData[0];
 		httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(applicationsData);
 		httpBackend.whenGET(toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-		httpBackend.whenGET(toRegExp(CLMLocations.getCanGetHashIcon())).respond("true");
 		httpBackend.whenGET(toRegExp(CLMLocations.getProfilesUrl())).respond([]);
 
 		scope = $rootScope.$new();

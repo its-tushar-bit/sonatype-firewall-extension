@@ -12,20 +12,11 @@
 	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', 'ProfileStore', function ($scope, $http, hudson, clmLocations, commonCodeFactory, profileStore) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
-		$scope.canGetRobotIcon = false;
 
 		var error = commonCodeFactory.getEncodedQueryString('errorMessage');
 		if (error) {
 			$scope.syncErrorResponse = decodeURIComponent(error);
 		}
-
-		$http.get(clmLocations.getCanGetHashIcon(), {
-			params: { timestamp: new Date().getTime() }
-		}).success(function (data) {
-			if (data && data === "true") {
-				$scope.canGetRobotIcon = true;
-			}
-		});
 
 		$http.get(clmLocations.getActionStageUrl(), {
 			params: { timestamp: new Date().getTime() }

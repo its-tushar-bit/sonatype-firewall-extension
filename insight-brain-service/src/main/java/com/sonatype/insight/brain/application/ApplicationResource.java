@@ -10,9 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +18,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -28,11 +27,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -62,11 +65,11 @@ public class ApplicationResource
 
     public static final String APPLICATION_ICON_PATH = "icon/";
 
+    public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
+
     public static final String APPLICATION_ICON_PATH_SYNC = APPLICATION_ICON_PATH + "sync";
 
     public static final String GET_APPLICATION_ICON_PATH = APPLICATION_ICON_PATH + "{applicationPublicId}";
-
-    public static final String GET_CAN_ACCESS_ROBOHASH_PATH = "services/canGetHashIcon";
 
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
@@ -82,6 +85,9 @@ public class ApplicationResource
     
     @Inject
     private CLMLicenseManager licenseManager;
+
+    @Inject
+    private SaasClient client;
 
     private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
 
@@ -138,12 +144,39 @@ public class ApplicationResource
     @GET
     @Path( GET_APPLICATION_ICON_PATH )
     @Produces( "image/png" )
-    public Response getApplicationIcon( @PathParam( "applicationPublicId" ) final String applicationPublicId )
+    public StreamingOutput getApplicationIcon( @PathParam( "applicationPublicId" )
+    final String applicationPublicId )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
-        return Response.ok( imageBytes ).build();
+        final byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
+        if ( imageBytes == null )
+        {
+            throw new WebApplicationException( Response.Status.NOT_FOUND );
+        }
+        return new StreamingOutput()
+        {
+            public void write( OutputStream output )
+                throws IOException, WebApplicationException
+            {
+                output.write( imageBytes );
+            }
+        };
+    }
+
+    @GET
+    @Path( GENERATE_ICON_PATH )
+    @Produces( "image/png" )
+    public StreamingOutput generateApplicationIcon( @PathParam( "hashcode" )
+    final String hashcode, @Context
+    final HttpServletRequest req )
+        throws IOException
+    {
+        if ( hashcode == null || hashcode.isEmpty() )
+        {
+            throw new WebApplicationException( Response.Status.NOT_FOUND );
+        }
+        return StreamingOutput.class.cast( client.doProxy( req, "rest/ci/icon/generate/" + hashcode ).getEntity() );
     }
 
     /**
@@ -209,8 +242,9 @@ public class ApplicationResource
         {
             try
             {
-                URL robotURL = new URL( "http://robohash.org/" + robotHash );
-                uploadedInputStream = robotURL.openStream();
+                HttpResponse iconResponse =
+                    client.getResponse( null, "rest/ci/icon/generate/" + robotHash, null, (String) null );
+                uploadedInputStream = iconResponse.getEntity().getContent();
             }
             catch ( Exception ex )
             {
@@ -331,43 +365,6 @@ public class ApplicationResource
             return true;
         }
         return false;
-    }
-
-    @GET
-    @Path( GET_CAN_ACCESS_ROBOHASH_PATH )
-    @Produces( MediaType.APPLICATION_JSON )
-    public boolean canAccessRobohash()
-    {
-        boolean canAccess = false;
-        Socket socket = null;
-        try
-        {
-            socket = new Socket( "robohash.org", 80 );
-            canAccess = true;
-        }
-        catch ( UnknownHostException e )
-        {
-            canAccess = false;
-        }
-        catch ( IOException e )
-        {
-            canAccess = false;
-        }
-        finally
-        {
-            if ( socket != null )
-            {
-                try
-                {
-                    socket.close();
-                }
-                catch ( IOException e )
-                {
-                    canAccess = false;
-                }
-            }
-        }
-        return canAccess;
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( final Application application )

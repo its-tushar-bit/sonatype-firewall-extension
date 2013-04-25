@@ -67,7 +67,7 @@ public class IdeResourceTest
         addPolicy( applicationPublicId, policy1 );
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
@@ -101,7 +101,7 @@ public class IdeResourceTest
         addPolicy( applicationPublicId, policy1 );
 
         String serviceUrl = getScanEnhancedUrl( applicationPublicId, "abababababababababab" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json" );
         Response response = RestAccess.post( serviceUrl, JsonHelpers.asJson( new ScannedComponent() ) );
         assertResponseStatus( 200, response );
@@ -143,7 +143,7 @@ public class IdeResourceTest
         addPolicy( applicationPublicId, policy1 );
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
@@ -193,7 +193,7 @@ public class IdeResourceTest
         addPolicy( applicationPublicId, policy1 );
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
@@ -246,7 +246,7 @@ public class IdeResourceTest
 
         // There should be no policy alerts when none of the security vulnerabilities was overridden
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
@@ -313,7 +313,7 @@ public class IdeResourceTest
         addPolicy( applicationPublicId, policy1 );
 
         String serviceUrl = getScanSimpleUrl( applicationPublicId, "abababababababababab" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
@@ -348,10 +348,10 @@ public class IdeResourceTest
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
 
-        String url = getScanSimpleUrl( applicationPublicId, hash );
-        String saasUrl = url.substring( getRestBaseUrl().length() );
+        String serviceUrl = getScanSimpleUrl( applicationPublicId, hash );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab.json" );
-        Response response = RestAccess.get( url );
+        Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
             JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -376,10 +376,10 @@ public class IdeResourceTest
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
 
-        String url = getScanSimpleUrl( applicationPublicId, hash );
-        String saasUrl = url.substring( getRestBaseUrl().length() );
+        String serviceUrl = getScanSimpleUrl( applicationPublicId, hash );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
-        Response response = RestAccess.get( url );
+        Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
             JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -426,10 +426,10 @@ public class IdeResourceTest
         policy1.addAction( BuildStageType.ID, failAction );
         addPolicy( applicationPublicId, policy1 );
 
-        String url = getScanEnhancedUrl( applicationPublicId, hash );
-        String saasUrl = url.substring( getRestBaseUrl().length() );
+        String serviceUrl = getScanEnhancedUrl( applicationPublicId, hash );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json" );
-        Response response = RestAccess.get( url );
+        Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
         IdeMatchedComponent ideMatchedComponent =
             JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
@@ -517,6 +517,11 @@ public class IdeResourceTest
 
         Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
         assertResponseStatus( 402, response );
+    }
+    
+    private String convertToSaasUrl( String brainUrl, String applicationId )
+    {
+        return brainUrl.substring( getRestBaseUrl().length() ).replace( "/" + applicationId, "" );
     }
 
     private String getServiceURL()

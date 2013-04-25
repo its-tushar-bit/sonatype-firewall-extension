@@ -79,7 +79,7 @@ public class IDEComponentInfoResourceTest
         String serviceUrl =
             getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
                                     "similar" );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
         saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "Test Ref Id", "Test Source", 7.5F ) );
         setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
@@ -110,7 +110,7 @@ public class IDEComponentInfoResourceTest
         String artifactId = "a1";
         String version = "v1";
         String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, null, null );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
         setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
         Response response = RestAccess.get( serviceUrl );
@@ -142,7 +142,7 @@ public class IDEComponentInfoResourceTest
         String artifactId = "a1";
         String version = "v1";
         String serviceUrl = getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, null, null );
-        String saasUrl = serviceUrl.substring( getRestBaseUrl().length() );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
         saasComponentDetails.addSecurityVulnerability( new SecurityVulnerability( "36079", "osvdb", 7.5F, "Summary" ) );
         setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
@@ -184,7 +184,7 @@ public class IDEComponentInfoResourceTest
         String serviceUrl =
             getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
                                     "unknown" );
-        setSaasResponseForURI( serviceUrl.substring( getRestBaseUrl().length() ), "unknown GAV", 404 );
+        setSaasResponseForURI( convertToSaasUrl( serviceUrl, applicationPublicId ), "unknown GAV", 404 );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
 
@@ -199,7 +199,7 @@ public class IDEComponentInfoResourceTest
         Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
 
         serviceUrl = getComponentDetailsUrl( applicationPublicId, "", "", "", "01234567890123456789", "unknown" );
-        setSaasResponseForURI( serviceUrl.substring( getRestBaseUrl().length() ), "unknown GAV", 404 );
+        setSaasResponseForURI( convertToSaasUrl( serviceUrl, applicationPublicId ), "unknown GAV", 404 );
         response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
 
@@ -228,7 +228,7 @@ public class IDEComponentInfoResourceTest
             getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
                                     "unknown" );
         ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
-        setSaasResponseForURI( serviceUrl.substring( getRestBaseUrl().length() ),
+        setSaasResponseForURI( convertToSaasUrl( serviceUrl, applicationPublicId ),
                                JsonHelpers.asJson( saasComponentDetails ), 200 );
         Response response = RestAccess.get( serviceUrl );
         assertResponseStatus( 200, response );
@@ -292,5 +292,10 @@ public class IDEComponentInfoResourceTest
         String appId = new ApplicationDAO().getByPublicIdNotNull( applicationPublicId ).getId();
         PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
         policyDAO.insert( appId, policy );
+    }
+    
+    private String convertToSaasUrl( String brainUrl, String applicationId )
+    {
+        return brainUrl.substring( getRestBaseUrl().length() ).replace( "/" + applicationId, "" );
     }
 }

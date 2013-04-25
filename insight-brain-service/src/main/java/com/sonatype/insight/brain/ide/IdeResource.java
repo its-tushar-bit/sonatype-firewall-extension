@@ -81,8 +81,8 @@ public class IdeResource
         String applicationId = app.getId();
 
         MatchedComponent matchedComponent =
-            client.get( req, MatchedComponent.class, "rest/ide/scan/{scanType}/{appId}/{path}", scanType,
-                        applicationPublicId, path );
+            client.get( req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}", scanType,
+                        path );
 
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null

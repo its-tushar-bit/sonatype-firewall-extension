@@ -100,12 +100,6 @@ public class SaasClient
     {
         return execute( request, path, queryParams, uriParams );
     }
-    
-    public <T> T get( Class<T> clazz, String path, String... uriParams )
-        throws IOException
-    {
-        return get( null, clazz, path, null, uriParams );
-    }
 
     public <T> T get( Class<T> clazz, String path, Map<String,String> queryParams, String... uriParams )
         throws IOException

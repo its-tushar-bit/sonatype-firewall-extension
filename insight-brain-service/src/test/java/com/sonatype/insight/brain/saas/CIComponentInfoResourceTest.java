@@ -48,7 +48,7 @@ public class CIComponentInfoResourceTest
 
         // Verify that UNSPECIFIED is removed from the result
         saasComponentDetails.setDeclaredLicenses( toLicenseSet( "EPL-1.0", "UNSPECIFIED" ) );
-        setSaasResponseForURI( getSaasComponentDetailsUrl( applicationPublicId, groupId, artifactId, version ),
+        setSaasResponseForURI( getSaasComponentDetailsUrl( groupId, artifactId, version ),
                                JsonHelpers.asJson( saasComponentDetails ), 200 );
         Response response =
             RestAccess.get( getSelectableLicensesServiceURL( applicationPublicId, groupId, artifactId, version ) );
@@ -59,7 +59,7 @@ public class CIComponentInfoResourceTest
 
         // Verify that a versionless license is resolved to versioned licenses
         saasComponentDetails.setDeclaredLicenses( toLicenseSet( "Apache-UNSPECIFIED" ) );
-        setSaasResponseForURI( getSaasComponentDetailsUrl( applicationPublicId, groupId, artifactId, version ),
+        setSaasResponseForURI( getSaasComponentDetailsUrl( groupId, artifactId, version ),
                                JsonHelpers.asJson( saasComponentDetails ), 200 );
         response =
             RestAccess.get( getSelectableLicensesServiceURL( applicationPublicId, groupId, artifactId, version ) );
@@ -74,7 +74,7 @@ public class CIComponentInfoResourceTest
         // Verify that declared and observed licenses are merged
         saasComponentDetails.setDeclaredLicenses( toLicenseSet( "Apache-2.0", "EPL-1.0" ) );
         saasComponentDetails.setObservedLicenses( toLicenseSet( "EPL-1.0", "GPL-2.0" ) );
-        setSaasResponseForURI( getSaasComponentDetailsUrl( applicationPublicId, groupId, artifactId, version ),
+        setSaasResponseForURI( getSaasComponentDetailsUrl( groupId, artifactId, version ),
                                JsonHelpers.asJson( saasComponentDetails ), 200 );
         response =
             RestAccess.get( getSelectableLicensesServiceURL( applicationPublicId, groupId, artifactId, version ) );
@@ -216,9 +216,9 @@ public class CIComponentInfoResourceTest
         return result;
     }
 
-    private String getSaasComponentDetailsUrl( String applicationPublicId, String g, String a, String v )
+    private String getSaasComponentDetailsUrl( String g, String a, String v )
     {
-        return "/rest/ide/component/details/" + applicationPublicId + "?groupId=" + g + "&artifactId=" + a
+        return "/rest/ide/component/details?groupId=" + g + "&artifactId=" + a
             + "&version=" + v;
     }
 

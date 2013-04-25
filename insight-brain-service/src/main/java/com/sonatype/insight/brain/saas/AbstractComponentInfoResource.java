@@ -83,7 +83,7 @@ public abstract class AbstractComponentInfoResource
     {
         log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
                    applicationPublicId, groupId, artifactId, version );
-        return client.doProxy( request, "rest/ide/component/details/versions/{appId}", applicationPublicId );
+        return client.doProxy( request, "rest/ide/component/details/versions" );
     }
 
     @GET
@@ -133,7 +133,7 @@ public abstract class AbstractComponentInfoResource
         try
         {
             componentDetails =
-                client.get( request, ComponentDetails.class, "rest/ide/component/details/{appId}", applicationPublicId );
+                client.get( request, ComponentDetails.class, "rest/ide/component/details" );
         }
         catch ( NotFoundException e )
         {
@@ -233,7 +233,7 @@ public abstract class AbstractComponentInfoResource
 
         // Get component details from the SAAS server
         ComponentDetails componentDetails =
-            client.get( request, ComponentDetails.class, "rest/ide/component/details/{appId}", applicationPublicId );
+            client.get( request, ComponentDetails.class, "rest/ide/component/details" );
 
         MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
         Set<License> result = new LinkedHashSet<License>();

@@ -14,9 +14,9 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultLicenseKey;
 
-import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.CLMFeature;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 /**
  * Simple replacement for a ProductLicenseManager.
@@ -56,10 +56,10 @@ public class TestProductLicenseManager
         Map<String, Feature> featureMap = new HashMap<String, Feature>();
         featureMap.put( CLMFeature.ID, new CLMFeature() );
         Properties properties = new Properties();
-        properties.put( CLMLicenseManager.PROPERTY_ENFORCEMENT_POINTS, CLMEnforcementPoint.Procure.name() + ","
+        properties.put( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, CLMEnforcementPoint.Procure.name() + ","
             + CLMEnforcementPoint.Develop.name() + "," + CLMEnforcementPoint.Build.name() + ","
             + CLMEnforcementPoint.StageRelease.name() + "," + CLMEnforcementPoint.Release.name() );
-        properties.put( CLMLicenseManager.PROPERTY_APPLICATION_COUNT, "100" );
+        properties.put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, "100" );
         key = new DefaultLicenseKey( new Features( featureMap ) );
         key.setEffectiveDate( new Date( System.currentTimeMillis() - 10000 ) );
         key.setExpirationDate( new Date( System.currentTimeMillis() + 10000 ) );
@@ -143,7 +143,7 @@ public class TestProductLicenseManager
 
             eps.setLength( eps.length() - 1 );
 
-            key.getProperties().put( CLMLicenseManager.PROPERTY_ENFORCEMENT_POINTS, eps.toString() );
+            key.getProperties().put( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, eps.toString() );
         }
     }
     
@@ -156,7 +156,8 @@ public class TestProductLicenseManager
                 createKey();
             }
 
-            key.getProperties().put( CLMLicenseManager.PROPERTY_APPLICATION_COUNT, Integer.toString( applicationLimit ) );
+            key.getProperties().put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT,
+                                     Integer.toString( applicationLimit ) );
         }
     }
 }

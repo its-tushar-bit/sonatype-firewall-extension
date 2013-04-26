@@ -3,9 +3,9 @@ package com.sonatype.insight.brain.ide;
 import javax.inject.Named;
 import javax.ws.rs.Path;
 
-import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 @Path( IDEComponentInfoResource.SERVICE_PATH )
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Develop } )

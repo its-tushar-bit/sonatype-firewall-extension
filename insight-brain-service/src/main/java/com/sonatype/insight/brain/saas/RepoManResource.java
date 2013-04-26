@@ -17,9 +17,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.product.license.CLMEnforcementPoint;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
 @Path( RepoManResource.SERVICE_PATH )

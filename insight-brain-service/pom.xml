@@ -367,6 +367,11 @@
       <artifactId>jersey-multipart</artifactId>
       <version>${jersey.version}</version>
     </dependency>
+    <dependency>
+    	<groupId>com.sonatype.insight.portal</groupId>
+    	<artifactId>insight-license-model</artifactId>
+    	<version>2.0.5-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

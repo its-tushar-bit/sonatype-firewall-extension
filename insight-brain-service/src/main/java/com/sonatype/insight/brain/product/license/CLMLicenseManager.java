@@ -2,6 +2,7 @@ package com.sonatype.insight.brain.product.license;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,30 +17,26 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+
 @Named
 @Singleton
 public class CLMLicenseManager
 {
     private final class CachedLicenseData
+        extends ProductLicenseDetails
     {
         private final String fingerprint;
 
-        private final Integer applicationCount;
-
-        private final Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
-
-        public CachedLicenseData( String fingerprint, Integer applicationCount,
+        public CachedLicenseData( String fingerprint, Integer applicationLimit,
                                   Set<CLMEnforcementPoint> enforcementPoints )
         {
             this.fingerprint = fingerprint;
-            this.applicationCount = applicationCount;
-            this.enforcementPoints.addAll( enforcementPoints );
+            super.setApplicationLimit( applicationLimit );
+            super.setEnforcementPoints( enforcementPoints.toArray( new CLMEnforcementPoint[0] ) );
         }
     }
-
-    public final static String PROPERTY_APPLICATION_COUNT = "licensedApplications";
-
-    public final static String PROPERTY_ENFORCEMENT_POINTS = "enforcementPoints";
 
     private final ProductLicenseManager licenseManager;
 
@@ -68,9 +65,11 @@ public class CLMLicenseManager
             ProductLicenseKey key = licenseManager.getLicenseDetails();
 
             licenseFingerprint = licenseFingerprinter.calculate( key );
-            applicationCount = Integer.decode( key.getProperties().getProperty( PROPERTY_APPLICATION_COUNT ) );
+            applicationCount =
+                Integer.decode( key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT ) );
 
-            String[] enforcementPointIds = key.getProperties().getProperty( PROPERTY_ENFORCEMENT_POINTS ).split( "," );
+            String[] enforcementPointIds =
+                key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS ).split( "," );
 
             for ( String enforcementPointId : enforcementPointIds )
             {
@@ -123,12 +122,12 @@ public class CLMLicenseManager
     {
         if ( licenseCache != null )
         {
-            return licenseCache.applicationCount;
+            return licenseCache.getApplicationLimit();
         }
 
         populateLicenseCache();
 
-        return licenseCache.applicationCount;
+        return licenseCache.getApplicationLimit();
     }
 
     public void validate()
@@ -150,7 +149,7 @@ public class CLMLicenseManager
             populateLicenseCache();
         }
 
-        if ( !licenseCache.enforcementPoints.contains( enforcementPoint ) )
+        if ( !Arrays.asList( licenseCache.getEnforcementPoints() ).contains( enforcementPoint ) )
         {
             String msg = "Enforcement Point " + enforcementPoint.name() + " is not licensed!";
             log.error( msg );

@@ -65,7 +65,7 @@ public class LicenseAwareContainerResourceFilterFactory
                     }
                     catch ( InvalidLicenseException e )
                     {
-                        log.debug( "EnforcementPoint " + enforcementPoint.name() + " NOT licensed." );
+                        log.debug( "EnforcementPoint {} NOT licensed.", enforcementPoint.name() );
                     }
                 }
 

@@ -352,7 +352,7 @@ public class PolicyEvaluateResource
             }
             catch ( final Exception e )
             {
-                log.error( "Unable to send notification to: " + details.getKey(), e );
+                log.error( "Unable to send notification to: {}", e, details.getKey() );
             }
         }
 

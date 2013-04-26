@@ -83,7 +83,7 @@ public class InsightWork
             }
             catch ( final IOException e )
             {
-                log.error( "Problem scanning directory: " + rootDir + " for scanId: " + scanId, e );
+                log.error( "Problem scanning directory: {} for scanId: {}", e, rootDir, scanId );
             }
         }
         return null;

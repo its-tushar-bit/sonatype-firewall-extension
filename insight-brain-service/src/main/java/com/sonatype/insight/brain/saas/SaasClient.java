@@ -353,7 +353,7 @@ public class SaasClient
         }
         
         String result = uriBuilder.build( (Object[]) uriParams ).toString();
-        log.debug( "Constructed Saas URI: " + result );
+        log.debug( "Constructed Saas URI: {}", result );
         return result;
     }
 

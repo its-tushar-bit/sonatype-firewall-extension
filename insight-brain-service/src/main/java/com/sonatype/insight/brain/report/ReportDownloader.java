@@ -48,7 +48,7 @@ public class ReportDownloader
     }
 
     public boolean downloadReport( final String scanId, final File reportFile, final int retryAttempts,
-                                   final int retryInterval )
+                                   final int retryIntervalInSeconds )
     {
         reportFile.getAbsoluteFile().getParentFile().mkdirs();
         try
@@ -72,6 +72,10 @@ public class ReportDownloader
                     if ( retryAttempts == 0 || i >= retryAttempts )
                     {
                         throw e;
+                    }
+                    if ( retryIntervalInSeconds > 0 )
+                    {
+                        Thread.sleep( retryIntervalInSeconds * 1000 );
                     }
                 }
                 finally

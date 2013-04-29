@@ -23,21 +23,13 @@ public final class ValidationClient
         super( config );
     }
 
-    @SuppressWarnings( "unchecked" )
-    public Map<String, String> getApplicationIdNameMap()
-        throws IOException
-    {
-        Result result = path( "rest/application/services/names" ).get();
-        return JsonUtils.parse( result.data(), Map.class );
-    }
-
-    public void validateConfiguration()
+    private Result get( RequestBuilder builder )
         throws IOException
     {
         final Result result;
         try
         {
-            result = path( "rest/version" ).get();
+            result = builder.get();
         }
         catch ( UnknownHostException e )
         {
@@ -50,12 +42,27 @@ public final class ValidationClient
             throw new IllegalArgumentException( "Invalid port", e );
         }
         final int status = result.status();
-        final String text = result.text();
-        // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
         if ( status >= 300 )
         {
-            throw new IOException( "Error code " + status + ": " + text );
+            throw new IOException( "Error code " + status + ": " + result.text() );
         }
+        return result;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public Map<String, String> getApplicationIdNameMap()
+        throws IOException
+    {
+        Result result = get( path( "rest/application/services/names" ) );
+        return JsonUtils.parse( result.text(), Map.class );
+    }
+
+    public void validateConfiguration()
+        throws IOException
+    {
+        final Result result = get( path( "rest/version" ) );
+        final String text = result.text();
+        // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
         try
         {
             final Map<?, ?> versionInfo = JsonUtils.parse( text, Map.class );
@@ -73,22 +80,8 @@ public final class ValidationClient
     public void validateApplicationId( final String appId )
         throws IOException
     {
-        final Result result;
-        try
-        {
-            result = path( "rest/application/validate", UrlUtils.encodeUrlComponent( appId ) ).get();
-        }
-        catch ( UnknownHostException e )
-        {
-            // improve error msg
-            throw (IOException) new UnknownHostException( "Unknown host: " + e.getMessage() ).initCause( e );
-        }
-        final int status = result.status();
+        final Result result = get( path( "rest/application/validate", UrlUtils.encodeUrlComponent( appId ) ) );
         final String text = result.text();
-        if ( status >= 300 )
-        {
-            throw new IOException( "Error code " + status + ": " + text );
-        }
         if ( !"OK".equals( text ) )
         {
             throw new IOException( text );

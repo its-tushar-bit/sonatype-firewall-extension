@@ -48,6 +48,10 @@ input.editor-checkbox {
     border: 0;
 }
 
+input[type="file"] {
+	line-height: 0px;
+}
+
 .checkbox-edit-cell {
     text-align: center;
 }

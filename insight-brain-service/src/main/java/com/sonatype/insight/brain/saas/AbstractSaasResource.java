@@ -36,9 +36,10 @@ public abstract class AbstractSaasResource
         String appId = application.getId();
 
         final File scanDir = work.getScanDir( appId );
+        scanDir.mkdirs();
+
         final File scanFile = FileUtils.createTempFile( "temp-", ".xml.gz", scanDir );
 
-        scanDir.mkdirs();
         final FileOutputStream os = new FileOutputStream( scanFile );
         try
         {

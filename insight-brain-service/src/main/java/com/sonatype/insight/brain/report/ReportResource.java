@@ -79,13 +79,14 @@ public class ReportResource
     @Context
     private BaseUrl baseUrl;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    private final ApplicationDAO applicationDAO;
     
     private final ReportDownloader reportDownloader;
 
     @Inject
-    public ReportResource( ReportDownloader reportDownloader )
+    public ReportResource( ApplicationDAO applicationDAO, ReportDownloader reportDownloader )
     {
+        this.applicationDAO = applicationDAO;
         this.reportDownloader = reportDownloader;
     }
 

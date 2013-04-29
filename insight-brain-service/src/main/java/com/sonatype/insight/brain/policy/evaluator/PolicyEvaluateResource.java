@@ -83,13 +83,14 @@ public class PolicyEvaluateResource
     @Context
     private BaseUrl baseUrl;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    private final ApplicationDAO applicationDAO;
     
     private final ReportDownloader reportDownloader;
 
     @Inject
-    public PolicyEvaluateResource( final ReportDownloader reportDownloader )
+    public PolicyEvaluateResource( final ApplicationDAO applicationDAO, final ReportDownloader reportDownloader )
     {
+        this.applicationDAO = applicationDAO;
         this.reportDownloader = reportDownloader;
     }
 

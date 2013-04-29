@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -53,9 +54,11 @@ public abstract class AbstractComponentInfoResource
 {
     private static final Logger log = LoggerFactory.getLogger( AbstractComponentInfoResource.class );
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    @Inject
+    private ApplicationDAO applicationDAO;
 
-    private LicenseDAO licenseDAO = new LicenseDAO();
+    @Inject
+    private LicenseDAO licenseDAO;
 
     private PolicyEvaluator evaluator = new PolicyEvaluator();
 

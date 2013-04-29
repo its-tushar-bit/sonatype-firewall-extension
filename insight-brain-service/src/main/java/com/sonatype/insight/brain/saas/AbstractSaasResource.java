@@ -23,10 +23,10 @@ public abstract class AbstractSaasResource
     private InsightWork work;
 
     @Context
-    private SaasClient client;
+    protected SaasClient client;
 
     @Inject
-    private ApplicationDAO applicationDAO;
+    protected ApplicationDAO applicationDAO;
 
     protected BOMCheckScanUploadResult doScanUpload( HttpServletRequest request, String applicationPublicId,
                                                      String path, String... params )

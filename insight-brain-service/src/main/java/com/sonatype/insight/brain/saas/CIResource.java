@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.saas;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -23,7 +22,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.application.ApplicationResource;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -39,11 +37,6 @@ public class CIResource
     @Context
     private InsightWork work;
     
-    @Inject
-    private SaasClient client;
-
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
-
     /**
      * @deprecated Use ApplicationResource.validateApplicationPublicId() instead.
      */

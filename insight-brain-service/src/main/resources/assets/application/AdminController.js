@@ -33,7 +33,7 @@
         
         $scope.viewUninstallLicense = function() {
             $('#licenseUninstallConfirmationModal').modal('show');
-        }
+        };
 
         $scope.installLicense = function() {
             $scope.showInstall = false;
@@ -47,16 +47,16 @@
                 $('#licenseUninstalledModal').modal('show');
                 setTimeout(done,5000);
             });
-        }
+        };
         
         $scope.licenseInstalled = function() {
             clearTimeout(done);
             installDone();
-        }
+        };
         
         $scope.licenseUninstalled = function() {
             clearTimeout(done);
             uninstallDone();
-        }
+        };
     } ]);
 }());

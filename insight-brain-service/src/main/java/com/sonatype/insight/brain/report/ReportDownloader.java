@@ -37,16 +37,6 @@ public class ReportDownloader
         this.client = client;
     }
 
-    public boolean downloadReport( final String scanId, final File reportFile )
-    {
-        return downloadReport( scanId, reportFile, 0, 0 );
-    }
-
-    public boolean downloadReportAndRetry( final String scanId, final File reportFile )
-    {
-        return downloadReport( scanId, reportFile, 30, 30 );
-    }
-
     public boolean downloadReport( final String scanId, final File reportFile, final int retryAttempts,
                                    final int retryIntervalInSeconds )
     {

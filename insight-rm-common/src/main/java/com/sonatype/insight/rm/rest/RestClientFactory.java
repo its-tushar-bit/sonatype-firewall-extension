@@ -7,6 +7,7 @@ package com.sonatype.insight.rm.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.http.client.HttpResponseException;
 
@@ -60,6 +61,20 @@ public class RestClientFactory
             try
             {
                 newValidationClient( config ).validateConfiguration();
+            }
+            catch ( IOException e )
+            {
+                throw handleError( e );
+            }
+        }
+
+        @Override
+        public Map<String, String> getApplications()
+            throws IOException
+        {
+            try
+            {
+                return newValidationClient( config ).getApplicationIdNameMap();
             }
             catch ( IOException e )
             {

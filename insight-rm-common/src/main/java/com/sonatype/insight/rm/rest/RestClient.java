@@ -7,6 +7,7 @@ package com.sonatype.insight.rm.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
@@ -18,6 +19,9 @@ public interface RestClient
     {
 
         void validateConfiguration()
+            throws IOException;
+
+        Map<String, String> getApplications()
             throws IOException;
 
         App forApplication( String appId );

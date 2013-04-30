@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
@@ -25,8 +24,7 @@ public abstract class AbstractSaasResource
     @Context
     protected SaasClient client;
 
-    @Inject
-    protected ApplicationDAO applicationDAO;
+    protected ApplicationDAO applicationDAO = new ApplicationDAO();
 
     protected BOMCheckScanUploadResult doScanUpload( HttpServletRequest request, String applicationPublicId,
                                                      String path, String... params )

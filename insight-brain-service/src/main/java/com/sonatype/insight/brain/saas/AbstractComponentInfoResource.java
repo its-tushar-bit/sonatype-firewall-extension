@@ -95,7 +95,9 @@ public abstract class AbstractComponentInfoResource
                                                          @QueryParam( "version" ) String version )
         throws IOException
     {
-        log.debug( "Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
+        long start = System.currentTimeMillis();
+
+        log.debug( "Getting {} component details list for application id {}, GAV {}:{}:{}.", getToolName(),
                    applicationPublicId, groupId, artifactId, version );
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String applicationId = app.getId();
@@ -107,6 +109,9 @@ public abstract class AbstractComponentInfoResource
         {
             loadComponent( applicationId, componentDetails );
         }
+
+        log.debug( "Loaded component details list for {}:{}:{} in {} ms.", groupId, artifactId, version,
+                   System.currentTimeMillis() - start );
 
         return componentDetailsList;
     }
@@ -123,6 +128,8 @@ public abstract class AbstractComponentInfoResource
                                                  @QueryParam( "matchState" ) String matchState )
         throws IOException
     {
+        long start = System.currentTimeMillis();
+
         log.debug( "Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
                    applicationPublicId, groupId, artifactId, version, hash );
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -161,6 +168,9 @@ public abstract class AbstractComponentInfoResource
             evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
                                 Collections.singletonList( component ) );
         componentDetails.setPolicyAlerts( policyAlerts );
+
+        log.debug( "Loaded component details for {}:{}:{}, hash {}, in {} ms.", groupId, artifactId, version, hash,
+                   System.currentTimeMillis() - start );
 
         return componentDetails;
     }

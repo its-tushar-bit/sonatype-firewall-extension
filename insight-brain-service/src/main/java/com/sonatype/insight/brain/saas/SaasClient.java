@@ -70,7 +70,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class SaasClient
     extends AbstractInjectable<SaasClient>
 {
-    private final Logger log = LoggerFactory.getLogger( SaasClient.class );
+    private static final Logger log = LoggerFactory.getLogger( SaasClient.class );
 
     private final Configuration config;
 
@@ -116,6 +116,8 @@ public class SaasClient
     public <T> T get( HttpServletRequest request, Class<T> clazz, String path, Map<String,String> queryParams, String... uriParams )
         throws IOException
     {
+        long start = System.currentTimeMillis();
+
         boolean usingStream = false;
         HttpResponse response = getResponse( request, path, queryParams, uriParams );
         try
@@ -180,6 +182,7 @@ public class SaasClient
                     log.error( "Failed to consume response entity", e );
                 }
             }
+            log.debug( "Completed Saas request in {} ms.", System.currentTimeMillis() - start );
         }
     }
 

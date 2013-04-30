@@ -11,16 +11,17 @@
                 <div class='controls'>
                     <input id='applicationName' name='applicationName' type='text'
                            class='input' maxlength='60' ng-model='selectedApplication.name'
-                           onkeyup='angular.element(this).scope().fireLiveApplicationRules()'>
+                           required alpha-Numeric is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='true' 
+                           has-Whitespace='suggestedApplicationName'>
 
                     <div>
                         <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required.</span>
                         <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
-                        <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">Name must not have leading or
-                            trailing spaces, or have two spaces in a row. Suggested name: {{suggestedApplicationName}}
-                        </span>
                         <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">
-                            {{selectedApplication.name}} is already used.
+                            Name is already used.
+                        </span>
+                        <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">Name must not have leading or
+                            trailing spaces, or have two spaces in a row.<br/>Suggested name: {{suggestedApplicationName}}
                         </span>
                     </div>
                 </div>
@@ -32,13 +33,14 @@
 
                 <div class='controls'>
                     <input ng-disabled='selectedApplication.id' id='applicationPublicId' name='applicationPublicId' type='text'
-                           class='input' maxlength='60' ng-model='selectedApplication.publicId'>
+                    	   class='input' maxlength='60' ng-model='selectedApplication.publicId' required
+                    	   is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id'>
 
                     <div>
                         <span ng-show="applicationEditor.applicationPublicId.$error.required" class="help-inline">ID is required.</span>
                         <span ng-show="applicationEditor.applicationPublicId.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
                         <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline">
-                            {{selectedApplication.publicId}} is already used.
+                            ID is already used.
                         </span>
                     </div>
                 </div>

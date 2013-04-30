@@ -148,7 +148,7 @@
 		};
 	});
 
-	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', 'regexFactory', function ($scope, $http, hudson, clmLocations, regexFactory) {
+	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.addIconSync();
 
@@ -229,7 +229,6 @@
 		};
 
 		$scope.canSaveEdit = function () {
-			liveApplicationRules();
 			return $scope.applicationEditor.$valid && !$scope.submitActive;
 		};
 
@@ -239,11 +238,7 @@
 				return true;
 			}
 
-			liveApplicationRules();
 			if (!$scope.applicationEditor.$valid) {
-				return false;
-			}
-			if (!preSaveRules()) {
 				return false;
 			}
 
@@ -332,46 +327,80 @@
 				form.submit();
 			}
 		}
-
-		// Angular automatically trims input so when removing leading or trailing spaces, the rules are not automatically fired
-		$scope.fireLiveApplicationRules = function () {
-			$scope.$apply(function () {
-				liveApplicationRules();
-			});
-		};
-
-		function liveApplicationRules() {
-			var applicationId = angular.element('#applicationPublicId');
-			$scope.applicationEditor.applicationPublicId.$setValidity('required', applicationId.val());
-			var isDuplicateName = jQuery.grep($scope.applications,function (application) {
-				return application.id !== $scope.selectedApplication.id && application.publicId === applicationId.val();
-			}).length > 0;
-			$scope.applicationEditor.applicationPublicId.$setValidity('duplicate', !isDuplicateName);
-
-			var applicationName = angular.element('#applicationName');
-			$scope.applicationEditor.applicationName.$setValidity('required', applicationName.val());
-			$scope.applicationEditor.applicationName.$setValidity('alphaNumeric', !applicationName.val().match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i')));
-			isDuplicateName = jQuery.grep($scope.applications,function (application) {
-				return application.id !== $scope.selectedApplication.id && application.name && application.name.toLowerCase() === applicationName.val().toLowerCase();
-			}).length > 0;
-			$scope.applicationEditor.applicationName.$setValidity('duplicate', !isDuplicateName);
-
-			// Hide the spaces error when needed. We only show this error on saving to reduce gui clutter
-			if ($scope.applicationEditor.applicationName.$error.spaces) {
-				var whitespacePass = applicationName.val().match(/^ | {2,}| $/);
-				$scope.suggestedApplicationName = ($scope.selectedApplication.name || '').replace(/^ | $/g, '').replace(/ {2,}/, ' ');
-				$scope.applicationEditor.applicationName.$setValidity('spaces', !whitespacePass);
+	}]);
+	
+	managementModule.directive('alphaNumeric', ['regexFactory', function(regexFactory) {
+		return {
+			require: 'ngModel',
+			restrict: 'A',
+			link: function(scope, elem, attr, ctrl) {
+				var validator = function (value) {
+					if (!value) {
+						return undefined;
+					}
+					
+					var passed = !value || !value.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'));
+					ctrl.$setValidity('alphaNumeric', passed);
+				    return passed ? value : undefined;
+				};
+			    ctrl.$parsers.push(validator);
 			}
 		}
-
-		function preSaveRules() {
-			var applicationName = angular.element('#applicationName');
-			var whitespacePass = applicationName.val().match(/^ | {2,}| $/);
-			$scope.$apply(function () {
-				$scope.suggestedApplicationName = ($scope.selectedApplication.name || '').replace(/^ | $/g, '').replace(/ {2,}/, ' ');
-				$scope.applicationEditor.applicationName.$setValidity('spaces', !whitespacePass);
-			});
-			return !whitespacePass;
+	}]);
+	
+	managementModule.directive('isDuplicate', ['$parse', function($parse) {
+		return {
+			require: 'ngModel',
+			restrict: 'A',
+			link: function(scope, elem, attr, ctrl) {
+				var arrayName = attr.isDuplicateArray;
+				
+				// Pretty rigid implementation. Assumes that the model is an field on a selected item which is an item in an array of items (isDuplicateArray)
+				var modelObject = attr.ngModel.substr(0, attr.ngModel.indexOf('.'));
+				var modelField = attr.ngModel.substr(attr.ngModel.indexOf('.') + 1);
+				
+				var idFieldName = attr.isDuplicateIdField;
+				var modelItem = $parse(modelObject)(scope);
+				var modelIdValue = $parse(idFieldName)(modelItem);
+				
+				var caseSensitive = attr.isDuplicateCaseSensitive;
+				var validator = function (value) {
+					if (!value) {
+						return undefined;
+					}
+					
+					var array = $parse(arrayName)(scope);
+					var passed = !(jQuery.grep(array, function (item) {
+						if (!caseSensitive) {
+							return $parse(idFieldName)(item) !== modelIdValue && $parse(modelField)(item).toLowerCase() === value.toLowerCase();
+						} else {
+							return $parse(idFieldName)(item) !== modelIdValue && $parse(modelField)(item) === value;
+						}
+					}).length > 0);
+					ctrl.$setValidity('duplicate', passed);
+					
+					return passed ? value : undefined;
+				};
+			    ctrl.$parsers.push(validator);
+			}
+		}
+	}]);
+	
+	managementModule.directive('hasWhitespace', ['$parse', function($parse) {
+		return {
+			require: 'ngModel',
+			restrict: 'A',
+			link: function(scope, elem, attr, ctrl) {
+				var suggestionModel = $parse(attr.hasWhitespace);
+				elem.on('keyup', function() {
+					var value = elem.val();
+					var whitespacePass = value.match(/^ | {2,}| $/);
+					scope.$apply(function () {
+						suggestionModel.assign(scope, (value || '').replace(/^ | $/g, '').replace(/ {2,}/, ' '));
+						ctrl.$setValidity('spaces', !whitespacePass);
+					});
+				});
+			}
 		}
 	}]);
 }());

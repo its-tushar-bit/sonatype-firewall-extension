@@ -1,7 +1,7 @@
 var clmTimestamp = '';
 
 describe('ApplicationManagementController', function () {
-	var scope, httpBackend, rootScope, clmLocations, compile, mockApplication;
+	var scope, httpBackend, rootScope, clmLocations, compile, mockApplication, sniffer;
 
 	function toRegExp(getUrl) {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
@@ -18,11 +18,12 @@ describe('ApplicationManagementController', function () {
 	}]);
 
 	beforeEach(module('ApplicationId', 'ApplicationManagement', 'AngularCommon', 'CLMLocation', 'Hudson'));
-	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile) {
+	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile, $sniffer) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
 		clmLocations = CLMLocations;
 		compile = $compile;
+		sniffer = $sniffer;
 
 		var applicationsData = ApplicationMockData.getApplicationsData();
 		mockApplication = applicationsData[0];
@@ -61,8 +62,20 @@ describe('ApplicationManagementController', function () {
 	});
 
 	it('adds an application', function () {
-		var nameInput = angular.element("<input id='applicationName' name='applicationName' type='text' ng-model='selectedApplication.name' />");
-		var idInput = angular.element("<input id='applicationPublicId' name='applicationPublicId' type='text' ng-model='selectedApplication.publicId' />");
+		var setInput = function (element, val) {
+			element.val(val);
+
+			var inputEvent = document.createEvent('HTMLEvents');
+			inputEvent.initEvent((sniffer.hasEvent('input')) ? 'input' : 'change', false, false);
+			element[0].dispatchEvent(inputEvent);
+			
+			var keyUpEvent = document.createEvent('HTMLEvents');
+			keyUpEvent.initEvent('keyup', false, false);
+			element[0].dispatchEvent(keyUpEvent);
+		};
+		
+		var nameInput = angular.element("<input id='applicationName' name='applicationName' type='text' ng-model='selectedApplication.name' required alpha-Numeric is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='true' has-Whitespace='suggestedApplicationName'/>");
+		var idInput = angular.element("<input id='applicationPublicId' name='applicationPublicId' type='text' ng-model='selectedApplication.publicId' required is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id'/>");
 		var body = angular.element('body').append("<form id='applicationEditor' name='applicationEditor'></form>").find('#applicationEditor').append(nameInput).append(idInput);
 
 		compile(body)(scope);
@@ -70,33 +83,29 @@ describe('ApplicationManagementController', function () {
 		scope.selectedApplication = { id: null, publicId: 'publicID', name: 'name' };
 
 		httpBackend.expectPOST(clmLocations.getApplicationsUrl(), {
-			applicationName: 'name',
-			applicationPublicId: 'publicID'
+			id: null,
+			publicId: "publicID",
+			name: "name"
 		}).respond(ApplicationMockData.getApplicationsData());
 
 		scope.saveClick();
 
 		// Test client side application rules
-		nameInput.val('!name');
-		idInput.val('publicID');
-
-		scope.saveClick();
+		setInput(nameInput, '!name');
+		setInput(idInput, 'publicID');
 
 		expect(scope.applicationEditor.applicationName.$valid).not.toBeTruthy();
 		expect(scope.applicationEditor.applicationPublicId.$valid).toBeTruthy();
 
-		nameInput.val('name');
-		idInput.val('');
-
-		scope.saveClick();
+		setInput(nameInput, 'name');
+		setInput(idInput, '');
 
 		expect(scope.applicationEditor.applicationName.$valid).toBeTruthy();
 		expect(scope.applicationEditor.applicationPublicId.$valid).not.toBeTruthy();
 
-		nameInput.val('  double  spaced');
-		idInput.val('publicID');
+		setInput(nameInput, '  double  spaced');
+		setInput(idInput, 'publicID');
 
-		scope.saveClick();
 		expect(scope.applicationEditor.applicationName.$valid).not.toBeTruthy();
 		expect(scope.applicationEditor.applicationPublicId.$valid).toBeTruthy();
 

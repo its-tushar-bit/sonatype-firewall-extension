@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,6 +39,7 @@ import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
@@ -246,28 +246,17 @@ public class SaasClient
             throw new GatewayTimeoutException( e.getMessage(), e );
         }
     }
-    
-    //note i hide this warning because the http client should be handling closing the new stream i create below
-    @SuppressWarnings( "resource" )
+
     private HttpEntity buildEntity( HttpServletRequest request )
         throws IOException
     {
-        File uploadFile = ( File ) request.getAttribute( UPLOAD_FILE_ATTRIBUTE );
-        
-        InputStream is = null;
-        long length = request.getContentLength();
-        
+        File uploadFile = (File) request.getAttribute( UPLOAD_FILE_ATTRIBUTE );
         if ( uploadFile != null )
         {
-            is = new FileInputStream( uploadFile );
-            length = uploadFile.length();
+            return new FileEntity( uploadFile, request.getContentType() );
         }
-        else
-        {
-            is = request.getInputStream();
-        }
-        
-        return new InputStreamEntity( is, length );
+
+        return new InputStreamEntity( request.getInputStream(), request.getContentLength() );
     }
 
     private void populateRequest( final HttpServletRequest orig, HttpUriRequest req )

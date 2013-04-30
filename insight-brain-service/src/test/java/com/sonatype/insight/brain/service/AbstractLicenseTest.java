@@ -1,11 +1,23 @@
 package com.sonatype.insight.brain.service;
 
+import java.io.InputStream;
+
+import javax.ws.rs.core.MediaType;
+
+import org.codehaus.plexus.util.IOUtil;
+import org.junit.Assert;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.AbstractModule;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicenseResource;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
 
 public abstract class AbstractLicenseTest
     extends AbstractBrainServiceTest
@@ -29,13 +41,74 @@ public abstract class AbstractLicenseTest
         } );
     }
 
-    protected TestProductLicenseManager getLicenseManager()
+    protected void installLicense()
+        throws Exception
     {
-        return licenseManager;
+        InputStream license = null;
+
+        try
+        {
+            license = AbstractLicenseTest.class.getResourceAsStream( "/productlicense/license.lic" );
+            FormDataMultiPart form = new FormDataMultiPart();
+            form.bodyPart( new FormDataBodyPart( "file", license,
+                                                 MediaType.APPLICATION_OCTET_STREAM_TYPE ) );
+
+            WebResource resource = Client.create().resource( getServiceURL() );
+
+            resource.type( MediaType.MULTIPART_FORM_DATA ).post( form );
+
+            Assert.assertTrue( licenseManager.isValid() );
+        }
+        catch ( Throwable t )
+        {
+            t.printStackTrace();
+            if ( t instanceof Exception )
+                throw (Exception) t;
+        }
+        finally
+        {
+            IOUtil.close( license );
+        }
     }
 
-    protected TestLicenseFingerprinter getLicenseFingerprinter()
+    protected void uninstallLicense()
+        throws Exception
     {
-        return licenseFingerprinter;
+        WebResource resource = Client.create().resource( getServiceURL() );
+
+        resource.delete();
+
+        Assert.assertFalse( licenseManager.isValid() );
+    }
+
+    private String getServiceURL()
+    {
+        return getRestBaseUrl() + ProductLicenseResource.SERVICE_PATH;
+    }
+
+    protected void setEnforcementPoints( CLMEnforcementPoint... enforcementPoints )
+        throws Exception
+    {
+        licenseManager.setEnforcementPoints( enforcementPoints );
+        installLicense();
+    }
+
+    protected void setApplicationLimit( int applicationLimit )
+        throws Exception
+    {
+        licenseManager.setApplicationLimit( applicationLimit );
+        installLicense();
+    }
+    
+    protected void setLicenseFingerprint( String licenseFingerprint )
+        throws Exception
+    {
+        licenseFingerprinter.setDummyLicenseFingerprint( licenseFingerprint );
+        installLicense();
+    }
+
+    protected String getLicenseFingerprint()
+    {
+        return licenseFingerprinter.calculate();
     }
 }

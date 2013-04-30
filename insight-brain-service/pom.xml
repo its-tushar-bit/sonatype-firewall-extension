@@ -19,9 +19,6 @@
   <properties>
     <drools.version>5.5.0.Final</drools.version>
     <freemarker.version>2.3.19</freemarker.version>
-    <dropwizard.version>0.6.2</dropwizard.version>
-    <!-- The jersey.version must match the the jersey version used by dropwizard -->
-    <jersey.version>1.17.1</jersey.version>
     <wro4j.version>1.6.3</wro4j.version>
   </properties>
 
@@ -335,7 +332,6 @@
     <dependency>
       <groupId>com.yammer.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
-      <version>${dropwizard.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -365,7 +361,6 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-multipart</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
     	<groupId>com.sonatype.insight.portal</groupId>
@@ -597,6 +592,7 @@
                 <include>**/AbstractLicenseTest*</include>
                 <include>**/TestLicenseFingerprinter*</include>
                 <include>**/TestProductLicenseManager*</include>
+                <include>**/productlicense/license.lic</include>
               </includes>
             </configuration>
           </execution>

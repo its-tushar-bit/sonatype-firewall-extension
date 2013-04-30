@@ -65,7 +65,7 @@ public class PolicyEvaluateResourceTest
         createApplication( applicationPublicId );
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
         String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
         
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
@@ -165,7 +165,7 @@ public class PolicyEvaluateResourceTest
         createApplication( applicationPublicId );
         String scanId = "testEvaluate_MultiLicense_ScanId";
         String licenseFingerprint = "testEvaluate_MultiLicense_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
         
         File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
@@ -220,7 +220,7 @@ public class PolicyEvaluateResourceTest
         createApplication( applicationPublicId );
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
         String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
         
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();

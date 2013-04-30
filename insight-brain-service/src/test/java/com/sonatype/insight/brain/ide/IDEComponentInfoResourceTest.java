@@ -255,7 +255,7 @@ public class IDEComponentInfoResourceTest
         throws Exception
     {
         // note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response =
             RestAccess.get( getComponentDetailsUrl( "unlicensedappId", "ulg", "ula", "ulv", "ulh", "unknown" ) );

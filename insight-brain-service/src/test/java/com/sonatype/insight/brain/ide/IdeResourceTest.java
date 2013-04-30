@@ -402,7 +402,7 @@ public class IdeResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getScanSimpleUrl( "unlicensedappId", "ulh" ) );
         assertResponseStatus( 402, response );
@@ -452,7 +452,7 @@ public class IdeResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getScanEnhancedUrl( "unlicensedappId", "ulh" ) );
         assertResponseStatus( 402, response );
@@ -483,7 +483,7 @@ public class IdeResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getComponentVersionsUrl( "ulg", "ula" ) );
         assertResponseStatus( 402, response );
@@ -513,7 +513,7 @@ public class IdeResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b" );
         assertResponseStatus( 402, response );

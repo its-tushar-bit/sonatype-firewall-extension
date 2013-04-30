@@ -220,7 +220,7 @@ public class ApplicationResourceTest
     public void testAddApplication_exceedsLicense()
         throws Exception
     {
-        getLicenseManager().setApplicationLimit( 1 );
+        setApplicationLimit( 1 );
 
         createApplication( "testAddApplication_exceedsLicense_id" );
 
@@ -243,7 +243,7 @@ public class ApplicationResourceTest
         final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
         final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
         Application application = createApplication( applicationPublicId, applicationName );
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         // Create policy
         PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );

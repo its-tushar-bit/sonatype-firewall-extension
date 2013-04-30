@@ -52,9 +52,11 @@ public class CLMLicenseManager
     {
         this.licenseFingerprinter = licenseFingerprinter;
         this.licenseManager = licenseManager;
+        
+        populateLicenseCache();
     }
 
-    private void populateLicenseCache()
+    public void populateLicenseCache()
     {
         String licenseFingerprint = null;
         Integer applicationCount = null;
@@ -80,7 +82,7 @@ public class CLMLicenseManager
         {
             log.debug( "Attempted to retrieve license details and failed", e );
             licenseFingerprint = null;
-            applicationCount = null;
+            applicationCount = 0;
             enforcementPoints.clear();
         }
 
@@ -92,7 +94,7 @@ public class CLMLicenseManager
     {
         licenseManager.installLicense( is );
         log.info( "License installed successfully" );
-        licenseCache = null;
+        populateLicenseCache();
     }
 
     public synchronized void uninstallLicense()
@@ -100,36 +102,32 @@ public class CLMLicenseManager
     {
         licenseManager.uninstallLicense();
         log.info( "License uninstalled successfully" );
-        licenseCache = null;
+        populateLicenseCache();
     }
 
     /**
      * Get a license fingerprint, if there is no license, null will be returned
+     * @return
      */
     public String getLicenseFingerprint()
     {
-        if ( licenseCache != null )
-        {
-            return licenseCache.fingerprint;
-        }
-
-        populateLicenseCache();
-
         return licenseCache.fingerprint;
     }
 
+    /**
+     * Get the application limit in the license, if no license, 0 will be returned
+     * @return
+     */
     public int getApplicationCountLimit()
     {
-        if ( licenseCache != null )
-        {
-            return licenseCache.getApplicationLimit();
-        }
-
-        populateLicenseCache();
-
         return licenseCache.getApplicationLimit();
     }
 
+    /**
+     * Validate that a license is installed
+     * 
+     * @throws InvalidLicenseException when no license is installed
+     */
     public void validate()
         throws InvalidLicenseException
     {
@@ -141,14 +139,15 @@ public class CLMLicenseManager
         }
     }
 
+    /**
+     * Validate that the license is installed and contains the requested enforcement point
+     * 
+     * @param enforcementPoint
+     * @throws InvalidLicenseException when enforcement point is not licensed
+     */
     public void validateEnforcementPoint( CLMEnforcementPoint enforcementPoint )
         throws InvalidLicenseException
     {
-        if ( licenseCache == null )
-        {
-            populateLicenseCache();
-        }
-
         if ( !Arrays.asList( licenseCache.getEnforcementPoints() ).contains( enforcementPoint ) )
         {
             String msg = "Enforcement Point " + enforcementPoint.name() + " is not licensed!";

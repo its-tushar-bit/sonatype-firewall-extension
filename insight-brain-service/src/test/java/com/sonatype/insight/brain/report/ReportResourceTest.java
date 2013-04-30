@@ -53,7 +53,7 @@ public class ReportResourceTest
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
@@ -140,7 +140,7 @@ public class ReportResourceTest
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
@@ -197,7 +197,7 @@ public class ReportResourceTest
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
@@ -283,7 +283,7 @@ public class ReportResourceTest
         String appId = application.getId();
         final String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
@@ -343,7 +343,7 @@ public class ReportResourceTest
         createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 

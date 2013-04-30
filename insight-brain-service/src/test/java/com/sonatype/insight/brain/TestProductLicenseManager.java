@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.feature.Feature;
@@ -28,6 +30,10 @@ public class TestProductLicenseManager
 
     private ProductLicenseKey key;
 
+    private int appCount = 100;
+
+    private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+
     public TestProductLicenseManager()
     {
         this( false );
@@ -35,6 +41,12 @@ public class TestProductLicenseManager
 
     public TestProductLicenseManager( boolean valid )
     {
+        enforcementPoints.add( CLMEnforcementPoint.Build );
+        enforcementPoints.add( CLMEnforcementPoint.Develop );
+        enforcementPoints.add( CLMEnforcementPoint.Procure );
+        enforcementPoints.add( CLMEnforcementPoint.Release );
+        enforcementPoints.add( CLMEnforcementPoint.StageRelease );
+
         this.valid = valid;
 
         if ( this.valid )
@@ -56,10 +68,21 @@ public class TestProductLicenseManager
         Map<String, Feature> featureMap = new HashMap<String, Feature>();
         featureMap.put( CLMFeature.ID, new CLMFeature() );
         Properties properties = new Properties();
-        properties.put( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, CLMEnforcementPoint.Procure.name() + ","
-            + CLMEnforcementPoint.Develop.name() + "," + CLMEnforcementPoint.Build.name() + ","
-            + CLMEnforcementPoint.StageRelease.name() + "," + CLMEnforcementPoint.Release.name() );
-        properties.put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, "100" );
+
+        StringBuffer sb = new StringBuffer();
+
+        for ( CLMEnforcementPoint ep : enforcementPoints )
+        {
+            sb.append( ep.name() ).append( "," );
+        }
+
+        if ( sb.length() > 0 )
+        {
+            sb.setLength( sb.length() - 1 );
+        }
+
+        properties.put( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString() );
+        properties.put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString( appCount ) );
         key = new DefaultLicenseKey( new Features( featureMap ) );
         key.setEffectiveDate( new Date( System.currentTimeMillis() - 10000 ) );
         key.setExpirationDate( new Date( System.currentTimeMillis() + 10000 ) );
@@ -129,35 +152,23 @@ public class TestProductLicenseManager
     {
         if ( valid )
         {
-            if ( key == null )
-            {
-                createKey();
-            }
-
-            StringBuilder eps = new StringBuilder();
+            this.enforcementPoints.clear();
 
             for ( CLMEnforcementPoint enforcementPoint : enforcementPoints )
             {
-                eps.append( enforcementPoint.name() ).append( "," );
+                this.enforcementPoints.add( enforcementPoint );
             }
 
-            eps.setLength( eps.length() - 1 );
-
-            key.getProperties().put( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, eps.toString() );
+            createKey();
         }
     }
-    
+
     public void setApplicationLimit( int applicationLimit )
     {
         if ( valid )
         {
-            if ( key == null )
-            {
-                createKey();
-            }
-
-            key.getProperties().put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT,
-                                     Integer.toString( applicationLimit ) );
+            this.appCount = applicationLimit;
+            createKey();
         }
     }
 }

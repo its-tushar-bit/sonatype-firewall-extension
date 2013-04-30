@@ -77,7 +77,7 @@ public class CIResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getServiceURL() + "/validate/unlicensedapp" );
         assertResponseStatus( 402, response );
@@ -90,7 +90,7 @@ public class CIResourceTest
         final String applicationPublicId = "CIResourceTest_AppId";
         final String licenseFingerprint = "CIResourceTest_LicenseFingerprint";
         createApplication( applicationPublicId );
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasScanFile = getScanResponseFile( licenseFingerprint );
         saasScanFile.delete();
@@ -120,7 +120,7 @@ public class CIResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedapp", "" );
         assertResponseStatus( 402, response );
@@ -134,7 +134,7 @@ public class CIResourceTest
         createApplication( applicationPublicId );
         final String scanId = "CIResourceTest_ScanId";
         final String licenseFingerprint = "CIResourceTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
@@ -165,7 +165,7 @@ public class CIResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid" );
         assertResponseStatus( 402, response );
@@ -203,7 +203,7 @@ public class CIResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getServiceURL() + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv" );
         assertResponseStatus( 402, response );

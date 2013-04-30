@@ -100,7 +100,7 @@ public class CIComponentInfoResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getSelectableLicensesServiceURL( "unlicensedappid", "ulg", "ula", "ulv" ) );
         assertResponseStatus( 402, response );
@@ -120,7 +120,7 @@ public class CIComponentInfoResourceTest
         throws Exception
     {
         // note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.StageRelease );
+        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
 
         Response response = RestAccess.get( getComponentDetailsListUrl( "unlicensedappid", "ulg", "ula", "ulv" ) );
         assertResponseStatus( 402, response );

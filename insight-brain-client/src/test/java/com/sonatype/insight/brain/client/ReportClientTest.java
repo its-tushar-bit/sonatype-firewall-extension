@@ -79,7 +79,7 @@ public class ReportClientTest
     {
         final String scanId = "ReportClientTest_ScanId";
         final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
@@ -110,7 +110,7 @@ public class ReportClientTest
     {
         final String scanId = "ReportClientTest_ScanId";
         final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
@@ -136,7 +136,7 @@ public class ReportClientTest
     {
         final String scanId = "ReportClientTest_ScanId";
         final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
@@ -155,7 +155,7 @@ public class ReportClientTest
     {
         final String scanId = "ReportClientTest_ScanId";
         final String licenseFingerprint = "ReportClientTest_LicenseFingerprint";
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();

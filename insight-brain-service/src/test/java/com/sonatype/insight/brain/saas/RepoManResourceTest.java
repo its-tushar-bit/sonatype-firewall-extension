@@ -37,7 +37,7 @@ public class RepoManResourceTest
         final String applicationPublicId = "RepoManResourceTest_AppId";
         final String licenseFingerprint = "RepoManResourceTest_LicenseFingerprint";
         createApplication( applicationPublicId );
-        getLicenseFingerprinter().setDummyLicenseFingerprint( licenseFingerprint );
+        setLicenseFingerprint( licenseFingerprint );
 
         final File saasScanFile = getScanResponseFile( licenseFingerprint );
         saasScanFile.delete();
@@ -71,7 +71,7 @@ public class RepoManResourceTest
         throws Exception
     {
         //note this enforcement point should not apply to this request
-        getLicenseManager().setEnforcementPoints( CLMEnforcementPoint.Build );
+        setEnforcementPoints( CLMEnforcementPoint.Build );
 
         Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedappid", "" );
         assertResponseStatus( 402, response );

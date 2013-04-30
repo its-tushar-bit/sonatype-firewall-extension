@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -98,7 +99,7 @@ public class ComponentDAOTest
     }
 
     @Test
-    public void testGetComponent_ForIDE()
+    public void testGetComponent()
     {
         MatchedComponent info = new MatchedComponent();
         info.setHash( COMP_HASH );
@@ -129,4 +130,37 @@ public class ComponentDAOTest
         assertEquals( 1, comp.getLabelIds().size() );
     }
 
+    @Test
+    public void testGetComponent_MultiLicenses_Declared()
+    {
+        MatchedComponent componentInfo = new MatchedComponent();
+        componentInfo.setHash( COMP_HASH );
+        componentInfo.setGroupId( "gid" );
+        componentInfo.setArtifactId( "aid" );
+        componentInfo.setVersion( "1.2.3" );
+        componentInfo.addDeclaredLicenseId( "Apache-2.0-GPL-2.0" );
+        Component component = componentDAO.getComponent( applicationId, componentInfo, null, null );
+        assertNotNull( component );
+        assertEquals( component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size() );
+        assertTrue( component.getDeclaredLicenseIds().contains( "Apache-2.0" ) );
+        assertTrue( component.getDeclaredLicenseIds().contains( "GPL-2.0" ) );
+        assertLicenseThreatGroups( component.getLicenseThreatGroups(), "Liberal", "Copyleft" );
+    }
+
+    @Test
+    public void testGetComponent_MultiLicenses_Observed()
+    {
+        MatchedComponent componentInfo = new MatchedComponent();
+        componentInfo.setHash( COMP_HASH );
+        componentInfo.setGroupId( "gid" );
+        componentInfo.setArtifactId( "aid" );
+        componentInfo.setVersion( "1.2.3" );
+        componentInfo.addObservedLicenseId( "Apache-2.0-GPL-2.0" );
+        Component component = componentDAO.getComponent( applicationId, componentInfo, null, null );
+        assertNotNull( component );
+        assertEquals( component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size() );
+        assertTrue( component.getObservedLicenseIds().contains( "Apache-2.0" ) );
+        assertTrue( component.getObservedLicenseIds().contains( "GPL-2.0" ) );
+        assertLicenseThreatGroups( component.getLicenseThreatGroups(), "Liberal", "Copyleft" );
+    }
 }

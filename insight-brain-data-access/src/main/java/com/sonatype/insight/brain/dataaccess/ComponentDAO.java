@@ -189,8 +189,8 @@ public class ComponentDAO
         {
             processJsonLicenseData( component, jsonLicenseNode );
         }
-        component.setDeclaredLicenseIds( componentInfo.getDeclaredLicenseIds() );
-        component.setObservedLicenseIds( componentInfo.getObservedLicenseIds() );
+        component.setDeclaredLicenseIds( multiLicenseIdsToLicenseIds( componentInfo.getDeclaredLicenseIds() ) );
+        component.setObservedLicenseIds( multiLicenseIdsToLicenseIds( componentInfo.getObservedLicenseIds() ) );
         loadLicenseThreatGroups( applicationId, component );
 
         addSecurityVulnerabilities( component, componentInfo.getSecurityVulnerabilities(), jsonSVNode );
@@ -294,6 +294,24 @@ public class ComponentDAO
         for ( String multiLicenseName : multiLicenseNames )
         {
             String multiLicenseId = multiLicenseDAO.getByNameNotNull( multiLicenseName ).getId();
+            Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseId( multiLicenseId );
+            for ( License license : licenses )
+            {
+                licenseIds.add( license.getId() );
+            }
+        }
+        return licenseIds;
+    }
+
+    private Set<String> multiLicenseIdsToLicenseIds( Set<String> multiLicenseIds )
+    {
+        if ( multiLicenseIds == null )
+        {
+            return null;
+        }
+        Set<String> licenseIds = new LinkedHashSet<String>();
+        for ( String multiLicenseId : multiLicenseIds )
+        {
             Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseId( multiLicenseId );
             for ( License license : licenses )
             {

@@ -12,6 +12,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,9 +48,10 @@ public class ValidationClientTest
             new ValidationClient( config ).validateConfiguration();
             fail( "Validation should have failed due to bad context root" );
         }
-        catch ( IOException e )
+        catch ( HttpResponseException e )
         {
-            assertMatch( "(?i).*404.*not found.*", e.getMessage() );
+            assertEquals( 404, e.getStatusCode() );
+            assertMatch( "(?i).*not found.*", e.getMessage() );
         }
     }
 

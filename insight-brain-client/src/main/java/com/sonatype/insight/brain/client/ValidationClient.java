@@ -9,13 +9,15 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Map;
 
+import org.apache.http.client.HttpResponseException;
+
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
-public final class ValidationClient
+public class ValidationClient
     extends AbstractClient
 {
     public ValidationClient( final Configuration config )
@@ -44,7 +46,7 @@ public final class ValidationClient
         final int status = result.status();
         if ( status >= 300 )
         {
-            throw new IOException( "Error code " + status + ": " + result.text() );
+            throw new HttpResponseException( status, result.text() );
         }
         return result;
     }

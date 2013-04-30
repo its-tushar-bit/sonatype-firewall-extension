@@ -8,6 +8,8 @@ package com.sonatype.insight.rm.rest;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.http.client.HttpResponseException;
+
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -30,7 +32,17 @@ public class RestClientFactory
         return new BaseClient( config.getConfig() );
     }
 
-    private static class BaseClient
+    ValidationClient newValidationClient( final Configuration config )
+    {
+        return new ValidationClient( config );
+    }
+
+    ScanClient newScanClient( final Configuration config, final String appId )
+    {
+        return new ScanClient( config, appId );
+    }
+
+    private class BaseClient
         implements RestClient.Base
     {
 
@@ -45,7 +57,14 @@ public class RestClientFactory
         public void validateConfiguration()
             throws IOException
         {
-            new ValidationClient( config ).validateConfiguration();
+            try
+            {
+                newValidationClient( config ).validateConfiguration();
+            }
+            catch ( IOException e )
+            {
+                throw handleError( e );
+            }
         }
 
         @Override
@@ -54,9 +73,20 @@ public class RestClientFactory
             return new AppSpecificClient( config, appId );
         }
 
+        protected IOException handleError( IOException e )
+            throws IOException
+        {
+            if ( e instanceof HttpResponseException )
+            {
+                HttpResponseException re = (HttpResponseException) e;
+                return new HttpException( re.getStatusCode(), re.getMessage(), re );
+            }
+            return e;
+        }
+
     }
 
-    private static class AppSpecificClient
+    private class AppSpecificClient
         extends BaseClient
         implements RestClient.App
     {
@@ -73,14 +103,28 @@ public class RestClientFactory
         public void validateApplicationId()
             throws IOException
         {
-            new ValidationClient( config ).validateApplicationId( appId );
+            try
+            {
+                newValidationClient( config ).validateApplicationId( appId );
+            }
+            catch ( IOException e )
+            {
+                throw handleError( e );
+            }
         }
 
         @Override
         public ScanReceipt uploadScan( File scanFile )
             throws IOException
         {
-            return new ScanClient( config, appId ).uploadRepoManScan( scanFile );
+            try
+            {
+                return newScanClient( config, appId ).uploadRepoManScan( scanFile );
+            }
+            catch ( IOException e )
+            {
+                throw handleError( e );
+            }
         }
 
         @Override
@@ -91,7 +135,7 @@ public class RestClientFactory
 
     }
 
-    private static class ScanSpecificClient
+    private class ScanSpecificClient
         extends AppSpecificClient
         implements RestClient.Scan
     {

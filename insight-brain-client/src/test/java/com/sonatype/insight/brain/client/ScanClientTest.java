@@ -9,8 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
-
+import org.apache.http.client.HttpResponseException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -78,9 +77,10 @@ public class ScanClientTest
             new ScanClient( config, "invalid-id" ).uploadCiScan( tmpDir.newFile( "scan.xml.gz" ) );
             fail( "Upload should have failed due to invalid app ID" );
         }
-        catch ( IOException e )
+        catch ( HttpResponseException e )
         {
-            assertMatch( "(?i).*404.*", e.getMessage() );
+            assertEquals( 404, e.getStatusCode() );
+            assertMatch( "(?i).*Cannot find application.*", e.getMessage() );
         }
     }
 
@@ -104,9 +104,10 @@ public class ScanClientTest
             new ScanClient( config, "invalid-id" ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
             fail( "Upload should have failed due to invalid app ID" );
         }
-        catch ( IOException e )
+        catch ( HttpResponseException e )
         {
-            assertMatch( "(?i).*404.*", e.getMessage() );
+            assertEquals( 404, e.getStatusCode() );
+            assertMatch( "(?i).*Cannot find application.*", e.getMessage() );
         }
     }
 

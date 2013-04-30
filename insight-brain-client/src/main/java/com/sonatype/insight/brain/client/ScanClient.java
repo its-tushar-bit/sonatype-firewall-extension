@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.FileEntity;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -17,7 +18,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
 
-public final class ScanClient
+public class ScanClient
     extends AbstractClient
 {
     private final String appId;
@@ -50,7 +51,7 @@ public final class ScanClient
         final String text = result.text();
         if ( status >= 300 )
         {
-            throw new IOException( "Error code " + status + ": " + text );
+            throw new HttpResponseException( status, text );
         }
         return JsonUtils.parse( text, ScanReceipt.class );
     }

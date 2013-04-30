@@ -89,7 +89,6 @@ public class RestClientFactory
         }
 
         protected IOException handleError( IOException e )
-            throws IOException
         {
             if ( e instanceof HttpResponseException )
             {

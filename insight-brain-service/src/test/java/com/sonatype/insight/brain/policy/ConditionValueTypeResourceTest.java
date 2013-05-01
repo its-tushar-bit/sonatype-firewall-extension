@@ -9,7 +9,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -25,17 +24,6 @@ public class ConditionValueTypeResourceTest
         createApplication( appPublicId );
 
         final Response response = RestAccess.get( getServiceURL( appPublicId ) );
-        assertResponseStatus( 200, response );
-        final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
-        Assert.assertNotNull( conditionValueTypes );
-        Assert.assertTrue( conditionValueTypes.length > 0 );
-    }
-
-    @Test
-    public void testGetConditionValueTypes_Organization()
-        throws Exception
-    {
-        final Response response = RestAccess.get( getServiceURL( Policy.ORGANIZATION_OWNER_PUBLIC_ID ) );
         assertResponseStatus( 200, response );
         final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
         Assert.assertNotNull( conditionValueTypes );

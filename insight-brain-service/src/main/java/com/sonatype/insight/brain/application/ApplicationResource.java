@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -311,11 +310,6 @@ public class ApplicationResource
     public ApplicationManagementSummary addApplication( Application application )
         throws IOException
     {
-        if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( application.getPublicId() ) )
-        {
-            throw new BadRequestException( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID." );
-        }
-        
         int appLimit = licenseManager.getApplicationCountLimit();
         
         if ( applicationDAO.getAll().size() >= appLimit )

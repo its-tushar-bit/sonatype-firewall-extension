@@ -48,20 +48,6 @@ public class ApplicationResourceTest
     extends AbstractResourceTest
 {
     @Test
-    public void testReservedApplicationId()
-        throws Exception
-    {
-        Application application = new Application();
-        application.setName( "testReservedApplicationId" );
-        application.setPublicId( Policy.ORGANIZATION_OWNER_PUBLIC_ID );
-
-        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
-        assertResponseStatus( 400, response );
-        Assert.assertEquals( Policy.ORGANIZATION_OWNER_PUBLIC_ID + " is not allowed as application ID.",
-                             response.getResponseBody() );
-    }
-
-    @Test
     public void testValidate()
         throws Exception
     {

@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.label.Label;
@@ -121,27 +120,6 @@ public class ApplicationDAO
         String sQuery = "SELECT entity FROM Application entity" + //
             " ORDER BY entity.publicIdLowercase";
         return getList( sQuery );
-    }
-
-    public List<Application> getByApplicationProfileId( String applicationProfileId )
-    {
-        EntityManager em = createEntityManager();
-        try
-        {
-            return getByApplicationProfileId( em, applicationProfileId );
-        }
-        finally
-        {
-            close( em );
-        }
-    }
-
-    public List<Application> getByApplicationProfileId( EntityManager em, String applicationProfileId )
-    {
-        String sQuery = "SELECT entity FROM Application entity" + //
-            " WHERE entity.applicationProfileId=?1" + //
-            " ORDER BY entity.nameLowercaseNoWhitespace";
-        return getList( em, sQuery, applicationProfileId );
     }
 
     @Override
@@ -276,15 +254,6 @@ public class ApplicationDAO
 
     private void validate( Application application )
     {
-        if ( application.getApplicationProfileId() == null || application.getApplicationProfileId().trim().isEmpty() )
-        {
-            if ( new ApplicationProfileDAO().getById( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID ) == null )
-            {
-                throw new InvalidApplicationException( "The application must have an application profile." );
-            }
-            application.setApplicationProfileId( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID );
-        }
-
         NameHelper.validate( application.getName() );
 
         final String applicationPublicId = application.getPublicId();

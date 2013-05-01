@@ -35,9 +35,6 @@ public class Application
     @Column(name = "name_lowercase_no_whitespace")
     private String nameLowercaseNoWhitespace;
 
-    @Column( name = "application_profile_id" )
-    private String applicationProfileId;
-
     @Override
     public String getId()
     {
@@ -110,15 +107,5 @@ public class Application
      */
     public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
     {
-    }
-
-    public String getApplicationProfileId()
-    {
-        return applicationProfileId;
-    }
-
-    public void setApplicationProfileId( String applicationProfileId )
-    {
-        this.applicationProfileId = applicationProfileId;
     }
 }

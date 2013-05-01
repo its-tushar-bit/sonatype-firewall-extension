@@ -42,18 +42,6 @@ public class PolicyResourceTest
         testCRUD( applicationPublicId, store );
     }
 
-    @Test
-    public void testCRUD_OrganizationLevel()
-        throws Exception
-    {
-        JsonStore store =
-            JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + Policy.ORGANIZATION_OWNER_ID ) );
-
-        Assert.assertEquals( 0, store.modificationCount() );
-
-        testCRUD( Policy.ORGANIZATION_OWNER_PUBLIC_ID, store );
-    }
-
     private void testCRUD( String policyOwnerId, JsonStore store )
         throws Exception
     {

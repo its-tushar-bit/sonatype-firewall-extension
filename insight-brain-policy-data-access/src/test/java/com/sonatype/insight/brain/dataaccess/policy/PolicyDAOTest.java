@@ -6,25 +6,19 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationProfileDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationProfilePolicyDAO;
-import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 public class PolicyDAOTest
 {
@@ -358,35 +352,6 @@ public class PolicyDAOTest
         catch ( InvalidPolicyException expected )
         {
         }
-    }
-
-    @Test
-    public void testDeletePolicyAssociatedWithApplicationProfile()
-        throws Exception
-    {
-        ApplicationProfileDAO applicationProfileDAO = new ApplicationProfileDAO();
-        ApplicationProfile applicationProfile =
-            new ApplicationProfile( "testDeletePolicyAssociatedWithApplicationProfile" );
-        applicationProfileDAO.insert( applicationProfile );
-        ApplicationProfilePolicyDAO applicationProfilePolicyDAO = new ApplicationProfilePolicyDAO();
-        Set<String> policyIds = new LinkedHashSet<String>();
-        policyIds.add( "PolicyId1" );
-        applicationProfilePolicyDAO.set( applicationProfile.getId(), policyIds );
-        
-        File dataStoreDir = tempDir.newFolder( "PolicyDAOTest" );
-        PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
-        try
-        {
-            policyDAO.delete( Policy.ORGANIZATION_OWNER_ID, "PolicyId1" );
-            Assert.fail( "Expected BadRequestException" );
-        }
-        catch (BadRequestException expected)
-        {
-            Assert.assertEquals( "Cannot delete a policy associated with an application profile.",
-                                 expected.getMessage() );
-        }
-        
-        applicationProfileDAO.delete( applicationProfile );
     }
 
     @Test

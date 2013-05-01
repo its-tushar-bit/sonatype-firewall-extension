@@ -44,11 +44,6 @@ public class PolicyResource
 
     static String getInternalPolicyOwnerId( String policyOwnerId )
     {
-        if ( Policy.ORGANIZATION_OWNER_PUBLIC_ID.equals( policyOwnerId ) )
-        {
-            return Policy.ORGANIZATION_OWNER_ID;
-        }
-
         Application application = new ApplicationDAO().getByPublicIdNotNull( policyOwnerId );
         return application.getId();
     }

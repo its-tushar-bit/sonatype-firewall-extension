@@ -4,25 +4,6 @@ CREATE TABLE test_table (
   name varchar(50) NOT NULL
 );
 
-CREATE TABLE application_profile (
-  application_profile_id varchar(50) NOT NULL,
-  name varchar(60) NOT NULL,
-  name_lowercase_no_whitespace varchar(60) NOT NULL,
-  CONSTRAINT application_profile_pk PRIMARY KEY (application_profile_id),
-  CONSTRAINT application_profile_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
-);
-
-INSERT INTO application_profile (application_profile_id, name, name_lowercase_no_whitespace) VALUES ('default_application_profile', 'Default Application Profile', 'defaultapplicationprofile');
-
-CREATE TABLE application_profile_policy (
-  application_profile_policy_id varchar(50) NOT NULL,
-  application_profile_id varchar(50) NOT NULL,
-  policy_id varchar(50) NOT NULL,
-  CONSTRAINT application_profile_policy_pk PRIMARY KEY (application_profile_policy_id),
-  CONSTRAINT application_profile_policy_uk UNIQUE KEY (application_profile_id, policy_id),
-  CONSTRAINT application_profile_policy_profile_fk FOREIGN KEY (application_profile_id) REFERENCES application_profile(application_profile_id)
-);
-
 -- The public_id column is what we expose as AppID to the user
 CREATE TABLE application (
   application_id varchar(50) NOT NULL,
@@ -30,11 +11,9 @@ CREATE TABLE application (
   public_id_lowercase varchar(60) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
-  application_profile_id varchar(50) NOT NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase),
-  CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
-  CONSTRAINT application_application_profile_fk FOREIGN KEY (application_profile_id) REFERENCES application_profile(application_profile_id)
+  CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
 );
 
 CREATE TABLE label (

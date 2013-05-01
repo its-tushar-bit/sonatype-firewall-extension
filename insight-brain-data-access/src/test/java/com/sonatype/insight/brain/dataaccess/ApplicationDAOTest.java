@@ -24,7 +24,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationProfile;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
@@ -35,8 +34,6 @@ public class ApplicationDAOTest
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
     private Application application;
-
-    private ApplicationProfile applicationProfile;
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -56,39 +53,6 @@ public class ApplicationDAOTest
         {
             applicationDAO.delete( application );
         }
-
-        if ( applicationProfile != null )
-        {
-            new ApplicationProfileDAO().delete( applicationProfile );
-        }
-    }
-
-    @Test
-    public void testDefaultApplicationProfile_Insert()
-    {
-        application.setApplicationProfileId( null );
-        applicationDAO.insert( application );
-        assertEquals( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID, application.getApplicationProfileId() );
-
-        application = applicationDAO.getByIdNotNull( application.getId() );
-        assertEquals( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID, application.getApplicationProfileId() );
-    }
-
-    @Test
-    public void testDefaultApplicationProfile_Update()
-    {
-        applicationProfile = new ApplicationProfile( "testDefaultApplicationProfile" );
-        new ApplicationProfileDAO().insert( applicationProfile );
-
-        application.setApplicationProfileId( applicationProfile.getId() );
-        applicationDAO.insert( application );
-        assertEquals( applicationProfile.getId(), application.getApplicationProfileId() );
-
-        application.setApplicationProfileId( null );
-        applicationDAO.update( application );
-        assertEquals( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID, application.getApplicationProfileId() );
-        application = applicationDAO.getByIdNotNull( application.getId() );
-        assertEquals( ApplicationProfile.DEFAULT_APPLICATION_PROFILE_ID, application.getApplicationProfileId() );
     }
 
     @Test

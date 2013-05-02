@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.http.client.HttpResponseException;
 
@@ -56,7 +57,9 @@ public class ValidationClient
         throws IOException
     {
         Result result = get( path( "rest/application/services/names" ) );
-        return JsonUtils.parse( result.text(), Map.class );
+        Map<String, String> applicationsById = new TreeMap<String, String>( String.CASE_INSENSITIVE_ORDER );
+        applicationsById.putAll( JsonUtils.parse( result.text(), Map.class ) );
+        return applicationsById;
     }
 
     public void validateConfiguration()

@@ -175,5 +175,6 @@ public class ValidationClientTest
         assertEquals( 1, map.size() );
         assertTrue( map.containsKey( "valid-id" ) );
         assertEquals( app.getName(), map.get( "valid-id" ) );
+        assertEquals( app.getName(), map.get( "VALID-ID" ) );
     }
 }

@@ -7,9 +7,9 @@
 (function () {
 	'use strict';
 
-	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation', 'Profile']);
+	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', 'ProfileStore', function ($scope, $http, hudson, clmLocations, commonCodeFactory, profileStore) {
+	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, commonCodeFactory) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 
@@ -29,12 +29,6 @@
 		}).success(function (data) {
 			$scope.applications = data;
 		}).error($scope.showServerError);
-
-		profileStore.get().then(function (data) {
-			$scope.profiles = data;
-		}, function () {
-			$scope.showServerError(arguments[0].data, arguments[0].status, arguments[0].headersFn, arguments[0].config);
-		});
 
 		$('#newApplicationModal').on('hide', function () {
 			// AngularJS barfs if $apply is made unnecessarily, however hide may or may not be called within scope
@@ -256,8 +250,7 @@
 			var application = {
 				id: $scope.selectedApplication.id,
 				publicId: $scope.selectedApplication.publicId,
-				name: $scope.selectedApplication.name,
-				applicationProfileId : $scope.selectedApplication.applicationProfileId
+				name: $scope.selectedApplication.name
 			};
 
 			if (!application.id) {

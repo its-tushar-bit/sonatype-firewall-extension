@@ -444,7 +444,6 @@
             <include>assets/components/notification-manager/NotificationManager.js</include>
             <include>application/ClmManagementApp.js</include>
             <include>application/ManagementController.js</include>
-            <include>application/ProfileController.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>assets/angular-mocks-*.js</include>
@@ -459,7 +458,6 @@
             <include>policy/PolicyEditorSpec.js</include>
             <include>application/ApplicationMockData.js</include>
             <include>application/ManagementControllerSpec.js</include>
-            <include>application/ProfileControllerSpec.js</include>
             <include>assets/AngularCommonSpec.js</include>
             <include>assets/ResourceSpec.js</include>
           </specIncludes>

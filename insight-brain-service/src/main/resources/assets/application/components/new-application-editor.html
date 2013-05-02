@@ -45,15 +45,6 @@
                     </div>
                 </div>
             </div>
-            <div class='control-group' ng-class='{ error : applicationEditor.applicationProfile.$invalid }'>
-                <label class='control-label' for='applicationProfile'>Application Profile</label>
-                <div class='controls'>
-                    <select ng-model='selectedApplication.applicationProfileId' id='applicationProfile' name='applicationProfile' ng-options='profile.id as profile.name for profile in profiles' required></select>
-                    <div>
-                        <span ng-show="applicationEditor.applicationPublicId.$error.required" class="help-inline">Profile is required.</span>
-                    </div>
-                </div>
-            </div>
             <div class='control-group'>
                 <label class='control-label' for='applicationIcon'>Icon</label>
 

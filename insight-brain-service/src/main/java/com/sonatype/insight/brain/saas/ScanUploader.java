@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
@@ -25,13 +24,13 @@ import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 @Singleton
 public class ScanUploader
 {
-    private static final Logger log = LoggerFactory.getLogger( ReportDownloader.class );
+    private static final Logger log = LoggerFactory.getLogger( ScanUploader.class );
 
     private final SaasClient client;
 
     private final InsightWork work;
 
-    protected ApplicationDAO applicationDAO = new ApplicationDAO();
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
 
     @Inject
     public ScanUploader( final SaasClient client, final InsightWork work )

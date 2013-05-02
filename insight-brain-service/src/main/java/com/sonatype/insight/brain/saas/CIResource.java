@@ -41,7 +41,7 @@ public class CIResource
     
     private final ScanUploader uploader;
     
-    protected ApplicationDAO applicationDAO = new ApplicationDAO();
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
     
     @Inject
     public CIResource( final InsightWork work, final SaasClient client, final ScanUploader uploader )

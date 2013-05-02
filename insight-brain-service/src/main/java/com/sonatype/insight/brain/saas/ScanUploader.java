@@ -4,30 +4,44 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
-public abstract class AbstractSaasResource
+@Named
+@Singleton
+public class ScanUploader
 {
-    @Context
-    private InsightWork work;
+    private static final Logger log = LoggerFactory.getLogger( ReportDownloader.class );
 
-    @Context
-    protected SaasClient client;
+    private final SaasClient client;
+
+    private final InsightWork work;
 
     protected ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    protected BOMCheckScanUploadResult doScanUpload( HttpServletRequest request, String applicationPublicId,
-                                                     String path, String... params )
+    @Inject
+    public ScanUploader( final SaasClient client, final InsightWork work )
+    {
+        this.client = client;
+        this.work = work;
+    }
+
+    protected BOMCheckScanUploadResult upload( HttpServletRequest request, String applicationPublicId, String path,
+                                               String... params )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -56,6 +70,8 @@ public abstract class AbstractSaasResource
         {
             FileUtils.rename( scanFile, new File( scanDir, "scan-" + result.getScanId() + ".xml.gz" ) );
         }
+
+        log.debug( "Successfully uploaded scan id {}" + result.getScanId() );
 
         return result;
     }

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 @Named
+@Singleton
 public class ReportDownloader
 {
     private static final Logger log = LoggerFactory.getLogger( ReportDownloader.class );

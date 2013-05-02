@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.saas;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.PUT;
@@ -26,9 +27,16 @@ import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.StageRelease } )
 @Named
 public class RepoManResource
-    extends AbstractSaasResource
 {
     public static final String SERVICE_PATH = "rest/rm";
+
+    private final ScanUploader uploader;
+
+    @Inject
+    public RepoManResource( final ScanUploader uploader )
+    {
+        this.uploader = uploader;
+    }
 
     @PUT
     @Path( "scan/{applicationPublicId}" )
@@ -38,7 +46,7 @@ public class RepoManResource
     HttpServletRequest req )
         throws IOException
     {
-        final BOMCheckScanUploadResult result = doScanUpload( req, applicationPublicId, "rest/rm/scan" );
+        final BOMCheckScanUploadResult result = uploader.upload( req, applicationPublicId, "rest/rm/scan" );
 
         final ScanReceipt receipt = new ScanReceipt();
         receipt.setScanId( result.getScanId() );

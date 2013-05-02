@@ -8,14 +8,7 @@ public class ProductLicenseResourceTest
     extends AbstractResourceTest
 {
     @Test
-    public void testInstallLicense()
-        throws Exception
-    {
-        installLicense();
-    }
-
-    @Test
-    public void testUninstallLicense()
+    public void testInstallUninstallLicense()
         throws Exception
     {
         installLicense();

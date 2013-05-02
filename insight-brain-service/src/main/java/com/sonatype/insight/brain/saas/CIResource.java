@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.saas;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.application.ApplicationResource;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -30,12 +32,24 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Build } )
 @Named
 public class CIResource
-    extends AbstractSaasResource
 {
     public static final String SERVICE_PATH = "rest/ci";
 
-    @Context
-    private InsightWork work;
+    private final InsightWork work;
+    
+    private final SaasClient client;
+    
+    private final ScanUploader uploader;
+    
+    protected ApplicationDAO applicationDAO = new ApplicationDAO();
+    
+    @Inject
+    public CIResource( final InsightWork work, final SaasClient client, final ScanUploader uploader )
+    {
+        this.work = work;
+        this.client = client;
+        this.uploader = uploader;
+    }
     
     /**
      * @deprecated Use ApplicationResource.validateApplicationPublicId() instead.
@@ -57,7 +71,7 @@ public class CIResource
     HttpServletRequest req )
         throws IOException
     {
-        return Response.ok( doScanUpload( req, applicationPublicId, "rest/ci/scan" ) ).build();
+        return Response.ok( uploader.upload( req, applicationPublicId, "rest/ci/scan" ) ).build();
     }
 
     @GET

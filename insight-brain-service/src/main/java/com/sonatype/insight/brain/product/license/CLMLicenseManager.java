@@ -56,7 +56,7 @@ public class CLMLicenseManager
         populateLicenseCache();
     }
 
-    public void populateLicenseCache()
+    private void populateLicenseCache()
     {
         String licenseFingerprint = null;
         Integer applicationCount = null;
@@ -107,7 +107,6 @@ public class CLMLicenseManager
 
     /**
      * Get a license fingerprint, if there is no license, null will be returned
-     * @return
      */
     public String getLicenseFingerprint()
     {
@@ -116,7 +115,6 @@ public class CLMLicenseManager
 
     /**
      * Get the application limit in the license, if no license, 0 will be returned
-     * @return
      */
     public int getApplicationCountLimit()
     {
@@ -142,7 +140,6 @@ public class CLMLicenseManager
     /**
      * Validate that the license is installed and contains the requested enforcement point
      * 
-     * @param enforcementPoint
      * @throws InvalidLicenseException when enforcement point is not licensed
      */
     public void validateEnforcementPoint( CLMEnforcementPoint enforcementPoint )

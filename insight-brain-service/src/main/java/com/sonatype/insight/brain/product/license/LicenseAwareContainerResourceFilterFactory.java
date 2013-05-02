@@ -79,8 +79,8 @@ public class LicenseAwareContainerResourceFilterFactory
             {
                 log.error( e.getMessage(), e );
 
-                if ( path.equals( InsightBrainService.APPLICATION_ASSET_PATH + "index.html" )
-                    || path.equals( InsightBrainService.POLICY_ASSET_PATH + "index.html" ) )
+                //we want to redirect if going to an html page when unlicensed, unless of course they are going to the unlicensed html page
+                if ( path.endsWith( "index.html" ) && !path.equals( InsightBrainService.UNLICENSED_ASSET_PATH + "index.html" ) )
                 {
                     throw new WebApplicationException(
                                                        Response.seeOther( baseUrl.redirect().path( InsightBrainService.UNLICENSED_ASSET_PATH ).path( "index.html" ).build() ).build() );

@@ -48,14 +48,8 @@ public class LicenseThreatGroupLevelConditionTypeTest
         Application application = new Application();
         application.setName( "test" );
         application.setPublicId( "LicenseThreatGroupLevelConditionTypeTest_AppId" );
-        new ApplicationDAO().insert( application );
+        new ApplicationDAO().insert( application, false /* createLicenseThreatGroups */);
         applicationId = application.getId();
-
-        // Delete all existing license threat groups
-        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroupDAO.getByApplicationId( applicationId ) )
-        {
-            licenseThreatGroupDAO.delete( licenseThreatGroup );
-        }
 
         licenseThreatGroup2 = new LicenseThreatGroup( applicationId, "Level 2", 2 );
         licenseThreatGroupDAO.insert( licenseThreatGroup2 );

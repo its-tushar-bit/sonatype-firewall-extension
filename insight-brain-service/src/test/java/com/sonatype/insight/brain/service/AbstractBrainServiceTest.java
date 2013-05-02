@@ -238,17 +238,27 @@ public abstract class AbstractBrainServiceTest
 
     protected Application createApplication( String publicId )
     {
+        return createApplication( publicId, true /* createLicenseThreatGroups */);
+    }
+
+    protected Application createApplication( String publicId, boolean createLicenseThreatGroups )
+    {
         // Application Name must be unique
-        return createApplication( publicId, "DUMMY-NAME-" + UUID.randomUUID().toString() );
+        return createApplication( publicId, "DUMMY-NAME-" + UUID.randomUUID().toString(), createLicenseThreatGroups );
     }
 
     protected Application createApplication( String publicId, String name )
+    {
+        return createApplication( publicId, name, true /* createLicenseThreatGroups */);
+    }
+
+    protected Application createApplication( String publicId, String name, boolean createLicenseThreatGroups )
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
         application.setPublicId( publicId );
         application.setName( name );
-        applicationDAO.insert( application );
+        applicationDAO.insert( application, createLicenseThreatGroups );
         applicationsToDelete.add( application );
         return application;
     }

@@ -29,12 +29,8 @@ public class LicenseThreatGroupLicenseResourceTest
     {
         // Create an application and a group
         String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
-        Application application = createApplication( appPublicId );
+        Application application = createApplication( appPublicId, false /* createLicenseThreatGroups */);
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
-        for ( LicenseThreatGroup licenseThreatGroup : groupDAO.getByApplicationId( application.getId() ) )
-        {
-            groupDAO.delete( licenseThreatGroup );
-        }
         LicenseThreatGroup group = new LicenseThreatGroup();
         group.setApplicationId( application.getId() );
         group.setName( "My group" );

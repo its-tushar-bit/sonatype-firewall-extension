@@ -10,7 +10,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -132,16 +131,10 @@ public class CIComponentInfoResourceTest
     {
         // Create an application
         String applicationPublicId = "testGetComponentDetailsList";
-        Application application = createApplication( applicationPublicId );
+        Application application = createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
         String appId = application.getId();
-        // Delete all default license threat groups for the application
+        // Create license threat groups
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( appId );
-        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-        {
-            licenseThreatGroupDAO.delete( licenseThreatGroup );
-        }
-        // Create new license threat groups
         LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
         LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup( appId, "Group1", 9 );
         licenseThreatGroupDAO.insert( licenseThreatGroup );

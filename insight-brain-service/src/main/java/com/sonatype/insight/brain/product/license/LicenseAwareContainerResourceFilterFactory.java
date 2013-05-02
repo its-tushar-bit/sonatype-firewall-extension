@@ -54,26 +54,8 @@ public class LicenseAwareContainerResourceFilterFactory
 
             try
             {
-                boolean passed = enforcementPoints.isEmpty();
                 licenseManager.validate();
-                for ( CLMEnforcementPoint enforcementPoint : enforcementPoints )
-                {
-                    try
-                    {
-                        licenseManager.validateEnforcementPoint( enforcementPoint );
-                        passed = true;
-                        break;
-                    }
-                    catch ( InvalidLicenseException e )
-                    {
-                        log.debug( "EnforcementPoint {} NOT licensed.", enforcementPoint.name() );
-                    }
-                }
-
-                if ( !passed )
-                {
-                    throw new InvalidLicenseException( "Unable to validate the license." );
-                }
+                licenseManager.validateAnyEnforcementPoint( enforcementPoints );
             }
             catch ( InvalidLicenseException e )
             {

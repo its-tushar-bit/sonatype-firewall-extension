@@ -3,6 +3,7 @@ package com.sonatype.insight.brain.product.license;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -138,18 +139,29 @@ public class CLMLicenseManager
     }
 
     /**
-     * Validate that the license is installed and contains the requested enforcement point
+     * Validates that the license is installed and contains any of the requested enforcement points.
      * 
-     * @throws InvalidLicenseException when enforcement point is not licensed
+     * @throws InvalidLicenseException If none of the enforcement points is licensed.
      */
-    public void validateEnforcementPoint( CLMEnforcementPoint enforcementPoint )
-        throws InvalidLicenseException
+    public void validateAnyEnforcementPoint( Set<CLMEnforcementPoint> enforcementPoints )
     {
-        if ( !Arrays.asList( licenseCache.getEnforcementPoints() ).contains( enforcementPoint ) )
+        if ( enforcementPoints.isEmpty() )
         {
-            String msg = "Enforcement Point " + enforcementPoint.name() + " is not licensed!";
-            log.error( msg );
-            throw new InvalidLicenseException( msg );
+            return;
         }
+        Set<CLMEnforcementPoint> licensed = EnumSet.copyOf( Arrays.asList( licenseCache.getEnforcementPoints() ) );
+        for ( CLMEnforcementPoint requested : enforcementPoints )
+        {
+            if ( licensed.contains( requested ) )
+            {
+                return;
+            }
+        }
+        if ( enforcementPoints.size() == 1 )
+        {
+            throw new InvalidLicenseException( "The enforcement point " + enforcementPoints.iterator().next()
+                + " is not licensed!" );
+        }
+        throw new InvalidLicenseException( "None of the enforcement points " + enforcementPoints + " is licensed!" );
     }
 }

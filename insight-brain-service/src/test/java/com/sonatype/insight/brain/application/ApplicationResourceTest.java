@@ -210,7 +210,7 @@ public class ApplicationResourceTest
 
         createApplication( "testAddApplication_exceedsLicense_id" );
 
-        // Test Add Application, which should fail with 400 since we exceeded the limit
+        // Test Add Application, which should fail with 402 since we exceeded the limit
         Application application = new Application();
         application.setName( "testAddApplication_exceedsLicense_id_new_name" );
         application.setPublicId( "testAddApplication_exceedsLicense_id_new_id" );

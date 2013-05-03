@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global angular, $ */
+/*global angular, $, clmBuildTimestamp */
 /* jslint plusplus: true */
 (function () {
     'use strict';
@@ -19,7 +19,7 @@
 
     module.controller('NotificationManagementController', [ '$scope', '$timeout', function($scope, $timeout) {
 		function resetInput() {
-		    delete $scope.currentNotificationEmail;
+			delete $scope.currentNotificationEmail;
             $timeout(function () {
 				// This seems to be required to trigger the validity check
                 $scope.neditor.email.$setViewValue('');
@@ -30,7 +30,7 @@
             resetInput();
             addressArray = addresses;
             $scope.notificationEmailList = angular.copy(addresses);
-			sort($scope.notificationEmailList)
+			sort($scope.notificationEmailList);
             $('#editNotificationsModal').modal('show');
             $('#editNotificationsModal input').focus();
 		});
@@ -48,8 +48,8 @@
         };
 
         $scope.doneNotificationEmail = function() {
-        	addressArray.splice(addressArray.length);
-        	angular.copy($scope.notificationEmailList, addressArray);
+			addressArray.splice(addressArray.length);
+			angular.copy($scope.notificationEmailList, addressArray);
             $('#editNotificationsModal').modal('hide');
         };
 
@@ -100,6 +100,6 @@
             replace : true,
             transclude : true,
             templateUrl : '../assets/components/notification-manager/notification-manager.html?' + clmBuildTimestamp
-        }
+        };
     });
 }());

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/*global window, angular */
 (function () {
 	"use strict";
 
@@ -96,7 +97,7 @@
 			},
 			
 			getLicenseUploadUrl: function() {
-			    return this.getBaseUrl() + '/rest/product/license';
+				return this.getBaseUrl() + '/rest/product/license';
 			},
 			getApplicationProfilePoliciesUrl : function (applicationProfileId) {
 				return this.getBaseUrl() + '/rest/applicationProfilePolicy/' + encodeURIComponent(applicationProfileId);

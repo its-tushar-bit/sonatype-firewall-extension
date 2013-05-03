@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/*global angular, window, $ */
 var angularCommon;
 (function () {
 	"use strict";
@@ -57,8 +58,6 @@ var angularCommon;
 	});
 
 	angularCommon.directive('typeAhead', ['$parse', function ($parse) {
-		'use strict';
-
 		return {
 			restrict: 'A',
 			require: '?ngModel',

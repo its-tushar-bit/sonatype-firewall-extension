@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, window, CLM */
+/*global angular, $, window, CLM, setTimeout */
 (function () {
     'use strict';
 
     function doLoad() {
 		$.extend(true, window, {
-		    'Insight' : {
+			'Insight' : {
 				'LabelEditor' : function (node, applicationId, hash) {
 					var timestamp = (new Date()).getTime(),
 						container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-label-editor.html\'"></div>');
@@ -17,14 +17,14 @@
 					container.appendTo(node);
 
 					angular.module('labelEditor' + timestamp, []).service('ComponentLabelEditorGAV', function () {
-					    return {
-					        applicationId : applicationId,
-					        hash : hash
-					    };
+						return {
+							applicationId : applicationId,
+							hash : hash
+						};
 					});
 					angular.bootstrap(container[0], ['ComponentLabelEditor', 'labelEditor' + timestamp]);
-		        }
-		    }
+				}
+			}
 		});
 
 		function locate(needle, haystack, haystackProperty) {
@@ -41,18 +41,18 @@
 		var labelsApp = angular.module('ComponentLabelEditor', []);
 
 		labelsApp.controller('LabelsController', ['$http', '$scope', 'ComponentLabelEditorGAV', function ($http, $scope, componentLabelEditorGAV) {
-		    var componentLabelsUrl = CLM.path + 'rest/label/component/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash;
+			var componentLabelsUrl = CLM.path + 'rest/label/component/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash;
 
 			function errorFn(data, status, headersFn, config) {
 				var header = headersFn();
 				if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-				    $scope.editErrorResponse = 'Server Error';
+					$scope.editErrorResponse = 'Server Error';
 				} else {
-				    $scope.editErrorResponse = data;
+					$scope.editErrorResponse = data;
 				}
 			}
 
-		    function persist(labelArr, color) {
+			function persist(labelArr, color) {
 				$http.put(componentLabelsUrl, { labels : labelArr, color : color}).success(function (data) {
 					$scope.itemLabels = data;
 					$scope.reloadAppLabels(); // Only really necessary if someone adds a brand new label, and removes it in the same session
@@ -96,9 +96,9 @@
 
 			$scope.addLabels = function () {
 				var newLabels = $scope.labelInput.split(' '),
-				    updatedLabels = [],
-				    bigLabels = [],
-				    hasNewLabel = false;
+					updatedLabels = [],
+					bigLabels = [],
+					hasNewLabel = false;
 
 				if (newLabels.length === 0) {
 					return;
@@ -115,8 +115,8 @@
 					if (label.length > 50) {
 						bigLabels.push(label);
 					} else if (label.length > 0) {
-					    updatedLabels.push(label);
-					    hasNewLabel = true;
+						updatedLabels.push(label);
+						hasNewLabel = true;
 					}
 				});
 
@@ -134,7 +134,7 @@
 
 			$scope.addLabel = function (label) {
 				var updatedLabels = [],
-				    duplicate = false;
+					duplicate = false;
 
 				angular.forEach($scope.itemLabels, function (candidate, key) {
 					if (candidate.label.toLowerCase() === label.label.toLowerCase()) {
@@ -166,7 +166,7 @@
 				$scope.oversize = false;
 				angular.forEach($scope.labelInput.split(' '), function (label, key) {
 					if (label.length > 50) {
-					    $scope.oversize = true;
+						$scope.oversize = true;
 					}
 				});
 			};
@@ -187,7 +187,6 @@
 				element.bind('keydown', function(e) {
 					if (e.keyCode === 13) { // Enter
 						e.preventDefault();
-						console.log('triggering submit');
 						element.trigger('submit');
 					}
 				});
@@ -208,8 +207,8 @@
 				element.bind('click', function (e) {
 					setElement(element, '').prop('rotate', null).animate({ rotate : '+360'}, {
 						step : function (now, fx) {
-						    now = now % 360;
-						    setElement(element, 'rotate(' + now + 'deg)');
+							now = now % 360;
+							setElement(element, 'rotate(' + now + 'deg)');
 						}
 					});
 				});

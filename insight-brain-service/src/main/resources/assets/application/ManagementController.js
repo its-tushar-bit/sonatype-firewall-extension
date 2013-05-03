@@ -134,7 +134,7 @@
 						case 'Build':
 						case 'Stage Release':
 						case 'Release':
-						    arrayToReturn.push(items[i]);
+							arrayToReturn.push(items[i]);
 					}
 				}
 			}
@@ -176,8 +176,8 @@
 		};
 
 		$scope.generateIcon = function () {
-			var name = $scope.selectedApplication.name;
-			var hash = 0;
+			var name = $scope.selectedApplication.name,
+				hash = 0;
 			if (!name) {
 				hash = Math.floor(Math.random() * 100);
 			} else {
@@ -190,7 +190,7 @@
 			$scope.robotHash = hash;
 			$scope.hasRobotSource = true;
 			$scope.iconChanged = true;
-		}
+		};
 
 		$scope.fileChanged = function (element) {
 			if (element.files && element.files.length > 0) {
@@ -240,7 +240,7 @@
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
 					if (icon.files[0].size > 5242880) {
-						$scope.errorResponse.push('Icon file size must be smaller than 5 MB.')
+						$scope.errorResponse.push('Icon file size must be smaller than 5 MB.');
 					}
 				}
 			}
@@ -334,11 +334,11 @@
 					
 					var passed = !value || !value.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'));
 					ctrl.$setValidity('alphaNumeric', passed);
-				    return passed ? value : undefined;
+					return passed ? value : undefined;
 				};
-			    ctrl.$parsers.push(validator);
+				ctrl.$parsers.push(validator);
 			}
-		}
+		};
 	}]);
 	
 	managementModule.directive('isDuplicate', ['$parse', function($parse) {
@@ -374,9 +374,9 @@
 					
 					return passed ? value : undefined;
 				};
-			    ctrl.$parsers.push(validator);
+				ctrl.$parsers.push(validator);
 			}
-		}
+		};
 	}]);
 	
 	managementModule.directive('hasWhitespace', ['$parse', function($parse) {
@@ -394,6 +394,6 @@
 					});
 				});
 			}
-		}
+		};
 	}]);
 }());

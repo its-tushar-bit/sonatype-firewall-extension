@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global $, window, CLM */
+/*global $, window, CLM, document */
 (function() {
     'use strict';
 

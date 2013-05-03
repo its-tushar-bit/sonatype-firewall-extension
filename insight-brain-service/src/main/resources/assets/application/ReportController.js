@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/*global angular, $, clmBuildTimestamp, window, document */
 (function () {
     'use strict';
 
@@ -13,26 +13,28 @@
         $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-                var stageId = decodeURIComponent($routeParams.encodedStageId);
-                for (var i = 0; i < data.policyEvaluations.length; i++) {
-                    if (data.policyEvaluations[i].stage.stageTypeId == stageId) {
-                        $scope.policyEvaluation = data.policyEvaluations[i];
+            var stageId = decodeURIComponent($routeParams.encodedStageId),
+                i;
+            for (i = 0; i < data.policyEvaluations.length; i++) {
+                if (data.policyEvaluations[i].stage.stageTypeId === stageId) {
+                    $scope.policyEvaluation = data.policyEvaluations[i];
+                    break;
+                }
+            }
+            $scope.application = data;
+            $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html?readonly=true';
+            $http.get(clmLocations.getActionStageUrl(), {
+                params: { timestamp: new Date().getTime() }
+            }).success(function (stages) {
+                var i;
+                for (i = 0; i < stages.length; i++) {
+                    if (stages[i].id == $scope.policyEvaluation.stage.stageTypeId) {
+                        $scope.policyEvaluation.stage.stageName = stages[i].name;
                         break;
                     }
                 }
-                $scope.application = data;
-                $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html?readonly=true';
-                $http.get(clmLocations.getActionStageUrl(), {
-                    params: { timestamp: new Date().getTime() }
-                }).success(function (stages) {
-                        for (var i = 0; i < stages.length; i++) {
-                            if (stages[i].id == $scope.policyEvaluation.stage.stageTypeId) {
-                                $scope.policyEvaluation.stage.stageName = stages[i].name;
-                                break;
-                            }
-                        }
-                    });
             });
+        });
     }]);
 
     reportModule.directive('expandableIframe', function () {
@@ -47,7 +49,7 @@
                         clearTimeout(resizeTimeoutId);
                         return;
                     }
-                    var windowHeight = (window.innerHeight) ? window.innerHeight : $(document.body).getHeight(),
+                    var windowHeight = window.innerHeight || $(document.body).getHeight(),
                         containerTop = iframe.offset().top,
                         bottomPadding = 20,
                         height = Math.max(400, windowHeight - containerTop - bottomPadding);

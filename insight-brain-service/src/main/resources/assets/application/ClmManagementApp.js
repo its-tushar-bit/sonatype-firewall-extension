@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/*global angular, $, clmBuildTimestamp, window */
 (function () {
     "use strict";
 
@@ -46,12 +46,12 @@
             $scope.tabUrl = $location.path();
             angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
         });
-   }]);
+    }]);
     
     clmManagementApp.run(['$http', 'CLMLocations', function ($http, clmLocations) {
-        $http.get(clmLocations.getLicenseUploadUrl()).error(function(msg, status){
-            if ( status === 402 ) {
-                window.location.href = window.location.href.replace('application-assets','unlicensed-assets');
+        $http.get(clmLocations.getLicenseUploadUrl()).error(function (msg, status) {
+            if (status === 402) {
+                window.location.href = window.location.href.replace('application-assets', 'unlicensed-assets');
             }
         });
     }]);

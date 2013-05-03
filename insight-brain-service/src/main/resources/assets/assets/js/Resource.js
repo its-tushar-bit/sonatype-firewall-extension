@@ -55,7 +55,7 @@
 							angular.forEach(data, function (obj, i) {
 								result.push(new Resource(obj));
 							});
-							store.splice(0, store.length)
+							store.splice(0, store.length);
 							store.push.apply(store, result);
 							storeDeferred.resolve(store);
 						}

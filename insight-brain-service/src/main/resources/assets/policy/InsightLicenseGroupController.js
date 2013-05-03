@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+/*global angular, $, clmBuildTimestamp */
 (function () {
     'use strict';
 
@@ -163,7 +163,7 @@
                     $scope.licenseGroupEditor.editErrorResponse = data;
                 }
             }
-        };
+        }
 
         $scope.searchEnter = function () {
             var filter = $filter('filterLicenses');
@@ -232,7 +232,7 @@
 
 		$scope.cancelLicenseGroupEdit = function () {
 			$scope.$emit('license.cancelLicenseGroupEdit');
-		}
+		};
 		$scope.$watch('selectedLabel', function (newValue) {
 			if (newValue) {
 				$scope.submitActive = false;

@@ -13,10 +13,10 @@
 	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', 'CLMLocations', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $http, hudson, $timeout, clmLocations, $rootScope, $q, policyStore, actionStore) {
 
 		function capitalize(text) {
-		    if (text && text.length > 1) {
-		        return text.substring(0, 1).toUpperCase() + text.substring(1);
-		    }
-		    return text;
+			if (text && text.length > 1) {
+				return text.substring(0, 1).toUpperCase() + text.substring(1);
+			}
+			return text;
 		}
 
 		$scope.getActionCount = function (policy) {
@@ -47,15 +47,15 @@
 					for (j = 0; j < value.length; j++) {
 						formattedName = capitalize(value[j].actionTypeId);
 						if (currentStageText.indexOf(formattedName) < 0) {
-						    if (j > 0) {
-	                            currentStageText += '/';
-	                        }
-						    currentStageText += formattedName;
+							if (j > 0) {
+								currentStageText += '/';
+							}
+							currentStageText += formattedName;
 						}
 					}
 
 					if (currentStageText) {
-					    actions += currentStageText;
+						actions += currentStageText;
 					}
 				}
 			});
@@ -82,16 +82,16 @@
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirm = {
-			    header : header,
-			    body : body,
-			    declineText : declineText,
-			    acceptText : acceptText,
+				header : header,
+				body : body,
+				declineText : declineText,
+				acceptText : acceptText,
 				acceptFn : function () {
 					delete $scope.state.confirm;
 					$('#confirmationModal').modal('hide');
 					acceptFn();
 				},
-			    declineFn : function () {
+				declineFn : function () {
 					delete $scope.state.confirm;
 					$('#confirmationModal').modal('hide');
 					declineFn();

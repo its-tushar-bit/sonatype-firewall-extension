@@ -107,6 +107,6 @@ var policyApp;
     policyApp.service('ApplicationId', ['commonCodeFactory', function (commonCodeFactory) {
         return {
             encoded : commonCodeFactory.getEncodedQueryString('appId')
-        }
+        };
     }]);
 }());

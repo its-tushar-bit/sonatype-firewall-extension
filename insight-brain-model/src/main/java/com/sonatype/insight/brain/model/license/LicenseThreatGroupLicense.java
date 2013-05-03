@@ -33,6 +33,17 @@ public class LicenseThreatGroupLicense
     @Column( name = "license_id" )
     private String licenseId;
 
+    public LicenseThreatGroupLicense()
+    {
+    }
+
+    public LicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId, String licenseId )
+    {
+        this.applicationId = applicationId;
+        this.licenseThreatGroupId = licenseThreatGroupId;
+        this.licenseId = licenseId;
+    }
+
     @Override
     public String getId()
     {

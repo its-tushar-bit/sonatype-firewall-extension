@@ -13,11 +13,23 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -27,6 +39,96 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class PolicyResourceTest
     extends AbstractResourceTest
 {
+    @Test
+    public void testExportImport()
+        throws Exception
+    {
+        String applicationPublicId = "PolicyResourceTest_testExportImport";
+        Application application = createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
+        String appId = application.getId();
+
+        Label label = new Label( appId, "label1", Color.blue );
+        LabelDAO labelDAO = new LabelDAO();
+        labelDAO.insert( label );
+
+        LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup( appId, "LicenseThreatGroup1", 3 );
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        licenseThreatGroupDAO.insert( licenseThreatGroup );
+
+        LicenseThreatGroupLicense licenseThreatGroupLicense =
+            new LicenseThreatGroupLicense( appId, licenseThreatGroup.getId(), "GPL-2.0" );
+        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+        licenseThreatGroupLicenseDAO.insert( licenseThreatGroupLicense );
+
+        Policy policy = new Policy();
+        policy.setName( "Policy1" );
+        Constraint constraint1 = new Constraint();
+        constraint1.setName( "Constraint1" );
+        constraint1.addCondition( new Condition( LabelConditionType.ID, "is", label.getId() ) );
+        policy.addConstraint( constraint1 );
+        Constraint constraint2 = new Constraint();
+        constraint2.setName( "Constraint2" );
+        constraint2.addCondition( new Condition( LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ) );
+        policy.addConstraint( constraint2 );
+        policy.addAction( BuildStageType.ID, new Action( Action.ID_FAIL ) );
+        Response response = RestAccess.post( getServiceURL( applicationPublicId ), JsonHelpers.asJson( policy ) );
+        assertResponseStatus( 200, response );
+
+        // Export
+        response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
+        assertResponseStatus( 200, response );
+        PolicyExportResult policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
+        Assert.assertNotNull( policyExportResult );
+        Assert.assertNotNull( policyExportResult.filename );
+        File exportFile = new File( policyExportResult.filename );
+        Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
+
+        // Import
+        String newApplicationPublicId = applicationPublicId + "1";
+        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", exportFile );
+        assertResponseStatus( 200, response );
+        PolicyImportResult policyImportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
+        Assert.assertNotNull( policyImportResult );
+        Assert.assertEquals( PolicyResource.IMPORT_APPLICATION_NAME, policyImportResult.applicationName );
+        Assert.assertTrue( policyImportResult.applicationURL,
+                           policyImportResult.applicationURL.endsWith( "/application-assets/index.html?appId="
+                               + newApplicationPublicId ) );
+        application = new ApplicationDAO().getByName( policyImportResult.applicationName );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( 1, labelDAO.getByApplicationId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupDAO.getByApplicationId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupLicenseDAO.getByApplicationId( application.getId() ).size() );
+        response = RestAccess.get( getServiceURL( newApplicationPublicId ) );
+        assertResponseStatus( 200, response );
+        Policy[] policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
+        Assert.assertEquals( 1, policies.length );
+
+        // Import again for a different application
+        newApplicationPublicId = applicationPublicId + "2";
+        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", exportFile );
+        assertResponseStatus( 200, response );
+        policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
+        Assert.assertNotNull( policyImportResult );
+        Assert.assertFalse( PolicyResource.IMPORT_APPLICATION_NAME.equals( policyImportResult.applicationName ) );
+        Assert.assertTrue( policyImportResult.applicationName.startsWith( PolicyResource.IMPORT_APPLICATION_NAME + " " ) );
+        Assert.assertTrue( policyImportResult.applicationURL,
+                           policyImportResult.applicationURL.endsWith( "/application-assets/index.html?appId="
+                               + newApplicationPublicId ) );
+        application = new ApplicationDAO().getByName( policyImportResult.applicationName );
+        Assert.assertNotNull( application );
+        Assert.assertEquals( 1, labelDAO.getByApplicationId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupDAO.getByApplicationId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupLicenseDAO.getByApplicationId( application.getId() ).size() );
+        response = RestAccess.get( getServiceURL( newApplicationPublicId ) );
+        assertResponseStatus( 200, response );
+        policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
+        Assert.assertEquals( 1, policies.length );
+
+        exportFile.delete();
+    }
+
     @Test
     public void testCRUD_ApplicationLevel()
         throws Exception

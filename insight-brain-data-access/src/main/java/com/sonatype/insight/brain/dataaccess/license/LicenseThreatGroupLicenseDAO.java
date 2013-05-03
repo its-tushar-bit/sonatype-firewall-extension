@@ -34,6 +34,14 @@ public class LicenseThreatGroupLicenseDAO
         return get( em, sQuery, applicationId, licenseId );
     }
 
+    public List<LicenseThreatGroupLicense> getByApplicationId( String applicationId )
+    {
+        String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
+            " WHERE entity.applicationId=?1" + //
+            " ORDER BY entity.licenseId";
+        return getList( sQuery, applicationId );
+    }
+
     List<LicenseThreatGroupLicense> getByLicenseThreatGroupId( EntityManager em, String licenseThreatGroupId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //

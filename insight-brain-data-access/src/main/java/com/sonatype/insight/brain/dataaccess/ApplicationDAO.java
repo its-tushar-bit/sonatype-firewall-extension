@@ -128,7 +128,7 @@ public class ApplicationDAO
         insert( em, application, true /* createLicenseThreatGroups */);
     }
 
-    private void insert( EntityManager em, Application application, boolean createLicenseThreatGroups )
+    public void insert( EntityManager em, Application application, boolean createLicenseThreatGroups )
     {
         validate( application );
 

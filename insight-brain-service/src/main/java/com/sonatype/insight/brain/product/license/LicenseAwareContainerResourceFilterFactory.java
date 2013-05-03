@@ -92,10 +92,11 @@ public class LicenseAwareContainerResourceFilterFactory
     @Override
     public List<ResourceFilter> create( AbstractMethod am )
     {
+        //If the method is unlicensed, simply return null, no filter
+        //If the resource is unlicensed, make sure the method isn't looking for enforcement points, if not, return null, no filter
         if ( am.isAnnotationPresent( UnlicensedPath.class )
-            || am.getResource().isAnnotationPresent( UnlicensedPath.class ) )
+            || ( am.getResource().isAnnotationPresent( UnlicensedPath.class ) && !am.isAnnotationPresent( ProductLicenseEnforcementPoint.class ) ) )
         {
-            // unlicensed, so no filter necessary
             return null;
         }
 
@@ -107,12 +108,16 @@ public class LicenseAwareContainerResourceFilterFactory
         {
             enforcementPoints.addAll( Arrays.asList( ep.value() ) );
         }
-
-        ep = am.getResource().getAnnotation( ProductLicenseEnforcementPoint.class );
-
-        if ( ep != null )
+        
+        //method level enforcement annos will override whatever is in the resource, so dont check unless necessary
+        if ( enforcementPoints.isEmpty() )
         {
-            enforcementPoints.addAll( Arrays.asList( ep.value() ) );
+            ep = am.getResource().getAnnotation( ProductLicenseEnforcementPoint.class );
+    
+            if ( ep != null )
+            {
+                enforcementPoints.addAll( Arrays.asList( ep.value() ) );
+            }
         }
 
         return Collections.<ResourceFilter> singletonList( new Filter( enforcementPoints ) );

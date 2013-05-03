@@ -42,7 +42,7 @@ public class InsightConfig
 
     @NotNull
     @JsonProperty
-    private String saasAddress = "https://insight.sonatype.com/";
+    private String saasAddress = "https://clm.sonatype.com/";
 
     @NotNull
     @JsonProperty

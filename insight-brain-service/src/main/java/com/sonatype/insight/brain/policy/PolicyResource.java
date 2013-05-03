@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
@@ -46,10 +47,12 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 @Named
@@ -67,6 +70,9 @@ public class PolicyResource
 
     @Context
     private BaseUrl baseUrl;
+
+    @Inject
+    private CLMLicenseManager licenseManager;
 
     static String getInternalPolicyOwnerId( String policyOwnerId )
     {
@@ -185,6 +191,12 @@ public class PolicyResource
         {
             em.getTransaction().begin();
 
+            int appLimit = licenseManager.getApplicationCountLimit();
+            if ( applicationDAO.getAll( em ).size() >= appLimit )
+            {
+                throw new PaymentRequiredException( "You have exceeded the licensed limit of " + appLimit
+                    + " applications." );
+            }
             applicationDAO.insert( em, application, false /* createLicenseThreatGroups */);
             String applicationId = application.getId();
 

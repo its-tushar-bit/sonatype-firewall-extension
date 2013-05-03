@@ -115,11 +115,24 @@ public class ApplicationDAO
         }
     }
 
-    public List<Application> getAll()
+    public List<Application> getAll( EntityManager em )
     {
         String sQuery = "SELECT entity FROM Application entity" + //
             " ORDER BY entity.publicIdLowercase";
-        return getList( sQuery );
+        return getList( em, sQuery );
+    }
+
+    public List<Application> getAll()
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getAll( em );
+        }
+        finally
+        {
+            close( em );
+        }
     }
 
     @Override

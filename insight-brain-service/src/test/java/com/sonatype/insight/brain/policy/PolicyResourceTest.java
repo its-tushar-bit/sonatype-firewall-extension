@@ -156,6 +156,31 @@ public class PolicyResourceTest
     }
 
     @Test
+    public void testExportImport_ExceedsLicensedApplicationCount()
+        throws Exception
+    {
+        setApplicationLimit( 1 );
+
+        String applicationPublicId = "testExportImport_ExceedsLicensedApplicationCount";
+        createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
+
+        // Export
+        Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
+        assertResponseStatus( 200, response );
+        PolicyExportResult policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
+        Assert.assertNotNull( policyExportResult );
+        Assert.assertNotNull( policyExportResult.filename );
+        File exportFile = new File( policyExportResult.filename );
+        Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
+
+        // Import
+        response = RestAccess.put( getServiceURL( applicationPublicId ) + "/import", exportFile );
+        assertResponseStatus( 402, response );
+        Assert.assertEquals( "You have exceeded the licensed limit of 1 applications.", response.getResponseBody() );
+    }
+
+    @Test
     public void testCRUD_ApplicationLevel()
         throws Exception
     {

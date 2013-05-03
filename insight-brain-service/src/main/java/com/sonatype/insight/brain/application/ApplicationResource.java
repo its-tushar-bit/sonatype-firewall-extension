@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -314,7 +315,8 @@ public class ApplicationResource
         
         if ( applicationDAO.getAll().size() >= appLimit )
         {
-            throw new BadRequestException( "You have exceeded the licensed limit of " + appLimit + " applications." );
+            throw new PaymentRequiredException( "You have exceeded the licensed limit of " + appLimit
+                + " applications." );
         }
 
         applicationDAO.insert( application );

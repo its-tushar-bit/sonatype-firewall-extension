@@ -216,8 +216,8 @@ public class ApplicationResourceTest
         application.setPublicId( "testAddApplication_exceedsLicense_id_new_id" );
 
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
-
-        assertResponseStatus( 400, response );
+        assertResponseStatus( 402, response );
+        Assert.assertEquals( "You have exceeded the licensed limit of 1 applications.", response.getResponseBody() );
     }
 
     @Test

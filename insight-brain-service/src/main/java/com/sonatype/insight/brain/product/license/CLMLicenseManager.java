@@ -3,6 +3,7 @@ package com.sonatype.insight.brain.product.license;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,57 +54,58 @@ public class CLMLicenseManager
     {
         this.licenseFingerprinter = licenseFingerprinter;
         this.licenseManager = licenseManager;
-        
-        populateLicenseCache();
-    }
-
-    private void populateLicenseCache()
-    {
-        String licenseFingerprint = null;
-        Integer applicationCount = null;
-        Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
         try
         {
-            ProductLicenseKey key = licenseManager.getLicenseDetails();
-
-            licenseFingerprint = licenseFingerprinter.calculate( key );
-            applicationCount =
-                Integer.decode( key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT ) );
-
-            String[] enforcementPointIds =
-                key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS ).split( "," );
-
-            for ( String enforcementPointId : enforcementPointIds )
-            {
-                enforcementPoints.add( CLMEnforcementPoint.valueOf( enforcementPointId.trim() ) );
-            }
+            populateLicenseCache();
         }
-        catch ( Exception e )
+        catch ( LicensingException e )
         {
             log.debug( "Attempted to retrieve license details and failed", e );
-            licenseFingerprint = null;
-            applicationCount = 0;
-            enforcementPoints.clear();
+        }
+    }
+
+    private void populateLicenseCache()
+        throws LicensingException
+    {
+        clearLicenseCache();
+
+        ProductLicenseKey key = licenseManager.getLicenseDetails();
+
+        String licenseFingerprint = licenseFingerprinter.calculate( key );
+        Integer applicationCount =
+            Integer.decode( key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT ) );
+
+        Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+        String[] enforcementPointIds =
+            key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS ).split( "," );
+        for ( String enforcementPointId : enforcementPointIds )
+        {
+            enforcementPoints.add( CLMEnforcementPoint.valueOf( enforcementPointId.trim() ) );
         }
 
         licenseCache = new CachedLicenseData( licenseFingerprint, applicationCount, enforcementPoints );
+    }
+
+    private void clearLicenseCache()
+    {
+        licenseCache = new CachedLicenseData( null, 0, Collections.<CLMEnforcementPoint> emptySet() );
     }
 
     public synchronized void installLicense( InputStream is )
         throws IOException, LicensingException
     {
         licenseManager.installLicense( is );
-        log.info( "License installed successfully" );
         populateLicenseCache();
+        log.info( "License installed successfully" );
     }
 
     public synchronized void uninstallLicense()
         throws LicensingException
     {
         licenseManager.uninstallLicense();
+        clearLicenseCache();
         log.info( "License uninstalled successfully" );
-        populateLicenseCache();
     }
 
     /**

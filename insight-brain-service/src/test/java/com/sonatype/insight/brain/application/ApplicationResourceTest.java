@@ -224,10 +224,11 @@ public class ApplicationResourceTest
     public void testGetApplications()
         throws Exception
     {
-        // Test GetApplications
+        // Create an application
         final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
         final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
         final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
+
         Application application = createApplication( applicationPublicId, applicationName );
         setLicenseFingerprint( licenseFingerprint );
 

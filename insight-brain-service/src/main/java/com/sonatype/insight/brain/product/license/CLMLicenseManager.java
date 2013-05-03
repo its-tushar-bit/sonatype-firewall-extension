@@ -72,6 +72,8 @@ public class CLMLicenseManager
 
         ProductLicenseKey key = licenseManager.getLicenseDetails();
 
+        licenseManager.verifyFeature( key, new CLMFeature() );
+
         String licenseFingerprint = licenseFingerprinter.calculate( key );
 
         Integer applicationCount =

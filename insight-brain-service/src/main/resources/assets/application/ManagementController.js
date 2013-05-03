@@ -46,9 +46,9 @@
 		$scope.getApplicationNames = function () {
 			var names = [];
 			if ($scope.applications) {
-				for (var i = 0; i < $scope.applications.length; i++) {
-					names.push($scope.applications[i].name);
-				}
+				angular.forEach($scope.applications, function (app, index) {
+					names.push(app.name);
+				});
 			}
 			return names;
 		};
@@ -96,7 +96,7 @@
 
 		$scope.clearSyncEditError = function () {
 			$scope.syncErrorResponse = null;
-			location.search = '';
+			window.location.search = '';
 		};
 
 		$scope.order = function (column) {
@@ -109,10 +109,11 @@
 		};
 
 		$scope.orderBy = function (application) {
+			var i;
 			if ($scope.orderColumn === 'name') {
 				return application.name;
 			} else {
-				for (var i = 0; i < application.policyEvaluations.length; i++) {
+				for (i = 0; i < application.policyEvaluations.length; i++) {
 					if ($scope.orderColumn === application.policyEvaluations[i].stage.stageTypeId) {
 						return application.policyEvaluations[i].time;
 					}
@@ -129,14 +130,14 @@
 		return function (items) {
 			var arrayToReturn = [];
 			if (items) {
-				for (var i = 0; i < items.length; i++) {
-					switch (items[i].name) {
+				angular.forEach(items, function (item, index) {
+					switch (item.name) {
 						case 'Build':
 						case 'Stage Release':
 						case 'Release':
-							arrayToReturn.push(items[i]);
+							arrayToReturn.push(item);
 					}
-				}
+                });
 			}
 			return arrayToReturn;
 		};

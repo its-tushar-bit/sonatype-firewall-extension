@@ -46,17 +46,15 @@
         $http.get(clmLocations.getLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-                $scope.licenseGroups = data;
-                for (var i = 0; i < $scope.licenseGroups.length; i++) {
-                    (function (group) {
-                        $http.get(clmLocations.getLicenseGroupLicensesUrl(group), {
-                            params: { timestamp: new Date().getTime() }
-                        }).success(function (data) {
-                                group.licenses = data;
-                            }).error($scope.showServerError);
-                    })($scope.licenseGroups[i]);
-                }
-            }).error($scope.showServerError);
+            $scope.licenseGroups = data;
+            angular.forEach($scope.licenseGroups, function (group, index) {
+                $http.get(clmLocations.getLicenseGroupLicensesUrl(group), {
+                    params: { timestamp: new Date().getTime() }
+                }).success(function (data) {
+                        group.licenses = data;
+                }).error($scope.showServerError);
+            });
+        }).error($scope.showServerError);
 
         $http.get(clmLocations.getLicensesUrl(), {
             params: { timestamp: new Date().getTime() }
@@ -74,15 +72,15 @@
 
             // Build a list of all existing licenses to exclude from selection
             var existingLicenses = [];
-            for (var i = 0; i < $scope.licenseGroups.length; i++) {
-                if ($scope.licenseGroups[i].id != $scope.selectedGroup.id) {
-                    $.merge(existingLicenses, $scope.licenseGroups[i].licenses);
+            angular.forEach($scope.licenseGroups, function (licenseGroup, index) {
+                if (licenseGroup.id != $scope.selectedGroup.id) {
+                    $.merge(existingLicenses, licenseGroup.licenses);
                 }
-            }
+            });
             // Reset master license list
-            for (var i = 0; i < $scope.allLicenses.length; i++) {
-                $scope.allLicenses[i].isApplied = false;
-            }
+            angular.forEach($scope.allLicenses, function (license, index) {
+                license.isApplied = false;
+            });
             // Copy master license list
             var availableLicenses = $.merge([], $scope.allLicenses);
             existingLicenses.sort(sortGroupLicense);

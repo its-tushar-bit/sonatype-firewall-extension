@@ -132,6 +132,30 @@ public class PolicyResourceTest
     }
 
     @Test
+    public void testExportImport_ApplicationIDAlreadyExists()
+        throws Exception
+    {
+        String applicationPublicId = "testExportImport_ApplicationIDAlreadyExists";
+        createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
+
+        // Export
+        Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
+        assertResponseStatus( 200, response );
+        PolicyExportResult policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
+        Assert.assertNotNull( policyExportResult );
+        Assert.assertNotNull( policyExportResult.filename );
+        File exportFile = new File( policyExportResult.filename );
+        Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
+
+        // Import
+        response = RestAccess.put( getServiceURL( applicationPublicId ) + "/import", exportFile );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "testExportImport_ApplicationIDAlreadyExists is already used as an ID.",
+                             response.getResponseBody() );
+    }
+
+    @Test
     public void testCRUD_ApplicationLevel()
         throws Exception
     {

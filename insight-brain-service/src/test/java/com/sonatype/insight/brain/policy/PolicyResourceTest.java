@@ -93,9 +93,10 @@ public class PolicyResourceTest
         Assert.assertNotNull( policyImportResult );
         Assert.assertEquals( PolicyResource.IMPORT_APPLICATION_NAME, policyImportResult.applicationName );
         Assert.assertTrue( policyImportResult.applicationURL,
-                           policyImportResult.applicationURL.endsWith( "/application-assets/index.html?appId="
+                           policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
                                + newApplicationPublicId ) );
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
+        applicationsToDelete.add( application );
         Assert.assertNotNull( application );
         Assert.assertEquals( 1, labelDAO.getByApplicationId( application.getId() ).size() );
         Assert.assertEquals( 1, licenseThreatGroupDAO.getByApplicationId( application.getId() ).size() );
@@ -114,9 +115,10 @@ public class PolicyResourceTest
         Assert.assertFalse( PolicyResource.IMPORT_APPLICATION_NAME.equals( policyImportResult.applicationName ) );
         Assert.assertTrue( policyImportResult.applicationName.startsWith( PolicyResource.IMPORT_APPLICATION_NAME + " " ) );
         Assert.assertTrue( policyImportResult.applicationURL,
-                           policyImportResult.applicationURL.endsWith( "/application-assets/index.html?appId="
+                           policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
                                + newApplicationPublicId ) );
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
+        applicationsToDelete.add( application );
         Assert.assertNotNull( application );
         Assert.assertEquals( 1, labelDAO.getByApplicationId( application.getId() ).size() );
         Assert.assertEquals( 1, licenseThreatGroupDAO.getByApplicationId( application.getId() ).size() );

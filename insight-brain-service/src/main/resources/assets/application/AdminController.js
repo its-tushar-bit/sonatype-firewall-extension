@@ -42,7 +42,7 @@
         };
         
         $scope.uninstallLicense = function() {
-            $http.delete($scope.uploadUrl).success(function (data) {
+            $http['delete']($scope.uploadUrl).success(function (data) {
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
                 setTimeout(done,5000);

@@ -4,21 +4,21 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp, window */
+/*global angular, $, clmBuildTimestamp, window, setTimeout */
 (function () {
     'use strict';
 
     var adminModule = angular.module('Admin', [ 'AngularCommon', 'CLMLocation', 'ngUpload' ]);
 
     adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
-        var done = function () {
+        $scope.reload = function () {
             if (window.location.href.indexOf('unlicensed-assets') > -1) {
                 window.location.href = window.location.href.replace('unlicensed-assets', 'application-assets');
             } else {
                 window.location.reload();
             }
         };
-        
+
         $scope.uploadUrl = '../rest/product/license';
 
         $scope.viewInstallLicense = function () {
@@ -32,25 +32,15 @@
         $scope.installLicense = function () {
             $scope.showInstall = false;
             $('#licenseInstalledModal').modal('show');
-            setTimeout(done, 5000);
+            setTimeout($scope.reload, 5000);
         };
 
         $scope.uninstallLicense = function () {
             $http['delete']($scope.uploadUrl).success(function (data) {
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
-                setTimeout(done, 5000);
+                setTimeout($scope.reload, 5000);
             });
-        };
-        
-        $scope.licenseInstalled = function () {
-            clearTimeout(done);
-            installDone();
-        };
-        
-        $scope.licenseUninstalled = function () {
-            clearTimeout(done);
-            uninstallDone();
         };
     } ]);
 }());

@@ -169,7 +169,6 @@
 			} else {
 				$scope.errorResponse = data;
 			}
-			element.modal('show');
 		}
 
 		$scope.clearEditError = function () {

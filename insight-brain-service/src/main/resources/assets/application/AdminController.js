@@ -10,12 +10,6 @@
 
     var adminModule = angular.module('Admin', [ 'AngularCommon', 'CLMLocation', 'ngUpload' ]);
 
-    adminModule.service('ApplicationId', function () {
-        return {
-            encoded : 'orgf0367c36c57a42f2a494ecb1ba26b7e7'
-        };
-    });
-
     adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
         var done = function () {
             if (window.location.href.indexOf('unlicensed-assets') > -1) {

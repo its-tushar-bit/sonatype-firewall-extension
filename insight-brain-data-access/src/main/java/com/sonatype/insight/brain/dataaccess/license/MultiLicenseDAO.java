@@ -31,10 +31,6 @@ public class MultiLicenseDAO
 
     private static volatile Map<String, Set<License>> licenseSetsById = null;
 
-    public MultiLicenseDAO()
-    {
-    }
-
     public Collection<MultiLicense> getAll()
     {
         if ( multiLicensesByName == null )

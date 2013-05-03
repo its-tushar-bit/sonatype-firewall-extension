@@ -319,7 +319,7 @@ public class ApplicationResource
 
         applicationDAO.insert( application );
 
-        return getApplication( application.getPublicId() );
+        return getApplicationManagementSummary( application );
     }
 
     @PUT
@@ -330,7 +330,7 @@ public class ApplicationResource
     {
         applicationDAO.update( application );
 
-        return getApplication( application.getPublicId() );
+        return getApplicationManagementSummary( application );
     }
 
     @DELETE

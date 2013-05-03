@@ -1,4 +1,4 @@
-saasAddress: "https://insight-staging.sonatype.com/"
+saasAddress: "https://clm-staging.sonatype.com/"
 #saasAddress: "http://localhost:8080/insight-portal"
 
 logging:

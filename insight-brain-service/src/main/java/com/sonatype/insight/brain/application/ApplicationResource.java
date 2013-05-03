@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -152,7 +153,7 @@ public class ApplicationResource
         final byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
         if ( imageBytes == null )
         {
-            throw new WebApplicationException( Response.Status.NOT_FOUND );
+            throw new NotFoundException( "Cannot find icon for application ID " + applicationPublicId + "." );
         }
         return new StreamingOutput()
         {
@@ -175,7 +176,7 @@ public class ApplicationResource
     {
         if ( hashcode == null || hashcode.isEmpty() )
         {
-            throw new WebApplicationException( Response.Status.NOT_FOUND );
+            throw new NotFoundException( "Null or empty hashcode." );
         }
         return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
     }

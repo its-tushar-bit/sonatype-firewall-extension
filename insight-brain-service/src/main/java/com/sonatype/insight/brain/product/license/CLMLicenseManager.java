@@ -73,18 +73,38 @@ public class CLMLicenseManager
         ProductLicenseKey key = licenseManager.getLicenseDetails();
 
         String licenseFingerprint = licenseFingerprinter.calculate( key );
+
         Integer applicationCount =
-            Integer.decode( key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT ) );
+            Integer.decode( getPropertyNotNull( key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT ) );
 
         Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
         String[] enforcementPointIds =
-            key.getProperties().getProperty( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS ).split( "," );
+            getPropertyNotNull( key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS ).split( "," );
         for ( String enforcementPointId : enforcementPointIds )
         {
-            enforcementPoints.add( CLMEnforcementPoint.valueOf( enforcementPointId.trim() ) );
+            enforcementPointId = enforcementPointId.trim();
+            try
+            {
+                enforcementPoints.add( CLMEnforcementPoint.valueOf( enforcementPointId ) );
+            }
+            catch ( IllegalArgumentException e )
+            {
+                log.warn( "License enables unknown enforcement point {}, ignored", enforcementPointId );
+            }
         }
 
         licenseCache = new CachedLicenseData( licenseFingerprint, applicationCount, enforcementPoints );
+    }
+
+    private String getPropertyNotNull( ProductLicenseKey key, String property )
+        throws LicensingException
+    {
+        String value = key.getProperties().getProperty( property );
+        if ( value == null )
+        {
+            throw new LicensingException( key, "License lacks property " + property, null );
+        }
+        return value;
     }
 
     private void clearLicenseCache()

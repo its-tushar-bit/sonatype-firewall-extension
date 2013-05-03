@@ -22,6 +22,8 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import de.schlichtherle.license.NoLicenseInstalledException;
+
 @Named
 @Singleton
 public class CLMLicenseManager
@@ -61,7 +63,22 @@ public class CLMLicenseManager
         }
         catch ( LicensingException e )
         {
-            log.debug( "Attempted to retrieve license details and failed", e );
+            if ( e.getCause() instanceof NoLicenseInstalledException )
+            {
+                String msg = "No license installed";
+                if ( log.isDebugEnabled() )
+                {
+                    log.warn( msg, e );
+                }
+                else
+                {
+                    log.warn( msg );
+                }
+            }
+            else
+            {
+                log.error( "Installed license is invalid", e );
+            }
         }
     }
 

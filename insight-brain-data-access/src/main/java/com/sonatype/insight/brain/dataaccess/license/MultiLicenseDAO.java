@@ -1,17 +1,13 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +22,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 // Copied from com.sonatype.insight.datamart.dao.MultiLicenseDAO
 public class MultiLicenseDAO
     extends AbstractDatamartSqlDAO<MultiLicense>
-    implements LicenseMXBean
 {
     private static final Logger log = LoggerFactory.getLogger( MultiLicenseDAO.class );
 
@@ -38,19 +33,6 @@ public class MultiLicenseDAO
 
     public MultiLicenseDAO()
     {
-        try
-        {
-            String hash = String.format( "0x%08X", new Integer( System.identityHashCode( this ) ) );
-            Hashtable<String, String> props = new Hashtable<String, String>();
-            props.put( "type", getClass().getSimpleName() );
-            props.put( "hash", hash );
-            ObjectName jmxName = ObjectName.getInstance( "com.sonatype.insight", props );
-            ManagementFactory.getPlatformMBeanServer().registerMBean( this, jmxName );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Could not register LicenseMXBean", e );
-        }
     }
 
     public Collection<MultiLicense> getAll()
@@ -77,15 +59,7 @@ public class MultiLicenseDAO
         MultiLicense license = getById( id );
         if ( license == null )
         {
-            // most probably, a new license was added to the DB so reload the caches and try again
-            log.debug( "Reloading license caches after miss for {}", id );
-            reloadCache();
-
-            license = getById( id );
-            if ( license == null )
-            {
-                throw new NotFoundException( "A license with id '" + id + "' does not exist." );
-            }
+            throw new NotFoundException( "A license with id '" + id + "' does not exist." );
         }
         return license;
     }
@@ -202,14 +176,6 @@ public class MultiLicenseDAO
     public void delete( MultiLicense license )
     {
         super.delete( license );
-        load();
-    }
-
-    @Override
-    public void reloadCache()
-    {
-        new LicenseCategoryDAO().reloadCache();
-        new LicenseDAO().reloadCache();
         load();
     }
 }

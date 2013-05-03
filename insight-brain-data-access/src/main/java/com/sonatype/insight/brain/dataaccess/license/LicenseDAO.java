@@ -18,7 +18,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 // Copied from com.sonatype.insight.datamart.dao.LicenseDAO
 public class LicenseDAO
     extends AbstractDatamartSqlDAO<License>
-    implements LicenseMXBean
 {
     private static final Logger log = LoggerFactory.getLogger( LicenseDAO.class );
 
@@ -88,12 +87,6 @@ public class LicenseDAO
     public void delete( License license )
     {
         super.delete( license );
-        load();
-    }
-
-    @Override
-    public void reloadCache()
-    {
         load();
     }
 

@@ -16,7 +16,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 // Copied from com.sonatype.insight.datamart.dao.LicenseCategoryDAO
 public class LicenseCategoryDAO
     extends AbstractDatamartSqlDAO<LicenseCategory>
-    implements LicenseMXBean
 {
     private static final Logger log = LoggerFactory.getLogger( LicenseCategoryDAO.class );
 
@@ -90,12 +89,6 @@ public class LicenseCategoryDAO
 
             log.debug( "Loaded all license categories in {} ms.", System.currentTimeMillis() - start );
         }
-    }
-
-    @Override
-    public void reloadCache()
-    {
-        load();
     }
 
     public Collection<LicenseCategory> getAll()

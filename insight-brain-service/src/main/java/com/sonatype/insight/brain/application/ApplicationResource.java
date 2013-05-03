@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;

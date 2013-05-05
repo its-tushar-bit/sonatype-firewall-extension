@@ -149,19 +149,24 @@ public class ApplicationResource
     final String applicationPublicId )
         throws IOException
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        final byte[] imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
+        byte[] imageBytes = null;
+        Application application = applicationDAO.getByPublicId( applicationPublicId );
+        if ( application != null )
+        {
+            imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
+        }
         if ( imageBytes == null )
         {
-            throw new NotFoundException( "Cannot find icon for application ID " + applicationPublicId + "." );
+            imageBytes = getDefaultApplicationIcon();
         }
+        final byte[] imageOutputBytes = imageBytes;
         return new StreamingOutput()
         {
             @Override
             public void write( OutputStream output )
                 throws IOException, WebApplicationException
             {
-                output.write( imageBytes );
+                output.write( imageOutputBytes );
             }
         };
     }
@@ -179,6 +184,29 @@ public class ApplicationResource
             throw new NotFoundException( "Null or empty hashcode." );
         }
         return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
+    }
+
+    private byte[] getDefaultApplicationIcon()
+        throws IOException
+    {
+        ClassLoader classLoader = ApplicationResource.class.getClassLoader();
+        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
+        byte[] defaultIconByteArray = null;
+        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+        try
+        {
+            for ( int b = 0; ( b = iconStream.read() ) != -1; )
+            {
+                imageOutputStream.write( b );
+            }
+            defaultIconByteArray = imageOutputStream.toByteArray();
+        }
+        finally
+        {
+            imageOutputStream.close();
+            iconStream.close();
+        }
+        return defaultIconByteArray;
     }
 
     /**

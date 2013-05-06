@@ -10,7 +10,7 @@
 				<tfoot>
 					<tr>
 						<td colspan='2' style='text-align: center;'>
-							<button class='btn btn-add btn-info' ng-click='viewInstallLicense()' style='width: 80%'>
+							<button class='btn btn-add btn-info' ng-click='viewEula()' style='width: 80%'>
 								<i class='icon-white icon-plus-sign'></i> Install License
 							</button>
 							<button class='btn btn-remove btn-info' ng-click='viewUninstallLicense()' style='margin-top:5px; width: 80%'>
@@ -20,6 +20,16 @@
 					</tr>
 				</tfoot>
 			</table>
+		</div>
+		<div class='span7' ng-show='showEula'>
+			<div class='content-container'>
+				<div class="modal-body">
+					<div class="well well-small" style="padding-top:0px;" ng-include src="'components/eula.html'"></div>
+				</div>
+				<div class="modal-footer">
+					<button class='btn btn-primary' ng-click='acceptEula()'>Accept</button>
+				</div>
+			</div>
 		</div>
 		<div class='span4' ng-show='showInstall'>
 			<div class='content-container'>

@@ -10,7 +10,7 @@
 
     var adminModule = angular.module('Admin', [ 'AngularCommon', 'CLMLocation', 'ngUpload' ]);
 
-    adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
+    adminModule.controller('AdminController', [ '$http', '$scope', function ($http, $scope) {
         $scope.reload = function () {
             if (window.location.href.indexOf('unlicensed-assets') > -1) {
                 window.location.href = window.location.href.replace('unlicensed-assets', 'application-assets');
@@ -20,15 +20,21 @@
         };
 
         $scope.uploadUrl = '../rest/product/license';
-
-        $scope.viewInstallLicense = function () {
-            $scope.showInstall = true;
-        };
         
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');
         };
-
+        
+        $scope.viewEula = function () {
+            $scope.showEula = true;
+            $scope.showInstall = false;
+        }
+        
+        $scope.acceptEula = function() {
+            $scope.showEula = false;
+            $scope.showInstall = true;
+        }
+        
         $scope.installLicense = function () {
             $scope.showInstall = false;
             $('#licenseInstalledModal').modal('show');

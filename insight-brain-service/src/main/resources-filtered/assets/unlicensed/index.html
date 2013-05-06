@@ -37,26 +37,57 @@
 	</div>
 	<div class='page-content' ng-controller='AdminController'>
 		<div class='container'>
-			<div class='modal' style='width: 300px; margin-left: -150px;'>
-				<div class='modal-header'>
-					<h4>
-						<span>Install License</span>
-					</h4>
+			<div class='row'>
+				<div class='span4 content-container'>
+					<table class='table table-striped' style='margin-bottom: 0px'>
+						<thead>
+							<tr>
+								<th colspan='2'>Licensing</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<tr>
+								<td colspan='2' style='text-align: center;'>
+									<button class='btn btn-add btn-info' ng-click='viewEula()' style='width: 80%'>
+										<i class='icon-white icon-plus-sign'></i> Install License
+									</button>
+								</td>
+							</tr>
+						</tfoot>
+					</table>
 				</div>
-				<form ng-upload='installLicense()' action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
-					<div class='modal-body'>
-						<div class='control-group'>
-							<label class='control-label' for='file'>Select a license file to upload:</label>
-							<div class='controls'>
-								<input type="file" name="file" />
-							</div>
+				<div class='span7' ng-show='showEula'>
+					<div class='content-container'>
+						<div class="modal-body">
+							<div class="well well-small" style="padding-top:0px"; ng-include src="'../application-assets/components/eula.html'"></div>
+						</div>
+						<div class="modal-footer">
+							<button class='btn btn-primary' ng-click='acceptEula()'>Accept</button>
 						</div>
 					</div>
-					<div class="modal-footer">
-						<input type="submit" class="btn btn-primary upload-submit"
-							value="Submit" />
+				</div>
+				<div class='span4' ng-show='showInstall'>
+					<div class='content-container'>
+						<div class='modal-header'>
+							<h4>
+								<span>Install License</span>
+							</h4>
+						</div>
+						<form ng-upload='installLicense()' action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
+							<div class='modal-body'>
+								<div class='control-group'>
+									<label class='control-label' for='file'>Select a license file to upload:</label>
+									<div class='controls'>
+										<input type="file" name="file" />
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<input type="submit" class="btn btn-primary upload-submit" value="Submit" />
+							</div>
+						</form>
 					</div>
-				</form>
+				</div>
 			</div>
 			<div id="licenseInstalledModal" data-backdrop="static" class="modal hide">
 				<div class="modal-header">
@@ -64,10 +95,12 @@
 					<h3>License Installed!</h3>
 				</div>
 				<div class="modal-body">
-					<p>Your license has been installed.  The page will reload in a moment, or <a href='#' ng-click='licenseInstalled()'>refresh</a> now</p>
+					<p>
+						Your license has been installed. The page will reload in a moment, or <a href='#' ng-click='reload()'>refresh</a> now
+					</p>
 				</div>
 				<div class="modal-footer">
-					<button class="btn" ng-click="licenseInstalled()">OK</button>
+					<button class="btn" ng-click="reload()">OK</button>
 				</div>
 			</div>
 		</div>

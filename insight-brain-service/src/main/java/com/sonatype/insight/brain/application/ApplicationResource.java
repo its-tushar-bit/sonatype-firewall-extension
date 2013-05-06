@@ -145,7 +145,7 @@ public class ApplicationResource
     @GET
     @Path( GET_APPLICATION_ICON_PATH )
     @Produces( "image/png" )
-    public StreamingOutput getApplicationIcon( @PathParam( "applicationPublicId" )
+    public Object getApplicationIcon( @PathParam( "applicationPublicId" )
     final String applicationPublicId )
         throws IOException
     {
@@ -157,7 +157,9 @@ public class ApplicationResource
         }
         if ( imageBytes == null )
         {
-            imageBytes = getDefaultApplicationIcon();
+            UriBuilder defaultIconUriBuilder =
+                baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "img/defaulticon_application.png" );
+            return Response.temporaryRedirect( defaultIconUriBuilder.build() ).build();
         }
         final byte[] imageOutputBytes = imageBytes;
         return new StreamingOutput()
@@ -184,29 +186,6 @@ public class ApplicationResource
             throw new NotFoundException( "Null or empty hashcode." );
         }
         return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
-    }
-
-    private byte[] getDefaultApplicationIcon()
-        throws IOException
-    {
-        ClassLoader classLoader = ApplicationResource.class.getClassLoader();
-        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
-        byte[] defaultIconByteArray = null;
-        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-        try
-        {
-            for ( int b = 0; ( b = iconStream.read() ) != -1; )
-            {
-                imageOutputStream.write( b );
-            }
-            defaultIconByteArray = imageOutputStream.toByteArray();
-        }
-        finally
-        {
-            imageOutputStream.close();
-            iconStream.close();
-        }
-        return defaultIconByteArray;
     }
 
     /**

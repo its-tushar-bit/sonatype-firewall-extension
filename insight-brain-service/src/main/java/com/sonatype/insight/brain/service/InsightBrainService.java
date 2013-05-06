@@ -40,7 +40,7 @@ public class InsightBrainService
 
     public static final String APPLICATION_ASSET_PATH = "/application-assets/";
 
-    private static final String BRAIN_ASSET_PATH = "/assets/";
+    public static final String BRAIN_ASSET_PATH = "/assets/";
 
     public static final String POLICY_ASSET_PATH = "/policy-assets/";
 

@@ -15,13 +15,12 @@
                            has-Whitespace='suggestedApplicationName'>
 
                     <div>
-                        <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required.</span>
-                        <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationName.$error.required" class="help-inline">Name is required</span>
+                        <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
                         <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">
-                            Name is already used.
+                            Name is already in use
                         </span>
-                        <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">Name must not have leading or
-                            trailing spaces, or have two spaces in a row.<br/>Suggested name: {{suggestedApplicationName}}
+                        <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">No leading, trailing or double spaces or tabs<br/>Suggested name: {{suggestedApplicationName}}
                         </span>
                     </div>
                 </div>
@@ -37,10 +36,10 @@
                     	   is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id'>
 
                     <div>
-                        <span ng-show="applicationEditor.applicationPublicId.$error.required" class="help-inline">ID is required.</span>
-                        <span ng-show="applicationEditor.applicationPublicId.$error.alphaNumeric" class="help-inline">Must be alpha numeric.</span>
+                        <span ng-show="applicationEditor.applicationPublicId.$error.required" class="help-inline">ID is required</span>
+                        <span ng-show="applicationEditor.applicationPublicId.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
                         <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline">
-                            ID is already used.
+                            ID is already in use
                         </span>
                     </div>
                 </div>

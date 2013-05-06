@@ -69,9 +69,9 @@ describe('ApplicationManagementController', function () {
 			inputEvent.initEvent((sniffer.hasEvent('input')) ? 'input' : 'change', false, false);
 			element[0].dispatchEvent(inputEvent);
 			
-			var keyUpEvent = document.createEvent('HTMLEvents');
-			keyUpEvent.initEvent('keyup', false, false);
-			element[0].dispatchEvent(keyUpEvent);
+			var blurEvent = document.createEvent('HTMLEvents');
+			blurEvent.initEvent('blur', false, false);
+			element[0].dispatchEvent(blurEvent);
 		};
 		
 		var nameInput = angular.element("<input id='applicationName' name='applicationName' type='text' ng-model='selectedApplication.name' required alpha-Numeric is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='true' has-Whitespace='suggestedApplicationName'/>");

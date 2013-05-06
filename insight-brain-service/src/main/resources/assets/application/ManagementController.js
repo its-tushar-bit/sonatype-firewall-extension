@@ -384,14 +384,25 @@
 			require: 'ngModel',
 			restrict: 'A',
 			link: function(scope, elem, attr, ctrl) {
-				var suggestionModel = $parse(attr.hasWhitespace);
-				elem.on('keyup', function() {
+				function checkWhitespace() {
 					var value = elem.val();
-					var whitespacePass = value.match(/^ | {2,}| $/);
+					var whitespacePass = value.match(/^ | {2,}|\t| $/);
 					scope.$apply(function () {
-						suggestionModel.assign(scope, (value || '').replace(/^ | $/g, '').replace(/ {2,}/, ' '));
+						suggestionModel.assign(scope, (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
 						ctrl.$setValidity('spaces', !whitespacePass);
 					});
+					return whitespacePass;
+				}
+				
+				var failed = null;
+				var suggestionModel = $parse(attr.hasWhitespace);
+				elem.on('blur', function() {
+					failed = checkWhitespace();
+				});
+				elem.on('keyup', function() {
+					if (failed) {
+						failed = checkWhitespace();
+					}
 				});
 			}
 		};

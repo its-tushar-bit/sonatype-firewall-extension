@@ -1,6 +1,8 @@
 <div id="policy">
-	<div class='content-container span4 offset4' ng-show='!state && !httpError' style='text-align:center'>
-		<h5><i class='icon-time'></i> Loading...</h5>
+	<div class='row' ng-show='!state && !httpError'>
+		<div class='content-container span4 offset4' style='text-align:center'>
+			<h5><i class='icon-time'></i> Loading...</h5>
+		</div>
 	</div>
 	<div class='fade' ng-class='{in : state}'>
 		<div class='row'>

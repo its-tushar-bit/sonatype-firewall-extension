@@ -95,7 +95,7 @@
 			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="!isPolicyValid()">Save</button>
 		</div>
 	</form>
-	<div id="editConstraintModal" class="modal hide" data-backdrop="static" style="width: 860px;margin-left:-430px" ng-controller='ConstraintEditorController'>
+	<div id="editConstraintModal" class="modal hide fade" data-backdrop="static" style="width: 860px;margin-left:-430px" ng-controller='ConstraintEditorController'>
 		<div class="modal-header">
 		    <h3 ng-show='currentConstraint.id'>Edit Constraint</h3>
 		    <h3 ng-show='!currentConstraint.id'>Add Constraint</h3>
@@ -109,7 +109,7 @@
 		    		<tr>
 		    			<td>
 					    	<div class='control-group' style="padding-right:10px;margin-bottom:10px;">
-							    <label class='control-label' style="width:40px;">Name</label>
+							    <label class='control-label' style="width:40px;" for='constraintName'>Name</label>
 								<div class='controls' style='text-align:left;margin-left:50px;'>
 									<input type="text" id="constraintName" ng-model="currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...' required>
 								</div>
@@ -117,9 +117,9 @@
 						</td>
 						<td>
 							<div class='control-group' style="margin-bottom:10px;">
-							    <label class='control-label' style="width:40px;">Include</label>
+							    <label class='control-label' style="width:40px;" for="constraintOperator">Include</label>
 								<div class='controls' style='text-align:left;margin-left:50px;'>
-									<select ng-model="currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]"" style="vertical-align:top;" required>
+									<select id="constraintOperator" ng-model="currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]" style="vertical-align:top;" required>
 									</select>
 								</div>
 							</div>
@@ -179,7 +179,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="confirmationModal" data-backdrop="static" class="modal fade">
+	<div id="confirmationModal" data-backdrop="static" class="modal hide fade">
 		<div class="modal-header">
 			<h3>{{state.confirmationHeader}}</h3>
 		</div>
@@ -193,7 +193,7 @@
 	</div>
 	<div notification-management></div>
 </div>
-<div id="httpErrorModal" data-backdrop="static" class="modal fade">
+<div id="httpErrorModal" data-backdrop="static" class="modal hide fade">
 	<div class="modal-header">
 	    <h3>{{httpError.header}}</h3>
 	</div>

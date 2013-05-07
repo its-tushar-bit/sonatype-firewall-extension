@@ -52,6 +52,11 @@ public abstract class SisuService<T extends Configuration>
 
     private Injector injector = null;
 
+    public Injector getInjector()
+    {
+        return injector;
+    }
+
     @Override
     public void run( T configuration, Environment environment )
         throws Exception

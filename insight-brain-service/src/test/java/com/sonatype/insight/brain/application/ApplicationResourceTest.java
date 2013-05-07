@@ -200,20 +200,7 @@ public class ApplicationResourceTest
 
         // Default icon should be returned
         iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
-        assertResponseStatus( 200, iconResponse );
-        iconStream = iconResponse.getResponseBodyAsStream();
-        icon = null;
-        try
-        {
-            icon = ImageIO.read( iconStream );
-        }
-        finally
-        {
-            iconStream.close();
-        }
-        Assert.assertNotNull( icon );
-        Assert.assertEquals( 420, icon.getHeight() );
-        Assert.assertEquals( 420, icon.getWidth() );
+        assertResponseStatus( 307, iconResponse );
     }
     
     @Test

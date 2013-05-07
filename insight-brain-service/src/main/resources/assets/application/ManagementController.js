@@ -240,7 +240,8 @@
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
 					if (icon.files[0].size > 5242880) {
-						$scope.errorResponse.push('Icon file size must be smaller than 5 MB.');
+						$scope.errorResponse = 'Icon file size must be smaller than 5 MB.';
+						return false;
 					}
 				}
 			}

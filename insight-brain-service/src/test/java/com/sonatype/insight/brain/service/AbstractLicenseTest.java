@@ -44,11 +44,9 @@ public abstract class AbstractLicenseTest
     protected void installLicense()
         throws Exception
     {
-        InputStream license = null;
-
+        InputStream license = AbstractLicenseTest.class.getResourceAsStream( "/productlicense/license.lic" );
         try
         {
-            license = AbstractLicenseTest.class.getResourceAsStream( "/productlicense/license.lic" );
             FormDataMultiPart form = new FormDataMultiPart();
             form.bodyPart( new FormDataBodyPart( "file", license,
                                                  MediaType.APPLICATION_OCTET_STREAM_TYPE ) );
@@ -58,12 +56,6 @@ public abstract class AbstractLicenseTest
             resource.type( MediaType.MULTIPART_FORM_DATA ).post( form );
 
             Assert.assertTrue( licenseManager.isValid() );
-        }
-        catch ( Throwable t )
-        {
-            t.printStackTrace();
-            if ( t instanceof Exception )
-                throw (Exception) t;
         }
         finally
         {

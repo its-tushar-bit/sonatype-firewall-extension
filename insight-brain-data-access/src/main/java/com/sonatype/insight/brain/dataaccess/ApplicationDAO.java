@@ -254,6 +254,13 @@ public class ApplicationDAO
     {
         final int dimension = 420;
         Image image = ImageIO.read( imageStream );
+
+        // Invalid image types do not throw exception on ImageIO.read but instead return null
+        if ( image == null )
+        {
+            return;
+        }
+
         BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_INT_ARGB );
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage( image, 0, 0, dimension, dimension, null );

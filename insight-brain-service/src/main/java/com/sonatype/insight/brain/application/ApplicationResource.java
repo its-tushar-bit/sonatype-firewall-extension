@@ -145,7 +145,7 @@ public class ApplicationResource
     @GET
     @Path( GET_APPLICATION_ICON_PATH )
     @Produces( "image/png" )
-    public Object getApplicationIcon( @PathParam( "applicationPublicId" )
+    public Response getApplicationIcon( @PathParam( "applicationPublicId" )
     final String applicationPublicId )
         throws IOException
     {
@@ -162,7 +162,7 @@ public class ApplicationResource
             return Response.temporaryRedirect( defaultIconUriBuilder.build() ).build();
         }
         final byte[] imageOutputBytes = imageBytes;
-        return new StreamingOutput()
+        StreamingOutput stream = new StreamingOutput()
         {
             @Override
             public void write( OutputStream output )
@@ -171,6 +171,7 @@ public class ApplicationResource
                 output.write( imageOutputBytes );
             }
         };
+        return Response.ok( stream ).build();
     }
 
     @GET

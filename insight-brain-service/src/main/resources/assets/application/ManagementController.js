@@ -303,7 +303,7 @@
 					success: function (data, status, jqXHR) {
 						// We need to regrab the icon here because it doesn't exist when the browser first requests
 						var iconSource = "../rest/application/icon/" + encodeURIComponent($scope.selectedApplication.publicId);
-						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource);
+						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource + '?' + new Date().getTime());
 						$scope.submitActive = false;
 						$scope.isUploadingIcon = false;
 						$('#newApplicationModal').modal('hide');

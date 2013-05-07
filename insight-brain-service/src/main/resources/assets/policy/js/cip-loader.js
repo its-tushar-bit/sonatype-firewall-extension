@@ -14,16 +14,21 @@
         }
     });
 
-    var head = $('head'), 
-        scripts = [ 'assets/angular/angular-1.0.6.min.js', 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js' ],
-        styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css' ];
-
-	$.each(scripts, function(key, scriptSrc) {
+    function loadScript(key, scriptSrc) {
 		var script = document.createElement('script');
 		script.type = 'text/javascript';
 		script.src = CLM.path + scriptSrc;
 		$('head')[0].appendChild(script);
-	});
+	}
+
+    var head = $('head'),
+        scripts = [ 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js' ],
+        styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css' ];
+
+	if (!window.angular) {
+		loadScript(null, 'assets/angular/angular-1.0.6.min.js');
+	}
+	$.each(scripts, loadScript);
 
     $.each(styles, function(key, style) {
         $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', CLM.path + style).appendTo(head);

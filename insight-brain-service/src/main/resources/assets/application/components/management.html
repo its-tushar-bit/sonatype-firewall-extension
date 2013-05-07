@@ -39,10 +39,11 @@
             </thead>
             <tr ng-repeat='application in applications | filter: searchText | orderBy: orderBy:!orderDirection'>
                 <td>
-                    <img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
+                    <a href='../policy-assets/index.html?appId={{encodeURIComponent(application.publicId)}}'>
+                   	<img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
                          onerror="this.src='../assets/img/defaulticon_application.png';"
-                         style='height: 24px; width: 24px;'/>
-                    <a href='../policy-assets/index.html?appId={{encodeURIComponent(application.publicId)}}'>{{application.name}}</a>
+                         style='height: 24px; width: 24px;'/>{{application.name}}
+                    </a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
                     <a ng-show='policyEvaluation.stage.stageTypeId == stage.id'

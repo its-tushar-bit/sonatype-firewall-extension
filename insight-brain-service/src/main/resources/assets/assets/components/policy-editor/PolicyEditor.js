@@ -126,6 +126,10 @@
 			var errorFn = function (resp) {
 					handleHttpError('Saving Policy', resp.data, resp.status);
 				};
+				
+			angular.forEach($scope.state.currentPolicy.constraints, function(constraint) {
+				delete constraint.tempID;
+			});
 
 			$scope.state.currentPolicy.actions = policyStore.serializeActions($scope.state.actions);
 			$scope.state.currentPolicy.$save().then(returnFn, errorFn);
@@ -209,13 +213,14 @@
 		// Respond to constraint change
 		$scope.$on('policy.constraintSaved', function (event, constraint) {
 			event.stopPropagation();
-			if (angular.isUndefined(constraint.id)) {
+			if (angular.isUndefined(constraint.id) && angular.isUndefined(constraint.tempID)) {
 				// New constraint
 				$scope.state.currentPolicy.constraints.push(constraint);
+				constraint.tempID = new Date().getTime();
 			} else {
 				// Update existing constraint
 				angular.forEach($scope.state.currentPolicy.constraints, function (candidate) {
-					if (candidate.id === constraint.id) {
+					if (candidate.id === constraint.id || candidate.tempID === constraint.tempID) {
 						candidate.conditions = constraint.conditions;
 						candidate.name = constraint.name;
 					}

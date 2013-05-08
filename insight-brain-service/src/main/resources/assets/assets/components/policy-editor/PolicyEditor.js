@@ -123,8 +123,8 @@
 		}
 
 		$scope.savePolicy = function () {
-			var errorFn = function (data, status, headers, config) {
-					handleHttpError('Saving Policy', data, status);
+			var errorFn = function (resp) {
+					handleHttpError('Saving Policy', resp.data, resp.status);
 				};
 
 			$scope.state.currentPolicy.actions = policyStore.serializeActions($scope.state.actions);

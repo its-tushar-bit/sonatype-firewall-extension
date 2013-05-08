@@ -49,7 +49,7 @@
                         clearTimeout(resizeTimeoutId);
                         return;
                     }
-                    var windowHeight = window.innerHeight || $(document.body).getHeight(),
+                    var windowHeight = $(window).height(),
                         containerTop = iframe.offset().top,
                         bottomPadding = 20,
                         height = Math.max(400, windowHeight - containerTop - bottomPadding);

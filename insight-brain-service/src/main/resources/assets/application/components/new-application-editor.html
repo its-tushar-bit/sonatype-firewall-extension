@@ -48,10 +48,11 @@
                 <label class='control-label' for='applicationIcon'>Icon</label>
 
                 <div class='controls'>
-                    <div>
-                        <img ng-show='!hasRobotSource' id='applicationIcon' style='height: 48px; width: 48px;'
+                    <div ng-switch on='hasRobotSource'>
+                        <img ng-switch-when='false' id='applicationIcon' style='height: 48px; width: 48px;'
+                        	 ng-src='{{applicationIconSource}}'
                              onerror="this.src='../assets/img/defaulticon_application.png';"/>
-                        <img ng-show='hasRobotSource' id='robotIcon' style='height: 48px; width: 48px;'
+                        <img ng-switch-when='true' id='robotIcon' style='height: 48px; width: 48px;'
                              ng-src='../rest/application/services/generateIcon/{{robotHash}}'/>
                     </div>
                     <input name='file' id='file' type='file' accept='image/*' style='display:block;'

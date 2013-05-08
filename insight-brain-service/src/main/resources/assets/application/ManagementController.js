@@ -56,16 +56,9 @@
 		$scope.editApplication = function (application) {
 			$scope.newApplicationUrl = 'components/new-application-editor.html?' + clmBuildTimestamp;
 
-
-
 			$scope.selectedApplication = { id: null, publicId: null, name: null };
 			if (application) {
 				$scope.selectedApplication = angular.extend($scope.selectedApplication, application);
-				// After the image source is set to blob (see below), angular will not respond to changing ng-src
-				// Image source adjustments need to be done through attr
-				angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId));
-			} else {
-				angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
 			}
 			$scope.hasRobotSource = false;
 			$scope.iconChanged = false;
@@ -146,11 +139,12 @@
 	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.addIconSync();
-
-		// On the first instantiation of the edit modal, setting the source in editApplication in the ManagementController
-		// Has no effect because applicationIcon does not exist in the DOM. Set it here instead
-		angular.element('#applicationIcon').attr('src', '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId));
-
+		if ($scope.selectedApplication.publicId) {
+			$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
+		} else {
+			$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+		}
+		
 		function onError(jqXHR) {
 			var contentType = jqXHR.getResponseHeader('Content-Type');
 			if ($scope.applicationEditor) {
@@ -204,18 +198,18 @@
 				}
 				if (src) {
 					$scope.$apply(function () {
-						angular.element('#applicationIcon').attr('src', src);
+						$scope.applicationIconSource = src;
 						$scope.hasRobotSource = false;
 					});
 				} else {
 					$scope.$apply(function () {
-						angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
+						$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
 						$scope.hasRobotSource = false;
 					});
 				}
 			} else {
 				$scope.$apply(function () {
-					angular.element('#applicationIcon').attr('src', '../assets/img/defaulticon_application.png');
+					$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
 					$scope.hasRobotSource = false;
 				});
 			}

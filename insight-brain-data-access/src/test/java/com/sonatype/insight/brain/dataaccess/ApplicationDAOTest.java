@@ -10,10 +10,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+
+import javax.imageio.ImageIO;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -61,11 +65,19 @@ public class ApplicationDAOTest
     {
         // Create
         // The super class creates an application by default
+        BufferedImage image = new BufferedImage( 420, 420, BufferedImage.TYPE_INT_ARGB );
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write( image, "png", byteArrayOutputStream );
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( byteArrayOutputStream.toByteArray() );
+
         File iconDir = tmpDir.newFolder();
         File appIconDir = new File( iconDir, applicationId );
         Assert.assertFalse( appIconDir.exists() );
-        applicationDAO.setIcon( applicationId, iconDir, new ByteArrayInputStream( new byte[0] ) );
+        applicationDAO.setIcon( applicationId, iconDir, byteArrayInputStream );
         Assert.assertTrue( appIconDir.isDirectory() );
+
+        byteArrayInputStream.close();
+        byteArrayOutputStream.close();
 
         // Update
         Application application = applicationDAO.getById( applicationId );

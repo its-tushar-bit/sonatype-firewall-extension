@@ -8,7 +8,7 @@
 (function () {
     'use strict';
 
-    var adminModule = angular.module('Admin', [ 'AngularCommon', 'CLMLocation', 'ngUpload' ]);
+    var adminModule = angular.module('Admin', [ 'AngularCommon', 'ngUpload' ]);
 
     adminModule.controller('AdminController', [ '$http', '$scope', function ($http, $scope) {
         $scope.reload = function () {
@@ -35,12 +35,18 @@
             $scope.showInstall = true;
         }
         
-        $scope.installLicense = function () {
-            $scope.showInstall = false;
-            $('#licenseInstalledModal').modal('show');
-            setTimeout($scope.reload, 5000);
+        $scope.installLicense = function (content, completed) {
+            if (completed) {
+                if (content.length == 0) {
+                    $scope.showInstall = false;
+                    $('#licenseInstalledModal').modal('show');
+                    setTimeout($scope.reload, 5000);    
+                } else {
+                    $scope.showError('License installation failed: ' + content);
+                }
+            }
         };
-
+        
         $scope.uninstallLicense = function () {
             $http['delete']($scope.uploadUrl).success(function (data) {
                 $('#licenseUninstallConfirmationModal').modal('hide');

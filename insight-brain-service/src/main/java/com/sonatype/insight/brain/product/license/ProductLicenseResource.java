@@ -37,22 +37,15 @@ public class ProductLicenseResource
 
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
+    @Produces( MediaType.TEXT_PLAIN )
     @UnlicensedPath
-    public void installLicense( @FormDataParam( "file" ) InputStream is )
+    public String installLicense( @FormDataParam( "file" ) InputStream is ) 
+        throws IOException, LicensingException
     {
-        try
-        {
-            licenseManager.installLicense( is );
-            log.info( "CLM License successfully installed" );
-        }
-        catch ( IOException e )
-        {
-            log.error( "Unable to install license", e );
-        }
-        catch ( LicensingException e )
-        {
-            log.error( "Unable to install license", e );
-        }
+        licenseManager.installLicense( is );
+        log.info( "CLM License successfully installed" );
+        //Note an empty string triggers success in the UI
+        return "";
     }
 
     @DELETE

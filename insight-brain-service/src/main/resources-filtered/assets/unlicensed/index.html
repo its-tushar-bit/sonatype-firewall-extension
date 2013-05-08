@@ -21,7 +21,7 @@
 <script type='text/javascript' src='../assets/bootstrap/bootstrap-2.3.1.min.js'></script>
 <script type='text/javascript' src='../assets/angular/angular-1.0.6.min.js'></script>
 <script type='text/javascript' src='../assets/angular/angular-sanitize-1.0.6.min.js'></script>
-<script type='text/javascript' src='../assets/angular/ng-upload-0.2.0.js'></script>
+<script type='text/javascript' src='../assets/angular/ng-upload-0.3.4.js'></script>
 <script type='text/javascript' src='../assets/CLMLocation.js?${build.timestamp}'></script>
 <script type='text/javascript' src='../assets/AngularCommon.js?${build.timestamp}'></script>
 <script type='text/javascript' src='../application-assets/AdminController.js?${build.timestamp}'></script>
@@ -73,7 +73,7 @@
 								<span>Install License</span>
 							</h4>
 						</div>
-						<form ng-upload='installLicense()' action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
+						<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
 							<div class='modal-body'>
 								<div class='control-group'>
 									<label class='control-label' for='file'>Select a license file to upload:</label>
@@ -83,7 +83,7 @@
 								</div>
 							</div>
 							<div class="modal-footer">
-								<input type="submit" class="btn btn-primary upload-submit" value="Submit" />
+								<input type="submit" class="btn btn-primary" value="Upload" upload-submit="installLicense(content, completed)"></input>
 							</div>
 						</form>
 					</div>
@@ -103,6 +103,7 @@
 					<button class="btn" ng-click="reload()">OK</button>
 				</div>
 			</div>
+			<div error-Modal></div>
 		</div>
 	</div>
 </body>

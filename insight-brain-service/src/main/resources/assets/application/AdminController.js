@@ -52,7 +52,7 @@
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
                 setTimeout($scope.reload, 5000);
-            });
+            }).error($scope.showServerError);
         };
     } ]);
 }());

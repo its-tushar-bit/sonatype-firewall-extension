@@ -50,17 +50,11 @@ public class ProductLicenseResource
 
     @DELETE
     @UnlicensedPath
-    public void uninstallLicense()
+    public void uninstallLicense() 
+        throws LicensingException
     {
-        try
-        {
-            licenseManager.uninstallLicense();
-            log.info( "CLM License successfully uninstalled" );
-        }
-        catch ( LicensingException e )
-        {
-            log.error( "Unable to uninstall license", e );
-        }
+        licenseManager.uninstallLicense();
+        log.info( "CLM License successfully uninstalled" );
     }
 
     @GET

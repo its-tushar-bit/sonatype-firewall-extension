@@ -149,7 +149,7 @@
 								<select ng-model="condition.value" ng-switch-when="LabelValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.label for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
 								</select>
 								<span ng-switch-when="AgeInDaysValueType">
-									<input type="text" style="width:100px;" ng-model="condition.v" placeholder='{{condition.conditionType.valueHint}}' ng-change="updateAge(condition);validateConstraint();" style="vertical-align:top;" required>
+									<input type="number" style="width:100px;" ng-model="condition.v" placeholder='{{condition.conditionType.valueHint}}' ng-change="updateAge(condition);validateConstraint();" style="vertical-align:top;" required>
 									<select style="width:100px;" ng-model="condition.valueModifier" ng-change="updateAge(condition);validateConstraint();" ng-options="timeSpan.value as timeSpan.name for timeSpan in [{'value':1, 'name':'Days'},{'value':30, 'name':'Months'},{'value':365, 'name':'Years'}]"" style="vertical-align:top;" required>
 									</select>
 								</span>

@@ -100,12 +100,43 @@ public class ApplicationResourceTest
         Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
         Assert.assertEquals( applicationName, applicationManagementSummary.getName() );
 
-        // Test Get Icon (default icon)
+        // Test Add Invalid Icon
         ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
-        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
+        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/AngularCommon.js" );
         Assert.assertNotNull( iconStream );
         byte[] defaultIconByteArray = null;
         ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+        try
+        {
+            for ( int b = 0; ( b = iconStream.read() ) != -1; )
+            {
+                imageOutputStream.write( b );
+            }
+            defaultIconByteArray = imageOutputStream.toByteArray();
+        }
+        finally
+        {
+            imageOutputStream.close();
+            iconStream.close();
+        }
+
+        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
+        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        builder.addBodyPart( new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png",
+                                                                            defaultIconByteArray ) ) );
+        Future<Response> futureResponse = builder.execute();
+
+        response = futureResponse.get();
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "defaulticon_application.png is not a valid image.", response.getResponseBody() );
+
+        // Test Get Icon (default icon)
+        classLoader = ApplicationResourceTest.class.getClassLoader();
+        iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
+        Assert.assertNotNull( iconStream );
+        defaultIconByteArray = null;
+        imageOutputStream = new ByteArrayOutputStream();
         try
         {
             for ( int b = 0; ( b = iconStream.read() ) != -1; )
@@ -124,12 +155,12 @@ public class ApplicationResourceTest
         Assert.assertNotEquals( 0, defaultIconByteArray.length );
 
         // Test Add Application Icon
-        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
+        builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
         builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
         builder.addBodyPart(
             new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", defaultIconByteArray ) ) );
-        Future<Response> futureResponse = builder.execute();
+        futureResponse = builder.execute();
 
         response = futureResponse.get();
         assertResponseStatus( 204, response );

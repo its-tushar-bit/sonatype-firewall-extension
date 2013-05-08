@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationDAO
@@ -258,7 +259,7 @@ public class ApplicationDAO
         // Invalid image types do not throw exception on ImageIO.read but instead return null
         if ( image == null )
         {
-            return;
+            throw new BadRequestException( "Invalid image file." );
         }
 
         BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_INT_ARGB );

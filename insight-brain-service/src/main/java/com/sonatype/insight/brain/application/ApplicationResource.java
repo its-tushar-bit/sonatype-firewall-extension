@@ -306,6 +306,10 @@ public class ApplicationResource
                 {
                     throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
                 }
+                catch ( BadRequestException e )
+                {
+                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
+                }
                 finally
                 {
                     sizeCheckedInputStream.close();

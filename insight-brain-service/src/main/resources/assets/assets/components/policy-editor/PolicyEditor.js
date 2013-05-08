@@ -297,8 +297,6 @@
 		};
 
 		$scope.conditionTypeChanged = function (condition) {
-			condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
-
 			// Remove values that were entered with the previous condition type
 			delete condition.value;
 			delete condition.v;
@@ -309,7 +307,7 @@
 
 		$scope.addCondition = function () {
 			var conditionType = $scope.conditionTypes['AgeInDays'];
-
+			
 			$scope.currentConstraint.conditions.push({
 				conditionTypeId: conditionType.id,
 				operator: conditionType.supportedOperators[0],
@@ -372,5 +370,23 @@
 		}, function (error) {
 //			handleHttpError('Policy Initialization Error', error.data, error.status);
 		});
+	}]);
+	
+	module.directive('ieOptions', ['$parse', function($parse) {
+		return {
+			restrict: 'A',
+			require: 'ngModel',
+			link: function(scope, elem, attr, ctrl) {
+				var options = attr.ieOptions;
+				scope.$watch(options, function() {
+					var collection = $parse(options)(scope);
+					elem.find('option').remove();
+					$.each(collection, function(index) {
+						var option = new Option(collection[index], index);
+						elem[0].options[elem[0].options.length] = option;
+					});
+				});
+			}
+		};
 	}]);
 }());

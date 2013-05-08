@@ -131,7 +131,7 @@
 						<div style="text-align:left;" ng-repeat="condition in currentConstraint.conditions">
 							<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged(condition)" ng-options="conditionType.id as conditionType.name for (key,conditionType) in conditionTypes" style="vertical-align:top;">
 							</select>
-							<select ng-model="condition.operator" ng-change="validateConstraint()" ng-options="operator for operator in conditionTypes[condition.conditionTypeId].supportedOperators" style="vertical-align:top;">
+							<select ng-model="condition.operator" ng-change="validateConstraint()" ie-options="conditionTypes[condition.conditionTypeId].supportedOperators" style="vertical-align:top;">
 							</select>
 							<span ng-switch on='conditionTypes[condition.conditionTypeId].valueTypeId'>
 								<select ng-model="condition.value" ng-switch-when="LicenseCategoryValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>

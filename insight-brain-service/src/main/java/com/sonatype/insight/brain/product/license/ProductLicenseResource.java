@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.licensing.LicensingException;
 
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sun.jersey.multipart.FormDataParam;
 
 @Path( ProductLicenseResource.SERVICE_PATH )
@@ -40,12 +41,20 @@ public class ProductLicenseResource
     @Produces( MediaType.TEXT_PLAIN )
     @UnlicensedPath
     public String installLicense( @FormDataParam( "file" ) InputStream is ) 
-        throws IOException, LicensingException
+        throws IOException
     {
-        licenseManager.installLicense( is );
-        log.info( "CLM License successfully installed" );
-        //Note an empty string triggers success in the UI
-        return "";
+        try
+        {
+            licenseManager.installLicense( is );
+            log.info( "CLM License successfully installed" );
+            //Note an empty string triggers success in the UI
+            return "";
+        }
+        catch ( LicensingException e )
+        {
+            //send 400 back, rather than 500 from the LicensingException
+            throw new BadRequestException( e.getMessage(), e );
+        }
     }
 
     @DELETE

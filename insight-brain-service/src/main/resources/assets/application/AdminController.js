@@ -42,7 +42,7 @@
                     $('#licenseInstalledModal').modal('show');
                     setTimeout($scope.reload, 5000);    
                 } else {
-                    $scope.showError('License installation failed: ' + content);
+                    $scope.showError(content);
                 }
             }
         };

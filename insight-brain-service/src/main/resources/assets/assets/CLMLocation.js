@@ -13,14 +13,18 @@
 				if (this.baseUrl) {
 					return this.baseUrl;
 				}
-
 				this.baseUrl = '';
 
-				var idx = window.location.href.indexOf('/policy-assets/');
-				if (idx > -1) {
-					this.baseUrl = window.location.href.substring(0, idx);
+				var baseSegments = ['/policy-assets/', '/application-assets/', '/unlicensed-assets/'],
+					idx = -1;
+
+				for (var i = 0; i < baseSegments.length; i++) {
+					idx = window.location.href.indexOf(baseSegments[i]);
+					if (idx !== -1) {
+						break;
+					}
 				}
-				idx = window.location.href.indexOf('/application-assets/');
+
 				if (idx > -1) {
 					this.baseUrl = window.location.href.substring(0, idx);
 				}

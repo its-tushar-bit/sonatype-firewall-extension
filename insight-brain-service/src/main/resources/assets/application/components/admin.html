@@ -48,7 +48,8 @@
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type='submit' class='btn btn-primary' ng-disabled='!file.valid' upload-submit="installLicense(content, completed)">Upload</button>
+						<button type='button' class='btn btn-primary' ng-disabled='!file.valid' ng-click='doUpload()'>Upload</button>
+						<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
 					</div>
 				</form>
 			</div>

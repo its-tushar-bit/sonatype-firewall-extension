@@ -11,6 +11,12 @@
     var adminModule = angular.module('Admin', [ 'AngularCommon', 'ngUpload' ]);
 
     adminModule.controller('AdminController', [ '$http', '$scope', function ($http, $scope) {
+		function showLicense() {
+			$scope.showInstall = false;
+			$('#licenseInstalledModal').modal('show');
+			setTimeout($scope.reload, 5000);
+		}
+
         $scope.reload = function () {
             if (window.location.href.indexOf('unlicensed-assets') > -1) {
                 window.location.href = window.location.href.replace('unlicensed-assets', 'application-assets');
@@ -42,11 +48,13 @@
         $scope.installLicense = function (content, completed) {
             if (completed) {
                 if (content.length === 0) {
-                    $scope.showInstall = false;
-                    $('#licenseInstalledModal').modal('show');
-                    setTimeout($scope.reload, 5000);    
+					showLicense();
                 } else {
-                    $scope.showError(content);
+					setTimeout(function () {
+						$scope.$apply(function () {
+							$scope.showError(content);
+						});
+					}, 0);
                 }
             }
         };
@@ -58,6 +66,32 @@
                 setTimeout($scope.reload, 5000);
             }).error($scope.showServerError);
         };
+
+		$scope.doUpload = function () {
+			if (window.FormData) {
+				var form = new FormData(angular.element('form')[0]);
+				form.append('file', angular.element('input[type=file]')[0]);
+				$.ajax({
+					url : $scope.uploadUrl,
+					data : form,
+					processData : false,
+					contentType : false,
+					type : 'POST',
+					success : function () {
+						$scope.$apply(function () {
+							showLicense();
+						});
+					},
+					error : function (req, status, error) {
+						$scope.$apply(function () {
+							$scope.showError(req.responseText);
+						});
+					}
+				});
+			} else {
+				$('input[type=submit]').trigger('click');
+			}
+		};
     } ]);
 
     adminModule.directive('fileRequired', ['$parse', '$timeout', function ($parse, $timeout) {

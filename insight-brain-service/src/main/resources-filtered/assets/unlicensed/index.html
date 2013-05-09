@@ -35,76 +35,7 @@
 			</div>
 		</div>
 	</div>
-	<div class='page-content' ng-controller='AdminController'>
-		<div class='container'>
-			<div class='row'>
-				<div class='span4 content-container'>
-					<table class='table table-striped' style='margin-bottom: 0px'>
-						<thead>
-							<tr>
-								<th colspan='2'>Licensing</th>
-							</tr>
-						</thead>
-						<tfoot>
-							<tr>
-								<td colspan='2' style='text-align: center;'>
-									<button class='btn btn-add btn-info' ng-click='viewEula()' style='width: 80%'>
-										<i class='icon-white icon-plus-sign'></i> Install License
-									</button>
-								</td>
-							</tr>
-						</tfoot>
-					</table>
-				</div>
-				<div class='span7' ng-show='showEula'>
-					<div class='content-container'>
-						<div class="modal-body">
-							<div class="well well-small" style="padding-top:0px"; ng-include src="'../application-assets/components/eula.html'"></div>
-						</div>
-						<div class="modal-footer">
-							<button class='btn btn-primary' ng-click='acceptEula()'>I Accept</button>
-						</div>
-					</div>
-				</div>
-				<div class='span4' ng-show='showInstall'>
-					<div class='content-container'>
-						<div class='modal-header'>
-							<h4>
-								<span>Install License</span>
-							</h4>
-						</div>
-						<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
-							<div class='modal-body'>
-								<div class='control-group'>
-									<label class='control-label' for='file'>Select a license file to upload:</label>
-									<div class='controls'>
-										<input type="file" name="file" />
-									</div>
-								</div>
-							</div>
-							<div class="modal-footer">
-								<input type="submit" class="btn btn-primary" value="Upload" upload-submit="installLicense(content, completed)"></input>
-							</div>
-						</form>
-					</div>
-				</div>
-			</div>
-			<div id="licenseInstalledModal" data-backdrop="static" class="modal hide">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h3>License Installed!</h3>
-				</div>
-				<div class="modal-body">
-					<p>
-						Your license has been installed. The page will reload in a moment, or <a href='#' ng-click='reload()'>refresh</a> now
-					</p>
-				</div>
-				<div class="modal-footer">
-					<button class="btn" ng-click="reload()">OK</button>
-				</div>
-			</div>
-			<div error-Modal></div>
-		</div>
+	<div class='page-content' ng-controller='AdminController' ng-include='"../application-assets/components/admin.html"'>
 	</div>
 </body>
 </html>

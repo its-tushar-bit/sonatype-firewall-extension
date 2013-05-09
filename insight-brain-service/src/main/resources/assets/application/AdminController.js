@@ -30,6 +30,10 @@
             $scope.showInstall = false;
         }
         
+        $scope.isLicenseInstalled = function () {
+            return window.location.href.indexOf("unlicensed-assets") === -1;
+        };
+
         $scope.acceptEula = function() {
             $scope.showEula = false;
             $scope.showInstall = true;
@@ -55,4 +59,22 @@
             }).error($scope.showServerError);
         };
     } ]);
+
+    adminModule.directive('fileRequired', ['$parse', '$timeout', function ($parse, $timeout) {
+        return {
+			restrict: 'A',
+			scope : {
+                valid : '=fileRequired'
+            },
+			link: function(scope, elem, attr, ctrl) {
+                angular.element(elem).bind('change', function (event) {
+                    scope.valid.valid = angular.element(this).val();
+                    $timeout(function () {
+                        // Some sort of bizarre digest bug prevents updates without this async call.
+                    });
+                });
+                scope.valid = { valid : false };
+			}
+        };
+    }]);
 }());

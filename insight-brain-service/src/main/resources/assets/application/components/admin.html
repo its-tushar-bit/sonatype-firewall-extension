@@ -13,7 +13,7 @@
 							<button class='btn btn-add btn-info' ng-click='viewEula()' style='width: 80%'>
 								<i class='icon-white icon-plus-sign'></i> Install License
 							</button>
-							<button class='btn btn-remove btn-info' ng-click='viewUninstallLicense()' style='margin-top:5px; width: 80%'>
+							<button ng-show='isLicenseInstalled()' class='btn btn-remove btn-info' ng-click='viewUninstallLicense()' style='margin-top:5px; width: 80%'>
 								<i class='icon-white icon-minus-sign'></i> Uninstall License
 							</button>
 						</td>
@@ -24,7 +24,7 @@
 		<div class='span7' ng-show='showEula'>
 			<div class='content-container'>
 				<div class="modal-body">
-					<div class="well well-small" style="padding-top:0px;" ng-include src="'components/eula.html'"></div>
+					<div class="well well-small" style="padding-top:0px;" ng-include src="'../application-assets/components/eula.html'"></div>
 				</div>
 				<div class="modal-footer">
 					<button class='btn btn-primary' ng-click='acceptEula()'>I Accept</button>
@@ -43,12 +43,12 @@
 						<div class='control-group'>
 							<label class='control-label' for='file'>Select a license file to upload:</label>
 							<div class='controls'>
-								<input type="file" name="file" />
+								<input type="file" name="file" file-required='file' />
 							</div>
 						</div>
 					</div>
 					<div class="modal-footer">
-						<input type="submit" class="btn btn-primary" value="Upload" upload-submit="installLicense(content, completed)"></input>
+						<button type='submit' class='btn btn-primary' ng-disabled='!file.valid' upload-submit="installLicense(content, completed)">Upload</button>
 					</div>
 				</form>
 			</div>

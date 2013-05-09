@@ -20,15 +20,15 @@
         };
 
         $scope.uploadUrl = '../rest/product/license';
-        
+
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');
         };
-        
+
         $scope.viewEula = function () {
             $scope.showEula = true;
             $scope.showInstall = false;
-        }
+        };
         
         $scope.isLicenseInstalled = function () {
             return window.location.href.indexOf("unlicensed-assets") === -1;
@@ -37,11 +37,11 @@
         $scope.acceptEula = function() {
             $scope.showEula = false;
             $scope.showInstall = true;
-        }
-        
+        };
+
         $scope.installLicense = function (content, completed) {
             if (completed) {
-                if (content.length == 0) {
+                if (content.length === 0) {
                     $scope.showInstall = false;
                     $('#licenseInstalledModal').modal('show');
                     setTimeout($scope.reload, 5000);    

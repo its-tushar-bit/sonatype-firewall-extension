@@ -136,7 +136,7 @@
 		};
 	});
 
-	managementModule.controller('EditApplicationController', ['$scope', '$rootScope', '$http', 'hudson', 'CLMLocations', function ($scope, $rootScope, $http, hudson, clmLocations) {
+	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.addIconSync();
 		if ($scope.selectedApplication.publicId) {

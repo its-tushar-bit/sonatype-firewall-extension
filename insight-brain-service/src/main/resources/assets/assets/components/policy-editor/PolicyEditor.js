@@ -127,10 +127,6 @@
 					handleHttpError('Saving Policy', resp.data, resp.status);
 				};
 				
-			angular.forEach($scope.state.currentPolicy.constraints, function(constraint) {
-				delete constraint.tempID;
-			});
-
 			$scope.state.currentPolicy.actions = policyStore.serializeActions($scope.state.actions);
 			$scope.state.currentPolicy.$save().then(returnFn, errorFn);
 		};
@@ -213,18 +209,13 @@
 		// Respond to constraint change
 		$scope.$on('policy.constraintSaved', function (event, constraint) {
 			event.stopPropagation();
-			if (angular.isUndefined(constraint.id) && angular.isUndefined(constraint.tempID)) {
+			var present = false;
+			angular.forEach($scope.state.currentPolicy.constraints, function (candidate) {
+				present = present || candidate === constraint;
+			});
+			if (!present) {
 				// New constraint
 				$scope.state.currentPolicy.constraints.push(constraint);
-				constraint.tempID = new Date().getTime();
-			} else {
-				// Update existing constraint
-				angular.forEach($scope.state.currentPolicy.constraints, function (candidate) {
-					if (candidate.id === constraint.id || candidate.tempID === constraint.tempID) {
-						candidate.conditions = constraint.conditions;
-						candidate.name = constraint.name;
-					}
-				});
 			}
 		});
 
@@ -268,7 +259,12 @@
 				delete condition.v;
 				delete condition.valueModifier;
 			});
-			$scope.$emit('policy.constraintSaved', $scope.currentConstraint);
+			if ($scope.originalConstraint) {
+				angular.forEach($scope.currentConstraint, function (value, key) {
+					$scope.originalConstraint[key] = value;
+				});
+			}
+			$scope.$emit('policy.constraintSaved', $scope.originalConstraint || $scope.currentConstraint);
 			$('#editConstraintModal').modal('hide');
 		};
 
@@ -332,6 +328,7 @@
 			// Possibility that the conditions bits haven't been loaded yet.
 			var fn = function () {
 				if ($scope.conditionTypes) {
+					$scope.originalConstraint = constraint || null;
 					$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: 'OR' };
 
 					if ($scope.currentConstraint.conditions.length === 0) {

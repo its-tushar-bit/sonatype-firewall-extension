@@ -22,13 +22,13 @@
 			params: { timestamp: new Date().getTime() }
 		}).success(function (data) {
 			$scope.stages = data;
-		}).error($scope.showServerError);
+		}).error(function () { $scope.$broadcast('showServerError', arguments); });
 
 		$http.get(clmLocations.getApplicationsUrl(), {
 			params: { timestamp: new Date().getTime() }
 		}).success(function (data) {
 			$scope.applications = data;
-		}).error($scope.showServerError);
+		}).error(function () { $scope.$broadcast('showServerError', arguments); });
 
 		$('#newApplicationModal').on('hide', function () {
 			// AngularJS barfs if $apply is made unnecessarily, however hide may or may not be called within scope
@@ -84,7 +84,7 @@
 					}
 				});
 				$('#deleteApplicationModal').modal('hide');
-			}).error($scope.showServerError);
+			}).error(function () { $scope.$broadcast('showServerError', arguments); });
 		};
 
 		$scope.clearSyncEditError = function () {

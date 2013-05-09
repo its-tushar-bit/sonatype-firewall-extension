@@ -13,21 +13,31 @@ var angularCommon;
 	angularCommon.directive('errorModal', function () {
 		return {
 			replace: true,
+			scope : true,
 			templateUrl: '../assets/components/errorModal.html',
 			link: function ($scope, element) {
-				$scope.showError = function (errorResponse) {
+				function showError(errorResponse) {
 					$scope.errorResponse = errorResponse;
 					element.modal('show');
-				};
-				$scope.showServerError = function (data, status, headersFn, config) {
+				}
+				function showServerError(data, status, headersFn, config) {
 					var header = headersFn();
 					if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 						$scope.errorResponse = 'Server Error';
+					} else if (status === 0) {
+						$scope.errorResponse = 'Unable to connect to CLM server';
 					} else {
 						$scope.errorResponse = data;
 					}
 					element.modal('show');
-				};
+				}
+
+				$scope.$on('showServerError', function (event, arg) {
+					showServerError.apply(null, arg);
+				});
+				$scope.$on('showError', function (event, arg) {
+					showError(arg);
+				});
 				$scope.hideError = function () {
 					element.modal('hide');
 				};

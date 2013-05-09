@@ -29,7 +29,7 @@
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
                 $scope.labels = data;
-            }).error($scope.showServerError);
+            }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
         $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 

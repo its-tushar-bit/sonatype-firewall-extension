@@ -52,7 +52,7 @@
                 } else {
 					setTimeout(function () {
 						$scope.$apply(function () {
-							$scope.showError(content);
+							$scope.$broadcast('showError', content);
 						});
 					}, 0);
                 }
@@ -64,7 +64,7 @@
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
                 setTimeout($scope.reload, 5000);
-            }).error($scope.showServerError);
+            }).error(function () { $scope.$broadcast('showServerError', arguments); });
         };
 
 		$scope.doUpload = function () {
@@ -84,7 +84,7 @@
 					},
 					error : function (req, status, error) {
 						$scope.$apply(function () {
-							$scope.showError(req.responseText);
+							$scope.$broadcast('showError', req.responseText);
 						});
 					}
 				});

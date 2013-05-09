@@ -52,16 +52,16 @@
                     params: { timestamp: new Date().getTime() }
                 }).success(function (data) {
                         group.licenses = data;
-                }).error($scope.showServerError);
+                }).error(function () { $scope.$broadcast('showServerError', arguments); });
             });
-        }).error($scope.showServerError);
+        }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
         $http.get(clmLocations.getLicensesUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
                 // Keep sorted for setLicenses
                 $scope.allLicenses = data.sort(sortLicense);
-            }).error($scope.showServerError);
+            }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
         $scope.editLicenseGroup = function (group) {
 
@@ -126,7 +126,7 @@
                 });
                 deselect();
                 $('#deleteLicenseGroupModal').modal('hide');
-            }).error($scope.showServerError);
+            }).error(function () { $scope.$broadcast('showServerError', arguments); });
         };
 
 		$scope.$on('license.cancelLicenseGroupEdit', function (event, licenseGroup) {

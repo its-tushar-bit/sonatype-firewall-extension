@@ -83,6 +83,16 @@ public class CLMLicenseManager
     }
 
     /**
+     * Get whether the license is currently valid
+     *
+     * @return the validity
+     */
+    public boolean isValid()
+    {
+        return getLicenseFingerprint() != null;
+    }
+
+    /**
      * Validate that a license is installed
      * 
      * @throws InvalidLicenseException when no license is installed
@@ -90,7 +100,7 @@ public class CLMLicenseManager
     public void validate()
         throws InvalidLicenseException
     {
-        if ( getLicenseFingerprint() == null )
+        if ( !isValid() )
         {
             String msg = "CLM is not licensed!";
             log.error( msg );

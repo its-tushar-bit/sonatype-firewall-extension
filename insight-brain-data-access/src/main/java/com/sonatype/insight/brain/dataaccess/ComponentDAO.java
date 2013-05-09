@@ -122,6 +122,7 @@ public class ComponentDAO
                     Component component;
                     final String matchStateString = componentJson.get( "matchState" ).asText();
                     final MatchState matchState = MatchState.getById( matchStateString );
+                    final boolean proprietary = componentJson.get( "proprietary" ).booleanValue();
                     if ( !matchState.equals( MatchState.UNKNOWN ) )
                     {
                         final String groupId = componentJson.get( "groupId" ).asText();
@@ -144,6 +145,7 @@ public class ComponentDAO
                     String hash = componentJson.get( "hash" ).asText();
                     component.setHash( hash );
                     component.setMatchState( matchState );
+                    component.setProprietary( proprietary );
                 }
             }
         }

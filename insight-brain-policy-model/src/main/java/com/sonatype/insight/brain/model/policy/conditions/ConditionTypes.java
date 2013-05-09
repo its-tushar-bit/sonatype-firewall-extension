@@ -48,6 +48,8 @@ public class ConditionTypes
     public static final SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType =
         new SecurityVulnerabilityStatusConditionType();
 
+    public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
+
     static
     {
         // Note: The order condition types are added here determines the order they are displayed in the UI
@@ -63,6 +65,7 @@ public class ConditionTypes
         add( AgeInDaysConditionType );
         add( MatchStateConditionType );
         add( CoordinatesConditionType );
+        add( ProprietaryConditionType );
     }
 
     public static Collection<ConditionType<?>> getAll()

@@ -48,6 +48,8 @@ public class Component
 
     private List<String> labelIds = new ArrayList<String>();
 
+    private boolean proprietary;
+
     public Component()
     {
     }
@@ -340,5 +342,15 @@ public class Component
     public String toString()
     {
         return getHash() + " " + getMatchState();
+    }
+
+    public boolean isProprietary()
+    {
+        return proprietary;
+    }
+
+    public void setProprietary( boolean proprietary )
+    {
+        this.proprietary = proprietary;
     }
 }

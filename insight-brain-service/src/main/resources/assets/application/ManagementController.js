@@ -136,33 +136,13 @@
 		};
 	});
 
-	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
+	managementModule.controller('EditApplicationController', ['$scope', '$rootScope', '$http', 'hudson', 'CLMLocations', function ($scope, $rootScope, $http, hudson, clmLocations) {
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.addIconSync();
 		if ($scope.selectedApplication.publicId) {
 			$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
 		} else {
 			$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
-		}
-		
-		function onError(jqXHR) {
-			var contentType = jqXHR.getResponseHeader('Content-Type');
-			if ($scope.applicationEditor) {
-				if (contentType.indexOf('text/html') === 0) {
-					$scope.errorResponse = 'Server Error';
-				} else {
-					$scope.errorResponse = jqXHR.responseText;
-				}
-			}
-		}
-
-		function onAJAXError(data, status, headersFn, config) {
-			var header = headersFn();
-			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-				$scope.errorResponse = 'Server Error';
-			} else {
-				$scope.errorResponse = data;
-			}
 		}
 
 		$scope.clearEditError = function () {
@@ -235,7 +215,7 @@
 				if (icon.files.length > 0) {
 					if (icon.files[0].size > 5242880) {
 						$scope.$apply(function() {
-							$scope.errorResponse = 'Icon file size must be smaller than 5 MB.';
+							$scope.$broadcast('showAlert', 'Icon file size must be smaller than 5 MB.');
 						});
 						return false;
 					}
@@ -255,7 +235,7 @@
 					$scope.applications.push(data);
 					$scope.selectedApplication = data;
 					saveIcon();
-				}).error(onAJAXError);
+				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
 			} else {
 				$http.put(clmLocations.getApplicationsUrl(), application).success(function (data) {
 					angular.forEach($scope.applications, function (application, key) {
@@ -266,7 +246,7 @@
 						}
 					});
 					saveIcon();
-				}).error(onAJAXError);
+				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
 			}
 
 			return false;
@@ -309,7 +289,7 @@
 						$scope.$apply(function () {
 							$scope.isUploadingIcon = false;
 							$scope.submitActive = false;
-							onError(jqXHR);
+							$scope.$broadcast('postAlert', jqXHR);
 						});
 					}
 				});

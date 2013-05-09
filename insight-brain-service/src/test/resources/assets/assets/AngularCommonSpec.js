@@ -11,7 +11,7 @@ describe('AngularCommon', function () {
 
 	it('implements errorModal directive', function () {
 		httpBackend.expectGET('../assets/components/errorModal.html').respond("<div id='errorModal'></div>");
-		var element = compile('<div error-Modal></div>')(scope);
+		var element = compile("<div error-Modal></div>")(scope);
 		expect(element).not.toBeUndefined();
 	});
 

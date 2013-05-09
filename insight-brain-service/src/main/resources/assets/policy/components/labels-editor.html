@@ -15,12 +15,7 @@
                 <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
             </div>
         </div>
-		<div ng-show='labelEditor.editErrorResponse'>
-			<div class='alert alert-error'>
-				<button type="button" class="close" ng-click='clearEditError()'>&times;</button>
-				<strong>Error</strong> {{labelEditor.editErrorResponse}}
-			</div>
-		</div>
+        <div error-Alert error-Prefix='Error' error-Response='labelEditor.editErrorResponse'></div>
     </div>
     <div class="modal-footer">
         <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>

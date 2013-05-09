@@ -60,12 +60,7 @@
                     <a ng-click='generateIcon()'>No icon? Want a robot?</a>
                 </div>
             </div>
-            <div ng-show='errorResponse'>
-                <div class='alert alert-error'>
-                    <button type='button' class='close' ng-click='clearEditError()'>&times;</button>
-                    <strong>Error</strong> {{errorResponse}}
-                </div>
-            </div>
+            <div error-Alert error-Prefix='Error:'></div>
             <div ng-show='isUploadingIcon'>
                 <div class="alert alert-info">
                     <strong>Uploading Icon...</strong>

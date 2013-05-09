@@ -18,17 +18,7 @@
 			</form>
 		</div>
 	</div>
-	<div ng-show='editErrorResponse'>
-		<div class='alert alert-error'>
-			<button type="button" class="close" ng-click='editErrorResponse = null'>&times;</button>
-			<strong>Error</strong> {{editErrorResponse}}
-		</div>
-	</div>
-	<div ng-show='oversize'>
-		<div class='alert alert-warning'>
-			<strong>Warning</strong> Labels are limited to 50 characters
-		</div>
-	</div>
+	<div error-Alert error-Prefix='Error' error-Response='editErrorResponse'></div>
 	<ul>
 		<li>Labels are like tags, add them to a component for easier identification or categorization.</li>
 		<li>Check the label before adding...typos can create labels as well.</li>

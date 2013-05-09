@@ -297,11 +297,30 @@
 			}
 		};
 
-		$scope.conditionTypeChanged = function (condition) {
+		$scope.conditionTypeChanged = function (condition) {		
 			// Remove values that were entered with the previous condition type
 			delete condition.value;
 			delete condition.v;
 			delete condition.valueModifier;
+			
+			// This could be replaced with ng-init but the html is fairly verbose as it is
+			condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
+			switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
+				case 'LicenseCategoryValueType':
+				case 'LicenseValueType':
+				case 'LicenseThreatGroupValueType':
+				case 'LicenseStatusValueType':
+				case 'MatchStateValueType':
+				case 'SecurityVulnerabilityStatusValueType':
+				case 'LabelValueType':
+					if ($scope.conditionTypes[condition.conditionTypeId].valueType.availableValues && $scope.conditionTypes[condition.conditionTypeId].valueType.availableValues.length > 0) {
+						condition.value = $scope.conditionTypes[condition.conditionTypeId].valueType.availableValues[0].id;
+					}
+					break;
+				case 'AgeInDaysValueType':
+					condition.valueModifier = 1;
+					break;
+			}
 
 			$scope.validateConstraint();
 		};
@@ -335,6 +354,15 @@
 						$scope.addCondition();
 					} else {
 						angular.forEach($scope.currentConstraint.conditions, function (condition) {
+							switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
+								case "PercentageValueType":
+									var value = parseInt(condition.value);
+									if (!isNaN(value)) {
+										condition.value = value;
+									}
+									break;
+							}
+							
 							if (condition.conditionTypeId === "AgeInDays") {
 								if (condition.value >= 365 && condition.value % 365 === 0) {
 									condition.valueModifier = 365;
@@ -384,9 +412,10 @@
 					var collection = $parse(options)(scope);
 					elem.find('option').remove();
 					$.each(collection, function(index) {
-						var option = new Option(collection[index], index);
+						var option = new Option(collection[index], collection[index]);
 						elem[0].options[elem[0].options.length] = option;
 					});
+//					ctrl.$setViewValue(elem.val());
 				});
 			}
 		};

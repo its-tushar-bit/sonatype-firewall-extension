@@ -22,7 +22,7 @@ var angularCommon;
 				}
 				function showServerError(data, status, headersFn, config) {
 					var header = headersFn();
-					if (!data || header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+					if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 						$scope.errorResponse = 'Server Error';
 					} else if (status === 0) {
 						$scope.errorResponse = 'Unable to connect to CLM server';
@@ -59,8 +59,10 @@ var angularCommon;
 				
 				function serverAlert(data, status, headersFn, config) {
 					var header = headersFn();
-					if (!data || header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+					if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 						scope.errorResponse = 'Server Error';
+					} else if (status === 0) {
+						$scope.errorResponse = 'Unable to connect to CLM server';
 					} else {
 						scope.errorResponse = data;
 					}

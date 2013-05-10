@@ -43,7 +43,7 @@ public class PolicyResourceTest
     public void testExportImport()
         throws Exception
     {
-        String applicationPublicId = "PolicyResourceTest_testExportImport";
+        String applicationPublicId = "PolicyResourceTest-testExportImport";
         Application application = createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
         String appId = application.getId();
 
@@ -91,7 +91,7 @@ public class PolicyResourceTest
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         Assert.assertNotNull( policyImportResult );
-        Assert.assertEquals( PolicyResource.IMPORT_APPLICATION_NAME, policyImportResult.applicationName );
+        Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
         Assert.assertTrue( policyImportResult.applicationURL,
                            policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
                                + newApplicationPublicId ) );
@@ -112,8 +112,7 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         Assert.assertNotNull( policyImportResult );
-        Assert.assertFalse( PolicyResource.IMPORT_APPLICATION_NAME.equals( policyImportResult.applicationName ) );
-        Assert.assertTrue( policyImportResult.applicationName.startsWith( PolicyResource.IMPORT_APPLICATION_NAME + " " ) );
+        Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
         Assert.assertTrue( policyImportResult.applicationURL,
                            policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
                                + newApplicationPublicId ) );
@@ -135,7 +134,7 @@ public class PolicyResourceTest
     public void testExportImport_ApplicationIDAlreadyExists()
         throws Exception
     {
-        String applicationPublicId = "testExportImport_ApplicationIDAlreadyExists";
+        String applicationPublicId = "testExportImport-ApplicationIDAlreadyExists";
         createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
 
         // Export
@@ -151,7 +150,7 @@ public class PolicyResourceTest
         // Import
         response = RestAccess.put( getServiceURL( applicationPublicId ) + "/import", exportFile );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "testExportImport_ApplicationIDAlreadyExists is already used as an ID.",
+        Assert.assertEquals( "testExportImport-ApplicationIDAlreadyExists is already used as an ID.",
                              response.getResponseBody() );
     }
 

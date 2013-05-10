@@ -61,8 +61,6 @@ public class PolicyResource
 {
     public static final String SERVICE_PATH = "rest/policy/{policyOwnerId}";
 
-    public static final String IMPORT_APPLICATION_NAME = "Sample Application";
-
     private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
 
     @Context
@@ -180,7 +178,7 @@ public class PolicyResource
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = new Application();
         application.setPublicId( policyOwnerId );
-        application.setName( IMPORT_APPLICATION_NAME );
+        application.setName( policyOwnerId );
         if ( applicationDAO.getByName( application.getName() ) != null )
         {
             application.setName( application.getName() + " " + System.currentTimeMillis() );

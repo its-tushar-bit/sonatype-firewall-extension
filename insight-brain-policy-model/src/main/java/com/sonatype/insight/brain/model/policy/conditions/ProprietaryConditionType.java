@@ -51,7 +51,14 @@ public class ProprietaryConditionType
     @Override
     public String explainMatch( final Condition condition, final Component component )
     {
-        return null;
+        if ( component.isProprietary() )
+        {
+            return "Component contains proprietary packages";
+        }
+        else
+        {
+            return "Component does not contain proprietary packages";
+        }
     }
 
     @Override

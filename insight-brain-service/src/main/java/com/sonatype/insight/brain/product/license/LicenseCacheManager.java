@@ -29,14 +29,17 @@ public class LicenseCacheManager
     {
         private final String fingerprint;
 
-        public CachedLicenseData( String fingerprint, Integer applicationLimit,
-                                  Set<CLMEnforcementPoint> enforcementPoints )
+        private final long expirationTimestamp;
+
+        public CachedLicenseData( final String fingerprint, Integer applicationLimit,
+                                  final Set<CLMEnforcementPoint> enforcementPoints, final long expirationTimestamp )
         {
             this.fingerprint = fingerprint;
+            this.expirationTimestamp = expirationTimestamp;
             super.setApplicationLimit( applicationLimit );
             super.setEnforcementPoints( enforcementPoints.toArray( new CLMEnforcementPoint[0] ) );
         }
-        
+
         public String getFingerprint()
         {
             return fingerprint;
@@ -45,23 +48,18 @@ public class LicenseCacheManager
 
     private volatile CachedLicenseData licenseCache = null;
 
-    private volatile long nextCacheReset = 0;
-
     private final ProductLicenseManager licenseManager;
 
     private final LicenseFingerprinter licenseFingerprinter;
 
     private static final Logger log = LoggerFactory.getLogger( LicenseCacheManager.class );
-    
-    //1 day
-    private static final long CACHE_DURATION = 1000 * 60 * 60 * 24;
 
     @Inject
     public LicenseCacheManager( ProductLicenseManager licenseManager, LicenseFingerprinter licenseFingerprinter )
     {
         this.licenseManager = licenseManager;
         this.licenseFingerprinter = licenseFingerprinter;
-        
+
         try
         {
             reset();
@@ -90,21 +88,20 @@ public class LicenseCacheManager
     public CachedLicenseData get()
         throws LicensingException
     {
-        if ( System.currentTimeMillis() > nextCacheReset )
+        if ( this.licenseCache == null || System.currentTimeMillis() > this.licenseCache.expirationTimestamp )
         {
             reset();
         }
 
         return this.licenseCache;
     }
-    
+
     public void reset()
         throws LicensingException
     {
         populateLicenseCache();
-        nextCacheReset = System.currentTimeMillis() + CACHE_DURATION;
     }
-    
+
     public void clear()
     {
         clearLicenseCache();
@@ -113,8 +110,6 @@ public class LicenseCacheManager
     private void populateLicenseCache()
         throws LicensingException
     {
-        clearLicenseCache();
-
         ProductLicenseKey key = licenseManager.getLicenseDetails();
 
         licenseManager.verifyFeature( key, new CLMFeature() );
@@ -140,7 +135,7 @@ public class LicenseCacheManager
             }
         }
 
-        licenseCache = new CachedLicenseData( licenseFingerprint, applicationCount, enforcementPoints );
+        licenseCache = new CachedLicenseData( licenseFingerprint, applicationCount, enforcementPoints, key.getExpirationDate().getTime() );
     }
 
     private String getPropertyNotNull( ProductLicenseKey key, String property )
@@ -156,6 +151,6 @@ public class LicenseCacheManager
 
     private void clearLicenseCache()
     {
-        licenseCache = new CachedLicenseData( null, 0, Collections.<CLMEnforcementPoint> emptySet() );
+        licenseCache = new CachedLicenseData( null, 0, Collections.<CLMEnforcementPoint> emptySet(), 0 );
     }
 }

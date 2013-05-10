@@ -32,6 +32,8 @@ public class TestProductLicenseManager
 
     private int appCount = 100;
 
+    private Date expirationDate = new Date( System.currentTimeMillis() + 10000 );
+    
     private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
     public TestProductLicenseManager()
@@ -85,7 +87,7 @@ public class TestProductLicenseManager
         properties.put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString( appCount ) );
         key = new DefaultLicenseKey( new Features( featureMap ) );
         key.setEffectiveDate( new Date( System.currentTimeMillis() - 10000 ) );
-        key.setExpirationDate( new Date( System.currentTimeMillis() + 10000 ) );
+        key.setExpirationDate( expirationDate );
         key.setProperties( properties );
     }
 
@@ -168,6 +170,15 @@ public class TestProductLicenseManager
         if ( valid )
         {
             this.appCount = applicationLimit;
+            createKey();
+        }
+    }
+    
+    public void setExpirationDate( Date date )
+    {
+        if ( valid )
+        {
+            this.expirationDate = date;
             createKey();
         }
     }

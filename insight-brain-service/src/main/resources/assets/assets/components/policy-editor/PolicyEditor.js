@@ -354,13 +354,15 @@
 						$scope.addCondition();
 					} else {
 						angular.forEach($scope.currentConstraint.conditions, function (condition) {
-							switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
-								case "PercentageValueType":
-									var value = parseInt(condition.value);
-									if (!isNaN(value)) {
-										condition.value = value;
-									}
-									break;
+							if ($scope.conditionTypes[condition.conditionTypeId]) {
+								switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
+									case "PercentageValueType":
+										var value = parseInt(condition.value);
+										if (!isNaN(value)) {
+											condition.value = value;
+										}
+										break;
+								}
 							}
 							
 							if (condition.conditionTypeId === "AgeInDays") {

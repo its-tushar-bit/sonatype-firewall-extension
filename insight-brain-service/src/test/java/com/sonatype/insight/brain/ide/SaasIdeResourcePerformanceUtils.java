@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.LicenseCacheManager;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -83,8 +82,7 @@ public class SaasIdeResourcePerformanceUtils
         field.setAccessible( true );
         InsightConfig config = new InsightConfig();
         config.setSaasAddress( saasAddress );
-        TestProductLicenseManager licenseManager = new TestProductLicenseManager( true );
-        SaasClient client = new SaasClient( new InsightProxy( config ), new CLMLicenseManager( licenseManager, new LicenseCacheManager( licenseManager, new TestLicenseFingerprinter() ) ) );
+        SaasClient client = new SaasClient( new InsightProxy( config ), new CLMLicenseManager( new TestProductLicenseManager( true ), new TestLicenseFingerprinter() ) );
         field.set( o, client );
     }
 

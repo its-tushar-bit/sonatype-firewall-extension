@@ -13,6 +13,7 @@
     adminModule.controller('AdminController', [ '$http', '$scope', function ($http, $scope) {
 		function showLicense() {
 			$scope.showInstall = false;
+			$('#eulaModal').modal('hide');
 			$('#licenseInstalledModal').modal('show');
 			setTimeout($scope.reload, 5000);
 		}
@@ -30,19 +31,43 @@
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');
         };
-
-        $scope.viewEula = function () {
-            $scope.showEula = true;
-            $scope.showInstall = false;
+        
+        $scope.viewInstall = function() {
+            $scope.showInstall = true;
+        };
+        
+        $scope.fileSelected = function() {
+            $('#eulaModal').modal('show');
+        };
+        
+        $scope.eulaAccepted = function() {
+            if (window.FormData) {
+                var form = new FormData(angular.element('form')[0]);
+                form.append('file', angular.element('input[type=file]')[0]);
+                $.ajax({
+                    url : $scope.uploadUrl,
+                    data : form,
+                    processData : false,
+                    contentType : false,
+                    type : 'POST',
+                    success : function () {
+                        $scope.$apply(function () {
+                            showLicense();
+                        });
+                    },
+                    error : function (req, status, error) {
+                        $scope.$apply(function () {
+                            $scope.$broadcast('showError', req.responseText);
+                        });
+                    }
+                });
+            } else {
+                $('input[type=submit]').trigger('click');
+            }
         };
         
         $scope.isLicenseInstalled = function () {
             return window.location.href.indexOf("unlicensed-assets") === -1;
-        };
-
-        $scope.acceptEula = function() {
-            $scope.showEula = false;
-            $scope.showInstall = true;
         };
 
         $scope.installLicense = function (content, completed) {
@@ -66,32 +91,6 @@
                 setTimeout($scope.reload, 5000);
             }).error(function () { $scope.$broadcast('showServerError', arguments); });
         };
-
-		$scope.doUpload = function () {
-			if (window.FormData) {
-				var form = new FormData(angular.element('form')[0]);
-				form.append('file', angular.element('input[type=file]')[0]);
-				$.ajax({
-					url : $scope.uploadUrl,
-					data : form,
-					processData : false,
-					contentType : false,
-					type : 'POST',
-					success : function () {
-						$scope.$apply(function () {
-							showLicense();
-						});
-					},
-					error : function (req, status, error) {
-						$scope.$apply(function () {
-							$scope.$broadcast('showError', req.responseText);
-						});
-					}
-				});
-			} else {
-				$('input[type=submit]').trigger('click');
-			}
-		};
     } ]);
 
     adminModule.directive('fileRequired', ['$parse', '$timeout', function ($parse, $timeout) {

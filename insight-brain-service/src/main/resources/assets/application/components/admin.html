@@ -10,7 +10,7 @@
 				<tfoot>
 					<tr>
 						<td colspan='2' style='text-align: center;'>
-							<button class='btn btn-add btn-info' ng-click='viewEula()' style='width: 80%'>
+							<button class='btn btn-add btn-info' ng-click='viewInstall()' style='width: 80%'>
 								<i class='icon-white icon-plus-sign'></i> Install License
 							</button>
 							<button ng-show='isLicenseInstalled()' class='btn btn-remove btn-info' ng-click='viewUninstallLicense()' style='margin-top:5px; width: 80%'>
@@ -20,16 +20,6 @@
 					</tr>
 				</tfoot>
 			</table>
-		</div>
-		<div class='span7' ng-show='showEula'>
-			<div class='content-container'>
-				<div class="modal-body">
-					<div class="well well-small" style="padding-top:0px;" ng-include src="'../application-assets/components/eula.html'"></div>
-				</div>
-				<div class="modal-footer">
-					<button class='btn btn-primary' ng-click='acceptEula()'>I Accept</button>
-				</div>
-			</div>
 		</div>
 		<div class='span4' ng-show='showInstall'>
 			<div class='content-container'>
@@ -43,16 +33,23 @@
 						<div class='control-group'>
 							<label class='control-label' for='file'>Select a license file to upload:</label>
 							<div class='controls'>
-								<input type="file" name="file" file-required='file' />
+								<!-- note it seems there is a problem with using ng-change with file inputs, doesn't work, simple js onchange does however -->
+								<input type="file" name="file" file-required='file' onchange='angular.element(this).scope().$parent.fileSelected()'/>
+								<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
 							</div>
 						</div>
 					</div>
-					<div class="modal-footer">
-						<button type='button' class='btn btn-primary' ng-disabled='!file.valid' ng-click='doUpload()'>Upload</button>
-						<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
-					</div>
 				</form>
 			</div>
+		</div>
+	</div>
+	<div id="eulaModal" data-backdrop="static" class="modal hide">
+		<div class="modal-body">
+			<div class="well well-small" style="padding-top:0px;" ng-include src="'../application-assets/components/eula.html'"></div>
+		</div>
+		<div class="modal-footer">
+			<button class='btn' data-dismiss='modal'>I Decline</button>
+			<button class='btn btn-primary' ng-click='eulaAccepted()'>I Accept</button>
 		</div>
 	</div>
 	<div id="licenseUninstallConfirmationModal" data-backdrop="static" class="modal hide">

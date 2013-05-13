@@ -186,4 +186,57 @@ var angularCommon;
 			}
 		};
 	});
+	
+	angularCommon.directive('isDuplicate', ['$parse', function($parse) {
+		return {
+			require: 'ngModel',
+			restrict: 'A',
+			link: function(scope, elem, attr, ctrl) {
+				var arrayName = attr.isDuplicateArray;
+				
+				// Pretty rigid implementation. Assumes that the model is an field on a selected item which is an item in an array of items (isDuplicateArray)
+				var modelObject = attr.ngModel.substr(0, attr.ngModel.lastIndexOf('.'));
+				var modelField = attr.ngModel.substr(attr.ngModel.lastIndexOf('.') + 1);
+				
+				// When model is set after the control is linked, isDuplicate must watch for changes in the model
+				var idFieldName = attr.isDuplicateIdField;
+				var modelItem;
+				var modelIdValue;
+				scope.$watch(modelObject, function updateModel(model) {
+					if (unregisterModelIdWatcher) {
+						unregisterModelIdWatcher();
+					}
+					
+					modelItem = $parse(modelObject)(scope);
+					
+					if (modelItem) {
+						var unregisterModelIdWatcher = scope.$watch(modelItem, function updateResponse(value) {
+								modelIdValue = $parse(idFieldName)(modelItem);
+		            		}
+						);
+					}
+				});
+				
+				var caseSensitive = attr.isDuplicateCaseSensitive;
+				var validator = function (value) {
+					if (!value) {
+						return undefined;
+					}
+					
+					var array = $parse(arrayName)(scope);
+					var passed = !(jQuery.grep(array, function (item) {
+						if (!caseSensitive) {
+							return $parse(idFieldName)(item) !== modelIdValue && $parse(modelField)(item).toLowerCase() === value.toLowerCase();
+						} else {
+							return $parse(idFieldName)(item) !== modelIdValue && $parse(modelField)(item) === value;
+						}
+					}).length > 0);
+					ctrl.$setValidity('duplicate', passed);
+					
+					return passed ? value : undefined;
+				};
+				ctrl.$parsers.push(validator);
+			}
+		};
+	}]);
 }());

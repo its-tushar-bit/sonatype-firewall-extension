@@ -171,23 +171,7 @@
 				});
 			}
 		};
-
-		$scope.isPolicyValid = function () {
-			if (!$scope.state || !$scope.state.currentPolicy) {
-				return false;
-			}
-
-			var uniqueName = true;
-			angular.forEach($scope.policies, function (policy) {
-				if (policy.id !== $scope.state.currentPolicy.id && policy.name === $scope.state.currentPolicy.name) {
-					uniqueName = false;
-				}
-			});
-			return (uniqueName && $scope.state.currentPolicy.name
-					&& $scope.state.currentPolicy.threatLevel >= 0
-					&& $scope.state.currentPolicy.constraints.length > 0) == true;
-		};
-
+		
 		$scope.viewRemoveConstraint = function (constraintIndex) {
 			viewConfirmation("Delete Constraint?",
 				"Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[constraintIndex].name + "'?",

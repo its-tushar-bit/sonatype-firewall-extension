@@ -1,3 +1,4 @@
+
 <div class='content-container' ng-show='!state && !httpError' style='text-align:center;width:50%;margin:auto'>
 	<h5><i class='icon-time'></i> Loading...</h5>
 </div>
@@ -6,21 +7,27 @@
 		<h4 ng-show='state.currentPolicy.id == null'>Create a New Policy</h4>
 		<h4 ng-show='state.currentPolicy.id != null'>Edit Policy</h4>
 	</div>
-	<form class="form-horizontal" style='margin-bottom:0px'>
+	<form id='policyEditor' name='policyEditor' class="form-horizontal" style='margin-bottom:0px'>
 		<div style="width:600px;">
-			<div class="control-group">
-				<label class="control-label" style="width:100px;" for='policyName'>Name</label>
-				<div class="controls form-inline" style="margin-left:120px;">
-					<div style='float:right'>
-						<label style="padding-left:10px;" for='policyThreatLevel'>Threat Level</label>
-						<select id='policyThreatLevel'
-							style="width:100px;"
-							class="threat-level threat-level-{{state.currentPolicy.threatLevel}}"
-							ng-model="state.currentPolicy.threatLevel"
-							ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
-						</select>
+			<div>
+				<div class="control-group" style='float: right'>
+					<label style="padding-left: 10px; display: inline; margin-right:20px;" for='policyThreatLevel'>Threat Level</label> 
+					<select id='policyThreatLevel' style="width: 100px;"
+						class="threat-level threat-level-{{state.currentPolicy.threatLevel}}"
+						ng-model="state.currentPolicy.threatLevel"
+						ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
+					</select>
+				</div>
+				<div class="control-group" ng-class='{ error : policyEditor.policyName.$error.required || policyEditor.policyName.$error.duplicate }'>
+					<label class="control-label" style="width: 100px;" for='policyName'>Name</label>
+					<div class='controls' style="margin-left: 120px;">
+						<input type="text" id="policyName" name="policyName" placeholder="Enter Policy Name..." ng-model="state.currentPolicy.name" required
+							is-Duplicate is-Duplicate-Array='policies' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'>
+						<div>
+							<span ng-show="policyEditor.policyName.$error.required" class="help-inline">Name is required</span>
+                        	<span ng-show="policyEditor.policyName.$error.duplicate" class="help-inline">Name is already is use</span>
+                       	</div>
 					</div>
-					<input type="text" id="policyName" placeholder="Enter Policy Name..." ng-model="state.currentPolicy.name" >
 				</div>
 			</div>
 			<div class="control-group">
@@ -92,7 +99,7 @@
 		</div>
 		<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
 			<button type='none' class='btn' ng-click="viewCancelPolicy()">Cancel</button>
-			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="!isPolicyValid()">Save</button>
+			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="policyEditor.$invalid || !(state.currentPolicy && state.currentPolicy.constraints.length > 0)">Save</button>
 		</div>
 	</form>
 	<div id="editConstraintModal" class="modal hide fade" data-backdrop="static" style="width: 860px;margin-left:-430px" ng-controller='ConstraintEditorController'>

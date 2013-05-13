@@ -13,7 +13,7 @@
 }
 
 .tick {
-	background: url(../img/tick.png) no-repeat;
+	background: url(../../assets/img/tick.png) no-repeat;
 	display: inline-block;
 	height : 16px;
 	width : 16px;

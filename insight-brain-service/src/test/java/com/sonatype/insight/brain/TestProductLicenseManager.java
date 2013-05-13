@@ -32,7 +32,7 @@ public class TestProductLicenseManager
 
     private int appCount = 100;
 
-    private Date expirationDate = new Date( System.currentTimeMillis() + 10000 );
+    private Date expirationDate = new Date( System.currentTimeMillis() + 600 * 1000 );
     
     private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 

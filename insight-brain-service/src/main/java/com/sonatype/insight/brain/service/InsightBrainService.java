@@ -38,6 +38,12 @@ public class InsightBrainService
 {
     private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
 
+    static
+    {
+        // INSIGHT-4557
+        System.setProperty( "java.awt.headless", "true" );
+    }
+
     public static final String APPLICATION_ASSET_PATH = "/application-assets/";
 
     public static final String BRAIN_ASSET_PATH = "/assets/";
@@ -88,6 +94,7 @@ public class InsightBrainService
 
         log.info( "Server base URL: {}", config.getBaseUrl() );
         log.debug( "Saas address: {}", config.getSaasAddress() );
+        log.debug( "Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless() );
     }
 
     // Copied from IdeScanService

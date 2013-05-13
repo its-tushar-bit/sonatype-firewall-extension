@@ -251,12 +251,13 @@ public class ApplicationDAO
     }
 
     public void setIcon( String applicationId, File iconDirectory, InputStream imageStream )
-        throws IOException, IllegalArgumentException
+        throws IOException
     {
         final int dimension = 420;
         Image image = ImageIO.read( imageStream );
 
-        // Invalid image types do not throw exception on ImageIO.read but instead return null
+        // Invalid image types do not throw exception on ImageIO.read but instead returns null. Throw exception when
+        // null is returned
         if ( image == null )
         {
             throw new BadRequestException( "Invalid image file." );

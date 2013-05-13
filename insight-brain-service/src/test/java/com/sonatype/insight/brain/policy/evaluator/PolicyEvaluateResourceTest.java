@@ -300,6 +300,27 @@ public class PolicyEvaluateResourceTest
                              PolicyEvaluateResource.createPolicyMailSubject( new MailPolicyAlertCounts( 0, 0, 0, 4 ) ) );
     }
 
+    @Test
+    public void testErrorReport()
+        throws Exception
+    {
+        final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "PolicyEvaluateResourceTest_ScanId";
+        String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/empty_report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+
+        Response response =
+            RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( Stage.ID_BUILD ) );
+        assertResponseStatus( 400, response );
+    }
+
     private String getServiceURL( final String appId, final String scanId )
     {
         return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}", appId )

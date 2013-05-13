@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <license>
 	<subject>CLM</subject>
-	<keystore>
-		<alias>CLM</alias>
-		<path>privateKeyStore</path>
-		<password>Mu0XTw834Gk9nlP</password>
-		<keyPassword>r5h57cYfggHHDdS</keyPassword>
-	</keystore>
+<keystore>
+    <alias>CLM</alias>
+    <path>privateKeyStore</path>
+    <password>Mu0XTw834Gk9nlP</password>
+    <keyPassword>r5h57cYfggHHDdS</keyPassword>
+  </keystore>
 	<validUntil>20/9/27</validUntil>
 	<evaluation>false</evaluation>
 	<licensedUsers>0</licensedUsers>
@@ -26,11 +26,11 @@
 	</contact>
 	<properties>
 		<property>
-			<key>licensedApplications</key>
+			<key>clm.maxActiveApplications</key>
 			<value>10</value>
 		</property>
 		<property>
-			<key>enforcementPoints</key>
+			<key>clm.allowedClmStages</key>
 			<value>Procure,Develop,Build,StageRelease,Release</value>
 		</property>
 	</properties>

@@ -58,7 +58,6 @@ public class ProductLicenseResource
     }
 
     @DELETE
-    @UnlicensedPath
     public void uninstallLicense() 
         throws LicensingException
     {

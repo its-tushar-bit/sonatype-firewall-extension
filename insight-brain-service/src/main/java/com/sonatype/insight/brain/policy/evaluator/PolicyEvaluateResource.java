@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.TemplateUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import freemarker.template.Template;
@@ -115,6 +116,11 @@ public class PolicyEvaluateResource
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
         final ReportEntry bomReportEntry = Report.getEntry( reportFile, "bom.json" );
+
+        if ( bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null )
+        {
+            throw new BadRequestException( "Unable to evaluate policy for report." );
+        }
 
         final List<Component> components =
             new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf );

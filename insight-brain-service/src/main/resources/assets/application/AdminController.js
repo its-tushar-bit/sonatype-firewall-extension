@@ -100,7 +100,7 @@
         };
     } ]);
 
-    adminModule.directive('onFileChange', ['$parse', '$timeout', function ($parse, $timeout) {
+    adminModule.directive('onFileChange', [function () {
         return {
 			restrict: 'A',
 			scope : false,

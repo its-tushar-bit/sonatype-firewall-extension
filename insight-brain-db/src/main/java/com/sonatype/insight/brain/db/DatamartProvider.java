@@ -21,6 +21,8 @@ public class DatamartProvider
 {
     private static final Logger log = LoggerFactory.getLogger( DatamartProvider.class );
 
+    public static final int DESIRED_DATABASE_VERSION = 1;
+
     public static final String ID = "insight_brain_dm";
 
     private static DataSource dataSource;
@@ -44,6 +46,7 @@ public class DatamartProvider
         long start = System.currentTimeMillis();
 
         dataSource = new DataSourceFactory().newDataSource( databaseConfig, ID );
+        new H2DatabaseMigrator().migrate( databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 1 /* defaultCurrentVersion */);
         Map<String, Object> props = new LinkedHashMap<String, Object>();
         props.put( "openjpa.ConnectionFactory", dataSource );
         entityManagerFactory = Persistence.createEntityManagerFactory( "InsightBrainDM", props );

@@ -39,6 +39,10 @@
             $('#licenseUninstallConfirmationModal').modal('show');
         };
         
+        $scope.onFileChanged = function() {
+            $('#eulaModal').modal('show');
+        }
+        
         $scope.viewInstall = function() {
             $scope.showInstall = true;
         };
@@ -96,20 +100,16 @@
         };
     } ]);
 
-    adminModule.directive('fileRequired', ['$parse', '$timeout', function ($parse, $timeout) {
+    adminModule.directive('onFileChange', ['$parse', '$timeout', function ($parse, $timeout) {
         return {
 			restrict: 'A',
-			scope : {
-                valid : '=fileRequired'
-            },
+			scope : false,
 			link: function(scope, elem, attr, ctrl) {
                 angular.element(elem).bind('change', function (event) {
-                    scope.valid.valid = angular.element(this).val();
-                    $timeout(function () {
-                        // Some sort of bizarre digest bug prevents updates without this async call.
-                    });
+                    if (attr.onFileChange) {
+                        scope.$apply(attr.onFileChange);
+                    }
                 });
-                scope.valid = { valid : false };
 			}
         };
     }]);

@@ -118,7 +118,7 @@ public class CLMLicenseManager
     /**
      * Validate that a license is installed
      * 
-     * @throws InvalidLicenseException when no license is installed
+     * @throws InvalidLicenseException when no license is installed or the installed license is not valid
      */
     public void validate()
         throws InvalidLicenseException

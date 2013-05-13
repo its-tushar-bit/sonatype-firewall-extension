@@ -17,6 +17,13 @@
 			$('#licenseInstalledModal').modal('show');
 			setTimeout($scope.reload, 5000);
 		}
+		
+        function showError(content) {
+            $scope.$apply(function() {
+                $('#eulaModal').modal('hide');
+                $scope.$broadcast('showError', content);
+            });
+        }
 
         $scope.reload = function () {
             if (window.location.href.indexOf('unlicensed-assets') > -1) {
@@ -56,9 +63,7 @@
                         });
                     },
                     error : function (req, status, error) {
-                        $scope.$apply(function () {
-                            $scope.$broadcast('showError', req.responseText);
-                        });
+                        showError(req.responseText);
                     }
                 });
             } else {
@@ -76,9 +81,7 @@
 					showLicense();
                 } else {
 					setTimeout(function () {
-						$scope.$apply(function () {
-							$scope.$broadcast('showError', content);
-						});
+					    showError(content);
 					}, 0);
                 }
             }

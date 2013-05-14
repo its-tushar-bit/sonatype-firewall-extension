@@ -430,7 +430,7 @@
           <sourceIncludes>
             <include>assets/jquery/jquery-*.min.js</include>
             <include>assets/bootstrap/bootstrap-*.min.js</include>
-            <include>assets/angular/angular-sonatype*.min.js</include>
+            <include>assets/angular/angular-1*.min.js</include>
             <include>assets/angular/angular-sanitize-*.min.js</include>
             <include>assets/CLMLocation.js</include>
             <include>assets/js/Resource.js</include>

@@ -3,7 +3,6 @@ package com.sonatype.insight.brain.product.license;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -42,7 +41,7 @@ public class ProductLicenseResource
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.TEXT_PLAIN )
     @UnlicensedPath
-    public String installLicense( @FormDataParam( "file" ) InputStream is, @QueryParam( "isIE" ) @Nullable boolean isIE ) 
+    public String installLicense( @FormDataParam( "file" ) InputStream is, @QueryParam( "isIE" ) boolean isIE ) 
         throws IOException
     {
         try

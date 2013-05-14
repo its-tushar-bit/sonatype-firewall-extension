@@ -14638,6 +14638,10 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
                 lastElement = existingOption.element;
                 if (existingOption.label !== option.label) {
                   lastElement.text(existingOption.label = option.label);
+                  // IE8 will not update the text property of an option when jQuery text() setter called
+                  if (lastElement.length > 0 && lastElement[0].text !== option.label) {
+                    lastElement[0].text = existingOption.label;
+                  }
                 }
                 if (existingOption.id !== option.id) {
                   lastElement.val(existingOption.id = option.id);

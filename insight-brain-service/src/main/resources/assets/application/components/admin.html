@@ -1,27 +1,13 @@
 <div class='container'>
-	<div class='row'>
-		<div class='span4 content-container'>
-			<table class='table table-striped' style='margin-bottom: 0px'>
-				<thead>
-					<tr>
-						<th colspan='2'>Licensing</th>
-					</tr>
-				</thead>
-				<tfoot>
-					<tr>
-						<td colspan='2' style='text-align: center;'>
-							<button class='btn btn-add btn-info' ng-click='viewInstall()' style='width: 80%'>
-								<i class='icon-white icon-plus-sign'></i> Install License
-							</button>
-							<button ng-show='isLicenseInstalled()' class='btn btn-remove btn-info' ng-click='viewUninstallLicense()' style='margin-top:5px; width: 80%'>
-								<i class='icon-white icon-minus-sign'></i> Uninstall License
-							</button>
-						</td>
-					</tr>
-				</tfoot>
-			</table>
+	<div class='row' ng-show='!isLoaded()'>
+		<div class='span4 offset4'>
+			<div class='content-container' style='padding: 5px'>
+				<h5><i class='icon icon-time'></i> Loading...</h5>
+			</div>
 		</div>
-		<div class='span4' ng-show='showInstall'>
+	</div>
+	<div class='row' ng-show='isLoaded() && !license'>
+		<div class='span6 offset3'>
 			<div class='content-container'>
 				<div class='modal-header'>
 					<h4>
@@ -39,6 +25,30 @@
 						</div>
 					</div>
 				</form>
+			</div>
+		</div>
+	</div>
+	<div class='row' ng-show='isLoaded() && license'>
+		<div class='span6 offset3'>
+			<div class='content-container'>
+				<div class='modal-header'>
+					<h4>
+						<span>CLM License</span>
+					</h4>
+				</div>
+				<div class='modal-body form-horizontal'>
+					<div class='control-group'>
+						<label class='control-label'><strong>Expiration</strong></label>
+						<div class='controls' style='padding-top:5px'>
+							{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}
+						</div>
+					</div>
+				</div>
+				<div class='modal-footer'>
+					<button class='btn btn-remove btn-info' ng-click='viewUninstallLicense()'>
+						<i class='icon-white icon-minus-sign'></i> Uninstall License
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>

@@ -75,10 +75,6 @@
             }
         };
         
-        $scope.isLicenseInstalled = function () {
-            return window.location.href.indexOf("unlicensed-assets") === -1;
-        };
-
         $scope.installLicense = function (content, completed) {
             if (completed) {
                 if (content.length === 0) {
@@ -98,6 +94,16 @@
                 setTimeout($scope.reload, 5000);
             }).error(function () { $scope.$broadcast('showServerError', arguments); });
         };
+
+        $scope.isLoaded = function () {
+			return typeof $scope.license !== 'undefined';
+		};
+
+		$http.get($scope.uploadUrl).success(function (data) {
+			$scope.license = data;
+		}).error(function () {
+			$scope.license = false;
+		});
     } ]);
 
     adminModule.directive('onFileChange', [function () {

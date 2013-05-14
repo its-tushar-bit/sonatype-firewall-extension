@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.licensing.LicensingException;
 
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -75,11 +76,11 @@ public class ProductLicenseResource
 
     @GET
     @UnlicensedPath
-    @Produces( MediaType.TEXT_PLAIN )
-    public String validate()
+    @Produces( MediaType.APPLICATION_JSON )
+    public LicenseSummary validate()
     {
         licenseManager.validate();
-        return "OK";
+        return licenseManager.getLicenseSummary();
     }
 
 }

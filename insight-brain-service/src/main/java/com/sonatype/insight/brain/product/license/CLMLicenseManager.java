@@ -48,6 +48,17 @@ public class CLMLicenseManager
         }
     }
 
+    public final class LicenseSummary
+    {
+
+        public final long expiryTimestamp;
+
+        public LicenseSummary( long timestamp )
+        {
+            this.expiryTimestamp = timestamp;
+        }
+    }
+
     private final ProductLicenseManager licenseManager;
 
     private final LicenseFingerprinter licenseFingerprinter;
@@ -159,6 +170,11 @@ public class CLMLicenseManager
         }
 
         throw new InvalidLicenseException( "None of the enforcement points " + enforcementPoints + " is licensed!" );
+    }
+
+    public LicenseSummary getLicenseSummary()
+    {
+        return new LicenseSummary( this.licenseCache.expirationTimestamp );
     }
 
     private void populateLicenseCache()

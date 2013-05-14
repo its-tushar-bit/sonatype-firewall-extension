@@ -33,7 +33,7 @@
             }
         };
 
-        $scope.uploadUrl = '../rest/product/license';
+        $scope.uploadUrl = '../rest/product/license' + ($.browser.msie ? '?isIE=true' : '');
 
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');

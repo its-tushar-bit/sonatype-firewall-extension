@@ -3,6 +3,7 @@ package com.sonatype.insight.brain.product.license;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -11,6 +12,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
@@ -40,7 +42,7 @@ public class ProductLicenseResource
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Produces( MediaType.TEXT_PLAIN )
     @UnlicensedPath
-    public String installLicense( @FormDataParam( "file" ) InputStream is ) 
+    public String installLicense( @FormDataParam( "file" ) InputStream is, @QueryParam( "isIE" ) @Nullable boolean isIE ) 
         throws IOException
     {
         try
@@ -52,7 +54,14 @@ public class ProductLicenseResource
         }
         catch ( LicensingException e )
         {
-            //send 400 back, rather than 500 from the LicensingException
+            //IE will only work in case of a 200 response, otherwise the response gets junked and replaced with some local error page
+            //which then fails to load because of cross site scripting probs
+            if (isIE)
+            {
+                log.debug( "Unable to install license", e );
+                return e.getMessage();
+            }
+            
             throw new BadRequestException( e.getMessage(), e );
         }
     }

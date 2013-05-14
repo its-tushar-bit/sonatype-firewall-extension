@@ -1,6 +1,8 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 
@@ -40,8 +42,23 @@ public abstract class AbstractLicenseTest
             }
         } );
     }
+    
+    protected String installLicenseAsIE()
+        throws Exception
+    {
 
-    protected void installLicense()
+        Map<String,String> queryParams = new LinkedHashMap<String,String>();
+        queryParams.put( "isIE", "true" );
+        return doInstallLicense( queryParams );
+    }
+    
+    protected String installLicense()
+        throws Exception
+    {
+        return doInstallLicense( null );
+    }
+
+    private String doInstallLicense( Map<String,String> queryParams )
         throws Exception
     {
         InputStream license = AbstractLicenseTest.class.getResourceAsStream( "/productlicense/license.lic" );
@@ -52,10 +69,19 @@ public abstract class AbstractLicenseTest
                                                  MediaType.APPLICATION_OCTET_STREAM_TYPE ) );
 
             WebResource resource = Client.create().resource( getServiceURL() );
-
-            resource.type( MediaType.MULTIPART_FORM_DATA ).post( form );
+            if ( queryParams != null )
+            {
+                for (String key : queryParams.keySet())
+                {
+                    resource = resource.queryParam( key, queryParams.get( key ) );
+                }
+            }
+            
+            String result = resource.type( MediaType.MULTIPART_FORM_DATA ).post( String.class, form );
 
             Assert.assertTrue( licenseManager.isValid() );
+            
+            return result;
         }
         finally
         {
@@ -102,5 +128,10 @@ public abstract class AbstractLicenseTest
     protected String getLicenseFingerprint()
     {
         return licenseFingerprinter.calculate();
+    }
+    
+    protected TestProductLicenseManager getLicenseManager()
+    {
+        return licenseManager;
     }
 }

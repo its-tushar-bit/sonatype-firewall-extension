@@ -35,6 +35,8 @@ public class TestProductLicenseManager
     private Date expirationDate = new Date( System.currentTimeMillis() + 600 * 1000 );
     
     private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+    
+    private boolean forceInstallFailure = false;
 
     public TestProductLicenseManager()
     {
@@ -61,6 +63,11 @@ public class TestProductLicenseManager
     public void installLicense( final InputStream licenseFile )
         throws IOException, LicensingException
     {
+        if ( forceInstallFailure )
+        {
+            throw new LicensingException( "An error occurred" );
+        }
+        
         valid = true;
         createKey();
     }
@@ -181,5 +188,10 @@ public class TestProductLicenseManager
             this.expirationDate = date;
             createKey();
         }
+    }
+    
+    public void forceInstallFailure( boolean forceInstallFailure )
+    {
+        this.forceInstallFailure = forceInstallFailure;
     }
 }

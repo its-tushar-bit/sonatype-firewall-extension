@@ -99,7 +99,7 @@
 		</div>
 		<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
 			<button type='none' class='btn' ng-click="viewCancelPolicy()">Cancel</button>
-			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="policyEditor.$invalid || !(state.currentPolicy && state.currentPolicy.constraints.length > 0)">Save</button>
+			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="policyEditor.$invalid || state.currentPolicy.constraints.length == 0">Save</button>
 		</div>
 	</form>
 	<div id="editConstraintModal" class="modal hide fade" data-backdrop="static" style="width: 860px;margin-left:-430px" ng-controller='ConstraintEditorController'>

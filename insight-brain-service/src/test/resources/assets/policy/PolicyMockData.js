@@ -174,7 +174,7 @@ PolicyMockData = {
                 "name" : "Not Applicable"
               }, {
                 "id" : "CONFIRMED",
-                "name" : "Confirmed);"
+                "name" : "Confirmed"
               }]
         }];
   },

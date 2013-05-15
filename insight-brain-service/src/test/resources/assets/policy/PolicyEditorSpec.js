@@ -50,6 +50,7 @@ describe('PolicyEditor', function() {
 			$httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).respond(PolicyMockData.getConditionTypeData());
 			$httpBackend.expectGET(CLMLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
 		});
+		
 		return getController('ConstraintEditorController');
 	}
 
@@ -247,6 +248,83 @@ describe('PolicyEditor', function() {
 		});
 		expect(controller.scope.constraintValidationMsg).toEqual('Please enter a value for condition #1');
 		controller.scope.cancelConstraint();
+	}));
+	
+	// Test the manipulation of the DOM due to changing models. This test should be moved to a browser based tester such as Selenium at one point
+	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile) {
+		var modulePackage = getConstraintEditorController();
+		var scope = modulePackage.scope;
+		var policyEditorHTML;
+		
+		$httpBackend.expectGET('../assets/components/notification-manager/notification-manager.html?').respond('<div></div>');
+		
+		$.ajax({
+			async: false,
+			dataType: 'html',
+			url: 'src/assets/components/policy-editor/policy-editor.html',
+			success: function(data) {
+				policyEditorHTML = data;
+			}
+		});
+		
+		var editor = angular.element(policyEditorHTML);
+		var body = angular.element('body').append("<div id='policyEditor'></div>").find('#policyEditor').append(editor);
+			
+		var constraint = {
+			name : 'ConstraintName',
+			conditions : [{ name : "Age", id: 'AgeInDays', conditionTypeId : 'AgeInDays', valueTypeId : 'AgeInDaysValueType', operator : 'older than', value : 365, supportedOperators : [ 'older than' ] }],
+			operator : 'OR'
+		};
+
+		$compile(body)(scope);
+
+		scope.$broadcast('policy.editConstraint', constraint);
+		
+		var constraintModal = angular.element('#editConstraintModal');
+		expect(constraintModal.attr('class')).toEqual('modal hide fade ng-scope in');
+
+		scope.$digest();
+		
+		var ageInDaysInput = angular.element('[ng-switch-when="AgeInDaysValueType"]');
+		expect(ageInDaysInput.length).toEqual(1);
+		expect(ageInDaysInput.attr('class')).toEqual('ng-scope');
+		expect(angular.element('[ng-model="condition.v"]').val()).toEqual('1');
+		
+		var conditionTypeSelector = angular.element('[ng-model="condition.conditionTypeId"]');
+		conditionTypeSelector.val('Coordinates');
+		expect(conditionTypeSelector.find('option:selected').val()).toEqual('Coordinates');
+		
+		var changeEvent = document.createEvent('HTMLEvents');
+		changeEvent.initEvent('change', false, false);
+		conditionTypeSelector[0].dispatchEvent(changeEvent);
+
+		var coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none" });
+		expect(coordinatesOperator.length).toEqual(1);
+		var coordinateOptions = coordinatesOperator.find('option');
+		expect(coordinateOptions.length).toEqual(2);
+		expect(coordinateOptions[0].text).toEqual('match');
+		expect(coordinateOptions[1].text).toEqual('do not match');
+		
+		conditionTypeSelector.val('SecurityVulnerabilityStatus');
+		expect(conditionTypeSelector.find('option:selected').val()).toEqual('SecurityVulnerabilityStatus');
+		
+		var changeEvent = document.createEvent('HTMLEvents');
+		changeEvent.initEvent('change', false, false);
+		conditionTypeSelector[0].dispatchEvent(changeEvent);
+		
+		coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none" });
+		expect(coordinatesOperator.length).toEqual(1);
+		coordinateOptions = coordinatesOperator.find('option');
+		expect(coordinateOptions.length).toEqual(2);
+		expect(coordinateOptions[0].text).toEqual('is');
+		expect(coordinateOptions[1].text).toEqual('is not');
+		
+		var conditionValue = angular.element('[ng-model="condition.value"]');
+		expect(conditionValue.length).toEqual(1);
+		var conditionOptions = conditionValue.find('option');
+		expect(conditionOptions.length).toEqual(4);
+		expect(conditionOptions[0].text).toEqual('Open');
+		expect(conditionOptions[0].value).toEqual('0');
 	}));
 
 	// TODO Test Response of PolicyEditorController to events from Constraint Controller

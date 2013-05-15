@@ -32,9 +32,6 @@ describe('InsightLicenseGroupController', function() {
 		$httpBackend.flush();
     }));
 
-	it('shows the GUI', function() {
-		expect(scope.features.licenseGroup).toBeTruthy();
-	});
 	it('loads licenses.', function() {
 		expect(scope.allLicenses).not.toBeUndefined();
 		expect(scope.allLicenses.length).toEqual(3);

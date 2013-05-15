@@ -36,12 +36,7 @@
 
         $scope.editorUrl = 'components/license-threat-group-editor.html?' + clmBuildTimestamp;
 
-        if (typeof($scope.features) === 'undefined') {
-            $scope.features = {};
-        }
-        $scope.features.licenseGroup = true;
         $scope.allLicenses = null;
-
 
         $http.get(clmAppLocations.getLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }

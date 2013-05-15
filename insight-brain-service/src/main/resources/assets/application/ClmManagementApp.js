@@ -49,7 +49,7 @@
     }]);
     
     clmManagementApp.run(['$http', 'CLMLocations', function ($http, clmLocations) {
-        $http.get(clmLocations.getLicenseUploadUrl()).error(function (msg, status) {
+        $http.get(clmLocations.getLicenseSummaryUrl()).error(function (msg, status) {
             if (status === 402) {
                 window.location.href = window.location.href.replace('application-assets', 'unlicensed-assets');
             }

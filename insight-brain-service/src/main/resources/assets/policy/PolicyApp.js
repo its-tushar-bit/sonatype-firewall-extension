@@ -67,7 +67,7 @@ var policyApp;
 
     policyApp.run(['$http', '$rootScope', 'CLMLocations', function ($http, $rootScope, clmLocations) {
         $rootScope.features = {};
-        $http.get(clmLocations.getLicenseUploadUrl()).error(function(msg, status){
+        $http.get(clmLocations.getLicenseSummaryUrl()).error(function(msg, status){
             if ( status === 402 ) {
                 window.location.href = window.location.href.replace('policy-assets','unlicensed-assets');
             }

@@ -33,6 +33,7 @@
             }
         };
 
+        $scope.summaryUrl = '../rest/product/license' + '?ts=' + new Date().getTime();
         $scope.uploadUrl = '../rest/product/license' + ($.browser.msie ? '?isIE=true' : '');
 
         $scope.viewUninstallLicense = function () {
@@ -99,7 +100,7 @@
 			return typeof $scope.license !== 'undefined';
 		};
 
-		$http.get($scope.uploadUrl).success(function (data) {
+		$http.get($scope.summaryUrl).success(function (data) {
 			$scope.license = data;
 		}).error(function () {
 			$scope.license = false;

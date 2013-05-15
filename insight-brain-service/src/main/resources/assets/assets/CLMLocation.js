@@ -100,8 +100,8 @@
 				return this.getProfilesUrl() + '/' + profile.id;
 			},
 			
-			getLicenseUploadUrl: function() {
-				return this.getBaseUrl() + '/rest/product/license';
+			getLicenseSummaryUrl: function() {
+				return this.getBaseUrl() + '/rest/product/license?ts=' + new Date().getTime();
 			},
 			getApplicationProfilePoliciesUrl : function (applicationProfileId) {
 				return this.getBaseUrl() + '/rest/applicationProfilePolicy/' + encodeURIComponent(applicationProfileId);

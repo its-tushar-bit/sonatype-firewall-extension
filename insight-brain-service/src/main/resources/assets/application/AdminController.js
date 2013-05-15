@@ -8,9 +8,9 @@
 (function () {
     'use strict';
 
-    var adminModule = angular.module('Admin', [ 'AngularCommon', 'ngUpload' ]);
+    var adminModule = angular.module('Admin', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
 
-    adminModule.controller('AdminController', [ '$http', '$scope', function ($http, $scope) {
+    adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
 		function showLicense() {
 			$scope.showInstall = false;
 			$('#eulaModal').modal('hide');
@@ -33,8 +33,8 @@
             }
         };
 
-        $scope.summaryUrl = '../rest/product/license' + '?ts=' + new Date().getTime();
-        $scope.uploadUrl = '../rest/product/license' + ($.browser.msie ? '?isIE=true' : '');
+        $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
+        $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
 
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');

@@ -104,18 +104,6 @@
 
 			getPolicyUrl: function () {
 				return this.getBaseUrl() + '/rest/policy/' + appId.encoded;
-			},
-
-			getProfilesUrl: function () {
-				return this.getBaseUrl() + '/rest/applicationProfile';
-			},
-
-			getDeleteProfileUrl: function (profile) {
-				return this.getProfilesUrl() + '/' + profile.id;
-			},
-
-			getApplicationProfilePoliciesUrl : function (applicationProfileId) {
-				return this.getBaseUrl() + '/rest/applicationProfilePolicy/' + encodeURIComponent(applicationProfileId);
 			}
 		};
 	}]);

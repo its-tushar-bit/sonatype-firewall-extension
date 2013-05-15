@@ -7,18 +7,12 @@ describe('ApplicationManagementController', function () {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
 	}
 
-    angular.module('ApplicationId',[]).service('ApplicationId', function () {
-		return {
-			encoded : 'bom1-12345678'
-		};
-    });
-
 	angular.module('Hudson', []).factory('hudson', ['$http', function ($http) {
 		return $http;
 	}]);
 
 	beforeEach(module('ApplicationId', 'ApplicationManagement', 'AngularCommon', 'CLMLocation', 'Hudson'));
-	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile, $sniffer) {
+	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, CLMAppLocations, regexFactory, $compile, $sniffer) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
 		clmLocations = CLMLocations;
@@ -29,7 +23,7 @@ describe('ApplicationManagementController', function () {
 		mockApplication = applicationsData[0];
 		httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(applicationsData);
 		httpBackend.whenGET(toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-		httpBackend.whenGET(toRegExp(CLMLocations.getProfilesUrl())).respond([]);
+		httpBackend.whenGET(toRegExp(CLMAppLocations.getProfilesUrl())).respond([]);
 
 		scope = $rootScope.$new();
 

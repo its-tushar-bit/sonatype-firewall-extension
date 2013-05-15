@@ -18,11 +18,11 @@ describe('InsightPolicyController tests', function() {
 
     beforeEach(module('ApplicationId', 'Policy'));
     // setup our http backend to return what we want
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
 
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-        $httpBackend.expectGET(toRegExp(CLMLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+        $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
 
         // inject the controller
         scope = $rootScope.$new();
@@ -56,7 +56,7 @@ describe('InsightPolicyController tests', function() {
         expect(scope.getActions(scope.state.policyList[4])).toEqual('');
     });
 
-    it('Test remove policy', inject(function(CLMLocations, $httpBackend) {
+    it('Test remove policy', inject(function(CLMAppLocations, $httpBackend) {
         expect(scope.state.policyList.length).toEqual(5);
         scope.viewRemovePolicy(scope.state.policyList[0]);
 
@@ -81,7 +81,7 @@ describe('InsightPolicyController tests', function() {
         expect(scope.state.confirm.accept).not.toBeNull();
         expect(scope.state.confirm.declineFn).not.toBeNull();
 
-        $httpBackend.expectDELETE(CLMLocations.getPolicyUrl() + '/' + scope.state.policyList[0].id).respond(200);
+        $httpBackend.expectDELETE(CLMAppLocations.getPolicyUrl() + '/' + scope.state.policyList[0].id).respond(200);
 
         scope.state.confirm.acceptFn();
 

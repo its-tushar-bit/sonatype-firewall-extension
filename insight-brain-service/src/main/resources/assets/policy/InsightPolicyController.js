@@ -10,7 +10,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor']);
 
-	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', 'CLMLocations', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $http, hudson, $timeout, clmLocations, $rootScope, $q, policyStore, actionStore) {
+	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore) {
 
 		function capitalize(text) {
 			if (text && text.length > 1) {

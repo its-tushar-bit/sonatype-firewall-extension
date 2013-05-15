@@ -8,10 +8,10 @@
 	'use strict';
 	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule']);
 
-	module.service('PolicyStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
+	module.service('PolicyStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
 		var policyStore = clmResource.getStore({
 			id : 'id',
-			url : clmLocations.getPolicyUrl(),
+			url : clmAppLocations.getPolicyUrl(),
 			template : {
 				threatLevel : 5,
 				constraints : []
@@ -72,14 +72,14 @@
 		};
 	}]);
 
-	module.service('ConstraintStore', ['CLMLocations', 'CLMResource', '$q', function (clmLocations, clmResource, $q) {
+	module.service('ConstraintStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', '$q', function (clmLocations, clmAppLocations, clmResource, $q) {
 		var conditionTypeStore = clmResource.getStore({
 				id : 'id',
 				url : clmLocations.getConditionTypeUrl()
 			}),
 			conditionValueTypeStore = clmResource.getStore({
 				id : 'id',
-				url : clmLocations.getConditionValueTypeUrl()
+				url : clmAppLocations.getConditionValueTypeUrl()
 			}),
 			conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
 

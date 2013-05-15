@@ -18,13 +18,12 @@ describe('InsightLicenseGroupController', function() {
 	}]);
 
 	beforeEach(module('LicenseGroup', 'CLMLocation', 'Hudson', 'ApplicationId'));
-	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations) {
-		CLMLocations.appId = 'myAppId';
+	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
 
 		mockGroup = LicenseGroupMockData.getLicenseGroupData()[0];
 		$httpBackend.whenGET(toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
-		$httpBackend.whenGET(toRegExp(CLMLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
-		$httpBackend.whenGET(toRegExp(CLMLocations.getLicenseGroupLicensesUrl(mockGroup))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
+		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
+		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 
 		scope = $rootScope.$new();
 
@@ -61,9 +60,9 @@ describe('InsightLicenseGroupController', function() {
 		scope.editLicenseGroup(mockGroup);
 		expect(scope.licenses[0].isApplied).toBeFalsy();
 	});
-	it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, hudson, CLMLocations) {
-		$httpBackend.expectPOST(CLMLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
-		$httpBackend.expectPOST(CLMLocations.getLicenseGroupLicensesUrl(mockGroup)).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
+	it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, hudson, CLMAppLocations) {
+		$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
+		$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup)).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 
 		scope.editLicenseGroup(mockGroup);
 
@@ -77,8 +76,8 @@ describe('InsightLicenseGroupController', function() {
 		scope.confirmDeleteLicenseGroup(mockGroup);
 		expect(scope.deletedEnabled).toBeTruthy();
 	});
-	it('deletes a group.', inject(function($httpBackend, CLMLocations) {
-		$httpBackend.expectDELETE(CLMLocations.getDeleteLicenseGroupUrl(mockGroup)).respond({});
+	it('deletes a group.', inject(function($httpBackend, CLMAppLocations) {
+		$httpBackend.expectDELETE(CLMAppLocations.getDeleteLicenseGroupUrl(mockGroup)).respond({});
 
 		scope.confirmDeleteLicenseGroup(mockGroup);
 		scope.deleteLicenseGroup();

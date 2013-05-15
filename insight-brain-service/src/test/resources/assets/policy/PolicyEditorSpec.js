@@ -46,9 +46,9 @@ describe('PolicyEditor', function() {
 	}
 
 	function getConstraintEditorController() {
-		inject(function($httpBackend, CLMLocations) {
+		inject(function($httpBackend, CLMLocations, CLMAppLocations) {
 			$httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).respond(PolicyMockData.getConditionTypeData());
-			$httpBackend.expectGET(CLMLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
+			$httpBackend.expectGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
 		});
 		
 		return getController('ConstraintEditorController');
@@ -62,20 +62,20 @@ describe('PolicyEditor', function() {
 	}
 
 	function expectPolicyRequest(responseData) {
-		inject(function($httpBackend, CLMLocations) {
-			$httpBackend.expectGET(new RegExp(CLMLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(angular.copy(responseData));
+		inject(function($httpBackend, CLMAppLocations) {
+			$httpBackend.expectGET(new RegExp(CLMAppLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(angular.copy(responseData));
 		});
 	}
 
 	function expectNewPolicy(response) {
-		inject(function($httpBackend, CLMLocations) {
-			$httpBackend.expectPOST(new RegExp(CLMLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(response);
+		inject(function($httpBackend, CLMAppLocations) {
+			$httpBackend.expectPOST(new RegExp(CLMAppLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(response);
 		});
 	}
 
 	function expectUpdatePolicy(response) {
-		inject(function($httpBackend, CLMLocations) {
-			$httpBackend.expectPUT(new RegExp(CLMLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(response);
+		inject(function($httpBackend, CLMAppLocations) {
+			$httpBackend.expectPUT(new RegExp(CLMAppLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(response);
 		});
 	}
 

@@ -9,7 +9,7 @@
 
     var labelModule = angular.module('Labels', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-    labelModule.controller('LabelController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
+    labelModule.controller('LabelController', ['$scope', '$http', 'CLMAppLocations', function ($scope, $http, clmAppLocations) {
         function errorFn(data, status, headersFn, config) {
             var header = headersFn();
             if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
@@ -25,7 +25,7 @@
 			$scope.editorUrl = '';
 		}
 
-        $http.get(clmLocations.getLabelsUrl(), {
+        $http.get(clmAppLocations.getLabelsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
                 $scope.labels = data;
@@ -49,7 +49,7 @@
 
         $scope.deleteLabel = function () {
             $scope.deletedEnabled = false;
-            $http['delete'](clmLocations.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
+            $http['delete'](clmAppLocations.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
                 var index = null;
                 angular.forEach($scope.labels, function (candidate, key) {
                     if (candidate.id === $scope.selectedLabel.id) {
@@ -74,7 +74,7 @@
 		});
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', function ($scope, $http, hudson, clmAppLocations) {
 
         function errorFn(data, status, headersFn, config) {
             $scope.submitActive = false;
@@ -108,12 +108,12 @@
             var label = $scope.selectedLabel;
             $scope.submitActive = true;
             if (label.id == null) {
-                hudson.post(clmLocations.getLabelsUrl(), label).success(function (data) {
+                hudson.post(clmAppLocations.getLabelsUrl(), label).success(function (data) {
                     $scope.labels.push(data);
 					$scope.$emit('labels.cancelEditLabel', label);
                 }).error(errorFn);
             } else {
-                $http.put(clmLocations.getLabelsUrl(), label).success(function (data) {
+                $http.put(clmAppLocations.getLabelsUrl(), label).success(function (data) {
                     angular.forEach($scope.labels, function (labelCandidate, key) {
                         if (data.id === labelCandidate.id) {
                             $scope.labels[key] = data;

@@ -9,7 +9,7 @@
 
     var licenseGroupModule = angular.module('LicenseGroup', ['AngularCommon']);
 
-    licenseGroupModule.controller('InsightLicenseGroupController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
+    licenseGroupModule.controller('InsightLicenseGroupController', ['$scope', '$http', 'CLMLocations', 'CLMAppLocations', function ($scope, $http, clmLocations, clmAppLocations) {
         function sortLicense(a, b) {
             if (a.id < b.id) {
                 return -1;
@@ -43,12 +43,12 @@
         $scope.allLicenses = null;
 
 
-        $http.get(clmLocations.getLicenseGroupsUrl(), {
+        $http.get(clmAppLocations.getLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
             $scope.licenseGroups = data;
             angular.forEach($scope.licenseGroups, function (group, index) {
-                $http.get(clmLocations.getLicenseGroupLicensesUrl(group), {
+                $http.get(clmAppLocations.getLicenseGroupLicensesUrl(group), {
                     params: { timestamp: new Date().getTime() }
                 }).success(function (data) {
                         group.licenses = data;
@@ -117,7 +117,7 @@
 
         $scope.deleteLicenseGroup = function () {
             $scope.deletedEnabled = false;
-            $http['delete'](clmLocations.getDeleteLicenseGroupUrl($scope.selectedGroup)).success(function () {
+            $http['delete'](clmAppLocations.getDeleteLicenseGroupUrl($scope.selectedGroup)).success(function () {
                 angular.forEach($scope.licenseGroups, function (licenseCandidate, key) {
                     if (licenseCandidate.id === $scope.selectedGroup.id) {
                         $scope.licenseGroups.splice(key, 1);
@@ -136,7 +136,7 @@
 		});
     }]);
 
-    licenseGroupModule.controller('InsightLicenseGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', function ($scope, $filter, $http, hudson, clmLocations) {
+    licenseGroupModule.controller('InsightLicenseGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', function ($scope, $filter, $http, hudson, clmLocations, clmAppLocations) {
         $scope.threatLevels = [
             {'value': 10, 'name': '10'},
             {'value': 9, 'name': '9'},
@@ -195,8 +195,8 @@
                 });
 
                 if (licenseGroup.id == null) {
-                    hudson.post(clmLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
-                        $http.put(clmLocations.getLicenseGroupLicensesUrl(group), licenseIds).success(function (licenses) {
+                    hudson.post(clmAppLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
+                        $http.put(clmAppLocations.getLicenseGroupLicensesUrl(group), licenseIds).success(function (licenses) {
                             group.licenses = licenses;
                             $scope.licenseGroups.push(group);
                         }).error(onError);
@@ -204,8 +204,8 @@
                         $scope.$emit('license.cancelLicenseGroupEdit');
                     }).error(onError);
                 } else {
-                    $http.put(clmLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
-                        $http.put(clmLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
+                    $http.put(clmAppLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
+                        $http.put(clmAppLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
                             angular.forEach($scope.licenseGroups, function (licenseCandidate, key) {
                                 if (group.id === licenseCandidate.id) {
                                     $scope.licenseGroups[key] = group;

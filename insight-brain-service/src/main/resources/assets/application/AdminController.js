@@ -42,8 +42,8 @@
         
         $scope.onFileChanged = function() {
             $('#eulaModal').modal('show');
-        }
-        
+        };
+
         $scope.viewInstall = function() {
             $scope.showInstall = true;
         };
@@ -82,7 +82,7 @@
 					showLicense();
                 } else {
 					setTimeout(function () {
-					    showError(content);
+						showError(content);
 					}, 0);
                 }
             }

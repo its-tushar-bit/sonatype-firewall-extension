@@ -1,3 +1,7 @@
+#
+# NOTE: The indentation in this file is crucial for proper processing. Please keep the existing indentation when editing it.
+#
+
 # Directory for data files.
 sonatypeWork: ./sonatype-work/clm-server
 

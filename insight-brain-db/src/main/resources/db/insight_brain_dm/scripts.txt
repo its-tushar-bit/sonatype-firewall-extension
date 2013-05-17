@@ -7,3 +7,6 @@ license_category_update.sql
 multi_license_spdx.sql
 multi_license_sonatype.sql
 multi_license_license.sql
+license_sonatype_non_standard.sql
+multi_license_sonatype_non_standard.sql
+multi_license_license_non_standard.sql

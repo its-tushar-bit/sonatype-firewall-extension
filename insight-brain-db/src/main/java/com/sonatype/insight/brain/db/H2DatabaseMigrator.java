@@ -62,13 +62,13 @@ public class H2DatabaseMigrator
                 currentVersion = defaultCurrentVersion;
             }
 
-            log.info( "Current database version: {}", currentVersion );
+            log.info( "Current version of database {}: {}", databaseFilename, currentVersion );
             if ( currentVersion >= desiredVersion )
             {
                 return;
             }
 
-            log.info( "Migrating database to version: {}", desiredVersion );
+            log.info( "Migrating database {} to version: {}", databaseFilename, desiredVersion );
             log.info( " Database dir: {}", databaseDir );
 
             File backupDir = new File( databaseDir, "backup" );

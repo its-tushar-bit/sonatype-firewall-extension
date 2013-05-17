@@ -33,5 +33,9 @@
 			<key>clm.allowedClmStages</key>
 			<value>Procure,Develop,Build,StageRelease,Release</value>
 		</property>
+		<property>
+			<key>clm.maxUsers</key>
+			<value>100</value>
+		</property>
 	</properties>
 </license>

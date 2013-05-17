@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.yammer.dropwizard.config.HttpConfiguration;
+import com.yammer.dropwizard.util.Duration;
 
 /**
  * Custom {@link HttpConfiguration} with updated defaults. We used to set them externally in InsightConfig, but if
@@ -34,5 +35,6 @@ public class HttpConfig
     {
         setPort( 8070 );
         setAdminPort( 8071 );
+        setMaxIdleTime( Duration.minutes( 15 ) );
     }
 }

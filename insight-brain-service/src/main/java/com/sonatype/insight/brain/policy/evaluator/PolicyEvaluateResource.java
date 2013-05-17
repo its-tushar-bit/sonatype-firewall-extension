@@ -119,7 +119,7 @@ public class PolicyEvaluateResource
 
         if ( bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null )
         {
-            throw new BadRequestException( "Unable to evaluate policy for report." );
+            throw new BadRequestException( "Unable to evaluate policy, the scan " + scanId + " could not be processed" );
         }
 
         final List<Component> components =

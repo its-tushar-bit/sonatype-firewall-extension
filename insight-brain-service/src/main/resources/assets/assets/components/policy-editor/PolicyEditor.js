@@ -342,7 +342,7 @@
 								switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
 									case "PercentageValueType":
 									case "IntegerValueType":
-										var value = parseInt(condition.value);
+										var value = parseInt(condition.value, 10);
 										if (!isNaN(value)) {
 											condition.value = value;
 										}

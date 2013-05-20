@@ -62,7 +62,7 @@ var angularCommon;
 					if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 						scope.errorResponse = 'Server Error';
 					} else if (status === 0) {
-						$scope.errorResponse = 'Unable to connect to CLM server';
+						scope.errorResponse = 'Unable to connect to CLM server';
 					} else {
 						scope.errorResponse = data;
 					}

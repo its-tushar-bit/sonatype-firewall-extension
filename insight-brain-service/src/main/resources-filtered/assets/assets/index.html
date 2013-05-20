@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<html lang="en" ng-app="managementApp">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>CLM Management</title>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+	<link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet">
+    <link href="../css/management.css?${build.timestamp}" rel="stylesheet"/>
+    <link rel='shortcut icon' href='../favicon.ico'/>
+    <script type='text/javascript'>
+        var clmBuildTimestamp = '${build.timestamp}';
+    </script>
+    <script src='../jquery/jquery-1.8.3.min.js'></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+    <script src='../angular/angular-1.0.6.min.js'></script>
+    <script src='../angular/angular-sanitize-1.0.6.min.js'></script>
+    <script src='//angular-ui.github.com/ui-router/build/angular-ui-states.js'></script>
+    <script src='../ManagementApp.js?${build.timestamp}'></script>
+</head>
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div ui-view="navbar"></div>
+		</div>
+	</div>
+	<div class="navbar navbar-inverse navbar-fixed-top navbar-second-row">
+		<div class="navbar-inner">
+			<div ui-view="subnavbar"></div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row third-row">
+			<div class="span2 navigation">
+				<div ui-view="navigation"></div>
+			</div>
+			<div class="span3">
+				<div ui-view="subnavigation"></div>
+			</div>
+			<div class="span6">
+
+			</div>
+		</div>
+	</div>
+</body>
+</html>

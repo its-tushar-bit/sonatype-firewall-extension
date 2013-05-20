@@ -1,0 +1,13 @@
+<div class="container-fluid">
+	<div class="btn-group">
+		<button class="btn btn-inverse">{{ selectedDashboard }}</button>
+		<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown">
+	  		<span class="caret"></span>
+		</button>
+		<ul class="dropdown-menu">
+			<li ng-repeat="dashboard in availableDashboards">
+				<a href='#' ng-click='changeDashboard(dashboard);'>{{ dashboard }}</a>
+			</li>
+	  	</ul>
+	</div>
+</div>

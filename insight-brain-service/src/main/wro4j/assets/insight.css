@@ -75,7 +75,7 @@ input[type="file"] {
 }
 
 .fullWidthPrependedTextBox > input {
-    width: 90%;
+    width: 545px;
 }
 
 .emptyIconGlyph {

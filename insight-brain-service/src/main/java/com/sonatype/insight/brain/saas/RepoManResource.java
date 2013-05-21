@@ -24,7 +24,7 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
 @Path( RepoManResource.SERVICE_PATH )
-@ProductLicenseEnforcementPoint( { CLMEnforcementPoint.StageRelease } )
+@ProductLicenseEnforcementPoint( { CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release } )
 @Named
 public class RepoManResource
 {

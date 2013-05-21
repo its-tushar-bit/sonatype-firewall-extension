@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.net.URL;
+import java.util.EnumSet;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
@@ -70,10 +71,22 @@ public class RepoManResourceTest
     public void testUploadScan_EnforcementPointUnlicensed()
         throws Exception
     {
-        //note this enforcement point should not apply to this request
-        setEnforcementPoints( CLMEnforcementPoint.Build );
+        //note these enforcement point should not apply to this request
+        setEnforcementPoints( CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop, CLMEnforcementPoint.Procure );
 
         Response response = RestAccess.put( getServiceURL() + "/scan/unlicensedappid", "" );
         assertResponseStatus( 402, response );
+    }
+
+    @Test
+    public void testUploadScan_EnforcementPointLicensed()
+        throws Exception
+    {
+        for ( CLMEnforcementPoint ep : EnumSet.of( CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release ) )
+        {
+            setEnforcementPoints( ep );
+            Response response = RestAccess.put( getServiceURL() + "/scan/unknownappid", "" );
+            assertResponseStatus( 404, response );
+        }
     }
 }

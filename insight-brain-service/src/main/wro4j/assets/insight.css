@@ -49,7 +49,8 @@ input.editor-checkbox {
 }
 
 input[type="file"] {
-	line-height: 18px;
+	line-height: normal;
+	height:auto;
 }
 
 .checkbox-edit-cell {

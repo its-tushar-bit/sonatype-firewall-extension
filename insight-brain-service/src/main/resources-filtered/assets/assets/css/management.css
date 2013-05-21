@@ -61,10 +61,7 @@ a.brand:hover {
 }
 
 .third-row { 
-    top: 95px;
-    left: 0px;
-    position: fixed;
-    height: 100%;
+    margin-top: 95px;
 }
 
 .third-row div {
@@ -74,7 +71,12 @@ a.brand:hover {
 .navigation {
 	background: black;
 	width: 150px;
-	float: left;
+    position: fixed;
+    height: 100%;
+}
+
+.subnavigation {
+	margin-left: 150px;
 }
 
 .subnavigation-collapsed {

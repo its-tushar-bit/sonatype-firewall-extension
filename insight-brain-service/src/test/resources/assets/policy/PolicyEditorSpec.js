@@ -251,17 +251,24 @@ describe('PolicyEditor', function() {
 	}));
 	
 	// Test the manipulation of the DOM due to changing models. This test should be moved to a browser based tester such as Selenium at one point
-	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile, CLMAppLocations) {
+	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile, CLMAppLocations) {	
 		var modulePackage = getConstraintEditorController();
 		var scope = modulePackage.scope;
 		var policyEditorHTML;
 		
 		$httpBackend.expectGET('../assets/components/notification-manager/notification-manager.html?').respond('<div></div>');
 		
+		var policyEditorUrl;
+		if (location.hostname) {
+			policyEditorUrl = 'src/main/resources/assets/assets/components/policy-editor/policy-editor.html';
+		} else {
+			policyEditorUrl = 'src/assets/components/policy-editor/policy-editor.html'; 
+		}
+		
 		$.ajax({
 			async: false,
 			dataType: 'html',
-			url: 'src/assets/components/policy-editor/policy-editor.html',
+			url: policyEditorUrl,
 			success: function(data) {
 				policyEditorHTML = data;
 			}
@@ -281,9 +288,6 @@ describe('PolicyEditor', function() {
 		$compile(body)(scope);
 		
 		scope.$broadcast('policy.editConstraint', constraint);
-		
-		var constraintModal = angular.element('#editConstraintModal');
-		expect(constraintModal.attr('class')).toEqual('modal hide fade ng-scope in');
 
 		scope.$digest();
 		
@@ -327,6 +331,8 @@ describe('PolicyEditor', function() {
 		expect(conditionOptions.length).toEqual(4);
 		expect(conditionOptions[0].text).toEqual('Open');
 		expect(conditionOptions[0].value).toEqual('0');
+		
+		angular.element('#policyEditor').remove();
 	}));
 
 	// TODO Test Response of PolicyEditorController to events from Constraint Controller

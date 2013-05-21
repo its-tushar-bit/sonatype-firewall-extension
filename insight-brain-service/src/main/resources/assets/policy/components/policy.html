@@ -33,7 +33,7 @@
 					<div ng-pluralize count='getActionCount(policy)'
 						when="{ '0': 'No actions assigned',
 								'1': '1 Action assigned',
-								'other': '{{policy.summary.actionCount}} Actions assigned'
+								'other': '{{getActionCount(policy)}} Actions assigned'
 						}"></div>
 					<ul style="list-style:none;"><li>{{getActions(policy)}}</li></ul>
 				</div>

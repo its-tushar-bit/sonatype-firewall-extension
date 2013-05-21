@@ -251,7 +251,7 @@ describe('PolicyEditor', function() {
 	}));
 	
 	// Test the manipulation of the DOM due to changing models. This test should be moved to a browser based tester such as Selenium at one point
-	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile) {
+	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile, CLMAppLocations) {
 		var modulePackage = getConstraintEditorController();
 		var scope = modulePackage.scope;
 		var policyEditorHTML;
@@ -276,8 +276,10 @@ describe('PolicyEditor', function() {
 			operator : 'OR'
 		};
 
+		$httpBackend.expectGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
+		
 		$compile(body)(scope);
-
+		
 		scope.$broadcast('policy.editConstraint', constraint);
 		
 		var constraintModal = angular.element('#editConstraintModal');
@@ -293,7 +295,7 @@ describe('PolicyEditor', function() {
 		var conditionTypeSelector = angular.element('[ng-model="condition.conditionTypeId"]');
 		conditionTypeSelector.val('Coordinates');
 		expect(conditionTypeSelector.find('option:selected').val()).toEqual('Coordinates');
-		
+			
 		var changeEvent = document.createEvent('HTMLEvents');
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);

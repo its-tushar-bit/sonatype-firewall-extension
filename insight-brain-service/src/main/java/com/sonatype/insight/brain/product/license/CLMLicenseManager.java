@@ -2,7 +2,6 @@ package com.sonatype.insight.brain.product.license;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -154,7 +153,8 @@ public class CLMLicenseManager
             return;
         }
 
-        Set<CLMEnforcementPoint> licensed = EnumSet.copyOf( Arrays.asList( licenseCache.getEnforcementPoints() ) );
+        Set<CLMEnforcementPoint> licensed = EnumSet.noneOf( CLMEnforcementPoint.class );
+        Collections.addAll( licensed, licenseCache.getEnforcementPoints() );
         for ( CLMEnforcementPoint requested : enforcementPoints )
         {
             if ( licensed.contains( requested ) )

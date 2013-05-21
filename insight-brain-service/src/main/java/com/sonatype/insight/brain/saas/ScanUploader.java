@@ -70,7 +70,7 @@ public class ScanUploader
             FileUtils.rename( scanFile, new File( scanDir, "scan-" + result.getScanId() + ".xml.gz" ) );
         }
 
-        log.debug( "Successfully uploaded scan id {}" + result.getScanId() );
+        log.debug( "Successfully uploaded scan id {}", result.getScanId() );
 
         return result;
     }

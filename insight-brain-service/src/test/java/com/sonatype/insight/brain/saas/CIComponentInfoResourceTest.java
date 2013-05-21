@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -26,13 +27,23 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
 public class CIComponentInfoResourceTest
     extends AbstractResourceTest
 {
+    @Before
+    public void clearEnforcementPointsFromLicense()
+        throws Exception
+    {
+        /*
+         * License restrictions on enforcement points are checked when uploading scan data, report data retrieval is
+         * permitted with any valid license, so these tests should not require any enforcement point in the license.
+         */
+        setEnforcementPoints();
+    }
+
     @Test
     public void testGetSelectableLicenses()
         throws Exception
@@ -93,34 +104,12 @@ public class CIComponentInfoResourceTest
         Response response = RestAccess.get( getSelectableLicensesServiceURL( "unlicensedappid", "ulg", "ula", "ulv" ) );
         assertResponseStatus( 402, response );
     }
-    
-    @Test
-    public void testGetSelectableLicenses_EnforcementPointUnlicensed()
-        throws Exception
-    {
-        //note this enforcement point should not apply to this request
-        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
-
-        Response response = RestAccess.get( getSelectableLicensesServiceURL( "unlicensedappid", "ulg", "ula", "ulv" ) );
-        assertResponseStatus( 402, response );
-    }
 
     @Test
     public void testGetComponentDetailsList_Unlicensed()
         throws Exception
     {
         uninstallLicense();
-        Response response = RestAccess.get( getComponentDetailsListUrl( "unlicensedappid", "ulg", "ula", "ulv" ) );
-        assertResponseStatus( 402, response );
-    }
-
-    @Test
-    public void testGetComponentDetailsList_EnforcementPointUnlicensed()
-        throws Exception
-    {
-        // note this enforcement point should not apply to this request
-        setEnforcementPoints( CLMEnforcementPoint.StageRelease );
-
         Response response = RestAccess.get( getComponentDetailsListUrl( "unlicensedappid", "ulg", "ula", "ulv" ) );
         assertResponseStatus( 402, response );
     }

@@ -46,6 +46,16 @@ a.brand:hover {
 	color: black;
 }
 
+.btn-black {
+	color: #ffffff;
+	text-shadow:0 -1px 0 rgba(0, 0, 0, 0.25);
+ 	background: none black !important;
+	border-color: black !important;
+	box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+}
+
 .third-row { 
     top: 88px;
     left: 0px;

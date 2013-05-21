@@ -27,7 +27,7 @@ describe('PolicyEditor', function() {
 		
 		var modulePackage = getController('PolicyEditorController');
 		
-		modulePackage.isSaveDisabled = function () { return modulePackage.scope.policyEditor.$invalid || !(modulePackage.scope.state.currentPolicy && modulePackage.scope.state.currentPolicy.constraints.length > 0) };
+		modulePackage.isSaveDisabled = function () { return modulePackage.scope.policyEditor.$invalid || !(modulePackage.scope.state.currentPolicy && modulePackage.scope.state.currentPolicy.constraints.length > 0); };
 		
 		var nameInput = angular.element("<input type='text' id='policyName' name='policyName' placeholder='Enter Policy Name...' ng-model='state.currentPolicy.name' required is-Duplicate is-Duplicate-Array='policies' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'>");
 		var body = angular.element('body').append("<form id='policyEditor' name='policyEditor'></form>").find('#policyEditor').append(nameInput);

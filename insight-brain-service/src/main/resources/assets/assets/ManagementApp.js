@@ -6,18 +6,32 @@
 (function(){
 	"use strict";
 	
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
+	var dashboardStores = angular.module('dashboardStores', ['CLMLocation', 'ResourceModule', 'Hudson']);
+	
+	dashboardStores.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
+		var applicationStore = clmResource.getStore({
+			id : 'id',
+			url : clmLocations.getApplicationsUrl(),
+			template : { id: null, publicId: null, name: null },
+			params : {
+				timestamp : new Date().getTime()
+			}
+		});
+		return applicationStore;
+	}]);
+	
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'dashboardStores'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
-		}).state('Management', {
+		}).state('management', {
 			url : '/management',
 			templateUrl : '../management.html',
 			controller : function($scope) {
 				$scope.managementPanes = [
               		{
               			name: 'Applications',
-              			state: 'application',
+              			state: 'management/application',
               			isEnabled: true,
               			isSelected: true
               		},
@@ -40,10 +54,10 @@
 					state: 'management'
 				};
 			}
-		}).state('application', {
-			parent : 'Management',
+		}).state('management.application', {
+			parent : 'management',
 			url : '/application',
-			controller : angular.noop,
+			controller : 'applicationController',
 			templateUrl : '../../application-assets/application.html'
 		});
 		$routeProvider.when('', { redirectTo : '/management' });
@@ -62,5 +76,16 @@
 				name: 'Reports',
 				state: 'reports'
 			}];
+	});
+
+	
+	dashboardApp.controller('applicationController', function($scope, $state, $q, applicationStore) {
+		$scope.$state = $state;
+		
+		applicationStore.get().then(function(applications) {
+			$scope.applications = applications;
+		}, function (error) {
+			alert(error.data);
+		});
 	});
 }());

@@ -23,6 +23,10 @@
     <script src='../angular/angular-1.0.6.min.js'></script>
     <script src='../angular/angular-sanitize-1.0.6.min.js'></script>
     <script src='//angular-ui.github.com/ui-router/build/angular-ui-states.js'></script>
+    <script src='../CLMLocation.js?${build.timestamp}'></script>
+    <script src='../AngularCommon.js?${build.timestamp}'></script>
+    <script src='../js/Resource.js?${build.timestamp}'></script>
+    <script src='../js/Hudson.js?${build.timestamp}'></script>
     <script src='../ManagementApp.js?${build.timestamp}'></script>
 </head>
 <body ng-controller='dashboardController'>
@@ -62,7 +66,7 @@
 		</div>
 	</div>
 	<div class="container">
-		<div class="row third-row">
+		<div class="third-row">
 			<div ui-view />
 		</div>
 	</div>

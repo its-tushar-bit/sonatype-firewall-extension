@@ -1,14 +1,8 @@
-<div class="span2">
-	
+<div class="subnavigation">
+	<ul class="nav nav-list">
+		<li ng-repeat='application in applications' ng-class="{'active': application.isSelected}">
+			<a href='#/management/application/{{application.id}}'>{{application.name}}</a>
+		</li>
+	</ul>
 </div>
-<div class="span8">
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut scelerisque tristique laoreet. Quisque nisl velit, aliquam a imperdiet in, hendrerit eu turpis. Maecenas scelerisque malesuada feugiat. Morbi libero sapien, blandit vel eleifend vel, tempor quis eros. Morbi sed elit arcu, eu molestie dui. Fusce facilisis ornare consectetur. Donec tempor ipsum pharetra justo auctor pulvinar non et orci. Etiam in massa sit amet nunc pulvinar lobortis a sed risus. Praesent et lectus in nisl lacinia pellentesque id sed libero. Quisque at eros eu nisl aliquet iaculis.
-
-In pulvinar purus eget eros feugiat eget malesuada lectus ornare. Nunc vitae odio nulla. Suspendisse a feugiat libero. Suspendisse egestas tempor mollis. Proin ac enim a ligula sagittis aliquet eu id neque. Morbi imperdiet tellus gravida erat pharetra dictum. Sed ut posuere felis. Nunc dignissim adipiscing consectetur. Nunc ultrices euismod lobortis. Aliquam eu lobortis diam. Proin feugiat, mi at malesuada auctor, nisi purus rutrum nulla, et commodo augue arcu non diam. Aliquam convallis vestibulum arcu, in malesuada leo adipiscing ac. Vivamus tempus tortor sit amet risus fringilla hendrerit. Suspendisse porttitor viverra massa vitae malesuada. Donec vel turpis vitae tellus blandit condimentum vitae sit amet enim. Ut volutpat risus id elit ullamcorper consectetur.
-
-Ut viverra, dui et aliquam pellentesque, quam lacus lobortis justo, non porta turpis sapien sit amet erat. Vivamus placerat, velit eget elementum scelerisque, lectus neque feugiat leo, eu pulvinar ante velit ut nibh. Donec egestas auctor purus quis posuere. Donec nec neque in erat mollis porta sit amet eu arcu. Quisque quam metus, tincidunt et consectetur ut, consequat quis diam. Integer vitae est in leo iaculis hendrerit auctor sit amet nibh. Pellentesque urna risus, vehicula sed luctus et, vehicula vel ante. Sed ultricies quam at justo ullamcorper dictum. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-Pellentesque urna lectus, aliquet ut egestas at, pharetra eu lorem. Vivamus in est sed lorem hendrerit mattis. Morbi ut massa dui. Sed eros quam, porttitor id varius sed, auctor a dolor. Duis adipiscing viverra pharetra. Donec vitae massa ante. Mauris non dolor in dui luctus luctus at molestie nunc. Vivamus eu urna ipsum, vel feugiat nisi. Mauris dapibus porttitor purus a pharetra. Sed lobortis ornare magna at aliquam. Morbi id nulla id tortor gravida sagittis commodo sit amet risus. Phasellus sed tortor erat, sed sollicitudin turpis. Mauris dapibus ultricies odio. Sed dictum odio et nibh mattis eget tincidunt sapien molestie. Vivamus massa nulla, lacinia sed pretium eget, molestie id erat.
-
-Donec porttitor dictum nibh, non consectetur nisl posuere sed. Vestibulum massa quam, interdum et consectetur et, elementum eu eros. Nam nec ante sit amet neque consequat consectetur sagittis et nibh. Nullam ut nunc quis neque malesuada tincidunt non ut lectus. Integer pellentesque, ligula id fringilla condimentum, magna nisl consectetur urna, ut fermentum felis mauris nec libero. Sed ornare eros vitae neque aliquet vehicula. Etiam et orci quis ante rutrum mattis. Proin nec turpis libero. Mauris porta, enim id posuere consequat, erat magna cursus augue, vitae pulvinar ipsum enim quis leo. Morbi volutpat porta felis, ut rhoncus enim tincidunt quis.
-</div>
+<div ui-view></div>

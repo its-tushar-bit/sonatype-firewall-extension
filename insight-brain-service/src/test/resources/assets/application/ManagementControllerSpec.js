@@ -69,7 +69,8 @@ describe('ApplicationManagementController', function () {
 		
 		var nameInput = angular.element("<input id='applicationName' name='applicationName' type='text' ng-model='selectedApplication.name' required alpha-Numeric is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='true' has-Whitespace='suggestedApplicationName'/>");
 		var idInput = angular.element("<input id='applicationPublicId' name='applicationPublicId' type='text' ng-model='selectedApplication.publicId' required is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id'/>");
-		var body = angular.element('body').append("<form id='applicationEditor' name='applicationEditor'></form>").find('#applicationEditor').append(nameInput).append(idInput);
+		var iconInput = angular.element("<input name='file' id='file' type='file' accept='image/*' style='display:block;' />");
+		var body = angular.element('body').append("<form id='applicationEditor' name='applicationEditor'></form>").find('#applicationEditor').append(nameInput).append(idInput).append(iconInput);
 
 		compile(body)(scope);
 

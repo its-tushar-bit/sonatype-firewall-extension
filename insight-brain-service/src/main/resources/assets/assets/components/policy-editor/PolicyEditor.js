@@ -76,15 +76,15 @@
 		var conditionTypeStore = clmResource.getStore({
 				id : 'id',
 				url : clmLocations.getConditionTypeUrl()
-			}),
-			conditionValueTypeStore = clmResource.getStore({
-				id : 'id',
-				url : clmAppLocations.getConditionValueTypeUrl()
-			}),
-			conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
+			});
 
 		return {
 			'get' : function () {
+				var conditionValueTypeStore = clmResource.getStore({
+						id : 'id',
+						url : clmAppLocations.getConditionValueTypeUrl()
+					}),
+					conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
 				return conditionDeferred;
 			}
 		};

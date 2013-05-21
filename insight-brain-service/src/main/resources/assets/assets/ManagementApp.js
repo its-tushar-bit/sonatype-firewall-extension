@@ -6,55 +6,61 @@
 (function(){
 	"use strict";
 	
-	var managementApp = angular.module('managementApp', ['ui.compat'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
 		$stateProvider.state('home', {
 			url : '/',
-			controller : angular.noop,
-			views: {
-				'navbar' : {
-					templateUrl : '../navbar.html',
-					controller : angular.noop
-				},
-				'subnavbar' : {
-					templateUrl : '../subnavbar.html',
-					controller : function($scope) {
-						$scope.availableDashboards = [ 'Dashboard', 'Management', 'Reports' ];
-						$scope.selectedDashboard = 'Management';
-						
-						$scope.changeDashboard = function(dashboard) {
-							alert(dashboard + ' is not availabe.');
-						};
-					}
-				},
-				'navigation' : {
-					templateUrl : '../navigation.html',
-					controller : function($scope) {
-						$scope.managementPanes = [
-                      		{
-                      			name: 'Applications',
-                      			isEnabled: true,
-                      			isSelected: true
-                      		},
-                      		{
-                      			name: 'Organizations',
-                      			isEnabled: true
-                      		},
-                      		{
-                      			name: 'Security',
-                      			isEnabled: true
-                      		},
-                      		{
-                      			name: 'Metadata',
-                      			isEnabled: false
-                      		}];
-					}
-				},
-				'subnavigation' : {
-					templateUrl : '../subnavigation.html',
-					controller : angular.noop
-				}
+			controller : angular.noop
+		}).state('Management', {
+			url : '/management',
+			templateUrl : '../management.html',
+			controller : function($scope) {
+				$scope.managementPanes = [
+              		{
+              			name: 'Applications',
+              			state: 'application',
+              			isEnabled: true,
+              			isSelected: true
+              		},
+              		{
+              			name: 'Organizations',
+              			isEnabled: true
+              		},
+              		{
+              			name: 'Security',
+              			isEnabled: true
+              		},
+              		{
+              			name: 'Metadata',
+              			isEnabled: false
+              		}];
+			},
+			onEnter : function($state) {
+				$state.selectedDashboard = {
+					name: 'Management',
+					state: 'management'
+				};
 			}
+		}).state('application', {
+			parent : 'Management',
+			url : '/application',
+			controller : angular.noop,
+			templateUrl : '../../application-assets/application.html'
 		});
-		$routeProvider.when('', { redirectTo : '/' });
+		$routeProvider.when('', { redirectTo : '/management' });
 	}]);
+	
+	dashboardApp.controller('dashboardController', function($scope, $state) {
+		$scope.$state = $state;
+		$scope.availableDashboards = [ 
+			{
+				name: 'Dashboard',
+				state: 'dashboard'
+			}, {
+				name: 'Management',
+				state: 'management'
+			}, {
+				name: 'Reports',
+				state: 'reports'
+			}];
+	});
 }());

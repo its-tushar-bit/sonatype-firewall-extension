@@ -1,0 +1,8 @@
+<div class="span2 navigation">
+	<ul class="nav nav-list">
+		<li ng-repeat='managementPane in managementPanes' ng-class="{'active': managementPane.isSelected, 'disabled': !managementPane.isEnabled}">
+			<a href='#/{{managementPane.state}}'>{{managementPane.name}}</a>
+		</li>
+	</ul>
+</div>
+<div ui-view></div>

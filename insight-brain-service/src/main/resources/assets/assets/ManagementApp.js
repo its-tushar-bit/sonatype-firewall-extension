@@ -20,7 +20,7 @@
 		return applicationStore;
 	}]);
 	
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'dashboardStores'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'dashboardStores'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -58,7 +58,12 @@
 			parent : 'management',
 			url : '/application',
 			controller : 'applicationController',
-			templateUrl : '../../application-assets/application.html'
+			templateUrl : '../../application-assets/components/application-navigator.html'
+		}).state('management.application.view', {
+			parent : 'management.application',
+			url : '/{id}',
+			controller : 'applicationEditorController',
+			templateUrl : '../../application-assets/components/application-editor.html'
 		});
 		$routeProvider.when('', { redirectTo : '/management' });
 	}]);
@@ -79,11 +84,26 @@
 	});
 
 	
-	dashboardApp.controller('applicationController', function($scope, $state, $q, applicationStore) {
+	dashboardApp.controller('applicationController', function($scope, $state, applicationStore) {
 		$scope.$state = $state;
 		
 		applicationStore.get().then(function(applications) {
 			$scope.applications = applications;
+		}, function (error) {
+			alert(error.data);
+		});
+	});
+	
+	dashboardApp.controller('applicationEditorController', function($scope, $state, applicationStore) {
+		$scope.$state = $state;
+		
+		applicationStore.get().then(function(applications) {
+			for (var i = 0; i < applications.length; i++) {
+				if (applications[i].id == $scope.$state.params.id) {
+					$scope.selectedApplication = applications[i];
+					break;
+				}
+			}
 		}, function (error) {
 			alert(error.data);
 		});

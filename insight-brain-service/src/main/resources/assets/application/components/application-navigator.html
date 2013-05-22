@@ -1,4 +1,4 @@
-<div class="subnavigation">
+<div class="subnavigation" ng-class="{'subnavigation-collapsed' : $state.params.id}">
 	<ul class="nav nav-list">
 		<li ng-repeat='application in applications' ng-class="{'active': application.isSelected}">
 			<a href='#/management/application/{{application.id}}'>{{application.name}}</a>

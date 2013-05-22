@@ -354,11 +354,6 @@
       <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.licensing</groupId>
-      <artifactId>license-extension</artifactId>
-      <version>1.3.2</version>
-    </dependency>
-    <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-multipart</artifactId>
     </dependency>

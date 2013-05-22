@@ -65,7 +65,6 @@ public class IdeResource
      * Requests an asset from the SaaS
      *
      * @return the response from the SaaS
-     * @throws IOException
      * @since 1.2
      */
     @GET
@@ -81,8 +80,7 @@ public class IdeResource
      *
      * @param scanType simple or enhanced though we do not enforce that in the Brain
      * @param applicationPublicId the public application id
-     * @return the scan result
-     * @throws IOException
+     * @return the result of the scan or a wait delta
      * @since 1.2
      */
     @GET
@@ -126,9 +124,8 @@ public class IdeResource
      * Submit a scan request, may return the result or a wait delta.
      *
      * @param scanType simple or enhanced though we do not enforce that in the Brain
-     * @param applicationPublicId the plu
-     * @return
-     * @throws IOException
+     * @param applicationPublicId the public applicationId
+     * @return the result of the scan or a wait delta
      * @since 1.2
      */
     @POST
@@ -163,7 +160,6 @@ public class IdeResource
     /**
      * Gets the list of available versions for a given GA from the SaaS. (e.g. for use by migration wizard)
      *
-     * @param req
      * @return the SaaS response
      * @throws IOException
      * @since 1.3
@@ -180,7 +176,6 @@ public class IdeResource
      * Access a Brain resource
      *
      * @param path the path from the brain root
-     * @return the response
      * @since 1.3
      */
     @GET

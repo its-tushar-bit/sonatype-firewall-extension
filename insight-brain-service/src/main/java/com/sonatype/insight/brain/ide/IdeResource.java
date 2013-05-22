@@ -61,6 +61,13 @@ public class IdeResource
     @Context
     private BaseUrl baseUrl;
 
+    /**
+     * Requests an asset from the SaaS
+     *
+     * @return the response from the SaaS
+     * @throws IOException
+     * @since 1.2
+     */
     @GET
     @Path( "asset/{path:.*}" )
     public Response getAsset( @PathParam( "path" ) String path, @Context HttpServletRequest req )
@@ -69,6 +76,15 @@ public class IdeResource
         return client.doProxy( req, "ide/{path}", path );
     }
 
+    /**
+     * Get the result from a scan request, or a wait delta
+     *
+     * @param scanType simple or enhanced though we do not enforce that in the Brain
+     * @param applicationPublicId the public application id
+     * @return the scan result
+     * @throws IOException
+     * @since 1.2
+     */
     @GET
     @Path( "scan/{scanType}/{applicationPublicId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
@@ -106,6 +122,15 @@ public class IdeResource
         return ideComponent;
     }
 
+    /**
+     * Submit a scan request, may return the result or a wait delta.
+     *
+     * @param scanType simple or enhanced though we do not enforce that in the Brain
+     * @param applicationPublicId the plu
+     * @return
+     * @throws IOException
+     * @since 1.2
+     */
     @POST
     @Path( "scan/{scanType}/{applicationPublicId}/{path:.*}" )
     @Produces( MediaType.APPLICATION_JSON )
@@ -135,6 +160,14 @@ public class IdeResource
         return ide;
     }
 
+    /**
+     * Gets the list of available versions for a given GA from the SaaS. (e.g. for use by migration wizard)
+     *
+     * @param req
+     * @return the SaaS response
+     * @throws IOException
+     * @since 1.3
+     */
     @GET
     @Path( "component/versions" )
     public Response getVersions( @Context HttpServletRequest req )
@@ -143,6 +176,13 @@ public class IdeResource
         return client.doProxy( req, "rest/ide/artifact/versions" );
     }
 
+    /**
+     * Access a Brain resource
+     *
+     * @param path the path from the brain root
+     * @return the response
+     * @since 1.3
+     */
     @GET
     @Path( "brain/{path:.*}" )
     public Response brainGet( final @PathParam( "path" ) String path )

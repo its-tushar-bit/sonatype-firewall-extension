@@ -61,11 +61,7 @@ a.brand:hover {
 }
 
 .third-row { 
-    margin-top: 95px;
-}
-
-.third-row div {
-	height: 100%;
+    margin: 95px 0 auto auto;
 }
 
 .navigation {
@@ -76,8 +72,12 @@ a.brand:hover {
 }
 
 .subnavigation {
+	width: 150px;
 	margin-left: 150px;
 	background: lightgrey;
+	position: fixed;
+	height: 100%;
+	overflow: auto;
 }
 
 .subnavigation-collapsed {
@@ -85,5 +85,40 @@ a.brand:hover {
 }
 
 .content {
-	left: 150px;
+	margin-left: 305px;
+}
+
+.content .nav-tabs {
+	border-bottom-color: black;
+}
+
+.content .nav-tabs>li {
+	line-height: 3px;
+}
+
+.content .nav-tabs>li>a {
+	color: black;
+}
+
+.content .nav-tabs>.active:after {
+	content: "\f0d8";
+	font-family: FontAwesome;
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: inherit;
+	-webkit-font-smoothing: antialiased;
+	font-size: 2em;
+	display: block;
+	text-align: center;
+	margin-top: -5px;
+}
+
+.content .nav-tabs>.active>a {
+	border: 0px;
+}
+
+.content .nav-tabs>li>a:hover, .nav-tabs>li>a:focus {
+	border: 0px;
+	background-color: #ffffff;
+	cursor: pointer;
 }

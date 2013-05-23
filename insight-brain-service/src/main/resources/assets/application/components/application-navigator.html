@@ -1,7 +1,7 @@
-<div class="subnavigation" ng-class="{'subnavigation-collapsed' : $state.params.id}">
+<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.id}">
 	<ul class="nav nav-list">
-		<li ng-repeat='application in applications' ng-class="{'active': application.isSelected}">
-			<a href='#/management/application/{{application.id}}'>{{application.name}}</a>
+		<li ng-repeat='application in applications' ng-class="{'active': $state.selectedApplication.id == application.id}">
+			<a href='#/management/application/{{application.id}}' ng-click='$state.selectedApplication = application'>{{application.name}}</a>
 		</li>
 	</ul>
 </div>

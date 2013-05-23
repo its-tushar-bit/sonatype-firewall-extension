@@ -80,8 +80,8 @@ a.brand:hover {
 	overflow: auto;
 }
 
-.subnavigation-collapsed {
-	float: left;
+.subnavigation-expanded {
+	width: 100%;
 }
 
 .content {

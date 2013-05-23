@@ -27,27 +27,7 @@
 		}).state('management', {
 			url : '/management',
 			templateUrl : '../management.html',
-			controller : function($scope) {
-				$scope.managementPanes = [
-              		{
-              			name: 'Applications',
-              			state: 'management/application',
-              			isEnabled: true,
-              			isSelected: true
-              		},
-              		{
-              			name: 'Organizations',
-              			isEnabled: true
-              		},
-              		{
-              			name: 'Security',
-              			isEnabled: true
-              		},
-              		{
-              			name: 'Metadata',
-              			isEnabled: false
-              		}];
-			},
+			controller : 'managementController',
 			onEnter : function($state) {
 				$state.selectedDashboard = {
 					name: 'Management',
@@ -58,7 +38,14 @@
 			parent : 'management',
 			url : '/application',
 			controller : 'applicationController',
-			templateUrl : '../../application-assets/components/application-navigator.html'
+			templateUrl : '../../application-assets/components/application-navigator.html',
+			onEnter : function($state) {
+				if ($state.current.name.indexOf("application.view") !== -1) {
+					if (!$state.params.id) {
+						$state.selectedApplication = null;
+					}
+				}
+			}
 		}).state('management.application.view', {
 			parent : 'management.application',
 			url : '/{id}',
@@ -83,12 +70,55 @@
 			}];
 	});
 
+	dashboardApp.controller('managementController', function($scope, $state) {
+		$scope.$state = $state;
+		
+		$scope.managementPanes = [
+    		{
+    			name: 'Applications',
+    			state: 'management/application',
+    			isEnabled: true
+    		},
+    		{
+    			name: 'Organizations',
+    			state: '',
+    			isEnabled: true
+    		},
+    		{
+    			name: 'Security',
+    			state: '',
+    			isEnabled: true
+    		},
+    		{
+    			name: 'Metadata',
+    			state: '',
+    			isEnabled: false
+    		}
+		];
+		
+		for (var i = 0; i < $scope.managementPanes.length; i++) {
+			var normalizedState = $scope.managementPanes[i].state.replace('/', '.');
+			if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
+				$scope.$state.selectedPane = $scope.managementPanes[i];
+				break;
+			}
+		}
+	});
 	
 	dashboardApp.controller('applicationController', function($scope, $state, applicationStore) {
 		$scope.$state = $state;
 		
 		applicationStore.get().then(function(applications) {
 			$scope.applications = applications;
+			
+			if ($scope.$state.current.name.indexOf("application.view") !== -1) {
+				for (var i = 0; i < $scope.applications.length; i++) {
+					if ($scope.$state.params.id === $scope.applications[i].id) {
+						$scope.$state.selectedApplication = $scope.applications[i];
+						break;
+					}
+				}
+			}
 		}, function (error) {
 			alert(error.data);
 		});
@@ -96,16 +126,5 @@
 	
 	dashboardApp.controller('applicationEditorController', function($scope, $state, applicationStore) {
 		$scope.$state = $state;
-		
-		applicationStore.get().then(function(applications) {
-			for (var i = 0; i < applications.length; i++) {
-				if (applications[i].id == $scope.$state.params.id) {
-					$scope.selectedApplication = applications[i];
-					break;
-				}
-			}
-		}, function (error) {
-			alert(error.data);
-		});
 	});
 }());

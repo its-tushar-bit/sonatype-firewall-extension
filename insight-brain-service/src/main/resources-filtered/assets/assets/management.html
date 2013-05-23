@@ -1,7 +1,7 @@
 <div class="navigation">
 	<ul class="nav nav-list">
-		<li ng-repeat='managementPane in managementPanes' ng-class="{'active': managementPane.isSelected, 'disabled': !managementPane.isEnabled}">
-			<a href='#/{{managementPane.state}}'>{{managementPane.name}}</a>
+		<li ng-repeat='managementPane in managementPanes' ng-class="{'active': $state.selectedPane.name == managementPane.name, 'disabled': !managementPane.isEnabled}">
+			<a href='#/{{managementPane.state}}' ng-click='$state.selectedPane = managementPane'>{{managementPane.name}}</a>
 		</li>
 	</ul>
 </div>

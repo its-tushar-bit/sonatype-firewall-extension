@@ -116,7 +116,7 @@ public class DefaultLicenseDataUpdaterTest
         }
         catch ( RuntimeException e )
         {
-            assertTrue( e.getMessage().startsWith( "Could not retrieve license data from SaaS:" ) );
+            assertTrue( e.getMessage(), e.getMessage().startsWith( "Could not retrieve license data from SaaS:" ) );
         }
     }
 

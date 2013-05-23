@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 public class DefaultLicenseDataUpdater
     extends LicenseDataUpdater
 {
-    public static final String SAAS_LICENSE_DATA_PATH = "rest/licenseData";
+    public static final String SAAS_LICENSE_PATH = "rest/license";
 
     private static final Logger log = LoggerFactory.getLogger( DefaultLicenseDataUpdater.class );
 
@@ -51,7 +51,7 @@ public class DefaultLicenseDataUpdater
         log.info( "Updating license data..." );
         try
         {
-            LicenseData licenseData = client.get( LicenseData.class, SAAS_LICENSE_DATA_PATH, null /* params */);
+            LicenseData licenseData = client.get( LicenseData.class, SAAS_LICENSE_PATH, null /* params */);
 
             LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
             LicenseDAO licenseDAO = new LicenseDAO();

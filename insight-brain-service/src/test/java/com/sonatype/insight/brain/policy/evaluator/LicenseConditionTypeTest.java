@@ -85,7 +85,7 @@ public class LicenseConditionTypeTest
         component1.addDeclaredLicenseId( "UNSPECIFIED" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
+        component2.addDeclaredLicenseId( "Apache-2.0" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -153,7 +153,7 @@ public class LicenseConditionTypeTest
         component1.addObservedLicenseId( "UNSPECIFIED" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
+        component2.addObservedLicenseId( "Apache-2.0" );
         components.add( component2 );
 
         // Evaluate the policy
@@ -189,8 +189,8 @@ public class LicenseConditionTypeTest
         component1.addOverriddenLicenseId( "Apache-2.0" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
-        component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
+        component2.addDeclaredLicenseId( "AFL-1.2" );
+        component2.addObservedLicenseId( "Apache-2.0" );
         component2.addOverriddenLicenseId( "UNSPECIFIED" );
         components.add( component2 );
 
@@ -227,8 +227,8 @@ public class LicenseConditionTypeTest
         component1.addOverriddenLicenseId( "Apache-2.0" );
         components.add( component1 );
         Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
-        component2.addDeclaredLicenseId( "AFL-1.2,Apache-2.0" );
-        component2.addObservedLicenseId( "AFL-1.2,Apache-2.0" );
+        component2.addDeclaredLicenseId( "AFL-1.2" );
+        component2.addObservedLicenseId( "Apache-2.0" );
         component2.addOverriddenLicenseId( "UNSPECIFIED" );
         components.add( component2 );
 

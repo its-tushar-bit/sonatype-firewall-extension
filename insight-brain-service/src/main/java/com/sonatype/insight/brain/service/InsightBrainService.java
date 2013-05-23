@@ -20,10 +20,12 @@ import com.google.common.cache.LoadingCache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
+import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 import com.sun.jersey.api.core.ResourceConfig;
@@ -56,6 +58,15 @@ public class InsightBrainService
         throws Exception
     {
         new InsightBrainService().run( args.length > 0 ? args : new String[] { "server" } );
+    }
+
+    @Override
+    public void run( InsightConfig configuration, Environment environment )
+        throws Exception
+    {
+        super.run( configuration, environment );
+
+        LicenseDataUpdater.setUpdater( getInjector().getInstance( DefaultLicenseDataUpdater.class ) );
     }
 
     @Override

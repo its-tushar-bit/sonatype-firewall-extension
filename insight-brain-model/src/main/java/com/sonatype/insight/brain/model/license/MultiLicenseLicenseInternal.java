@@ -6,10 +6,15 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 
+import com.sonatype.insight.model.HasStringId;
+
 @Entity
 @IdClass( MultiLicenseLicenseInternal.ID.class )
 @Table( name = "multi_license_license" )
+// TODO This class does NOT really have a string id. It implements HasStringId only to make it easier to create a DAO
+// for it.
 public class MultiLicenseLicenseInternal
+    implements HasStringId
 {
     @Id
     @Column( name = "multi_license_id" )
@@ -82,5 +87,16 @@ public class MultiLicenseLicenseInternal
     public void setLicenseId( String licenseId )
     {
         this.licenseId = licenseId;
+    }
+
+    @Override
+    public String getId()
+    {
+        return multiLicenseId + licenseId;
+    }
+
+    @Override
+    public void setId( String id )
+    {
     }
 }

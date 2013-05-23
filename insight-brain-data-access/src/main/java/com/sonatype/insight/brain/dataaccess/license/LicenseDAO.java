@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,13 +28,28 @@ public class LicenseDAO
     private static volatile Map<String, License> licensesById = null;
 
     @Override
+    public License getById( EntityManager em, String id )
+    {
+        String sQuery = "SELECT entity FROM License entity" + //
+            " WHERE entity.id=?1";
+        return get( em, sQuery, id );
+    }
+
+    @Override
     public License getById( String id )
     {
         if ( licensesById == null )
         {
             load();
         }
-        return licensesById.get( id );
+        License license = licensesById.get( id );
+        if ( license == null )
+        {
+            log.info( "Cannot find a license with id '{}'.  Refreshing license data.", id );
+            LicenseDataUpdater.update();
+            license = licensesById.get( id );
+        }
+        return license;
     }
 
     public License getByIdNotNull( String id )
@@ -45,7 +62,7 @@ public class LicenseDAO
         return license;
     }
 
-    private void load()
+    void load()
     {
         synchronized ( this.getClass() )
         {
@@ -74,20 +91,6 @@ public class LicenseDAO
 
             log.debug( "Loaded all licenses in {} ms.", System.currentTimeMillis() - start );
         }
-    }
-
-    @Override
-    public void insert( License license )
-    {
-        super.insert( license );
-        load();
-    }
-
-    @Override
-    public void delete( License license )
-    {
-        super.delete( license );
-        load();
     }
 
     public List<License> getAll()

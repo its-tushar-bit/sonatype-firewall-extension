@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.sonatype.inject.BeanScanning;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -42,6 +43,8 @@ public class TestInsightBrainService
     private Server testBrainServer;
 
     private Exception brainFault;
+
+    private LicenseDataUpdater savedLicenseDataUpdater;
 
     public void setHttpPort( final int port )
     {
@@ -108,6 +111,9 @@ public class TestInsightBrainService
         {
             throw new IllegalStateException( "Brain server already started" );
         }
+
+        // The brain server will set up a license updater on startup
+        savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
 
         new Thread( "TestInsightBrainService" )
         {
@@ -212,6 +218,8 @@ public class TestInsightBrainService
         {
             testBrainServer.stop();
             testBrainServer = null;
+
+            LicenseDataUpdater.setUpdater( savedLicenseDataUpdater );
         }
         if ( brainFault != null )
         {

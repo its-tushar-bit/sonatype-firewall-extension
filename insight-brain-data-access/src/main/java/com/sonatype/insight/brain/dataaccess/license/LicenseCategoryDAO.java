@@ -4,7 +4,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+
+import javax.persistence.EntityManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,13 @@ public class LicenseCategoryDAO
 
     private static volatile Map<String, LicenseCategory> licenseCategoriesById = null;
 
-    private static volatile Map<String, LicenseCategory> licenseCategoriesByName = null;
+    @Override
+    public LicenseCategory getById( EntityManager em, String id )
+    {
+        String sQuery = "SELECT entity FROM LicenseCategory entity" + //
+            " WHERE entity.id=?1";
+        return get( em, sQuery, id );
+    }
 
     @Override
     public LicenseCategory getById( String id )
@@ -30,7 +37,14 @@ public class LicenseCategoryDAO
         {
             load();
         }
-        return licenseCategoriesById.get( id );
+        LicenseCategory licenseCategory = licenseCategoriesById.get( id );
+        if ( licenseCategory == null )
+        {
+            log.info( "Cannot find a license category with id '{}'.  Refreshing license data.", id );
+            LicenseDataUpdater.update();
+            licenseCategory = licenseCategoriesById.get( id );
+        }
+        return licenseCategory;
     }
 
     public LicenseCategory getByIdNotNull( String id )
@@ -43,26 +57,7 @@ public class LicenseCategoryDAO
         return licenseCategory;
     }
 
-    public LicenseCategory getByName( String name )
-    {
-        if ( licenseCategoriesByName == null )
-        {
-            load();
-        }
-        return licenseCategoriesByName.get( name );
-    }
-
-    public LicenseCategory getByNameNotNull( String name )
-    {
-        LicenseCategory licenseCategory = getByName( name );
-        if ( licenseCategory == null )
-        {
-            throw new NotFoundException( "A license category with name '" + name + "' does not exist." );
-        }
-        return licenseCategory;
-    }
-
-    private void load()
+    void load()
     {
         synchronized ( getClass() )
         {
@@ -78,14 +73,6 @@ public class LicenseCategoryDAO
                 _licenseCategoriesById.put( licenseCategory.getId(), licenseCategory );
             }
             licenseCategoriesById = _licenseCategoriesById;
-
-            Map<String, LicenseCategory> _licenseCategoriesByName =
-                new TreeMap<String, LicenseCategory>( String.CASE_INSENSITIVE_ORDER );
-            for ( LicenseCategory licenseCategory : licenseCategories )
-            {
-                _licenseCategoriesByName.put( licenseCategory.getName(), licenseCategory );
-            }
-            licenseCategoriesByName = _licenseCategoriesByName;
 
             log.debug( "Loaded all license categories in {} ms.", System.currentTimeMillis() - start );
         }

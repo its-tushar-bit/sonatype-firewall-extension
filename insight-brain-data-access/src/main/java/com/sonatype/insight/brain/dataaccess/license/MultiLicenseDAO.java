@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import javax.persistence.EntityManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,14 @@ public class MultiLicenseDAO
 
     private static volatile Map<String, Set<License>> licenseSetsById = null;
 
+    @Override
+    public MultiLicense getById( EntityManager em, String id )
+    {
+        String sQuery = "SELECT entity FROM MultiLicense entity" + //
+            " WHERE entity.id=?1";
+        return get( em, sQuery, id );
+    }
+
     public Collection<MultiLicense> getAll()
     {
         if ( multiLicensesByName == null )
@@ -47,7 +57,14 @@ public class MultiLicenseDAO
         {
             load();
         }
-        return multiLicensesById.get( id );
+        MultiLicense multiLicense = multiLicensesById.get( id );
+        if ( multiLicense == null )
+        {
+            log.info( "Cannot find a multi-license with id '{}'.  Refreshing license data.", id );
+            LicenseDataUpdater.update();
+            multiLicense = multiLicensesById.get( id );
+        }
+        return multiLicense;
     }
 
     public MultiLicense getByIdNotNull( String id )
@@ -55,7 +72,7 @@ public class MultiLicenseDAO
         MultiLicense license = getById( id );
         if ( license == null )
         {
-            throw new NotFoundException( "A license with id '" + id + "' does not exist." );
+            throw new NotFoundException( "A multi-license with id '" + id + "' does not exist." );
         }
         return license;
     }
@@ -66,7 +83,14 @@ public class MultiLicenseDAO
         {
             load();
         }
-        return multiLicensesByName.get( name );
+        MultiLicense multiLicense = multiLicensesByName.get( name );
+        if ( multiLicense == null )
+        {
+            log.info( "Cannot find a multi-license with name '{}'.  Refreshing license data.", name );
+            LicenseDataUpdater.update();
+            multiLicense = multiLicensesByName.get( name );
+        }
+        return multiLicense;
     }
 
     public MultiLicense getByNameNotNull( String name )
@@ -74,7 +98,7 @@ public class MultiLicenseDAO
         MultiLicense license = getByName( name );
         if ( license == null )
         {
-            throw new NotFoundException( "A license with name '" + name + "' does not exist." );
+            throw new NotFoundException( "A multi-license with name '" + name + "' does not exist." );
         }
         return license;
     }
@@ -112,7 +136,7 @@ public class MultiLicenseDAO
         return threatLevel;
     }
 
-    private void load()
+    void load()
     {
         synchronized ( this.getClass() )
         {
@@ -159,19 +183,5 @@ public class MultiLicenseDAO
 
             log.debug( "Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start );
         }
-    }
-
-    @Override
-    public void insert( MultiLicense license )
-    {
-        super.insert( license );
-        load();
-    }
-
-    @Override
-    public void delete( MultiLicense license )
-    {
-        super.delete( license );
-        load();
     }
 }

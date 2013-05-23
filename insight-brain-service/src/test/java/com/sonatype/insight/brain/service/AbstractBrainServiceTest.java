@@ -47,7 +47,7 @@ public abstract class AbstractBrainServiceTest
 
     private static File saasWork = new File( "target/mock-saas-work/" );
 
-    private InsightMockServer saas;
+    protected InsightMockServer saas;
 
     protected TestInsightBrainService brain;
 

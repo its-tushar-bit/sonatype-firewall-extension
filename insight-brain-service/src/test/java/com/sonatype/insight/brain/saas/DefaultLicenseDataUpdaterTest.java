@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.saas;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -98,6 +100,24 @@ public class DefaultLicenseDataUpdaterTest
         setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_DATA_PATH, JsonHelpers.asJson( licenseData ), 200 );
         assertNotNull( multiLicenseDAO.getById( newId ) );
         assertEquals( "GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId( newId ).iterator().next().getId() );
+    }
+
+    @Test
+    public void testNoSaaSServer()
+    {
+        saas.stop();
+
+        String newId = "New license id";
+        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+        try
+        {
+            multiLicenseDAO.getById( newId );
+            fail( "Expected RuntimeException" );
+        }
+        catch ( RuntimeException e )
+        {
+            assertTrue( e.getMessage().startsWith( "Could not retrieve license data from SaaS:" ) );
+        }
     }
 
     private LicenseData createLicenseData()

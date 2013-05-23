@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.saas;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -111,9 +110,9 @@ public class DefaultLicenseDataUpdater
                 LicenseCategoryDAO.close( em );
             }
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
-            log.error( "Could not retrieve license data from SaaS: " + e.getMessage(), e );
+            throw new RuntimeException( "Could not retrieve license data from SaaS: " + e.getMessage(), e );
         }
         log.debug( "Updated license data in {} ms.", System.currentTimeMillis() - start );
     }

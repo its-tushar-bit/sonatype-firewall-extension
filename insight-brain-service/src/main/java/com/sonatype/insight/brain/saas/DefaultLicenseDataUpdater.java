@@ -74,7 +74,6 @@ public class DefaultLicenseDataUpdater
                 }
                 for ( License license : licenseData.licenses )
                 {
-                    System.out.println( license.getId() );
                     if ( licenseDAO.getById( em, license.getId() ) == null )
                     {
                         licenseDAO.insert( em, license );

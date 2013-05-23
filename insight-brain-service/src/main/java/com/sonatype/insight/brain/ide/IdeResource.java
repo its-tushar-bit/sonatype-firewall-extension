@@ -161,7 +161,6 @@ public class IdeResource
      * Gets the list of available versions for a given GA from the SaaS. (e.g. for use by migration wizard)
      *
      * @return the SaaS response
-     * @throws IOException
      * @since 1.3
      */
     @GET

@@ -130,7 +130,7 @@ var angularCommon;
 			}
 		};
 	});
-
+	
 	angularCommon.directive('typeAhead', ['$parse', function ($parse) {
 		return {
 			restrict: 'A',
@@ -223,5 +223,34 @@ var angularCommon;
 				ctrl.$parsers.push(validator);
 			}
 		};
+	}]);
+	
+	
+	angularCommon.directive('inlineEditor', ['$parse', function($parse) {
+		return {
+			replace: true,
+			templateUrl: '../components/inlineEditor.html',
+			scope: {
+				value: '=editorValue',
+				isLarge: '=editorLarge'
+			},
+			restrict: 'A',
+			link: function postLink ($scope, element, attr) {
+				var textBox = element.find('input');
+				element.find('div').on('click', function() {
+					$scope.$apply(function() {
+						$scope.isEdit = true;
+					});
+					textBox.focus();
+				});
+				textBox.on('blur', function() {
+					if (textBox.val()) {
+						$scope.$apply(function() {
+							$scope.isEdit = false;
+						});
+					}
+				});
+			}
+		}
 	}]);
 }());

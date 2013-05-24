@@ -50,7 +50,10 @@
 			parent : 'management.application',
 			url : '/{id}',
 			controller : 'applicationEditorController',
-			templateUrl : '../../application-assets/components/application-editor.html'
+			templateUrl : '../../application-assets/components/application-editor.html',
+			onExit : function($state) {
+				
+			}
 		});
 		$routeProvider.when('', { redirectTo : '/management' });
 	}]);
@@ -126,5 +129,7 @@
 	
 	dashboardApp.controller('applicationEditorController', function($scope, $state, applicationStore) {
 		$scope.$state = $state;
+
+		$scope.encodeURIComponent = window.encodeURIComponent;
 	});
 }());

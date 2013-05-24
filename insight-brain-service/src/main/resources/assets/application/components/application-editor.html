@@ -1,6 +1,13 @@
-{{$state.selectedApplication.name}}
+<form id='applicationEditor' name='applicationEditor'>
+	<div class="applicationHeader">
+		<img ng-src='../../rest/application/icon/{{encodeURIComponent($state.selectedApplication.publicId)}}'
+			onerror="this.src='../img/defaulticon_application.png';" />
+		<div inline-editor editor-value='$state.selectedApplication.name' editor-large='true'></div>
+		Application: {{$state.selectedApplication.publicId}}
+	</div>
+</form>
 
-<div tabs>
+<div class='content-tabs' tabs>
 	<div pane heading="POLICIES">
 		POLICIES
 	</div>

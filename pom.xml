@@ -16,7 +16,7 @@
 
   <groupId>com.sonatype.insight.brain</groupId>
   <artifactId>insight-brain</artifactId>
-  <version>1.4</version>
+  <version>1.5-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Insight Brain Parent POM</name>
@@ -68,49 +68,49 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-client</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-data-access</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-db</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-model</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-policy-data-access</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-policy-model</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
         <classifier>tests</classifier>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-json-store</artifactId>
-        <version>1.4</version>
+        <version>1.5-SNAPSHOT</version>
       </dependency>
 
       <dependency>

@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
+/// TODO This class doesn't properly cleanup after failed tests
 public class ApplicationResourceTest
     extends AbstractResourceTest
 {
@@ -102,7 +103,7 @@ public class ApplicationResourceTest
 
         // Test Add Invalid Icon
         ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
-        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/AngularCommon.js" );
+        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/util/AngularCommon.js" );
         Assert.assertNotNull( iconStream );
         byte[] defaultIconByteArray = null;
         ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();

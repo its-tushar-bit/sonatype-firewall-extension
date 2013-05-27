@@ -229,7 +229,7 @@ var angularCommon;
 	angularCommon.directive('inlineEditor', ['$parse', function($parse) {
 		return {
 			replace: true,
-			templateUrl: '../components/inlineEditor.html',
+			templateUrl: '../assets/components/inlineEditor.html',
 			scope: {
 				value: '=editorValue',
 				isLarge: '=editorLarge'

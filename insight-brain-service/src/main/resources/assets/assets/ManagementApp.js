@@ -26,7 +26,7 @@
 			controller : angular.noop
 		}).state('management', {
 			url : '/management',
-			templateUrl : '../management.html',
+			templateUrl : '../assets/management.html',
 			controller : 'managementController',
 			onEnter : function($state) {
 				$state.selectedDashboard = {
@@ -38,7 +38,7 @@
 			parent : 'management',
 			url : '/application',
 			controller : 'applicationController',
-			templateUrl : '../../application-assets/components/application-navigator.html',
+			templateUrl : '../application-assets/components/application-navigator.html',
 			onEnter : function($state) {
 				if ($state.current.name.indexOf("application.view") !== -1) {
 					if (!$state.params.id) {
@@ -50,7 +50,7 @@
 			parent : 'management.application',
 			url : '/{id}',
 			controller : 'applicationEditorController',
-			templateUrl : '../../application-assets/components/application-editor.html',
+			templateUrl : '../application-assets/components/application-editor.html',
 			onExit : function($state) {
 				
 			}

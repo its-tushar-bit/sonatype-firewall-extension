@@ -12,7 +12,7 @@
 			'Insight' : {
 				'LabelEditor' : function (node, applicationId, hash) {
 					var timestamp = (new Date()).getTime(),
-						container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-label-editor.html\'"></div>');
+						container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip/cip-label-editor.html\'"></div>');
 					node.empty();
 					container.appendTo(node);
 

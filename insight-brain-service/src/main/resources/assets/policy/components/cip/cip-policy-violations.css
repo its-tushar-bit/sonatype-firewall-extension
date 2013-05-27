@@ -41,25 +41,25 @@
 }
 
 .cip-policy-red {
-	background: url(../img/bg-score-critical.png) repeat-y scroll 0 0
+	background: url(img/bg-score-critical.png) repeat-y scroll 0 0
 		transparent;
 	color: #A91113;
 }
 
 .cip-policy-orange {
-	background: url(../img/bg-score-severe.png) repeat-y scroll 0 0
+	background: url(img/bg-score-severe.png) repeat-y scroll 0 0
 		transparent;
 	color: #CB7A16;
 }
 
 .cip-policy-yellow {
-	background: url(../img/bg-score-moderate.png) repeat-y scroll 0 0
+	background: url(img/bg-score-moderate.png) repeat-y scroll 0 0
 		transparent;
 	color: #D4B718;
 }
 
 .cip-policy-blue {
-	background: url(../img/bg-score-none.png) repeat-y scroll 0 0
+	background: url(img/bg-score-none.png) repeat-y scroll 0 0
 		transparent;
 	color: #005399;
 }

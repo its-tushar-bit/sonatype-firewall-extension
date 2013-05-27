@@ -12,7 +12,7 @@
 	    $.extend(true, window, {
 	        'Insight' : {
 	            'PolicyViolations' : function(node, appId, hash) {
-	                var timestamp = (new Date()).getTime(), container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-policy-violations.html\'"></div>');
+	                var timestamp = (new Date()).getTime(), container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip/cip-policy-violations.html\'"></div>');
 	                node.empty();
 	                container.appendTo(node);
 

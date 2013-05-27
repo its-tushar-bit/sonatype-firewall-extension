@@ -22,8 +22,8 @@
 	}
 
     var head = $('head'),
-        scripts = [ 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js' ],
-        styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css' ];
+        scripts = [ 'policy-assets/components/cip/cip-label-editor.js', 'policy-assets/components/cip/cip-policy-violations.js' ],
+        styles = [ 'policy-assets/components/cip/cip-label-editor.css', 'policy-assets/components/cip/cip-policy-violations.css' ];
 
 	if (!window.angular) {
 		loadScript(null, 'assets/lib/angular/angular-${angularjs.version}.min.js');

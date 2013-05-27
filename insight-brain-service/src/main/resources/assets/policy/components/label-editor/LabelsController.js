@@ -34,7 +34,7 @@
         $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
         $scope.editLabel = function (label) {
-            $scope.editorUrl = 'components/labels-editor.html?' + clmBuildTimestamp; // loads form
+            $scope.editorUrl = 'components/label-editor/label-editor.html?' + clmBuildTimestamp; // loads form
 
             $scope.selectedLabel = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
             if (label) {

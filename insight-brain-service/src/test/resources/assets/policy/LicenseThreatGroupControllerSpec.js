@@ -1,6 +1,6 @@
 var clmTimestamp = '';
 
-describe('InsightLicenseGroupController', function() {
+describe('LicenseThreatGroupController', function() {
 	var scope, mockGroup;
 
 	function toRegExp( getUrl ) {
@@ -17,7 +17,7 @@ describe('InsightLicenseGroupController', function() {
 		return $http;
 	}]);
 
-	beforeEach(module('LicenseGroup', 'CLMLocation', 'Hudson', 'ApplicationId'));
+	beforeEach(module('LicenseThreatGroup', 'CLMLocation', 'Hudson', 'ApplicationId'));
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
 
 		mockGroup = LicenseGroupMockData.getLicenseGroupData()[0];
@@ -27,7 +27,7 @@ describe('InsightLicenseGroupController', function() {
 
 		scope = $rootScope.$new();
 
-		$controller('InsightLicenseGroupController', {$scope: scope});
+		$controller('LicenseThreatGroupController', {$scope: scope});
 
 		$httpBackend.flush();
     }));
@@ -63,7 +63,7 @@ describe('InsightLicenseGroupController', function() {
 
 		scope.editLicenseGroup(mockGroup);
 
-		$controller('InsightLicenseGroupEditorController', {$scope: scope, hudson: hudson});
+		$controller('LicenseThreatGroupEditorController', {$scope: scope, hudson: hudson});
 
 		scope.licenseGroupEditor = { $isValid: true };
 

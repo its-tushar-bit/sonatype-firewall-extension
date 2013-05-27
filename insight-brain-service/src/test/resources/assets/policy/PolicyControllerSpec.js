@@ -1,6 +1,6 @@
 var clmBuildTimestamp = '';
 
-describe('InsightPolicyController tests', function() {
+describe('PolicyController tests', function() {
     function toRegExp(getUrl) {
         return new RegExp(getUrl + '\\?timestamp=[0-9]+');
     }
@@ -27,7 +27,7 @@ describe('InsightPolicyController tests', function() {
         // inject the controller
         scope = $rootScope.$new();
 
-        $controller('InsightPolicyController', {
+        $controller('PolicyController', {
             $scope : scope,
             global : {}
         });

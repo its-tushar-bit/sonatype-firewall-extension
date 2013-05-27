@@ -7,9 +7,9 @@
 (function () {
     'use strict';
 
-    var licenseGroupModule = angular.module('LicenseGroup', ['AngularCommon']);
+    var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon']);
 
-    licenseGroupModule.controller('InsightLicenseGroupController', ['$scope', '$http', 'CLMLocations', 'CLMAppLocations', function ($scope, $http, clmLocations, clmAppLocations) {
+    licenseGroupModule.controller('LicenseThreatGroupController', ['$scope', '$http', 'CLMLocations', 'CLMAppLocations', function ($scope, $http, clmLocations, clmAppLocations) {
         function sortLicense(a, b) {
             if (a.id < b.id) {
                 return -1;
@@ -34,7 +34,7 @@
 			delete $scope.selectedGroup;
 		}
 
-        $scope.editorUrl = 'components/license-threat-group-editor.html?' + clmBuildTimestamp;
+        $scope.editorUrl = 'components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
 
         $scope.allLicenses = null;
 
@@ -131,7 +131,7 @@
 		});
     }]);
 
-    licenseGroupModule.controller('InsightLicenseGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', function ($scope, $filter, $http, hudson, clmLocations, clmAppLocations) {
+    licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', function ($scope, $filter, $http, hudson, clmLocations, clmAppLocations) {
         $scope.threatLevels = [
             {'value': 10, 'name': '10'},
             {'value': 9, 'name': '9'},

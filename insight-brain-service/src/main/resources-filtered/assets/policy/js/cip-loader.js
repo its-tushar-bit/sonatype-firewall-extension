@@ -26,7 +26,7 @@
         styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css' ];
 
 	if (!window.angular) {
-		loadScript(null, 'assets/angular/angular-1.0.6.min.js');
+		loadScript(null, 'assets/lib/angular/angular-${angularjs.version}.min.js');
 	}
 	$.each(scripts, loadScript);
 

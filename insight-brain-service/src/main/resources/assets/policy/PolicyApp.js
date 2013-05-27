@@ -8,13 +8,13 @@ var policyApp;
 (function () {
     "use strict";
 
-    policyApp = angular.module('policyApp', ['AngularCommon', 'Labels', 'Policy', 'PolicyEditor', 'LicenseGroup', 'NotificationManagement', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
+    policyApp = angular.module('policyApp', ['AngularCommon', 'Labels', 'Policy', 'PolicyEditor', 'LicenseThreatGroup', 'NotificationManagement', 'ngSanitize'], ['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/policy', {
-            templateUrl: 'components/policy.html?' + clmBuildTimestamp,
-            controller: 'InsightPolicyController'
+            templateUrl: 'components/policy/policy.html?' + clmBuildTimestamp,
+            controller: 'PolicyController'
         });
         $routeProvider.when('/labels', {
-            templateUrl: 'components/labels.html?' + clmBuildTimestamp,
+            templateUrl: 'components/label-editor/labels.html?' + clmBuildTimestamp,
             controller: 'LabelController'
         });
         $routeProvider.when('/policy/:policyId', {
@@ -22,8 +22,8 @@ var policyApp;
             controller: 'PolicyEditorController'
         });
         $routeProvider.when('/license-threat-group', {
-            templateUrl: 'components/license-threat-group.html?' + clmBuildTimestamp,
-            controller: 'InsightLicenseGroupController'
+            templateUrl: 'components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp,
+            controller: 'LicenseThreatGroupController'
         });
         $routeProvider.otherwise({redirectTo: '/policy'});
     }]);

@@ -441,7 +441,7 @@
             <include>assets/components/policy-editor/PolicyEditor.js</include>
             <include>policy/components/license-threat-group/LicenseThreatGroupsController.js</include>
             <include>policy/components/label-editor/LabelsController.js</include>
-            <include>policy/js/cip-label-editor.js</include>
+            <include>policy/components/cip/cip-label-editor.js</include>
             <include>assets/components/notification-manager/NotificationManager.js</include>
             <include>application/ClmManagementApp.js</include>
             <include>application/ManagementController.js</include>

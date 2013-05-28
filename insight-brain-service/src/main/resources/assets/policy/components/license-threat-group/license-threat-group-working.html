@@ -1,0 +1,25 @@
+<div class="accordion" id="licenseGroups">
+	<div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
+		<div class="license-accordion-header accordion-heading">
+			<div style='max-height: 60px; overflow: hidden;'>
+				<span class="threat-box threat-level-{{licenseGroup.threatLevel}}"></span>
+			</div>
+			<a class="accordion-toggle" data-toggle="collapse"
+				data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
+				{{licenseGroup.name}}</a>
+		</div>
+		<div id="collapse{{licenseGroup.id}}" class="license-accordion-body accordion-body collapse">
+			<div class="accordion-inner">
+                 <select style='width: 120px;'
+                      class='threat-level threat-level-{{licenseGroup.threatLevel}}'
+                      ng-model='licenseGroup.threatLevel'
+                      ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
+                 </select>
+				<div inline-editor editor-value='licenseGroup.name' editor-large='true'></div>
+			</div>
+            <div ng-repeat='l in licenseGroup.licenses | orderBy: l.licenseId'>
+                {{l.licenseId}}
+            </div>
+		</div>
+	</div>
+</div>

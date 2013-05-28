@@ -65,7 +65,7 @@
 			parent : 'management.application.view',
 			url : '/licenses',
 			controller : 'LicenseThreatGroupController',
-			templateUrl : '../policy-assets/components/license-threat-group/license-threat-group.html'
+			templateUrl : '../policy-assets/components/license-threat-group/license-threat-group-working.html'
 		}).state('management.organization', {
 			parent : 'management',
 			url : '/organization',

@@ -31,7 +31,7 @@
     <script src='ManagementApp.js?${build.timestamp}'></script>
 </head>
 <body ng-controller='dashboardController'>
-	<div class="navbar navbar-fixed-top">
+	<div class="first-row navbar navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container-fluid">
 				<a class="title brand" href="#">
@@ -49,14 +49,13 @@
 			</div>
 		</div>
 	</div>
-	<div class="navbar navbar-inverse navbar-fixed-top navbar-second-row">
+	<div class="second-row navbar navbar-inverse navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container-fluid">
 				<div class="btn-group">
-					<button class="btn btn-inverse btn-black">{{ $state.selectedDashboard.name }}</button>
-					<button class="btn btn-inverse btn-black dropdown-toggle" data-toggle="dropdown">
-				  		<span class="caret"></span>
-					</button>
+					<a class="btn btn-inverse btn-black dropdown-toggle" data-toggle="dropdown" href="#">
+						{{ $state.selectedDashboard.name }} <span class="caret"></span>
+					</a>
 					<ul class="dropdown-menu">
 						<li ng-repeat="dashboard in availableDashboards">
 							<a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>

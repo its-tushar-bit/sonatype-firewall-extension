@@ -8,8 +8,58 @@
     'use strict';
 
     var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon']);
+    
+    licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource) {
+		var licenseGroupStore = CLMResource.getStore({
+			id : 'id',
+			url : CLMAppLocations.getLicenseGroupsUrl(),
+			template : { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 },
+			params : {
+				timestamp : new Date().getTime()
+			}
+		});
+		licenseGroupStore.get = licenseGroupStore.get().then(function(licenseGroups) {
+			var deferred = $q.defer();
+			var licenseCount = licenseGroups.length;
+			
+			angular.forEach(licenseGroups, function (group, index) {
+                $http.get(CLMAppLocations.getLicenseGroupLicensesUrl(group), {
+                    params: { timestamp: new Date().getTime() }
+                }).success(function (data) {
+                    group.licenses = data;
+                    licenseCount--;
+                    if (licenseCount <= 0) {
+                    	deferred.resolve(licenseGroups);
+                    }
+                }).error(function (data, status, headers, config) {
+        			deferred.reject({
+        				data: data,
+        				status : status,
+        				headers : headers,
+        				config : config
+        			});
+        		});
+            });
+			
+			return deferred.promise;
+		});
+		return {
+			get: licenseGroupStore.get.then
+		};
+	});
+    
+    licenseGroupModule.service('licenseStore', function (CLMLocations, CLMResource) {
+		var licenseStore = CLMResource.getStore({
+			id : 'id',
+			url : CLMLocations.getLicensesUrl(),
+			params : {
+				timestamp : new Date().getTime()
+			}
+		});
+		return licenseStore;
+    });
 
-    licenseGroupModule.controller('LicenseThreatGroupController', ['$scope', '$http', 'CLMLocations', 'CLMAppLocations', function ($scope, $http, clmLocations, clmAppLocations) {
+    licenseGroupModule.controller('LicenseThreatGroupController', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore) {
         function sortLicense(a, b) {
             if (a.id < b.id) {
                 return -1;
@@ -51,6 +101,23 @@
                                {'value': 1, 'name': '1'},
                                {'value': 0, 'name': 'No Threat'}
                            ];
+                
+        $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
+        	var licenses = results[0];
+        	var licenseGroups = results[1];
+        	
+        	$scope.allLicenses = licenses.sort(licenses);
+        	$scope.licenseGroups = licenseGroups;
+        });
+        
+        $scope.getShortDisplayName = function(licenseId) {
+        	for (var i = 0; i < $scope.allLicenses.length; i++) {
+        		if ($scope.allLicenses[i].id === licenseId) {
+        			return $scope.allLicenses[i].shortDisplayName;
+        		}
+        	}
+        };
+        return;
 
         $http.get(clmAppLocations.getLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
@@ -64,13 +131,6 @@
                 }).error(function () { $scope.$broadcast('showServerError', arguments); });
             });
         }).error(function () { $scope.$broadcast('showServerError', arguments); });
-
-        $http.get(clmLocations.getLicensesUrl(), {
-            params: { timestamp: new Date().getTime() }
-        }).success(function (data) {
-                // Keep sorted for setLicenses
-                $scope.allLicenses = data.sort(sortLicense);
-            }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
         $scope.editLicenseGroup = function (group) {
 
@@ -143,7 +203,7 @@
 				deselect();
 			}
 		});
-    }]);
+    });
 
     licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', function ($scope, $filter, $http, hudson, clmLocations, clmAppLocations) {
         $scope.threatLevels = [

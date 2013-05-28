@@ -18,7 +18,7 @@
 				<div inline-editor editor-value='licenseGroup.name' editor-large='true'></div>
 			</div>
             <div ng-repeat='l in licenseGroup.licenses | orderBy: l.licenseId'>
-                {{l.licenseId}}
+                {{getShortDisplayName(l.licenseId)}}
             </div>
 		</div>
 	</div>

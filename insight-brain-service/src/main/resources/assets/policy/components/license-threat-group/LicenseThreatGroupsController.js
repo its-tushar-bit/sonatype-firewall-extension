@@ -34,7 +34,7 @@
 			delete $scope.selectedGroup;
 		}
 
-        $scope.editorUrl = 'components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
+        $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
 
         $scope.allLicenses = null;
 

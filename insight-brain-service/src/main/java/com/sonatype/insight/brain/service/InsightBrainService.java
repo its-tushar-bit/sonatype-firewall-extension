@@ -73,7 +73,7 @@ public class InsightBrainService
     public void initialize( final Bootstrap<InsightConfig> bootstrap )
     {
         bootstrap.addBundle( new AssetsBundle( "/assets/application/", APPLICATION_ASSET_PATH, "index.html" ) );
-        bootstrap.addBundle( new AssetsBundle( "/assets/assets/", BRAIN_ASSET_PATH ) );
+        bootstrap.addBundle( new AssetsBundle( "/assets/assets/", BRAIN_ASSET_PATH, "index.html" ) );
         bootstrap.addBundle( new AssetsBundle( "/assets/policy/", POLICY_ASSET_PATH, "index.html" ) );
         bootstrap.addBundle( new AssetsBundle( "/assets/unlicensed/", UNLICENSED_ASSET_PATH, "index.html" ) );
 

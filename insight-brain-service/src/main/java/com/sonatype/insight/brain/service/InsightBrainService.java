@@ -52,6 +52,8 @@ public class InsightBrainService
 
     public static final String POLICY_ASSET_PATH = "/policy-assets/";
 
+    public static final String ORGANIZATION_ASSET_PATH = "/organization-assets/";
+
     public static final String UNLICENSED_ASSET_PATH = "/unlicensed-assets/";
 
     public static void main( final String[] args )
@@ -76,6 +78,7 @@ public class InsightBrainService
         bootstrap.addBundle( new AssetsBundle( "/assets/assets/", BRAIN_ASSET_PATH, "index.html" ) );
         bootstrap.addBundle( new AssetsBundle( "/assets/policy/", POLICY_ASSET_PATH, "index.html" ) );
         bootstrap.addBundle( new AssetsBundle( "/assets/unlicensed/", UNLICENSED_ASSET_PATH, "index.html" ) );
+        bootstrap.addBundle( new AssetsBundle( "/assets/organization/", ORGANIZATION_ASSET_PATH ) );
 
         // workaround to let us set different defaults in the core HTTP configuration
         bootstrap.getObjectMapperFactory().registerModule( new HttpConfig.Module() );

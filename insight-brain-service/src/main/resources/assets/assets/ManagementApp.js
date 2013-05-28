@@ -20,7 +20,7 @@
 		return applicationStore;
 	}]);
 	
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'dashboardStores'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'dashboardStores', 'Organization'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -66,6 +66,16 @@
 			url : '/licenses',
 			controller : angular.noop,
 			template : ''
+		}).state('management.organization', {
+			parent : 'management',
+			url : '/organization',
+			controller : 'OrganizationController',
+			templateUrl : '../organization-assets/components/organization-navigator.html'			
+		}).state('management.organization.view', {
+			parent : 'management.organization',
+			url : '/{organizationId}',
+			controller : 'OrganizationController',
+			templateUrl : '../organization-assets/components/organization-editor.html'
 		});
 		$routeProvider.when('', { redirectTo : '/management' });
 	}]);
@@ -96,7 +106,7 @@
     		},
     		{
     			name: 'Organizations',
-    			state: '',
+    			state: 'management/organization',
     			isEnabled: true
     		},
     		{

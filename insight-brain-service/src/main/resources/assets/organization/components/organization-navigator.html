@@ -1,0 +1,8 @@
+<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
+	<ul class="nav nav-list">
+		<li ng-repeat='organization in organizations'>
+			<a href='#/management/organization/{{organization.id}}' ng-click='$state.selectedOrganization = organization'>{{organization.name}}</a>
+		</li>
+	</ul>
+</div>
+<div class="content" ui-view></div>

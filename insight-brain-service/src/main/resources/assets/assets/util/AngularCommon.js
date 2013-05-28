@@ -253,4 +253,36 @@ var angularCommon;
 			}
 		}
 	}]);
+
+	angularCommon.directive('relativeHref', ['$location', function ($location) {
+		return {
+			restrict : 'A',
+			priority : 99,
+			link : function ($scope, element, attr) {
+				function updateValue() {
+					var basePath = $location.path(),
+						path = attr.relativeHref;
+					if (basePath) {
+						var url = '#' + basePath;
+						if (basePath.charAt(basePath.length - 1) === '/') {
+							if (path.charAt(0) === '/') {
+								url += path.substring(1);
+							} else {
+								url += path;
+							}
+						} else {
+							if (path.charAt(0) === '/') {
+								url += path;
+							} else {
+								url += '/' + path;
+							}
+						}
+						attr.$set('href', url);
+					}
+				}
+				attr.$observe('relativeHref', updateValue);
+				$scope.$watch('location.url()', updateValue);
+			}
+		};
+	}]);
 }());

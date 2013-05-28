@@ -10,7 +10,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor']);
 
-	policyModule.controller('PolicyController', ['$scope', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore) {
+	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore) {
 
 		function capitalize(text) {
 			if (text && text.length > 1) {
@@ -18,6 +18,7 @@
 			}
 			return text;
 		}
+		$scope.location = $location;
 
 		$scope.getActionCount = function (policy) {
 			var actionCount = 0;
@@ -107,7 +108,6 @@
 			reset();
 		}
 
-
 		$scope.viewRemovePolicy = function (policy) {
 			viewConfirmation("Delete Policy?",
 				"Are you sure you want to delete the Policy named '" + policy.name + "'?  This action is not reversible.",
@@ -128,8 +128,7 @@
 			}
 		});
 
-
-		$q.all([policyStore.get(), actionStore.get()]).then(function (results) {
+		$q.all([policyStore.get().get(), actionStore.get()]).then(function (results) {
 			$scope.state = {
 				policyList : results[0],
 				actionStageList : results[1][1]

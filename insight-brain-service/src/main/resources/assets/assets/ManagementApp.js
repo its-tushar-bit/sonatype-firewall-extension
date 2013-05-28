@@ -49,6 +49,11 @@
 			url : '/policies',
 			controller : 'PolicyController',
 			templateUrl : '../policy-assets/components/policy/policy.html'
+		}).state('management.application.view.policies.edit', {
+			parent : 'management.application.view',
+			url : '/policies/{policyId}',
+			controller : 'PolicyEditorController',
+			templateUrl : '../assets/components/policy-editor/policy-editor.html'
 		}).state('management.application.view.labels', {
 			parent : 'management.application.view',
 			url : '/labels',
@@ -123,7 +128,7 @@
 		}
 	});
 	
-	dashboardApp.controller('applicationController', function($scope, $state, $timeout, applicationStore) {
+	dashboardApp.controller('applicationController', function($scope, $state, $timeout, $location, $urlRouter, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
 			if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
@@ -138,6 +143,7 @@
 				// TODO We might want to consider reloading the store at this point?
 			}
 		}
+		$scope.location =  $location;
 
 		$scope.$state = $state;
 		$scope.isCurrentTab = function (tabName) {

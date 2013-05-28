@@ -2,7 +2,7 @@
 <div class='content-container' ng-show='!state && !httpError' style='text-align:center;width:50%;margin:auto'>
 	<h5><i class='icon-time'></i> Loading...</h5>
 </div>
-<div class='content-container fade' ng-class=' {"in" : state}'>
+<div class='content-container fade' ng-class='{"in" : state}' style='width:625px'>
 	<div class="page-header">
 		<h4 ng-show='state.currentPolicy.id == null'>Create a New Policy</h4>
 		<h4 ng-show='state.currentPolicy.id != null'>Edit Policy</h4>
@@ -98,7 +98,7 @@
 			</div>
 		</div>
 		<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
-			<button type='none' class='btn' ng-click="viewCancelPolicy()">Cancel</button>
+			<button type='button' class='btn' ng-click="viewCancelPolicy()">Cancel</button>
 			<button type='none' class='btn btn-primary' ng-click="savePolicy()" ng-disabled="policyEditor.$invalid || state.currentPolicy.constraints.length == 0">Save</button>
 		</div>
 	</form>

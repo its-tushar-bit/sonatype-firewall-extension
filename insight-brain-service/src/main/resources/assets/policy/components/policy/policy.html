@@ -9,14 +9,14 @@
 			<div class='span4 offset4'>
 				<div class="content-container" style='text-align:center; padding-top:10px; margin:0px 3px'>
 					<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
-					<p><a href="#/policy/new">Create</a> a new Policy.</p>
+					<p><a relative-href="/new">Create</a> a new Policy.</p>
 				</div>
 			</div>
 		</div>
 		<div >
 		    <div class="policy-item" ng-repeat="policy in state.policyList">
 				<div style="float:right;" class='btn-group'>
-					<a class="btn btn-mini policy-button" title="Edit Policy" ng-href='#/policy/{{policy.id}}'"><i
+					<a class="btn btn-mini policy-button" title="Edit Policy" relative-href='/{{policy.id}}'"><i
 						class="icon-pencil" style="margin-top:0px;"></i></a>
 					<a class="btn btn-mini policy-button" title="Remove Policy" ng-click="viewRemovePolicy(policy)"><i
 						class="icon-trash" style="margin-top:0px;"></i></a>

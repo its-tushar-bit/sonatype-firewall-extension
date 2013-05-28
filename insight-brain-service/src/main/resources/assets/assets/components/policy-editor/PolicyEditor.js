@@ -8,49 +8,60 @@
 	'use strict';
 	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule']);
 
-	module.service('PolicyStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
-		var policyStore = clmResource.getStore({
-			id : 'id',
-			url : clmAppLocations.getPolicyUrl(),
-			template : {
-				threatLevel : 5,
-				constraints : []
-			},
-			params : {
-				timestamp : new Date().getTime()
-			}
-		});
-		policyStore.serializeActions = function (uiActions) {
-			var policyActions = {};
-			angular.forEach(uiActions, function (stage, stageName) {
-				var serializedActions = [];
-				if (stage.action !== null && stage.action !== 'none') {
-					serializedActions.push({ actionTypeId : stage.action });
+	module.service('PolicyStore', ['ApplicationId', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (appId, clmLocations, clmAppLocations, clmResource) {
+		var policyStoreTemplate = {
+				id : 'id',
+				template : {
+					threatLevel : 5,
+					constraints : []
+				},
+				params : {
+					timestamp : new Date().getTime()
 				}
-				angular.forEach(stage.notify, function (email) {
-					serializedActions.push({ actionTypeId : 'notify', target : email });
-				});
-				policyActions[stageName] = serializedActions;
-			});
-			return policyActions;
-		};
-		policyStore.deserializeActions =  function (policyActions) {
-			//Re-arrange action data for UI
-			var uiActions = {};
-			angular.forEach(policyActions, function (actions, stageName) {
-				uiActions[stageName] = {
-					action : null,
-					notify : []
-				};
-				angular.forEach(actions, function (action, index) {
-					if (action.actionTypeId === 'notify') {
-						uiActions[stageName].notify.push(action.target);
-					} else {
-						uiActions[stageName].action = action.actionTypeId;
+			},
+			policyStores = {};
+
+		return {
+			get : function () {
+				var store = policyStores[appId.encoded()];
+				if (!store) {
+					store = clmResource.getStore(angular.extend({ url : clmAppLocations.getPolicyUrl() }, policyStoreTemplate));
+					policyStores[appId.encoded()] = store;
+				}
+				return store;
+		    },
+		    serializeActions : function (uiActions) {
+				var policyActions = {};
+				angular.forEach(uiActions, function (stage, stageName) {
+					var serializedActions = [];
+					if (stage.action !== null && stage.action !== 'none') {
+						serializedActions.push({ actionTypeId : stage.action });
 					}
+					angular.forEach(stage.notify, function (email) {
+						serializedActions.push({ actionTypeId : 'notify', target : email });
+					});
+					policyActions[stageName] = serializedActions;
 				});
-			});
-			return uiActions;
+				return policyActions;
+			},
+			deserializeActions :  function (policyActions) {
+				//Re-arrange action data for UI
+				var uiActions = {};
+				angular.forEach(policyActions, function (actions, stageName) {
+					uiActions[stageName] = {
+						action : null,
+						notify : []
+					};
+					angular.forEach(actions, function (action, index) {
+						if (action.actionTypeId === 'notify') {
+							uiActions[stageName].notify.push(action.target);
+						} else {
+							uiActions[stageName].action = action.actionTypeId;
+						}
+					});
+				});
+				return uiActions;
+			}
 		};
 		return policyStore;
 	}]);
@@ -90,7 +101,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$routeParams', '$q', 'PolicyStore', 'ActionStore', function ($scope, $routeParams, $q, policyStore, actionStore) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, policyStore, actionStore) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirmationHeader = header;
@@ -103,7 +114,8 @@
 		}
 
 		function returnFn() {
-			$scope.$emit('editPolicyComplete');
+			var path = $location.path();
+			$location.path(path.substring(0, path.lastIndexOf('/')));
 		}
 
 		function handleHttpError(headerText, bodyText, status) {
@@ -120,6 +132,37 @@
 				actions[stage.id] = [];
 			});
 			return policyStore.deserializeActions(actions);
+		}
+
+		function updateStore() {
+		    var currentPolicyStore = policyStore.get();
+			$q.all([currentPolicyStore.get(), actionStore.get()]).then(function (results) {
+				var policies = results[0],
+					actionStages = results[1][1],
+					state = {
+						currentPolicy : null,
+						actions : {}
+					};
+
+				$scope.state = state;
+				$scope.policies = policies;
+				$scope.actionStages = actionStages;
+
+				if ($state.params.policyId === 'new' || angular.isUndefined($state.params.policyId)) {
+					state.currentPolicy = currentPolicyStore.create();
+				} else {
+					angular.forEach(policies, function (policy, index) {
+						if (policy.id === $state.params.policyId) {
+							state.currentPolicy = angular.copy(policy);
+							return false;
+						}
+					});
+					// TODO If currentPolicy === null, show error
+				}
+				$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
+			}, function (error) {
+				handleHttpError('Policy Initialization Error', error.data, error.status);
+			});
 		}
 
 		$scope.savePolicy = function () {
@@ -166,9 +209,9 @@
 				angular.forEach($scope.policies, function (policy, index) {
 					if (policy.id === $scope.state.currentPolicy.id) {
 						changed = !angular.equals(policy, $scope.state.currentPolicy);
-						executeFn();
 					}
 				});
+				executeFn();
 			}
 		};
 		
@@ -203,33 +246,7 @@
 			}
 		});
 
-		$q.all([policyStore.get(), actionStore.get()]).then(function (results) {
-			var policies = results[0],
-				actionStages = results[1][1],
-				state = {
-					currentPolicy : null,
-					actions : {}
-				};
-
-			$scope.state = state;
-			$scope.policies = policies;
-			$scope.actionStages = actionStages;
-
-			if ($routeParams.policyId === 'new' || angular.isUndefined($routeParams.policyId)) {
-				state.currentPolicy = policyStore.create();
-			} else {
-				angular.forEach(policies, function (policy, index) {
-					if (policy.id === $routeParams.policyId) {
-						state.currentPolicy = angular.copy(policy);
-						return false;
-					}
-				});
-				// TODO If currentPolicy === null, show error
-			}
-			$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
-		}, function (error) {
-			handleHttpError('Policy Initialization Error', error.data, error.status);
-		});
+		updateStore();
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {

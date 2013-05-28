@@ -50,10 +50,7 @@
 			parent : 'management.application',
 			url : '/{applicationPublicId}',
 			controller : 'applicationEditorController',
-			templateUrl : '../application-assets/components/application-editor.html',
-			onExit : function($state) {
-				
-			}
+			templateUrl : '../application-assets/components/application-editor.html'
 		}).state('management.application.view.policies', {
 			parent : 'management.application.view',
 			url : '/policies',

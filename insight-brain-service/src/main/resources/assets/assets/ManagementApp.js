@@ -6,7 +6,7 @@
 (function(){
 	"use strict";
 	
-	var dashboardStores = angular.module('dashboardStores', ['CLMLocation', 'ResourceModule', 'Hudson']);
+	var dashboardStores = angular.module('dashboardStores', ['CLMLocation', 'ResourceModule', 'Hudson', 'Policy']);
 	
 	dashboardStores.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
 		var applicationStore = clmResource.getStore({
@@ -48,12 +48,27 @@
 			}
 		}).state('management.application.view', {
 			parent : 'management.application',
-			url : '/{id}',
+			url : '/{applicationPublicId}',
 			controller : 'applicationEditorController',
 			templateUrl : '../application-assets/components/application-editor.html',
 			onExit : function($state) {
 				
 			}
+		}).state('management.application.view.policies', {
+			parent : 'management.application.view',
+			url : '/policies',
+			controller : 'PolicyController',
+			templateUrl : '../policy-assets/components/policy/policy.html'
+		}).state('management.application.view.labels', {
+			parent : 'management.application.view',
+			url : '/labels',
+			controller : angular.noop,
+			template : ''
+		}).state('management.application.view.licenses', {
+			parent : 'management.application.view',
+			url : '/licenses',
+			controller : angular.noop,
+			template : ''
 		});
 		$routeProvider.when('', { redirectTo : '/management' });
 	}]);
@@ -108,28 +123,49 @@
 		}
 	});
 	
-	dashboardApp.controller('applicationController', function($scope, $state, applicationStore) {
-		$scope.$state = $state;
-		
-		applicationStore.get().then(function(applications) {
-			$scope.applications = applications;
-			
-			if ($scope.$state.current.name.indexOf("application.view") !== -1) {
+	dashboardApp.controller('applicationController', function($scope, $state, $timeout, applicationStore) {
+		function switchApplication() {
+			$scope.selectedApplication = null;
+			if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
 				for (var i = 0; i < $scope.applications.length; i++) {
-					if ($scope.$state.params.id === $scope.applications[i].id) {
-						$scope.$state.selectedApplication = $scope.applications[i];
-						break;
+					if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
+						$timeout(function () {
+							$scope.selectedApplication = $scope.applications[i];
+						}, 200);
+						return;
 					}
 				}
+				// TODO We might want to consider reloading the store at this point?
 			}
+		}
+
+		$scope.$state = $state;
+		$scope.isCurrentTab = function (tabName) {
+			return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
+		};
+
+		applicationStore.get().then(function(applications) {
+			$scope.applications = applications;
+			switchApplication();
+			$scope.$watch('$state.params.applicationPublicId', switchApplication);
 		}, function (error) {
 			alert(error.data);
 		});
 	});
-	
+
 	dashboardApp.controller('applicationEditorController', function($scope, $state, applicationStore) {
 		$scope.$state = $state;
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	});
+
+	dashboardApp.service('ApplicationId', ['commonCodeFactory', '$state', function (commonCodeFactory, $state) {
+		// TODO Are ui-router parameters encoded or decoded?
+		return {
+			encoded : function () {
+				var applicationPublicId = $state.params.applicationPublicId;
+				return applicationPublicId ? encodeURI(applicationPublicId) : null;
+			}
+		};
+	}]);
 }());

@@ -178,3 +178,50 @@
 .inlineEditor.large input {
 	font-size: 25px;
 }
+
+/**
+ * Triangular tabs used by app/org
+ */
+ul.tri-pane:before, ul.tri-pane:after {
+	display : table;
+	content : "";
+	line-height : 0;
+	clear: both;
+}
+ul.tri-pane {
+	width : 100%;
+	margin: 0px;
+	margin-bottom: 20px;
+	list-style-type: none;
+	border-bottom: 1px solid black;
+}
+.tri-pane a {
+	color : inherit;
+	text-decoration: none;
+	padding: 8px 12px;
+	line-height : 20px;
+	display: block;
+	margin-right: 2px;
+}
+.tri-pane li {
+	list-style-position: outside;
+	list-style-type: none;
+	list-style-image: none;
+	float : left;
+	line-height: 3px;
+	margin-bottom: -1px;
+}
+.tri-pane .active {
+}
+.tri-pane > .active:after {
+	content: "\f0d8";
+	font-family: FontAwesome;
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: inherit;
+	-webkit-font-smoothing: antialiased;
+	font-size: 2em;
+	display: block;
+	text-align: center;
+	margin-top: -7px;
+}

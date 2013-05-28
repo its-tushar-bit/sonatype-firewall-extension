@@ -1,26 +1,25 @@
-<form id='applicationEditor' name='applicationEditor'>
-	<div class="applicationHeader">
-		<img ng-src='../../rest/application/icon/{{encodeURIComponent($state.selectedApplication.publicId)}}'
-			onerror="this.src='../img/defaulticon_application.png';" />
-		<div inline-editor editor-value='$state.selectedApplication.name' editor-large='true'></div>
-		Application: {{$state.selectedApplication.publicId}}
-	</div>
-</form>
-
-<div class='content-tabs' tabs>
-	<div pane heading="POLICIES">
-		POLICIES
-	</div>
-	<div pane heading="LABELS">
-		LABELS
-	</div>
-	<div pane heading="LICENSES">
-		LICENSES
-	</div>
-	<div pane heading="ATTRIBUTES">
-		ATTRIBUTES
-	</div>
-	<div pane heading="SECURITY">
-		SECURITY
+<div style='padding:5px 10px 5px 5px'>
+	<div class='fade' ng-class='{ in : selectedApplication != null}'>
+		<form id='applicationEditor' name='applicationEditor'>
+			<div class="applicationHeader">
+				<img ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}'
+					onerror="this.src='img/defaulticon_application.png';" />
+				<div inline-editor editor-value='selectedApplication.name' editor-large='true'></div>
+				Application: {{selectedApplication.publicId}}
+			</div>
+		</form>
+		<ul class='tri-pane'>
+			<li ng-class='{ active : isCurrentTab("policies")}'>
+				<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/policies'>POLICIES</a>
+			</li>
+			<li ng-class='{ active : isCurrentTab("labels")}'>
+				<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/labels'>LABELS</a>
+			</li>
+			<li ng-class='{ active : isCurrentTab("licenses")}'>
+				<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/licenses'>LICENSES</a>
+			</li>
+		</ul>
+		<div ui-view>
+		</div>
 	</div>
 </div>

@@ -76,35 +76,36 @@
 			}
 		};
 	}]).factory('CLMAppLocations', ['ApplicationId', function (appId) {
+		var getEncodedApplicationId = (typeof appId.encoded === 'function') ? appId.encoded : function () { return appId.encoded; };
 		return {
 			getBaseUrl: getBaseUrl,
 
 			getLabelsUrl: function () {
-				return this.getBaseUrl() + '/rest/label/application/' + appId.encoded;
+				return this.getBaseUrl() + '/rest/label/application/' + getEncodedApplicationId();
 			},
 
 			getDeleteLabelsUrl: function (label) {
-				return this.getBaseUrl() + '/rest/label/application/' + appId.encoded + '/' + encodeURIComponent(label.id);
+				return this.getBaseUrl() + '/rest/label/application/' + getEncodedApplicationId() + '/' + encodeURIComponent(label.id);
 			},
 
 			getLicenseGroupsUrl: function () {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + appId.encoded;
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getEncodedApplicationId();
 			},
 
 			getDeleteLicenseGroupUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + appId.encoded + '/' + encodeURIComponent(group.id);
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getEncodedApplicationId() + '/' + encodeURIComponent(group.id);
 			},
 
 			getLicenseGroupLicensesUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + appId.encoded + '/' + group.id;
+				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getEncodedApplicationId() + '/' + group.id;
 			},
 
 			getConditionValueTypeUrl: function () {
-				return this.getBaseUrl() + '/rest/conditionValueType/' + appId.encoded;
+				return this.getBaseUrl() + '/rest/conditionValueType/' + getEncodedApplicationId();
 			},
 
 			getPolicyUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/' + appId.encoded;
+				return this.getBaseUrl() + '/rest/policy/' + getEncodedApplicationId();
 			}
 		};
 	}]);

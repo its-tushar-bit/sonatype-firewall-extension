@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -189,7 +188,7 @@ public class ApplicationResourceTest
         application.setName( applicationName + "updated" );
 
         response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
-
+        assertResponseStatus( 200, response );
         applicationManagementSummary =
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
 
@@ -225,9 +224,8 @@ public class ApplicationResourceTest
 
         // Test delete
         response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
-        application = applicationDAO.getByPublicId( applicationPublicId );
-
         assertResponseStatus( 204, response );
+        application = applicationDAO.getByPublicId( applicationPublicId );
         Assert.assertNull( application );
         Assert.assertEquals( 0, policyDAO.getByOwnerId( applicationManagementSummary.getId() ).size() );
 

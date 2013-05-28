@@ -4,6 +4,14 @@ CREATE TABLE test_table (
   name varchar(50) NOT NULL
 );
 
+CREATE TABLE organization (
+  organization_id varchar(50) NOT NULL,
+  name varchar(60) NOT NULL,
+  name_lowercase_no_whitespace varchar(60) NOT NULL,
+  CONSTRAINT organization_pk PRIMARY KEY (organization_id),
+  CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+);
+
 -- The public_id column is what we expose as AppID to the user
 CREATE TABLE application (
   application_id varchar(50) NOT NULL,

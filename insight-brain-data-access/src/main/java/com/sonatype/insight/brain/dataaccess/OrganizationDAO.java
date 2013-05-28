@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess;
+
+import java.util.List;
+
+import javax.persistence.EntityManager;
+
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+public class OrganizationDAO
+    extends AbstractOperationalSqlDAO<Organization>
+{
+    @Override
+    protected Organization getById( EntityManager em, String id )
+    {
+        String sQuery = "SELECT entity FROM Organization entity" + //
+            " WHERE entity.id=?1";
+        return get( em, sQuery, id );
+    }
+
+    public Organization getByIdNotNull( String id )
+    {
+        Organization organization = getById( id );
+        if ( organization == null )
+        {
+            throw new NotFoundException( "Cannot find organization with id " + id + "." );
+        }
+        return organization;
+    }
+
+    private Organization getByName( EntityManager em, String name )
+    {
+        if ( name == null || name.trim().isEmpty() )
+        {
+            throw new DataAccessException( "The organization name cannot be null or empty." );
+        }
+        // Organization Name is whitespace and case insensitive
+        name = NameHelper.normalize( name );
+        String sQuery = "SELECT entity FROM Organization entity WHERE entity.nameLowercaseNoWhitespace=?1";
+        return get( em, sQuery, name );
+    }
+
+    public Organization getByName( String name )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByName( em, name );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public List<Organization> getAll()
+    {
+        String sQuery = "SELECT entity FROM Organization entity" + //
+            " ORDER BY entity.name";
+        return getList( sQuery );
+    }
+
+    @Override
+    public void insert( EntityManager em, Organization organization )
+    {
+        insert( em, organization, true /* createLicenseThreatGroups */);
+    }
+
+    public void insert( EntityManager em, Organization organization, boolean createLicenseThreatGroups )
+    {
+        NameHelper.validate( organization.getName() );
+
+        if ( getByName( em, organization.getName() ) != null )
+        {
+            throw new InvalidNameException( organization.getName() + " is already used as a name." );
+        }
+
+        super.insert( em, organization );
+
+        // if ( createLicenseThreatGroups )
+        // {
+        // new LicenseThreatGroupDAO().createDefaultGroups( em, organization.getId() );
+        // }
+    }
+
+    @Override
+    public void insert( Organization entity )
+    {
+        insert( entity, true /* createLicenseThreatGroups */);
+    }
+
+    public void insert( Organization entity, boolean createLicenseThreatGroups )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            em.getTransaction().begin();
+            insert( em, entity, createLicenseThreatGroups );
+            em.getTransaction().commit();
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    @Override
+    public void update( EntityManager em, Organization organization )
+    {
+        NameHelper.validate( organization.getName() );
+
+        Organization existingOrganization = getById( em, organization.getId() );
+        existingOrganization = getByName( em, organization.getName() );
+        if ( existingOrganization != null && !existingOrganization.getId().equals( organization.getId() ) )
+        {
+            throw new InvalidNameException( organization.getName() + " is already used as a name." );
+        }
+
+        super.update( em, organization );
+    }
+
+    @Override
+    public void delete( EntityManager em, Organization organization )
+    {
+        // // Cascade to license threat groups
+        // LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        // List<LicenseThreatGroup> licenseThreatGroups =
+        // licenseThreatGroupDAO.getByApplicationId( em, organization.getId() );
+        // for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        // {
+        // licenseThreatGroupDAO.delete( em, licenseThreatGroup );
+        // }
+        //
+        // // Cascade to labels
+        // LabelDAO labelDAO = new LabelDAO();
+        // List<Label> labels = labelDAO.getByApplicationId( em, organization.getId() );
+        // for ( Label label : labels )
+        // {
+        // labelDAO.delete( em, label );
+        // }
+
+        super.delete( em, organization );
+    }
+}

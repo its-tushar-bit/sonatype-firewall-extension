@@ -12,7 +12,9 @@ describe('PolicyController tests', function() {
 
     angular.module('ApplicationId',[]).service('ApplicationId', function () {
 		return {
-			encoded : 'bom1-12345678'
+			encoded : function () {
+			    return 'bom1-12345678';
+			}
 		};
     });
 

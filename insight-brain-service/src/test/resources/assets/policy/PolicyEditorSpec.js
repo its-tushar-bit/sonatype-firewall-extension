@@ -81,7 +81,9 @@ describe('PolicyEditor', function() {
 
     angular.module('ApplicationId',[]).service('ApplicationId', function () {
 		return {
-			encoded : 'bom1-12345678'
+			encoded : function () {
+				return 'bom1-12345678';
+			}
 		};
     });
 
@@ -90,7 +92,7 @@ describe('PolicyEditor', function() {
 	} ]);
 
 	beforeEach(module('ApplicationId', 'PolicyEditor'));
-	
+
 	afterEach(function() {
 		angular.element('#policyEditor').remove();
 	});
@@ -149,9 +151,9 @@ describe('PolicyEditor', function() {
 		expect(controller.isSaveDisabled()).toEqual(true);
 	}));
 
-	it('Test Store Not Modified', inject(function ($routeParams) {
+	it('Test Store Not Modified', inject(function ($state) {
 		// Ensures that the store is not modified prior to saving
-		$routeParams.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
+		$state.params.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
 		var controller = getPolicyEditorController(),
 			policy = controller.scope.state.currentPolicy;
 
@@ -162,8 +164,8 @@ describe('PolicyEditor', function() {
 		expect(controller.scope.policies[0].name).toEqual('Policy1');
 	}));
 
-	it('Test Edit Actions', inject(function ($httpBackend, $routeParams) {
-		$routeParams.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
+	it('Test Edit Actions', inject(function ($httpBackend, $state) {
+		$state.params.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
 		var controller = getPolicyEditorController(),
 			asyncRan = false,
 			policy = controller.scope.state.currentPolicy;
@@ -304,7 +306,7 @@ describe('PolicyEditor', function() {
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);
 
-		var coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none" });
+		var coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none"; });
 		expect(coordinatesOperator.length).toEqual(1);
 		var coordinateOptions = coordinatesOperator.find('option');
 		expect(coordinateOptions.length).toEqual(2);
@@ -314,11 +316,11 @@ describe('PolicyEditor', function() {
 		conditionTypeSelector.val('SecurityVulnerabilityStatus');
 		expect(conditionTypeSelector.find('option:selected').val()).toEqual('SecurityVulnerabilityStatus');
 		
-		var changeEvent = document.createEvent('HTMLEvents');
+		changeEvent = document.createEvent('HTMLEvents');
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);
 		
-		coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none" });
+		coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none"; });
 		expect(coordinatesOperator.length).toEqual(1);
 		coordinateOptions = coordinatesOperator.find('option');
 		expect(coordinateOptions.length).toEqual(2);
@@ -338,7 +340,7 @@ describe('PolicyEditor', function() {
 	// TODO Test Response of PolicyEditorController to events from Constraint Controller
 	describe('PolicyStore', function () {
 		it('Default Values', inject(function (PolicyStore) {
-			 var newPolicy = PolicyStore.create();
+			 var newPolicy = PolicyStore.get().create();
 			 expect(newPolicy.threatLevel).toEqual(5);
 			 expect(newPolicy.constraints).toEqual([]);
 		}));

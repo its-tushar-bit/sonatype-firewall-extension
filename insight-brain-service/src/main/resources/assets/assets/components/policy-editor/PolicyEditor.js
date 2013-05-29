@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, window */
+/*global angular, $, window, Option */
 (function () {
 	'use strict';
-	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule']);
+	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat']);
 
 	module.service('PolicyStore', ['ApplicationId', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (appId, clmLocations, clmAppLocations, clmResource) {
 		var policyStoreTemplate = {
@@ -29,8 +29,8 @@
 					policyStores[appId.encoded()] = store;
 				}
 				return store;
-		    },
-		    serializeActions : function (uiActions) {
+			},
+			serializeActions : function (uiActions) {
 				var policyActions = {};
 				angular.forEach(uiActions, function (stage, stageName) {
 					var serializedActions = [];
@@ -63,7 +63,6 @@
 				return uiActions;
 			}
 		};
-		return policyStore;
 	}]);
 
 	module.service('ActionStore', ['CLMLocations', 'CLMResource', '$q', function (clmLocations, clmResource, $q) {
@@ -135,7 +134,7 @@
 		}
 
 		function updateStore() {
-		    var currentPolicyStore = policyStore.get();
+			var currentPolicyStore = policyStore.get();
 			$q.all([currentPolicyStore.get(), actionStore.get()]).then(function (results) {
 				var policies = results[0],
 					actionStages = results[1][1],

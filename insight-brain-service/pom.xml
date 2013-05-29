@@ -433,8 +433,9 @@
             <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
             <include>assets/lib/angular/angular-${angularjs.version}.js</include>
             <include>assets/lib/angular/angular-sanitize-${angularjs.version}.js</include>
-            <include>assets/util/CLMLocation.js</include>
+            <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
             <include>assets/js/Resource.js</include>
+            <include>assets/util/CLMLocation.js</include>
             <include>assets/util/AngularCommon.js</include>
             <include>policy/PolicyApp.js</include>
             <include>policy/components/policy/PolicyController.js</include>

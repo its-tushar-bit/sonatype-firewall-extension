@@ -56,6 +56,10 @@
     margin: 86px 0 auto auto;
 }
 
+.third-row, .third-row > div {
+    height : 100%;
+}
+
 .navigation {
 	background: black;
 	width: 150px;
@@ -78,6 +82,7 @@
 
 .content {
 	margin-left: 305px;
+	height: 100%;
 }
 
 .content .nav-tabs {

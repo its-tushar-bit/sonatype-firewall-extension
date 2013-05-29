@@ -24,7 +24,7 @@
     <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
     <script src='lib/angular/angular-${angularjs.version}.min.js'></script>
     <script src='lib/angular/angular-sanitize-${angularjs.version}.min.js'></script>
-    <script src='//angular-ui.github.io/ui-router/build/angular-ui-router.js'></script>
+    <script src='lib/angular-ui-router-0.0.1.min.js'></script>
     <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.3.0.js"></script>
     <script src='util/CLMLocation.js?${build.timestamp}'></script>
     <script src='util/AngularCommon.js?${build.timestamp}'></script>
@@ -72,8 +72,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="third-row">
-		<div ui-view />
+	<div class="third-row" ui-view>
 	</div>
 </body>
 </html>

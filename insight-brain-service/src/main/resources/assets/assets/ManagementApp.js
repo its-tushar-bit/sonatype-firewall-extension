@@ -20,7 +20,7 @@
 		return applicationStore;
 	}]);
 	
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'dashboardStores', 'Organization', 'LicenseThreatGroup'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'dashboardStores', 'Organization', 'LicenseThreatGroup', 'Labels'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -57,8 +57,8 @@
 		}).state('management.application.view.labels', {
 			parent : 'management.application.view',
 			url : '/labels',
-			controller : angular.noop,
-			template : ''
+			controller : 'LabelController',
+			templateUrl : '../policy-assets/components/label-editor/labels.html'
 		}).state('management.application.view.licenses', {
 			parent : 'management.application.view',
 			url : '/licenses',

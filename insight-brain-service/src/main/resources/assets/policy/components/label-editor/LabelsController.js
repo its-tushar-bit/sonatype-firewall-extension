@@ -9,7 +9,7 @@
 
     var labelModule = angular.module('Labels', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-    labelModule.controller('LabelController', ['$scope', '$http', 'CLMAppLocations', function ($scope, $http, clmAppLocations) {
+    labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', function ($scope, $http, $dialog, clmAppLocations) {
         function errorFn(data, status, headersFn, config) {
             var header = headersFn();
             if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
@@ -31,15 +31,32 @@
                 $scope.labels = data;
             }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
-        $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
-
         $scope.editLabel = function (label) {
-            $scope.editorUrl = 'components/label-editor/label-editor.html?' + clmBuildTimestamp; // loads form
-
-            $scope.selectedLabel = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
-            if (label) {
-                $scope.selectedLabel = angular.extend($scope.selectedLabel, label);
-            }
+			$dialog.dialog({
+			    backdrop : true,
+			    keyboad : true,
+				dialogFade : true,
+			    controller : 'LabelEditorController',
+			    resolve : {
+					label : function () {
+						return angular.copy(label || {id: null, applicationId: null, label: '', labelLowercase: null, color: null});
+					}
+			    },
+				templateUrl : '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp
+			}).open().then(function (modifiedLabel) {
+				if (modifiedLabel) {
+				    if (modifiedLabel.id === null) {
+						$scope.labels.push(modifiedLabel);
+				    } else {
+			            angular.forEach($scope.labels, function (labelCandidate, key) {
+			                if (modifiedLabel.id === labelCandidate.id) {
+			                    $scope.labels[key] = modifiedLabel;
+			                    return false;
+			                }
+			            });
+				    }
+				}
+			});
         };
 
         $scope.confirmDeleteLabel = function () {
@@ -74,7 +91,7 @@
 		});
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', function ($scope, $http, hudson, clmAppLocations) {
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', 'label', 'dialog', function ($scope, $http, hudson, clmAppLocations, label, dialog) {
 
         function errorFn(data, status, headersFn, config) {
             $scope.submitActive = false;
@@ -87,13 +104,16 @@
                 }
             }
         }
+        $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
+
+        $scope.selectedLabel = label || {};
 
         $scope.setColor = function (color) {
             $scope.selectedLabel.color = color;
         };
 
 		$scope.cancelEditLabel = function () {
-			$scope.$emit('labels.cancelEditLabel');
+			dialog.close();
 		};
 
         $scope.canSaveEdit = function (valid) {
@@ -109,18 +129,11 @@
             $scope.submitActive = true;
             if (label.id == null) {
                 hudson.post(clmAppLocations.getLabelsUrl(), label).success(function (data) {
-                    $scope.labels.push(data);
-					$scope.$emit('labels.cancelEditLabel', label);
+                    dialog.close(label);
                 }).error(errorFn);
             } else {
                 $http.put(clmAppLocations.getLabelsUrl(), label).success(function (data) {
-                    angular.forEach($scope.labels, function (labelCandidate, key) {
-                        if (data.id === labelCandidate.id) {
-                            $scope.labels[key] = data;
-                            return false;
-                        }
-                    });
-					$scope.$emit('labels.cancelEditLabel', label);
+                    dialog.close(label);
                 }).error(errorFn);
             }
         };

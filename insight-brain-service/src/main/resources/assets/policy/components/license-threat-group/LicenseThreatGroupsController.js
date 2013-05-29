@@ -10,15 +10,7 @@
     var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMLocation']);
     
     licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource) {
-		var licenseGroupStore = CLMResource.getStore({
-			id : 'id',
-			url : CLMAppLocations.getLicenseGroupsUrl(),
-			template : { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 },
-			params : {
-				timestamp : new Date().getTime()
-			}
-		});
-		licenseGroupStore.get = licenseGroupStore.get().then(function(licenseGroups) {
+    	function populateGroupLicenses(licenseGroups) {
 			var deferred = $q.defer();
 			var licenseCount = licenseGroups.length;
 			
@@ -42,9 +34,23 @@
             });
 			
 			return deferred.promise;
+		}
+    	
+		var licenseGroupStore = CLMResource.getStore({
+			id : 'id',
+			url : CLMAppLocations.getLicenseGroupsUrl(),
+			template : { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 },
+			params : {
+				timestamp : new Date().getTime()
+			}
 		});
 		return {
-			get: licenseGroupStore.get.then
+			get: function() {
+				return licenseGroupStore.get().then(populateGroupLicenses);
+			},
+			refresh: function() {
+				return licenseGroupStore.refresh().then(populateGroupLicenses);
+			}
 		};
 	});
     
@@ -101,8 +107,9 @@
                                {'value': 1, 'name': '1'},
                                {'value': 0, 'name': 'No Threat'}
                            ];
-                
-        $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
+        
+        //licenseGroupStore.refresh();
+        $q.all([licenseStore.get(), licenseGroupStore.refresh()]).then(function (results) {
         	var licenses = results[0];
         	var licenseGroups = results[1];
         	

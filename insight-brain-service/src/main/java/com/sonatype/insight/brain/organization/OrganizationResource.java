@@ -25,6 +25,9 @@ public class OrganizationResource
 {
     public static final String SERVICE_PATH = "rest/organization";
 
+    /**
+     * @since 1.5
+     */
     @GET
     @Produces( MediaType.APPLICATION_JSON )
     public List<Organization> getAll()
@@ -32,6 +35,9 @@ public class OrganizationResource
         return new OrganizationDAO().getAll();
     }
 
+    /**
+     * @since 1.5
+     */
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
@@ -42,6 +48,9 @@ public class OrganizationResource
         return organization;
     }
 
+    /**
+     * @since 1.5
+     */
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )

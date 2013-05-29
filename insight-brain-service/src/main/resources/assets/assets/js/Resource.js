@@ -40,6 +40,10 @@
 						original = updated;
 						angular.extend(me, original);
 					};
+					
+					this.$revertOriginal = function() {
+						angular.extend(me, original);
+					}
 
 					this.$updateOriginal(originalObject);
 				}

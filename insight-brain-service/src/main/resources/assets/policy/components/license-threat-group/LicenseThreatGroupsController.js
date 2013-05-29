@@ -50,7 +50,8 @@
 			},
 			refresh: function() {
 				return licenseGroupStore.refresh().then(populateGroupLicenses);
-			}
+			},
+			create: licenseGroupStore.create
 		};
 	});
     
@@ -108,7 +109,6 @@
                                {'value': 0, 'name': 'No Threat'}
                            ];
         
-        //licenseGroupStore.refresh();
         $q.all([licenseStore.get(), licenseGroupStore.refresh()]).then(function (results) {
         	var licenses = results[0];
         	var licenseGroups = results[1];
@@ -117,20 +117,26 @@
         	$scope.licenseGroups = licenseGroups;
         });
         
-        $scope.getShortDisplayName = function(licenseId) {
+        $scope.getDisplayName = function(licenseId) {
         	for (var i = 0; i < $scope.allLicenses.length; i++) {
         		if ($scope.allLicenses[i].id === licenseId) {
-        			return $scope.allLicenses[i].shortDisplayName;
+        			return $scope.allLicenses[i].longDisplayName + ' (' + $scope.allLicenses[i].shortDisplayName + ')';
         		}
         	}
         };
+        
+        $scope.newLicenseGroup = function (groupName) {
+            $scope.editLicenseGroup(null, groupName);
+        }
 
-        $scope.editLicenseGroup = function (group) {
-
-            $scope.selectedGroup = { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 };
-            if (group) {
-                $scope.selectedGroup = angular.extend($scope.selectedGroup, group);
-            }
+        $scope.editLicenseGroup = function (group, groupName) {
+        	$scope.selectedGroup = licenseGroupStore.create();
+        	if (group) {
+        		$scope.selectedGroup = angular.extend($scope.selectedGroup, group);
+        	}
+        	if (groupName) {
+        		$scope.selectedGroup.name = groupName;
+        	}
 
             // Build a list of all existing licenses to exclude from selection
             var existingLicenses = [];
@@ -169,7 +175,29 @@
             }
 
             $scope.licenses = availableLicenses;
+            
+            angular.element('#licenseModal').modal('show');
         };
+        
+        $scope.inlineSaveLicenseGroup = function(group) {
+        	if (group) {
+        		group.$save();
+        	} else {
+        		for (var i = 0; i < $scope.licenseGroups.length; i++) {
+        			$scope.licenseGroups[i].$save();
+        		}
+        	}
+        };
+        
+        $scope.inlineRevertLicenseGroup = function(group) {
+        	if (group) {
+        		group.$revertOriginal();
+        	} else {
+        		for (var i = 0; i < $scope.licenseGroups.length; i++) {
+        			$scope.licenseGroups[i].$revertOriginal();
+        		}
+        	}
+        }
 
         $scope.confirmDeleteLicenseGroup = function (group) {
             $scope.selectedGroup = angular.extend({ id: null, applicationId: null, name: '', threatLevel: 5 }, group);
@@ -192,27 +220,13 @@
         };
 
 		$scope.$on('license.cancelLicenseGroupEdit', function (event, licenseGroup) {
-			if (!licenseGroup || licenseGroup.id === $scope.selectedGroup.id) {
-				deselect();
-			}
+			deselect();
+			delete $scope.newGroupName;
+			angular.element('#licenseModal').modal('hide');
 		});
     });
 
     licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', function ($scope, $filter, $http, hudson, clmLocations, clmAppLocations) {
-        $scope.threatLevels = [
-            {'value': 10, 'name': '10'},
-            {'value': 9, 'name': '9'},
-            {'value': 8, 'name': '8'},
-            {'value': 7, 'name': '7'},
-            {'value': 6, 'name': '6'},
-            {'value': 5, 'name': '5'},
-            {'value': 4, 'name': '4'},
-            {'value': 3, 'name': '3'},
-            {'value': 2, 'name': '2'},
-            {'value': 1, 'name': '1'},
-            {'value': 0, 'name': 'No Threat'}
-        ];
-
         function onError(data, status, headersFn, config) {
             $scope.submitActive = false;
             var header = headersFn();

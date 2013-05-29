@@ -71,11 +71,8 @@ input[type="file"] {
 
 .fullWidthPrependedTextBox {
     float: right;
+    overflow: auto;
     width: 100%;
-}
-
-.fullWidthPrependedTextBox > input {
-    width: 545px;
 }
 
 .emptyIconGlyph {

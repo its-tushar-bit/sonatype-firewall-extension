@@ -117,12 +117,6 @@ tr .hover-vis {
     filter: alpha(opacity = 40);
 }
 
-/* Page content */
-html, body, .page-content {
-    height: 100%;
-    box-sizing: border-box;
-}
-
 a {
 	cursor: pointer;
 }

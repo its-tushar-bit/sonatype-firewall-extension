@@ -56,10 +56,6 @@
     margin: 86px 0 auto auto;
 }
 
-.third-row, .third-row > div {
-    height : 100%;
-}
-
 .navigation {
 	background: black;
 	width: 150px;
@@ -81,7 +77,7 @@
 }
 
 .content {
-	margin-left: 305px;
+	margin-left: 300px;
 	height: 100%;
 }
 
@@ -126,6 +122,7 @@
 
 .editorHeader {
 	padding-top: 10px;
+	padding-left: 10px;
 }
 
 .editorHeader h2 {
@@ -196,7 +193,6 @@ ul.tri-pane:before, ul.tri-pane:after {
 ul.tri-pane {
 	width : 100%;
 	margin: 0px;
-	margin-bottom: 20px;
 	list-style-type: none;
 	border-bottom: 1px solid black;
 }

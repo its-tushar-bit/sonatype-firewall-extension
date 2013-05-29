@@ -225,7 +225,6 @@ var angularCommon;
 		};
 	}]);
 	
-	
 	angularCommon.directive('inlineEditor', ['$parse', function($parse) {
 		return {
 			replace: true,

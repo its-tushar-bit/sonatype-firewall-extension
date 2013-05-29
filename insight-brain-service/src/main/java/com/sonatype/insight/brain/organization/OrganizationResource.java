@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.List;
+
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -21,6 +24,13 @@ import com.sonatype.insight.brain.model.Organization;
 public class OrganizationResource
 {
     public static final String SERVICE_PATH = "rest/organization";
+
+    @GET
+    @Produces( MediaType.APPLICATION_JSON )
+    public List<Organization> getAll()
+    {
+        return new OrganizationDAO().getAll();
+    }
 
     @POST
     @Consumes( MediaType.APPLICATION_JSON )

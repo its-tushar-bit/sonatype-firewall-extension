@@ -36,6 +36,17 @@ public class OrganizationResourceTest
         assertEquals( "OrganizationResourceTest", organization.getName() );
         String organizationId = organization.getId();
 
+        // Get
+        response = RestAccess.get( getServiceURL() );
+        assertResponseStatus( 200, response );
+        Organization[] organizations = JsonHelpers.fromJson( response.getResponseBody(), Organization[].class );
+        assertNotNull( organizations );
+        assertEquals( 1, organizations.length );
+        organization = organizations[0];
+        assertNotNull( organization );
+        assertEquals( organizationId, organization.getId() );
+        assertEquals( "OrganizationResourceTest", organization.getName() );
+
         // Update
         organization.setName( "OrganizationResourceTest updated" );
         response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( organization ) );
@@ -74,6 +85,17 @@ public class OrganizationResourceTest
         assertResponseStatus( 200, response );
         uninstallLicense();
         response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( organization ) );
+        assertResponseStatus( 402, response );
+
+        new OrganizationDAO().delete( organization );
+    }
+
+    @Test
+    public void testGetAll_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Response response = RestAccess.get( getServiceURL() );
         assertResponseStatus( 402, response );
     }
 

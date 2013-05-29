@@ -38,14 +38,7 @@
 			parent : 'management',
 			url : '/application',
 			controller : 'applicationController',
-			templateUrl : '../application-assets/components/application-navigator.html',
-			onEnter : function($state) {
-				if ($state.current.name.indexOf("application.view") !== -1) {
-					if (!$state.params.id) {
-						$state.selectedApplication = null;
-					}
-				}
-			}
+			templateUrl : '../application-assets/components/application-navigator.html'
 		}).state('management.application.view', {
 			parent : 'management.application',
 			url : '/{applicationPublicId}',
@@ -74,7 +67,7 @@
 		}).state('management.organization.view', {
 			parent : 'management.organization',
 			url : '/{organizationId}',
-			controller : 'OrganizationController',
+			controller : 'OrganizationEditorController',
 			templateUrl : '../organization-assets/components/organization-editor.html'
 		});
 		$routeProvider.when('', { redirectTo : '/management' });

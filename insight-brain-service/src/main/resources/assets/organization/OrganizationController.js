@@ -9,9 +9,29 @@
 
 	var organizationModule = angular.module('Organization', ['ui.compat']);
 
-	organizationModule.controller('OrganizationController', function($scope, $state) {
+	organizationModule.controller('OrganizationController', function($scope, $state, $timeout) {
+		function switchOrganization() {
+			$scope.selectedOrganization = null;
+			if ($scope.$state.params.organizationId !== null && $scope.organizations) {
+				for (var i = 0; i < $scope.organizations.length; i++) {
+					if ($scope.$state.params.organizationId === $scope.organizations[i].id) {
+						$timeout(function () {
+							$scope.selectedOrganization = $scope.organizations[i];
+						}, 200);
+						return;
+					}
+				}
+			}
+		}
+		
 		$scope.$state = $state;
 		
 		$scope.organizations = [{name:'a', id: '1'},{name:'b', id: '2'},{name:'c', id: '3'},{name:'d', id: '4'}];
+		$scope.$watch('$state.params.organizationId', switchOrganization);
+		switchOrganization();
+	});
+	
+	organizationModule.controller('OrganizationEditorController', function($scope, $state) {
+		$scope.$state = $state;
 	});
 }());

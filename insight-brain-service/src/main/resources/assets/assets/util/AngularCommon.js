@@ -225,7 +225,7 @@ var angularCommon;
 		};
 	}]);
 	
-	angularCommon.directive('inlineEditor', ['$parse', function($parse) {
+	angularCommon.directive('inlineEditor', ['$parse','$timeout', function($parse,$timeout) {
 		return {
 			replace: true,
 			templateUrl: '../assets/components/inlineEditor.html',
@@ -235,20 +235,28 @@ var angularCommon;
 			},
 			restrict: 'A',
 			link: function postLink ($scope, element, attr) {
-				var textBox = element.find('input');
-				element.find('div').on('click', function() {
-					$scope.$apply(function() {
-						$scope.isEdit = true;
-					});
-					textBox.focus();
-				});
-				textBox.on('blur', function() {
-					if (textBox.val()) {
-						$scope.$apply(function() {
-							$scope.isEdit = false;
-						});
-					}
-				});
+			    //using a timeout here to make sure everything else gets done first
+			    //specific problem being that some state data isn't updated as expected at this point
+			    //TODO: would like to investigate so that a timeout is not required here
+			    $timeout(function(){
+			        $scope.placeholder = attr.editorPlaceholder;
+			        $scope.isEdit = $parse(attr.forceEdit)($scope.$parent);
+	                
+	                var textBox = element.find('input');
+	                element.find('div').on('click', function() {
+	                    $scope.$apply(function() {
+	                        $scope.isEdit = true;
+	                    });
+	                    textBox.focus();
+	                });
+	                textBox.on('blur', function() {
+	                    if (textBox.val()) {
+	                        $scope.$apply(function() {
+	                            $scope.isEdit = false;
+	                        });
+	                    }
+	                });
+			    });
 			}
 		}
 	}]);

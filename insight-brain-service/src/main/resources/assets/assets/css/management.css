@@ -119,15 +119,15 @@
 	clear: both;
 }
 
-.applicationHeader {
+.editorHeader {
 	padding-top: 10px;
 }
 
-.applicationHeader h2 {
+.editorHeader h2 {
 	border: 1px;
 }
 
-.applicationHeader img {
+.editorHeader img {
 	height: 96px; 
 	width: 96px;
 	float: left;

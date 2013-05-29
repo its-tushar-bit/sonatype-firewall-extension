@@ -155,6 +155,7 @@
 			switchApplication();
 			$scope.$watch('$state.params.applicationPublicId', switchApplication);
 		}, function (error) {
+            // TODO Error handling
 			alert(error.data);
 		});
 	});

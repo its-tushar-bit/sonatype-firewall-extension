@@ -106,7 +106,7 @@
         	var licenses = results[0];
         	var licenseGroups = results[1];
         	
-        	$scope.allLicenses = licenses.sort(licenses);
+        	$scope.allLicenses = licenses.sort(sortLicense);
         	$scope.licenseGroups = licenseGroups;
         });
         
@@ -117,20 +117,6 @@
         		}
         	}
         };
-        return;
-
-        $http.get(clmAppLocations.getLicenseGroupsUrl(), {
-            params: { timestamp: new Date().getTime() }
-        }).success(function (data) {
-            $scope.licenseGroups = data;
-            angular.forEach($scope.licenseGroups, function (group, index) {
-                $http.get(clmAppLocations.getLicenseGroupLicensesUrl(group), {
-                    params: { timestamp: new Date().getTime() }
-                }).success(function (data) {
-                        group.licenses = data;
-                }).error(function () { $scope.$broadcast('showServerError', arguments); });
-            });
-        }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
         $scope.editLicenseGroup = function (group) {
 
@@ -186,7 +172,7 @@
 
         $scope.deleteLicenseGroup = function () {
             $scope.deletedEnabled = false;
-            $http['delete'](clmAppLocations.getDeleteLicenseGroupUrl($scope.selectedGroup)).success(function () {
+            $http['delete'](CLMAppLocations.getDeleteLicenseGroupUrl($scope.selectedGroup)).success(function () {
                 angular.forEach($scope.licenseGroups, function (licenseCandidate, key) {
                     if (licenseCandidate.id === $scope.selectedGroup.id) {
                         $scope.licenseGroups.splice(key, 1);

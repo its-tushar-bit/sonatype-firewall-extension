@@ -52,6 +52,31 @@ public class OrganizationResourceTest
         new OrganizationDAO().delete( organization );
     }
 
+    @Test
+    public void testAddOrganization_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        Organization organization = new Organization();
+        organization.setName( "OrganizationResourceTest" );
+
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( organization ) );
+        assertResponseStatus( 402, response );
+    }
+
+    @Test
+    public void testUpdateOrganization_Unlicensed()
+        throws Exception
+    {
+        Organization organization = new Organization();
+        organization.setName( "OrganizationResourceTest" );
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( organization ) );
+        assertResponseStatus( 200, response );
+        uninstallLicense();
+        response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( organization ) );
+        assertResponseStatus( 402, response );
+    }
+
     private String getServiceURL()
     {
         return getRestBaseUrl() + OrganizationResource.SERVICE_PATH;

@@ -42,6 +42,24 @@
 	color: black;
 }
 
+@media (max-width: 979px) {
+	.first-row, .second-row {
+		margin-bottom: 0px;
+		position: fixed;
+	}
+	 
+	.first-row div, .second-row div  {
+		padding: 0px !important;
+	}
+}
+
+@media (max-width: 767px) {
+	body {
+		padding-left: 0px !important;
+		padding-right: 0px !important;
+	}
+}
+
 .btn-black {
 	color: #ffffff;
 	text-shadow:0 -1px 0 rgba(0, 0, 0, 0.25);

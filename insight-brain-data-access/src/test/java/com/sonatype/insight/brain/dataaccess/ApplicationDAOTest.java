@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
 
@@ -96,6 +97,45 @@ public class ApplicationDAOTest
         application = applicationDAO.getById( applicationId );
         Assert.assertNull( application );
         Assert.assertFalse( appIconDir.getAbsolutePath(), appIconDir.exists() );
+    }
+
+    @Test
+    public void testUpdateOrganizationId()
+    {
+        OrganizationDAO organizationDAO = new OrganizationDAO();
+        Organization organization1 = new Organization();
+        organization1.setName( "testUpdateOrganizationId 1" );
+        organizationDAO.insert( organization1 );
+        Organization organization2 = new Organization();
+        organization2.setName( "testUpdateOrganizationId 2" );
+        organizationDAO.insert( organization2 );
+
+        applicationDAO.insert( application );
+        application.setOrganizationId( organization1.getId() );
+        applicationDAO.update( application );
+        application = applicationDAO.getById( application.getId() );
+        assertEquals( organization1.getId(), application.getOrganizationId() );
+        // Update again with the same organization id - should not fail
+        application.setName( "testUpdateOrganizationId" );
+        applicationDAO.update( application );
+        application = applicationDAO.getById( application.getId() );
+        assertEquals( organization1.getId(), application.getOrganizationId() );
+
+        // Update with a different organization id - should fail
+        application.setOrganizationId( organization2.getId() );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidApplicationException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Cannot change the parent organization of an application.", expected.getMessage() );
+        }
+
+        applicationDAO.delete( application );
+        organizationDAO.delete( organization1 );
+        organizationDAO.delete( organization2 );
     }
 
     @Test

@@ -340,7 +340,7 @@ public class ApplicationResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public ApplicationManagementSummary editApplication( Application application )
+    public ApplicationManagementSummary updateApplication( Application application )
         throws IOException
     {
         applicationDAO.update( application );

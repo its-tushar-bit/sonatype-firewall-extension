@@ -199,6 +199,11 @@ public class ApplicationDAO
         {
             throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
         }
+        if ( existingApplication.getOrganizationId() != null
+            && !existingApplication.getOrganizationId().equals( application.getOrganizationId() ) )
+        {
+            throw new InvalidApplicationException( "Cannot change the parent organization of an application." );
+        }
         existingApplication = getByName( em, application.getName() );
         if ( existingApplication != null && !existingApplication.getId().equals( application.getId() ) )
         {

@@ -35,6 +35,9 @@ public class Application
     @Column(name = "name_lowercase_no_whitespace")
     private String nameLowercaseNoWhitespace;
 
+    @Column( name = "organization_id" )
+    private String organizationId;
+
     @Override
     public String getId()
     {
@@ -107,5 +110,15 @@ public class Application
      */
     public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
     {
+    }
+
+    public String getOrganizationId()
+    {
+        return organizationId;
+    }
+
+    public void setOrganizationId( String organizationId )
+    {
+        this.organizationId = organizationId;
     }
 }

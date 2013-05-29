@@ -19,9 +19,11 @@ CREATE TABLE application (
   public_id_lowercase varchar(60) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
+  organization_id varchar(50) NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE KEY (public_id_lowercase),
-  CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+  CONSTRAINT application_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
+  CONSTRAINT application_organization_fk FOREIGN KEY (organization_id) REFERENCES organization(organization_id)
 );
 
 CREATE TABLE label (

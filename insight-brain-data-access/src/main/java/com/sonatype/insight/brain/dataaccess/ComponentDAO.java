@@ -281,7 +281,7 @@ public class ComponentDAO
         }
         for ( String licenseId : licenseIds )
         {
-            component.addLicenseThreatGroup( licenseThreatGroupDAO.getByApplicationIdAndLicenseId( applicationId,
+            component.addLicenseThreatGroup( licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId,
                                                                                                    licenseId ) );
         }
     }

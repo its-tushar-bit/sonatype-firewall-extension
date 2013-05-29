@@ -21,8 +21,8 @@ public class LicenseThreatGroup
     @Column( name = "license_threat_group_id" )
     private String id;
 
-    @Column( name = "application_id" )
-    private String applicationId;
+    @Column( name = "owner_id" )
+    private String ownerId;
 
     @Column( name = "name" )
     private String name;
@@ -34,9 +34,9 @@ public class LicenseThreatGroup
     {
     }
 
-    public LicenseThreatGroup( String applicationId, String name, int threatLevel )
+    public LicenseThreatGroup( String ownerId, String name, int threatLevel )
     {
-        this.applicationId = applicationId;
+        this.ownerId = ownerId;
         this.name = name;
         this.threatLevel = threatLevel;
     }
@@ -53,14 +53,14 @@ public class LicenseThreatGroup
         this.id = id;
     }
 
-    public String getApplicationId()
+    public String getOwnerId()
     {
-        return applicationId;
+        return ownerId;
     }
 
-    public void setApplicationId( String applicationId )
+    public void setOwnerId( String ownerId )
     {
-        this.applicationId = applicationId;
+        this.ownerId = ownerId;
     }
 
     public String getName()

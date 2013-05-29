@@ -26,20 +26,19 @@ public class LicenseThreatGroupLicenseDAO
         return get( em, sQuery, id );
     }
 
-    private LicenseThreatGroupLicense getByApplicationIdAndLicenseId( EntityManager em, String applicationId,
-                                                                      String licenseId )
+    private LicenseThreatGroupLicense getByOwnerIdAndLicenseId( EntityManager em, String ownerId, String licenseId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-            " WHERE entity.applicationId=?1 AND entity.licenseId=?2";
-        return get( em, sQuery, applicationId, licenseId );
+            " WHERE entity.ownerId=?1 AND entity.licenseId=?2";
+        return get( em, sQuery, ownerId, licenseId );
     }
 
-    public List<LicenseThreatGroupLicense> getByApplicationId( String applicationId )
+    public List<LicenseThreatGroupLicense> getByOwnerId( String ownerId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-            " WHERE entity.applicationId=?1" + //
+            " WHERE entity.ownerId=?1" + //
             " ORDER BY entity.licenseId";
-        return getList( sQuery, applicationId );
+        return getList( sQuery, ownerId );
     }
 
     List<LicenseThreatGroupLicense> getByLicenseThreatGroupId( EntityManager em, String licenseThreatGroupId )
@@ -74,8 +73,7 @@ public class LicenseThreatGroupLicenseDAO
     {
         new LicenseDAO().getByIdNotNull( entity.getLicenseId() );
 
-        LicenseThreatGroupLicense other =
-            getByApplicationIdAndLicenseId( em, entity.getApplicationId(), entity.getLicenseId() );
+        LicenseThreatGroupLicense other = getByOwnerIdAndLicenseId( em, entity.getOwnerId(), entity.getLicenseId() );
         if ( other != null )
         {
             LicenseThreatGroup licenseThreatGroup =
@@ -94,7 +92,7 @@ public class LicenseThreatGroupLicenseDAO
             em.getTransaction().begin();
 
             LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getByIdNotNull( em, licenseThreatGroupId );
-            String applicationId = licenseThreatGroup.getApplicationId();
+            String ownerId = licenseThreatGroup.getOwnerId();
 
             LicenseDAO licenseDAO = new LicenseDAO();
 
@@ -120,7 +118,7 @@ public class LicenseThreatGroupLicenseDAO
                 }
 
                 LicenseThreatGroupLicense newLicense = new LicenseThreatGroupLicense();
-                newLicense.setApplicationId( applicationId );
+                newLicense.setOwnerId( ownerId );
                 newLicense.setLicenseThreatGroupId( licenseThreatGroupId );
                 newLicense.setLicenseId( licenseId );
                 insert( em, newLicense );

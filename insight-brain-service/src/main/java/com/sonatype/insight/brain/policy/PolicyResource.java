@@ -141,9 +141,9 @@ public class PolicyResource
         ExportDTO exportDTO = new ExportDTO();
         exportDTO.policies = policyDAO().getByOwnerId( internalPolicyOwnerId );
         exportDTO.labels = new LabelDAO().getByApplicationId( internalPolicyOwnerId );
-        exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByApplicationId( internalPolicyOwnerId );
+        exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( internalPolicyOwnerId );
         exportDTO.licenseThreatGroupLicenses =
-            new LicenseThreatGroupLicenseDAO().getByApplicationId( internalPolicyOwnerId );
+            new LicenseThreatGroupLicenseDAO().getByOwnerId( internalPolicyOwnerId );
         File exportDir = new File( new File( work.getWorkDir(), "export" ), internalPolicyOwnerId );
         exportDir.mkdirs();
         File exportFile = File.createTempFile( "policy-export-", ".json", exportDir );
@@ -232,7 +232,7 @@ public class PolicyResource
                 {
                     String oldId = licenseThreatGroup.getId();
                     licenseThreatGroup.setId( null );
-                    licenseThreatGroup.setApplicationId( applicationId );
+                    licenseThreatGroup.setOwnerId( applicationId );
                     licenseThreatGroupDAO.insert( em, licenseThreatGroup );
                     idMap.put( oldId, licenseThreatGroup.getId() );
                 }
@@ -240,7 +240,7 @@ public class PolicyResource
                 for ( LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses )
                 {
                     licenseThreatGroupLicense.setId( null );
-                    licenseThreatGroupLicense.setApplicationId( applicationId );
+                    licenseThreatGroupLicense.setOwnerId( applicationId );
                     licenseThreatGroupLicense.setLicenseThreatGroupId( idMap.get( licenseThreatGroupLicense.getLicenseThreatGroupId() ) );
                     licenseThreatGroupLicenseDAO.insert( em, licenseThreatGroupLicense );
                 }

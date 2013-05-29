@@ -238,7 +238,7 @@ public class ApplicationDAO
         // Cascade to license threat groups
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
         List<LicenseThreatGroup> licenseThreatGroups =
-            licenseThreatGroupDAO.getByApplicationId( em, application.getId() );
+            licenseThreatGroupDAO.getByOwnerId( em, application.getId() );
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
             licenseThreatGroupDAO.delete( em, licenseThreatGroup );

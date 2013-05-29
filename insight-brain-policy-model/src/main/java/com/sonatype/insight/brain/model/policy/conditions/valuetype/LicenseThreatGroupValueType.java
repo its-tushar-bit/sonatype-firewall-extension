@@ -44,6 +44,6 @@ public class LicenseThreatGroupValueType
     @Override
     public List<LicenseThreatGroup> getAvailableValues()
     {
-        return new LicenseThreatGroupDAO().getByApplicationId( applicationId );
+        return new LicenseThreatGroupDAO().getByOwnerId( applicationId );
     }
 }

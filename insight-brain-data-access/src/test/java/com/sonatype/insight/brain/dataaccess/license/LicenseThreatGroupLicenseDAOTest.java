@@ -14,6 +14,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -21,24 +23,30 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseThreatGroupLicenseDAOTest
     extends AbstractDbDAOTest
 {
+    private Organization organization;
+
     @After
     public void cleanUp()
     {
         LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-        List<LicenseThreatGroup> groups = dao.getByApplicationId( applicationId );
+        List<LicenseThreatGroup> groups = dao.getByOwnerId( applicationId );
         for ( LicenseThreatGroup group : groups )
         {
             dao.delete( group );
         }
+
+        if ( organization != null )
+        {
+            new OrganizationDAO().delete( organization );
+        }
     }
 
-    @Test
-    public void testCRUD()
+    private void testCRUD( String ownerId )
         throws Exception
     {
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
         LicenseThreatGroup group = new LicenseThreatGroup();
-        group.setApplicationId( applicationId );
+        group.setOwnerId( ownerId );
         group.setName( "My group" );
         group.setThreatLevel( 4 );
         groupDAO.insert( group );
@@ -47,7 +55,7 @@ public class LicenseThreatGroupLicenseDAOTest
 
         // Create
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-        licenseThreatGroupLicense.setApplicationId( applicationId );
+        licenseThreatGroupLicense.setOwnerId( ownerId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
         licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         dao.insert( licenseThreatGroupLicense );
@@ -55,7 +63,7 @@ public class LicenseThreatGroupLicenseDAOTest
 
         licenseThreatGroupLicense = dao.getById( licenseThreatGroupLicense.getId() );
         Assert.assertNotNull( licenseThreatGroupLicense );
-        assertLicenseThreatGroupLicense( applicationId, group.getId(), "UNSPECIFIED", licenseThreatGroupLicense );
+        assertLicenseThreatGroupLicense( ownerId, group.getId(), "UNSPECIFIED", licenseThreatGroupLicense );
 
         // Update
         try
@@ -75,28 +83,46 @@ public class LicenseThreatGroupLicenseDAOTest
     }
 
     @Test
+    public void testCRUD_Application()
+        throws Exception
+    {
+        testCRUD( applicationId );
+    }
+
+    @Test
+    public void testCRUD_Organization()
+        throws Exception
+    {
+        organization = new Organization();
+        organization.setName( "testCRUD-Organization" );
+        new OrganizationDAO().insert( organization );
+
+        testCRUD( organization.getId() );
+    }
+
+    @Test
     public void testAddSameLicenseToTwoGroups()
         throws Exception
     {
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
         LicenseThreatGroup group1 = new LicenseThreatGroup();
-        group1.setApplicationId( applicationId );
+        group1.setOwnerId( applicationId );
         group1.setName( "My group 1" );
         groupDAO.insert( group1 );
         LicenseThreatGroup group2 = new LicenseThreatGroup();
-        group2.setApplicationId( applicationId );
+        group2.setOwnerId( applicationId );
         group2.setName( "My group 2" );
         groupDAO.insert( group2 );
 
         LicenseThreatGroupLicenseDAO dao = new LicenseThreatGroupLicenseDAO();
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-        licenseThreatGroupLicense.setApplicationId( applicationId );
+        licenseThreatGroupLicense.setOwnerId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group1.getId() );
         licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         dao.insert( licenseThreatGroupLicense );
 
         licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-        licenseThreatGroupLicense.setApplicationId( applicationId );
+        licenseThreatGroupLicense.setOwnerId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group2.getId() );
         licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         try
@@ -119,7 +145,7 @@ public class LicenseThreatGroupLicenseDAOTest
     {
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
         LicenseThreatGroup group = new LicenseThreatGroup();
-        group.setApplicationId( applicationId );
+        group.setOwnerId( applicationId );
         group.setName( "My group" );
         group.setThreatLevel( 4 );
         groupDAO.insert( group );
@@ -128,7 +154,7 @@ public class LicenseThreatGroupLicenseDAOTest
 
         // Create
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-        licenseThreatGroupLicense.setApplicationId( applicationId );
+        licenseThreatGroupLicense.setOwnerId( applicationId );
         licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
         licenseThreatGroupLicense.setLicenseId( "BAZINGAAA" );
         try
@@ -151,7 +177,7 @@ public class LicenseThreatGroupLicenseDAOTest
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
 
         // Delete all existing groups
-        List<LicenseThreatGroup> groups = groupDAO.getByApplicationId( applicationId );
+        List<LicenseThreatGroup> groups = groupDAO.getByOwnerId( applicationId );
         for ( LicenseThreatGroup group : groups )
         {
             groupDAO.delete( group );
@@ -159,7 +185,7 @@ public class LicenseThreatGroupLicenseDAOTest
 
         // Add a new group
         LicenseThreatGroup group = new LicenseThreatGroup();
-        group.setApplicationId( applicationId );
+        group.setOwnerId( applicationId );
         group.setName( "My group" );
         group.setThreatLevel( 4 );
         groupDAO.insert( group );
@@ -200,10 +226,10 @@ public class LicenseThreatGroupLicenseDAOTest
         Assert.assertEquals( 0, licenseThreatGroupLicenses.size() );
     }
 
-    private void assertLicenseThreatGroupLicense( String applicationId, String licenseThreatGroupId, String licenseId,
+    private void assertLicenseThreatGroupLicense( String ownerId, String licenseThreatGroupId, String licenseId,
                                                   LicenseThreatGroupLicense actual )
     {
-        Assert.assertEquals( applicationId, actual.getApplicationId() );
+        Assert.assertEquals( ownerId, actual.getOwnerId() );
         Assert.assertEquals( licenseThreatGroupId, actual.getLicenseThreatGroupId() );
         Assert.assertEquals( licenseId, actual.getLicenseId() );
     }

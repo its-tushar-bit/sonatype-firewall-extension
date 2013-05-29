@@ -17,7 +17,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
@@ -26,31 +25,25 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 public class LicenseThreatGroupLicenseResource
 {
     public static final String SERVICE_PATH =
-        "rest/licenseThreatGroupLicense/application/{applicationPublicId}/{licenseThreatGroupId}";
-
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+        "rest/licenseThreatGroupLicense/application/{ownerId}/{licenseThreatGroupId}";
 
     private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses( @PathParam( "ownerId" ) String ownerId,
                                                                           @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
     {
-        applicationDAO.getByPublicIdNotNull( applicationPublicId );
-
         return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );
     }
 
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses( @PathParam( "ownerId" ) String ownerId,
                                                                           @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId,
                                                                           Set<String> licenseIds )
     {
-        applicationDAO.getByPublicIdNotNull( applicationPublicId );
-
         licenseThreatGroupLicenseDAO.setLicenses( licenseThreatGroupId, licenseIds );
 
         return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );

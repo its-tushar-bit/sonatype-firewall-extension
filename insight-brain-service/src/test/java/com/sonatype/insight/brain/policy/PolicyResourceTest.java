@@ -99,8 +99,8 @@ public class PolicyResourceTest
         applicationsToDelete.add( application );
         Assert.assertNotNull( application );
         Assert.assertEquals( 1, labelDAO.getByApplicationId( application.getId() ).size() );
-        Assert.assertEquals( 1, licenseThreatGroupDAO.getByApplicationId( application.getId() ).size() );
-        Assert.assertEquals( 1, licenseThreatGroupLicenseDAO.getByApplicationId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupDAO.getByOwnerId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupLicenseDAO.getByOwnerId( application.getId() ).size() );
         response = RestAccess.get( getServiceURL( newApplicationPublicId ) );
         assertResponseStatus( 200, response );
         Policy[] policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
@@ -120,8 +120,8 @@ public class PolicyResourceTest
         applicationsToDelete.add( application );
         Assert.assertNotNull( application );
         Assert.assertEquals( 1, labelDAO.getByApplicationId( application.getId() ).size() );
-        Assert.assertEquals( 1, licenseThreatGroupDAO.getByApplicationId( application.getId() ).size() );
-        Assert.assertEquals( 1, licenseThreatGroupLicenseDAO.getByApplicationId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupDAO.getByOwnerId( application.getId() ).size() );
+        Assert.assertEquals( 1, licenseThreatGroupLicenseDAO.getByOwnerId( application.getId() ).size() );
         response = RestAccess.get( getServiceURL( newApplicationPublicId ) );
         assertResponseStatus( 200, response );
         policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );

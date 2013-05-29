@@ -28,32 +28,39 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Path( LicenseThreatGroupResource.SERVICE_PATH )
 public class LicenseThreatGroupResource
 {
-    public static final String SERVICE_PATH = "rest/licenseThreatGroup/application/{applicationPublicId}";
-
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    public static final String SERVICE_PATH = "rest/licenseThreatGroup/application/{ownerId}";
 
     private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
+    private static String getInternalOwnerId( String ownerId )
+    {
+        Application application = new ApplicationDAO().getByPublicId( ownerId );
+        if ( application != null )
+        {
+            return application.getId();
+        }
+        return ownerId;
+    }
+
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<LicenseThreatGroup> getLicenseThreatGroups( @PathParam( "applicationPublicId" ) String applicationPublicId )
+    public List<LicenseThreatGroup> getLicenseThreatGroups( @PathParam( "ownerId" ) String ownerId )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        ownerId = getInternalOwnerId( ownerId );
 
-        return licenseThreatGroupDAO.getByApplicationId( application.getId() );
+        return licenseThreatGroupDAO.getByOwnerId( ownerId );
     }
 
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public LicenseThreatGroup addLicenseThreatGroup( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    public LicenseThreatGroup addLicenseThreatGroup( @PathParam( "ownerId" ) String ownerId,
                                                      LicenseThreatGroup licenseThreatGroup )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        ownerId = getInternalOwnerId( ownerId );
 
         licenseThreatGroup.setId( null );
-        licenseThreatGroup.setApplicationId( appId );
+        licenseThreatGroup.setOwnerId( ownerId );
         licenseThreatGroupDAO.insert( licenseThreatGroup );
 
         return licenseThreatGroup;
@@ -62,13 +69,12 @@ public class LicenseThreatGroupResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public LicenseThreatGroup updateLicenseThreatGroup( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    public LicenseThreatGroup updateLicenseThreatGroup( @PathParam( "ownerId" ) String ownerId,
                                                         LicenseThreatGroup licenseThreatGroup )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        ownerId = getInternalOwnerId( ownerId );
 
-        licenseThreatGroup.setApplicationId( appId );
+        licenseThreatGroup.setOwnerId( ownerId );
         licenseThreatGroupDAO.update( licenseThreatGroup );
 
         return licenseThreatGroup;
@@ -76,17 +82,16 @@ public class LicenseThreatGroupResource
 
     @DELETE
     @Path( "{licenseThreatGroupId}" )
-    public void deleteLicenseThreatGroup( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    public void deleteLicenseThreatGroup( @PathParam( "ownerId" ) String ownerId,
                                           @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        ownerId = getInternalOwnerId( ownerId );
 
         LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getById( licenseThreatGroupId );
-        if ( !appId.equals( licenseThreatGroup.getApplicationId() ) )
+        if ( !ownerId.equals( licenseThreatGroup.getOwnerId() ) )
         {
             throw new NotFoundException( "Cannot find a license threat group with id " + licenseThreatGroupId
-                + " for application id " + applicationPublicId );
+                + " for owner id " + ownerId );
         }
 
         licenseThreatGroupDAO.delete( licenseThreatGroup );

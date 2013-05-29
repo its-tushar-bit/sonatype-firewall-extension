@@ -24,9 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.mock.InsightMockServer;
 
@@ -52,6 +54,8 @@ public abstract class AbstractBrainServiceTest
     protected TestInsightBrainService brain;
 
     protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
+
+    protected Set<Organization> organizationsToDelete = new LinkedHashSet<Organization>();
 
     @Rule
     public TestName testName = new TestName();
@@ -114,6 +118,7 @@ public abstract class AbstractBrainServiceTest
     {
         long start = System.currentTimeMillis();
 
+        cleanupOrganizations();
         cleanupApplications();
 
         if ( brain != null )
@@ -263,6 +268,16 @@ public abstract class AbstractBrainServiceTest
         return application;
     }
 
+    protected Organization createOrganization( String name, boolean createLicenseThreatGroups )
+    {
+        OrganizationDAO dao = new OrganizationDAO();
+        Organization organization = new Organization();
+        organization.setName( name );
+        dao.insert( organization, createLicenseThreatGroups );
+        organizationsToDelete.add( organization );
+        return organization;
+    }
+
     private void cleanupApplications()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -274,6 +289,17 @@ public abstract class AbstractBrainServiceTest
         applicationsToDelete.clear();
     }
 
+    private void cleanupOrganizations()
+    {
+        OrganizationDAO dao = new OrganizationDAO();
+        for ( Organization organization : organizationsToDelete )
+        {
+            cleanupOrganization( organization );
+            dao.delete( organization );
+        }
+        organizationsToDelete.clear();
+    }
+
     protected void cleanupApplication( Application application )
     {
         PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
@@ -281,6 +307,16 @@ public abstract class AbstractBrainServiceTest
         for ( Policy policy : policies )
         {
             policyDAO.delete( application.getId(), policy.getId() );
+        }
+    }
+
+    protected void cleanupOrganization( Organization organization )
+    {
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        List<Policy> policies = policyDAO.getByOwnerId( organization.getId() );
+        for ( Policy policy : policies )
+        {
+            policyDAO.delete( organization.getId(), policy.getId() );
         }
     }
 }

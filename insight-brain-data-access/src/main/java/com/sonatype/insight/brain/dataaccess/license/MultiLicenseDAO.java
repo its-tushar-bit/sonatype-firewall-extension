@@ -120,7 +120,7 @@ public class MultiLicenseDAO
         for ( License license : licenses )
         {
             LicenseThreatGroup licenseThreatGroup =
-                licenseThreatGroupDAO.getByApplicationIdAndLicenseId( appId, license.getId() );
+                licenseThreatGroupDAO.getByOwnerIdAndLicenseId( appId, license.getId() );
             if ( licenseThreatGroup != null )
             {
                 if ( threatLevel == null )

@@ -75,7 +75,7 @@ public class ApplicationResourceTest
     }
 
     @Test
-    public void testAddDeleteApplication()
+    public void testCRUD()
         throws Exception
     {
         final String applicationPublicId = "testID";

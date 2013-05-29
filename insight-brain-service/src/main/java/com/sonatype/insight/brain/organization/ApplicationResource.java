@@ -192,8 +192,6 @@ public class ApplicationResource
     /**
      * This is one of two service methods used for editing and adding icons. This method is used for AJAX calls since
      * its return type is a JSON object.
-     * 
-     * @throws IOException
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
@@ -213,7 +211,6 @@ public class ApplicationResource
      * since it returns a HTTP Response.
      * 
      * @return HTTP Response redirect to the application management page.
-     * @throws IOException
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )

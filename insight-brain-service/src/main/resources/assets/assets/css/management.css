@@ -156,9 +156,10 @@
 
 .inlineEditor div {
 	display: inline-block;
-	padding: 8px;
+	padding: 7px 8px;
 	min-width: 210px;
 	cursor: text;
+	border : 1px solid transparent;
 }
 
 .inlineEditor div:hover {
@@ -181,6 +182,7 @@
 	-webkit-font-smoothing: antialiased;
 	font-size: 2em;
 	padding-left: 10px;
+	padding-top: 4px;
 	vertical-align: middle;
 	float: right;
 }

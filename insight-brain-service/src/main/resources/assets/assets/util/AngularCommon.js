@@ -234,29 +234,25 @@ var angularCommon;
 				isLarge: '=editorLarge'
 			},
 			restrict: 'A',
+			priority : 99,
 			link: function postLink ($scope, element, attr) {
-			    //using a timeout here to make sure everything else gets done first
-			    //specific problem being that some state data isn't updated as expected at this point
-			    //TODO: would like to investigate so that a timeout is not required here
-			    $timeout(function(){
-			        $scope.placeholder = attr.editorPlaceholder;
-			        $scope.isEdit = $parse(attr.forceEdit)($scope.$parent);
-	                
-	                var textBox = element.find('input');
-	                element.find('div').on('click', function() {
-	                    $scope.$apply(function() {
-	                        $scope.isEdit = true;
-	                    });
-	                    textBox.focus();
-	                });
-	                textBox.on('blur', function() {
-	                    if (textBox.val()) {
-	                        $scope.$apply(function() {
-	                            $scope.isEdit = false;
-	                        });
-	                    }
-	                });
-			    });
+				$scope.placeholder = attr.editorPlaceholder;
+				$scope.isEdit = $parse(attr.forceEdit)($scope.$parent);
+
+				var textBox = element.find('input');
+				element.find('div').on('click', function() {
+					$scope.$apply(function() {
+						$scope.isEdit = true;
+					});
+					textBox.focus();
+				});
+				textBox.on('blur', function() {
+					if (textBox.val()) {
+						$scope.$apply(function() {
+							$scope.isEdit = false;
+						});
+					}
+				});
 			}
 		}
 	}]);

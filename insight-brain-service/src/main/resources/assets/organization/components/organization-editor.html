@@ -4,6 +4,10 @@
 			<div class="editorHeader">
 				<div inline-editor editor-value="selectedOrganization.name" editor-large="true" editor-placeholder="Enter name..." force-edit="selectedOrganization.id == null"></div>
 			</div>
+			<div class='form-actions' style='text-align:right;padding-right:25px;margin-bottom:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;'>
+				<button type='button' class='btn' ng-click="cancelOrgClick()">Cancel</button>
+				<button type='none' class='btn btn-primary' ng-click="saveOrgClick()" ng-disabled="organizationEditor.$invalid">Save</button>
+			</div>
 		</form>
 		<div ui-view>
 		</div>

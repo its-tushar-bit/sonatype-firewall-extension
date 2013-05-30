@@ -8,16 +8,18 @@
 (function() {
     'use strict';
 
-    var organizationModule = angular.module('Organization', [ 'ui.compat' ]);
+    var organizationModule = angular.module('Organization', [ 'ui.compat', 'CLMLocation' ]);
 
-    organizationModule.controller('OrganizationController', function($scope, $state, $timeout) {
+    organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, hudson, clmLocations, organizationStore) {
         function switchOrganization() {
             $scope.selectedOrganization = null;
             if ('_new_' == $scope.$state.params.organizationId) {
-                $scope.selectedOrganization = {
-                    id : null,
-                    name : null
-                };
+                $scope.selectedOrganization = organizationStore.create({
+                    template : {
+                        id : null,
+                        name : null
+                    }
+                });
             }
             if ($scope.$state.params.organizationId !== null && $scope.organizations) {
                 for ( var i = 0; i < $scope.organizations.length; i++) {
@@ -30,28 +32,45 @@
         }
 
         $scope.$state = $state;
+        
+        organizationStore.get().then(function (results) {
+            $scope.organizations = results[0];
+            $scope.$watch('$state.params.organizationId', switchOrganization);
+            switchOrganization();
+        }, function (resp) {
+            handleHttpError('Loading Organizations', resp.data, resp.status)
+        });
 
-        // TODO: need to load store
-        $scope.organizations = [ {
-            name : 'a',
-            id : '1'
-        }, {
-            name : 'b',
-            id : '2'
-        }, {
-            name : 'c',
-            id : '3'
-        }, {
-            name : 'd',
-            id : '4'
-        } ];
-        
-        switchOrganization();
-        
-        $scope.$watch('$state.params.organizationId', switchOrganization);
-    });
+        $scope.cancelOrgClick = function() {
+            $scope.selectedOrganization = null;
+        };
+
+        $scope.saveOrgClick = function() {
+            $scope.selectedOrganization.$save().then(function() {
+                var path = $location.path();
+                $location.path(path.substring(0, path.lastIndexOf('/')));
+            }, function(resp) {
+                handleHttpError('Saving Organization', resp.data, resp.status);
+            });
+        };
+    } ]);
 
     organizationModule.controller('OrganizationEditorController', function($scope, $state) {
         $scope.$state = $state;
     });
+
+    organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function(clmLocations, clmResource, $q) {
+        var organizationStore = clmResource.getStore({
+            id : 'id',
+            url : clmLocations.getOrganizationsUrl()
+        }), organizationPromise = $q.all([ organizationStore.get() ]);
+        return {
+            'get' : function() {
+                return organizationPromise;
+            },
+            'create' : function(config) {
+                return organizationStore.create(config);
+            }
+        };
+    } ]);
 }());

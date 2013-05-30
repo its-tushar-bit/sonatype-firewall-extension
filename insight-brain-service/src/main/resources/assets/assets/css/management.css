@@ -81,6 +81,28 @@
     height: 100%;
 }
 
+.navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
+	color: black;
+	text-shadow: none;
+	background-color: lightgrey;
+}
+
+.navigation .nav>.disabled>a:hover, .navigation .nav>.disabled>a:focus, .subnavigation .nav>.disabled>a:hover, .subnavigation .nav>.disabled>a:focus {
+	text-decoration: none;
+	background-color: transparent;
+	cursor: default;
+	color: #999999;
+}
+
+.navigation a {
+	color: white;
+	text-shadow: none;
+}
+
+.navigation .nav-list>li>a, .subnavigation .nav-list>li>a {
+	text-shadow: none;
+}
+
 .subnavigation {
 	width: 150px;
 	margin-left: 150px;
@@ -88,7 +110,17 @@
 	position: fixed;
 	height: 100%;
 	overflow: auto;
-	border-right: 1px solid rgb(200,200,200);
+}
+
+.subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus {
+	color: black;
+	text-shadow: none;
+	background-color: white;
+}
+
+.subnavigation a {
+	color: black;
+	text-shadow: none;
 }
 
 .subnavigation-expanded {

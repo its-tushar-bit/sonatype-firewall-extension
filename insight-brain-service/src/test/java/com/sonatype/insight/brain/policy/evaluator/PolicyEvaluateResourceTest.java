@@ -70,6 +70,94 @@ public class PolicyEvaluateResourceTest
     }
 
     @Test
+    public void testEvaluate_MultipleMatchesForSameGAV()
+        throws Exception
+    {
+        String applicationPublicId = "testEvaluate_MultipleMatchesForSameGAV_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testEvaluate_MultipleMatchesForSameGAV_ScanId";
+        String licenseFingerprint = "testEvaluate_MultipleMatchesForSameGAV_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        Constraint constraintLicense =
+            new Constraint( null /* constraintId */, "Constraint License", LogicalOperator.AND );
+        Condition condition1 = new Condition( LicenseConditionType.ID, "is", "UNSPECIFIED" );
+        constraintLicense.addCondition( condition1 );
+        Constraint constraintSV = new Constraint( null /* constraintId */, "Constraint SV", LogicalOperator.AND );
+        Condition condition2 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        constraintSV.addCondition( condition2 );
+
+        Action action = new Action( FailActionType.ID );
+
+        Policy policy1 = new Policy( null /* policyId */, "Policy 1" );
+        policy1.setThreatLevel( 5 );
+        policy1.addConstraint( constraintLicense );
+        policy1.addConstraint( constraintSV );
+        policy1.addAction( BuildStageType.ID, action );
+        Response response = addPolicy( applicationPublicId, policy1 );
+        policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+        constraintLicense = policy1.getConstraints().get( 0 );
+        constraintSV = policy1.getConstraints().get( 1 );
+
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // The report file is not available yet
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 404, response );
+
+        // Simulate that the report is available
+        URL testReportFileUrl =
+            getClass().getResource( "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        PolicyEvaluationResult policyEval =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 3, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 3, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
+        List<PolicyAlert> policyAlerts = policyEval.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        AbstractPolicyEvaluationTest.assertFactCounts( 2, 3, policyAlerts.get( 0 ) );
+        Component expectedComponentExact = new Component( "tomcat", "tomcat-util", "5.0.28", MatchState.EXACT );
+        expectedComponentExact.setHash( "3102cdd0edd5a05afe00" );
+        Component expectedComponentSimilar1 = new Component( "tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR );
+        expectedComponentSimilar1.setHash( "d29a75f9056e0b040f09" );
+        Component expectedComponentSimilar2 = new Component( "tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR );
+        expectedComponentSimilar2.setHash( "707df42012875442b9df" );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentExact, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraintLicense.getId(),
+                                                                "Constraint License", LicenseConditionType.ID,
+                                                                policyAlerts );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentExact, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraintSV.getId(),
+                                                                "Constraint SV", SecurityVulnerabilityConditionType.ID,
+                                                                policyAlerts );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentSimilar1, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraintLicense.getId(),
+                                                                "Constraint License", LicenseConditionType.ID,
+                                                                policyAlerts );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentSimilar1, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraintSV.getId(),
+                                                                "Constraint SV", SecurityVulnerabilityConditionType.ID,
+                                                                policyAlerts );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentSimilar2, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraintLicense.getId(),
+                                                                "Constraint License", LicenseConditionType.ID,
+                                                                policyAlerts );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentSimilar2, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraintSV.getId(),
+                                                                "Constraint SV", SecurityVulnerabilityConditionType.ID,
+                                                                policyAlerts );
+    }
+
+    @Test
     public void testEvaluate()
         throws Exception
     {

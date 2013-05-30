@@ -21,7 +21,14 @@ var angularCommon;
 					element.modal('show');
 				}
 				function showServerError(data, status, headersFn, config) {
-					var header = headersFn();
+				    
+				    if ( typeof data === 'object' ) {
+				        status = data.status;
+				        headersFn = data.headers;
+				        config = data.config;
+				        data = data.data;
+				    }
+					var header = headersFn ? headersFn() : [];
 					if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
 						$scope.errorResponse = 'Server Error';
 					} else if (status === 0) {

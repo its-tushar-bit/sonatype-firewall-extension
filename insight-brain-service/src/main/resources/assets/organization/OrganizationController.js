@@ -8,7 +8,7 @@
 (function() {
     'use strict';
 
-    var organizationModule = angular.module('Organization', [ 'ui.compat', 'CLMLocation' ]);
+    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation' ]);
 
     organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, hudson, clmLocations, organizationStore) {
         function switchOrganization() {
@@ -32,14 +32,18 @@
         }
 
         $scope.$state = $state;
-        
-        organizationStore.get().then(function (results) {
+
+        organizationStore.get().then(function(results) {
             $scope.organizations = results[0];
             $scope.$watch('$state.params.organizationId', switchOrganization);
             switchOrganization();
-        }, function (resp) {
-            handleHttpError('Loading Organizations', resp.data, resp.status)
+        }, function() {
+            $scope.$broadcast('showServerError', arguments);
         });
+    } ]);
+
+    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', function($scope, $state, $location) {
+        $scope.$state = $state;
 
         $scope.cancelOrgClick = function() {
             $scope.selectedOrganization = null;
@@ -49,15 +53,11 @@
             $scope.selectedOrganization.$save().then(function() {
                 var path = $location.path();
                 $location.path(path.substring(0, path.lastIndexOf('/')));
-            }, function(resp) {
-                handleHttpError('Saving Organization', resp.data, resp.status);
+            }, function() {
+                $scope.$broadcast('showServerError', arguments);
             });
         };
     } ]);
-
-    organizationModule.controller('OrganizationEditorController', function($scope, $state) {
-        $scope.$state = $state;
-    });
 
     organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function(clmLocations, clmResource, $q) {
         var organizationStore = clmResource.getStore({

@@ -1,12 +1,11 @@
 <div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
-	
+
 	<ul class="nav nav-list">
-		<li ng-class="{'active': $state.params.organizationId == '_new_' }">
-			<a href='#/management/organization/_new_'><i class="icon-plus"/>&nbsp;New</a>
-		</li>
-		<li ng-repeat='organization in organizations' ng-class="{'active': $state.params.organizationId == organization.id }">
-			<a href='#/management/organization/{{organization.id}}'>{{organization.name}}</a>
-		</li>
+		<li><div style="width: 150px">
+				<a class="btn btn-mini" style="text-align: left;" href='#/management/organization/_new_'><i class="icon-plus" />&nbsp;New Organization</a>
+			</div></li>
+		<li ng-repeat='organization in organizations' ng-class="{'active': $state.params.organizationId == organization.id }"><a
+			href='#/management/organization/{{organization.id}}'>{{organization.name}}</a></li>
 	</ul>
 </div>
 <div class="content" ui-view></div>

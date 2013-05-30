@@ -144,7 +144,7 @@ public class PolicyAlertDigesterTest
         final PolicyFact trigger = oldAlerts.get( 0 ).getTrigger();
 
         final ComponentFact oldFact = trigger.getComponentFacts().get( 0 );
-        final ComponentFact newFact = componentFact( "1G", "A", "V" );
+        final ComponentFact newFact = componentFact( "1G", "A", "V", "1H" );
 
         final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( newFact, oldFact ) ) );
 
@@ -162,7 +162,7 @@ public class PolicyAlertDigesterTest
         PolicyFact trigger = oldAlerts.get( 0 ).getTrigger();
 
         final ComponentFact oldFact = trigger.getComponentFacts().get( 0 );
-        final ComponentFact newFact = componentFact( "G1", "A", "V" );
+        final ComponentFact newFact = componentFact( "G1", "A", "V", "H1" );
 
         final List<PolicyAlert> newAlerts = Arrays.asList( oldAlerts.get( 0 ).with( trigger.with( oldFact, newFact ) ) );
 
@@ -444,7 +444,7 @@ public class PolicyAlertDigesterTest
         final ConditionFact conditionFact = conditionFact( MatchStateConditionType.ID, "is", "exact" );
         final ConstraintFact constraintFact = constraintFact( "constraint_4", "Constraint 4", "OR" );
         constraintFact.addConditionFact( conditionFact );
-        final ComponentFact componentFact = componentFact( "G", "A", "V" );
+        final ComponentFact componentFact = componentFact( "G", "A", "V", "H" );
         componentFact.addConstraintFact( constraintFact );
         final PolicyFact policyFact = policyFact( "policy_4", "Policy 4", 0 );
         policyFact.addComponentFact( componentFact );
@@ -456,9 +456,10 @@ public class PolicyAlertDigesterTest
         return new PolicyFact( id, name, threatLevel );
     }
 
-    private static ComponentFact componentFact( final String groupId, final String artifactId, final String version )
+    private static ComponentFact componentFact( final String groupId, final String artifactId, final String version,
+                                                final String hash )
     {
-        return new ComponentFact( groupId, artifactId, version, null /* hash */);
+        return new ComponentFact( groupId, artifactId, version, hash );
     }
 
     private static ConstraintFact constraintFact( final String id, final String name, final String operator )

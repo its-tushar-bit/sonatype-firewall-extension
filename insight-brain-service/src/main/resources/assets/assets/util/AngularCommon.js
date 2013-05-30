@@ -231,7 +231,7 @@ var angularCommon;
 			}
 		};
 	}]);
-	
+
 	angularCommon.directive('inlineEditor', ['$parse','$timeout', function($parse,$timeout) {
 		return {
 			replace: true,

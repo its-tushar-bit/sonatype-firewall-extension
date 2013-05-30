@@ -6,7 +6,7 @@
 (function(){
 	"use strict";
 
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'Organization', 'ApplicationModule'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -86,6 +86,24 @@
 (function () {
 	'use strict';
 
+	var organizationModule = angular.module('OrganizationModule', ['ui.compat', 'ManagementModule', 'Organization'], ['$stateProvider', function ($stateProvider) {
+		$stateProvider.state('management.organization', {
+			parent : 'management',
+			url : '/organization',
+			controller : 'OrganizationController',
+			templateUrl : '../organization-assets/components/organization-navigator.html'
+		}).state('management.organization.view', {
+			parent : 'management.organization',
+			url : '/{organizationId}',
+			controller : 'OrganizationEditorController',
+			templateUrl : '../organization-assets/components/organization-editor.html'
+		});
+	}]);
+}());
+
+(function () {
+	'use strict';
+
 	var applicationModule = angular.module('ApplicationModule', ['ui.compat', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels'], ['$stateProvider', function ($stateProvider) {
 		$stateProvider.state('management.application', {
 			parent : 'management',
@@ -117,16 +135,6 @@
 			url : '/licenses',
 			controller : 'LicenseThreatGroupController',
 			templateUrl : '../policy-assets/components/license-threat-group/license-threat-group-working.html'
-		}).state('management.organization', {
-			parent : 'management',
-			url : '/organization',
-			controller : 'OrganizationController',
-			templateUrl : '../organization-assets/components/organization-navigator.html'			
-		}).state('management.organization.view', {
-			parent : 'management.organization',
-			url : '/{organizationId}',
-			controller : 'OrganizationEditorController',
-			templateUrl : '../organization-assets/components/organization-editor.html'
 		});
 	}]);
 

@@ -31,7 +31,7 @@
 					<button class="btn" ng-click='inlineRevertLicenseGroup(licenseGroup)' type="button">Revert</button>
 					<button class="btn btn-primary" ng-click='inlineSaveLicenseGroup(licenseGroup)' type="button">Save</button>
 					<button class="btn btn-primary" ng-click='editLicenseGroup(licenseGroup)' type="button">Edit License List</button>
-					<ul>
+					<ul class="unstyled">
 						<li ng-repeat='l in licenseGroup.licenses | orderBy: l.licenseId'>
 							{{getDisplayName(l.licenseId)}}</li>
 					</ul>

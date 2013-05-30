@@ -1,36 +1,35 @@
 <div style='padding:10px'>
-	<div class="input-prepend">
+	<div class="input-append">
+		<input type="text" ng-model='newGroupName' placeholder="Create a license threat group" enter-Down='newLicenseGroup(newGroupName)'>
 		<button type="button" class="btn" ng-click='newLicenseGroup(newGroupName)'>
 			<i class="icon-file-alt"></i>
 		</button>
-		<input type="text" ng-model='newGroupName' placeholder="Create a license threat group">
 	</div>
-	<div class='floatRight'>
-		<button class="btn" ng-click='inlineRevertLicenseGroup()' type="button">Bulk Revert</button>
-		<button class="btn btn-primary" ng-click='inlineSaveLicenseGroup()' type="button">Bulk Save</button>
+	<div class='floatRight' ng-switch on='allExpanded'>
+		<a ng-switch-when="false" ng-click='toggleAll()'><i class="icon-expand-alt"></i> Expand All</a>
+		<a ng-switch-when="true" ng-click='toggleAll()'><i class="icon-collapse-alt"></i> Collapse All</a>
 	</div>
 	<div class="accordion" id="licenseGroups">
 		<div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
-			<div class="license-accordion-header accordion-heading">
-				<div style='max-height: 60px; overflow: hidden;'>
-					<span class="threat-box threat-level-{{licenseGroup.threatLevel}}"></span>
-				</div>
-				<a class="accordion-toggle" data-toggle="collapse"
-					data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
-					{{licenseGroup.name}}</a>
-				<button type="button" class="btn btn-mini" style='float:right' ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></button>
-			</div>
-			<div id="collapse{{licenseGroup.id}}" class="license-accordion-body accordion-body collapse">
-				<div class="accordion-inner">
-					<select style='width: 120px;'
+			<div class="license-accordion-header">
+				<select style='width: 120px;'
 						class='threat-level threat-level-{{licenseGroup.threatLevel}}'
 						ng-model='licenseGroup.threatLevel'
 						ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
-					</select>
-					<div inline-editor editor-value='licenseGroup.name' editor-large='true'></div>
-					<button class="btn" ng-click='inlineRevertLicenseGroup(licenseGroup)' type="button">Revert</button>
-					<button class="btn btn-primary" ng-click='inlineSaveLicenseGroup(licenseGroup)' type="button">Save</button>
-					<button class="btn btn-primary" ng-click='editLicenseGroup(licenseGroup)' type="button">Edit License List</button>
+				</select>
+				<div style='display: inline-block;' inline-editor editor-value='licenseGroup.name'></div>
+				<div class='floatRight'>
+					<a class="accordion-toggle" data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
+						<i class="icon-list"></i>
+					</a>
+					<div class='btn-group'>
+						<a class="btn btn-mini" title="Edit License Threat Group" ng-click='editLicenseGroup(licenseGroup)' type="button"><i class='icon-pencil'></i></a>
+						<a type="button" class="btn btn-mini" title="Delete License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
+					</div>
+				</div>
+			</div>
+			<div id="collapse{{licenseGroup.id}}" class="license-accordion-body accordion-body collapse">
+				<div class="accordion-inner">
 					<ul class="unstyled">
 						<li ng-repeat='l in licenseGroup.licenses | orderBy: l.licenseId'>
 							{{getDisplayName(l.licenseId)}}</li>
@@ -38,6 +37,10 @@
 				</div>
 			</div>
 		</div>
+	</div>
+	<div class='floatRight'>
+		<button class="btn" ng-click='inlineRevertLicenseGroup()' type="button">Cancel</button>
+		<button class="btn btn-primary" ng-click='inlineSaveLicenseGroup()' type="button">Save</button>
 	</div>
 	<div id='licenseModal' data-backdrop='static' class='modal hide fade'>
 		<div class='modal-header'>

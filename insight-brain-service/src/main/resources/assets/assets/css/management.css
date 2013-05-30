@@ -163,6 +163,9 @@
 	margin-right: 20px;
 }
 
+/**
+ * Inline Editor
+ */
 .inlineEditor div {
 	display: inline-block;
 	padding: 7px 8px;
@@ -191,14 +194,13 @@
 	-webkit-font-smoothing: antialiased;
 	font-size: 2em;
 	padding-left: 10px;
-	padding-top: 4px;
 	vertical-align: middle;
 	float: right;
 }
 
 .inlineEditor input {
-	height: 30px;
-	line-height: 30px;	
+	height: 26px;
+	line-height: 26px;	
 }
 
 .inlineEditor.large span {
@@ -262,15 +264,7 @@ ul.tri-pane {
 .license-accordion-header {
 	padding: 10px;
 }
- 
-.license-accordion-header div {
-	display: inline;
-}
 
-.license-accordion-header .accordion-toggle {
-	display: inline;
-}
-
-.license-accordion-body .inlineEditor {
-	display: inline;
+.license-accordion-header select {
+	margin-bottom: 0px;
 }

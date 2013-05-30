@@ -92,8 +92,8 @@
 		}
 
         $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
-
         $scope.allLicenses = null;
+        $scope.allExpanded = false;
         
         $scope.threatLevels = [
                                {'value': 10, 'name': '10'},
@@ -179,28 +179,25 @@
             angular.element('#licenseModal').modal('show');
         };
         
-        $scope.inlineSaveLicenseGroup = function(group) {
-        	if (group) {
-        		group.$save();
-        	} else {
-        		for (var i = 0; i < $scope.licenseGroups.length; i++) {
-        			$scope.licenseGroups[i].$save();
-        		}
-        	}
+        $scope.inlineSaveLicenseGroup = function() {
+    		for (var i = 0; i < $scope.licenseGroups.length; i++) {
+    			$scope.licenseGroups[i].$save();
+    		}
         };
         
-        $scope.inlineRevertLicenseGroup = function(group) {
-        	if (group) {
-        		var original = group.$getOriginal();
-        		angular.extend(group, original);
-        	} else {
-        		for (var i = 0; i < $scope.licenseGroups.length; i++) {
-        			var licenseGroup = $scope.licenseGroups[i];
-        			var original = licenseGroup.$getOriginal();
-        			angular.extend(licenseGroup, original);
-        		}
-        	}
-        }
+        $scope.inlineRevertLicenseGroup = function() {
+    		for (var i = 0; i < $scope.licenseGroups.length; i++) {
+    			var licenseGroup = $scope.licenseGroups[i];
+    			var original = licenseGroup.$getOriginal();
+    			angular.extend(licenseGroup, original);
+    		}
+        };
+        
+        $scope.toggleAll = function() {
+        	var action = $scope.allExpanded ? 'hide' : 'show';
+        	angular.element('.accordion-body').collapse(action);
+        	$scope.allExpanded = !$scope.allExpanded;
+        };
 
         $scope.confirmDeleteLicenseGroup = function (group) {
             $scope.selectedGroup = angular.extend({ id: null, applicationId: null, name: '', threatLevel: 5 }, group);

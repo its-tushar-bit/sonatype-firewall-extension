@@ -232,13 +232,14 @@ var angularCommon;
 		};
 	}]);
 
-	angularCommon.directive('inlineEditor', ['$parse','$timeout', function($parse,$timeout) {
+	angularCommon.directive('inlineEditor', ['$parse', function($parse) {
 		return {
 			replace: true,
 			templateUrl: '../assets/components/inlineEditor.html',
 			scope: {
 				value: '=editorValue',
-				isLarge: '=editorLarge'
+				isLarge: '=editorLarge',
+				forceEdit : '&forceEdit'
 			},
 			restrict: 'A',
 			priority : 99,
@@ -259,6 +260,9 @@ var angularCommon;
 							$scope.isEdit = false;
 						});
 					}
+				});
+				$scope.$watch('forceEdit()', function (newValue, oldValue) {
+					$scope.isEdit = newValue;
 				});
 			}
 		}

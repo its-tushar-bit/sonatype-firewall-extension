@@ -10,21 +10,25 @@
 
     var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation' ]);
 
-    organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, hudson, clmLocations, organizationStore) {
+    organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, $timeout, hudson, clmLocations, organizationStore) {
         function switchOrganization() {
             $scope.selectedOrganization = null;
             if ('_new_' == $scope.$state.params.organizationId) {
-                $scope.selectedOrganization = organizationStore.create({
-                    template : {
-                        id : null,
-                        name : null
-                    }
-                });
+                $timeout(function () {
+                    $scope.selectedOrganization = organizationStore.create({
+	                    template : {
+	                        id : null,
+	                        name : null
+	                    }
+                    });
+                }, 100);
             }
             if ($scope.$state.params.organizationId !== null && $scope.organizations) {
                 for ( var i = 0; i < $scope.organizations.length; i++) {
                     if ($scope.$state.params.organizationId === $scope.organizations[i].id) {
-                        $scope.selectedOrganization = $scope.organizations[i];
+                        $timeout(function () {
+	                        $scope.selectedOrganization = $scope.organizations[i];
+                        }, 100);
                         return;
                     }
                 }
@@ -40,7 +44,7 @@
         }, function() {
             $scope.$broadcast('showServerError', arguments);
         });
-    } ]);
+    }]);
 
     organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', function($scope, $state, $location) {
         $scope.$state = $state;
@@ -64,13 +68,14 @@
                 $scope.$broadcast('showServerError', arguments);
             });
         };
-    } ]);
+    }]);
 
     organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function(clmLocations, clmResource, $q) {
         var organizationStore = clmResource.getStore({
             id : 'id',
             url : clmLocations.getOrganizationsUrl()
         }), organizationPromise = $q.all([ organizationStore.get() ]);
+
         return {
             'get' : function() {
                 return organizationPromise;
@@ -79,5 +84,5 @@
                 return organizationStore.create(config);
             }
         };
-    } ]);
+    }]);
 }());

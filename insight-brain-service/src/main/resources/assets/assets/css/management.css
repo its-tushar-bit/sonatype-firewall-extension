@@ -95,6 +95,14 @@
 	width: 100%;
 }
 
+.subnavigation .search {
+	margin: 5px;
+}
+
+.subnavigation .search input {
+	width: 100px;
+}
+
 .content {
 	margin-left: 300px;
 	height: 100%;

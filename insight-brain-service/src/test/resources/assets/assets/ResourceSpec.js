@@ -110,7 +110,7 @@ describe('Resource', function () {
 		firstObj.$save().then(spy, errorSpy);
 		$httpBackend.flush();
 
-		expect(spy).toHaveBeenCalledWith({ data : ['foo'], id : 'bar', isDirty : jasmine.any(Function), $updateOriginal : jasmine.any(Function), $revertOriginal : jasmine.any(Function), $save : jasmine.any(Function), $delete : jasmine.any(Function) });
+		expect(spy).toHaveBeenCalledWith({ data : ['foo'], id : 'bar', isDirty : jasmine.any(Function), $updateOriginal : jasmine.any(Function), $getOriginal : jasmine.any(Function), $save : jasmine.any(Function), $delete : jasmine.any(Function) });
 		expect(errorSpy).not.toHaveBeenCalled();
 
 		expect(firstObj.data).toEqual(['foo']);

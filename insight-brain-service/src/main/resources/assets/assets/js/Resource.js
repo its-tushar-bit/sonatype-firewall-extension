@@ -19,7 +19,7 @@
 		};
 	}
 
-	module.service('CLMResource', ['$q', '$http', 'hudson', function ($q, $http, hudson) {
+	module.service('CLMResource', ['$q', '$http', 'hudson', '$parse', function ($q, $http, hudson, $parse) {
 		return {
 			'getStore' : function (config) {
 				var store = [],
@@ -41,8 +41,8 @@
 						angular.extend(me, original);
 					};
 					
-					this.$revertOriginal = function() {
-						angular.extend(me, original);
+					this.$getOriginal = function() {
+						return angular.copy(original);
 					}
 
 					this.$updateOriginal(originalObject);

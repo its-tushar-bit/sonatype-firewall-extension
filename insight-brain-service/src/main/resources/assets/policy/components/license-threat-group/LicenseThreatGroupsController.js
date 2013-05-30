@@ -191,10 +191,13 @@
         
         $scope.inlineRevertLicenseGroup = function(group) {
         	if (group) {
-        		group.$revertOriginal();
+        		var original = group.$getOriginal();
+        		angular.extend(group, original);
         	} else {
         		for (var i = 0; i < $scope.licenseGroups.length; i++) {
-        			$scope.licenseGroups[i].$revertOriginal();
+        			var licenseGroup = $scope.licenseGroups[i];
+        			var original = licenseGroup.$getOriginal();
+        			angular.extend(licenseGroup, original);
         		}
         	}
         }

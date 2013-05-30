@@ -15,6 +15,15 @@
 	}]);
 
 	dashboardApp.controller('dashboardController', function($scope, $state) {
+		function switchDashboard() {
+			for (var i = 0; i < $scope.availableDashboards.length; i++) {
+				if ($state.current.name.indexOf($scope.availableDashboards[i].state) !== -1) {
+					$scope.selectedDashboard = $scope.availableDashboards[i];
+					break;
+				}
+			}
+		}
+		
 		$scope.$state = $state;
 		$scope.availableDashboards = [
 			{
@@ -27,6 +36,9 @@
 				name: 'Reports',
 				state: 'reports'
 			}];
+		
+		$scope.$watch('$state.current.name', switchDashboard);
+		switchDashboard();
 	});
 }());
 
@@ -37,13 +49,7 @@
 		$stateProvider.state('management', {
 			url : '/management',
 			templateUrl : '../assets/management.html',
-			controller : 'ManagementController',
-			onEnter : function($state) {
-				$state.selectedDashboard = {
-					name: 'Management',
-					state: 'management'
-				};
-			}
+			controller : 'ManagementController'
 		});
 	}]);
 
@@ -63,16 +69,16 @@
 			},
 			{
 				name: 'Security',
-				state: '',
+				state: 'management/security',
 				isEnabled: true
 			},
 			{
 				name: 'Metadata',
-				state: '',
+				state: 'management/metadata',
 				isEnabled: false
 			}
 		];
-
+		
 		for (var i = 0; i < $scope.managementPanes.length; i++) {
 			var normalizedState = $scope.managementPanes[i].state.replace('/', '.');
 			if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
@@ -80,6 +86,12 @@
 				break;
 			}
 		}
+		
+		$scope.$watch('$state.current.name', function() {
+			if ($state.current.name === 'management') {
+				$state.transitionTo('management.application');
+			}
+		});
 	});
 }());
 

@@ -5,36 +5,89 @@
  */
 (function(){
 	"use strict";
-	
-	var dashboardStores = angular.module('dashboardStores', ['CLMLocation', 'ResourceModule', 'Hudson', 'Policy']);
-	
-	dashboardStores.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
-		var applicationStore = clmResource.getStore({
-			id : 'id',
-			url : clmLocations.getApplicationsUrl(),
-			template : { id: null, publicId: null, name: null },
-			params : {
-				timestamp : new Date().getTime()
-			}
-		});
-		return applicationStore;
-	}]);
-	
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'dashboardStores', 'Organization', 'LicenseThreatGroup', 'Labels'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
+
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'Organization', 'ApplicationModule'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {	
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
-		}).state('management', {
+		});
+		$routeProvider.when('', { redirectTo : '/management' });
+	}]);
+
+	dashboardApp.controller('dashboardController', function($scope, $state) {
+		$scope.$state = $state;
+		$scope.availableDashboards = [
+			{
+				name: 'Dashboard',
+				state: 'dashboard'
+			}, {
+				name: 'Management',
+				state: 'management'
+			}, {
+				name: 'Reports',
+				state: 'reports'
+			}];
+	});
+}());
+
+(function () {
+	'use strict';
+
+	var managementModule = angular.module('ManagementModule', ['ui.compat'], ['$stateProvider', function ($stateProvider) {
+		$stateProvider.state('management', {
 			url : '/management',
 			templateUrl : '../assets/management.html',
-			controller : 'managementController',
+			controller : 'ManagementController',
 			onEnter : function($state) {
 				$state.selectedDashboard = {
 					name: 'Management',
 					state: 'management'
 				};
 			}
-		}).state('management.application', {
+		});
+	}]);
+
+	managementModule.controller('ManagementController', function($scope, $state) {
+		$scope.$state = $state;
+
+		$scope.managementPanes = [
+			{
+				name: 'Applications',
+				state: 'management/application',
+				isEnabled: true
+			},
+			{
+				name: 'Organizations',
+				state: 'management/organization',
+				isEnabled: true
+			},
+			{
+				name: 'Security',
+				state: '',
+				isEnabled: true
+			},
+			{
+				name: 'Metadata',
+				state: '',
+				isEnabled: false
+			}
+		];
+
+		for (var i = 0; i < $scope.managementPanes.length; i++) {
+			var normalizedState = $scope.managementPanes[i].state.replace('/', '.');
+			if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
+				$scope.$state.selectedPane = $scope.managementPanes[i];
+				break;
+			}
+		}
+	});
+}());
+
+(function () {
+	'use strict';
+
+	var applicationModule = angular.module('ApplicationModule', ['ui.compat', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels'], ['$stateProvider', function ($stateProvider) {
+		$stateProvider.state('management.application', {
 			parent : 'management',
 			url : '/application',
 			controller : 'applicationController',
@@ -75,60 +128,9 @@
 			controller : 'OrganizationEditorController',
 			templateUrl : '../organization-assets/components/organization-editor.html'
 		});
-		$routeProvider.when('', { redirectTo : '/management' });
 	}]);
-	
-	dashboardApp.controller('dashboardController', function($scope, $state) {
-		$scope.$state = $state;
-		$scope.availableDashboards = [ 
-			{
-				name: 'Dashboard',
-				state: 'dashboard'
-			}, {
-				name: 'Management',
-				state: 'management'
-			}, {
-				name: 'Reports',
-				state: 'reports'
-			}];
-	});
 
-	dashboardApp.controller('managementController', function($scope, $state) {
-		$scope.$state = $state;
-		
-		$scope.managementPanes = [
-    		{
-    			name: 'Applications',
-    			state: 'management/application',
-    			isEnabled: true
-    		},
-    		{
-    			name: 'Organizations',
-    			state: 'management/organization',
-    			isEnabled: true
-    		},
-    		{
-    			name: 'Security',
-    			state: '',
-    			isEnabled: true
-    		},
-    		{
-    			name: 'Metadata',
-    			state: '',
-    			isEnabled: false
-    		}
-		];
-		
-		for (var i = 0; i < $scope.managementPanes.length; i++) {
-			var normalizedState = $scope.managementPanes[i].state.replace('/', '.');
-			if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
-				$scope.$state.selectedPane = $scope.managementPanes[i];
-				break;
-			}
-		}
-	});
-	
-	dashboardApp.controller('applicationController', function($scope, $state, $timeout, $location, $urlRouter, applicationStore) {
+	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, $urlRouter, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
 			if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
@@ -160,13 +162,25 @@
 		});
 	});
 
-	dashboardApp.controller('applicationEditorController', function($scope, $state, applicationStore) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore) {
 		$scope.$state = $state;
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	});
 
-	dashboardApp.service('ApplicationId', ['commonCodeFactory', '$state', function (commonCodeFactory, $state) {
+	applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
+		var applicationStore = clmResource.getStore({
+			id : 'id',
+			url : clmLocations.getApplicationsUrl(),
+			template : { id: null, publicId: null, name: null },
+			params : {
+				timestamp : new Date().getTime()
+			}
+		});
+		return applicationStore;
+	}]);
+
+	applicationModule.service('ApplicationId', ['commonCodeFactory', '$state', function (commonCodeFactory, $state) {
 		// TODO Are ui-router parameters encoded or decoded?
 		return {
 			encoded : function () {

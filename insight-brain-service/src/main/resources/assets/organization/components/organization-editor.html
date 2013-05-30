@@ -1,12 +1,20 @@
 <div class='fade' ng-class='{ in : selectedOrganization != null}'>
 	<form id='organizationEditor' name='organizationEditor'>
-		<div class="editorHeader">
-			<div inline-editor editor-value="selectedOrganization.name" editor-large="true" editor-placeholder="Enter name..."
-				force-edit="selectedOrganization && selectedOrganization.id == null"></div>
-		</div>
-		<div class='form-actions' style='text-align:right'>
-			<button type='button' class='btn' ng-click="cancelOrgClick()">Cancel</button>
-			<button type='none' class='btn btn-primary' ng-click="saveOrgClick()" ng-disabled="organizationEditor.$invalid">Save</button>
+		<div class='form-actions' style='text-align: right'>
+			<table style="width: 100%;">
+				<tr>
+					<td style="text-align:left;">
+						<div class="editorHeader">
+							<div inline-editor editor-value="selectedOrganization.name" editor-large="true" editor-placeholder="Enter name..."
+								force-edit="selectedOrganization && selectedOrganization.id == null"></div>
+						</div>
+					</td>
+					<td style="text-align:right;">
+						<button type='button' class='btn' ng-click="cancelOrgClick()">Cancel</button>
+						<button type='none' class='btn btn-primary' ng-click="saveOrgClick()" ng-disabled="organizationEditor.$invalid">Save</button>
+					</td>
+				</tr>
+			</table>
 		</div>
 	</form>
 	<div ui-view></div>

@@ -50,9 +50,16 @@
         };
 
         $scope.saveOrgClick = function() {
-            $scope.selectedOrganization.$save().then(function() {
+            $scope.selectedOrganization.$save().then(function(data) {
+                //TODO: figure out why on create an array is passed in, but on update an object is
+                if (typeof data === 'array') {
+                    $state.params.organizationId = data[0].id;
+                } else {
+                    $state.params.organizationId = data.id;
+                }
+
                 var path = $location.path();
-                $location.path(path.substring(0, path.lastIndexOf('/')));
+                $location.path(path.substring(0, path.lastIndexOf('/')) + '/' + $state.params.organizationId);
             }, function() {
                 $scope.$broadcast('showServerError', arguments);
             });

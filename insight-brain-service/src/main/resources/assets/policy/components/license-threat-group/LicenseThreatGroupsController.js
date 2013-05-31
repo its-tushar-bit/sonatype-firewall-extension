@@ -120,7 +120,7 @@
         $scope.getDisplayName = function(licenseId) {
         	for (var i = 0; i < $scope.allLicenses.length; i++) {
         		if ($scope.allLicenses[i].id === licenseId) {
-        			return $scope.allLicenses[i].longDisplayName + ' (' + $scope.allLicenses[i].shortDisplayName + ')';
+        			return '(' + $scope.allLicenses[i].shortDisplayName + ') ' + $scope.allLicenses[i].longDisplayName;
         		}
         	}
         };
@@ -177,6 +177,10 @@
             $scope.licenses = availableLicenses;
             
             angular.element('#licenseModal').modal('show');
+        };
+        
+        $scope.inlineChangeThreatLevel = function(licenseGroup, threatLevel) {
+        	licenseGroup.threatLevel = threatLevel.value;
         };
         
         $scope.inlineSaveLicenseGroup = function() {

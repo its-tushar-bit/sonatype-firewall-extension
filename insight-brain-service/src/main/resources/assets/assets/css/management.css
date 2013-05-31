@@ -316,3 +316,16 @@ ul.tri-pane {
 	padding-top: 5px;
 }
 
+/**
+ * Threat level dropdown
+ */
+ .threat-level-dropdown a {
+     background-image: none;
+ }
+ 
+.threat-level-dropdown ul {
+	padding: 0px;
+	border-radius: 0px;
+	-webkit-border-radius: 0px;
+	-moz-border-radius: 0px;
+}

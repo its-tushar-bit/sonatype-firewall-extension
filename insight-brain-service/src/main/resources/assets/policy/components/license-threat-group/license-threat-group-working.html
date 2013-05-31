@@ -12,11 +12,16 @@
 	<div class="accordion" id="licenseGroups">
 		<div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
 			<div class="license-accordion-header">
-				<select style='width: 120px;'
-						class='threat-level threat-level-{{licenseGroup.threatLevel}}'
-						ng-model='licenseGroup.threatLevel'
-						ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
-				</select>
+				<div class="btn-group threat-level-dropdown">
+					<a class="btn dropdown-toggle threat-level-{{licenseGroup.threatLevel}}" data-toggle="dropdown" href="#">
+						{{licenseGroup.threatLevel}} <span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu">
+						<li ng-repeat='threatLevel in threatLevels'>
+							<a ng-click='inlineChangeThreatLevel(licenseGroup, threatLevel)' class='threat-level-{{threatLevel.value}}'>{{ threatLevel.name }}</a>
+						</li>
+					</ul>
+				</div>
 				<div style='display: inline-block;' inline-editor editor-value='licenseGroup.name'></div>
 				<div class='floatRight'>
 					<div class='btn-group'>

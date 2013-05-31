@@ -24,6 +24,7 @@
 			delete $scope.selectedLabel;
 			$scope.editorUrl = '';
 		}
+		var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
 
         $http.get(clmAppLocations.getLabelsUrl(), {
             params: { timestamp: new Date().getTime() }
@@ -32,31 +33,8 @@
             }).error(function () { $scope.$broadcast('showServerError', arguments); });
 
         $scope.editLabel = function (label) {
-			$dialog.dialog({
-			    backdrop : true,
-			    keyboad : true,
-				dialogFade : true,
-			    controller : 'LabelEditorController',
-			    resolve : {
-					label : function () {
-						return angular.copy(label || {id: null, applicationId: null, label: '', labelLowercase: null, color: null});
-					}
-			    },
-				templateUrl : '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp
-			}).open().then(function (modifiedLabel) {
-				if (modifiedLabel) {
-				    if (modifiedLabel.id === null) {
-						$scope.labels.push(modifiedLabel);
-				    } else {
-			            angular.forEach($scope.labels, function (labelCandidate, key) {
-			                if (modifiedLabel.id === labelCandidate.id) {
-			                    $scope.labels[key] = modifiedLabel;
-			                    return false;
-			                }
-			            });
-				    }
-				}
-			});
+			$scope.selectedLabel = angular.copy(label || labelTemplate);
+			$scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
         };
 
         $scope.confirmDeleteLabel = function () {
@@ -91,7 +69,7 @@
 		});
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', 'label', 'dialog', function ($scope, $http, hudson, clmAppLocations, label, dialog) {
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', function ($scope, $http, hudson, clmAppLocations) {
 
         function errorFn(data, status, headersFn, config) {
             $scope.submitActive = false;
@@ -106,14 +84,12 @@
         }
         $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
-        $scope.selectedLabel = label || {};
-
         $scope.setColor = function (color) {
             $scope.selectedLabel.color = color;
         };
 
 		$scope.cancelEditLabel = function () {
-			dialog.close();
+			$scope.$emit('labels.cancelEditLabel');
 		};
 
         $scope.canSaveEdit = function (valid) {
@@ -129,11 +105,18 @@
             $scope.submitActive = true;
             if (label.id == null) {
                 hudson.post(clmAppLocations.getLabelsUrl(), label).success(function (data) {
-                    dialog.close(label);
+					$scope.labels.push(data);
+					$scope.$emit('labels.cancelEditLabel', label);
                 }).error(errorFn);
             } else {
                 $http.put(clmAppLocations.getLabelsUrl(), label).success(function (data) {
-                    dialog.close(label);
+                    angular.forEach($scope.labels, function (labelCandidate, key) {
+                        if (data.id === labelCandidate.id) {
+                            $scope.labels[key] = data;
+                            return false;
+                        }
+                    });
+					$scope.$emit('labels.cancelEditLabel', label);
                 }).error(errorFn);
             }
         };

@@ -1,28 +1,30 @@
-<form name='labelEditor' class='form-horizontal' style='margin-bottom:0px' ng-submit='saveLabelClick();'>
-	<div class="modal-header">
-		<button type="button" class="btn btn-mini" style='float:right' ng-click='confirmDeleteLabel(selecedLabel)' ng-show='selectedLabel.id != null'><i class='icon-trash'></i></button>
-		<h3 ng-show='selectedLabel.id == null'>Add Label</h3>
-		<h3 ng-show='selectedLabel.id != null'>Edit Label</h3>
-	</div>
-    <div class="modal-body">
-		<div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
-			<label class="control-label" for="labelEditorLabel">Label:</label>
-			<div class="controls">
-				<input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
-				<span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
-				<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
-				<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
-			</div>
+<div class='content-container fade in' style='width:625px' ng-controller='LabelEditorController'>
+	<form name='labelEditor' class='form-horizontal' style='margin-bottom:0px' ng-submit='saveLabelClick();'>
+		<div class="modal-header">
+			<button type="button" class="btn btn-mini" style='float:right' ng-click='confirmDeleteLabel(selecedLabel)' ng-show='selectedLabel.id != null'><i class='icon-trash'></i></button>
+			<h3 ng-show='selectedLabel.id == null'>Add Label</h3>
+			<h3 ng-show='selectedLabel.id != null'>Edit Label</h3>
 		</div>
-        <div>
-            <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
-                <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
-            </div>
-        </div>
-        <div error-Alert error-Prefix='Error' error-Response='labelEditor.editErrorResponse'></div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
-        <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid)'>Save</button>
-    </div>
-</form>
+	    <div class="modal-body">
+			<div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
+				<label class="control-label" for="labelEditorLabel">Label:</label>
+				<div class="controls">
+					<input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
+					<span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
+					<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
+					<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
+				</div>
+			</div>
+	        <div>
+	            <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
+	                <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
+	            </div>
+	        </div>
+	        <div error-Alert error-Prefix='Error' error-Response='labelEditor.editErrorResponse'></div>
+	    </div>
+	    <div class="modal-footer">
+	        <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
+	        <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid)'>Save</button>
+	    </div>
+	</form>
+</div>

@@ -12,6 +12,53 @@
 			controller : angular.noop
 		});
 		$routeProvider.when('', { redirectTo : '/management' });
+	}]).run(['$rootScope', '$location', '$dialog', function ($rootScope, $location, $dialog) {
+		// The page contains unsaved changes, continuing will discard them.
+		var state = null;
+		$rootScope.$on('$locationChangeStart', function (event, newUrl, oldUrl) {
+			// initial page load triggers state where new URL == old URL
+			var destination = $location.$$url,
+				e;
+			if (newUrl !== oldUrl && newUrl != state) {
+				e = $rootScope.$broadcast('pageChangeStarted');
+				if (e.defaultPrevented) {
+					event.preventDefault();
+					$dialog.dialog({
+						backdrop : true,
+						keyboard : true,
+						dialogFade : true,
+						backdropClick : true,
+						controller : 'UnsavedController',
+						template : '<div class="modal-header">Unsaved Changes</div>' +
+						    '<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>' +
+						    '<div class="modal-footer"><button type="button" class="btn" ng-click="close(false)">Cancel</button> <button type="button" class="btn btn-danger" ng-click="close(true)">Continue</button></div>'
+					}).open().then(function (continueChange) {
+						if (continueChange) {
+							state = newUrl;
+							$location.url(destination);
+						}
+					});
+					return;
+				}
+			}
+		    state = null;
+		});
+
+		var fn = function (event) {
+			var e = $rootScope.$broadcast('pageChangeStarted');
+			return e.defaultPrevented  ? e.message || 'The page may contain unsaved changes, continuing will discard them.' : undefined;
+		};
+
+		$rootScope.$on('$destroy', function () {
+			$(window).unbind('beforeunload', fn);
+		});
+		$(window).bind('beforeunload', fn);
+	}]);
+
+	dashboardApp.controller('UnsavedController', ['$scope', 'dialog', function ($scope, dialog) {
+		$scope.close = function(shouldContinue) {
+			dialog.close(shouldContinue);
+		};
 	}]);
 
 	dashboardApp.controller('dashboardController', function($scope, $state) {

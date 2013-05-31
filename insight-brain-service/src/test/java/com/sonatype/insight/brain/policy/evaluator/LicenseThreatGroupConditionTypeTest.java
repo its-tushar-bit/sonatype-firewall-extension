@@ -54,6 +54,18 @@ public class LicenseThreatGroupConditionTypeTest
         application.setPublicId( "LicenseThreatGroupConditionTypeTest_AppId" );
         applicationDAO.insert( application );
         applicationId = application.getId();
+
+        LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup( applicationId, "Copyleft", 8 );
+        new LicenseThreatGroupDAO().insert( licenseThreatGroup );
+        LicenseThreatGroupLicense licenseThreatGroupLicense =
+            new LicenseThreatGroupLicense( applicationId, licenseThreatGroup.getId(), "GPL-2.0" );
+        new LicenseThreatGroupLicenseDAO().insert( licenseThreatGroupLicense );
+
+        licenseThreatGroup = new LicenseThreatGroup( applicationId, "Liberal", 2 );
+        new LicenseThreatGroupDAO().insert( licenseThreatGroup );
+        licenseThreatGroupLicense =
+            new LicenseThreatGroupLicense( applicationId, licenseThreatGroup.getId(), "Apache-2.0" );
+        new LicenseThreatGroupLicenseDAO().insert( licenseThreatGroupLicense );
     }
 
     @After

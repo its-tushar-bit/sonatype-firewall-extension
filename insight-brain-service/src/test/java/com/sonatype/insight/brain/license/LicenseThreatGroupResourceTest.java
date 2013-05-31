@@ -9,7 +9,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -46,7 +45,7 @@ public class LicenseThreatGroupResourceTest
         assertResponseStatus( 200, response );
         LicenseThreatGroup[] groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
-        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT + 1, groups.length );
+        Assert.assertEquals( 1, groups.length );
         assertLicenseThreatGroup( application1.getId(), "AAA My group", 4, groups[0] );
     }
 

@@ -64,7 +64,7 @@ public class LicenseThreatGroupLicenseResourceTest
         throws Exception
     {
         String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
-        Application application = createApplication( appPublicId );
+        Application application = createApplication( appPublicId, false /* createLicenseThreatGroups */);
         testSetGet( appPublicId, application.getId() );
     }
 
@@ -73,7 +73,7 @@ public class LicenseThreatGroupLicenseResourceTest
         throws Exception
     {
         Organization organization =
-            createOrganization( "testSetGet-Organization", true /* createLicenseThreatGroups */);
+            createOrganization( "testSetGet-Organization", false /* createLicenseThreatGroups */);
         testSetGet( organization.getId(), organization.getId() );
     }
 

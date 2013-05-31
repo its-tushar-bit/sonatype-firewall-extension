@@ -39,7 +39,7 @@ public class OrganizationDAOTest
         organization.setName( "OrganizationDAOTest" );
         dao.insert( organization );
         List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( organization.getId() );
-        Assert.assertTrue( licenseThreatGroups.size() >= 4 );
+        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size() );
     }
 
     @Test

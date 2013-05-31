@@ -120,7 +120,7 @@ public class CIComponentInfoResourceTest
     {
         // Create an application
         String applicationPublicId = "testGetComponentDetailsList";
-        Application application = createApplication( applicationPublicId );
+        Application application = createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
         String appId = application.getId();
         // Create license threat groups
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();

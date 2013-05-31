@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -115,6 +117,8 @@ public class MultiLicenseDAO
     public Integer getLicenseThreatLevelByApplicationIdAndMultiLicenseId( String appId, String multiLicenseId )
     {
         final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        Application application = new ApplicationDAO().getByIdNotNull( appId );
+        String organizationId = application.getOrganizationId();
         final Set<License> licenses = getLicensesByMultiLicenseId( multiLicenseId );
         Integer threatLevel = null;
         for ( License license : licenses )
@@ -130,6 +134,22 @@ public class MultiLicenseDAO
                 else
                 {
                     threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
+                }
+            }
+
+            if ( organizationId != null )
+            {
+                licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId( organizationId, license.getId() );
+                if ( licenseThreatGroup != null )
+                {
+                    if ( threatLevel == null )
+                    {
+                        threatLevel = licenseThreatGroup.getThreatLevel();
+                    }
+                    else
+                    {
+                        threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
+                    }
                 }
             }
         }

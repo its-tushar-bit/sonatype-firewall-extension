@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
@@ -16,11 +19,11 @@ public class LicenseThreatGroupValueType
 {
     public static final String ID = "LicenseThreatGroupValueType";
 
-    private final String applicationId;
+    private final String ownerId;
 
-    public LicenseThreatGroupValueType( String applicationId )
+    public LicenseThreatGroupValueType( String ownerId )
     {
-        this.applicationId = applicationId;
+        this.ownerId = ownerId;
     }
 
     @Override
@@ -44,6 +47,15 @@ public class LicenseThreatGroupValueType
     @Override
     public List<LicenseThreatGroup> getAvailableValues()
     {
-        return new LicenseThreatGroupDAO().getByOwnerId( applicationId );
+        List<LicenseThreatGroup> result = new ArrayList<LicenseThreatGroup>();
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        result.addAll( licenseThreatGroupDAO.getByOwnerId( ownerId ));
+
+        Application application = new ApplicationDAO().getById( ownerId );
+        if ( application != null && application.getOrganizationId() != null )
+        {
+            result.addAll( licenseThreatGroupDAO.getByOwnerId( application.getOrganizationId() ) );
+        }
+        return result;
     }
 }

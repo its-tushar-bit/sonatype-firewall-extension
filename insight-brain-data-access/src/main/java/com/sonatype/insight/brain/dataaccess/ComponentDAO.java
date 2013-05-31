@@ -299,6 +299,7 @@ public class ComponentDAO
 
     public void loadLicenseThreatGroups( String applicationId, Component component )
     {
+        // Gather all license ids
         Set<String> licenseIds = new LinkedHashSet<String>();
         licenseIds.addAll( component.getOverriddenLicenseIds() );
         if ( licenseIds.isEmpty() )
@@ -306,10 +307,22 @@ public class ComponentDAO
             licenseIds.addAll( component.getDeclaredLicenseIds() );
             licenseIds.addAll( component.getObservedLicenseIds() );
         }
+
+        // Gather all license threat groups from the application
         for ( String licenseId : licenseIds )
         {
-            component.addLicenseThreatGroup( licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId,
-                                                                                                   licenseId ) );
+            component.addLicenseThreatGroup( licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, licenseId ) );
+        }
+
+        // Gather all license threat groups from the application's organization
+        String organizationId = new ApplicationDAO().getByIdNotNull( applicationId ).getOrganizationId();
+        if ( organizationId != null )
+        {
+            for ( String licenseId : licenseIds )
+            {
+                component.addLicenseThreatGroup( licenseThreatGroupDAO.getByOwnerIdAndLicenseId( organizationId,
+                                                                                                 licenseId ) );
+            }
         }
     }
 

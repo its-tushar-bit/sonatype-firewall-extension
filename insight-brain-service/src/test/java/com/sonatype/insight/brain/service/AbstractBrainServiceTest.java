@@ -271,6 +271,11 @@ public abstract class AbstractBrainServiceTest
         return application;
     }
 
+    protected Organization createOrganization( String name )
+    {
+        return createOrganization( name, true /* createLicenseThreatGroups */);
+    }
+
     protected Organization createOrganization( String name, boolean createLicenseThreatGroups )
     {
         OrganizationDAO dao = new OrganizationDAO();

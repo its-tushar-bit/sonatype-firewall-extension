@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -81,10 +82,13 @@ public class ApplicationResourceTest
         final String applicationPublicId = "testID";
         final String applicationName = "test-application-name";
 
+        Organization organization = createOrganization( "ApplicationResourceTest" );
+
         // Test Add Application
         Application application = new Application();
         application.setName( applicationName );
         application.setPublicId( applicationPublicId );
+        application.setOrganizationId( organization.getId() );
 
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
 
@@ -362,6 +366,35 @@ public class ApplicationResourceTest
         Assert.assertEquals( applicationNames.toString(), 1, applicationNames.size() );
         Assert.assertTrue( applicationNames.containsKey( applicationPublicId ) );
         Assert.assertTrue( applicationNames.containsValue( applicationName ) );
+    }
+
+    @Test
+    public void testAddApplication_NoOrganization()
+        throws Exception
+    {
+        String applicationPublicId = "testAddApplication_NoOrganization";
+        String applicationName = "testAddApplication-NoOrganization";
+
+        Application application = new Application();
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
+
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( application ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Applications must have a parent organization.", response.getResponseBody() );
+    }
+
+    @Test
+    public void testUpdateApplication_NoOrganization()
+        throws Exception
+    {
+        Application application = createApplication( "testUpdateApplication_NoOrganization" );
+
+        application.setOrganizationId( null );
+
+        Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Applications must have a parent organization.", response.getResponseBody() );
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

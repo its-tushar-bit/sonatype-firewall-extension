@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
@@ -329,6 +330,11 @@ public class ApplicationResource
                 + " applications." );
         }
 
+        if ( application.getOrganizationId() == null )
+        {
+            throw new InvalidApplicationException( "Applications must have a parent organization." );
+        }
+
         applicationDAO.insert( application );
 
         return getApplicationManagementSummary( application );
@@ -340,6 +346,11 @@ public class ApplicationResource
     public ApplicationManagementSummary updateApplication( Application application )
         throws IOException
     {
+        if ( application.getOrganizationId() == null )
+        {
+            throw new InvalidApplicationException( "Applications must have a parent organization." );
+        }
+
         applicationDAO.update( application );
 
         return getApplicationManagementSummary( application );

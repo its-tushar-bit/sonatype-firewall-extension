@@ -242,6 +242,8 @@
 
 .inlineEditor.large input {
 	font-size: 25px;
+	height: 30px;
+	line-height: 30px;
 }
 
 /**

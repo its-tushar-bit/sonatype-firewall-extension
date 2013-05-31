@@ -1,11 +1,8 @@
+<div style='width:100%;background-color:#dddddd;border-bottom:1px solid #ccc;padding:10px'>
+	<button type='button' class='btn btn-info' ng-click='editLicenseGroup()'><i class="icon-white icon-plus-sign"></i> Add New License Threat Group</button>
+</div>
 <div style='padding:10px'>
-	<div class="input-append">
-		<input type="text" ng-model='newGroupName' placeholder="Create a license threat group" enter-Down='newLicenseGroup(newGroupName)'>
-		<button type="button" class="btn" ng-click='newLicenseGroup(newGroupName)'>
-			<i class="icon-file-alt"></i>
-		</button>
-	</div>
-	<div class='floatRight' ng-switch on='allExpanded'>
+	<div class='license-expand-toggle' ng-switch on='allExpanded'>
 		<a ng-switch-when="false" ng-click='toggleAll()'><i class="icon-expand-alt"></i> Expand All</a>
 		<a ng-switch-when="true" ng-click='toggleAll()'><i class="icon-collapse-alt"></i> Collapse All</a>
 	</div>

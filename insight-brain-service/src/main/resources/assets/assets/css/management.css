@@ -334,3 +334,15 @@ ul.tri-pane {
 	-webkit-border-radius: 0px;
 	-moz-border-radius: 0px;
 }
+
+/**
+ * License Accordion Expand
+ */
+.license-expand-toggle {
+	display: inline-block;
+	width:100%
+}
+
+.license-expand-toggle a {
+	float: right;
+}

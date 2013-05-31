@@ -125,17 +125,10 @@
         	}
         };
         
-        $scope.newLicenseGroup = function (groupName) {
-            $scope.editLicenseGroup(null, groupName);
-        }
-
-        $scope.editLicenseGroup = function (group, groupName) {
+        $scope.editLicenseGroup = function (group) {
         	$scope.selectedGroup = licenseGroupStore.create();
         	if (group) {
         		$scope.selectedGroup = angular.extend($scope.selectedGroup, group);
-        	}
-        	if (groupName) {
-        		$scope.selectedGroup.name = groupName;
         	}
 
             // Build a list of all existing licenses to exclude from selection

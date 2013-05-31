@@ -31,7 +31,7 @@
 			parent : 'management.application.view',
 			url : '/licenses',
 			controller : 'LicenseThreatGroupController',
-			templateUrl : '../policy-assets/components/license-threat-group/license-threat-group-working.html'
+			templateUrl : '../policy-assets/components/license-threat-group/license-threat-group.html'
 		});
 	}]);
 

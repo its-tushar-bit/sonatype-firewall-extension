@@ -1,7 +1,9 @@
 <div class='fade' ng-class='{ in : selectedApplication != null}'>
 	<form id='applicationEditor' name='applicationEditor'>
 		<div class="editorHeader">
-			<img ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}'/>
+			<span ng-switch on='selectedApplication == null'>
+				<img ng-switch-when='false' ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}'/>
+			</span>
 			<div inline-editor editor-value='selectedApplication.name' editor-large='true'></div>
 			<span style='padding-left:9px'>Application: {{selectedApplication.publicId}}<span>
 		</div>

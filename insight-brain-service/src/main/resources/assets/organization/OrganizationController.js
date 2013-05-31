@@ -15,12 +15,7 @@
             $scope.selectedOrganization = null;
             if ('_new_' == $scope.$state.params.organizationId) {
                 $timeout(function () {
-                    $scope.selectedOrganization = organizationStore.create({
-	                    template : {
-	                        id : null,
-	                        name : null
-	                    }
-                    });
+                    $scope.selectedOrganization = organizationStore.create();
                 }, 100);
             }
             if ($scope.$state.params.organizationId !== null && $scope.organizations) {
@@ -38,7 +33,7 @@
         $scope.$state = $state;
 
         organizationStore.get().then(function(results) {
-            $scope.organizations = results[0];
+            $scope.organizations = results;
             $scope.$watch('$state.params.organizationId', switchOrganization);
             switchOrganization();
         }, function() {
@@ -55,12 +50,7 @@
 
         $scope.saveOrgClick = function() {
             $scope.selectedOrganization.$save().then(function(data) {
-                //TODO: figure out why on create an array is passed in, but on update an object is
-                if (typeof data === 'array') {
-                    $state.params.organizationId = data[0].id;
-                } else {
-                    $state.params.organizationId = data.id;
-                }
+                $state.params.organizationId = data.id;
 
                 var path = $location.path();
                 $location.path(path.substring(0, path.lastIndexOf('/')) + '/' + $state.params.organizationId);
@@ -73,16 +63,10 @@
     organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function(clmLocations, clmResource, $q) {
         var organizationStore = clmResource.getStore({
             id : 'id',
-            url : clmLocations.getOrganizationsUrl()
-        }), organizationPromise = $q.all([ organizationStore.get() ]);
+            url : clmLocations.getOrganizationsUrl(),
+            template : { id : null, name : null }
+        });
 
-        return {
-            'get' : function() {
-                return organizationPromise;
-            },
-            'create' : function(config) {
-                return organizationStore.create(config);
-            }
-        };
+        return organizationStore;
     }]);
 }());

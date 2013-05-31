@@ -150,7 +150,7 @@
 		});
 	}]);
 
-	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, $urlRouter, applicationStore) {
+	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
 			if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {

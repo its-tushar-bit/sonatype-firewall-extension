@@ -147,11 +147,6 @@ public class ApplicationDAO
     @Override
     public void insert( EntityManager em, Application application )
     {
-        insert( em, application, true /* createLicenseThreatGroups */);
-    }
-
-    public void insert( EntityManager em, Application application, boolean createLicenseThreatGroups )
-    {
         validate( application );
 
         if ( getByName( em, application.getName() ) != null )
@@ -164,26 +159,16 @@ public class ApplicationDAO
         }
 
         super.insert( em, application );
-
-        if ( createLicenseThreatGroups )
-        {
-            new LicenseThreatGroupDAO().createDefaultGroups( em, application.getId() );
-        }
     }
 
     @Override
     public void insert( Application entity )
     {
-        insert( entity, true /* createLicenseThreatGroups */);
-    }
-
-    public void insert( Application entity, boolean createLicenseThreatGroups )
-    {
         EntityManager em = createEntityManager();
         try
         {
             em.getTransaction().begin();
-            insert( em, entity, createLicenseThreatGroups );
+            insert( em, entity );
             em.getTransaction().commit();
         }
         finally

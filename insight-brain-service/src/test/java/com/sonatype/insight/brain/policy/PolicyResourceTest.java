@@ -44,7 +44,7 @@ public class PolicyResourceTest
         throws Exception
     {
         String applicationPublicId = "PolicyResourceTest-testExportImport";
-        Application application = createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
+        Application application = createApplication( applicationPublicId );
         String appId = application.getId();
 
         Label label = new Label( appId, "label1", Color.blue );
@@ -135,7 +135,7 @@ public class PolicyResourceTest
         throws Exception
     {
         String applicationPublicId = "testExportImport-ApplicationIDAlreadyExists";
-        createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
+        createApplication( applicationPublicId );
 
         // Export
         Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
@@ -161,7 +161,7 @@ public class PolicyResourceTest
         setApplicationLimit( 1 );
 
         String applicationPublicId = "testExportImport_ExceedsLicensedApplicationCount";
-        createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
+        createApplication( applicationPublicId );
 
         // Export
         Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );

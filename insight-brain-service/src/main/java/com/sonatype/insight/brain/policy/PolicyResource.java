@@ -195,7 +195,7 @@ public class PolicyResource
                 throw new PaymentRequiredException( "You have exceeded the licensed limit of " + appLimit
                     + " applications." );
             }
-            applicationDAO.insert( em, application, false /* createLicenseThreatGroups */);
+            applicationDAO.insert( em, application );
             String applicationId = application.getId();
 
             LabelDAO labelDAO = new LabelDAO();

@@ -9,9 +9,11 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class OrganizationDAO
@@ -73,7 +75,7 @@ public class OrganizationDAO
         insert( em, organization, true /* createLicenseThreatGroups */);
     }
 
-    public void insert( EntityManager em, Organization organization, boolean createLicenseThreatGroups )
+    private void insert( EntityManager em, Organization organization, boolean createLicenseThreatGroups )
     {
         NameHelper.validate( organization.getName() );
 
@@ -84,10 +86,10 @@ public class OrganizationDAO
 
         super.insert( em, organization );
 
-        // if ( createLicenseThreatGroups )
-        // {
-        // new LicenseThreatGroupDAO().createDefaultGroups( em, organization.getId() );
-        // }
+        if ( createLicenseThreatGroups )
+        {
+            new LicenseThreatGroupDAO().createDefaultGroups( em, organization.getId() );
+        }
     }
 
     @Override
@@ -129,15 +131,14 @@ public class OrganizationDAO
     @Override
     public void delete( EntityManager em, Organization organization )
     {
-        // // Cascade to license threat groups
-        // LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        // List<LicenseThreatGroup> licenseThreatGroups =
-        // licenseThreatGroupDAO.getByApplicationId( em, organization.getId() );
-        // for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-        // {
-        // licenseThreatGroupDAO.delete( em, licenseThreatGroup );
-        // }
-        //
+        // Cascade to license threat groups
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId( em, organization.getId() );
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        {
+            licenseThreatGroupDAO.delete( em, licenseThreatGroup );
+        }
+
         // // Cascade to labels
         // LabelDAO labelDAO = new LabelDAO();
         // List<Label> labels = labelDAO.getByApplicationId( em, organization.getId() );

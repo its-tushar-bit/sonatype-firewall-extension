@@ -23,6 +23,8 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -40,6 +42,18 @@ public class ComponentDAOTest
     private LabelDAO labelDAO = new LabelDAO();
 
     private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
+    @Before
+    public void before()
+    {
+        organization = new Organization( "ComponentDAOTest" );
+        new OrganizationDAO().insert( organization );
+
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByIdNotNull( applicationId );
+        application.setOrganizationId( organization.getId() );
+        applicationDAO.update( application );
+    }
 
     private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV( String refId, String source,
                                                                                     Float severity,

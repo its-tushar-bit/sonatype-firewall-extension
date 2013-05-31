@@ -64,7 +64,7 @@ public class LicenseThreatGroupLicenseResourceTest
         throws Exception
     {
         String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
-        Application application = createApplication( appPublicId, false /* createLicenseThreatGroups */);
+        Application application = createApplication( appPublicId );
         testSetGet( appPublicId, application.getId() );
     }
 

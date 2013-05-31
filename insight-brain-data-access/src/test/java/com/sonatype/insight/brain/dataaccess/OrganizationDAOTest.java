@@ -16,8 +16,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 public class OrganizationDAOTest
     extends AbstractDbDAOTest
@@ -28,6 +30,16 @@ public class OrganizationDAOTest
     public void before()
     {
         organization = new Organization();
+    }
+
+    @Test
+    public void testCreateDefaultLicenseThreatGroups()
+        throws Exception
+    {
+        organization.setName( "OrganizationDAOTest" );
+        dao.insert( organization );
+        List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( organization.getId() );
+        Assert.assertTrue( licenseThreatGroups.size() >= 4 );
     }
 
     @Test

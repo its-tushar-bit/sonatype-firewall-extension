@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -87,23 +89,61 @@ public class LicenseThreatGroupDAO
     public void insert( EntityManager em, LicenseThreatGroup licenseThreatGroup )
     {
         validateThreatLevel( licenseThreatGroup.getThreatLevel() );
+
+        validateName( em, licenseThreatGroup );
         if ( getByOwnerIdAndName( em, licenseThreatGroup.getOwnerId(), licenseThreatGroup.getName() ) != null )
         {
             throw new InvalidLicenseThreatGroupException( "A license threat group with the same name already exists" );
         }
+
         super.insert( em, licenseThreatGroup );
+    }
+
+    private void validateName( EntityManager em, LicenseThreatGroup licenseThreatGroup )
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application parentApplication = applicationDAO.getById( em, licenseThreatGroup.getOwnerId() );
+        if ( parentApplication != null )
+        {
+            // The owner is an application
+            if ( parentApplication.getOrganizationId() != null )
+            {
+                if ( getByOwnerIdAndName( em, parentApplication.getOrganizationId(), licenseThreatGroup.getName() ) != null )
+                {
+                    throw new InvalidLicenseThreatGroupException(
+                                                                  "A license threat group with the same name already exists for the parent organization" );
+                }
+            }
+        }
+        else
+        {
+            // The owner is an organization
+            List<Application> applications = applicationDAO.getByOrganizationId( em, licenseThreatGroup.getOwnerId() );
+            for ( Application application : applications )
+            {
+                if ( getByOwnerIdAndName( em, application.getId(), licenseThreatGroup.getName() ) != null )
+                {
+                    throw new InvalidLicenseThreatGroupException(
+                                                                  "A license threat group with the same name already exists for application '"
+                                                                      + application.getName() + "'" );
+                }
+            }
+        }
     }
 
     @Override
     public void update( EntityManager em, LicenseThreatGroup licenseThreatGroup )
     {
         validateThreatLevel( licenseThreatGroup.getThreatLevel() );
+
+        validateName( em, licenseThreatGroup );
         LicenseThreatGroup otherLicenseThreatGroup =
             getByOwnerIdAndName( em, licenseThreatGroup.getOwnerId(), licenseThreatGroup.getName() );
         if ( otherLicenseThreatGroup != null && !otherLicenseThreatGroup.getId().equals( licenseThreatGroup.getId() ) )
         {
             throw new InvalidLicenseThreatGroupException( "A license threat group with the same name already exists" );
         }
+
         super.update( em, licenseThreatGroup );
     }
 

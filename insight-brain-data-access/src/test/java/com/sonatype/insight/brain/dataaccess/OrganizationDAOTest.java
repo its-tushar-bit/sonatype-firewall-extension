@@ -12,8 +12,8 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -24,15 +24,10 @@ public class OrganizationDAOTest
 {
     private OrganizationDAO dao = new OrganizationDAO();
 
-    private Organization organization = new Organization();
-
-    @After
-    public void cleanUp()
+    @Before
+    public void before()
     {
-        if ( organization.getId() != null && dao.getById( organization.getId() ) != null )
-        {
-            dao.delete( organization );
-        }
+        organization = new Organization();
     }
 
     @Test
@@ -47,7 +42,6 @@ public class OrganizationDAOTest
         Assert.assertEquals( "OrganizationDAOTest", organization.getName() );
 
         // Update
-        Organization organization = dao.getById( organizationId );
         organization.setName( "OrganizationDAOTest New name" );
         dao.update( organization );
         organization = dao.getById( organizationId );

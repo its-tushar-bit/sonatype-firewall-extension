@@ -5,23 +5,25 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 
 public abstract class AbstractDbDAOTest
 {
-    protected static String applicationId;
+    protected String applicationId;
 
-    protected final static String applicationPublicId = "AbstractDbDAOTest_AppId";
+    protected static String applicationPublicId = "AbstractDbDAOTest_AppId";
 
-    protected final static String applicationName = "AbstractDbDAOTest";
+    protected static String applicationName = "AbstractDbDAOTest";
 
-    @BeforeClass
-    public static void setUp()
+    protected Organization organization;
+
+    @Before
+    public void setUp()
     {
         // Create an application
         ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -33,8 +35,8 @@ public abstract class AbstractDbDAOTest
         Assert.assertNotNull( applicationId );
     }
 
-    @AfterClass
-    public static void tearDown()
+    @After
+    public void tearDown()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getById( applicationId );
@@ -43,6 +45,9 @@ public abstract class AbstractDbDAOTest
             applicationDAO.delete( application );
         }
 
-        DataSourceFactory.clear_ForTestsOnly();
+        if ( organization != null && organization.getId() != null )
+        {
+            new OrganizationDAO().delete( organization );
+        }
     }
 }

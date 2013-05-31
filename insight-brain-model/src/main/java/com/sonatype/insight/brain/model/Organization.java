@@ -27,6 +27,15 @@ public class Organization
     @Column(name = "name_lowercase_no_whitespace")
     private String nameLowercaseNoWhitespace;
 
+    public Organization()
+    {
+    }
+
+    public Organization( String name )
+    {
+        setName( name );
+    }
+
     @Override
     public String getId()
     {

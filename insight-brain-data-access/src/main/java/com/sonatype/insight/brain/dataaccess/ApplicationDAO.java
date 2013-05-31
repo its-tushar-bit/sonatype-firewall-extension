@@ -38,7 +38,7 @@ public class ApplicationDAO
     private static final Logger log = LoggerFactory.getLogger( ApplicationDAO.class );
 
     @Override
-    protected Application getById( EntityManager em, String id )
+    public Application getById( EntityManager em, String id )
     {
         String sQuery = "SELECT entity FROM Application entity" + //
             " WHERE entity.id=?1";
@@ -134,6 +134,14 @@ public class ApplicationDAO
         {
             close( em );
         }
+    }
+
+    public List<Application> getByOrganizationId( EntityManager em, String organizationId )
+    {
+        String sQuery = "SELECT entity FROM Application entity" + //
+            " WHERE entity.organizationId=?1" + //
+            " ORDER BY entity.publicIdLowercase";
+        return getList( em, sQuery, organizationId );
     }
 
     @Override

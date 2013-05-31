@@ -9,7 +9,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,24 +22,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseThreatGroupLicenseDAOTest
     extends AbstractDbDAOTest
 {
-    private Organization organization;
-
-    @After
-    public void cleanUp()
-    {
-        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-        List<LicenseThreatGroup> groups = dao.getByOwnerId( applicationId );
-        for ( LicenseThreatGroup group : groups )
-        {
-            dao.delete( group );
-        }
-
-        if ( organization != null )
-        {
-            new OrganizationDAO().delete( organization );
-        }
-    }
-
     private void testCRUD( String ownerId )
         throws Exception
     {

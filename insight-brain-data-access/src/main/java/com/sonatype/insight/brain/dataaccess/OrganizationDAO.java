@@ -18,7 +18,7 @@ public class OrganizationDAO
     extends AbstractOperationalSqlDAO<Organization>
 {
     @Override
-    protected Organization getById( EntityManager em, String id )
+    public Organization getById( EntityManager em, String id )
     {
         String sQuery = "SELECT entity FROM Organization entity" + //
             " WHERE entity.id=?1";

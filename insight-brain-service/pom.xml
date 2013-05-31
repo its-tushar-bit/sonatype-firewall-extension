@@ -449,6 +449,7 @@
             <include>application/ManagementController.js</include>
             <include>assets/ManagementApp.js</include>
             <include>organization/OrganizationController.js</include>
+            <include>application/ApplicationController.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>assets/angular-mocks-*.js</include>
@@ -466,6 +467,7 @@
             <include>assets/AngularCommonSpec.js</include>
             <include>assets/ResourceSpec.js</include>
             <include>assets/ManagementAppSpec.js</include>
+            <include>application/ApplicationControllerSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>

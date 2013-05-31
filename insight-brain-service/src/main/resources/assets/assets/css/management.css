@@ -135,6 +135,12 @@
 	width: 100px;
 }
 
+.new-entity-button a {
+	margin: 5px 5px auto;
+	font-size: 12px;
+	width: 115px;
+}
+
 .content {
 	margin-left: 300px;
 	height: 100%;

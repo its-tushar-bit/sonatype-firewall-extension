@@ -1,14 +1,19 @@
 <div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
+	<div class='new-entity-button'>
+		<a class="btn" href='#/management/organization/_new_'>
+			<i class="icon-plus"></i>&nbsp;New Organization
+		</a>
+	</div>
 	<div class='search input-prepend'>
-		<span class='add-on'><i	ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"
-			ng-click="searchText = ''"></i></span>
-			<input type='text' ng-model='searchText' autocomplete="off"	type-Ahead='getApplicationNames' />
+		<span class='add-on'><i
+			ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"
+			ng-click="searchText = ''"></i></span> <input type='text'
+			ng-model='searchText' autocomplete="off"
+			type-Ahead='getApplicationNames' />
 	</div>
 	<ul class="nav nav-list">
-		<li><div style="width: 150px">
-				<a class="btn btn-mini" style="text-align: left;" href='#/management/organization/_new_'><i class="icon-plus"></i>&nbsp;New Organization</a>
-			</div></li>
-		<li ng-repeat='organization in organizations | filter: searchText' ng-class="{'active': $state.params.organizationId == organization.id }"><a
+		<li ng-repeat='organization in organizations | filter: searchText'
+			ng-class="{'active': $state.params.organizationId == organization.id }"><a
 			href='#/management/organization/{{organization.id}}'>{{organization.name}}</a></li>
 	</ul>
 </div>

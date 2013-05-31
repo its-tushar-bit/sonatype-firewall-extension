@@ -316,6 +316,11 @@ ul.tri-pane {
 	padding-top: 5px;
 }
 
+.license-accordion-body ul {
+	max-height: 200px;
+	overflow: auto;
+}
+
 /**
  * Threat level dropdown
  */

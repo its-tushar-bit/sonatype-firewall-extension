@@ -35,6 +35,7 @@
 			</a>
 			<div id="collapse{{licenseGroup.id}}" class="license-accordion-body accordion-body collapse">
 				<div class="accordion-inner">
+					<b>Licenses</b>
 					<ul class="unstyled">
 						<li ng-repeat='l in licenseGroup.licenses | orderBy: l.licenseId'>
 							{{getDisplayName(l.licenseId)}}</li>

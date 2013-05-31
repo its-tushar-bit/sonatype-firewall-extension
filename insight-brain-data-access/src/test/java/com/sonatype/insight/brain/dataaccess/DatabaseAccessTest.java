@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
@@ -26,6 +27,12 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 public class DatabaseAccessTest
 {
+    @Before
+    public void setup()
+    {
+        DataSourceFactory.clear_ForTestsOnly();
+    }
+
     @After
     public void cleanup()
     {
@@ -41,7 +48,8 @@ public class DatabaseAccessTest
         {
             String databaseURL = conn.getMetaData().getURL();
             Assert.assertNotNull( databaseURL );
-            Assert.assertTrue( databaseConfig.getUrl().startsWith( databaseURL + ";" ) );
+            Assert.assertTrue( "databaseConfig.url=" + databaseConfig.getUrl().toString() + " expected to start with "
+                + databaseURL, databaseConfig.getUrl().startsWith( databaseURL + ";" ) );
         }
         finally
         {

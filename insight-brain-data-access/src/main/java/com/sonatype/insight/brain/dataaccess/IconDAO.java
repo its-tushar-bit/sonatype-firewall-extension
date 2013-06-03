@@ -17,7 +17,7 @@ import javax.imageio.ImageIO;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-class IconDAO
+public class IconDAO
 {
     private static final String ICON_FILE_NAME = "icon420px.png";
 

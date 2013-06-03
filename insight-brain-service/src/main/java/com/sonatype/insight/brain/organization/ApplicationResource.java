@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,7 +15,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -27,14 +23,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriBuilder;
 
-import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +36,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.saas.SaasClient;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -58,6 +45,7 @@ import com.sun.jersey.multipart.FormDataParam;
 @Named
 @Path( ApplicationResource.SERVICE_PATH )
 public class ApplicationResource
+    extends AbstractResourceWithIcon
 {
     public static final String SERVICE_PATH = "rest/application";
 
@@ -66,8 +54,6 @@ public class ApplicationResource
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
     public static final String APPLICATION_ICON_PATH = "icon/";
-
-    public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
 
     public static final String APPLICATION_ICON_PATH_SYNC = APPLICATION_ICON_PATH + "sync";
 
@@ -82,16 +68,8 @@ public class ApplicationResource
     @Context
     private InsightWork work;
 
-    @Context
-    private BaseUrl baseUrl;
-    
     @Inject
     private CLMLicenseManager licenseManager;
-
-    @Inject
-    private SaasClient client;
-
-    private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
 
     @GET
     @Path( VALIDATE_PATH )
@@ -150,44 +128,13 @@ public class ApplicationResource
     final String applicationPublicId )
         throws IOException
     {
-        byte[] imageBytes = null;
+        String applicationId = null;
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         if ( application != null )
         {
-            imageBytes = applicationDAO.getIcon( application.getId(), work.getIconDir() );
+            applicationId = application.getId();
         }
-        if ( imageBytes == null )
-        {
-            UriBuilder defaultIconUriBuilder =
-                baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "img/defaulticon_application.png" );
-            return Response.temporaryRedirect( defaultIconUriBuilder.build() ).build();
-        }
-        final byte[] imageOutputBytes = imageBytes;
-        StreamingOutput stream = new StreamingOutput()
-        {
-            @Override
-            public void write( OutputStream output )
-                throws IOException, WebApplicationException
-            {
-                output.write( imageOutputBytes );
-            }
-        };
-        return Response.ok( stream ).build();
-    }
-
-    @GET
-    @Path( GENERATE_ICON_PATH )
-    @Produces( "image/png" )
-    public StreamingOutput generateApplicationIcon( @PathParam( "hashcode" )
-    final String hashcode, @Context
-    final HttpServletRequest req )
-        throws IOException
-    {
-        if ( hashcode == null || hashcode.isEmpty() )
-        {
-            throw new NotFoundException( "Null or empty hashcode." );
-        }
-        return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
+        return super.getIcon( applicationId );
     }
 
     /**
@@ -213,6 +160,7 @@ public class ApplicationResource
      * 
      * @return HTTP Response redirect to the application management page.
      */
+    @Override
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Path( APPLICATION_ICON_PATH_SYNC )
@@ -222,98 +170,7 @@ public class ApplicationResource
                                      @FormDataParam( "file" ) InputStream uploadedInputStream,
                                      @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
     {
-        String errorMessage = null;
-        try
-        {
-            addIconInternal( applicationId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
-        }
-        catch ( Exception e )
-        {
-            log.error( e.getMessage(), e );
-            errorMessage = errorResponseGenerator.mapException( e ).getMessageBody();
-        }
-
-        UriBuilder uriBuilder =
-            baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "index.html" );
-        if ( errorMessage != null )
-        {
-            uriBuilder = uriBuilder.queryParam( "errorMessage", errorMessage );
-        }
-
-        return Response.seeOther( uriBuilder.build() ).build();
-    }
-
-    public void addIconInternal( String applicationId, boolean hasRobotSource, String robotHash,
-                                 InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
-        throws IOException
-    {
-        if ( hasRobotSource )
-        {
-            try
-            {
-                HttpResponse iconResponse =
-                    client.getResponse( null, "rest/application/icon/generate/" + robotHash, null, (String) null );
-                uploadedInputStream = iconResponse.getEntity().getContent();
-            }
-            catch ( Exception e )
-            {
-                log.error( e.getMessage(), e );
-                if ( uploadedInputStream != null )
-                {
-                    uploadedInputStream.close();
-                    uploadedInputStream = null;
-                }
-            }
-        }
-
-        byte[] imageByteArray = null;
-        if ( uploadedInputStream != null )
-        {
-            // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
-            ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-            try
-            {
-                for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
-                {
-                    if ( imageOutputStream.size() > 5242880 )
-                    {
-                        throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
-                    }
-                    imageOutputStream.write( b );
-                }
-                imageByteArray = imageOutputStream.toByteArray();
-            }
-            finally
-            {
-                imageOutputStream.close();
-                uploadedInputStream.close();
-            }
-
-            if ( imageByteArray != null && imageByteArray.length > 0 )
-            {
-                InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
-                try
-                {
-                    applicationDAO.setIcon( applicationId, work.getIconDir(), sizeCheckedInputStream );
-                }
-                catch ( IllegalArgumentException e )
-                {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
-                }
-                catch ( IOException e )
-                {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
-                }
-                catch ( BadRequestException e )
-                {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
-                }
-                finally
-                {
-                    sizeCheckedInputStream.close();
-                }
-            }
-        }
+        return super.addEditIconSync( applicationId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
     }
 
     @POST
@@ -410,5 +267,11 @@ public class ApplicationResource
 
         log.debug( "Found application with public id {}", applicationPublicId );
         return "OK";
+    }
+
+    @Override
+    protected String getDefaultIconFilename()
+    {
+        return "defaulticon_application.png";
     }
 }

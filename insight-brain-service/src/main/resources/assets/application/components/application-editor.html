@@ -25,8 +25,10 @@
 				force-edit="selectedApplication && selectedApplication.id == null" style='margin-bottom: 5px;'></div>
 			<span style='padding-left: 9px'>Application: </span>
 			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
-				<div ng-switch-when='null' inline-editor editor-value='selectedApplication.publicId' editor-placeholder=' Application ID'
-					force-edit="selectedApplication && selectedApplication.id == null"></div>
+				<div ng-switch-when='null'>
+					<div inline-editor editor-value='selectedApplication.publicId' editor-placeholder=' Application ID'
+						force-edit="selectedApplication && selectedApplication.id == null"></div>
+				</div>
 				<span ng-switch-default>{{selectedApplication.publicId}}</span>
 			</div>
 			<span style='padding-left: 9px'>Organization</span>
@@ -48,7 +50,7 @@
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>
 		</div>
-		<div style='margin-top: 5px;'>
+		<div ng-show='applicationEditor.$dirty || !selectedApplication.id' style='margin-top: 5px;'>
            	<button class='btn' type='button' data-dismiss='modal'>Cancel</button>
             <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
 		</div>

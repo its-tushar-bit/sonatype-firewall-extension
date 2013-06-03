@@ -5,17 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
-import javax.imageio.ImageIO;
 import javax.persistence.EntityManager;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -29,7 +24,6 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationDAO
@@ -251,54 +245,13 @@ public class ApplicationDAO
     public void setIcon( String applicationId, File iconDirectory, InputStream imageStream )
         throws IOException
     {
-        final int dimension = 420;
-        Image image = ImageIO.read( imageStream );
-
-        // Invalid image types do not throw exception on ImageIO.read but instead returns null. Throw exception when
-        // null is returned
-        if ( image == null )
-        {
-            throw new BadRequestException( "Invalid image file." );
-        }
-
-        BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage( image, 0, 0, dimension, dimension, null );
-        g.dispose();
-
-        File applicationIconDirectory = new File( iconDirectory, applicationId );
-        if ( !applicationIconDirectory.exists() )
-        {
-            applicationIconDirectory.mkdirs();
-        }
-
-        File iconFile = new File( applicationIconDirectory, "icon420px.png" );
-        if ( !iconFile.exists() )
-        {
-            iconFile.createNewFile();
-        }
-
-        ImageIO.write( resizedImage, "png", iconFile );
+        new IconDAO().setIcon( applicationId, iconDirectory, imageStream );
     }
 
     public byte[] getIcon( String applicationId, File iconDirectory )
         throws IOException
     {
-        File applicationIconDirectory = new File( iconDirectory, applicationId );
-        if ( !applicationIconDirectory.exists() )
-        {
-            return null;
-        }
-        File iconFile = new File( applicationIconDirectory, "icon420px.png" );
-        if ( !iconFile.exists() )
-        {
-            return null;
-        }
-
-        BufferedImage image = ImageIO.read( iconFile );
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write( image, "png", byteArrayOutputStream );
-        return byteArrayOutputStream.toByteArray();
+        return new IconDAO().getIcon( applicationId, iconDirectory );
     }
 
     private void validate( Application application )

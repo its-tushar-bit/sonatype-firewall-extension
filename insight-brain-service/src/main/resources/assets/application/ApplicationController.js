@@ -38,12 +38,16 @@
 	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
-			if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
+			if ('_new_' === $scope.$state.params.applicationPublicId) {
+                $timeout(function () {
+                    $scope.selectedApplication = applicationStore.create();
+                }, 100);
+            } else if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
 				for (var i = 0; i < $scope.applications.length; i++) {
 					if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
 						$timeout(function () {
 							$scope.selectedApplication = $scope.applications[i];
-						}, 200);
+						}, 100);
 						return;
 					}
 				}
@@ -67,10 +71,163 @@
 		});
 	});
 
-	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, CLMLocations, $http, hudson) {
 		$scope.$state = $state;
 
+		$scope.submitActive = false;
+		$scope.addApplicationSync = CLMLocations.addIconSync();
+		$scope.hasRobotSource = false;
+		
+		$scope.generateIcon = function () {
+			var name = $scope.selectedApplication.name,
+				hash = 0;
+			if (!name) {
+				hash = Math.floor(Math.random() * 100);
+			} else {
+				for (var i = 0; i < name.length; i++) {
+					var charAtI = name.charCodeAt(i);
+					hash = ((hash << 5) - hash) + charAtI;
+					hash = hash & hash;
+				}
+			}
+			$scope.robotHash = hash;
+			$scope.hasRobotSource = true;
+			$scope.iconChanged = true;
+		};
+
+		$scope.fileChanged = function (element) {
+			if (element.files && element.files.length > 0) {
+				$scope.hasRobotSource = false;
+				var file = element.files[0],
+				src;
+				if (window.URL) {
+					src = window.URL.createObjectURL(file);
+				} else if (window.webkitURL) {
+					src = window.webkitURL.createObjectURL(file);
+				}
+				if (src) {
+					$scope.$apply(function () {
+						$scope.applicationIconSource = src;
+						$scope.hasRobotSource = false;
+					});
+				} else {
+					$scope.$apply(function () {
+						$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+						$scope.hasRobotSource = false;
+					});
+				}
+			} else {
+				$scope.$apply(function () {
+					$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+					$scope.hasRobotSource = false;
+				});
+			}
+			$scope.iconChanged = true;
+		};
+		
 		$scope.encodeURIComponent = window.encodeURIComponent;
+
+		$scope.canSaveEdit = function () {
+			return $scope.applicationEditor.$valid && !$scope.submitActive;
+		};
+
+		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
+		$scope.saveClick = function () {
+			if ($scope.submitActive) {
+				return true;
+			}
+
+			if (!$scope.applicationEditor.$valid) {
+				return false;
+			}
+
+			if (window.FormData) {
+				var icon = angular.element('#file')[0];
+				if (icon.files.length > 0) {
+					if (icon.files[0].size > 5242880) {
+						$scope.$apply(function() {
+							$scope.$broadcast('showAlert', 'Icon file size must be smaller than 5 MB.');
+						});
+						return false;
+					}
+				}
+			}
+
+			$scope.submitActive = true;
+
+			var application = {
+				id: $scope.selectedApplication.id,
+				publicId: $scope.selectedApplication.publicId,
+				name: $scope.selectedApplication.name
+			};
+
+			if (!application.id) {
+				hudson.post(CLMLocations.getApplicationsUrl(), application).success(function (data) {
+					$scope.applications.push(data);
+					$scope.selectedApplication = data;
+					saveIcon();
+				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
+			} else {
+				$http.put(CLMLocations.getApplicationsUrl(), application).success(function (data) {
+					angular.forEach($scope.applications, function (application, key) {
+						if (data.id === application.id) {
+							$scope.applications[key] = data;
+							$scope.selectedApplication = data;
+							return false;
+						}
+					});
+					saveIcon();
+				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
+			}
+
+			return false;
+		};
+
+		function saveIcon() {
+			if (!$scope.iconChanged) {
+				$('#newApplicationModal').modal('hide');
+				return;
+			}
+
+			// Angular modal does not adjust value of form element so when posting these values need to be set
+			angular.element('[name=applicationId]').val($scope.selectedApplication.id);
+			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
+			angular.element('[name=robotHash]').val($scope.robotHash);
+
+			var form = angular.element('#applicationEditor');
+
+			if (window.FormData) {
+				$scope.isUploadingIcon = true;
+
+				var formData = new FormData(form[0]);
+				var icon = angular.element('#file')[0];
+				if (icon.files.length > 0) {
+					formData.append('file', icon.files[0]);
+				}
+
+				hudson.ajaxPost({
+					url: CLMLocations.addIcon(),
+					data: formData,
+					success: function (data, status, jqXHR) {
+						// We need to regrab the icon here because it doesn't exist when the browser first requests
+						var iconSource = "../rest/application/icon/" + encodeURIComponent($scope.selectedApplication.publicId);
+						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource + '?' + new Date().getTime());
+						$scope.submitActive = false;
+						$scope.isUploadingIcon = false;
+						$('#newApplicationModal').modal('hide');
+					},
+					error: function (jqXHR) {
+						$scope.$apply(function () {
+							$scope.isUploadingIcon = false;
+							$scope.submitActive = false;
+							$scope.$broadcast('postAlert', jqXHR);
+						});
+					}
+				});
+			} else {
+				form.submit();
+			}
+		}
 	});
 
 	applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {

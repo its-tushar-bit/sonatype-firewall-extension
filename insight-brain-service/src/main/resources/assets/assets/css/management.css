@@ -194,11 +194,34 @@
 	border: 1px;
 }
 
-.editorHeader img {
-	height: 96px; 
-	width: 96px;
+.editorApplicationImage {
 	float: left;
 	margin-right: 20px;
+	width: 180px;
+	height: 96px;
+}
+
+.editorApplicationImage img {
+	height: 96px; 
+	width: 96px;
+}
+
+.editImage {
+    display: none;
+}
+
+.editorApplicationImage:hover .displayImage {
+	opacity: 0.2;
+    filter: alpha(opacity=20);
+    pointer-events: none;
+}
+
+.editorApplicationImage:hover .editImage {
+    display: block;
+    margin-top: -65px;
+    margin-left: 5px;
+   	opacity: 0.99;
+    filter: alpha(opacity=99);
 }
 
 /**

@@ -1,24 +1,48 @@
 <div class='fade' ng-class='{ in : selectedApplication != null}'>
-	<form id='applicationEditor' name='applicationEditor'>
+	<form id='applicationEditor' name='applicationEditor' action='{{addApplicationSync}}' method='post' enctype='multipart/form-data'
+          onsubmit='return angular.element(this).scope().saveClick()'>
 		<div class="editorHeader">
-			<span ng-switch on='selectedApplication == null'>
-				<img ng-switch-when='false' ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}'/>
-			</span>
-			<div inline-editor editor-value='selectedApplication.name' editor-large='true'></div>
-			<span style='padding-left:9px'>Application: {{selectedApplication.publicId}}<span>
+			<div class='editorApplicationImage'>
+				<div class='displayImage'>
+					<div ng-switch on='hasRobotSource'>
+	                       <img ng-switch-when='false' id='applicationIcon' ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}' />
+	                       <img ng-switch-when='true' id='robotIcon' ng-src='../rest/application/services/generateIcon/{{robotHash}}'/>
+					</div>
+				</div>
+				<div class='editImage'>
+		            <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'/>
+		            <a ng-click='generateIcon()'>No icon? Want a robot?</a>
+	            </div>
+   			</div>
+			<div inline-editor editor-value='selectedApplication.name' editor-large='true' editor-placeholder="Application Name"
+				force-edit="selectedApplication && selectedApplication.id == null" style='margin-bottom: 5px;'></div>
+			<span style='padding-left:9px'>Application: </span>
+			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
+				<div ng-switch-when='null' inline-editor editor-value='selectedApplication.publicId' editor-placeholder=' Application ID'
+					force-edit="selectedApplication && selectedApplication.id == null"></div>
+				<span ng-switch-default>{{selectedApplication.publicId}}</span>
+			</div>
+		</div>
+		<div style='margin-top: 5px;'>
+           	<button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
 		</div>
 	</form>
-	<ul class='tri-pane'>
-		<li ng-class='{ active : isCurrentTab("policies")}'>
-			<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/policies'>POLICIES</a>
-		</li>
-		<li ng-class='{ active : isCurrentTab("labels")}'>
-			<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/labels'>LABELS</a>
-		</li>
-		<li ng-class='{ active : isCurrentTab("licenses")}'>
-			<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/licenses'>LICENSES</a>
-		</li>
-	</ul>
-	<div ui-view>
+	<div ng-switch on='selectedApplication.id'>
+		<div ng-switch-when='null'></div>
+		<div ng-switch-default>
+			<ul class='tri-pane'>
+				<li ng-class='{ active : isCurrentTab("policies")}'>
+					<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/policies'>POLICIES</a>
+				</li>
+				<li ng-class='{ active : isCurrentTab("labels")}'>
+					<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/labels'>LABELS</a>
+				</li>
+				<li ng-class='{ active : isCurrentTab("licenses")}'>
+					<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/licenses'>LICENSES</a>
+				</li>
+			</ul>
+			<div ui-view></div>
+		</div>
 	</div>
 </div>

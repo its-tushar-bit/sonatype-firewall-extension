@@ -10,11 +10,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -25,6 +33,9 @@ public class OrganizationDAOTest
     extends AbstractDbDAOTest
 {
     private OrganizationDAO dao = new OrganizationDAO();
+
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void before()
@@ -52,6 +63,22 @@ public class OrganizationDAOTest
         String organizationId = organization.getId();
         organization = dao.getById( organizationId );
         Assert.assertEquals( "OrganizationDAOTest", organization.getName() );
+
+        // Set an icon for the organization
+        BufferedImage image = new BufferedImage( 420, 420, BufferedImage.TYPE_INT_ARGB );
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write( image, "png", byteArrayOutputStream );
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( byteArrayOutputStream.toByteArray() );
+        File iconDir = tmpDir.newFolder();
+        File orgIconDir = new File( iconDir, organizationId );
+        Assert.assertFalse( orgIconDir.exists() );
+        dao.setIcon( organizationId, iconDir, byteArrayInputStream );
+        Assert.assertTrue( orgIconDir.isDirectory() );
+
+        // Get the icon
+        byte[] iconBytes = dao.getIcon( organizationId, iconDir );
+        Assert.assertNotNull( iconBytes );
+        Assert.assertTrue( iconBytes.length > 0 );
 
         // Update
         organization.setName( "OrganizationDAOTest New name" );

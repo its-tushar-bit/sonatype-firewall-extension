@@ -234,7 +234,7 @@ public class ApplicationResource
         }
 
         UriBuilder uriBuilder =
-            baseUrl.redirect().path( InsightBrainService.APPLICATION_ASSET_PATH ).path( "index.html" );
+            baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "index.html" );
         if ( errorMessage != null )
         {
             uriBuilder = uriBuilder.queryParam( "errorMessage", errorMessage );

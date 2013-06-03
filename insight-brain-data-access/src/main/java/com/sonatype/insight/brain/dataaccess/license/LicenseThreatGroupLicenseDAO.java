@@ -26,11 +26,12 @@ public class LicenseThreatGroupLicenseDAO
         return get( em, sQuery, id );
     }
 
-    private LicenseThreatGroupLicense getByOwnerIdAndLicenseId( EntityManager em, String ownerId, String licenseId )
+    private LicenseThreatGroupLicense getByGroupIdAndLicenseId( EntityManager em, String ownerId,
+                                                                String licenseThreatGroupId )
     {
         String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-            " WHERE entity.ownerId=?1 AND entity.licenseId=?2";
-        return get( em, sQuery, ownerId, licenseId );
+            " WHERE entity.licenseThreatGroupId=?1 AND entity.licenseId=?2";
+        return get( em, sQuery, ownerId, licenseThreatGroupId );
     }
 
     public List<LicenseThreatGroupLicense> getByOwnerId( String ownerId )
@@ -73,13 +74,11 @@ public class LicenseThreatGroupLicenseDAO
     {
         new LicenseDAO().getByIdNotNull( entity.getLicenseId() );
 
-        LicenseThreatGroupLicense other = getByOwnerIdAndLicenseId( em, entity.getOwnerId(), entity.getLicenseId() );
+        LicenseThreatGroupLicense other =
+            getByGroupIdAndLicenseId( em, entity.getLicenseThreatGroupId(), entity.getLicenseId() );
         if ( other != null )
         {
-            LicenseThreatGroup licenseThreatGroup =
-                new LicenseThreatGroupDAO().getById( other.getLicenseThreatGroupId() );
-            throw new InvalidLicenseThreatGroupLicenseException( "The license is already in the '"
-                + licenseThreatGroup.getName() + "' license threat group" );
+            throw new InvalidLicenseThreatGroupLicenseException( "The license is already in the license threat group" );
         }
         super.insert( em, entity );
     }

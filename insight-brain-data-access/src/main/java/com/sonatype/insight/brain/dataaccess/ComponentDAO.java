@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public class ComponentDAO
@@ -311,7 +312,12 @@ public class ComponentDAO
         // Gather all license threat groups from the application
         for ( String licenseId : licenseIds )
         {
-            component.addLicenseThreatGroup( licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, licenseId ) );
+            List<LicenseThreatGroup> licenseThreatGroups =
+                licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, licenseId );
+            for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+            {
+                component.addLicenseThreatGroup( licenseThreatGroup );
+            }
         }
 
         // Gather all license threat groups from the application's organization
@@ -320,8 +326,12 @@ public class ComponentDAO
         {
             for ( String licenseId : licenseIds )
             {
-                component.addLicenseThreatGroup( licenseThreatGroupDAO.getByOwnerIdAndLicenseId( organizationId,
-                                                                                                 licenseId ) );
+                List<LicenseThreatGroup> licenseThreatGroups =
+                    licenseThreatGroupDAO.getByOwnerIdAndLicenseId( organizationId, licenseId );
+                for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+                {
+                    component.addLicenseThreatGroup( licenseThreatGroup );
+                }
             }
         }
     }

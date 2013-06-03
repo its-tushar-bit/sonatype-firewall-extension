@@ -82,29 +82,25 @@ public class LicenseThreatGroupLicenseDAOTest
     }
 
     @Test
-    public void testAddSameLicenseToTwoGroups()
+    public void testAddSameLicenseToSameGroupTwice()
         throws Exception
     {
         LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
-        LicenseThreatGroup group1 = new LicenseThreatGroup();
-        group1.setOwnerId( applicationId );
-        group1.setName( "My group 1" );
-        groupDAO.insert( group1 );
-        LicenseThreatGroup group2 = new LicenseThreatGroup();
-        group2.setOwnerId( applicationId );
-        group2.setName( "My group 2" );
-        groupDAO.insert( group2 );
+        LicenseThreatGroup group = new LicenseThreatGroup();
+        group.setOwnerId( applicationId );
+        group.setName( "My group" );
+        groupDAO.insert( group );
 
         LicenseThreatGroupLicenseDAO dao = new LicenseThreatGroupLicenseDAO();
         LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setOwnerId( applicationId );
-        licenseThreatGroupLicense.setLicenseThreatGroupId( group1.getId() );
+        licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
         licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         dao.insert( licenseThreatGroupLicense );
 
         licenseThreatGroupLicense = new LicenseThreatGroupLicense();
         licenseThreatGroupLicense.setOwnerId( applicationId );
-        licenseThreatGroupLicense.setLicenseThreatGroupId( group2.getId() );
+        licenseThreatGroupLicense.setLicenseThreatGroupId( group.getId() );
         licenseThreatGroupLicense.setLicenseId( "UNSPECIFIED" );
         try
         {
@@ -113,7 +109,7 @@ public class LicenseThreatGroupLicenseDAOTest
         }
         catch ( InvalidLicenseThreatGroupLicenseException expected )
         {
-            if ( !"The license is already in the 'My group 1' license threat group".equals( expected.getMessage() ) )
+            if ( !"The license is already in the license threat group".equals( expected.getMessage() ) )
             {
                 throw expected;
             }
@@ -205,6 +201,47 @@ public class LicenseThreatGroupLicenseDAOTest
         dao.setLicenses( groupId, licenseIds );
         licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId( groupId );
         Assert.assertEquals( 0, licenseThreatGroupLicenses.size() );
+    }
+
+    @Test
+    public void testAddSameLicenseToTwoGroups_Application()
+        throws Exception
+    {
+        testAddSameLicenseToTwoGroups( applicationId );
+    }
+
+    @Test
+    public void testAddSameLicenseToTwoGroups_Organization()
+        throws Exception
+    {
+        organization = new Organization( "testAddSameLicenseToTwoGroups-Organization" );
+        new OrganizationDAO().insert( organization );
+
+        testAddSameLicenseToTwoGroups( organization.getId() );
+    }
+
+    private void testAddSameLicenseToTwoGroups( String ownerId )
+        throws Exception
+    {
+        LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group1 = new LicenseThreatGroup( ownerId, "My group 1", 4 );
+        groupDAO.insert( group1 );
+        LicenseThreatGroup group2 = new LicenseThreatGroup( ownerId, "My group 2", 4 );
+        groupDAO.insert( group2 );
+
+        LicenseThreatGroupLicenseDAO dao = new LicenseThreatGroupLicenseDAO();
+
+        LicenseThreatGroupLicense licenseThreatGroupLicense1 =
+            new LicenseThreatGroupLicense( ownerId, group1.getId(), "UNSPECIFIED" );
+        dao.insert( licenseThreatGroupLicense1 );
+        Assert.assertNotNull( licenseThreatGroupLicense1.getId() );
+
+        LicenseThreatGroupLicense licenseThreatGroupLicense2 =
+            new LicenseThreatGroupLicense( ownerId, group2.getId(), "UNSPECIFIED" );
+        dao.insert( licenseThreatGroupLicense2 );
+        Assert.assertNotNull( licenseThreatGroupLicense2.getId() );
+
+        Assert.assertFalse( licenseThreatGroupLicense1.getId() == licenseThreatGroupLicense2.getId() );
     }
 
     private void assertLicenseThreatGroupLicense( String ownerId, String licenseThreatGroupId, String licenseId,

@@ -51,13 +51,13 @@ public class LicenseThreatGroupDAO
         }
     }
 
-    public LicenseThreatGroup getByOwnerIdAndLicenseId( String ownerId, String licenseId )
+    public List<LicenseThreatGroup> getByOwnerIdAndLicenseId( String ownerId, String licenseId )
     {
         String sQuery = "SELECT licenseThreatGroup" + //
             " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
             " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
             " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId=?2";
-        return get( sQuery, ownerId, licenseId );
+        return getList( sQuery, ownerId, licenseId );
     }
 
     @Override

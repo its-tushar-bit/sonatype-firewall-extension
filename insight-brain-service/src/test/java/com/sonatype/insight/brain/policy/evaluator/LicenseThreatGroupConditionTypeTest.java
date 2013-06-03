@@ -93,7 +93,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testExplainMatchIs()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         Condition condition = new Condition( LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() );
         Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
@@ -115,7 +115,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testExplainMatchIsNot()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         Condition condition = new Condition( LicenseThreatGroupConditionType.ID, "is not", licenseThreatGroup.getId() );
         Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
@@ -137,7 +137,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testEvaluateIs_Declared()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         // Create policy constraints
         Constraint constraint = createConstraint( "is", licenseThreatGroup.getId() );
@@ -176,7 +176,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testEvaluateIsNot_Declared()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         // Create policy constraints
         Constraint constraint = createConstraint( "is not", licenseThreatGroup.getId() );
@@ -215,7 +215,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testEvaluateIs_Observed()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         // Create policy constraints
         Constraint constraint = createConstraint( "is", licenseThreatGroup.getId() );
@@ -254,7 +254,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testEvaluateIsNot_Observed()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         // Create policy constraints
         Constraint constraint = createConstraint( "is not", licenseThreatGroup.getId() );
@@ -293,7 +293,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testEvaluateIs_Overridden()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         // Create policy constraints
         Constraint constraint = createConstraint( "is", licenseThreatGroup.getId() );
@@ -336,7 +336,7 @@ public class LicenseThreatGroupConditionTypeTest
     public void testEvaluateIsNot_Overridden()
     {
         LicenseThreatGroup licenseThreatGroup =
-            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" );
+            licenseThreatGroupDAO.getByOwnerIdAndLicenseId( applicationId, "GPL-2.0" ).get( 0 );
 
         // Create policy constraints
         Constraint constraint = createConstraint( "is not", licenseThreatGroup.getId() );

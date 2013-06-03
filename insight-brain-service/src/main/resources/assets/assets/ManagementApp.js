@@ -53,6 +53,15 @@
 			$(window).unbind('beforeunload', fn);
 		});
 		$(window).bind('beforeunload', fn);
+		
+		$rootScope.alerts = [];
+		$rootScope.closeAlert = function(index) {
+		    $rootScope.alerts.splice(index, 1);
+		};
+		
+		$rootScope.$on('showAlert', function(event, type, message) {
+			$rootScope.alerts.push({ type: type, msg: message });
+		});
 	}]);
 
 	dashboardApp.controller('UnsavedController', ['$scope', 'dialog', function ($scope, dialog) {

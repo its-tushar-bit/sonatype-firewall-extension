@@ -74,6 +74,10 @@
     margin: 86px 0 auto auto;
 }
 
+.third-row .alert {
+	margin-bottom: 0px;
+}
+
 .navigation {
 	background: black;
 	width: 150px;
@@ -208,12 +212,18 @@
 
 .editImage {
     display: none;
+   	-webkit-transition: all .2s linear;
+	-moz-transition: all .2s linear;
+	transition: all .2s linear;
 }
 
 .editorApplicationImage:hover .displayImage {
 	opacity: 0.2;
     filter: alpha(opacity=20);
     pointer-events: none;
+   	-webkit-transition: all .1s linear;
+	-moz-transition: all .1s linear;
+	transition: all .1s linear;
 }
 
 .editorApplicationImage:hover .editImage {

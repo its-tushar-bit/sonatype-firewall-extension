@@ -71,7 +71,7 @@
 		});
 	});
 
-	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, CLMLocations, $http, hudson) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, CLMLocations, $http, hudson, $rootScope) {
 		$scope.$state = $state;
 
 		$scope.submitActive = false;
@@ -146,7 +146,7 @@
 				if (icon.files.length > 0) {
 					if (icon.files[0].size > 5242880) {
 						$scope.$apply(function() {
-							$scope.$broadcast('showAlert', 'Icon file size must be smaller than 5 MB.');
+							$rootScope.$broadcast('showAlert', 'error', 'Icon file size must be smaller than 5 MB.');
 						});
 						return false;
 					}
@@ -166,7 +166,7 @@
 					$scope.applications.push(data);
 					$scope.selectedApplication = data;
 					saveIcon();
-				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
+				}).error(function (data) { $rootScope.$broadcast('showAlert', 'error', data); });
 			} else {
 				$http.put(CLMLocations.getApplicationsUrl(), application).success(function (data) {
 					angular.forEach($scope.applications, function (application, key) {
@@ -177,7 +177,7 @@
 						}
 					});
 					saveIcon();
-				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
+				}).error(function (data) { $rootScope.$broadcast('showAlert', 'error', data); });
 			}
 
 			return false;

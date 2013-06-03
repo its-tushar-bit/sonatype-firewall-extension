@@ -1,6 +1,11 @@
 <div class='fade' ng-class='{ in : selectedApplication != null}'>
 	<form id='applicationEditor' name='applicationEditor' action='{{addApplicationSync}}' method='post' enctype='multipart/form-data'
           onsubmit='return angular.element(this).scope().saveClick()'>
+       	<div ng-show='isUploadingIcon'>
+            <div class="alert alert-info">
+                <strong>Uploading Icon...</strong>
+            </div>
+        </div>
 		<div class="editorHeader">
 			<div class='editorApplicationImage'>
 				<div class='displayImage'>
@@ -22,6 +27,9 @@
 					force-edit="selectedApplication && selectedApplication.id == null"></div>
 				<span ng-switch-default>{{selectedApplication.publicId}}</span>
 			</div>
+            <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
+            <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
+            <input name='robotHash' ng-model='robotHash' type='hidden'/>
 		</div>
 		<div style='margin-top: 5px;'>
            	<button class='btn' type='button' data-dismiss='modal'>Cancel</button>

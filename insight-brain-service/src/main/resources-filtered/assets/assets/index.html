@@ -74,7 +74,9 @@
 			</div>
 		</div>
 	</div>
-	<div class="third-row" ui-view>
+	<div class="third-row">
+		<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
+		<div ui-view></div>
 	</div>
 </body>
 </html>

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,7 +32,6 @@ import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -41,10 +41,11 @@ abstract class AbstractResourceWithIcon
 {
     public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
 
-    private static final Logger log = LoggerFactory.getLogger( AbstractResourceWithIcon.class );
+    public static final String ICON_PATH = "icon";
 
-    @Context
-    private InsightWork work;
+    public static final String ICON_PATH_SYNC = ICON_PATH + "/sync";
+
+    private static final Logger log = LoggerFactory.getLogger( AbstractResourceWithIcon.class );
 
     @Inject
     private SaasClient client;
@@ -54,8 +55,8 @@ abstract class AbstractResourceWithIcon
 
     private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
 
-    protected void addIconInternal( String ownerId, boolean hasRobotSource, String robotHash,
-                                    InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
+    protected void setIcon( String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
+                            InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
         throws IOException
     {
         if ( hasRobotSource )
@@ -105,7 +106,7 @@ abstract class AbstractResourceWithIcon
                 InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
                 try
                 {
-                    new IconDAO().setIcon( ownerId, work.getIconDir(), sizeCheckedInputStream );
+                    new IconDAO().setIcon( ownerId, iconDir, sizeCheckedInputStream );
                 }
                 catch ( IllegalArgumentException e )
                 {
@@ -127,13 +128,13 @@ abstract class AbstractResourceWithIcon
         }
     }
 
-    protected Response addEditIconSync( String ownerId, boolean hasRobotSource, String robotHash,
-                                        InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
+    protected Response setIconSync( String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
+                                    InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
     {
         String errorMessage = null;
         try
         {
-            addIconInternal( ownerId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
+            setIcon( ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
         }
         catch ( Exception e )
         {
@@ -164,13 +165,13 @@ abstract class AbstractResourceWithIcon
         return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
     }
 
-    protected Response getIcon( final String ownerId )
+    protected Response getIcon( final String ownerId, File iconDir )
         throws IOException
     {
         byte[] imageBytes = null;
         if ( ownerId != null )
         {
-            imageBytes = new IconDAO().getIcon( ownerId, work.getIconDir() );
+            imageBytes = new IconDAO().getIcon( ownerId, iconDir );
         }
         if ( imageBytes == null )
         {

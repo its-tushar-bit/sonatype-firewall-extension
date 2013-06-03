@@ -74,11 +74,11 @@ public class ApplicationDAOTest
         File iconDir = tmpDir.newFolder();
         File appIconDir = new File( iconDir, applicationId );
         Assert.assertFalse( appIconDir.exists() );
-        applicationDAO.setIcon( applicationId, iconDir, byteArrayInputStream );
+        new IconDAO().setIcon( applicationId, iconDir, byteArrayInputStream );
         Assert.assertTrue( appIconDir.isDirectory() );
 
         // Get the icon
-        byte[] iconBytes = applicationDAO.getIcon( applicationId, iconDir );
+        byte[] iconBytes = new IconDAO().getIcon( applicationId, iconDir );
         Assert.assertNotNull( iconBytes );
         Assert.assertTrue( iconBytes.length > 0 );
 

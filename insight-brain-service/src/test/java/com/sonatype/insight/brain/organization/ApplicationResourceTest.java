@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import java.util.concurrent.Future;
 import javax.imageio.ImageIO;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -107,26 +109,8 @@ public class ApplicationResourceTest
         Assert.assertEquals( application.getOrganizationId(), applicationManagementSummary.getOrganizationId() );
 
         // Test Add Invalid Icon
-        ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
-        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/util/AngularCommon.js" );
-        Assert.assertNotNull( iconStream );
-        byte[] defaultIconByteArray = null;
-        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-        try
-        {
-            for ( int b = 0; ( b = iconStream.read() ) != -1; )
-            {
-                imageOutputStream.write( b );
-            }
-            defaultIconByteArray = imageOutputStream.toByteArray();
-        }
-        finally
-        {
-            imageOutputStream.close();
-            iconStream.close();
-        }
-
-        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
+        byte[] defaultIconByteArray = loadInvalidIcon();
+        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getSetIconServiceUrl() );
         builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
         builder.addBodyPart( new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png",
@@ -138,44 +122,26 @@ public class ApplicationResourceTest
         Assert.assertEquals( "defaulticon_application.png is not a valid image.", response.getResponseBody() );
 
         // Test Get Icon (default icon)
-        classLoader = ApplicationResourceTest.class.getClassLoader();
-        iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
-        Assert.assertNotNull( iconStream );
-        defaultIconByteArray = null;
-        imageOutputStream = new ByteArrayOutputStream();
-        try
-        {
-            for ( int b = 0; ( b = iconStream.read() ) != -1; )
-            {
-                imageOutputStream.write( b );
-            }
-            defaultIconByteArray = imageOutputStream.toByteArray();
-        }
-        finally
-        {
-            imageOutputStream.close();
-            iconStream.close();
-        }
-
-        Assert.assertNotNull( defaultIconByteArray );
-        Assert.assertNotEquals( 0, defaultIconByteArray.length );
+        defaultIconByteArray = loadDefaultIcon();
+        Response iconResponse = RestAccess.get( getGetIconServiceUrl( applicationPublicId ) );
+        assertResponseStatus( 307, iconResponse );
+        Assert.assertEquals( getRestBaseUrl() + "assets/img/defaulticon_application.png",
+                             iconResponse.getHeader( "Location" ) );
 
         // Test Add Application Icon
-        builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
+        builder = RestAccess.getClient().preparePost( getSetIconServiceUrl() );
         builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
         builder.addBodyPart(
             new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", defaultIconByteArray ) ) );
         futureResponse = builder.execute();
-
         response = futureResponse.get();
         assertResponseStatus( 204, response );
 
         // Test Get Icon (from added application)
-        Response iconResponse = RestAccess.get( getServiceURL() + "/icon/" + applicationPublicId );
-
+        iconResponse = RestAccess.get( getGetIconServiceUrl( applicationPublicId ) );
         assertResponseStatus( 200, iconResponse );
-        iconStream = iconResponse.getResponseBodyAsStream();
+        InputStream iconStream = iconResponse.getResponseBodyAsStream();
         BufferedImage icon = null;
         try
         {
@@ -191,24 +157,20 @@ public class ApplicationResourceTest
 
         // Test application update
         application.setName( applicationName + "updated" );
-
         response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
         assertResponseStatus( 200, response );
         applicationManagementSummary =
             JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary.class );
-
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
         Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
         Assert.assertEquals( applicationName + "updated", applicationManagementSummary.getName() );
 
         // Test icon update
-        builder = RestAccess.getClient().preparePost( getIconServiceUrl() );
-
+        builder = RestAccess.getClient().preparePost( getSetIconServiceUrl() );
         builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
         futureResponse = builder.execute();
         response = futureResponse.get();
-
         assertResponseStatus( 204, response );
 
         // Verify non alpha numeric name fails
@@ -240,7 +202,62 @@ public class ApplicationResourceTest
         Assert.assertEquals( getRestBaseUrl() + "assets/img/defaulticon_application.png",
                              iconResponse.getHeader( "Location" ) );
     }
-    
+
+    private byte[] loadInvalidIcon()
+        throws IOException
+    {
+        byte[] iconByteArray = null;
+        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+
+        ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
+        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/util/AngularCommon.js" );
+        Assert.assertNotNull( iconStream );
+        try
+        {
+            for ( int b = 0; ( b = iconStream.read() ) != -1; )
+            {
+                imageOutputStream.write( b );
+            }
+            iconByteArray = imageOutputStream.toByteArray();
+        }
+        finally
+        {
+            IOUtil.close( imageOutputStream );
+            IOUtil.close( iconStream );
+        }
+
+        return iconByteArray;
+    }
+
+    private byte[] loadDefaultIcon()
+        throws IOException
+    {
+        byte[] defaultIconByteArray = null;
+        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+
+        ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
+        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_application.png" );
+        Assert.assertNotNull( iconStream );
+        try
+        {
+            for ( int b = 0; ( b = iconStream.read() ) != -1; )
+            {
+                imageOutputStream.write( b );
+            }
+            defaultIconByteArray = imageOutputStream.toByteArray();
+        }
+        finally
+        {
+            IOUtil.close( imageOutputStream );
+            IOUtil.close( iconStream );
+        }
+
+        Assert.assertNotNull( defaultIconByteArray );
+        Assert.assertNotEquals( 0, defaultIconByteArray.length );
+
+        return defaultIconByteArray;
+    }
+
     @Test
     public void testAddApplication_exceedsLicense()
         throws Exception
@@ -423,9 +440,15 @@ public class ApplicationResourceTest
                                                                                          applicationPublicId );
     }
 
-    private String getIconServiceUrl()
+    private String getGetIconServiceUrl( String applicationPublicId )
     {
-        return getServiceURL() + "/icon";
+        return getServiceURL() + "/"
+            + ApplicationResource.GET_APPLICATION_ICON_PATH.replace( "{applicationPublicId}", applicationPublicId );
+    }
+
+    private String getSetIconServiceUrl()
+    {
+        return getServiceURL() + "/" + ApplicationResource.ICON_PATH;
     }
 
     private String getServiceURL()

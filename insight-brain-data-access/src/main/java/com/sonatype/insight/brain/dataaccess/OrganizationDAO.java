@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -151,17 +148,5 @@ public class OrganizationDAO
         // }
 
         super.delete( em, organization );
-    }
-
-    public void setIcon( String organizationId, File iconDirectory, InputStream imageStream )
-        throws IOException
-    {
-        new IconDAO().setIcon( organizationId, iconDirectory, imageStream );
-    }
-
-    public byte[] getIcon( String organizationId, File iconDirectory )
-        throws IOException
-    {
-        return new IconDAO().getIcon( organizationId, iconDirectory );
     }
 }

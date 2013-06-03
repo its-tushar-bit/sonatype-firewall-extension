@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
@@ -225,18 +224,6 @@ public class ApplicationDAO
         }
 
         super.delete( em, application );
-    }
-
-    public void setIcon( String applicationId, File iconDirectory, InputStream imageStream )
-        throws IOException
-    {
-        new IconDAO().setIcon( applicationId, iconDirectory, imageStream );
-    }
-
-    public byte[] getIcon( String applicationId, File iconDirectory )
-        throws IOException
-    {
-        return new IconDAO().getIcon( applicationId, iconDirectory );
     }
 
     private void validate( Application application )

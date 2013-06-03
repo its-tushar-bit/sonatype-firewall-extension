@@ -53,11 +53,7 @@ public class ApplicationResource
 
     public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
-    public static final String APPLICATION_ICON_PATH = "icon/";
-
-    public static final String APPLICATION_ICON_PATH_SYNC = APPLICATION_ICON_PATH + "sync";
-
-    public static final String GET_APPLICATION_ICON_PATH = APPLICATION_ICON_PATH + "{applicationPublicId}";
+    public static final String GET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationPublicId}";
 
     public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
@@ -124,8 +120,7 @@ public class ApplicationResource
     @GET
     @Path( GET_APPLICATION_ICON_PATH )
     @Produces( "image/png" )
-    public Response getApplicationIcon( @PathParam( "applicationPublicId" )
-    final String applicationPublicId )
+    public Response getIcon( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
         String applicationId = null;
@@ -134,7 +129,7 @@ public class ApplicationResource
         {
             applicationId = application.getId();
         }
-        return super.getIcon( applicationId );
+        return super.getIcon( applicationId, work.getApplicationIconDir() );
     }
 
     /**
@@ -143,15 +138,16 @@ public class ApplicationResource
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    @Path( APPLICATION_ICON_PATH )
-    public void addEditIcon( @FormDataParam( "applicationId" ) String applicationId,
-                             @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
-                             @FormDataParam( "robotHash" ) String robotHash,
-                             @FormDataParam( "file" ) InputStream uploadedInputStream,
-                             @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+    @Path( ICON_PATH )
+    public void setIcon( @FormDataParam( "applicationId" ) String applicationId,
+                         @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                         @FormDataParam( "robotHash" ) String robotHash,
+                         @FormDataParam( "file" ) InputStream uploadedInputStream,
+                         @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
         throws IOException
     {
-        addIconInternal( applicationId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
+        super.setIcon( applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
+                       fileDetail );
     }
 
     /**
@@ -160,17 +156,17 @@ public class ApplicationResource
      * 
      * @return HTTP Response redirect to the application management page.
      */
-    @Override
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
-    @Path( APPLICATION_ICON_PATH_SYNC )
-    public Response addEditIconSync( @FormDataParam( "applicationId" ) String applicationId,
-                                     @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
-                                     @FormDataParam( "robotHash" ) String robotHash,
-                                     @FormDataParam( "file" ) InputStream uploadedInputStream,
-                                     @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
+    @Path( ICON_PATH_SYNC )
+    public Response setIconSync( @FormDataParam( "applicationId" ) String applicationId,
+                                 @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
+                                 @FormDataParam( "robotHash" ) String robotHash,
+                                 @FormDataParam( "file" ) InputStream uploadedInputStream,
+                                 @FormDataParam( "file" ) FormDataContentDisposition fileDetail )
     {
-        return super.addEditIconSync( applicationId, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
+        return super.setIconSync( applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash,
+                                  uploadedInputStream, fileDetail );
     }
 
     @POST
@@ -224,7 +220,7 @@ public class ApplicationResource
         }
 
         Application application = applicationDAO.getByPublicId( applicationPublicId );
-        applicationDAO.deleteWithIcon( application, work.getIconDir() );
+        applicationDAO.deleteWithIcon( application, work.getApplicationIconDir() );
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         policyDAO.deleteByOwnerId( application.getId() );
     }

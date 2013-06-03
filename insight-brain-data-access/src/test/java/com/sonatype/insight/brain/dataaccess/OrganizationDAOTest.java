@@ -72,11 +72,11 @@ public class OrganizationDAOTest
         File iconDir = tmpDir.newFolder();
         File orgIconDir = new File( iconDir, organizationId );
         Assert.assertFalse( orgIconDir.exists() );
-        dao.setIcon( organizationId, iconDir, byteArrayInputStream );
+        new IconDAO().setIcon( organizationId, iconDir, byteArrayInputStream );
         Assert.assertTrue( orgIconDir.isDirectory() );
 
         // Get the icon
-        byte[] iconBytes = dao.getIcon( organizationId, iconDir );
+        byte[] iconBytes = new IconDAO().getIcon( organizationId, iconDir );
         Assert.assertNotNull( iconBytes );
         Assert.assertTrue( iconBytes.length > 0 );
 

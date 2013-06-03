@@ -19,6 +19,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 class IconDAO
 {
+    private static final String ICON_FILE_NAME = "icon420px.png";
+
     public byte[] getIcon( String ownerId, File iconDirectory )
         throws IOException
     {
@@ -27,7 +29,7 @@ class IconDAO
         {
             return null;
         }
-        File iconFile = new File( applicationIconDirectory, "icon420px.png" );
+        File iconFile = new File( applicationIconDirectory, ICON_FILE_NAME );
         if ( !iconFile.exists() )
         {
             return null;
@@ -63,7 +65,7 @@ class IconDAO
             applicationIconDirectory.mkdirs();
         }
 
-        File iconFile = new File( applicationIconDirectory, "icon420px.png" );
+        File iconFile = new File( applicationIconDirectory, ICON_FILE_NAME );
         if ( !iconFile.exists() )
         {
             iconFile.createNewFile();

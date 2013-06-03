@@ -156,22 +156,6 @@ public class ApplicationDAO
     }
 
     @Override
-    public void insert( Application entity )
-    {
-        EntityManager em = createEntityManager();
-        try
-        {
-            em.getTransaction().begin();
-            insert( em, entity );
-            em.getTransaction().commit();
-        }
-        finally
-        {
-            close( em );
-        }
-    }
-
-    @Override
     public void update( EntityManager em, Application application )
     {
         validate( application );
@@ -216,7 +200,8 @@ public class ApplicationDAO
         {
             log.error( "Could not delete application icons: {}" + applicationIconDirectory, e );
         }
-        super.delete( application );
+
+        delete( application );
     }
 
     @Override

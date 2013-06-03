@@ -77,8 +77,10 @@ public class ApplicationDAOTest
         applicationDAO.setIcon( applicationId, iconDir, byteArrayInputStream );
         Assert.assertTrue( appIconDir.isDirectory() );
 
-        byteArrayInputStream.close();
-        byteArrayOutputStream.close();
+        // Get the icon
+        byte[] iconBytes = applicationDAO.getIcon( applicationId, iconDir );
+        Assert.assertNotNull( iconBytes );
+        Assert.assertTrue( iconBytes.length > 0 );
 
         // Update
         Application application = applicationDAO.getById( applicationId );

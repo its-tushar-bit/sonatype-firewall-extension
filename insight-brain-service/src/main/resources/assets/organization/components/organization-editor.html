@@ -6,12 +6,12 @@
 					<td style="text-align:left;">
 						<div class="editorHeader">
 							<div inline-editor editor-value="selectedOrganization.name" editor-large="true" editor-placeholder="Enter name..."
-								force-edit="selectedOrganization && selectedOrganization.id == null" validator-fn="validate"></div>
+								force-edit="selectedOrganization && selectedOrganization.id == null" validator-fn="validateName"></div>
 						</div>
 					</td>
 					<td style="text-align:right;">
-						<button type='button' class='btn' ng-click="cancelOrgClick()">Cancel</button>
-						<button type='none' class='btn btn-primary' ng-click="saveOrgClick()" ng-disabled="organizationEditor.$invalid">Save</button>
+						<button type='button' class='btn' ng-click="cancelClick()">Cancel</button>
+						<button type='none' class='btn btn-primary' ng-click="saveClick()" ng-disabled="organizationEditor.$invalid">Save</button>
 					</td>
 				</tr>
 			</table>

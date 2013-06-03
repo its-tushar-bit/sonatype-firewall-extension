@@ -468,6 +468,8 @@
             <include>assets/ResourceSpec.js</include>
             <include>assets/ManagementAppSpec.js</include>
             <include>application/ApplicationControllerSpec.js</include>
+            <include>organization/OrganizationMockData.js</include>
+            <include>organization/OrganizationControllerSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>

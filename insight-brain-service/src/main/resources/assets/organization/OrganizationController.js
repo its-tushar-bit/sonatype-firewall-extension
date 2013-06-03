@@ -8,7 +8,7 @@
 (function() {
     'use strict';
 
-    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation' ]);
+    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation', 'ResourceModule' ]);
 
     organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, $timeout, hudson, clmLocations, organizationStore) {
         function switchOrganization() {
@@ -45,7 +45,7 @@
     organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', function($scope, $state, $location, regexFactory) {
         $scope.$state = $state;
         
-        $scope.validate = function(value) {
+        $scope.validateName = function(value) {
             //field is required, alphanumeric, and no unnecessary spaces
             if (!value) {
                 $scope.organizationEditor.$invalid = true;
@@ -69,11 +69,11 @@
             $scope.organizationEditor.$invalid = false;
         }
 
-        $scope.cancelOrgClick = function() {
+        $scope.cancelClick = function() {
             $scope.selectedOrganization = null;
         };
 
-        $scope.saveOrgClick = function() {
+        $scope.saveClick = function() {
             $scope.selectedOrganization.$save().then(function(data) {
                 $state.params.organizationId = data.id;
 

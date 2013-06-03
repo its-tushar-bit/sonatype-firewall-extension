@@ -61,6 +61,19 @@
 					});
 				});
 				return uiActions;
+			},
+			actionEquals : function (policy, actions) {
+				var changed = false;
+				angular.forEach(policy.actions, function (action, stage) {
+					angular.forEach(action, function (a) {
+						if (a.actionTypeId === 'notify') {
+							changed = changed || (actions[stage].notify.indexOf(a.target));
+						} else {
+							changed = changed || (actions[stage].action !== a.actionTypeId);
+						}
+					});
+				});
+				return changed;
 			}
 		};
 	}]);
@@ -164,6 +177,25 @@
 			});
 		}
 
+		function isDirty() {
+			var changed = false;
+			if (angular.isUndefined($scope.state.currentPolicy.id)) {
+				changed = $scope.state.currentPolicy.constraints.length > 0 || $scope.state.currentPolicy.name;
+				if (!changed) {
+					angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
+						changed = changed || actions.length > 0;
+					});
+				}
+			} else {
+				angular.forEach($scope.policies, function (policy, index) {
+					if (policy.id === $scope.state.currentPolicy.id) {
+						changed = !angular.equals(policy, $scope.state.currentPolicy) || policyStore.actionEquals($scope.state.currentPolicy, $scope.state.actions);
+					}
+				});
+			}
+			return changed;
+		}
+
 		$scope.savePolicy = function () {
 			var errorFn = function (resp) {
 					handleHttpError('Saving Policy', resp.data, resp.status);
@@ -187,33 +219,6 @@
 			}
 		};
 
-		$scope.viewCancelPolicy = function () {
-			var changed = false,
-				executeFn = function () {
-					if (changed) {
-						viewConfirmation("Cancel Policy Changes?", "Are you sure you want to cancel?  Any changes made to the Policy will be lost.", 'No', 'Yes', returnFn);
-					} else {
-						returnFn();
-					}
-				};
-			if (angular.isUndefined($scope.state.currentPolicy.id)) {
-				changed = $scope.state.currentPolicy.constraints.length > 0 || $scope.state.currentPolicy.name;
-				if (!changed) {
-					angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
-						changed = changed || actions.length > 0;
-					});
-				}
-				executeFn();
-			} else {
-				angular.forEach($scope.policies, function (policy, index) {
-					if (policy.id === $scope.state.currentPolicy.id) {
-						changed = !angular.equals(policy, $scope.state.currentPolicy);
-					}
-				});
-				executeFn();
-			}
-		};
-		
 		$scope.viewRemoveConstraint = function (constraintIndex) {
 			viewConfirmation("Delete Constraint?",
 				"Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[constraintIndex].name + "'?",
@@ -245,12 +250,19 @@
 			}
 		});
 
+		$scope.$on('pageChangeStarted', function (event) {
+			if (isDirty()) {
+				event.preventDefault();
+			}
+		});
+
 		updateStore();
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
 		$scope.cancelConstraint = function () {
 			$('#editConstraintModal').modal('hide');
+			$scope.originalConstraint = $scope.currentConstraint = null;
 		};
 
 		$scope.saveConstraint = function () {
@@ -266,6 +278,7 @@
 			}
 			$scope.$emit('policy.constraintSaved', $scope.originalConstraint || $scope.currentConstraint);
 			$('#editConstraintModal').modal('hide');
+			$scope.originalConstraint = $scope.currentConstraint = null;
 		};
 
 		$scope.updateAge = function (condition) {
@@ -387,6 +400,12 @@
 			
 			fn();
 			$('#editConstraintModal').modal('show');
+		});
+
+		$scope.$on('pageChangeStarted', function (event) {
+			if ($scope.originalConstraint != null || $scope.currentConstraint != null) {
+				event.preventDefault();
+			}
 		});
 
 		constraints.get().then(function (results) {

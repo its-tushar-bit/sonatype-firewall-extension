@@ -298,23 +298,26 @@ var angularCommon;
 			link : function ($scope, element, attr) {
 				function updateValue() {
 					var basePath = $location.path(),
-						path = attr.relativeHref;
+						path = attr.relativeHref,
+						resolved = [];
+
 					if (basePath) {
-						var url = '#' + basePath;
-						if (basePath.charAt(basePath.length - 1) === '/') {
-							if (path.charAt(0) === '/') {
-								url += path.substring(1);
-							} else {
-								url += path;
-							}
-						} else {
-							if (path.charAt(0) === '/') {
-								url += path;
-							} else {
-								url += '/' + path;
-							}
+						if (path.charAt(0) === '/') {
+							path = path.substring(1);
 						}
-						attr.$set('href', url);
+						resolved.push.apply(resolved, basePath.split('/'));
+						if (resolved[resolved.length] === '') {
+							resolved.pop();
+						}
+
+						angular.forEach(path.split('/'), function (segment) {
+							if ('..' === segment) {
+								resolved.splice(-1, 1);
+							} else {
+								resolved.push(segment);
+							}
+						});
+						attr.$set('href', '#' + resolved.join('/'));
 					}
 				}
 				attr.$observe('relativeHref', updateValue);

@@ -104,6 +104,7 @@ public class ApplicationResourceTest
         Assert.assertEquals( application.getId(), applicationManagementSummary.getId() );
         Assert.assertEquals( applicationPublicId, applicationManagementSummary.getPublicId() );
         Assert.assertEquals( applicationName, applicationManagementSummary.getName() );
+        Assert.assertEquals( application.getOrganizationId(), applicationManagementSummary.getOrganizationId() );
 
         // Test Add Invalid Icon
         ClassLoader classLoader = ApplicationResourceTest.class.getClassLoader();
@@ -395,6 +396,19 @@ public class ApplicationResourceTest
         Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "Applications must have a parent organization.", response.getResponseBody() );
+    }
+
+    @Test
+    public void testUpdateApplication_ChangeOrganization()
+        throws Exception
+    {
+        Application application = createApplication( "testUpdateApplication_ChangeOrganization" );
+
+        application.setOrganizationId( "newOrganizationId" );
+
+        Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( application ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Cannot change the parent organization of an application.", response.getResponseBody() );
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

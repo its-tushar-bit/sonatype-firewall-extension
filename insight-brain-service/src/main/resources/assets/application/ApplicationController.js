@@ -71,12 +71,31 @@
 		});
 	});
 
-	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, CLMLocations, $http, hudson) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMLocations, $http, hudson) {
 		$scope.$state = $state;
 
 		$scope.submitActive = false;
 		$scope.addApplicationSync = CLMLocations.addIconSync();
 		$scope.hasRobotSource = false;
+		
+		OrganizationStore.get().then(function(results) {
+            $scope.organizations = results;
+        });
+		
+		$scope.getOrganizationName = function(organizationId) {
+			if ($scope.organizations) {
+				for (var i = 0; i < $scope.organizations.length; i++) {
+					var organizationIter = $scope.organizations[i];
+					if (organizationIter.id === organizationId) {
+						return organizationIter.name;
+					}
+				}
+			}
+		};
+		
+		$scope.changeOrganization = function(organization) {
+			$scope.selectedApplication.organizationId = organization.id;
+		};
 		
 		$scope.alerts = [];
 		$scope.closeAlert = function(index) {
@@ -163,7 +182,8 @@
 			var application = {
 				id: $scope.selectedApplication.id,
 				publicId: $scope.selectedApplication.publicId,
-				name: $scope.selectedApplication.name
+				name: $scope.selectedApplication.name,
+				organizationId: $scope.selectedApplication.organizationId
 			};
 
 			if (!application.id) {

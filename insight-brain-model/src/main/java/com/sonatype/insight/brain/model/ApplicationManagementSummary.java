@@ -13,6 +13,8 @@ public class ApplicationManagementSummary
 
     private String name;
 
+    private String organizationId;
+
     private List<PolicyEvaluation> policyEvaluations;
 
     private int scansCount;
@@ -47,6 +49,16 @@ public class ApplicationManagementSummary
         this.name = name;
     }
 
+    public String getOrganizationId()
+    {
+        return organizationId;
+    }
+
+    public void setOrganizationId( String organizationId )
+    {
+        this.organizationId = organizationId;
+    }
+
     public List<PolicyEvaluation> getPolicyEvaluations()
     {
         return ( policyEvaluations != null ) ? policyEvaluations : Collections.<PolicyEvaluation>emptyList();
@@ -73,6 +85,7 @@ public class ApplicationManagementSummary
         summary.setId( application.getId() );
         summary.setName( application.getName() );
         summary.setPublicId( application.getPublicId() );
+        summary.setOrganizationId( application.getOrganizationId() );
         return summary;
     }
 

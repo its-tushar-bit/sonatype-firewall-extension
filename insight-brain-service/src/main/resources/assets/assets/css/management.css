@@ -197,8 +197,7 @@
 .editorApplicationImage {
 	float: left;
 	margin-right: 20px;
-	width: 180px;
-	height: 96px;
+	text-align: center;
 }
 
 .editorApplicationImage img {
@@ -207,10 +206,16 @@
 }
 
 .editImage {
-    display: none;
+    display: block;
+   	opacity: 0.99;
+    filter: alpha(opacity=99);
    	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
+}
+
+.editImage input {
+	display: block;
 }
 
 .editorApplicationImage:hover .displayImage {
@@ -220,14 +225,6 @@
    	-webkit-transition: all .1s linear;
 	-moz-transition: all .1s linear;
 	transition: all .1s linear;
-}
-
-.editorApplicationImage:hover .editImage {
-    display: block;
-    margin-top: -65px;
-    margin-left: 5px;
-   	opacity: 0.99;
-    filter: alpha(opacity=99);
 }
 
 /**

@@ -16,8 +16,9 @@
 					</div>
 				</div>
 				<div class='editImage'>
-		            <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'/>
-		            <a ng-click='generateIcon()'>No icon? Want a robot?</a>
+					<input type="button" class='btn' value="Choose Icon" onclick="javascript:document.getElementById('file').click();">
+		            <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)' style='display:none;'/>
+		            <a ng-click='generateIcon()'>Want a robot?</a>
 	            </div>
    			</div>
 			<div inline-editor editor-value='selectedApplication.name' editor-large='true' editor-placeholder="Application Name"

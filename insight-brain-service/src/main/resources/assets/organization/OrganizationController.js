@@ -22,7 +22,8 @@
                 for ( var i = 0; i < $scope.organizations.length; i++) {
                     if ($scope.$state.params.organizationId === $scope.organizations[i].id) {
                         $timeout(function () {
-	                        $scope.selectedOrganization = $scope.organizations[i];
+                            //don't want to infect the original data
+	                        $scope.selectedOrganization = angular.copy($scope.organizations[i]);
                         }, 100);
                         return;
                     }

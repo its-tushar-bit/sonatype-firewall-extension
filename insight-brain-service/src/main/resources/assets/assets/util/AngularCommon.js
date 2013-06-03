@@ -239,7 +239,8 @@ var angularCommon;
 			scope: {
 				value: '=editorValue',
 				isLarge: '=editorLarge',
-				forceEdit : '&forceEdit'
+				forceEdit : '&forceEdit',
+				validatorFn : '&validatorFn'
 			},
 			restrict: 'A',
 			priority : 99,
@@ -255,11 +256,33 @@ var angularCommon;
 					textBox.focus();
 				});
 				textBox.on('blur', function() {
-					if (textBox.val()) {
-						$scope.$apply(function() {
-							$scope.isEdit = false;
-						});
-					}
+				    function fn() {
+				        var val = textBox.val();
+                        var validator = $scope.validatorFn();
+                        //call the validator if passed in
+                        if (validator) {
+                            $scope.valueInvalid = validator(val);
+                            
+                            //if invalid, just dump out now, no need to do anything else here
+                            if ($scope.valueInvalid) {
+                                return;
+                            }
+                        }
+                        
+                        if (val) {
+                            $scope.isEdit = false;
+                        }
+				    }
+				    
+				    //there are occassions where a digest could already be running, so check first
+				    //and run if necessary
+				    if(!$scope.$$phase) {
+    				    $scope.$apply(function(){
+        				    fn();
+    				    });
+				    } else {
+				        fn();
+				    }
 				});
 				$scope.$watch('forceEdit()', function (newValue, oldValue) {
 					$scope.isEdit = newValue;

@@ -41,8 +41,32 @@
         });
     }]);
 
-    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', function($scope, $state, $location) {
+    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', function($scope, $state, $location, regexFactory) {
         $scope.$state = $state;
+        
+        $scope.validate = function(value) {
+            //field is required, alphanumeric, and no unnecessary spaces
+            if (!value) {
+                $scope.organizationEditor.$invalid = true;
+                return 'Name is required';
+            } else if (value.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'))) {
+                $scope.organizationEditor.$invalid = true;
+                return 'Must be alpha numeric';
+            } else if (value.match(/^ | {2,}|\t| $/)) {
+                $scope.organizationEditor.$invalid = true;
+                return 'No leading, trailing or double spaces or tabs';
+            }
+            
+            //check for uniqueness
+            for (var i = 0 ; i < $scope.organizations.length ; i++) {
+                if ($scope.organizations[i].name === value && $scope.organizations[i].id !== $scope.selectedOrganization.id) {
+                    $scope.organizationEditor.$invalid = true;
+                    return 'Name is already in use';
+                }
+            }
+            
+            $scope.organizationEditor.$invalid = false;
+        }
 
         $scope.cancelOrgClick = function() {
             $scope.selectedOrganization = null;

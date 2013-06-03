@@ -1,4 +1,5 @@
 <div class='inlineEditor' ng-init='isEdit = false;' ng-class="{'large' : isLarge}">
 	<div ng-hide='isEdit'><span>{{value}}</span></div>
 	<input ng-show='isEdit' type='text' ng-model='value' placeholder='{{placeholder}}' style='margin-bottom: auto;'/>
+	<span ng-show="valueInvalid" class="help-inline">{{valueInvalid}}</span>
 </div>

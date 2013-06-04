@@ -7,7 +7,7 @@
 	<div class='search input-prepend'>
 		<span class='add-on'><i	ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"
 			ng-click="searchText = ''"></i></span>
-			<input type='text' ng-model='searchText' autocomplete="off"	type-Ahead='getApplicationNames' />
+			<input type='text' ng-model='searchText' autocomplete="off"	/>
 	</div>
 	<ul class="nav nav-list">
 		<li ng-repeat='application in applications | filter: searchText' ng-class="{'active': $state.params.applicationPublicId == application.publicId }">

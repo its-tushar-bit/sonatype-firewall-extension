@@ -9,7 +9,18 @@
 
     var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMLocation']);
     
-    licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource) {
+    licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource, ApplicationId) {
+		var currentStoreAppId = null, licenseGroupStore = null;
+		
+		function refreshLicenseStore() {
+			var isNew = !licenseGroupStore || currentStoreAppId !== ApplicationId.encoded(); 
+			if (isNew) {
+				currentStoreAppId = ApplicationId.encoded();
+				licenseGroupStore = CLMResource.getStore(angular.extend({ url : CLMAppLocations.getLicenseGroupsUrl() }, licenseGroupStoreTemplate));
+			};
+			return isNew;
+		}
+		
     	function populateGroupLicenses(licenseGroups) {
 			var deferred = $q.defer();
 			var licenseCount = licenseGroups.length;
@@ -40,22 +51,30 @@
 			return deferred.promise;
 		}
     	
-		var licenseGroupStore = CLMResource.getStore({
+		var licenseGroupStoreTemplate = {
 			id : 'id',
-			url : CLMAppLocations.getLicenseGroupsUrl(),
 			template : { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 },
 			params : {
 				timestamp : new Date().getTime()
 			}
-		});
+		};
+
 		return {
 			get: function() {
-				return licenseGroupStore.get().then(populateGroupLicenses);
+				if (refreshLicenseStore()) {
+					return licenseGroupStore.get().then(populateGroupLicenses);
+				} else {
+					return licenseGroupStore.get();
+				}
 			},
 			refresh: function() {
+				refreshLicenseStore();
 				return licenseGroupStore.refresh().then(populateGroupLicenses);
 			},
-			create: licenseGroupStore.create
+			create: function() {
+				refreshLicenseStore();
+				return licenseGroupStore.create();
+			}
 		};
 	});
     
@@ -113,7 +132,7 @@
                                {'value': 0, 'name': 'No Threat'}
                            ];
         
-        $q.all([licenseStore.get(), licenseGroupStore.refresh()]).then(function (results) {
+        $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
         	var licenses = results[0];
         	var licenseGroups = results[1];
         	

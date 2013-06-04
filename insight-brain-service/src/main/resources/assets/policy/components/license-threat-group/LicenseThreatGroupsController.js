@@ -131,39 +131,24 @@
         		$scope.selectedGroup = angular.extend($scope.selectedGroup, group);
         	}
 
-            // Build a list of all existing licenses to exclude from selection
-            var existingLicenses = [];
-            angular.forEach($scope.licenseGroups, function (licenseGroup, index) {
-                if (licenseGroup.id != $scope.selectedGroup.id) {
-                    $.merge(existingLicenses, licenseGroup.licenses);
-                }
-            });
             // Reset master license list
             angular.forEach($scope.allLicenses, function (license, index) {
                 license.isApplied = false;
             });
             // Copy master license list
             var availableLicenses = $.merge([], $scope.allLicenses);
-            existingLicenses.sort(sortGroupLicense);
             $scope.selectedGroup.licenses.sort(sortGroupLicense);
             var j = 0;
             var k = availableLicenses.length;
             for (var i = 0; i < k; i++) {
-                // If all existing licenses and licenses from this group have been processed, we are done
-                if (existingLicenses.length == 0 && j == $scope.selectedGroup.licenses.length) {
+                // If all licenses from this group have been processed, we are done
+                if (j == $scope.selectedGroup.licenses.length) {
                     break;
                 }
                 // If the license exists in the group's licenses, set isApplied to true
                 if (j < $scope.selectedGroup.licenses.length && availableLicenses[i].id == $scope.selectedGroup.licenses[j].licenseId) {
                     availableLicenses[i].isApplied = true;
                     j++;
-                }
-                // If the license exists in another group's licenses, remove the license from the available licenses
-                if (existingLicenses.length > 0 && availableLicenses[i].id == existingLicenses[0].licenseId) {
-                    availableLicenses.splice(i, 1);
-                    existingLicenses.shift();
-                    i--;
-                    k--;
                 }
             }
 

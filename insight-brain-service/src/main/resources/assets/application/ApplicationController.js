@@ -293,7 +293,7 @@
 		var applicationStore = clmResource.getStore({
 			id : 'id',
 			url : clmLocations.getApplicationsUrl(),
-			template : { id: null, publicId: null, name: null },
+			template : { id: null, publicId: null, name: null, organizationId: null },
 			params : {
 				timestamp : new Date().getTime()
 			}

@@ -14,24 +14,28 @@
 			var deferred = $q.defer();
 			var licenseCount = licenseGroups.length;
 			
-			angular.forEach(licenseGroups, function (group, index) {
-                $http.get(CLMAppLocations.getLicenseGroupLicensesUrl(group), {
-                    params: { timestamp: new Date().getTime() }
-                }).success(function (data) {
-                    group.licenses = data;
-                    licenseCount--;
-                    if (licenseCount <= 0) {
-                    	deferred.resolve(licenseGroups);
-                    }
-                }).error(function (data, status, headers, config) {
-        			deferred.reject({
-        				data: data,
-        				status : status,
-        				headers : headers,
-        				config : config
-        			});
-        		});
-            });
+			if (licenseGroups.length > 0) {
+				angular.forEach(licenseGroups, function (group, index) {
+	                $http.get(CLMAppLocations.getLicenseGroupLicensesUrl(group), {
+	                    params: { timestamp: new Date().getTime() }
+	                }).success(function (data) {
+	                    group.licenses = data;
+	                    licenseCount--;
+	                    if (licenseCount <= 0) {
+	                    	deferred.resolve(licenseGroups);
+	                    }
+	                }).error(function (data, status, headers, config) {
+	        			deferred.reject({
+	        				data: data,
+	        				status : status,
+	        				headers : headers,
+	        				config : config
+	        			});
+	        		});
+	            });
+			} else {
+				deferred.resolve(licenseGroups);
+			}
 			
 			return deferred.promise;
 		}
@@ -115,6 +119,8 @@
         	
         	$scope.allLicenses = licenses.sort(sortLicense);
         	$scope.licenseGroups = licenseGroups;
+        }, function(error, a) {
+        	alert(error);
         });
         
         $scope.getDisplayName = function(licenseId) {

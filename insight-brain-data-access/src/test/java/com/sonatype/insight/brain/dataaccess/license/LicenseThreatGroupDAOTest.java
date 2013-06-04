@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -12,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -427,5 +433,188 @@ public class LicenseThreatGroupDAOTest
         Assert.assertEquals( applicationId, actual.getOwnerId() );
         Assert.assertEquals( name, actual.getName() );
         Assert.assertEquals( threatLevel, actual.getThreatLevel() );
+    }
+
+    @Test
+    public void testNameIsCaseAndWhitespaceInsensitive()
+    {
+        String name = "test string With Case and Whitespace";
+
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, name, 5 );
+        dao.insert( group );
+
+        assertEquals( name, group.getName() );
+        assertEquals( "teststringwithcaseandwhitespace", group.getNameLowercaseNoWhitespace() );
+
+        String name1 = "TEST String      With    cASE and      whitespace";
+        LicenseThreatGroup group1 = dao.getByOwnerIdAndName( applicationId, name1 );
+        assertNotNull( group1 );
+        assertEquals( group.getId(), group1.getId() );
+    }
+
+    @Test
+    public void testValidateEmptyName_Insert()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, " ", 5 );
+        try
+        {
+            dao.insert( group );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateEmptyName_Update()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, "testValidateEmptyName", 5 );
+        assertEquals( "testvalidateemptyname", group.getNameLowercaseNoWhitespace() );
+        dao.insert( group );
+
+        group.setName( " " );
+        assertEquals( "", group.getNameLowercaseNoWhitespace() );
+        try
+        {
+            dao.update( group );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateNameInvalidChars_Insert()
+    {
+        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        for ( String name : invalidAlphaNumericNames )
+        {
+            LicenseThreatGroup group = new LicenseThreatGroup( applicationId, name, 5 );
+            try
+            {
+                dao.insert( group );
+                fail( "Expected InvalidNameException" );
+            }
+            catch ( InvalidNameException expected )
+            {
+                assertEquals( "Name must be alpha numeric.", expected.getMessage() );
+            }
+        }
+    }
+
+    @Test
+    public void testValidateNameInvalidChars_Update()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, "testValidateNameInvalidChars", 5 );
+        dao.insert( group );
+        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+        for ( String name : invalidAlphaNumericNames )
+        {
+            group.setName( name );
+            try
+            {
+                dao.update( group );
+                fail( "Expected InvalidNameException" );
+            }
+            catch ( InvalidNameException expected )
+            {
+                assertEquals( "Name must be alpha numeric.", expected.getMessage() );
+            }
+        }
+    }
+
+    @Test
+    public void testValidateNameSpaces_Insert()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        String[] invalidSpacingNames =
+            { " leading space", "trailing space ", "double  space", "  starts with double space",
+                "ends with double space  " };
+        for ( String name : invalidSpacingNames )
+        {
+            LicenseThreatGroup group = new LicenseThreatGroup( applicationId, name, 5 );
+            try
+            {
+                dao.insert( group );
+                fail( "Expected InvalidNameException" );
+            }
+            catch ( InvalidNameException expected )
+            {
+                assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
+                              expected.getMessage() );
+            }
+        }
+    }
+
+    @Test
+    public void testValidateNameSpaces_Update()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, "testValidateNameSpaces", 5 );
+        dao.insert( group );
+
+        String[] invalidSpacingNames =
+            { " leading space", "trailing space ", "double  space", "  starts with double space",
+                "ends with double space  " };
+        for ( String name : invalidSpacingNames )
+        {
+            group.setName( name );
+            try
+            {
+                dao.update( group );
+                fail( "Expected InvalidNameException" );
+            }
+            catch ( InvalidNameException expected )
+            {
+                assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
+                              expected.getMessage() );
+            }
+        }
+    }
+
+    @Test
+    public void testValidateNullName_Insert()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, null /* name */, 5 );
+        try
+        {
+            dao.insert( group );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testValidateNullName_Update()
+    {
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, "testValidateNullName", 5 );
+        assertEquals( "testvalidatenullname", group.getNameLowercaseNoWhitespace() );
+        dao.insert( group );
+
+        group.setName( null );
+        assertNull( group.getNameLowercaseNoWhitespace() );
+        try
+        {
+            dao.update( group );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name is required.", expected.getMessage() );
+        }
     }
 }

@@ -53,9 +53,10 @@ CREATE TABLE license_threat_group (
   license_threat_group_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   name varchar(50) NOT NULL,
+  name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint(2) NOT NULL,
   CONSTRAINT license_threat_group_pk PRIMARY KEY (license_threat_group_id),
-  CONSTRAINT license_threat_group_uk UNIQUE KEY (owner_id, name)
+  CONSTRAINT license_threat_group_uk UNIQUE KEY (owner_id, name_lowercase_no_whitespace)
 );
 
 -- owner_id can be an application or an organization id

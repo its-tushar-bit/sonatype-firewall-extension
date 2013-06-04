@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -78,10 +79,24 @@ public class LicenseThreatGroupDAO
         return licenseThreatGroup;
     }
 
-    private LicenseThreatGroup getByOwnerIdAndName( EntityManager em, String ownerId, String name )
+    public LicenseThreatGroup getByOwnerIdAndName( String ownerId, String name )
     {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByOwnerIdAndName( em, ownerId, name );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public LicenseThreatGroup getByOwnerIdAndName( EntityManager em, String ownerId, String name )
+    {
+        name = NameHelper.normalize( name );
         String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
-            " WHERE entity.ownerId=?1 AND entity.name=?2";
+            " WHERE entity.ownerId=?1 AND entity.nameLowercaseNoWhitespace=?2";
         return get( em, sQuery, ownerId, name );
     }
 
@@ -101,6 +116,8 @@ public class LicenseThreatGroupDAO
 
     private void validateName( EntityManager em, LicenseThreatGroup licenseThreatGroup )
     {
+        NameHelper.validate( licenseThreatGroup.getName() );
+
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application parentApplication = applicationDAO.getById( em, licenseThreatGroup.getOwnerId() );
         if ( parentApplication != null )

@@ -201,21 +201,13 @@ public class ApplicationDAO
     {
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
         List<LicenseThreatGroup> appLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId( em, application.getId() );
-        if ( appLicenseThreatGroups.size() == 0 )
-        {
-            return;
-        }
-        List<LicenseThreatGroup> orgLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId( em, organization.getId() );
         for ( LicenseThreatGroup appLicenseThreatGroup : appLicenseThreatGroups )
         {
-            for ( LicenseThreatGroup orgLicenseThreatGroup : orgLicenseThreatGroups )
+            if ( licenseThreatGroupDAO.getByOwnerIdAndName( em, organization.getId(), appLicenseThreatGroup.getName() ) != null )
             {
-                if ( appLicenseThreatGroup.getName().equalsIgnoreCase( orgLicenseThreatGroup.getName() ) )
-                {
-                    throw new InvalidApplicationException(
-                                                           "Both the application and the organization have a license threat group with the same name '"
-                                                               + appLicenseThreatGroup.getName() + "'" );
-                }
+                throw new InvalidApplicationException(
+                                                       "Both the application and the organization have a license threat group with the same name '"
+                                                           + appLicenseThreatGroup.getName() + "'" );
             }
         }
     }

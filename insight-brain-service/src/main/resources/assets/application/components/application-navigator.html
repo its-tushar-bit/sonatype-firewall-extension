@@ -5,12 +5,12 @@
 		</a>
 	</div>
 	<div class='search input-prepend'>
-		<span class='add-on'><i	ng-class="{'icon-search': !searchText, 'icon-remove': searchText}"
-			ng-click="searchText = ''"></i></span>
-			<input type='text' ng-model='searchText' autocomplete="off"	/>
+		<span class='add-on'><i	ng-class="{'icon-search': !appFilter.name, 'icon-remove': appFilter.name}"
+			ng-click="appFilter.name = ''"></i></span>
+			<input type='text' ng-model='appFilter.name' autocomplete="off"	/>
 	</div>
 	<ul class="nav nav-list">
-		<li ng-repeat='application in applications | filter: searchText' ng-class="{'active': $state.params.applicationPublicId == application.publicId }">
+		<li ng-repeat='application in applications | filter: appFilter' ng-class="{'active': $state.params.applicationPublicId == application.publicId }">
 			<a href='#/management/application/{{application.publicId}}/policies'>{{application.name}}</a>
 		</li>
 	</ul>

@@ -49,11 +49,7 @@
 					if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
 						$timeout(function () {
 							$scope.selectedApplication = $scope.applications[i];
-							if ($scope.selectedApplication.id) {
-								$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
-							} else {
-								$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
-							}
+							$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
 						}, 100);
 						return;
 					}

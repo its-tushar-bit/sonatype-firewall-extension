@@ -176,7 +176,13 @@
 			var currentApplication = $scope.selectedApplication;
 			return currentApplication.publicId !== originalApplication.publicId || currentApplication.name !== originalApplication.name 
 				|| currentApplication.organizationId !== originalApplication.organizationId || $scope.iconChanged;
-		}
+		};
+		
+		$scope.$on('pageChangeStarted', function(event) {
+			if ($scope.isFormDirty()) {
+				event.preventDefault();
+			}
+	    });
 
 		$scope.canSaveEdit = function () {
 			return $scope.applicationEditor.$valid && !$scope.submitActive;

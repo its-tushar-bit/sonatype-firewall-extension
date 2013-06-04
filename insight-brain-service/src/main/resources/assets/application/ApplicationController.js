@@ -38,18 +38,18 @@
 	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
-			$scope.applicationIconSource = null;
+			$scope.userIconSource = null;
 			if ('_new_' === $scope.$state.params.applicationPublicId) {
                 $timeout(function () {
                     $scope.selectedApplication = applicationStore.create();
-					$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+					$scope.userIconSource = '../assets/img/defaulticon_application.png';
                 }, 100);
             } else if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
 				for (var i = 0; i < $scope.applications.length; i++) {
 					if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
 						$timeout(function () {
 							$scope.selectedApplication = $scope.applications[i];
-							$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
+							$scope.userIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
 						}, 100);
 						return;
 					}
@@ -142,18 +142,18 @@
 				}
 				if (src) {
 					$scope.$apply(function () {
-						$scope.applicationIconSource = src;
+						$scope.userIconSource = src;
 						$scope.hasRobotSource = false;
 					});
 				} else {
 					$scope.$apply(function () {
-						$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+						$scope.userIconSource = '../assets/img/defaulticon_application.png';
 						$scope.hasRobotSource = false;
 					});
 				}
 			} else {
 				$scope.$apply(function () {
-					$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+					$scope.userIconSource = '../assets/img/defaulticon_application.png';
 					$scope.hasRobotSource = false;
 				});
 			}

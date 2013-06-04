@@ -50,7 +50,7 @@
                 <div class='controls'>
                     <div ng-switch on='hasRobotSource'>
                         <img ng-switch-when='false' id='userIcon' style='height: 48px; width: 48px;'
-                        	 ng-src='{{applicationIconSource}}'
+                        	 ng-src='{{userIconSource}}'
                              onerror="this.src='../assets/img/defaulticon_application.png';"/>
                         <img ng-switch-when='true' id='robotIcon' style='height: 48px; width: 48px;'
                              ng-src='../rest/application/services/generateIcon/{{robotHash}}'/>

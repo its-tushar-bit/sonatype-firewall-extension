@@ -13,9 +13,11 @@
     organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, $timeout, hudson, CLMLocations, OrganizationStore) {
         function switchOrganization() {
             $scope.selectedOrganization = null;
+            $scope.userIconSource = null;
             if ('_new_' == $scope.$state.params.organizationId) {
                 $timeout(function() {
                     $scope.selectedOrganization = OrganizationStore.create();
+                    $scope.userIconSource = '../assets/img/defaulticon_organization.png';
                 }, 100);
             }
             if ($scope.$state.params.organizationId !== null && $scope.organizations) {
@@ -24,6 +26,7 @@
                         $timeout(function() {
                             // don't want to infect the original data
                             $scope.selectedOrganization = angular.copy($scope.organizations[i]);
+                            $scope.userIconSource = '../rest/organization/icon/' + encodeURIComponent($scope.selectedOrganization.id);
                         }, 100);
                         return;
                     }
@@ -104,18 +107,18 @@
                 }
                 if (src) {
                     $scope.$apply(function() {
-                        $scope.iconSource = src;
+                        $scope.userIconSource = src;
                         $scope.hasRobotSource = false;
                     });
                 } else {
                     $scope.$apply(function() {
-                        $scope.iconSource = '../assets/img/defaulticon_organization.png';
+                        $scope.userIconSource = '../assets/img/defaulticon_organization.png';
                         $scope.hasRobotSource = false;
                     });
                 }
             } else {
                 $scope.$apply(function() {
-                    $scope.iconSource = '../assets/img/defaulticon_organization.png';
+                    $scope.userIconSource = '../assets/img/defaulticon_organization.png';
                     $scope.hasRobotSource = false;
                 });
             }

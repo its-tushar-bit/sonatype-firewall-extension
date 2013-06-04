@@ -11,7 +11,7 @@
 			<div class='editorImage'>
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
-	                       <img ng-switch-when='false' id='userIcon' ng-src='../rest/organization/icon/{{encodeURIComponent(selectedOrganization.id)}}' />
+	                       <img ng-switch-when='false' id='userIcon' ng-src='{{userIconSource}}' />
 	                       <img ng-switch-when='true' id='robotIcon' ng-src='../rest/organization/services/generateIcon/{{robotHash}}'/>
 					</div>
 				</div>

@@ -140,9 +140,9 @@
 		$scope.submitActive = false;
 		$scope.addApplicationSync = clmLocations.addIconSync();
 		if ($scope.selectedApplication.publicId) {
-			$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
+			$scope.userIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
 		} else {
-			$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+			$scope.userIconSource = '../assets/img/defaulticon_application.png';
 		}
 
 		$scope.clearEditError = function () {
@@ -178,18 +178,18 @@
 				}
 				if (src) {
 					$scope.$apply(function () {
-						$scope.applicationIconSource = src;
+						$scope.userIconSource = src;
 						$scope.hasRobotSource = false;
 					});
 				} else {
 					$scope.$apply(function () {
-						$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+						$scope.userIconSource = '../assets/img/defaulticon_application.png';
 						$scope.hasRobotSource = false;
 					});
 				}
 			} else {
 				$scope.$apply(function () {
-					$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+					$scope.userIconSource = '../assets/img/defaulticon_application.png';
 					$scope.hasRobotSource = false;
 				});
 			}

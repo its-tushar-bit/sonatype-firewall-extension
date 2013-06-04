@@ -37,7 +37,7 @@ public class LandingResource
         UriBuilder uriBuilder = baseUrl.redirect();
         if ( licenseManager.isValid() )
         {
-            uriBuilder.path( InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 ) + "index.html" );
+            uriBuilder.path( InsightBrainService.BRAIN_ASSET_PATH.substring( 1 ) + "index.html" );
         }
         else
         {

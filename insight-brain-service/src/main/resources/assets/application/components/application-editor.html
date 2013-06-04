@@ -1,7 +1,7 @@
 <div class='fade' ng-class='{ in : selectedApplication != null}'>
 	<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
 	<form id='applicationEditor' name='applicationEditor' action='{{addApplicationSync}}' method='post' enctype='multipart/form-data'
-          onsubmit='return angular.element(this).scope().saveClick()'>
+          onsubmit='return angular.element(this).scope().save()'>
        	<div ng-show='isUploadingIcon'>
             <div class="alert alert-info">
                 <strong>Uploading Icon...</strong>
@@ -11,7 +11,7 @@
 			<div class='editorApplicationImage'>
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
-	                       <img ng-switch-when='false' id='applicationIcon' ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}' />
+	                       <img ng-switch-when='false' id='applicationIcon' ng-src='{{applicationIconSource}}' />
 	                       <img ng-switch-when='true' id='robotIcon' ng-src='../rest/application/services/generateIcon/{{robotHash}}'/>
 					</div>
 				</div>
@@ -50,8 +50,8 @@
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>
 		</div>
-		<div ng-show='applicationEditor.$dirty || !selectedApplication.id' style='margin-top: 5px;'>
-           	<button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+		<div ng-show='isFormDirty() || !selectedApplication.id' style='margin-top: 5px;'>
+           	<button class='btn' type='button' ng-click='cancel()'>Cancel</button>
             <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
 		</div>
 	</form>

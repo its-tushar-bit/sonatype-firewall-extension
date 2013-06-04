@@ -38,15 +38,22 @@
 	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
+			$scope.applicationIconSource = null;
 			if ('_new_' === $scope.$state.params.applicationPublicId) {
                 $timeout(function () {
                     $scope.selectedApplication = applicationStore.create();
+					$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
                 }, 100);
             } else if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
 				for (var i = 0; i < $scope.applications.length; i++) {
 					if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
 						$timeout(function () {
 							$scope.selectedApplication = $scope.applications[i];
+							if ($scope.selectedApplication.id) {
+								$scope.applicationIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
+							} else {
+								$scope.applicationIconSource = '../assets/img/defaulticon_application.png';
+							}
 						}, 100);
 						return;
 					}
@@ -65,6 +72,7 @@
 			$scope.applications = applications;
 			switchApplication();
 			$scope.$watch('$state.params.applicationPublicId', switchApplication);
+			$scope.$on('resetApplication', switchApplication);
 		}, function (error) {
             // TODO Error handling
 			alert(error.data);
@@ -72,6 +80,13 @@
 	});
 
 	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMLocations, $http, hudson) {
+		function formReset() {
+			var applicationPublicId = $scope.selectedApplication.publicId;
+			$state.transitionTo('management.application').then(function() {
+				$state.transitionTo('management.application.view.policies', { applicationPublicId: applicationPublicId });
+			});
+		}
+		
 		$scope.$state = $state;
 
 		$scope.submitActive = false;
@@ -146,17 +161,39 @@
 					$scope.hasRobotSource = false;
 				});
 			}
-			$scope.iconChanged = true;
+			$scope.$apply(function() {
+				$scope.iconChanged = true;
+			});
 		};
 		
 		$scope.encodeURIComponent = window.encodeURIComponent;
+		
+		$scope.isFormDirty = function() {
+			if (!$scope.selectedApplication) {
+				return false;
+			}
+			var originalApplication = $scope.selectedApplication.$getOriginal();
+			var currentApplication = $scope.selectedApplication;
+			return currentApplication.publicId !== originalApplication.publicId || currentApplication.name !== originalApplication.name 
+				|| currentApplication.organizationId !== originalApplication.organizationId || $scope.iconChanged;
+		}
 
 		$scope.canSaveEdit = function () {
 			return $scope.applicationEditor.$valid && !$scope.submitActive;
 		};
+		
+		$scope.cancel = function() {
+			if (!$scope.selectedApplication.id) {
+				$state.transitionTo('management.application');
+			} else {
+				var originalApplication = $scope.selectedApplication.$getOriginal();
+				angular.extend($scope.selectedApplication, originalApplication);
+				formReset();
+			}
+		};
 
 		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
-		$scope.saveClick = function () {
+		$scope.save = function () {
 			if ($scope.submitActive) {
 				return true;
 			}
@@ -164,7 +201,7 @@
 			if (!$scope.applicationEditor.$valid) {
 				return false;
 			}
-
+			
 			if (window.FormData) {
 				var icon = angular.element('#file')[0];
 				if (icon.files.length > 0) {
@@ -188,20 +225,17 @@
 
 			if (!application.id) {
 				hudson.post(CLMLocations.getApplicationsUrl(), application).success(function (data) {
-					$scope.applications.push(data);
-					$scope.selectedApplication = data;
-					saveIcon();
+					applicationStore.refresh().then(function() {
+						$scope.$emit('resetApplication');
+						saveIcon();
+					});
 				}).error(function (data) { $scope.alerts.push({ type: 'error', msg: data }); });
 			} else {
 				$http.put(CLMLocations.getApplicationsUrl(), application).success(function (data) {
-					angular.forEach($scope.applications, function (application, key) {
-						if (data.id === application.id) {
-							$scope.applications[key] = data;
-							$scope.selectedApplication = data;
-							return false;
-						}
+					applicationStore.refresh().then(function() {
+						$scope.$emit('resetApplication');
+						saveIcon();
 					});
-					saveIcon();
 				}).error(function (data) { $scope.alerts.push({ type: 'error', msg: data }); });
 			}
 
@@ -210,7 +244,7 @@
 
 		function saveIcon() {
 			if (!$scope.iconChanged) {
-				$('#newApplicationModal').modal('hide');
+				formReset();
 				return;
 			}
 
@@ -234,12 +268,10 @@
 					url: CLMLocations.addIcon(),
 					data: formData,
 					success: function (data, status, jqXHR) {
-						// We need to regrab the icon here because it doesn't exist when the browser first requests
-						var iconSource = "../rest/application/icon/" + encodeURIComponent($scope.selectedApplication.publicId);
-						angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource + '?' + new Date().getTime());
-						$scope.submitActive = false;
-						$scope.isUploadingIcon = false;
-						$('#newApplicationModal').modal('hide');
+						$scope.$apply(function () {
+							$scope.isUploadingIcon = false;
+							formReset();
+						});
 					},
 					error: function (jqXHR) {
 						$scope.$apply(function () {

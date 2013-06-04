@@ -324,5 +324,17 @@ var angularCommon;
 				$scope.$watch('location.url()', updateValue);
 			}
 		};
-	}]);
+	}]);	
+	
+	angularCommon.directive('formSubmit', function($parse) {
+		return {
+			restrict: 'A',
+			link: function($scope, element, attrs) {
+				var submitFn = $parse(attrs.formSubmit);
+				element[0].onsubmit = function() {
+					return submitFn($scope);
+				};
+			}
+		}
+	});
 }());

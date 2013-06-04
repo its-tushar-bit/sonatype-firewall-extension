@@ -1,7 +1,7 @@
 <div class='fade' ng-class='{ in : selectedApplication != null}'>
 	<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
 	<form id='applicationEditor' name='applicationEditor' action='{{addApplicationSync}}' method='post' enctype='multipart/form-data'
-          onsubmit='return angular.element(this).scope().save()'>
+          form-Submit='save()'>
        	<div ng-show='isUploadingIcon'>
             <div class="alert alert-info">
                 <strong>Uploading Icon...</strong>

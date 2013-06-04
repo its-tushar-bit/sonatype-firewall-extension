@@ -83,6 +83,8 @@
 			});
 		}
 		
+		var isPostingIcon = false;
+		
 		$scope.$state = $state;
 
 		$scope.submitActive = false;
@@ -175,7 +177,7 @@
 		};
 		
 		$scope.$on('pageChangeStarted', function(event) {
-			if ($scope.isFormDirty()) {
+			if ($scope.isFormDirty() && !isPostingIcon) {
 				event.preventDefault();
 			}
 	    });
@@ -228,14 +230,12 @@
 			if (!application.id) {
 				hudson.post(CLMLocations.getApplicationsUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
-						$scope.$emit('resetApplication');
 						saveIcon();
 					});
 				}).error(function (data) { $scope.alerts.push({ type: 'error', msg: data }); });
 			} else {
 				$http.put(CLMLocations.getApplicationsUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
-						$scope.$emit('resetApplication');
 						saveIcon();
 					});
 				}).error(function (data) { $scope.alerts.push({ type: 'error', msg: data }); });
@@ -273,6 +273,7 @@
 						$scope.$apply(function () {
 							$scope.isUploadingIcon = false;
 							formReset();
+							$scope.$emit('resetApplication');
 						});
 					},
 					error: function (jqXHR) {
@@ -284,6 +285,7 @@
 					}
 				});
 			} else {
+				isPostingIcon = true;
 				form.submit();
 			}
 		}

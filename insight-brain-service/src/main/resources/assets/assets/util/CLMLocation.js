@@ -77,7 +77,15 @@
 			
 			getOrganizationsUrl: function() {
 			    return this.getBaseUrl() + '/rest/organization';
-			}
+			},
+			
+			addOrganizationIcon: function () {
+                return this.getBaseUrl() + '/rest/organization/icon';
+            },
+
+            addOrganizationIconSync: function () {
+                return this.getBaseUrl() + '/rest/organization/icon/sync';
+            }
 		};
 	}]).factory('CLMAppLocations', ['ApplicationId', function (appId) {
 		var getEncodedApplicationId = (typeof appId.encoded === 'function') ? appId.encoded : function () { return appId.encoded; };

@@ -194,13 +194,13 @@
 	border: 1px;
 }
 
-.editorApplicationImage {
+.editorImage {
 	float: left;
 	margin-right: 20px;
 	text-align: center;
 }
 
-.editorApplicationImage img {
+.editorImage img {
 	height: 96px; 
 	width: 96px;
 }
@@ -214,11 +214,12 @@
 	transition: all .2s linear;
 }
 
+
 .editImage input {
 	display: block;
 }
 
-.editorApplicationImage:hover .displayImage {
+.editorImage:hover .displayImage {
 	opacity: 0.2;
     filter: alpha(opacity=20);
     pointer-events: none;

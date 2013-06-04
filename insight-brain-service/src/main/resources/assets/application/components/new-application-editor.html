@@ -45,11 +45,11 @@
                 </div>
             </div>
             <div class='control-group'>
-                <label class='control-label' for='applicationIcon'>Icon</label>
+                <label class='control-label' for='userIcon'>Icon</label>
 
                 <div class='controls'>
                     <div ng-switch on='hasRobotSource'>
-                        <img ng-switch-when='false' id='applicationIcon' style='height: 48px; width: 48px;'
+                        <img ng-switch-when='false' id='userIcon' style='height: 48px; width: 48px;'
                         	 ng-src='{{applicationIconSource}}'
                              onerror="this.src='../assets/img/defaulticon_application.png';"/>
                         <img ng-switch-when='true' id='robotIcon' style='height: 48px; width: 48px;'

@@ -8,10 +8,10 @@
             </div>
         </div>
 		<div class="editorHeader">
-			<div class='editorApplicationImage'>
+			<div class='editorImage'>
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
-	                       <img ng-switch-when='false' id='applicationIcon' ng-src='{{applicationIconSource}}' />
+	                       <img ng-switch-when='false' id='userIcon' ng-src='../rest/application/icon/{{encodeURIComponent(selectedApplication.publicId)}}' />
 	                       <img ng-switch-when='true' id='robotIcon' ng-src='../rest/application/services/generateIcon/{{robotHash}}'/>
 					</div>
 				</div>

@@ -232,13 +232,19 @@
 					applicationStore.refresh().then(function() {
 						saveIcon();
 					});
-				}).error(function (data) { $scope.alerts.push({ type: 'error', msg: data }); });
+				}).error(function (data) { 
+					$scope.submitActive = false;
+					$scope.alerts.push({ type: 'error', msg: data }); 
+				});
 			} else {
 				$http.put(CLMLocations.getApplicationsUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
 						saveIcon();
 					});
-				}).error(function (data) { $scope.alerts.push({ type: 'error', msg: data }); });
+				}).error(function (data) {
+					$scope.submitActive = false;
+					$scope.alerts.push({ type: 'error', msg: data }); 
+				});
 			}
 
 			return false;
@@ -246,7 +252,9 @@
 
 		function saveIcon() {
 			if (!$scope.iconChanged) {
+				$scope.submitActive = false;
 				formReset();
+				$scope.$emit('resetApplication');
 				return;
 			}
 
@@ -271,6 +279,7 @@
 					data: formData,
 					success: function (data, status, jqXHR) {
 						$scope.$apply(function () {
+							$scope.submitActive = false;
 							$scope.isUploadingIcon = false;
 							formReset();
 							$scope.$emit('resetApplication');

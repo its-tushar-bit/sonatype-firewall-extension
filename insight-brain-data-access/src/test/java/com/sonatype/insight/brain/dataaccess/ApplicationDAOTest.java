@@ -27,11 +27,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
@@ -433,5 +435,34 @@ public class ApplicationDAOTest
         labelDAO.insert( label );
 
         applicationDAO.delete( application );
+    }
+
+    @Test
+    public void testConflictingLicenseThreatGroups()
+    {
+        application.setName( "testConflictingLicenseThreatGroups" );
+        applicationDAO.insert( application );
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        LicenseThreatGroup appLicenseThreatGroup =
+            new LicenseThreatGroup( application.getId(), "testConflictingLicenseThreatGroups", 2 );
+        licenseThreatGroupDAO.insert( appLicenseThreatGroup );
+
+        Organization organization = new Organization( "testConflictingLicenseThreatGroups" );
+        new OrganizationDAO().insert( organization );
+        LicenseThreatGroup orgLicenseThreatGroup =
+            new LicenseThreatGroup( organization.getId(), "testConflictingLicenseThreatGroups", 4 );
+        licenseThreatGroupDAO.insert( orgLicenseThreatGroup );
+
+        application.setOrganizationId( organization.getId() );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidApplicationException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Both the application and the organization have a license threat group with the same name 'testConflictingLicenseThreatGroups'",
+                          expected.getMessage() );
+        }
     }
 }

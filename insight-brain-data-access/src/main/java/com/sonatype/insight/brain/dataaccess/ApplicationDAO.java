@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -169,10 +170,17 @@ public class ApplicationDAO
         {
             throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
         }
-        if ( existingApplication.getOrganizationId() != null
-            && !existingApplication.getOrganizationId().equals( application.getOrganizationId() ) )
+        if ( existingApplication.getOrganizationId() != null)
         {
-            throw new InvalidApplicationException( "Cannot change the parent organization of an application." );
+            if ( !existingApplication.getOrganizationId().equals( application.getOrganizationId() ) )
+            {
+                throw new InvalidApplicationException( "Cannot change the parent organization of an application." );
+            }
+        }
+        else if ( application.getOrganizationId() != null )
+        {
+            Organization organization = new OrganizationDAO().getByIdNotNull( application.getOrganizationId() );
+            checkConflictingLicenseThreatGroups( em, application, organization );
         }
         existingApplication = getByName( em, application.getName() );
         if ( existingApplication != null && !existingApplication.getId().equals( application.getId() ) )
@@ -186,6 +194,30 @@ public class ApplicationDAO
         }
 
         super.update( em, application );
+    }
+
+    private void checkConflictingLicenseThreatGroups( EntityManager em, Application application,
+                                                      Organization organization )
+    {
+        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+        List<LicenseThreatGroup> appLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId( em, application.getId() );
+        if ( appLicenseThreatGroups.size() == 0 )
+        {
+            return;
+        }
+        List<LicenseThreatGroup> orgLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId( em, organization.getId() );
+        for ( LicenseThreatGroup appLicenseThreatGroup : appLicenseThreatGroups )
+        {
+            for ( LicenseThreatGroup orgLicenseThreatGroup : orgLicenseThreatGroups )
+            {
+                if ( appLicenseThreatGroup.getName().equalsIgnoreCase( orgLicenseThreatGroup.getName() ) )
+                {
+                    throw new InvalidApplicationException(
+                                                           "Both the application and the organization have a license threat group with the same name '"
+                                                               + appLicenseThreatGroup.getName() + "'" );
+                }
+            }
+        }
     }
 
     public void deleteWithIcon( Application application, File iconDirectory )

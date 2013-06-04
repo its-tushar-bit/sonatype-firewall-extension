@@ -15,6 +15,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,6 +27,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +117,19 @@ public class ApplicationResource
     {
         final Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         return getApplicationManagementSummary( application );
+    }
+    
+    /**
+     * @since 1.4
+     */
+    @GET
+    @Path( GENERATE_ICON_PATH )
+    @Produces( "image/png" )
+    public StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
+                                            @Context final HttpServletRequest req )
+           throws IOException
+    {
+        return super.generateIcon( hashcode, req );
     }
 
     @GET

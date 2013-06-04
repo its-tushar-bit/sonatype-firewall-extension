@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -20,6 +21,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -79,6 +81,19 @@ public class OrganizationResource
     protected String getDefaultIconFilename()
     {
         return "defaulticon_organization.png";
+    }
+    
+    /**
+     * @since 1.5
+     */
+    @GET
+    @Path( GENERATE_ICON_PATH )
+    @Produces( "image/png" )
+    public StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
+                                            @Context final HttpServletRequest req )
+           throws IOException
+    {
+        return super.generateIcon( hashcode, req );
     }
 
     /**

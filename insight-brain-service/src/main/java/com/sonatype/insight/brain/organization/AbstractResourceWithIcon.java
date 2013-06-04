@@ -14,10 +14,7 @@ import java.io.OutputStream;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -151,10 +148,7 @@ abstract class AbstractResourceWithIcon
         return Response.seeOther( uriBuilder.build() ).build();
     }
 
-    @GET
-    @Path( GENERATE_ICON_PATH )
-    @Produces( "image/png" )
-    public StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
+    protected StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
                                          @Context final HttpServletRequest req )
         throws IOException
     {

@@ -381,3 +381,11 @@ ul.tri-pane {
 .license-expand-toggle a {
 	float: right;
 }
+
+/**
+ * Error blocks
+ */
+.clm-error {
+	margin: 100px auto;
+	width : 50%;
+}

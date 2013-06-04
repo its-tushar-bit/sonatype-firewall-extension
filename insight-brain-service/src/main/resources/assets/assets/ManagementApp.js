@@ -6,12 +6,17 @@
 (function(){
 	"use strict";
 
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule'], ['$stateProvider', '$routeProvider', function ($stateProvider, $routeProvider) {
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
+		}).state('error', {
+			url : '/error',
+			controller : angular.noop,
+			template : '<div class="alert alert-error clm-error"><strong>Error</strong>: Invalid URL</div>'
 		});
-		$routeProvider.when('', { redirectTo : '/management' });
+		$routeProvider.when('', { redirectTo : '/management/application' });
+		$urlRouterProvider.otherwise( '/error' );
 	}]).run(['$rootScope', '$location', '$dialog', function ($rootScope, $location, $dialog) {
 		// The page contains unsaved changes, continuing will discard them.
 		var state = null;

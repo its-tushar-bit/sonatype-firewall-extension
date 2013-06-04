@@ -33,7 +33,7 @@
 			</div>
 			<span style='padding-left: 9px'>Organization</span>
 			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
-				<div ng-switch-when='null' class="btn-group">
+				<div class="btn-group">
 					<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
 						{{getOrganizationName(selectedApplication.organizationId)}}
 						<span class="caret"></span>
@@ -44,7 +44,6 @@
 						</li>
 					</ul>
 				</div>
-				<span ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
 			</div>
             <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>

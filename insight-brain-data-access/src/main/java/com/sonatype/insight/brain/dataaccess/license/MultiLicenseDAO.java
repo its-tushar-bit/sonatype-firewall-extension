@@ -125,32 +125,28 @@ public class MultiLicenseDAO
         {
             List<LicenseThreatGroup> licenseThreatGroups =
                 licenseThreatGroupDAO.getByOwnerIdAndLicenseId( appId, license.getId() );
-            for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-            {
-                if ( threatLevel == null )
-                {
-                    threatLevel = licenseThreatGroup.getThreatLevel();
-                }
-                else
-                {
-                    threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
-                }
-            }
+            threatLevel = max( threatLevel, licenseThreatGroups );
 
             if ( organizationId != null )
             {
                 licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId( organizationId, license.getId() );
-                for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-                {
-                    if ( threatLevel == null )
-                    {
-                        threatLevel = licenseThreatGroup.getThreatLevel();
-                    }
-                    else
-                    {
-                        threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
-                    }
-                }
+                threatLevel = max( threatLevel, licenseThreatGroups );
+            }
+        }
+        return threatLevel;
+    }
+
+    private Integer max( Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups )
+    {
+        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+        {
+            if ( threatLevel == null )
+            {
+                threatLevel = licenseThreatGroup.getThreatLevel();
+            }
+            else
+            {
+                threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
             }
         }
         return threatLevel;

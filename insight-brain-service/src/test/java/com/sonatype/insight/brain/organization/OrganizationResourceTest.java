@@ -9,14 +9,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,7 +60,7 @@ public class OrganizationResourceTest
         assertEquals( "OrganizationResourceTest", organization.getName() );
 
         // Add invalid icon
-        byte[] defaultIconByteArray = loadInvalidIcon();
+        byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
         AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getSetIconServiceUrl() );
         builder.addBodyPart( new StringPart( "organizationId", organizationId ) );
         builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
@@ -201,58 +199,9 @@ public class OrganizationResourceTest
         return getServiceURL() + "/" + OrganizationResource.ICON_PATH;
     }
 
-    private byte[] loadInvalidIcon()
-        throws IOException
-    {
-        byte[] iconByteArray = null;
-        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-
-        ClassLoader classLoader = OrganizationResourceTest.class.getClassLoader();
-        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/util/AngularCommon.js" );
-        Assert.assertNotNull( iconStream );
-        try
-        {
-            for ( int b = 0; ( b = iconStream.read() ) != -1; )
-            {
-                imageOutputStream.write( b );
-            }
-            iconByteArray = imageOutputStream.toByteArray();
-        }
-        finally
-        {
-            IOUtil.close( imageOutputStream );
-            IOUtil.close( iconStream );
-        }
-
-        return iconByteArray;
-    }
-
     private byte[] loadDefaultIcon()
         throws IOException
     {
-        byte[] defaultIconByteArray = null;
-        ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-
-        ClassLoader classLoader = OrganizationResourceTest.class.getClassLoader();
-        InputStream iconStream = classLoader.getResourceAsStream( "assets/assets/img/defaulticon_organization.png" );
-        Assert.assertNotNull( iconStream );
-        try
-        {
-            for ( int b = 0; ( b = iconStream.read() ) != -1; )
-            {
-                imageOutputStream.write( b );
-            }
-            defaultIconByteArray = imageOutputStream.toByteArray();
-        }
-        finally
-        {
-            IOUtil.close( imageOutputStream );
-            IOUtil.close( iconStream );
-        }
-
-        Assert.assertNotNull( defaultIconByteArray );
-        Assert.assertNotEquals( 0, defaultIconByteArray.length );
-
-        return defaultIconByteArray;
+        return IconUtils.loadIcon( "defaulticon_organization.png" );
     }
 }

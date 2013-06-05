@@ -30,19 +30,22 @@
 				config.template = config.template || {};
 
 				function Resource(originalObject) {
-					var original,
-						me = this;
+					var original;
 
 					this.isDirty = function () {
-						return angular.equals(me, original);
+						return angular.equals(this, original);
 					};
 					this.$updateOriginal = function (updated) {
 						original = updated;
-						angular.extend(me, original);
+						angular.extend(this, original);
 					};
 					
 					this.$getOriginal = function() {
 						return angular.copy(original);
+					}
+					
+					this.$revert = function() {
+					    angular.extend(this,original);
 					}
 
 					this.$updateOriginal(originalObject);

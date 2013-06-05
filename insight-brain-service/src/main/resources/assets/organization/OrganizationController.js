@@ -17,7 +17,7 @@
             if ('_new_' == $scope.$state.params.organizationId) {
                 $timeout(function() {
                     $scope.selectedOrganization = OrganizationStore.create();
-                    $scope.userIconSource = '../assets/img/defaulticon_organization.png';
+                    $scope.origUserIconSource = $scope.userIconSource = '../assets/img/defaulticon_organization.png';
                 }, 100);
             }
             if ($scope.$state.params.organizationId !== null && $scope.organizations) {
@@ -26,7 +26,7 @@
                         $timeout(function() {
                             // don't want to infect the original data
                             $scope.selectedOrganization = angular.copy($scope.organizations[i]);
-                            $scope.userIconSource = '../rest/organization/icon/' + encodeURIComponent($scope.selectedOrganization.id);
+                            $scope.origUserIconSource = $scope.userIconSource = '../rest/organization/icon/' + encodeURIComponent($scope.selectedOrganization.id);
                         }, 100);
                         return;
                     }
@@ -97,38 +97,51 @@
         };
 
         $scope.fileChanged = function(element) {
-            if (element.files && element.files.length > 0) {
-                $scope.hasRobotSource = false;
-                var file = element.files[0], src;
-                if (window.URL) {
-                    src = window.URL.createObjectURL(file);
-                } else if (window.webkitURL) {
-                    src = window.webkitURL.createObjectURL(file);
-                }
-                if (src) {
-                    $scope.$apply(function() {
+            $scope.$apply(function() {
+                if (element.files && element.files.length > 0) {
+                    $scope.hasRobotSource = false;
+                    var file = element.files[0], src;
+                    if (window.URL) {
+                        src = window.URL.createObjectURL(file);
+                    } else if (window.webkitURL) {
+                        src = window.webkitURL.createObjectURL(file);
+                    }
+                    if (src) {
                         $scope.userIconSource = src;
                         $scope.hasRobotSource = false;
-                    });
-                } else {
-                    $scope.$apply(function() {
+                    } else {
                         $scope.userIconSource = '../assets/img/defaulticon_organization.png';
                         $scope.hasRobotSource = false;
-                    });
-                }
-            } else {
-                $scope.$apply(function() {
+                    }
+                } else {
                     $scope.userIconSource = '../assets/img/defaulticon_organization.png';
                     $scope.hasRobotSource = false;
-                });
-            }
-            $scope.iconChanged = true;
+                }
+                $scope.iconChanged = true;
+            });
         };
 
         $scope.encodeURIComponent = window.encodeURIComponent;
 
         $scope.canSaveEdit = function() {
             return !$scope.organizationEditor.$invalid && !$scope.submitActive;
+        };
+
+        $scope.cancelClick = function() {
+            $scope.selectedOrganization.$revert();
+            if ($scope.iconChanged) {
+                $scope.userIconSource = $scope.origUserIconSource;
+                $scope.iconChanged = false;
+            }
+        };
+
+        $scope.isFormDirty = function() {
+            if (!$scope.selectedOrganization) {
+                return false;
+            }
+            var originalOrganization = $scope.selectedOrganization.$getOriginal();
+            var currentOrganization = $scope.selectedOrganization;
+            return currentOrganization.name !== originalOrganization.name || $scope.iconChanged;
         };
 
         // This needs to be invoked by onsubmit rather than ng-submit to
@@ -165,7 +178,7 @@
                 } else {
                     $scope.submitActive = false;
                 }
-                
+
                 $state.params.organizationId = data.id;
 
                 var path = $location.path();
@@ -181,10 +194,6 @@
         };
 
         function saveIcon() {
-            if (!$scope.iconChanged) {
-                return;
-            }
-
             // Angular modal does not adjust value of form element so when
             // posting these values need to be set
             angular.element('[name=organizationId]').val($scope.selectedOrganization.id);
@@ -213,6 +222,7 @@
                             angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource + '?' + new Date().getTime());
                             $scope.submitActive = false;
                             $scope.isUploadingIcon = false;
+                            $scope.origUserIconSource = $scope.userIconSource;
                         });
                     },
                     error : function(jqXHR) {

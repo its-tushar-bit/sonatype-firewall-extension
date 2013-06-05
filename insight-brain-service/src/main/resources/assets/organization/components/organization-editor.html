@@ -27,8 +27,8 @@
 			<input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>
 		</div>
-		<div style='margin-top: 5px;'>
-           	<button class='btn' type='button' data-dismiss='modal'>Cancel</button>
+		<div ng-show='isFormDirty() || !selectedOrganization.id' style='margin-top: 5px;'>
+           	<button class='btn' type='button' ng-click="cancelClick()">Cancel</button>
             <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
 		</div>
 	</form>

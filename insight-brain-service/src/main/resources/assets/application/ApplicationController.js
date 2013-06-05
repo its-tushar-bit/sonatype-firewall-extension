@@ -176,9 +176,12 @@
 				|| currentApplication.organizationId !== originalApplication.organizationId || $scope.iconChanged;
 		};
 		
-		$scope.$on('pageChangeStarted', function(event) {
-			if ($scope.isFormDirty() && !isPostingIcon) {
-				event.preventDefault();
+		$scope.$on('pageChangeStarted', function(event, destination) {
+			var application = $scope.selectedApplication;
+			if (application && destination.indexOf('application/' + application.publicId) === -1) {
+				if ($scope.isFormDirty() && !isPostingIcon) {
+					event.preventDefault();
+				}
 			}
 	    });
 

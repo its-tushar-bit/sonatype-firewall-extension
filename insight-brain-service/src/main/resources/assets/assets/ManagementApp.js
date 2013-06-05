@@ -25,7 +25,7 @@
 			var destination = $location.$$url,
 				e;
 			if (newUrl !== oldUrl && newUrl != state) {
-				e = $rootScope.$broadcast('pageChangeStarted');
+				e = $rootScope.$broadcast('pageChangeStarted', destination);
 				if (e.defaultPrevented) {
 					event.preventDefault();
 					$dialog.dialog({

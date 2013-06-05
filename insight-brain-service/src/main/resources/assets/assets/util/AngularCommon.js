@@ -335,6 +335,29 @@ var angularCommon;
 					return submitFn($scope);
 				};
 			}
-		}
+		};
 	});
+
+	angularCommon.directive('loadError', [function () {
+		return {
+			restrict : 'A',
+			priority : 99,
+			template : '<div ng-show="error != null" class="alert alert-error clm-error"><p><strong>Error</strong></p>' +
+			            '<p><span>An error occurred loading data. </span>' +
+			            '<span ng-switch on="error.status">' +
+			            '<span ng-switch-when="0">(Unable to reach CLM server)</span>' +
+			            '<span ng-switch-default>({{error.status}} - {{error.data}})</span>' +
+			            '</span></p>' +
+			            '<p><button type="button" class="btn btn-danger" ng-click="reload()">Reload</button></p></div>',
+			scope : {
+				error : '=loadError',
+				reload : '&reload'
+			},
+			link : function ($scope, element, attrs) {
+				$scope.$watch('error', function (newValue, oldValue) {
+					console.log(arguments);
+				});
+			}
+		};
+	}]);
 }());

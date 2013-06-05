@@ -26,11 +26,21 @@
 		}
 		var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
 
-        $http.get(clmAppLocations.getLabelsUrl(), {
-            params: { timestamp: new Date().getTime() }
-        }).success(function (data) {
+		$scope.doLoad = function () {
+			$scope.error = null;
+            $http.get(clmAppLocations.getLabelsUrl(), {
+                params: { timestamp: new Date().getTime() }
+            }).success(function (data) {
                 $scope.labels = data;
-            }).error(function () { $scope.$broadcast('showServerError', arguments); });
+            }).error(function (data, status, headers, config) {
+                $scope.error = {
+					data: data,
+					status : status,
+					headers : headers,
+					config : config
+                };
+            });
+        };
 
         $scope.editLabel = function (label) {
 			$scope.selectedLabel = angular.copy(label || labelTemplate);
@@ -67,6 +77,8 @@
 				deselect();
 			}
 		});
+
+		$scope.doLoad();
     }]);
 
     labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', function ($scope, $http, hudson, clmAppLocations) {

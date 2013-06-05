@@ -127,15 +127,19 @@
 				});
 			}
 		});
-
-		$q.all([policyStore.get().get(), actionStore.get()]).then(function (results) {
-			$scope.state = {
-				policyList : results[0],
-				actionStageList : results[1][1]
-			};
-			postLoad();
-		}, function (error) {
-			handleHttpError('Policy Initialization Error', error.data, error.status);
-		});
+		$scope.doLoad = function () {
+			$scope.error = null;
+			$q.all([policyStore.get().get(), actionStore.get()]).then(function (results) {
+				$scope.state = {
+					policyList : results[0],
+					actionStageList : results[1][1]
+				};
+				postLoad();
+			}, function (errors) {
+				$scope.error = angular.isArray(errors) ? errors[0] : errors;
+			});
+		};
+		
+		$scope.doLoad();
 	}]);
 }());

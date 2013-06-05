@@ -1,7 +1,7 @@
 <div id="policy" style='padding-top:20px'>
-		<div class='content-container' style='text-align:center;width:370px;margin:auto' ng-show='!state && !httpError'>
-			<h5><i class='icon-time'></i> Loading...</h5>
-		</div>
+	<div load-error='error' reload='doLoad()'></div>
+	<div class='content-container' style='text-align:center;width:370px;margin:auto' ng-show='!state && !error'>
+		<h5><i class='icon-time'></i> Loading...</h5>
 	</div>
 	<div class='fade' ng-class='{in : state}'>
 		<div class="content-container" style='text-align:center; padding-top:10px; margin:auto;width:370px'>
@@ -33,17 +33,6 @@
 					<ul style="list-style:none;"><li>{{getActions(policy)}}</li></ul>
 				</div>
 		    </div>
-		</div>
-	</div>
-	<div id="httpErrorModal" data-backdrop="static" class="modal fade">
-		<div class="modal-header">
-		    <h3>{{httpError.header}}</h3>
-		</div>
-		<div class="modal-body">
-			<div ng-bind-html="httpError.body | escape"></div>
-		</div>
-		<div class="modal-footer">
-			<button class="btn btn-primary" data-dismiss="modal">OK</button>
 		</div>
 	</div>
 	<div id="confirmationModal" data-backdrop="static" class="modal fade">

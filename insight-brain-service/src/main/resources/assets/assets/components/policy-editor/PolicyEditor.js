@@ -25,6 +25,10 @@
 			get : function () {
 				var store = policyStores[appId.encoded()];
 				if (!store) {
+					// Expire existing stores, prevents user from encountering stale data
+					angular.forEach(policyStores, function (value, key) {
+						policyStores[key] = null;
+					});
 					store = clmResource.getStore(angular.extend({ url : clmAppLocations.getPolicyUrl() }, policyStoreTemplate));
 					policyStores[appId.encoded()] = store;
 				}

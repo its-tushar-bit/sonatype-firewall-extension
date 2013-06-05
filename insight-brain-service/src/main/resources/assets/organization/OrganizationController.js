@@ -138,7 +138,7 @@
                 return true;
             }
 
-            if (!$scope.organizationEditor.$valid) {
+            if ($scope.organizationEditor.$invalid) {
                 return false;
             }
 

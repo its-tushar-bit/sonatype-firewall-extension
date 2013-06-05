@@ -53,6 +53,7 @@ describe('OrganizationController', function() {
         scope.$state.params.organizationId = '_new_';
         scope.selectedOrganization = organizationStore.create();
         scope.selectedOrganization.name = 'name';
+        scope.organizationEditor = {}
 
         httpBackend.expectPOST(clmLocations.getOrganizationsUrl(), {
             id : null,

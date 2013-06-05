@@ -8,7 +8,7 @@
 (function() {
     'use strict';
 
-    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation', 'ResourceModule' ]);
+    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation', 'ResourceModule', 'EditorTools' ]);
 
     organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, $timeout, hudson, CLMLocations, OrganizationStore) {
         function switchOrganization() {
@@ -45,7 +45,7 @@
         });
     } ]);
 
-    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', function($scope, $state, $location, regexFactory, CLMLocations, hudson) {
+    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools) {
         $scope.$state = $state;
         $scope.submitActive = false;
         $scope.addOrganizationSync = CLMLocations.addOrganizationIconSync();
@@ -53,27 +53,14 @@
         $scope.alerts = [];
 
         $scope.validateName = function(value) {
-            // field is required, alphanumeric, and no unnecessary spaces
-            if (!value) {
-                $scope.organizationEditor.$invalid = true;
-                return 'Name is required';
-            } else if (value.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'))) {
-                $scope.organizationEditor.$invalid = true;
-                return 'Must be alpha numeric';
-            } else if (value.match(/^ | {2,}|\t| $/)) {
-                $scope.organizationEditor.$invalid = true;
-                return 'No leading, trailing or double spaces or tabs';
-            }
-
-            // check for uniqueness
-            for ( var i = 0; i < $scope.organizations.length; i++) {
-                if ($scope.organizations[i].name === value && $scope.organizations[i].id !== $scope.selectedOrganization.id) {
-                    $scope.organizationEditor.$invalid = true;
-                    return 'Name is already in use';
-                }
-            }
-
             $scope.organizationEditor.$invalid = false;
+            
+            var result = editorTools.validateName(value, $scope.selectedOrganization, $scope.organizations);
+            
+            if (result !== true) {
+                $scope.organizationEditor.$invalid = true;
+                return result;
+            }
         }
 
         $scope.closeAlert = function(index) {
@@ -81,42 +68,15 @@
         };
 
         $scope.generateIcon = function() {
-            var name = $scope.selectedOrganization.name, hash = 0;
-            if (!name) {
-                hash = Math.floor(Math.random() * 100);
-            } else {
-                for ( var i = 0; i < name.length; i++) {
-                    var charAtI = name.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + charAtI;
-                    hash = hash & hash;
-                }
-            }
-            $scope.robotHash = hash;
+            $scope.robotHash = editorTools.generateIcon($scope.selectedOrganization.name);
             $scope.hasRobotSource = true;
             $scope.iconChanged = true;
         };
 
         $scope.fileChanged = function(element) {
             $scope.$apply(function() {
-                if (element.files && element.files.length > 0) {
-                    $scope.hasRobotSource = false;
-                    var file = element.files[0], src;
-                    if (window.URL) {
-                        src = window.URL.createObjectURL(file);
-                    } else if (window.webkitURL) {
-                        src = window.webkitURL.createObjectURL(file);
-                    }
-                    if (src) {
-                        $scope.userIconSource = src;
-                        $scope.hasRobotSource = false;
-                    } else {
-                        $scope.userIconSource = '../assets/img/defaulticon_organization.png';
-                        $scope.hasRobotSource = false;
-                    }
-                } else {
-                    $scope.userIconSource = '../assets/img/defaulticon_organization.png';
-                    $scope.hasRobotSource = false;
-                }
+                $scope.userIconSource = editorTools.getIconSource(element, '../assets/img/defaulticon_organization.png');
+                $scope.hasRobotSource = false;
                 $scope.iconChanged = true;
             });
         };

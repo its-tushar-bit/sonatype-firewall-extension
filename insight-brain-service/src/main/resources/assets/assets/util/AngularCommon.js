@@ -352,11 +352,6 @@ var angularCommon;
 			scope : {
 				error : '=loadError',
 				reload : '&reload'
-			},
-			link : function ($scope, element, attrs) {
-				$scope.$watch('error', function (newValue, oldValue) {
-					console.log(arguments);
-				});
 			}
 		};
 	}]);

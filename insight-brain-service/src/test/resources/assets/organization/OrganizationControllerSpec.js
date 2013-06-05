@@ -60,7 +60,12 @@ describe('OrganizationController', function() {
             name : 'name'
         }).respond(OrganizationMockData.getPOSTResponse('name'));
 
+		var hasFormData = window.FormData;
+		window.FormData = false;
+        
         scope.saveClick();
+        
+        window.FormData = hasFormData;
         
         httpBackend.flush();
     });

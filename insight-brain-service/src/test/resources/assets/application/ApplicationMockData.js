@@ -3,7 +3,9 @@ ApplicationMockData = {
         return [
             {
                 "id": "78c1d44c07584e57945f04890c672e82",
+                "name": "applicationName",
                 "publicId": "bom1-12345678",
+                "organizationId": "organizationId",
                 "policyEvaluations": [
                     {
                         "stage": {

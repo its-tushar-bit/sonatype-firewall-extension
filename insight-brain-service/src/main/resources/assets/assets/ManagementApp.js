@@ -39,6 +39,7 @@
 						    '<div class="modal-footer"><button type="button" class="btn" ng-click="close(false)">Cancel</button> <button type="button" class="btn btn-danger" ng-click="close(true)">Continue</button></div>'
 					}).open().then(function (continueChange) {
 						if (continueChange) {
+							$rootScope.$broadcast('pageChangeAccepted', destination);
 							state = newUrl;
 							$location.url(destination);
 						}
@@ -55,6 +56,7 @@
 		};
 
 		$rootScope.$on('$destroy', function () {
+			$rootScope.$broadcast('pageChangeAccepted', destination);
 			$(window).unbind('beforeunload', fn);
 		});
 		$(window).bind('beforeunload', fn);

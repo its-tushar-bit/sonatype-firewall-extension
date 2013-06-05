@@ -178,12 +178,17 @@
 		
 		$scope.$on('pageChangeStarted', function(event, destination) {
 			var application = $scope.selectedApplication;
-			if (application && destination.indexOf('application/' + application.publicId) === -1) {
+			if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
 				if ($scope.isFormDirty() && !isPostingIcon) {
 					event.preventDefault();
 				}
 			}
 	    });
+		
+		$scope.$on('pageChangeAccepted', function() {
+			var originalApplication = $scope.selectedApplication.$getOriginal();
+			angular.extend($scope.selectedApplication, originalApplication);
+		});
 
 		$scope.canSaveEdit = function () {
 			return $scope.applicationEditor.$valid && !$scope.submitActive;

@@ -116,6 +116,9 @@ var angularCommon;
 		};
 	}]);
 
+	/**
+	 * @deprecated This along with CSS can be removed in Emerald
+	 */
 	angularCommon.directive('clist', function () {
 		return {
 			restrict : 'A',
@@ -168,6 +171,9 @@ var angularCommon;
 		};
 	}]);
 
+	/**
+	 * Enables bootstrap tooltip on an element
+	 */
 	angularCommon.directive('tip', function () {
 		return function (scope, element, attrs) {
 			$(element).tooltip();
@@ -291,6 +297,9 @@ var angularCommon;
 		}
 	}]);
 
+	/**
+	 * Creates a URL which is relative to the current page.  (..) ar accepted
+	 */
 	angularCommon.directive('relativeHref', ['$location', function ($location) {
 		return {
 			restrict : 'A',
@@ -338,6 +347,9 @@ var angularCommon;
 		};
 	});
 
+	/**
+	 * Provides a half width error box for an HTTP error with a reload button.  This is intended for errors loading data.
+	 */
 	angularCommon.directive('loadError', [function () {
 		return {
 			restrict : 'A',

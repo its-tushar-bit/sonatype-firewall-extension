@@ -14,7 +14,6 @@ import java.io.OutputStream;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -148,8 +147,7 @@ abstract class AbstractResourceWithIcon
         return Response.seeOther( uriBuilder.build() ).build();
     }
 
-    protected StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
-                                         @Context final HttpServletRequest req )
+    protected StreamingOutput generateIcon( final String hashcode, final HttpServletRequest req )
         throws IOException
     {
         if ( hashcode == null || hashcode.isEmpty() )

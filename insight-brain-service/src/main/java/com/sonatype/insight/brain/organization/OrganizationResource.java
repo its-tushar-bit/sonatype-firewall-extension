@@ -86,12 +86,13 @@ public class OrganizationResource
     /**
      * @since 1.5
      */
+    @Override
     @GET
     @Path( GENERATE_ICON_PATH )
     @Produces( "image/png" )
     public StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
-                                            @Context final HttpServletRequest req )
-           throws IOException
+                                         @Context final HttpServletRequest req )
+        throws IOException
     {
         return super.generateIcon( hashcode, req );
     }

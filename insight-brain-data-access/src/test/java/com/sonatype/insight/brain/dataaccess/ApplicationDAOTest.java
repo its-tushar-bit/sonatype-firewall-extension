@@ -447,7 +447,7 @@ public class ApplicationDAOTest
             new LicenseThreatGroup( application.getId(), "testConflictingLicenseThreatGroups", 2 );
         licenseThreatGroupDAO.insert( appLicenseThreatGroup );
 
-        Organization organization = new Organization( "testConflictingLicenseThreatGroups" );
+        organization = new Organization( "testConflictingLicenseThreatGroups" );
         new OrganizationDAO().insert( organization );
         LicenseThreatGroup orgLicenseThreatGroup =
             new LicenseThreatGroup( organization.getId(), "test conflictingLicenseThreatGroups", 4 );

@@ -168,9 +168,27 @@ public class OrganizationResourceTest
         assertResponseStatus( 402, response );
     }
 
+    @Test
+    public void testGenerateIcon()
+        throws Exception
+    {
+        String hashcode = "abababababababababab";
+        String url = getGenerateIconServiceUrl( hashcode );
+        String saasUrl = "rest/application/icon/generate/" + hashcode;
+        setSaasResponseForURI( saasUrl, 200, loadDefaultIcon() );
+        Response response = RestAccess.get( url );
+        assertResponseStatus( 200, response );
+        Assert.assertNotNull( response.getResponseBodyAsBytes() );
+    }
+
     private String getServiceURL()
     {
         return getRestBaseUrl() + OrganizationResource.SERVICE_PATH;
+    }
+
+    private String getGenerateIconServiceUrl( String hashcode )
+    {
+        return getServiceURL() + "/" + OrganizationResource.GENERATE_ICON_PATH.replace( "{hashcode}", hashcode );
     }
 
     private String getGetIconServiceUrl( String organizationId )

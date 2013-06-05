@@ -428,6 +428,19 @@ public class ApplicationResourceTest
         Assert.assertEquals( "Cannot change the parent organization of an application.", response.getResponseBody() );
     }
 
+    @Test
+    public void testGenerateIcon()
+        throws Exception
+    {
+        String hashcode = "abababababababababab";
+        String url = getGenerateIconServiceUrl( hashcode );
+        String saasUrl = "rest/application/icon/generate/" + hashcode;
+        setSaasResponseForURI( saasUrl, 200, loadDefaultIcon() );
+        Response response = RestAccess.get( url );
+        assertResponseStatus( 200, response );
+        Assert.assertNotNull( response.getResponseBodyAsBytes() );
+    }
+
     private String getValidateApplicationIdServiceURL( String applicationPublicId )
     {
         return getServiceURL() + '/' + ApplicationResource.VALIDATE_PATH.replace( "{applicationPublicId}",
@@ -449,6 +462,11 @@ public class ApplicationResourceTest
     private String getSetIconServiceUrl()
     {
         return getServiceURL() + "/" + ApplicationResource.ICON_PATH;
+    }
+
+    private String getGenerateIconServiceUrl( String hashcode )
+    {
+        return getServiceURL() + "/" + ApplicationResource.GENERATE_ICON_PATH.replace( "{hashcode}", hashcode );
     }
 
     private String getServiceURL()

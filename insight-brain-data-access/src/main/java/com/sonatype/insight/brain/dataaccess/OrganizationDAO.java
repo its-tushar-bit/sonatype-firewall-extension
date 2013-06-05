@@ -118,8 +118,7 @@ public class OrganizationDAO
     {
         NameHelper.validate( organization.getName() );
 
-        Organization existingOrganization = getById( em, organization.getId() );
-        existingOrganization = getByName( em, organization.getName() );
+        Organization existingOrganization = getByName( em, organization.getName() );
         if ( existingOrganization != null && !existingOrganization.getId().equals( organization.getId() ) )
         {
             throw new InvalidNameException( organization.getName() + " is already used as a name." );

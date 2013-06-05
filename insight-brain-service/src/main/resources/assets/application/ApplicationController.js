@@ -96,6 +96,10 @@
         });
 		
 		$scope.getOrganizationName = function(organizationId) {
+			if (!organizationId) {
+				return "Assign Org..."
+			}
+			
 			if ($scope.organizations) {
 				for (var i = 0; i < $scope.organizations.length; i++) {
 					var organizationIter = $scope.organizations[i];

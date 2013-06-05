@@ -166,7 +166,8 @@ public class SaasClient
                 case 409:
                     throw new ConflictException( getErrorMessage( response ) );
                 default:
-                    throw new InternalServerException( "SAAS Error: " + getErrorMessage( response ) );
+                    throw new InternalServerException( "SAAS Error " + response.getStatusLine().getStatusCode() + ": "
+                        + getErrorMessage( response ) );
             }
         }
         finally

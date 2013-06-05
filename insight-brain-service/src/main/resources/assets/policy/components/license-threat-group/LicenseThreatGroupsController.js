@@ -31,6 +31,7 @@
 	                    params: { timestamp: new Date().getTime() }
 	                }).success(function (data) {
 	                    group.licenses = data;
+	                    group.$saveGroup = saveGroup;
 	                    licenseCount--;
 	                    if (licenseCount <= 0) {
 	                    	deferred.resolve(licenseGroups);
@@ -50,6 +51,35 @@
 			
 			return deferred.promise;
 		}
+    	
+    	function saveGroup(licenseIds) {
+    		var deferred = $q.defer();
+    		
+    		var licenseGroup = this;
+    		licenseGroup.$save().then(function() {
+    			$http.put(CLMAppLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
+                	licenseGroup.licenses = licenses;
+                	
+                	deferred.resolve(licenseGroup);
+                }).error(function (data, status, headers, config) {
+        			deferred.reject({
+        				data: data,
+        				status : status,
+        				headers : headers,
+        				config : config
+        			});
+        		});
+    		}, function(rejection) {
+    			deferred.reject({
+    				data: rejection.data,
+    				status : rejection.status,
+    				headers : rejection.headers,
+    				config : rejection.config
+    			});
+            });
+    		
+    		return deferred.promise;
+    	}
     	
 		var licenseGroupStoreTemplate = {
 			id : 'id',
@@ -73,7 +103,9 @@
 			},
 			create: function() {
 				refreshLicenseStore();
-				return licenseGroupStore.create();
+				var licenseGroup = licenseGroupStore.create();
+				licenseGroup.saveGroup = saveGroup
+				return licenseGroup;
 			}
 		};
 	});
@@ -188,7 +220,10 @@
         
         $scope.inlineSaveLicenseGroup = function() {
     		for (var i = 0; i < $scope.licenseGroups.length; i++) {
-    			$scope.licenseGroups[i].$save();
+    			$scope.licenseGroups[i].$save().then(angular.noop, function(rejection) {
+					$scope.alerts.push({ type: 'error', msg: rejection.data });
+					$scope.inlineRevertLicenseGroup();
+    			});
     		}
         };
         
@@ -233,7 +268,7 @@
 		});
     });
 
-    licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', function ($scope, $filter, $http, hudson, clmLocations, clmAppLocations) {
+    licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore) {
         function onError(data, status, headersFn, config) {
             $scope.submitActive = false;
             var header = headersFn();
@@ -251,7 +286,7 @@
             var licenses = filter($scope.licenses, { searchLicense: $scope.licenseSearch });
             // If only one license is applicable to the current search filter, set isApplied true when enter is pressed
             if (licenses.length == 1) {
-                licenses[0].isApplied = !licenses[0].isApplied;
+            	$scope.setIsApplied(licenses[0], !licenses[0].isApplied);
                 $scope.licenseSearch = null;
             }
         };
@@ -276,30 +311,12 @@
                 var licenseIds = filter($scope.licenses, { isApplied: true }).map(function (l) {
                     return l.id;
                 });
-
-                if (licenseGroup.id == null) {
-                    hudson.post(clmAppLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
-                        $http.put(clmAppLocations.getLicenseGroupLicensesUrl(group), licenseIds).success(function (licenses) {
-                            group.licenses = licenses;
-                            $scope.licenseGroups.push(group);
-                        }).error(onError);
-                        // Modal will close regardless of whether licenses are persisted or not. This will prevent creating two of the same group.
-                        $scope.$emit('license.cancelLicenseGroupEdit');
-                    }).error(onError);
-                } else {
-                    $http.put(clmAppLocations.getLicenseGroupsUrl(), licenseGroup).success(function (group) {
-                        $http.put(clmAppLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
-                            angular.forEach($scope.licenseGroups, function (licenseCandidate, key) {
-                                if (group.id === licenseCandidate.id) {
-                                    $scope.licenseGroups[key] = group;
-                                    $scope.licenseGroups[key].licenses = licenses;
-                                    return false;
-                                }
-                            });
-                            $scope.$emit('license.cancelLicenseGroupEdit', licenseGroup);
-                        }).error(onError);
-                    }).error(onError);
-                }
+                
+                licenseGroup.saveGroup(licenseIds).then(function() {
+                	$scope.$emit('license.cancelLicenseGroupEdit');
+                }, function(rejection) {
+                	onError(rejection.data, rejection.status, rejection.headers, rejection.config);
+                });
 
                 $scope.submitActive = false;
             })($scope.selectedGroup);
@@ -319,7 +336,7 @@
 				$scope.submitActive = false;
 			}
 		});
-    }]);
+    });
 
     licenseGroupModule.filter('filterLicenses', function () {
         return function (items, filter) {

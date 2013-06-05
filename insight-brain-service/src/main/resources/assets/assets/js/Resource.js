@@ -31,24 +31,29 @@
 
 				function Resource(originalObject) {
 					var original;
+					var me = this;
 
-					this.isDirty = function () {
-						return angular.equals(this, original);
+					me.isDirty = function () {
+						return angular.equals(me, original);
 					};
-					this.$updateOriginal = function (updated) {
+					me.$updateOriginal = function (updated) {
 						original = updated;
-						angular.extend(this, original);
+						angular.extend(me, original);
 					};
 					
-					this.$getOriginal = function() {
+					me.$getOriginal = function() {
 						return angular.copy(original);
 					}
 					
-					this.$revert = function() {
-					    angular.extend(this,original);
+					me.$revert = function() {
+					    angular.extend(me,original);
+					}
+					
+					me.$clone = function() {
+					    return new Resource(original);
 					}
 
-					this.$updateOriginal(originalObject);
+					me.$updateOriginal(originalObject);
 				}
 
 				function doLoad() {

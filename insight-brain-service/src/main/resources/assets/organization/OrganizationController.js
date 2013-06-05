@@ -25,7 +25,7 @@
                     if ($scope.$state.params.organizationId === $scope.organizations[i].id) {
                         $timeout(function() {
                             // don't want to infect the original data
-                            $scope.selectedOrganization = angular.copy($scope.organizations[i]);
+                            $scope.selectedOrganization = $scope.organizations[i].$clone();
                             $scope.origUserIconSource = $scope.userIconSource = '../rest/organization/icon/' + encodeURIComponent($scope.selectedOrganization.id);
                         }, 100);
                         return;

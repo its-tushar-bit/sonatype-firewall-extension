@@ -1,3 +1,7 @@
+body {
+	background: #FFFFFF;	
+}
+
 .first-row i, .first-row img {
 	vertical-align: middle;
 }
@@ -75,16 +79,18 @@
 }
 
 .navigation {
-	background: black;
-	width: 150px;
-    position: fixed;
-    height: 100%;
+	background: url(../img/margin-bg.png);
+	-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+	z-index: 1;
+	width: 120px;
+  	position: fixed;
+  	height: 100%;  
 }
 
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	color: black;
 	text-shadow: none;
-	background-color: lightgrey;
 }
 
 .navigation .nav>.disabled>a:hover, .navigation .nav>.disabled>a:focus, .subnavigation .nav>.disabled>a:hover, .subnavigation .nav>.disabled>a:focus {
@@ -105,8 +111,11 @@
 
 .subnavigation {
 	width: 150px;
-	margin-left: 150px;
-	background: lightgrey;
+	margin-left: 119px;
+	background-color: rgba(255, 255, 255, 0.3);
+	-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+	border-left: 1px solid #cbcbcb;
 	position: fixed;
 	height: 100%;
 	overflow: auto;
@@ -142,7 +151,7 @@
 }
 
 .content {
-	margin-left: 300px;
+	margin-left: 270px;
 	height: 100%;
 }
 

@@ -297,7 +297,14 @@
 						$scope.$apply(function () {
 							$scope.isUploadingIcon = false;
 							$scope.submitActive = false;
-							$scope.$broadcast('postAlert', jqXHR);
+							var errorText;
+							var contentType = jqXHR.getResponseHeader('Content-Type');
+							if (contentType.indexOf('text/html') === 0) {
+								errorText = 'Server Error';
+							} else {
+								errorText = jqXHR.responseText;
+							}
+							$scope.alerts.push({ type: 'error', msg: errorText });
 						});
 					}
 				});

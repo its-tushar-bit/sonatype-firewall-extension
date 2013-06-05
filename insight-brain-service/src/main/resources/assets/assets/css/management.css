@@ -389,3 +389,10 @@ ul.tri-pane {
 	margin: 100px auto;
 	width : 50%;
 }
+
+.add-section {
+	width: 100%;
+	background-color: #dddddd;
+	border-bottom: 1px solid #ccc;
+	padding:10px
+}

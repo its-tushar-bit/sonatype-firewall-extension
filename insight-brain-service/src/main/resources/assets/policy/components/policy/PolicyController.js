@@ -118,15 +118,6 @@
 				}, angular.noop);
 		};
 
-		$rootScope.$on('tabChange', function (event, args) {
-			if (args[0].indexOf('policy') >= 0 && $scope.state.policyChanged) {
-				event.preventDefault();
-				event.stopPropagation();
-				viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?", 'Yes', 'No', null, function () {
-					args[1]();
-				});
-			}
-		});
 		$scope.doLoad = function () {
 			$scope.error = null;
 			$q.all([policyStore.get().get(), actionStore.get()]).then(function (results) {

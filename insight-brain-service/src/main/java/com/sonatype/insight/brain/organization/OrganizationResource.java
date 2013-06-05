@@ -21,7 +21,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -90,8 +89,7 @@ public class OrganizationResource
     @GET
     @Path( GENERATE_ICON_PATH )
     @Produces( "image/png" )
-    public StreamingOutput generateIcon( @PathParam( "hashcode" ) final String hashcode,
-                                         @Context final HttpServletRequest req )
+    public Response generateIcon( @PathParam( "hashcode" ) final String hashcode, @Context final HttpServletRequest req )
         throws IOException
     {
         return super.generateIcon( hashcode, req );

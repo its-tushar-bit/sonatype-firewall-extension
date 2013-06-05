@@ -147,14 +147,14 @@ abstract class AbstractResourceWithIcon
         return Response.seeOther( uriBuilder.build() ).build();
     }
 
-    protected StreamingOutput generateIcon( final String hashcode, final HttpServletRequest req )
+    protected Response generateIcon( final String hashcode, final HttpServletRequest req )
         throws IOException
     {
         if ( hashcode == null || hashcode.isEmpty() )
         {
             throw new NotFoundException( "Null or empty hashcode." );
         }
-        return StreamingOutput.class.cast( client.doProxy( req, "rest/application/icon/generate/" + hashcode ).getEntity() );
+        return client.doProxy( req, "rest/application/icon/generate/" + hashcode );
     }
 
     protected Response getIcon( final String ownerId, File iconDir )

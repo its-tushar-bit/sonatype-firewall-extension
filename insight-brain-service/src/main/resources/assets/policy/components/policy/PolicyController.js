@@ -18,50 +18,6 @@
 			}
 			return text;
 		}
-		$scope.location = $location;
-
-		$scope.getActionCount = function (policy) {
-			var actionCount = 0;
-			angular.forEach(policy.actions, function (value, key) {
-				if (value.length > 0) {
-					actionCount++;
-				}
-			});
-			return actionCount;
-		};
-		$scope.getActions = function (policy) {
-			var actions = '';
-			angular.forEach(policy.actions, function (value, key) {
-				var j, currentStageText = '', formattedName;
-				if (value.length > 0) {
-					if (actions.length > 0) {
-						actions += ', ';
-					}
-
-					for (j = 0; j < $scope.state.actionStageList.length; j++) {
-						if ($scope.state.actionStageList[j].id == key) {
-							currentStageText += $scope.state.actionStageList[j].name + ': ';
-							break;
-						}
-					}
-
-					for (j = 0; j < value.length; j++) {
-						formattedName = capitalize(value[j].actionTypeId);
-						if (currentStageText.indexOf(formattedName) < 0) {
-							if (j > 0) {
-								currentStageText += '/';
-							}
-							currentStageText += formattedName;
-						}
-					}
-
-					if (currentStageText) {
-						actions += currentStageText;
-					}
-				}
-			});
-			return actions;
-		};
 
 		function handleHttpError(headerText, bodyText, status) {
 			$scope.httpError = {
@@ -107,6 +63,51 @@
 			}
 			reset();
 		}
+
+		$scope.location = $location;
+
+		$scope.getActionCount = function (policy) {
+			var actionCount = 0;
+			angular.forEach(policy.actions, function (value, key) {
+				if (value.length > 0) {
+					actionCount++;
+				}
+			});
+			return actionCount;
+		};
+		$scope.getActions = function (policy) {
+			var actions = '';
+			angular.forEach(policy.actions, function (value, key) {
+				var j, currentStageText = '', formattedName;
+				if (value.length > 0) {
+					if (actions.length > 0) {
+						actions += ', ';
+					}
+
+					for (j = 0; j < $scope.state.actionStageList.length; j++) {
+						if ($scope.state.actionStageList[j].id == key) {
+							currentStageText += $scope.state.actionStageList[j].name + ': ';
+							break;
+						}
+					}
+
+					for (j = 0; j < value.length; j++) {
+						formattedName = capitalize(value[j].actionTypeId);
+						if (currentStageText.indexOf(formattedName) < 0) {
+							if (j > 0) {
+								currentStageText += '/';
+							}
+							currentStageText += formattedName;
+						}
+					}
+
+					if (currentStageText) {
+						actions += currentStageText;
+					}
+				}
+			});
+			return actions;
+		};
 
 		$scope.viewRemovePolicy = function (policy) {
 			viewConfirmation("Delete Policy?",

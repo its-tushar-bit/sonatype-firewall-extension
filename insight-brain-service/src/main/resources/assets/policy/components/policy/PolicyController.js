@@ -63,7 +63,7 @@
 			}
 			reset();
 		}
-
+		$scope.alerts = [];
 		$scope.location = $location;
 
 		$scope.getActionCount = function (policy) {
@@ -115,7 +115,12 @@
 				'Cancel',
 				'Delete',
 				function () {
-					policy.$delete();
+					policy.$delete().then(angular.noop, function (error) {
+						$scope.alerts.push({
+							type : 'error',
+							msg : 'An error occurred while deleting policy. (' + messages.getHttpErrorMessage(error) + ')'
+						});
+					});
 				}, angular.noop);
 		};
 

@@ -199,7 +199,7 @@
 			$scope.state.currentPolicy.$save().then(returnFn, function (error) {
 				$scope.alerts.push({
 					type : 'error',
-					msg : 'An error occured while saving data (' + messages.getHttpErrorMessage(error) + ')'
+					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
 				});
 			});
 		};

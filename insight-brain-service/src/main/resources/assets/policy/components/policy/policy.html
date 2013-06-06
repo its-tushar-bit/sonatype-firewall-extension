@@ -8,7 +8,8 @@
 			<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
 			<p><a relative-href="/new">Create</a> a new Policy.</p>
 		</div>
-		<div >
+		<div clm-alerts='alerts'></div>
+		<div>
 		    <div class="policy-item" ng-repeat="policy in state.policyList">
 				<div style="float:right;" class='btn-group'>
 					<a class="btn btn-mini policy-button" title="Edit Policy" relative-href='/{{policy.id}}'"><i

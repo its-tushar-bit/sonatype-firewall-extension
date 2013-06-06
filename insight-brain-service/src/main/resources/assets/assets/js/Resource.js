@@ -102,9 +102,8 @@
 						id = this[config.id],
 						url = config.url.charAt(config.url.length - 1) === '/' ? config.url + id : config.url + '/' + id,
 						index = -1,
-						me = this;
-					if (id !== null && angular.isDefined(id)) {
-						$http['delete'](url, this, { params : config.params }).success(function () {
+						me = this,
+						removeFn = function () {
 							// remove from store
 							angular.forEach(store, function (candidate, candidateIndex) {
 								if (candidate[config.id] === id) {
@@ -114,8 +113,18 @@
 							if (index !== -1) {
 								store.splice(index, 1);
 							}
+						};
+
+					if (id !== null && angular.isDefined(id)) {
+						$http['delete'](url, this, { params : config.params }).success(function () {
+							removeFn();
+							deferred.resolve(true);
 						}).error(getErrorFn(deferred));
+					} else {
+						removeFn();
+						deferred.resolve(true);
 					}
+					return deferred.promise;
 				};
 
 				return {

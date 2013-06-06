@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.application;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -353,30 +352,10 @@ public class ApplicationResource
     public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        if ( isApplicationInUse( applicationPublicId ) )
-        {
-            throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
-        }
-
         Application application = applicationDAO.getByPublicId( applicationPublicId );
         applicationDAO.deleteWithIcon( application, work.getIconDir() );
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         policyDAO.deleteByOwnerId( application.getId() );
-    }
-
-    private boolean isApplicationInUse( final String applicationPublicId )
-        throws IOException
-    {
-        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
-        if ( !applicationManagementSummary.getPolicyEvaluations().isEmpty() )
-        {
-            return true;
-        }
-        if ( applicationManagementSummary.getScansCount() != 0 )
-        {
-            return true;
-        }
-        return false;
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( final Application application )
@@ -387,8 +366,6 @@ public class ApplicationResource
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
         applicationManagement.setPolicyEvaluations( work.getMostRecentPolicyEvaluations( application.getId() ) );
-        File[] scans = work.getScanDir( applicationManagement.getId() ).listFiles();
-        applicationManagement.setScansCount( scans != null ? scans.length : 0 );
 
         return applicationManagement;
     }

@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -308,22 +307,6 @@ public class ApplicationResourceTest
         Assert.assertEquals( Stage.ID_RELEASE,
                              applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
         Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
-
-        // Scans count
-        final File saasScanFile = getScanResponseFile( licenseFingerprint );
-        saasScanFile.delete();
-
-        final URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
-        FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
-
-        RestAccess.put( getScanURL( applicationPublicId ), "" );
-
-        response = RestAccess.get( getServiceURL() );
-        assertResponseStatus( 200, response );
-
-        applications = JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary[].class );
-        Assert.assertNotNull( applications );
-        Assert.assertEquals( 1, applications[0].getScansCount() );
 
         // Test GetApplication
         response = RestAccess.get( getApplicationServiceUrl( applicationPublicId ) );

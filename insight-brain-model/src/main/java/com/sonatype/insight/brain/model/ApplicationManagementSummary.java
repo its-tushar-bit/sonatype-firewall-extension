@@ -15,8 +15,6 @@ public class ApplicationManagementSummary
 
     private List<PolicyEvaluation> policyEvaluations;
 
-    private int scansCount;
-
     public String getId()
     {
         return id;
@@ -55,16 +53,6 @@ public class ApplicationManagementSummary
     public void setPolicyEvaluations( List<PolicyEvaluation> policyEvaluations )
     {
         this.policyEvaluations = policyEvaluations;
-    }
-
-    public int getScansCount()
-    {
-        return scansCount;
-    }
-
-    public void setScansCount( int scansCount )
-    {
-        this.scansCount = scansCount;
     }
 
     public static ApplicationManagementSummary fromApplication( Application application )

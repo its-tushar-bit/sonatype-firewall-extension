@@ -136,7 +136,7 @@ h1, h2, h3, h4, h5, h6 {
 	color: #36424e;
 }
 
-.navigation a {
+.navigation a, .subnavigation a {
 	color: #36424e;
 	text-shadow: none;
 }
@@ -160,14 +160,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus,
 .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
-	background-color: white;
-	color: #333;
-	text-shadow: none;
+	background-color: #f4f4f4;
+	color: #444;
+	text-shadow: 0px 1px 0px rgba(255,255,255,0.2);
+	border-top: 1px solid #F8F8F8;
+	border-bottom: 1px solid #E4E4E4;
 }
 
-.subnavigation a {
-	color: black;
-	text-shadow: none;
+.navigation .nav-list>.active>a, .subnavigation .nav-list>.active>a {
+	color: #333;
+	font-weight: bold;
+}
+
+.nav-list a {
+	border-top: 1px solid transparent;
+	border-bottom: 1px solid transparent;
 }
 
 .subnavigation-expanded {
@@ -481,6 +488,6 @@ ul.tri-pane {
  * Detail View Header Area
  * Can we grab something other than id to style? (TH)
  */
-#applicationEditor {
+#applicationEditor, #organizationEditor {
 	margin: 0 0 60px 15px;
 }

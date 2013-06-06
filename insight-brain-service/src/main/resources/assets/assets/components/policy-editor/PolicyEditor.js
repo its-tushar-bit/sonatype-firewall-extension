@@ -6,7 +6,7 @@
 /*global angular, $, window, Option */
 (function () {
 	'use strict';
-	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat']);
+	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'AngularCommon']);
 
 	module.service('PolicyStore', ['ApplicationId', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (appId, clmLocations, clmAppLocations, clmResource) {
 		var policyStoreTemplate = {
@@ -117,7 +117,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, policyStore, actionStore) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, messages, policyStore, actionStore) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirmationHeader = header;
@@ -134,14 +134,6 @@
 			$location.path(path.substring(0, path.lastIndexOf('/')));
 		}
 
-		function handleHttpError(headerText, bodyText, status) {
-			$scope.httpError = {
-				body : status === 0 ? 'Unable to connect to server.' : bodyText,
-				header : headerText
-			};
-			$('#httpErrorModal').modal('show');
-		}
-
 		function getActions(actionStages) {
 			var actions = {};
 			angular.forEach(actionStages, function (stage) {
@@ -150,8 +142,29 @@
 			return policyStore.deserializeActions(actions);
 		}
 
-		function updateStore() {
+		function isDirty() {
+			var changed = false;
+			if (angular.isUndefined($scope.state.currentPolicy.id)) {
+				changed = $scope.state.currentPolicy.constraints.length > 0 || $scope.state.currentPolicy.name;
+				if (!changed) {
+					angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
+						changed = changed || actions.length > 0;
+					});
+				}
+			} else {
+				angular.forEach($scope.policies, function (policy, index) {
+					if (policy.id === $scope.state.currentPolicy.id) {
+						changed = !angular.equals(policy, $scope.state.currentPolicy) || policyStore.actionEquals($scope.state.currentPolicy, $scope.state.actions);
+					}
+				});
+			}
+			return changed;
+		}
+		$scope.alerts = [];
+
+		$scope.doLoad = function () {
 			var currentPolicyStore = policyStore.get();
+			$scope.error = null;
 			$q.all([currentPolicyStore.get(), actionStore.get()]).then(function (results) {
 				var policies = results[0],
 					actionStages = results[1][1],
@@ -177,36 +190,18 @@
 				}
 				$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
 			}, function (error) {
-				handleHttpError('Policy Initialization Error', error.data, error.status);
+				$scope.error = error;
 			});
-		}
-
-		function isDirty() {
-			var changed = false;
-			if (angular.isUndefined($scope.state.currentPolicy.id)) {
-				changed = $scope.state.currentPolicy.constraints.length > 0 || $scope.state.currentPolicy.name;
-				if (!changed) {
-					angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
-						changed = changed || actions.length > 0;
-					});
-				}
-			} else {
-				angular.forEach($scope.policies, function (policy, index) {
-					if (policy.id === $scope.state.currentPolicy.id) {
-						changed = !angular.equals(policy, $scope.state.currentPolicy) || policyStore.actionEquals($scope.state.currentPolicy, $scope.state.actions);
-					}
-				});
-			}
-			return changed;
-		}
+		};
 
 		$scope.savePolicy = function () {
-			var errorFn = function (resp) {
-					handleHttpError('Saving Policy', resp.data, resp.status);
-				};
-				
 			$scope.state.currentPolicy.actions = policyStore.serializeActions($scope.state.actions);
-			$scope.state.currentPolicy.$save().then(returnFn, errorFn);
+			$scope.state.currentPolicy.$save().then(returnFn, function (error) {
+				$scope.alerts.push({
+					type : 'error',
+					msg : 'An error occured while saving data (' + messages.getHttpErrorMessage(error) + ')'
+				});
+			});
 		};
 
 		$scope.confirmationAccept = function () {
@@ -260,7 +255,7 @@
 			}
 		});
 
-		updateStore();
+		$scope.doLoad();
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
@@ -301,7 +296,7 @@
 				$scope.constraintValidationMsg = 'Please enter a name for this constraint';
 				return;
 			}
-			
+
 			for (i = 0; i < conditions.length; i++) {
 				conditionType = $scope.conditionTypes[conditions[i].conditionTypeId];
 				if (conditionType === null || angular.isUndefined(conditionType)) {
@@ -319,7 +314,7 @@
 			delete condition.value;
 			delete condition.v;
 			delete condition.valueModifier;
-			
+
 			// This could be replaced with ng-init but the html is fairly verbose as it is
 			condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
 			switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
@@ -344,7 +339,7 @@
 
 		$scope.addCondition = function () {
 			var conditionType = $scope.conditionTypes['AgeInDays'];
-			
+
 			$scope.currentConstraint.conditions.push({
 				conditionTypeId: conditionType.id,
 				operator: conditionType.supportedOperators[0],
@@ -382,7 +377,7 @@
 										break;
 								}
 							}
-							
+
 							if (condition.conditionTypeId === "AgeInDays") {
 								if (condition.value >= 365 && condition.value % 365 === 0) {
 									condition.valueModifier = 365;
@@ -401,7 +396,7 @@
 					$timeout(fn, 100);
 				}
 			};
-			
+
 			fn();
 			$('#editConstraintModal').modal('show');
 		});
@@ -424,10 +419,11 @@
 				$scope.conditionTypes[type.id] = type;
 			});
 		}, function (error) {
+
 //			handleHttpError('Policy Initialization Error', error.data, error.status);
 		});
 	}]);
-	
+
 	module.directive('ieOptions', ['$parse', function($parse) {
 		return {
 			restrict: 'A',

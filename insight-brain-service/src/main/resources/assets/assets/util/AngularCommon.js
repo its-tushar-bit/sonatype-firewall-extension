@@ -350,7 +350,7 @@ var angularCommon;
 	/**
 	 * Provides a half width error box for an HTTP error with a reload button.  This is intended for errors loading data.
 	 */
-	angularCommon.directive('loadError', [function () {
+	angularCommon.directive('loadError', ['Messages', function (messages) {
 		return {
 			restrict : 'A',
 			priority : 99,
@@ -358,13 +358,54 @@ var angularCommon;
 			            '<p><span>An error occurred loading data. </span>' +
 			            '<span ng-switch on="error.status">' +
 			            '<span ng-switch-when="0">(Unable to reach CLM server)</span>' +
-			            '<span ng-switch-default>({{error.status}} - {{error.data}})</span>' +
+			            '<span ng-switch-default>({{getDetails()}})</span>' +
 			            '</span></p>' +
 			            '<p><button type="button" class="btn btn-danger" ng-click="reload()">Reload</button></p></div>',
 			scope : {
 				error : '=loadError',
 				reload : '&reload'
+			},
+			link : function ($scope) {
+				$scope.getDetails = function() {
+					return messages.getHttpErrorMessage($scope.error);
+				};
 			}
 		};
 	}]);
+
+	/**
+	 * Full width closeable bootstrap alerts built from an array
+	 */
+	angularCommon.directive('clmAlerts', [function () {
+		return {
+			restrict : 'A',
+			priority : 99,
+			template : '<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>',
+			scope : {
+				alerts : '=clmAlerts'
+			},
+			link : function ($scope) {
+				$scope.closeAlert = function (index) {
+					$scope.alerts.splice(index, 1);
+				};
+			}
+		};
+	}]);
+
+	angularCommon.service('Messages', function () {
+		return {
+			getHttpErrorMessage : function (args) {
+			    if (!args) {
+			    	return;
+			    }
+				if (angular.isArray(args)) {
+					args = {
+						status : args[1],
+						data : args[0]
+					};
+				}
+				return args.status === 0 ? 'Unable to reach CLM server' : args.status + ' - ' + args.data;
+			}
+		};
+	});
 }());

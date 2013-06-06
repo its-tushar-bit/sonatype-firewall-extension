@@ -36,19 +36,21 @@
 					me.isDirty = function () {
 						return angular.equals(me, original);
 					};
+
 					me.$updateOriginal = function (updated) {
 						original = updated;
 						angular.extend(me, original);
 					};
-					
+
 					me.$getOriginal = function() {
 						return angular.copy(original);
 					}
-					
+
+					/// Note - this function will not remove any properties not defined on the original object
 					me.$revert = function() {
 					    angular.extend(me,original);
 					}
-					
+
 					me.$clone = function() {
 					    return new Resource(original);
 					}

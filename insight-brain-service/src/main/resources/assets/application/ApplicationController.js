@@ -207,6 +207,29 @@
 				formReset();
 			}
 		};
+		
+		$scope.confirmDeleteApplication = function (application) {
+			$scope.selectedApplication = application;
+			$scope.deletedEnabled = true;
+			$('#deleteApplicationModal').modal('show');
+		};
+		
+		$scope.deleteApplication = function () {
+			$scope.deletedEnabled = false;
+			$http['delete'](CLMLocations.getApplicationUrl($scope.selectedApplication.publicId)).success(function () {
+				angular.forEach($scope.applications, function (applicationCandidate, key) {
+					if (applicationCandidate.id === $scope.selectedApplication.id) {
+						$scope.applications.splice(key, 1);
+						return false;
+					}
+				});
+				$('#deleteApplicationModal').modal('hide');
+				$state.transitionTo('management.application');
+			}).error(function () { 
+				$('#deleteApplicationModal').modal('hide');
+				$scope.alerts.push({ type: 'error', msg: rejection.data }); 
+			});
+		};
 
 		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
 		$scope.save = function () {

@@ -153,4 +153,11 @@ describe('ApplicationEditorController', function () {
 		
 		window.FormData = hasFormData;
 	}));
+
+	it('deletes an application', function () {
+		httpBackend.expectDELETE(clmLocations.getApplicationUrl(mockApplication.publicId)).respond({});
+
+		scope.confirmDeleteApplication(mockApplication);
+		scope.deleteApplication();
+	});
 });

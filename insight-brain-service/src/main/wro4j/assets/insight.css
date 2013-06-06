@@ -1,4 +1,5 @@
 /* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */
+
 .threat-level-0, .threat-level-0:hover, .threat-level option[value="10"] {
     border: 1px solid #6185B7;
     background-color: #6E99D0;

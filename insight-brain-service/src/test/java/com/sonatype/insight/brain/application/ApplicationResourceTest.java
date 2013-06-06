@@ -260,9 +260,11 @@ public class ApplicationResourceTest
         URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
         FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
 
-        RestAccess.put( getScanURL( applicationPublicId ), "" );
+        Response response = RestAccess.put( getScanURL( applicationPublicId ), "" );
 
-        Response response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+        assertResponseStatus( 200, response );
+
+        response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
         application = applicationDAO.getByPublicId( applicationPublicId );
 
         assertResponseStatus( 204, response );

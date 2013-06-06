@@ -272,6 +272,33 @@ public class ApplicationResourceTest
     }
 
     @Test
+    public void testDeleteNonExistingApplication()
+        throws Exception
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+
+        final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
+        final String applicationName = "testDeleteApplicationWithScanAppName";
+
+        Application application = new Application();
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
+
+        applicationDAO.insert( application );
+
+        Response response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+        application = applicationDAO.getByPublicId( applicationPublicId );
+
+        assertResponseStatus( 204, response );
+        Assert.assertNull( application );
+
+        response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+
+        assertResponseStatus( 404, response );
+        Assert.assertEquals( "Could not find an application with id " + applicationPublicId, response.getResponseBody() );
+    }
+
+    @Test
     public void testAddApplication_exceedsLicense()
         throws Exception
     {

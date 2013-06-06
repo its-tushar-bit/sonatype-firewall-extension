@@ -353,6 +353,12 @@ public class ApplicationResource
         throws IOException
     {
         Application application = applicationDAO.getByPublicId( applicationPublicId );
+
+        if ( application == null )
+        {
+            throw new NotFoundException( "Could not find an application with id " + applicationPublicId );
+        }
+
         applicationDAO.deleteWithIcon( application, work.getIconDir() );
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         policyDAO.deleteByOwnerId( application.getId() );

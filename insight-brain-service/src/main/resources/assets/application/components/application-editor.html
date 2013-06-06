@@ -23,15 +23,15 @@
    			</div>
 			<div inline-editor editor-value='selectedApplication.name' editor-large='true' editor-placeholder="Application Name"
 				force-edit="selectedApplication && selectedApplication.id == null" style='margin-bottom: 5px;'></div>
-			<span style='padding-left: 9px'>Application: </span>
+			<span style='padding-left: 9px'>Application</span>
 			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
 				<div ng-switch-when='null'>
 					<div inline-editor editor-value='selectedApplication.publicId' editor-placeholder=' Application ID'
 						force-edit="selectedApplication && selectedApplication.id == null"></div>
 				</div>
-				<span ng-switch-default>{{selectedApplication.publicId}}</span>
+				<span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
 			</div>
-			<span style='padding-left: 9px'>Organization</span>
+			<span>in</span>
 			<div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
 				<div ng-switch-when='null' class="btn-group">
 					<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
@@ -44,7 +44,7 @@
 						</li>
 					</ul>
 				</div>
-				<span ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
+				<span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
 			</div>
             <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>

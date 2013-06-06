@@ -1,6 +1,42 @@
+/**
+ * Basic/Universal Styles Editor
+ */
+ 
+@font-face {
+	font-family: ProximaNovaRegular;
+	src: url(../fonts/proximanova-reg-webfont.ttf);
+}
+@font-face {
+	font-family: ProximaNovaBold;
+	src: url(../fonts/proximanova-bold-webfont.ttf);
+}	
+@font-face {
+	font-family: ProximaNovaSemibold;
+	src: url(../fonts/ProximaNova-Sbold-webfont.ttf);
+}
+
+/**
+ * Basic/Universal Styles Editor
+ */
+
 body {
 	background: #f4f4f4;	
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+  	line-height: 20px;
+  	color: #333333;
 }
+
+a {
+	color: #2476C3;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: "ProximaNovaSemibold", "ProximaNovaRegular", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	text-shadow: 0px 1px 0px white;
+}
+
+
 
 .first-row i, .first-row img {
 	vertical-align: middle;
@@ -89,7 +125,7 @@ body {
 }
 
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
-	color: black;
+	color: #36424e;
 	text-shadow: none;
 }
 
@@ -97,11 +133,11 @@ body {
 	text-decoration: none;
 	background-color: transparent;
 	cursor: default;
-	color: #999999;
+	color: #36424e;
 }
 
 .navigation a {
-	/* color: white; */
+	color: #36424e;
 	text-shadow: none;
 }
 
@@ -110,6 +146,7 @@ body {
 }
 
 .subnavigation {
+	background: url(../img/margin-bg2.png);	
 	width: 150px;
 	margin-left: 119px;
 	background-color: rgba(255, 255, 255, 0.3);
@@ -121,10 +158,11 @@ body {
 	overflow: auto;
 }
 
-.subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus {
-	color: black;
-	text-shadow: none;
+.subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus,
+.nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
 	background-color: white;
+	color: #333;
+	text-shadow: none;
 }
 
 .subnavigation a {
@@ -205,27 +243,35 @@ body {
 
 .editorImage {
 	float: left;
-	margin-right: 20px;
+	margin-right: 15px;
 	text-align: center;
 }
 
 .editorImage img {
-	height: 96px; 
-	width: 96px;
+	height: 107px; 
+	width: 107px;
+	margin: 0;
+	border: 0;
+}
+
+.editorImage:hover .editImage {
+	display: block;
 }
 
 .editImage {
-    display: block;
+    display: none;
    	opacity: 0.99;
     filter: alpha(opacity=99);
    	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
+	margin: -28px 0 0;	
 }
 
 
 .editImage input {
 	display: block;
+	width: 107px;
 }
 
 .editorImage:hover .displayImage {
@@ -242,14 +288,14 @@ body {
  */
 .inlineEditor div {
 	display: inline-block;
-	padding: 7px 8px;
-	min-width: 210px;
+	padding: 4px;
+	/* min-width: 210px; */
 	cursor: text;
 	border : 1px solid transparent;
 }
 
 .inlineEditor div:hover {
-	background-color: #ffffff;
+	/* background-color: #ffffff; */
 	border: 1px solid #cccccc;
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
@@ -260,7 +306,7 @@ body {
 }
 
 .inlineEditor div:hover:after {
-	content: "\f044";
+	/* content: "\f044";
 	font-family: FontAwesome;
 	font-weight: normal;
 	font-style: normal;
@@ -269,25 +315,45 @@ body {
 	font-size: 2em;
 	padding-left: 10px;
 	vertical-align: middle;
-	float: right;
+	float: right; */
 }
 
 .inlineEditor input {
+	/*
 	height: 26px;
 	line-height: 26px;	
+	*/
 }
 
+.inlineEditor.large input,
 .inlineEditor.large span {
-	font-size: 25px;
-	font-weight: bold;
+	color: #444;
+	font-family: ProximaNovaSemibold;
+	font-size: 40px;
+	text-shadow: 0px 1px 0px white;
+	height: 42px;
+	line-height: 42px;
+	padding: 4px;
+	min-width: 300px;
 }
 
+	/* 
 .inlineEditor.large input {
 	font-size: 25px;
 	height: 30px;
 	line-height: 30px;
+	text-shadow: 0px 1px 0px white;	
 }
-
+	*/
+	
+	
+/**
+ * Details in app/org overview
+ */
+.appid, .orgname {	
+	font-weight: bold;
+}
+	
 /**
  * Triangular tabs used by app/org
  */
@@ -301,15 +367,19 @@ ul.tri-pane {
 	width : 100%;
 	margin: 0px;
 	list-style-type: none;
-	border-bottom: 1px solid black;
+	border-bottom: 1px solid #C6C6C6;
 }
 .tri-pane a {
-	color : inherit;
 	text-decoration: none;
 	padding: 8px 12px;
-	line-height : 20px;
 	display: block;
 	margin-right: 2px;
+	font-size: 13px;
+	font-weight: bold;
+	color: #36424e;
+	text-transform: uppercase;
+	line-height: 20px;
+	text-shadow: 0px 1px 0px white
 }
 .tri-pane li {
 	list-style-position: outside;
@@ -317,21 +387,22 @@ ul.tri-pane {
 	list-style-image: none;
 	float : left;
 	line-height: 3px;
-	margin-bottom: -1px;
+	margin: 0 15px -1px 35px
 }
 .tri-pane .active {
 }
 .tri-pane > .active:after {
 	content: "\f0d8";
 	font-family: FontAwesome;
+	color: #C6C6C6;
 	font-weight: normal;
 	font-style: normal;
 	text-decoration: inherit;
 	-webkit-font-smoothing: antialiased;
-	font-size: 2em;
+	font-size: 1.5em;
 	display: block;
 	text-align: center;
-	margin-top: -7px;
+	margin-top: -6px;
 }
 
 /**
@@ -401,7 +472,15 @@ ul.tri-pane {
 
 .add-section {
 	width: 100%;
-	background-color: #dddddd;
-	border-bottom: 1px solid #ccc;
-	padding:10px
+	background-color: #E8E8E8;
+	border-bottom: 1px solid #C6C6C6;
+	padding:10px 25px;
+}
+
+/**
+ * Detail View Header Area
+ * Can we grab something other than id to style? (TH)
+ */
+#applicationEditor {
+	margin: 0 0 60px 15px;
 }

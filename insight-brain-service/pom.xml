@@ -363,6 +363,13 @@
       <groupId>com.sonatype.licensing</groupId>
       <artifactId>license-bundle</artifactId>
       <version>${licensing.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- using no_aop version instead -->
+          <groupId>org.sonatype.sisu</groupId>
+          <artifactId>sisu-guice</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

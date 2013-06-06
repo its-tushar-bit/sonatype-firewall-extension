@@ -8,3 +8,4 @@ sonatype-work/
 dependency-reduced-pom.xml
 *.iml
 *.eml
+.DS_Store

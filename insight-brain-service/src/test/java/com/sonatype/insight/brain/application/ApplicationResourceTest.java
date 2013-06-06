@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -235,6 +236,39 @@ public class ApplicationResourceTest
                              iconResponse.getHeader( "Location" ) );
     }
     
+    @Test
+    public void testDeleteApplicationWithScan()
+        throws Exception
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+
+        final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
+        final String applicationName = "testDeleteApplicationWithScanAppName";
+
+        Application application = new Application();
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
+
+        applicationDAO.insert( application );
+
+        final String licenseFingerprint = "testDeleteApplicationWithScan_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasScanFile = getScanResponseFile( licenseFingerprint );
+        saasScanFile.delete();
+
+        URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
+        FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
+
+        RestAccess.put( getScanURL( applicationPublicId ), "" );
+
+        Response response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+        application = applicationDAO.getByPublicId( applicationPublicId );
+
+        assertResponseStatus( 204, response );
+        Assert.assertNull( application );
+    }
+
     @Test
     public void testAddApplication_exceedsLicense()
         throws Exception

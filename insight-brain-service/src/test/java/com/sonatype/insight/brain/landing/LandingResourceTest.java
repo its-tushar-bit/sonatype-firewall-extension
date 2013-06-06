@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.landing;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -32,24 +31,22 @@ public class LandingResourceTest
     }
 
     @Test
-    @Ignore
     public void testHome_RequestBaseUrl()
         throws Exception
     {
         Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
         assertResponseStatus( 303, response );
-        assertEquals( getRestBaseUrl() + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 )
+        assertEquals( getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring( 1 )
             + "index.html?x=y&a=b", response.getHeader( "Location" ) );
     }
 
     @Test
-    @Ignore
     public void testHome_ConfiguredBaseUrl()
         throws Exception
     {
         Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
         assertResponseStatus( 303, response );
-        assertEquals( "http://clm.sonatype.com/test/" + InsightBrainService.APPLICATION_ASSET_PATH.substring( 1 )
+        assertEquals( "http://clm.sonatype.com/test/" + InsightBrainService.BRAIN_ASSET_PATH.substring( 1 )
             + "index.html?x=y&a=b", response.getHeader( "Location" ) );
     }
 

@@ -6,50 +6,42 @@
 package com.sonatype.insight.brain.license;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import com.ning.http.client.Response;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
-public class LicenseThreatGroupResourceTest
+abstract class AbstractLicenseThreatGroupResourceTest
     extends AbstractResourceTest
 {
-    @Test
-    public void testDelete_ApplicationIdMismatch()
+    protected void testDelete_OwnerIdMismatch( String ownerPublicId1, String ownerId1, String ownerPublicId2,
+                                               String ownerId2 )
         throws Exception
     {
-        String appPublicId1 = "LicenseThreatGroupResourceTest_AppId1";
-        Application application1 = createApplication( appPublicId1 );
-        String appPublicId2 = "LicenseThreatGroupResourceTest_AppId2";
-        Application application2 = createApplication( appPublicId2 );
-
         LicenseThreatGroup group = new LicenseThreatGroup();
-        group.setOwnerId( application1.getId() );
+        group.setOwnerId( ownerId1 );
         group.setName( "AAA My group" );
         group.setThreatLevel( 4 );
-        Response response = RestAccess.post( getServiceURL( appPublicId1 ), JsonHelpers.asJson( group ) );
+        Response response = RestAccess.post( getServiceURL( ownerPublicId1 ), JsonHelpers.asJson( group ) );
         assertResponseStatus( 200, response );
         group = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup.class );
 
-        response = RestAccess.delete( getServiceURL( appPublicId2 ) + "/" + group.getId() );
+        response = RestAccess.delete( getServiceURL( ownerPublicId2 ) + "/" + group.getId() );
         assertResponseStatus( 404, response );
         Assert.assertEquals( "Cannot find a license threat group with id " + group.getId() + " for owner id "
-            + application2.getId(), response.getResponseBody() );
+            + ownerId2, response.getResponseBody() );
         // Verify that the group was not deleted
-        response = RestAccess.get( getServiceURL( appPublicId1 ) );
+        response = RestAccess.get( getServiceURL( ownerPublicId1 ) );
         assertResponseStatus( 200, response );
         LicenseThreatGroup[] groups = JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroup[].class );
         Assert.assertNotNull( groups );
         Assert.assertEquals( 1, groups.length );
-        assertLicenseThreatGroup( application1.getId(), "AAA My group", 4, groups[0] );
+        assertLicenseThreatGroup( ownerId1, "AAA My group", 4, groups[0] );
     }
 
-    private void testCRUD( String ownerPublicId, String ownerId )
+    protected void testCRUD( String ownerPublicId, String ownerId )
         throws Exception
     {
         // Get all groups
@@ -104,23 +96,6 @@ public class LicenseThreatGroupResourceTest
         Assert.assertEquals( initialLicenseThreatGroupCount, groups.length );
     }
 
-    @Test
-    public void testCRUD_Application()
-        throws Exception
-    {
-        String appPublicId = "LicenseThreatGroupResourceTest_AppId";
-        Application application = createApplication( appPublicId );
-        testCRUD( appPublicId, application.getId() );
-    }
-
-    @Test
-    public void testCRUD_Organization()
-        throws Exception
-    {
-        Organization organization = createOrganization( "testCRUD-Organization", true /* createLicenseThreatGroups */);
-        testCRUD( organization.getId(), organization.getId() );
-    }
-
     private void assertLicenseThreatGroup( String ownerId, String name, int threatLevel, LicenseThreatGroup actual )
     {
         Assert.assertEquals( ownerId, actual.getOwnerId() );
@@ -128,8 +103,12 @@ public class LicenseThreatGroupResourceTest
         Assert.assertEquals( threatLevel, actual.getThreatLevel() );
     }
 
-    private String getServiceURL( final String ownerId )
+    private String getServiceURL( String ownerId )
     {
-        return getRestBaseUrl() + LicenseThreatGroupResource.SERVICE_PATH.replace( "{ownerId}", ownerId );
+        return getRestBaseUrl()
+            + LicenseThreatGroupResource.SERVICE_PATH.replace( "{ownerType: application|organization}", getOwnerType() ).replace( "{ownerId}",
+                                                                                                                                  ownerId );
     }
+
+    protected abstract String getOwnerType();
 }

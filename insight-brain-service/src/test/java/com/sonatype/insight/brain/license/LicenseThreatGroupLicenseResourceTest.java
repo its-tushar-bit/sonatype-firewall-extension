@@ -24,7 +24,7 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
 {
-    private void testSetGet( String ownerPublicId, String ownerId )
+    private void testSetGet( String ownerType, String ownerPublicId, String ownerId )
         throws Exception
     {
         // Create an application and a group
@@ -36,7 +36,7 @@ public class LicenseThreatGroupLicenseResourceTest
         groupDAO.insert( group );
 
         // Get
-        Response response = RestAccess.get( getServiceURL( ownerPublicId, group.getId() ) );
+        Response response = RestAccess.get( getServiceURL( ownerType, ownerPublicId, group.getId() ) );
         assertResponseStatus( 200, response );
         LicenseThreatGroupLicense[] licenseThreatGroupLicenses =
             JsonHelpers.fromJson( response.getResponseBody(), LicenseThreatGroupLicense[].class );
@@ -47,7 +47,8 @@ public class LicenseThreatGroupLicenseResourceTest
         Set<String> licenseIds = new LinkedHashSet<String>();
         licenseIds.add( "GPL-2.0" );
         licenseIds.add( "Apache-2.0" );
-        response = RestAccess.put( getServiceURL( ownerPublicId, group.getId() ), JsonHelpers.asJson( licenseIds ) );
+        response =
+            RestAccess.put( getServiceURL( ownerType, ownerPublicId, group.getId() ), JsonHelpers.asJson( licenseIds ) );
         assertResponseStatus( 200, response );
 
         // Get
@@ -65,7 +66,7 @@ public class LicenseThreatGroupLicenseResourceTest
     {
         String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
         Application application = createApplication( appPublicId, false /* createLicenseThreatGroups */);
-        testSetGet( appPublicId, application.getId() );
+        testSetGet( "application", appPublicId, application.getId() );
     }
 
     @Test
@@ -74,7 +75,7 @@ public class LicenseThreatGroupLicenseResourceTest
     {
         Organization organization =
             createOrganization( "testSetGet-Organization", false /* createLicenseThreatGroups */);
-        testSetGet( organization.getId(), organization.getId() );
+        testSetGet( "organization", organization.getId(), organization.getId() );
     }
 
     private void assertLicenseThreatGroupLicense( String ownerId, String licenseThreatGroupId, String licenseId,
@@ -85,10 +86,11 @@ public class LicenseThreatGroupLicenseResourceTest
         Assert.assertEquals( licenseId, actual.getLicenseId() );
     }
 
-    private String getServiceURL( final String appId, String licenseThreatGroupId )
+    private String getServiceURL( String ownerType, String ownerId, String licenseThreatGroupId )
     {
         return getRestBaseUrl()
-            + LicenseThreatGroupLicenseResource.SERVICE_PATH.replace( "{ownerId}", appId ).replace( "{licenseThreatGroupId}",
-                                                                                                    licenseThreatGroupId );
+            + LicenseThreatGroupLicenseResource.SERVICE_PATH.replace( "{ownerType: application|organization}",
+                                                                      ownerType ).replace( "{ownerId}", ownerId ).replace( "{licenseThreatGroupId}",
+                                                                                                                           licenseThreatGroupId );
     }
 }

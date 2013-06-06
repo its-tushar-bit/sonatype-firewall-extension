@@ -19,8 +19,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -28,25 +28,30 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Path( LicenseThreatGroupResource.SERVICE_PATH )
 public class LicenseThreatGroupResource
 {
-    public static final String SERVICE_PATH = "rest/licenseThreatGroup/application/{ownerId}";
+    public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
 
     private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
-    private static String getInternalOwnerId( String ownerId )
+    private static String getInternalOwnerId( String ownerType, String ownerId )
     {
-        Application application = new ApplicationDAO().getByPublicId( ownerId );
-        if ( application != null )
+        if ( "application".equals( ownerType ) )
         {
-            return application.getId();
+            return new ApplicationDAO().getByPublicIdNotNull( ownerId ).getId();
         }
-        return ownerId;
+        else if ( "organization".equals( ownerType ) )
+        {
+            return new OrganizationDAO().getByIdNotNull( ownerId ).getId();
+        }
+
+        throw new IllegalStateException( "Unknown owner type: " + ownerType );
     }
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<LicenseThreatGroup> getLicenseThreatGroups( @PathParam( "ownerId" ) String ownerId )
+    public List<LicenseThreatGroup> getLicenseThreatGroups( @PathParam( "ownerType" ) String ownerType,
+                                                            @PathParam( "ownerId" ) String ownerId )
     {
-        ownerId = getInternalOwnerId( ownerId );
+        ownerId = getInternalOwnerId( ownerType, ownerId );
 
         return licenseThreatGroupDAO.getByOwnerId( ownerId );
     }
@@ -54,10 +59,11 @@ public class LicenseThreatGroupResource
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public LicenseThreatGroup addLicenseThreatGroup( @PathParam( "ownerId" ) String ownerId,
+    public LicenseThreatGroup addLicenseThreatGroup( @PathParam( "ownerType" ) String ownerType,
+                                                     @PathParam( "ownerId" ) String ownerId,
                                                      LicenseThreatGroup licenseThreatGroup )
     {
-        ownerId = getInternalOwnerId( ownerId );
+        ownerId = getInternalOwnerId( ownerType, ownerId );
 
         licenseThreatGroup.setId( null );
         licenseThreatGroup.setOwnerId( ownerId );
@@ -69,10 +75,11 @@ public class LicenseThreatGroupResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public LicenseThreatGroup updateLicenseThreatGroup( @PathParam( "ownerId" ) String ownerId,
+    public LicenseThreatGroup updateLicenseThreatGroup( @PathParam( "ownerType" ) String ownerType,
+                                                        @PathParam( "ownerId" ) String ownerId,
                                                         LicenseThreatGroup licenseThreatGroup )
     {
-        ownerId = getInternalOwnerId( ownerId );
+        ownerId = getInternalOwnerId( ownerType, ownerId );
 
         licenseThreatGroup.setOwnerId( ownerId );
         licenseThreatGroupDAO.update( licenseThreatGroup );
@@ -82,10 +89,11 @@ public class LicenseThreatGroupResource
 
     @DELETE
     @Path( "{licenseThreatGroupId}" )
-    public void deleteLicenseThreatGroup( @PathParam( "ownerId" ) String ownerId,
+    public void deleteLicenseThreatGroup( @PathParam( "ownerType" ) String ownerType,
+                                          @PathParam( "ownerId" ) String ownerId,
                                           @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
     {
-        ownerId = getInternalOwnerId( ownerId );
+        ownerId = getInternalOwnerId( ownerType, ownerId );
 
         LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getById( licenseThreatGroupId );
         if ( !ownerId.equals( licenseThreatGroup.getOwnerId() ) )

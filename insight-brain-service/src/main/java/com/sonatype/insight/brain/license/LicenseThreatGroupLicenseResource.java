@@ -25,14 +25,13 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 public class LicenseThreatGroupLicenseResource
 {
     public static final String SERVICE_PATH =
-        "rest/licenseThreatGroupLicense/application/{ownerId}/{licenseThreatGroupId}";
+        "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
 
     private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses( @PathParam( "ownerId" ) String ownerId,
-                                                                          @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
+    public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses( @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
     {
         return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );
     }
@@ -40,8 +39,7 @@ public class LicenseThreatGroupLicenseResource
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses( @PathParam( "ownerId" ) String ownerId,
-                                                                          @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId,
+    public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses( @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId,
                                                                           Set<String> licenseIds )
     {
         licenseThreatGroupLicenseDAO.setLicenses( licenseThreatGroupId, licenseIds );

@@ -171,6 +171,7 @@ describe('Resource', function () {
 			    headers : jasmine.any(Function),
 			    config : jasmine.any(Object)
 			});
+			expect(contents.length).toEqual(2);
 		}));
 
 		it('Delete New Object', inject(function (CLMResource, $httpBackend, $rootScope) {
@@ -194,6 +195,7 @@ describe('Resource', function () {
 			$rootScope.$digest();
 			expect(spy).toHaveBeenCalled();
 			expect(errorSpy).not.toHaveBeenCalled();
+			expect(contents.length).toEqual(2);
 		}));
 	});
 });

@@ -312,7 +312,15 @@
                     return l.id;
                 });
                 
-                licenseGroup.saveGroup(licenseIds).then(function() {
+                licenseGroup.saveGroup(licenseIds).then(function(licenseGroup) {
+                	for (var i = 0; i < $scope.licenseGroups.length; i++) {
+                		var licenseGroupIter = $scope.licenseGroups[i];
+                		if (licenseGroup.id === licenseGroupIter.id) {
+                			$scope.licenseGroups[i] = licenseGroup;
+                		}
+                	}
+                	
+                	$scope.licenseGroupEditor.editErrorResponse = null;
                 	$scope.$emit('license.cancelLicenseGroupEdit');
                 }, function(rejection) {
                 	onError(rejection.data, rejection.status, rejection.headers, rejection.config);
@@ -329,6 +337,7 @@
         };
 
 		$scope.cancelLicenseGroupEdit = function () {
+			$scope.licenseGroupEditor.editErrorResponse = null;
 			$scope.$emit('license.cancelLicenseGroupEdit');
 		};
 		$scope.$watch('selectedLabel', function (newValue) {

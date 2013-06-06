@@ -116,4 +116,84 @@ describe('Resource', function () {
 		expect(firstObj.data).toEqual(['foo']);
 		expect(firstObj.id).toEqual('bar');
 	}));
+
+	describe('Delete', function () {
+		it('Existing Object', inject(function (CLMResource, $httpBackend) {
+			var store = CLMResource.getStore({
+					id : 'id',
+					url : storeUrl,
+					template : { id : null }
+				}),
+				contents = null,
+				spy = jasmine.createSpy('spy'),
+				errorSpy = jasmine.createSpy('errorSpy');
+
+			$httpBackend.expectGET(storeUrl).respond([{ id : 'foo' }, { id : 'bar' }]);
+			store.get().then(function() {
+				contents = arguments[0];
+			});
+			$httpBackend.flush();
+
+			$httpBackend.expectDELETE(storeUrl + 'foo').respond({});
+			contents[0].$delete().then(spy, errorSpy);
+			$httpBackend.flush();
+			expect(spy).toHaveBeenCalled();
+			expect(errorSpy).not.toHaveBeenCalled();
+
+			expect(contents.length).toEqual(1);
+			expect(contents[0].id).toEqual('bar');
+		}));
+
+		it('Error', inject(function (CLMResource, $httpBackend) {
+			var store = CLMResource.getStore({
+					id : 'id',
+					url : storeUrl,
+					template : { id : null }
+				}),
+				contents = null,
+				spy = jasmine.createSpy('spy'),
+				errorSpy = jasmine.createSpy('errorSpy');
+
+			$httpBackend.expectGET(storeUrl).respond([{ id : 'foo' }, { id : 'bar' }]);
+			store.get().then(function() {
+				contents = arguments[0];
+			});
+			$httpBackend.flush();
+
+			$httpBackend.expectDELETE(storeUrl + 'foo').respond(500);
+			contents[0].$delete().then(spy, errorSpy);
+			$httpBackend.flush();
+
+			expect(spy).not.toHaveBeenCalled();
+			expect(errorSpy).toHaveBeenCalledWith({
+			    data : undefined,
+			    status : 500,
+			    headers : jasmine.any(Function),
+			    config : jasmine.any(Object)
+			});
+		}));
+
+		it('Delete New Object', inject(function (CLMResource, $httpBackend, $rootScope) {
+			var store = CLMResource.getStore({
+					id : 'id',
+					url : storeUrl,
+					template : { id : null }
+				}),
+				contents = null,
+				spy = jasmine.createSpy('spy'),
+				errorSpy = jasmine.createSpy('errorSpy');
+
+			$httpBackend.expectGET(storeUrl).respond([{ id : 'foo' }, { id : 'bar' }]);
+			store.get().then(function() {
+				contents = arguments[0];
+			});
+			$httpBackend.flush();
+
+			var o = store.create();
+			o.$delete().then(spy, errorSpy);
+			$rootScope.$digest();
+			expect(spy).toHaveBeenCalled();
+			expect(errorSpy).not.toHaveBeenCalled();
+		}));
+	});
 });

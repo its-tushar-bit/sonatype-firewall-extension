@@ -44,16 +44,16 @@
 
 					me.$getOriginal = function() {
 						return angular.copy(original);
-					}
+					};
 
 					/// Note - this function will not remove any properties not defined on the original object
 					me.$revert = function() {
 					    angular.extend(me,original);
-					}
+					};
 
 					me.$clone = function() {
 					    return new Resource(original);
-					}
+					};
 
 					me.$updateOriginal(originalObject);
 				}
@@ -104,8 +104,10 @@
 						id = this[config.id],
 						url = config.url.charAt(config.url.length - 1) === '/' ? config.url + id : config.url + '/' + id,
 						index = -1,
-						me = this,
-						removeFn = function () {
+						me = this;
+
+					if (id !== null && angular.isDefined(id)) {
+						$http['delete'](url, this, { params : config.params }).success(function () {
 							// remove from store
 							angular.forEach(store, function (candidate, candidateIndex) {
 								if (candidate[config.id] === id) {
@@ -115,15 +117,10 @@
 							if (index !== -1) {
 								store.splice(index, 1);
 							}
-						};
-
-					if (id !== null && angular.isDefined(id)) {
-						$http['delete'](url, this, { params : config.params }).success(function () {
-							removeFn();
 							deferred.resolve(true);
 						}).error(getErrorFn(deferred));
 					} else {
-						removeFn();
+						// new resources shouldn't be part of the store
 						deferred.resolve(true);
 					}
 					return deferred.promise;

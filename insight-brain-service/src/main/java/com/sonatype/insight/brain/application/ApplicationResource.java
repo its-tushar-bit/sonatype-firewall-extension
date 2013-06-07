@@ -353,12 +353,7 @@ public class ApplicationResource
     public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
-
-        if ( application == null )
-        {
-            throw new NotFoundException( "Could not find an application with id " + applicationPublicId );
-        }
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         policyDAO.deleteByOwnerId( application.getId() );

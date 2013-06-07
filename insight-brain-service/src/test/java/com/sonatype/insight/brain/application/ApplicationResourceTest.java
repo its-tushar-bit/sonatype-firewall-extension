@@ -315,7 +315,8 @@ public class ApplicationResourceTest
         response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
 
         assertResponseStatus( 404, response );
-        Assert.assertEquals( "Could not find an application with id " + applicationPublicId, response.getResponseBody() );
+        Assert.assertEquals( "Could not find an application with public id " + applicationPublicId + ".",
+                             response.getResponseBody() );
     }
 
     @Test

@@ -50,7 +50,7 @@ public class ApplicationDAO
         Application application = getById( id );
         if ( application == null )
         {
-            throw new NotFoundException( "Cannot find application with id " + id + "." );
+            throw new NotFoundException( "Could not find an application with id " + id + "." );
         }
         return application;
     }
@@ -86,7 +86,7 @@ public class ApplicationDAO
         Application application = getByPublicId( publicId );
         if ( application == null )
         {
-            throw new NotFoundException( "Cannot find application with public id " + publicId + "." );
+            throw new NotFoundException( "Could not find an application with public id " + publicId + "." );
         }
         return application;
     }

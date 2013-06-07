@@ -291,6 +291,7 @@ public class PolicyEvaluateResource
         model.put( "policyThreatRedCount", counts.red );
         model.put( "policyThreatOrangeCount", counts.orange );
         model.put( "policyThreatYellowCount", counts.yellow );
+        model.put( "policyThreatDarkBlueCount", counts.darkBlue );
         model.put( "policyThreatBlueCount", counts.blue );
         model.put( "actionTypes", ActionTypes.getAll() );
 
@@ -301,7 +302,7 @@ public class PolicyEvaluateResource
     {
         StringBuilder buffer = new StringBuilder( 128 );
         buffer.append( "Policy Alert: " );
-        int total = counts.red + counts.orange + counts.yellow + counts.blue;
+        int total = counts.red + counts.orange + counts.yellow + counts.darkBlue + counts.blue;
         int highest = 0;
         if ( counts.red > 0 )
         {
@@ -315,9 +316,9 @@ public class PolicyEvaluateResource
         {
             buffer.append( highest = counts.yellow ).append( " moderate" );
         }
-        else if ( counts.blue > 0 )
+        else if ( counts.blue > 0 || counts.darkBlue > 0 )
         {
-            buffer.append( highest = counts.blue ).append( " neutral" );
+            buffer.append( highest = counts.blue + counts.darkBlue ).append( " neutral" );
         }
         buffer.append( " violation" ).append( highest != 1 ? "s" : "" );
         buffer.append( " out of " ).append( total );
@@ -392,13 +393,15 @@ public class PolicyEvaluateResource
 
     static class MailPolicyAlertCounts
     {
-        public int red, orange, yellow, blue;
+        public int red, orange, yellow, darkBlue, blue;
 
-        public MailPolicyAlertCounts( final int red, final int orange, final int yellow, final int blue )
+        public MailPolicyAlertCounts( final int red, final int orange, final int yellow, final int darkBlue,
+                                      final int blue )
         {
             this.red = red;
             this.orange = orange;
             this.yellow = yellow;
+            this.darkBlue = darkBlue;
             this.blue = blue;
         }
 
@@ -417,9 +420,13 @@ public class PolicyEvaluateResource
                 {
                     orange += components;
                 }
-                else if ( level > 0 )
+                else if ( level > 1 )
                 {
                     yellow += components;
+                }
+                else if ( level == 1 )
+                {
+                    darkBlue += components;
                 }
                 else
                 {

@@ -18,6 +18,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -53,9 +54,14 @@ public class InsightWork
         return new File( insightConfig.getSonatypeWork(), "audit/" + appId );
     }
 
+    public File getReportDir( final String appId )
+    {
+        return new File( insightConfig.getSonatypeWork(), "report/" + appId );
+    }
+
     public File getReportDir( final String appId, final String scanId )
     {
-        return new File( insightConfig.getSonatypeWork(), "report/" + appId + '/' + scanId );
+        return new File( getReportDir( appId ), scanId );
     }
 
     public File getReportFile( final String appId, final String scanId )

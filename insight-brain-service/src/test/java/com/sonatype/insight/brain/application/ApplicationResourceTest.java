@@ -41,6 +41,8 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
@@ -237,10 +239,11 @@ public class ApplicationResourceTest
     }
     
     @Test
-    public void testDeleteApplicationWithScan()
+    public void testDeleteApplicationWithData()
         throws Exception
     {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
+        final ApplicationDAO applicationDAO = new ApplicationDAO();
+        final PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
 
         final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
         final String applicationName = "testDeleteApplicationWithScanAppName";
@@ -264,11 +267,28 @@ public class ApplicationResourceTest
 
         assertResponseStatus( 200, response );
 
+        final String applicationId = application.getId();
+
+        // TODO ideally, need to create these directories by calling into appropriate REST endpoints
+        final InsightConfig insightConfig = new InsightConfig();
+        insightConfig.setSonatypeWork( brain.getWorkDir().getAbsolutePath() );
+        final InsightWork insightWork = new InsightWork( insightConfig );
+        createDirectory( insightWork.getScanDir( applicationId ) );
+        createDirectory( insightWork.getAuditDir( applicationId ) );
+        createDirectory( insightWork.getReportDir( applicationId ) );
+        createDirectory( policyDAO.getPolicyDir( applicationId ) );
+        
         response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
         application = applicationDAO.getByPublicId( applicationPublicId );
 
         assertResponseStatus( 204, response );
         Assert.assertNull( application );
+
+        Assert.assertEquals( 0, policyDAO.getByOwnerId( applicationId ).size() );
+        Assert.assertFalse( insightWork.getScanDir( applicationId ).exists() );
+        Assert.assertFalse( insightWork.getAuditDir( applicationId ).exists() );
+        Assert.assertFalse( insightWork.getReportDir( applicationId ).exists() );
+        Assert.assertFalse( policyDAO.getPolicyDir( applicationId ).exists() );
     }
 
     @Test
@@ -408,6 +428,14 @@ public class ApplicationResourceTest
         Assert.assertEquals( applicationNames.toString(), 1, applicationNames.size() );
         Assert.assertTrue( applicationNames.containsKey( applicationPublicId ) );
         Assert.assertTrue( applicationNames.containsValue( applicationName ) );
+    }
+
+    private void createDirectory( File dir )
+    {
+        if ( !dir.isDirectory() )
+        {
+            Assert.assertTrue( "create directory " + dir.getAbsolutePath(), dir.mkdirs() );
+        }
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

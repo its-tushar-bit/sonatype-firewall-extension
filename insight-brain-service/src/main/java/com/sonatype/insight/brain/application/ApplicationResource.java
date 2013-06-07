@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.application;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,6 +35,7 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.http.HttpResponse;
+import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -359,9 +361,15 @@ public class ApplicationResource
             throw new NotFoundException( "Could not find an application with id " + applicationPublicId );
         }
 
-        applicationDAO.deleteWithIcon( application, work.getIconDir() );
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         policyDAO.deleteByOwnerId( application.getId() );
+        
+        FileUtils.deleteDirectory( work.getScanDir( application.getId() ) );
+        FileUtils.deleteDirectory( work.getAuditDir( application.getId() ) );
+        FileUtils.deleteDirectory( work.getReportDir( application.getId() ) );
+
+        // delete application last, this way the operation can be retried later if anything goes wrong
+        applicationDAO.deleteWithIcon( application, work.getIconDir() );
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( final Application application )

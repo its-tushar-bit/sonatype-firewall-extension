@@ -22,11 +22,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.application.ApplicationResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
 @Path( CIResource.SERVICE_PATH )
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.Build } )
@@ -66,12 +69,18 @@ public class CIResource
     @PUT
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response putScan( @PathParam( "applicationPublicId" )
-    final String applicationPublicId, @Context
-    HttpServletRequest req )
+    public ScanReceipt putScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                @Context HttpServletRequest req )
         throws IOException
     {
-        return Response.ok( uploader.upload( req, applicationPublicId, "rest/ci/scan" ) ).build();
+        final BOMCheckScanUploadResult result = uploader.upload( req, applicationPublicId, "rest/ci/scan" );
+
+        final ScanReceipt receipt = new ScanReceipt();
+        receipt.setScanId( result.getScanId() );
+        receipt.setTimeToReport( result.getTimeToReport() );
+        receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, result.getScanId() ) );
+
+        return receipt;
     }
 
     @GET

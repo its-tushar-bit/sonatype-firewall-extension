@@ -170,7 +170,10 @@ public final class Report
             {
                 final int level = row.path( "policyThreatLevel" ).asInt();
                 policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
-                policyComponentCount++;
+                if ( level >= 2 )
+                {
+                    policyComponentCount++;
+                }
             }
         }
 

@@ -57,6 +57,18 @@ public class PolicyEvaluateResourceTest
         return response;
     }
 
+    private Response updatePolicy( final String applicationPublicId, final Policy policy )
+        throws Exception
+    {
+        final Response response =
+            RestAccess.put( getRestBaseUrl()
+                                + PolicyResource.SERVICE_PATH.replace( "{policyOwnerId}", applicationPublicId ),
+                            JsonHelpers.asJson( policy ) );
+        assertResponseStatus( 200, response );
+
+        return response;
+    }
+
     @Test
     public void testEvaluate()
         throws Exception
@@ -155,6 +167,90 @@ public class PolicyEvaluateResourceTest
         // notification message should not have been sent since the results are the same
         Assert.assertTrue( messagesA.isEmpty() );
         Assert.assertTrue( messagesB.isEmpty() );
+    }
+
+    @Test
+    public void testPolicyThreatLevelCounts()
+        throws Exception
+    {
+        final String applicationPublicId = "PolicyThreatCountResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "PolicyThreatCountResourceTest_ScanId";
+        String licenseFingerprint = "PolicyThreatCountResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final Constraint constraint =
+            new Constraint( "C1", "PolicyThreatCountResourceTest constraint 1", LogicalOperator.AND );
+        final Condition condition = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        constraint.addCondition( condition );
+        Policy policy = new Policy( "P1", "PolicyThreatCountResourceTest policy1" );
+        policy.setThreatLevel( 1 );
+        policy.addConstraint( constraint );
+        Response addPolicyResponse = addPolicy( applicationPublicId, policy );
+        policy = JsonHelpers.fromJson( addPolicyResponse.getResponseBody(), Policy.class );
+
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        // The report file is not available yet
+        Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 404, response );
+
+        // Simulate that the report is available
+        final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+
+        // Threat Level 1 Should not show up in any counts
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+
+        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
+
+        policy.setThreatLevel( 2 );
+        updatePolicy( applicationPublicId, policy );
+
+        // Threat Level 2 should show up as moderate
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 7, policyEval.getModerateComponentCount() );
+
+        policy.setThreatLevel( 4 );
+        updatePolicy( applicationPublicId, policy );
+
+        // Threat Level 4 should show up as severe
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 7, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
+
+        policy.setThreatLevel( 8 );
+        updatePolicy( applicationPublicId, policy );
+
+        // Threat Level 8 should show up as severe
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 7, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
     }
 
     @Test

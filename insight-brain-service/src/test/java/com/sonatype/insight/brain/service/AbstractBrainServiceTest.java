@@ -269,7 +269,14 @@ public abstract class AbstractBrainServiceTest
         for ( Application application : applicationsToDelete )
         {
             cleanupApplication( application );
-            applicationDAO.delete( application );
+            if (application.getId() != null)
+            {
+                application = applicationDAO.getById( application.getId() );
+                if (application != null)
+                {
+                    applicationDAO.delete( application );
+                }
+            }
         }
         applicationsToDelete.clear();
     }

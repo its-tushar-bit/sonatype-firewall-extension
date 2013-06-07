@@ -55,7 +55,7 @@ public class ApplicationDAO
         return application;
     }
 
-    private Application getByPublicId( EntityManager em, String publicId )
+    public Application getByPublicId( EntityManager em, String publicId )
     {
         if ( publicId == null || publicId.trim().isEmpty() )
         {
@@ -91,7 +91,7 @@ public class ApplicationDAO
         return application;
     }
 
-    private Application getByName( EntityManager em, String name )
+    public Application getByName( EntityManager em, String name )
     {
         if ( name == null || name.trim().isEmpty() )
         {

@@ -58,6 +58,12 @@
 	color: #D4B718;
 }
 
+.cip-policy-darkblue {
+	background: url(../img/bg-score-ignore.png) repeat-y scroll 0 0
+		transparent;
+	color: #002966;
+}
+
 .cip-policy-blue {
 	background: url(img/bg-score-none.png) repeat-y scroll 0 0
 		transparent;

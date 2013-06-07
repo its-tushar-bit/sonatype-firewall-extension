@@ -63,7 +63,7 @@
 	                                artifactId : componentFact.artifactId,
 	                                version : componentFact.version,
 	                                hash : componentFact.hash,
-	                                color : tLvl > 7 ? 'red' : tLvl > 3 ? 'orange' : tLvl > 0 ? 'yellow' : 'blue',
+	                                color : tLvl > 7 ? 'red' : tLvl > 3 ? 'orange' : tLvl > 1 ? 'yellow' : tLvl > 0 ? 'darkblue' : 'blue',
 	                                constraints : componentFact.constraintFacts,
 	                                actions : actions
 	                            });

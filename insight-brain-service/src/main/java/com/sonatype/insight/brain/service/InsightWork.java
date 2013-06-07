@@ -18,7 +18,6 @@ import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;

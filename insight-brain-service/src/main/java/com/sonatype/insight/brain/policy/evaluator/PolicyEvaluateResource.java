@@ -181,7 +181,7 @@ public class PolicyEvaluateResource
             {
                 severeCount++;
             }
-            else if ( level >= 2 )
+            else if ( level >= 1 )
             {
                 moderateCount++;
             }

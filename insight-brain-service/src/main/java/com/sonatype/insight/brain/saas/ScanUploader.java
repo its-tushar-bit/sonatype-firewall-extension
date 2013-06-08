@@ -15,8 +15,10 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
@@ -39,7 +41,7 @@ public class ScanUploader
         this.work = work;
     }
 
-    protected BOMCheckScanUploadResult upload( HttpServletRequest request, String applicationPublicId, String path,
+    protected ScanReceipt upload( HttpServletRequest request, String applicationPublicId, String path,
                                                String... params )
         throws IOException
     {
@@ -63,15 +65,20 @@ public class ScanUploader
 
         request.setAttribute( SaasClient.UPLOAD_FILE_ATTRIBUTE, scanFile );
 
-        final BOMCheckScanUploadResult result = client.get( request, BOMCheckScanUploadResult.class, path, params );
+        final BOMCheckScanUploadResult uploadResult = client.get( request, BOMCheckScanUploadResult.class, path, params );
 
-        if ( StringUtils.isNotBlank( result.getScanId() ) )
+        if ( StringUtils.isNotBlank( uploadResult.getScanId() ) )
         {
-            FileUtils.rename( scanFile, new File( scanDir, "scan-" + result.getScanId() + ".xml.gz" ) );
+            FileUtils.rename( scanFile, new File( scanDir, "scan-" + uploadResult.getScanId() + ".xml.gz" ) );
         }
 
-        log.debug( "Successfully uploaded scan id {}", result.getScanId() );
+        log.debug( "Successfully uploaded scan id {}", uploadResult.getScanId() );
+        
+        final ScanReceipt receipt = new ScanReceipt();
+        receipt.setScanId( uploadResult.getScanId() );
+        receipt.setTimeToReport( uploadResult.getTimeToReport() );
+        receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, uploadResult.getScanId() ) );
 
-        return result;
+        return receipt;
     }
 }

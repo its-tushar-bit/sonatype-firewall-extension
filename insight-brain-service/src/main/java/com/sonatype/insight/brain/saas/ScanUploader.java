@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
 @Named
 @Singleton
@@ -65,19 +64,17 @@ public class ScanUploader
 
         request.setAttribute( SaasClient.UPLOAD_FILE_ATTRIBUTE, scanFile );
 
-        final BOMCheckScanUploadResult uploadResult = client.get( request, BOMCheckScanUploadResult.class, path, params );
+        final ScanReceipt receipt = client.get( request, ScanReceipt.class, path, params );
 
-        if ( StringUtils.isNotBlank( uploadResult.getScanId() ) )
+        if ( StringUtils.isNotBlank( receipt.getScanId() ) )
         {
-            FileUtils.rename( scanFile, new File( scanDir, "scan-" + uploadResult.getScanId() + ".xml.gz" ) );
+            FileUtils.rename( scanFile, new File( scanDir, "scan-" + receipt.getScanId() + ".xml.gz" ) );
         }
 
-        log.debug( "Successfully uploaded scan id {}", uploadResult.getScanId() );
-        
-        final ScanReceipt receipt = new ScanReceipt();
-        receipt.setScanId( uploadResult.getScanId() );
-        receipt.setTimeToReport( uploadResult.getTimeToReport() );
-        receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, uploadResult.getScanId() ) );
+        log.debug( "Successfully uploaded scan id {}", receipt.getScanId() );
+
+        // SaaS knows nothing about where CLM Server stores reports, add this info to the receipt.
+        receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, receipt.getScanId() ) );
 
         return receipt;
     }

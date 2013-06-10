@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -103,6 +104,7 @@ public class PolicyResourceTest
         List<Label> labels = labelDAO.getByApplicationId( application.getId() );
         Assert.assertEquals( 1, labels.size() );
         Assert.assertEquals( label.getLabel(), labels.get( 0 ).getLabel() );
+        Assert.assertEquals( label.getColor(), labels.get( 0 ).getColor() );
         List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( application.getId() );
         Assert.assertEquals( 1, licenseThreatGroups.size() );
         Assert.assertEquals( licenseThreatGroup.getName(), licenseThreatGroups.get( 0 ).getName() );
@@ -135,6 +137,7 @@ public class PolicyResourceTest
         labels = labelDAO.getByApplicationId( application.getId() );
         Assert.assertEquals( 1, labels.size() );
         Assert.assertEquals( label.getLabel(), labels.get( 0 ).getLabel() );
+        Assert.assertEquals( label.getColor(), labels.get( 0 ).getColor() );
         licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( application.getId() );
         Assert.assertEquals( 1, licenseThreatGroups.size() );
         Assert.assertEquals( licenseThreatGroup.getName(), licenseThreatGroups.get( 0 ).getName() );
@@ -200,6 +203,10 @@ public class PolicyResourceTest
         File exportFile = new File( policyExportResult.filename );
         Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
 
+        // Update one label - it should be reset by import
+        label1.setLabel( label1.getLabel().toUpperCase( Locale.ENGLISH ) );
+        label1.setColor( Color.black );
+        labelDAO.update( label1 );
         // Delete one label - it should be re-created by the import.
         labelDAO.delete( label2 );
         // Add a new label - it should be deleted by the import.
@@ -222,9 +229,11 @@ public class PolicyResourceTest
         List<Label> labels = labelDAO.getByApplicationId( application.getId() );
         Assert.assertEquals( 2, labels.size() );
         Assert.assertEquals( label1.getId(), labels.get( 0 ).getId() );
-        Assert.assertEquals( label1.getLabel(), labels.get( 0 ).getLabel() );
+        Assert.assertEquals( "label1", labels.get( 0 ).getLabel() );
+        Assert.assertEquals( Color.blue, labels.get( 0 ).getColor() );
         Assert.assertNotEquals( label2.getId(), labels.get( 1 ).getId() );
         Assert.assertEquals( label2.getLabel(), labels.get( 1 ).getLabel() );
+        Assert.assertEquals( label2.getColor(), labels.get( 1 ).getColor() );
         List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByApplicationId( application.getId() );
         Assert.assertEquals( 1, licenseThreatGroups.size() );
         Assert.assertEquals( licenseThreatGroup.getName(), licenseThreatGroups.get( 0 ).getName() );

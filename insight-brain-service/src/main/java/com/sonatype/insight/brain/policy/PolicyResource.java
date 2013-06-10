@@ -245,6 +245,9 @@ public class PolicyResource
                     if ( existingLabel != null )
                     {
                         oldLabels.remove( existingLabel );
+                        existingLabel.setLabel( label.getLabel() );
+                        existingLabel.setColor( label.getColor() );
+                        labelDAO.update( em, existingLabel );
                         idMap.put( oldId, oldId );
                     }
                     else

@@ -68,7 +68,7 @@ public class ValidationClientTest
         }
         catch ( IOException e )
         {
-            assertEquals( "Unknown host: bad.host", e.getMessage() );
+            assertTrue( e.getMessage().startsWith( "Unknown host: bad.host" ) );
         }
     }
 

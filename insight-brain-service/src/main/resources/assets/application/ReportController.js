@@ -22,7 +22,7 @@
                 }
             }
             $scope.application = data;
-            $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html?readonly=true';
+            $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html?readonly=false';
             $http.get(clmLocations.getActionStageUrl(), {
                 params: { timestamp: new Date().getTime() }
             }).success(function (stages) {

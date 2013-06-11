@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.policy.PolicyResource.ExportDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -80,16 +81,17 @@ public class PolicyResourceTest
         // Export
         response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
-        PolicyExportResult policyExportResult =
-            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
+        ExportDTO policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), ExportDTO.class );
         Assert.assertNotNull( policyExportResult );
-        Assert.assertNotNull( policyExportResult.filename );
-        File exportFile = new File( policyExportResult.filename );
-        Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
+        Assert.assertTrue( !policyExportResult.policies.isEmpty() );
+        Assert.assertTrue( !policyExportResult.labels.isEmpty() );
+        Assert.assertTrue( !policyExportResult.licenseThreatGroups.isEmpty() );
+        Assert.assertTrue( !policyExportResult.licenseThreatGroupLicenses.isEmpty() );
 
         // Import
         String newApplicationPublicId = applicationPublicId + "1";
-        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", exportFile );
+        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
@@ -123,7 +125,7 @@ public class PolicyResourceTest
 
         // Import again for a different application
         newApplicationPublicId = applicationPublicId + "2";
-        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", exportFile );
+        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         Assert.assertNotNull( policyImportResult );
@@ -152,8 +154,6 @@ public class PolicyResourceTest
         Assert.assertEquals( policy.getName(), policies[0].getName() );
         policyValidationResult = policies[0].validate( application.getId() );
         Assert.assertTrue( policyValidationResult.toMessageString(), policyValidationResult.isValid() );
-
-        exportFile.delete();
     }
 
     @Test
@@ -196,12 +196,13 @@ public class PolicyResourceTest
         // Export
         response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
-        PolicyExportResult policyExportResult =
-            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
+        ExportDTO policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), ExportDTO.class );
         Assert.assertNotNull( policyExportResult );
-        Assert.assertNotNull( policyExportResult.filename );
-        File exportFile = new File( policyExportResult.filename );
-        Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
+        Assert.assertTrue( !policyExportResult.policies.isEmpty() );
+        Assert.assertTrue( !policyExportResult.labels.isEmpty() );
+        Assert.assertTrue( !policyExportResult.licenseThreatGroups.isEmpty() );
+        Assert.assertTrue( !policyExportResult.licenseThreatGroupLicenses.isEmpty() );
 
         // Update one label - it should be reset by import
         label1.setLabel( label1.getLabel().toUpperCase( Locale.ENGLISH ) );
@@ -214,7 +215,7 @@ public class PolicyResourceTest
         labelDAO.insert( label3 );
 
         // Import
-        response = RestAccess.put( getServiceURL( applicationPublicId ) + "/import", exportFile );
+        response = RestAccess.put( getServiceURL( applicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
@@ -252,8 +253,6 @@ public class PolicyResourceTest
         Assert.assertNotEquals( policy.getId(), policies[0].getId() );
         ValidationResult policyValidationResult = policies[0].validate( application.getId() );
         Assert.assertTrue( policyValidationResult.toMessageString(), policyValidationResult.isValid() );
-
-        exportFile.delete();
     }
 
     @Test
@@ -268,15 +267,12 @@ public class PolicyResourceTest
         // Export
         Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
-        PolicyExportResult policyExportResult =
-            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
+        ExportDTO policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), ExportDTO.class );
         Assert.assertNotNull( policyExportResult );
-        Assert.assertNotNull( policyExportResult.filename );
-        File exportFile = new File( policyExportResult.filename );
-        Assert.assertTrue( exportFile.getAbsolutePath(), exportFile.exists() );
 
         // Import
-        response = RestAccess.put( getServiceURL( applicationPublicId + "1" ) + "/import", exportFile );
+        response = RestAccess.put( getServiceURL( applicationPublicId + "1" ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 402, response );
         Assert.assertEquals( "You have exceeded the licensed limit of 1 applications.", response.getResponseBody() );
     }

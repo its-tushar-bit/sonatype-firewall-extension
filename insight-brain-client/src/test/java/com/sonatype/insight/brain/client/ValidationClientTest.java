@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.client;
 
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -68,7 +70,7 @@ public class ValidationClientTest
         }
         catch ( IOException e )
         {
-            assertEquals( "Unknown host: bad.host", e.getMessage() );
+            assertThat( e.getMessage(), startsWith( "Unknown host: bad.host" ) );
         }
     }
 

@@ -62,7 +62,7 @@ public class ValidationClientTest
         throws Exception
     {
         Configuration config = brain.getClientConfiguration();
-        config.setServerUrl( "http://bad.host/" );
+        config.setServerUrl( "http://1234.bad.host.1234.com/" );
         try
         {
             new ValidationClient( config ).validateConfiguration();
@@ -70,7 +70,7 @@ public class ValidationClientTest
         }
         catch ( IOException e )
         {
-            assertThat( e.getMessage(), startsWith( "Unknown host: bad.host" ) );
+            assertThat( e.getMessage(), startsWith( "Unknown host: 1234.bad.host.1234.com" ) );
         }
     }
 
@@ -113,7 +113,7 @@ public class ValidationClientTest
         throws Exception
     {
         Configuration config = brain.getClientConfiguration();
-        config.setProxy( "bad.host" );
+        config.setProxy( "1234.bad.host.1234.com" );
         try
         {
             new ValidationClient( config ).validateConfiguration();
@@ -121,7 +121,7 @@ public class ValidationClientTest
         }
         catch ( IOException e )
         {
-            assertEquals( "Unknown host: bad.host", e.getMessage() );
+            assertEquals( "Unknown host: 1234.bad.host.1234.com", e.getMessage() );
         }
     }
 

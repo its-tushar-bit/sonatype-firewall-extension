@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.policy.PolicyResource.ExportDTO;
+import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -81,8 +81,8 @@ public class PolicyResourceTest
         // Export
         response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
-        ExportDTO policyExportResult =
-            JsonHelpers.fromJson( response.getResponseBody(), ExportDTO.class );
+        PolicyExportResult policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
         Assert.assertNotNull( policyExportResult );
         Assert.assertTrue( !policyExportResult.policies.isEmpty() );
         Assert.assertTrue( !policyExportResult.labels.isEmpty() );
@@ -196,8 +196,8 @@ public class PolicyResourceTest
         // Export
         response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
-        ExportDTO policyExportResult =
-            JsonHelpers.fromJson( response.getResponseBody(), ExportDTO.class );
+        PolicyExportResult policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
         Assert.assertNotNull( policyExportResult );
         Assert.assertTrue( !policyExportResult.policies.isEmpty() );
         Assert.assertTrue( !policyExportResult.labels.isEmpty() );
@@ -267,8 +267,8 @@ public class PolicyResourceTest
         // Export
         Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
-        ExportDTO policyExportResult =
-            JsonHelpers.fromJson( response.getResponseBody(), ExportDTO.class );
+        PolicyExportResult policyExportResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
         Assert.assertNotNull( policyExportResult );
 
         // Import

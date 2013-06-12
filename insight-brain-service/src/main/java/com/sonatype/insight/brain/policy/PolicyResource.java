@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.policy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,12 +133,12 @@ public class PolicyResource
     @GET
     @Path( "export" )
     @Produces( MediaType.APPLICATION_JSON )
-    public ExportDTO exportPolicies( @PathParam( "policyOwnerId" ) String policyOwnerId )
+    public PolicyExportResult exportPolicies( @PathParam( "policyOwnerId" ) String policyOwnerId )
         throws IOException
     {
         String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 
-        ExportDTO exportDTO = new ExportDTO();
+        PolicyExportResult exportDTO = new PolicyExportResult();
         exportDTO.policies = policyDAO().getByOwnerId( internalPolicyOwnerId );
         exportDTO.labels = new LabelDAO().getByApplicationId( internalPolicyOwnerId );
         exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByApplicationId( internalPolicyOwnerId );
@@ -178,7 +177,7 @@ public class PolicyResource
         {
             IOUtil.close( importInputStream );
         }
-        ExportDTO exportDTO = JsonUtils.parse( importBytes, ExportDTO.class );
+        PolicyExportResult exportDTO = JsonUtils.parse( importBytes, PolicyExportResult.class );
 
         Application application;
         ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -331,16 +330,5 @@ public class PolicyResource
     private PolicyDAO policyDAO()
     {
         return new PolicyDAO( work.getWorkDir() );
-    }
-    
-    public static class ExportDTO
-    {
-        public List<Policy> policies;
-
-        public List<Label> labels;
-
-        public List<LicenseThreatGroup> licenseThreatGroups;
-
-        public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
     }
 }

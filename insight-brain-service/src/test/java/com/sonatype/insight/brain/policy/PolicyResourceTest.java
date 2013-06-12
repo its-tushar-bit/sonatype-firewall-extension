@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -204,10 +203,10 @@ public class PolicyResourceTest
         Assert.assertTrue( !policyExportResult.licenseThreatGroups.isEmpty() );
         Assert.assertTrue( !policyExportResult.licenseThreatGroupLicenses.isEmpty() );
 
-        // Update one label - it should be reset by import
-        label1.setLabel( label1.getLabel().toUpperCase( Locale.ENGLISH ) );
-        label1.setColor( Color.black );
-        labelDAO.update( label1 );
+        // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
+        labelDAO.delete( label1 );
+        label1 = new Label( appId, label1.getLabel().toUpperCase( Locale.ENGLISH ), Color.black );
+        labelDAO.insert( label1 );
         // Delete one label - it should be re-created by the import.
         labelDAO.delete( label2 );
         // Add a new label - it should be deleted by the import.

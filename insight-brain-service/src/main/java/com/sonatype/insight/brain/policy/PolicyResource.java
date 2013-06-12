@@ -239,7 +239,7 @@ public class PolicyResource
                         existingLabel.setLabel( label.getLabel() );
                         existingLabel.setColor( label.getColor() );
                         labelDAO.update( em, existingLabel );
-                        idMap.put( oldId, oldId );
+                        idMap.put( oldId, existingLabel.getId() );
                     }
                     else
                     {

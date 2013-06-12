@@ -117,6 +117,41 @@ describe('Resource', function () {
 		expect(firstObj.id).toEqual('bar');
 	}));
 
+	it('isDirty', inject(function (CLMResource, $httpBackend) {
+		var store = CLMResource.getStore({
+				id : 'id',
+				url : storeUrl,
+				template : { data : [], id : null }
+			}),
+			data;
+
+		$httpBackend.expectGET(storeUrl).respond([{ id : 'foo', name : 'foo' }, { id : 'bar', name : 'bar' }]);
+		store.get().then(function () {
+			data = arguments[0];
+		});
+		$httpBackend.flush();
+
+		expect(data[0].isDirty()).toEqual(false);
+
+		// Add property
+		data[0].blah = true;
+		expect(data[0].isDirty()).toEqual(true);
+		delete(data[0].blah);
+		expect(data[0].isDirty()).toEqual(false);
+
+		// Update Property
+		data[0].name = 'foo2';
+		expect(data[0].isDirty()).toEqual(true);
+		data[0].name = 'foo';
+		expect(data[0].isDirty()).toEqual(false);
+
+		// Remove Property
+		delete data[0].name;
+		expect(data[0].isDirty()).toEqual(true);
+		data[0].name = 'foo';
+		expect(data[0].isDirty()).toEqual(false);
+	}));
+
 	describe('Delete', function () {
 		it('Existing Object', inject(function (CLMResource, $httpBackend) {
 			var store = CLMResource.getStore({

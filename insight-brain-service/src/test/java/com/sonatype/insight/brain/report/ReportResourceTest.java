@@ -10,11 +10,13 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -157,6 +159,54 @@ public class ReportResourceTest
             assertResponseStatus( 200, response );
             assertThat( response.getHeader( "Content-Disposition" ),
                         stringContainsInOrder( Arrays.asList( "attachment; filename=", "Test%20Project-8-", ".pdf" ) ) );
+        }
+        finally
+        {
+            Pdf.destroy();
+        }
+
+        // validate content type and check the actual content is really a PDF
+        assertThat( response.getContentType(), equalTo( "application/pdf" ) );
+        final Collection<?> mimeTypes = new MagicMimeMimeDetector().getMimeTypes( response.getResponseBodyAsStream() );
+        assertThat( mimeTypes, contains( (Object) new MimeType( "application/pdf" ) ) );
+    }
+
+    @Test
+    public void testPrintReport_AfterPreviousGenerationFailure()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        final String appId = createApplication( applicationPublicId ).getId();
+        final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        Response response;
+        try
+        {
+            response = RestAccess.get( resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8" );
+            assertResponseStatus( 200, response );
+
+            // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
+            File pdfFile =
+                new File( new File( new File( brain.getWorkDir(), "report/" + appId ), scanId ), "report.pdf" );
+            assertTrue( pdfFile.getPath(), pdfFile.isFile() );
+            new FileOutputStream( pdfFile ).close();
+
+            // printing again after fixing the mem setting should produce a proper PDF
+            response = RestAccess.get( resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8" );
+            assertResponseStatus( 200, response );
+            assertThat( response.getHeader( "Content-Disposition" ),
+                        stringContainsInOrder( Arrays.asList( "attachment; filename=", "Test%20Project-8-", ".pdf" ) ) );
+            assertThat( Long.parseLong( response.getHeader( "Content-Length" ) ), greaterThan( 0L ) );
         }
         finally
         {

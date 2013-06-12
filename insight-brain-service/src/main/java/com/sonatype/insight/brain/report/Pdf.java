@@ -69,7 +69,7 @@ final class Pdf
     {
         final File pdfFile = getPdfFile( reportFile );
 
-        if ( !pdfFile.isFile() )
+        if ( !pdfFile.isFile() || pdfFile.length() == 0 )
         {
             final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
             final File templateDir = setupTemplateDir( reportFile, cacheDir, projectName, buildNumber );

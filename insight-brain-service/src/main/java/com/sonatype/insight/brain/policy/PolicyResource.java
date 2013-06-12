@@ -134,7 +134,6 @@ public class PolicyResource
     @Path( "export" )
     @Produces( MediaType.APPLICATION_JSON )
     public PolicyExportResult exportPolicies( @PathParam( "policyOwnerId" ) String policyOwnerId )
-        throws IOException
     {
         String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 

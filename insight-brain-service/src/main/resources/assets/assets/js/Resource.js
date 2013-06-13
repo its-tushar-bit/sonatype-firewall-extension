@@ -41,8 +41,9 @@
 						angular.forEach(original, function (value, key) {
 							originalProperties.push(key);
 						});
+                        // Ignore methods we added, or that AngularJS has (prefixed with $$)
 						angular.forEach(this, function (value, key) {
-							if (objectMethods.indexOf(key) === -1) {
+							if (objectMethods.indexOf(key) === -1 && !(key.length >= 2 && key.substring(0,2) === '$$')) {
 								currentProperties.push(key);
 							}
 						});

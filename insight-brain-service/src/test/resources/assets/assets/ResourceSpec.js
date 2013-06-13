@@ -127,7 +127,7 @@ describe('Resource', function () {
                 template : { data : [], id : null }
             });
 
-            $httpBackend.expectGET(storeUrl).respond([{ id : 'foo', name : 'foo' }, { id : 'bar', name : 'bar' }]);
+            $httpBackend.expectGET(storeUrl).respond([{ id : 'foo', name : 'foo', arr : ['a','b'], obj : { id : 'bar', name : 'bar' } }]);
             store.get().then(function () {
                 data = arguments[0];
             });
@@ -190,6 +190,21 @@ describe('Resource', function () {
             expect(data[0].isDirty()).toEqual(true);
 
             data[0].name = 'foo';
+            expect(data[0].isDirty()).toEqual(false);
+        });
+
+        it('Array Property', function () {
+            data[0].arr.push('c');
+            expect(data[0].isDirty()).toEqual(true);
+            data[0].arr.pop()
+            expect(data[0].isDirty()).toEqual(false);
+        });
+
+        it('Object Property', function () {
+            // Add property
+            data[0].obj.blah = true;
+            expect(data[0].isDirty()).toEqual(true);
+            delete(data[0].obj.blah);
             expect(data[0].isDirty()).toEqual(false);
         });
     });

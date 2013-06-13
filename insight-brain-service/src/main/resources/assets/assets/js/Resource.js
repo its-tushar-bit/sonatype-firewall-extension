@@ -54,7 +54,11 @@
 						originalProperties.sort();
 						angular.forEach(currentProperties, function(property, index) {
 							if (originalProperties[index] === property) {
-								match = match && original[property] === me[property];
+								if (typeof original[property] === 'object' || typeof original[property] === 'array') {
+									match = match && angular.equals(original[property], me[property]);
+								} else {
+									match = match && original[property] === me[property];
+								}
 							} else {
 								match = false;
 							}
@@ -64,7 +68,7 @@
 
 					me.$updateOriginal = function (updated) {
 						original = updated;
-						angular.extend(me, original);
+						angular.extend(me, angular.copy(original));
 					};
 
 					me.$getOriginal = function() {

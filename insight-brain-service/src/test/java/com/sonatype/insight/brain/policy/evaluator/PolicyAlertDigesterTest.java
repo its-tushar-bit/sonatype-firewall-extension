@@ -458,7 +458,7 @@ public class PolicyAlertDigesterTest
 
     private static ComponentFact componentFact( final String groupId, final String artifactId, final String version )
     {
-        return new ComponentFact( groupId, artifactId, version, null /* hash */);
+        return new ComponentFact( groupId, artifactId, version, groupId + ':' + artifactId + ':' + version );
     }
 
     private static ConstraintFact constraintFact( final String id, final String name, final String operator )

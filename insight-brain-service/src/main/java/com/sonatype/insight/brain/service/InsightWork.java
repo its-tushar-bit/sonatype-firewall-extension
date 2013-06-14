@@ -73,6 +73,11 @@ public class InsightWork
         return new File( insightConfig.getSonatypeWork(), "data/application" );
     }
 
+    public File getDataDir()
+    {
+        return new File( insightConfig.getSonatypeWork(), "data" );
+    }
+
     public String findOwningAppId( final String scanId )
     {
         final File rootDir = new File( insightConfig.getSonatypeWork(), "report" );

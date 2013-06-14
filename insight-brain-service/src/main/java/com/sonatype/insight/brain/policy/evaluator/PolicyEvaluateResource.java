@@ -31,7 +31,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.micromailer.Address;
@@ -88,10 +87,14 @@ public class PolicyEvaluateResource
     
     private final ReportDownloader reportDownloader;
 
+    private final PolicyEvaluationUtils policyEvaluationUtils;
+
     @Inject
-    public PolicyEvaluateResource( final ReportDownloader reportDownloader )
+    public PolicyEvaluateResource( final ReportDownloader reportDownloader,
+                                   final PolicyEvaluationUtils policyEvaluationUtils )
     {
         this.reportDownloader = reportDownloader;
+        this.policyEvaluationUtils = policyEvaluationUtils;
     }
 
     @POST
@@ -132,7 +135,8 @@ public class PolicyEvaluateResource
 
         ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
 
-        final List<PolicyAlert> oldAlerts = findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
+        final List<PolicyAlert> oldAlerts =
+            policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
 
         @SuppressWarnings( "unchecked" )
         List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
@@ -148,84 +152,9 @@ public class PolicyEvaluateResource
 
         final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
         policyEvaluation.setAlerts( alerts );
-        calculateCounters( policyEvaluation );
+        policyEvaluationUtils.calculateCounters( policyEvaluation );
 
         return policyEvaluation;
-    }
-
-    private void calculateCounters( PolicyEvaluation policyEvaluation )
-    {
-        final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
-        for ( final PolicyAlert alert : policyEvaluation.getAlerts() )
-        {
-            final PolicyFact trigger = alert.getTrigger();
-            final int policyThreatLevel = trigger.getThreatLevel();
-            for ( final ComponentFact component : trigger.getComponentFacts() )
-            {
-                final String id = component.getComponentId();
-                final Integer level = componentThreatLevels.get( id );
-                if ( level == null || level < policyThreatLevel )
-                {
-                    componentThreatLevels.put( id, policyThreatLevel );
-                }
-            }
-        }
-        int criticalCount = 0, severeCount = 0, moderateCount = 0;
-        for ( final int level : componentThreatLevels.values() )
-        {
-            if ( level >= 8 )
-            {
-                criticalCount++;
-            }
-            else if ( level >= 4 )
-            {
-                severeCount++;
-            }
-            else if ( level >= 2 )
-            {
-                moderateCount++;
-            }
-        }
-
-        policyEvaluation.setAffectedComponentCount( componentThreatLevels.size() );
-        policyEvaluation.setCriticalComponentCount( criticalCount );
-        policyEvaluation.setSevereComponentCount( severeCount );
-        policyEvaluation.setModerateComponentCount( moderateCount );
-    }
-
-    protected List<PolicyAlert> findOldPolicyAlerts( final String applicationPublicId, String appId,
-                                                     final String scanId, final Stage stage )
-        throws IOException
-    {
-        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
-
-        // retrieve last known scanId for stage
-        com.sonatype.insight.brain.model.policy.PolicyEvaluation last = evalLog.last( stage.getStageTypeId() );
-        final String oldScanId = ( last != null ) ? last.getScanId() : null;
-
-        // add new entry in the rolling log (TODO: populate invoker's details)
-        evalLog.add( stage, scanId, "anonymous", "127.0.0.1" );
-
-        if ( !StringUtils.isBlank( oldScanId ) )
-        {
-            try
-            {
-                final File reportFile =
-                    ReportResource.fetchReport( reportDownloader, work, appId, oldScanId,
-                                                true );
-                final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
-                if ( reportEntry != null )
-                {
-                    return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );
-                }
-            }
-            catch ( final Exception e )
-            {
-                // don't abort sending notifications if old results are corrupt, just means full digest will be sent
-                log.warn( "Cannot load previous results for app id {}, scan id {}", applicationPublicId, scanId, e );
-            }
-        }
-        return Collections.emptyList();
     }
 
     private static ObjectNode analyzeThreats( final List<PolicyAlert> policyAlerts )

@@ -13,11 +13,11 @@
         $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-            var stageId = decodeURIComponent($routeParams.encodedStageId),
-                i;
-            for (i = 0; i < data.policyEvaluations.length; i++) {
-                if (data.policyEvaluations[i].stage.stageTypeId === stageId) {
-                    $scope.policyEvaluation = data.policyEvaluations[i];
+            var stageId = decodeURIComponent($routeParams.encodedStageId);
+            for (var scanId in data.policyEvaluations) {
+            	var policyEvaluation = data.policyEvaluations[scanId];
+                if (policyEvaluation.stage.stageTypeId === stageId) {
+                    $scope.policyEvaluation = policyEvaluation;
                     break;
                 }
             }

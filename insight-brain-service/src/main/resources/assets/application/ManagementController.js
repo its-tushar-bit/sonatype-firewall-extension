@@ -86,6 +86,15 @@
 				$('#deleteApplicationModal').modal('hide');
 			}).error(function () { $scope.$broadcast('showServerError', arguments); });
 		};
+		
+		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
+			var stage = policyEvaluation.stage;
+			hudson.post(clmLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
+				policyEvaluation.time = new Date();
+			}).error(function () { 
+				$scope.$broadcast('serverAlert', arguments); 
+			});
+		};
 
 		$scope.clearSyncEditError = function () {
 			$scope.syncErrorResponse = null;

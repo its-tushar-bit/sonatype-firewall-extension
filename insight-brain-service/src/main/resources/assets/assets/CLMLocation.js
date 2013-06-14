@@ -73,6 +73,10 @@
 			getLicenseUploadUrl: function() {
 				// TODO $.browser is deprecated
 				return this.getBaseUrl() + '/rest/product/license'+ ($.browser.msie ? '?isIE=true' : '');
+			},
+
+			evaluatePolicyUrl: function(applicationId, scanId) {
+				return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
 			}
 		};
 	}]).factory('CLMAppLocations', ['ApplicationId', function (appId) {

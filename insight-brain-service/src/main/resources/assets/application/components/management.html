@@ -46,10 +46,25 @@
                     </a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
-                    <a ng-show='policyEvaluation.stage.stageTypeId == stage.id'
-                       ng-repeat='policyEvaluation in application.policyEvaluations'
-                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-                        {{policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
+                    <div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
+                    	<img src='../assets/img/glyphicons_263_bank.png' />
+                    	<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
+                   		<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
+                   		<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
+            			<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
+                   	</div>
+                	<div>
+	                    <a ng-show='stageTypeId == stage.id'
+	                       ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
+	                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+	                        {{policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
+                    </div>
+                    <div>
+	                    <a ng-show='stageTypeId == stage.id'
+	                    	ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
+	                    	ng-click='reEvaluatePolicy(application, policyEvaluation)'>
+	                    	Reevaluate Policy</a>
+                   	</div>
                 </td>
                 <td style="vertical-align: middle; text-align:center;">
                     <button ng-click='editApplication(application);' class='btn btn-mini btn-edit hover-vis'

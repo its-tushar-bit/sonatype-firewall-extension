@@ -78,17 +78,23 @@ public class ApplicationResource
 
     private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    @Context
-    private InsightWork work;
+    private final InsightWork work;
 
-    @Context
-    private BaseUrl baseUrl;
+    private final BaseUrl baseUrl;
     
-    @Inject
-    private CLMLicenseManager licenseManager;
+    private final CLMLicenseManager licenseManager;
+
+    private final SaasClient client;
 
     @Inject
-    private SaasClient client;
+    public ApplicationResource( final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
+                                final SaasClient client )
+    {
+        this.work = work;
+        this.baseUrl = baseUrl;
+        this.licenseManager = licenseManager;
+        this.client = client;
+    }
 
     private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
 

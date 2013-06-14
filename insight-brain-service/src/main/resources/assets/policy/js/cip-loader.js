@@ -22,7 +22,7 @@
 	}
 
     var head = $('head'),
-        scripts = [ 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js' ],
+        scripts = [ 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js', 'policy-assets/js/cip-claim-component.js' ],
         styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css' ];
 
 	if (!window.angular) {

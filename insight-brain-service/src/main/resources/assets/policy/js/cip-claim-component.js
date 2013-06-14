@@ -1,0 +1,103 @@
+/**
+ * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*global angular, $, window, CLM, setTimeout */
+(function () {
+    'use strict';
+
+    function doLoad() {
+        $.extend(true, window, {
+            'Insight' : {
+                'ClaimComponent' : function (node, applicationId, hash) {
+                    var timestamp = (new Date()).getTime(),
+                        container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-claim-component.html\'"></div>');
+                    node.empty();
+                    container.appendTo(node);
+
+                    angular.module('claimComponent' + timestamp, []);
+                    angular.bootstrap(container[0], ['ClaimComponent', 'claimComponent' + timestamp]);
+                }
+            }
+        });
+
+        function locate(needle, haystack, haystackProperty) {
+            var result = null;
+            angular.forEach(haystack, function (candidate, key) {
+                if (candidate !== null && needle === candidate[haystackProperty]) {
+                    result = candidate;
+                    return false;
+                }
+            });
+            return result;
+        }
+
+        var claimApp = angular.module('ClaimComponent', []);
+
+        claimApp.controller('ClaimComponentController', ['$http', '$scope', function ($http, $scope) {
+        }]);
+    }
+
+    function check() {
+        if (window.angular) {
+            doLoad();
+        } else {
+            setTimeout(check, 100);
+        }
+    }
+
+    setTimeout(check, 0);
+}());
+
+
+/* add claim component tab as an information panel plugin */
+(function () {
+    "use strict";
+
+    function ClaimComponentTab(node, options) {
+        this.node = node;
+        this.options = options;
+    }
+    
+    ClaimComponentTab.prototype = new Insight.InformationPanelPlugin();
+
+    ClaimComponentTab.prototype.isVisible = function () {
+        return !((freemium && !this.options.sampleData) || this.gav.matchState !== 'exact');
+    };
+
+    ClaimComponentTab.prototype.create = function () {
+        var timestamp = (new Date()).getTime(),
+            container = $('<div id="claim-component-' + timestamp + '"></div>'),
+            me = this,
+            retry = function () {
+                if (Insight.ClaimComponent) {
+                    Insight.ClaimComponent(container, applicationId, me.gav.hash);
+                } else {
+                    setTimeout(retry, 1000);
+                }
+            };
+        this.node.empty();
+        container.appendTo(this.node);
+
+        retry();
+    };
+
+    ClaimComponentTab.prototype.destroy = function () {
+        this.node.empty();
+    };
+
+    ClaimComponentTab.prototype.getTitle = function () {
+        return 'Claim Component';
+    };
+    
+    function check() {
+        if (Insight.InformationPanelPlugins) {
+            Insight.InformationPanelPlugins.push(ClaimComponentTab);
+        } else {
+            setTimeout(check, 100);
+        }
+    }
+
+    setTimeout(check, 0);
+}());

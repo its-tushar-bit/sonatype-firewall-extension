@@ -1,9 +1,7 @@
 package com.sonatype.insight.brain.model;
 
 import java.util.Collections;
-import java.util.List;
-
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import java.util.Map;
 
 public class ApplicationManagementSummary
 {
@@ -13,7 +11,9 @@ public class ApplicationManagementSummary
 
     private String name;
 
-    private List<PolicyEvaluation> policyEvaluations;
+    private Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations;
+
+    private Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> policyEvaluationsResults;
 
     public String getId()
     {
@@ -45,14 +45,26 @@ public class ApplicationManagementSummary
         this.name = name;
     }
 
-    public List<PolicyEvaluation> getPolicyEvaluations()
+    public Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> getPolicyEvaluations()
     {
-        return ( policyEvaluations != null ) ? policyEvaluations : Collections.<PolicyEvaluation>emptyList();
+        return ( policyEvaluations != null ) ? policyEvaluations
+                        : Collections.<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> emptyMap();
     }
 
-    public void setPolicyEvaluations( List<PolicyEvaluation> policyEvaluations )
+    public void setPolicyEvaluations( Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations )
     {
         this.policyEvaluations = policyEvaluations;
+    }
+
+    public Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> getPolicyEvaluationsResults()
+    {
+        return ( policyEvaluationsResults != null ) ? policyEvaluationsResults
+                        : Collections.<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> emptyMap();
+    }
+
+    public void setPolicyEvaluationsResults( Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> policyEvaluationsResults )
+    {
+        this.policyEvaluationsResults = policyEvaluationsResults;
     }
 
     public static ApplicationManagementSummary fromApplication( Application application )

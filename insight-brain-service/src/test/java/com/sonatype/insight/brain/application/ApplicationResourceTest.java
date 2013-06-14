@@ -383,14 +383,35 @@ public class ApplicationResourceTest
         Assert.assertEquals( Arrays.asList( applications ).toString(), 1, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
         Assert.assertEquals( application.getName(), applications[0].getName() );
-        Assert.assertNotNull( applications[0].getPolicyEvaluations() );
-        Assert.assertEquals( 2, applications[0].getPolicyEvaluations().size() );
-        Assert.assertEquals( Stage.ID_BUILD,
-                             applications[0].getPolicyEvaluations().get( 0 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( 0 ).getScanId() );
-        Assert.assertEquals( Stage.ID_RELEASE,
-                             applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
+        
+        Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations = applications[0].getPolicyEvaluations();
+        String[] stageTypeIds = policyEvaluations.keySet().toArray( new String[0] );
+        
+        Assert.assertNotNull( policyEvaluations );
+        Assert.assertEquals( 2, policyEvaluations.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( Stage.ID_BUILD, policyEvaluations.get( stageTypeIds[0] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId2, policyEvaluations.get( stageTypeIds[0] ).getScanId() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( Stage.ID_RELEASE, policyEvaluations.get( stageTypeIds[1] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId1, policyEvaluations.get( stageTypeIds[1] ).getScanId() );
+
+        Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> policyEvaluationsResults =
+            applications[0].getPolicyEvaluationsResults();
+        stageTypeIds = policyEvaluationsResults.keySet().toArray( new String[0] );
+
+        Assert.assertNotNull( policyEvaluationsResults );
+        Assert.assertEquals( 2, policyEvaluationsResults.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getSevereComponentCount() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getSevereComponentCount() );
 
         // Test GetApplication
         response = RestAccess.get( getApplicationServiceUrl( applicationPublicId ) );
@@ -401,14 +422,34 @@ public class ApplicationResourceTest
         Assert.assertNotNull( applicationSummary );
         Assert.assertEquals( application.getId(), applicationSummary.getId() );
         Assert.assertEquals( application.getName(), applicationSummary.getName() );
-        Assert.assertNotNull( applications[0].getPolicyEvaluations() );
-        Assert.assertEquals( 2, applications[0].getPolicyEvaluations().size() );
-        Assert.assertEquals( Stage.ID_BUILD,
-                             applications[0].getPolicyEvaluations().get( 0 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( 0 ).getScanId() );
-        Assert.assertEquals( Stage.ID_RELEASE,
-                             applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
+
+        policyEvaluations = applications[0].getPolicyEvaluations();
+        stageTypeIds = policyEvaluations.keySet().toArray( new String[0] );
+
+        Assert.assertNotNull( policyEvaluations );
+        Assert.assertEquals( 2, policyEvaluations.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( Stage.ID_BUILD, policyEvaluations.get( stageTypeIds[0] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( stageTypeIds[0] ).getScanId() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( Stage.ID_RELEASE, policyEvaluations.get( stageTypeIds[1] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( stageTypeIds[1] ).getScanId() );
+
+        policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
+        stageTypeIds = policyEvaluationsResults.keySet().toArray( new String[0] );
+
+        Assert.assertNotNull( policyEvaluationsResults );
+        Assert.assertEquals( 2, policyEvaluationsResults.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getSevereComponentCount() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getSevereComponentCount() );
     }
 
     @Test

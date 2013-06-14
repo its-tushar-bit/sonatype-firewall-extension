@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +39,14 @@ import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -86,14 +91,17 @@ public class ApplicationResource
 
     private final SaasClient client;
 
+    private final PolicyEvaluationUtils policyEvaluationUtils;
+
     @Inject
     public ApplicationResource( final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
-                                final SaasClient client )
+                                final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils )
     {
         this.work = work;
         this.baseUrl = baseUrl;
         this.licenseManager = licenseManager;
         this.client = client;
+        this.policyEvaluationUtils = policyEvaluationUtils;
     }
 
     private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
@@ -375,11 +383,36 @@ public class ApplicationResource
     private ApplicationManagementSummary getApplicationManagementSummary( final Application application )
         throws IOException
     {
-        log.debug( "Found application with public id {}", application.getPublicId() );
+        final String applicationPublicId = application.getPublicId();
+        final String applicationId = application.getId();
+        log.debug( "Found application with public id {}", applicationPublicId );
 
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
-        applicationManagement.setPolicyEvaluations( work.getMostRecentPolicyEvaluations( application.getId() ) );
+
+        final List<com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluationList =
+            work.getMostRecentPolicyEvaluations( application.getId() );
+        Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations =
+            new HashMap<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation>();
+        Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> policyEvaluationResults =
+            new HashMap<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation>();
+        for ( PolicyEvaluation policyEvaluation : policyEvaluationList )
+        {
+            final Stage stage = policyEvaluation.getStage();
+            policyEvaluations.put( stage.getStageTypeId(), policyEvaluation );
+
+            List<PolicyAlert> alerts =
+                policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, applicationId,
+                                                           policyEvaluation.getScanId(), stage );
+            final com.sonatype.clm.dto.model.policy.PolicyEvaluation policyEvaluationResult =
+                new com.sonatype.clm.dto.model.policy.PolicyEvaluation();
+            policyEvaluationResult.setAlerts( alerts );
+            policyEvaluationUtils.calculateCounters( policyEvaluationResult );
+            policyEvaluationResults.put( stage.getStageTypeId(), policyEvaluationResult );
+        }
+
+        applicationManagement.setPolicyEvaluations( policyEvaluations );
+        applicationManagement.setPolicyEvaluationsResults( policyEvaluationResults );
 
         return applicationManagement;
     }

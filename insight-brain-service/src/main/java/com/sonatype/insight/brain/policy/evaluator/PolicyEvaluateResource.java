@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -97,7 +97,8 @@ public class PolicyEvaluateResource
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public PolicyEvaluation evaluate( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+    public PolicyEvaluationResult evaluate( @PathParam( "applicationPublicId" )
+    final String applicationPublicId,
                                       @QueryParam( "scanId" ) final String scanId, final Stage stage,
                                       @HeaderParam( "user-agent" ) final String userAgent )
         throws IOException
@@ -146,14 +147,14 @@ public class PolicyEvaluateResource
             sendNotifications( applicationPublicId, appId, scanId, stage, digest );
         }
 
-        final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+        final PolicyEvaluationResult policyEvaluation = new PolicyEvaluationResult();
         policyEvaluation.setAlerts( alerts );
         calculateCounters( policyEvaluation );
 
         return policyEvaluation;
     }
 
-    private void calculateCounters( PolicyEvaluation policyEvaluation )
+    private void calculateCounters( PolicyEvaluationResult policyEvaluation )
     {
         final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
         for ( final PolicyAlert alert : policyEvaluation.getAlerts() )

@@ -12,7 +12,7 @@ import java.util.Map;
 import org.apache.http.client.HttpResponseException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ScanClient;
@@ -163,7 +163,7 @@ public class RestClientFactory
         }
 
         @Override
-        public PolicyEvaluation evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
+        public PolicyEvaluationResult evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
             throws IOException
         {
             if ( stage == null )

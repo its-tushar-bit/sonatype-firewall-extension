@@ -7,9 +7,23 @@
     color: #DDD;
 }
 
+<<<<<<< HEAD
 .threat-level-1, .threat-level-2, .threat-level-3, .threat-level-1:hover, .threat-level-2:hover, .threat-level-3:hover, .threat-level option[value="7"], .threat-level option[value="8"], .threat-level option[value="9"] {
     border: 1px solid #D2A429;
     background-color: #F5C649;
+=======
+
+.threat-level-1, .threat-level-1:hover, .threat-level option[value="9"] {
+	border: 1px solid #002966;
+    background-color: #0047B2;
+    font-weight: bold;
+    color: #DDD;
+}
+
+.threat-level-2, .threat-level-3, .threat-level-2:hover, .threat-level-3:hover, .threat-level option[value="7"], .threat-level option[value="8"] {
+    border: 1px solid #DDBE18;
+    background-color: #FEDF15;
+>>>>>>> 430e9298e981ac2c0e9731b33568ed7f9e09ab88
     font-weight: bold;
     color: #555;
 }

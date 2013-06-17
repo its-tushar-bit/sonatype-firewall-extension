@@ -1,2 +1,55 @@
 <div ng-controller="ClaimComponentController" style='padding:5px' class='claimComponent'>
+	<div style='display:inline-block;margin-left:10px;margin-bottom:10px;box-sizing:border-box;-moz-box-sizing:border-box;width:100%' class='well'>
+		<table style='border-spacing:0;border-collapse:collapse;width:100%'>
+			<tr>
+				<td style='vertical-align:top;width:50%;'>
+					<div class='form-horizontal'>
+						<div class='control-group' style='margin-bottom:2px;'>
+							<label class='control-label'>Group ID</label>
+			                <div class='controls'>
+			            		<input class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' />
+			            	</div>
+			            </div>
+			            <div class='control-group' style='margin-bottom:2px;'>
+							<label class='control-label'>Artifact ID</label>
+			            	<div class='controls'>
+			            		<input class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' />
+			            	</div>
+			            </div>
+			            <div class='control-group' style='margin-bottom:2px;'>
+							<label class='control-label'>Version</label>
+			            	<div class='controls'>
+			            		<input class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...' />
+			                </div>
+			            </div>
+			            <div class='control-group' style='margin-bottom:2px;'>
+							<label class='control-label'>Classifier</label>
+			            	<div class='controls'>
+			            		<input class='input-xlarge' type='text' ng-model='claimData.classifier' placeholder='Enter classifier...' />
+			                </div>
+			            </div>
+			            <div class='control-group' style='margin-bottom:2px;'>
+							<label class='control-label'>Extension</label>
+			            	<div class='controls'>
+			            		<input class='input-xlarge' type='text' ng-model='claimData.extension' placeholder='Enter extension...' />
+			                </div>
+			            </div>
+					</div>
+				</td>
+				<td style='vertical-align:top;width:50%;'>
+					<div class='form-horizontal'>
+						<div class='control-group'>
+							<label class='control-label'>Comment</label>
+			            	<div class='controls'>
+			            		<textarea class='input-xlarge' ng-model='claimData.comment' style='height:86px;padding:0px;margin-bottom:0px;' placeholder='Enter comment...'></textarea>
+			            	</div>
+			            </div>
+		            </div>
+				</td>
+			</tr>
+		</table>
+		<div class='controls' style='text-align:right'>
+			<button type='none' class='btn btn-primary' ng-disabled='!formValid()' ng-click='claimClick()'>Claim</button>
+		</div>
+	</div>
 </div>

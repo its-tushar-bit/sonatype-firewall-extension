@@ -21,21 +21,29 @@
                 }
             }
         });
-
-        function locate(needle, haystack, haystackProperty) {
-            var result = null;
-            angular.forEach(haystack, function (candidate, key) {
-                if (candidate !== null && needle === candidate[haystackProperty]) {
-                    result = candidate;
-                    return false;
-                }
-            });
-            return result;
-        }
-
+        
         var claimApp = angular.module('ClaimComponent', []);
 
         claimApp.controller('ClaimComponentController', ['$http', '$scope', function ($http, $scope) {
+            $scope.claimData = {};
+            
+            $scope.claimClick = function() {
+                
+            };
+            
+            $scope.formValid = function() {
+                var data = $scope.claimData;
+                if (!data.groupId) {
+                    return false;
+                } else if (!data.artifactId) {
+                    return false;
+                } else if (!data.version) {
+                    return false;
+                } else if (!data.comment) {
+                    return false;
+                }
+                return true;
+            }
         }]);
     }
 

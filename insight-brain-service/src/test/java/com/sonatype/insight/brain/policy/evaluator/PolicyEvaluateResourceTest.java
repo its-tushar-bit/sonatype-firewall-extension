@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -126,7 +126,7 @@ public class PolicyEvaluateResourceTest
         // evaluate policy
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        PolicyEvaluationResult policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
         Assert.assertEquals( 7, policyEval.getCriticalComponentCount() );
@@ -157,7 +157,7 @@ public class PolicyEvaluateResourceTest
         // evaluate policy again
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         policyAlerts = policyEval.getAlerts();
         Assert.assertNotNull( policyAlerts );
@@ -206,7 +206,7 @@ public class PolicyEvaluateResourceTest
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
 
-        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        PolicyEvaluationResult policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
         Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
@@ -219,7 +219,7 @@ public class PolicyEvaluateResourceTest
         // Threat Level 2 should show up as moderate
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
         Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
@@ -232,7 +232,7 @@ public class PolicyEvaluateResourceTest
         // Threat Level 4 should show up as severe
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
         Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
@@ -245,7 +245,7 @@ public class PolicyEvaluateResourceTest
         // Threat Level 8 should show up as severe
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         Assert.assertEquals( 7, policyEval.getAffectedComponentCount() );
         Assert.assertEquals( 7, policyEval.getCriticalComponentCount() );
@@ -291,7 +291,8 @@ public class PolicyEvaluateResourceTest
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
         response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        PolicyEvaluationResult policyEval =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         Assert.assertNotNull( policyEval );
         Assert.assertEquals( 3, policyEval.getAffectedComponentCount() );
         Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
@@ -363,7 +364,8 @@ public class PolicyEvaluateResourceTest
 
         Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
-        PolicyEvaluation policyEval = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluation.class );
+        PolicyEvaluationResult policyEval =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
         List<PolicyAlert> policyAlerts = policyEval.getAlerts();
         Map<String, Object> model =
             PolicyEvaluateResource.createPolicyMailModel( serverUrl, cdnUrl, applicationPublicId, scanId, stage,

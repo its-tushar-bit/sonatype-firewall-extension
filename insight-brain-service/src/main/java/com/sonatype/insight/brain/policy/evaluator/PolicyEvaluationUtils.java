@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.report.Report;
@@ -43,7 +43,7 @@ public class PolicyEvaluationUtils
         this.reportDownloader = reportDownloader;
     }
 
-    public void calculateCounters( PolicyEvaluation policyEvaluation )
+    public void calculateCounters( PolicyEvaluationResult policyEvaluation )
     {
         final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
         for ( final PolicyAlert alert : policyEvaluation.getAlerts() )

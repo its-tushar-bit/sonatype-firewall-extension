@@ -13,11 +13,11 @@ import org.apache.http.client.HttpResponseException;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ScanClient;
-import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
@@ -178,7 +178,7 @@ public class RestClientFactory
         }
 
         @Override
-        public PolicyEvaluation evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
+        public PolicyEvaluationResult evaluatePolicies( com.sonatype.insight.rm.rest.Stage stage )
             throws IOException
         {
             if ( stage == null )

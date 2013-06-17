@@ -28,6 +28,7 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -396,8 +397,7 @@ public class ApplicationResourceTest
         Assert.assertEquals( Stage.ID_RELEASE, policyEvaluations.get( stageTypeIds[1] ).getStage().getStageTypeId() );
         Assert.assertEquals( scanId1, policyEvaluations.get( stageTypeIds[1] ).getScanId() );
 
-        Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> policyEvaluationsResults =
-            applications[0].getPolicyEvaluationsResults();
+        Map<String, PolicyEvaluationResult> policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
         stageTypeIds = policyEvaluationsResults.keySet().toArray( new String[0] );
 
         Assert.assertNotNull( policyEvaluationsResults );

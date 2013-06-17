@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -390,12 +391,10 @@ public class ApplicationResource
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
 
-        final List<com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluationList =
+        final List<PolicyEvaluation> policyEvaluationList =
             work.getMostRecentPolicyEvaluations( application.getId() );
-        Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations =
-            new HashMap<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation>();
-        Map<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation> policyEvaluationResults =
-            new HashMap<String, com.sonatype.clm.dto.model.policy.PolicyEvaluation>();
+        Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
+        Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
         for ( PolicyEvaluation policyEvaluation : policyEvaluationList )
         {
             final Stage stage = policyEvaluation.getStage();
@@ -404,8 +403,7 @@ public class ApplicationResource
             List<PolicyAlert> alerts =
                 policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, applicationId,
                                                            policyEvaluation.getScanId(), stage );
-            final com.sonatype.clm.dto.model.policy.PolicyEvaluation policyEvaluationResult =
-                new com.sonatype.clm.dto.model.policy.PolicyEvaluation();
+            final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
             policyEvaluationResult.setAlerts( alerts );
             policyEvaluationUtils.calculateCounters( policyEvaluationResult );
 

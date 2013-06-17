@@ -11,7 +11,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 
 public interface RestClient
 {
@@ -48,7 +48,7 @@ public interface RestClient
     interface Scan
     {
 
-        PolicyEvaluation evaluatePolicies( Stage stage )
+        PolicyEvaluationResult evaluatePolicies( Stage stage )
             throws IOException;
 
     }

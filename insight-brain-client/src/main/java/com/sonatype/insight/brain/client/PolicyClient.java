@@ -17,7 +17,7 @@ import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.ClientException;
@@ -62,7 +62,7 @@ public class PolicyClient
         return super.handle( path, query );
     }
 
-    public PolicyEvaluation evaluate( final String scanId, final Stage stage )
+    public PolicyEvaluationResult evaluate( final String scanId, final Stage stage )
         throws IOException
     {
         final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ) );
@@ -77,7 +77,7 @@ public class PolicyClient
         final String jsonResult = httpResult.text();
         try
         {
-            return JsonUtils.parse( jsonResult, PolicyEvaluation.class );
+            return JsonUtils.parse( jsonResult, PolicyEvaluationResult.class );
         }
         catch ( final IOException e )
         {

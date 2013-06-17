@@ -406,8 +406,12 @@ public class ApplicationResource
                                                            policyEvaluation.getScanId(), stage );
             final com.sonatype.clm.dto.model.policy.PolicyEvaluation policyEvaluationResult =
                 new com.sonatype.clm.dto.model.policy.PolicyEvaluation();
-            // policyEvaluationResult.setAlerts( alerts );
+            policyEvaluationResult.setAlerts( alerts );
             policyEvaluationUtils.calculateCounters( policyEvaluationResult );
+
+            // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
+            policyEvaluationResult.setAlerts( null );
+
             policyEvaluationResults.put( stage.getStageTypeId(), policyEvaluationResult );
         }
 

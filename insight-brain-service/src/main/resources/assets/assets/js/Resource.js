@@ -20,6 +20,7 @@
 	}
 
 	module.service('CLMResource', ['$q', '$http', 'hudson', '$parse', function ($q, $http, hudson, $parse) {
+		var objectMethods = ['isDirty', '$updateOriginal', '$getOriginal', '$revert', '$clone'];
 		return {
 			'getStore' : function (config) {
 				var store = [],
@@ -34,12 +35,40 @@
 					var me = this;
 
 					me.isDirty = function () {
-						return angular.equals(me, original);
+						var currentProperties = [],
+							originalProperties = [],
+							match = true;
+						angular.forEach(original, function (value, key) {
+							originalProperties.push(key);
+						});
+                        // Ignore methods we added, or that AngularJS has (prefixed with $$)
+						angular.forEach(this, function (value, key) {
+							if (objectMethods.indexOf(key) === -1 && !(key.length >= 2 && key.substring(0,2) === '$$')) {
+								currentProperties.push(key);
+							}
+						});
+						if (currentProperties.length !== originalProperties.length) {
+							return true;
+						}
+						currentProperties.sort();
+						originalProperties.sort();
+						angular.forEach(currentProperties, function(property, index) {
+							if (originalProperties[index] === property) {
+								if (typeof original[property] === 'object' || typeof original[property] === 'array') {
+									match = match && angular.equals(original[property], me[property]);
+								} else {
+									match = match && original[property] === me[property];
+								}
+							} else {
+								match = false;
+							}
+						});
+						return !match;
 					};
 
 					me.$updateOriginal = function (updated) {
 						original = updated;
-						angular.extend(me, original);
+						angular.extend(me, angular.copy(original));
 					};
 
 					me.$getOriginal = function() {

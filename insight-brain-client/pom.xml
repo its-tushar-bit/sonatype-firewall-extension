@@ -32,10 +32,6 @@
       <artifactId>insight-client-utils</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-scanner-upload</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
     </dependency>

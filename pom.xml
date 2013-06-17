@@ -220,12 +220,6 @@
         <groupId>com.sonatype.insight.scan</groupId>
         <artifactId>insight-scanner-archive</artifactId>
         <version>${insight-scanner.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.scan</groupId>

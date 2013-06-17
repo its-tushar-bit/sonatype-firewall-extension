@@ -14,10 +14,9 @@
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
             var stageId = decodeURIComponent($routeParams.encodedStageId);
-            for (var scanId in data.policyEvaluations) {
-            	var policyEvaluation = data.policyEvaluations[scanId];
-                if (policyEvaluation.stage.stageTypeId === stageId) {
-                    $scope.policyEvaluation = policyEvaluation;
+            for (var stageTypeId in data.policyEvaluations) {
+                if (stageTypeId === stageId) {
+                    $scope.policyEvaluation = data.policyEvaluations[stageTypeId];
                     break;
                 }
             }

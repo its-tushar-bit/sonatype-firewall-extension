@@ -42,3 +42,16 @@
     padding: 10px;
     font-weight: bold;
 }
+
+@-webkit-keyframes rotate { 
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+.rotate-infinite {
+    -webkit-animation: rotate 2s linear infinite;
+}

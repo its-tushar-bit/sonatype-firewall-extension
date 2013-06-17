@@ -88,12 +88,23 @@
 		};
 		
 		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
-			var stage = policyEvaluation.stage;
-			hudson.post(clmLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
-				policyEvaluation.time = new Date();
-			}).error(function () { 
-				$scope.$broadcast('serverAlert', arguments); 
-			});
+			if (!$scope.reEvaluatingPolicy) {
+				$scope.reEvaluatingPolicy = true;
+				var stage = policyEvaluation.stage;
+				hudson.post(clmLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
+					policyEvaluation.time = new Date();
+					for (var stageTypeId in application.policyEvaluationsResults) {
+		                if (stageTypeId === stage.stageTypeId) {
+		                	application.policyEvaluationsResults[stageTypeId] = data;
+		                    break;
+		                }
+		            }
+					$scope.reEvaluatingPolicy = false;
+				}).error(function () {
+					$scope.reEvaluatingPolicy = false;
+					$scope.$broadcast('serverAlert', arguments); 
+				});
+			}
 		};
 
 		$scope.clearSyncEditError = function () {

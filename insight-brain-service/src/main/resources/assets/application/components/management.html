@@ -54,17 +54,15 @@
             			<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
                    	</div>
                 	<div>
-	                    <a ng-show='stageTypeId == stage.id'
+	                    <a ng-show='stageTypeId == stage.id' style='vertical-align: middle;'
 	                       ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
 	                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
 	                        {{policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
-                    </div>
-                    <div>
-	                    <a ng-show='stageTypeId == stage.id'
+                    	<a ng-show='stageTypeId == stage.id'
 	                    	ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
 	                    	ng-click='reEvaluatePolicy(application, policyEvaluation)'>
-	                    	Reevaluate Policy</a>
-                   	</div>
+	                    	<img ng-class="{ 'rotate-infinite' : reEvaluatingPolicy }" src='../assets/img/refresh.png' /></a>
+                    </div>
                 </td>
                 <td style="vertical-align: middle; text-align:center;">
                     <button ng-click='editApplication(application);' class='btn btn-mini btn-edit hover-vis'

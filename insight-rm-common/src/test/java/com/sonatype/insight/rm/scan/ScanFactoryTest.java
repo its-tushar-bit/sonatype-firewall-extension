@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.Repository;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
@@ -24,24 +25,25 @@ import com.sonatype.insight.scan.model.ScanItemProvider;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.DefaultScanReader;
 
-public class DefaultScannerTest
+public class ScanFactoryTest
 {
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private ScannerConfiguration newConfig()
+    private ScanConfiguration newConfig()
         throws Exception
     {
-        ScannerConfiguration config = new ScannerConfiguration();
+        ScanConfiguration config = new ScanConfiguration();
         config.setWorkDir( tmpDir.newFolder() );
         config.setRepository( "staging-001", "maven2", "CLM 1.0" );
         return config;
     }
 
-    private Scanner newScanner( ScannerConfiguration config )
+    private File newScan( ScanConfiguration config )
+        throws Exception
     {
-        return new ScannerFactory().forConfiguration( config );
+        return new ScanFactory().forConfiguration( config );
     }
 
     private Scan parse( File scanFile )
@@ -93,9 +95,9 @@ public class DefaultScannerTest
     public void testScan_AllRelevantComponentsCoveredByBuildTool()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/a" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/a" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -110,9 +112,9 @@ public class DefaultScannerTest
     public void testScan_SomeModuleOutputsNotCoveredByCorrespondingBuildToolScan()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/b" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/b" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -128,9 +130,9 @@ public class DefaultScannerTest
     public void testScan_SomeModuleOutputsDeletedSinceBuildToolScan()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/c" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/c" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -145,9 +147,9 @@ public class DefaultScannerTest
     public void testScan_AllModuleOutputsFromOriginalBuildToolScanGoneButNewOutputsStaged()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/d" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/d" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -162,9 +164,9 @@ public class DefaultScannerTest
     public void testScan_AllModuleOutputsFromOriginalBuildToolScanGone()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/e" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/e" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -177,9 +179,9 @@ public class DefaultScannerTest
     public void testScan_MultipleBuildToolScans()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/f" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/f" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -196,9 +198,9 @@ public class DefaultScannerTest
     public void testScan_NoBuildToolScans()
         throws Exception
     {
-        Scanner scanner = newScanner( newConfig() );
-        TestRepositoryItem.add( scanner, new File( "src/test/repos/g" ) );
-        File scanFile = scanner.scan();
+        ScanConfiguration config = newConfig();
+        TestRepositoryItem.add( config, new File( "src/test/repos/g" ) );
+        File scanFile = newScan( config );
         assertNotNull( scanFile );
         assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
         Scan scan = parse( scanFile );
@@ -215,6 +217,42 @@ public class DefaultScannerTest
         assertNotNull( item.getSha1JC001() );
         assertNotNull( item.getSha1JD001() );
         assertSummary( 2, 2, scan.getSummary() );
+    }
+
+    @Test
+    public void testScan_Proprietary()
+        throws Exception
+    {
+        ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+        proprietaryConfig.setPackages( Arrays.asList( "com.sonatype", "org.sonatype" ) );
+        ScanConfiguration config = newConfig();
+        config.setProprietaryConfig( proprietaryConfig );
+        TestRepositoryItem.add( config, new File( "src/test/repos/h" ) );
+        File scanFile = newScan( config );
+        assertNotNull( scanFile );
+        assertTrue( scanFile.getAbsolutePath(), scanFile.isFile() );
+        Scan scan = parse( scanFile );
+        assertRepository( scan.getRepository() );
+        assertIds( scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:jar:1.1" );
+        ScanItem projectItem = scan.getItems().get( 0 ).getItems().get( 0 );
+        assertEquals( "target/mod-a-1.0.jar", projectItem.getPath() );
+        assertPaths( projectItem, "META-INF/MANIFEST.MF", "null" );
+        for ( ScanItem item : projectItem.getItems() )
+        {
+            if ( !"META-INF/MANIFEST.MF".equals( item.getPath() ) )
+            {
+                assertEquals( null, item.getPath() );
+                assertEquals( "proprietaryPackages", item.getNoPathReason() );
+            }
+        }
+        ScanItem repoItem = scan.getItems().get( 1 );
+        assertEquals( "com/sonatype/clm/its/mod-a/1.1/mod-a-1.1.jar", repoItem.getPath() );
+        for ( ScanItem item : repoItem.getItems() )
+        {
+            assertEquals( null, item.getPath() );
+            assertEquals( "proprietaryPackages", item.getNoPathReason() );
+        }
+        assertSummary( 2, 5, scan.getSummary() );
     }
 
 }

@@ -55,12 +55,12 @@ public class TestRepositoryItem
         return super.getFile();
     }
 
-    public static void add( Scanner scanner, File basedir )
+    public static void add( ScanConfiguration config, File basedir )
     {
-        add( scanner, basedir, "", basedir.listFiles() );
+        add( config, basedir, "", basedir.listFiles() );
     }
 
-    private static void add( Scanner scanner, File basedir, String prefix, File[] children )
+    private static void add( ScanConfiguration config, File basedir, String prefix, File[] children )
     {
         if ( children != null )
         {
@@ -72,10 +72,10 @@ public class TestRepositoryItem
                     Coords coords = toCoords( path );
                     if ( coords != null )
                     {
-                        scanner.add( new TestRepositoryItem( basedir, path, coords ) );
+                        config.addItem( new TestRepositoryItem( basedir, path, coords ) );
                     }
                 }
-                add( scanner, basedir, prefix + child.getName() + '/', child.listFiles() );
+                add( config, basedir, prefix + child.getName() + '/', child.listFiles() );
             }
         }
     }

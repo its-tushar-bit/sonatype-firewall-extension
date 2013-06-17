@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.http.client.HttpResponseException;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -75,6 +76,20 @@ public class RestClientFactory
             try
             {
                 return newConfigurationClient( config ).getApplicationIdNameMap();
+            }
+            catch ( IOException e )
+            {
+                throw handleError( e );
+            }
+        }
+
+        @Override
+        public ProprietaryConfig getProprietaryConfiguration()
+            throws IOException
+        {
+            try
+            {
+                return newConfigurationClient( config ).getProprietaryConfiguration();
             }
             catch ( IOException e )
             {

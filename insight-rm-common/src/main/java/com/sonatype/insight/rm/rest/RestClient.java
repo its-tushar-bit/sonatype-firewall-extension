@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 
@@ -22,6 +23,9 @@ public interface RestClient
             throws IOException;
 
         Map<String, String> getApplications()
+            throws IOException;
+
+        ProprietaryConfig getProprietaryConfiguration()
             throws IOException;
 
         App forApplication( String appId );

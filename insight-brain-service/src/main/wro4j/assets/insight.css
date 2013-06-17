@@ -39,6 +39,7 @@
 	display:inline-block;
 	width:25px;
 	text-align:center;
+	vertical-align: middle;
 	border-radius:5px;
 	-moz-border-radius:5px;
 }
@@ -113,6 +114,10 @@ input[type="file"] {
 	width: 14px;
 	height: 14px;
 	display: inline-block;
+}
+
+.no-hover-underline:hover {
+	text-decoration: none;
 }
 
 .navbar .brand {

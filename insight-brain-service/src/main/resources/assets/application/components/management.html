@@ -42,27 +42,25 @@
                     <a href='../policy-assets/index.html?appId={{encodeURIComponent(application.publicId)}}'>
                    	<img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
                          onerror="this.src='../assets/img/defaulticon_application.png';"
-                         style='height: 24px; width: 24px;'/>&nbsp;{{application.name}}
+                         style='height: 24px; width: 24px; margin-right:5px;'/>{{application.name}}
                     </a>
                 </td>
                 <td ng-repeat='stage in stages | filterReportColumns'>
                     <div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
-                    	<img src='../assets/img/glyphicons_263_bank.png' />
-                    	<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
-                   		<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
-                   		<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
-            			<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
-                   	</div>
-                	<div>
-	                    <a ng-show='stageTypeId == stage.id' style='vertical-align: middle;'
+                    	<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
 	                       ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-	                       href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-	                        {{policyEvaluation.time | date:'yyyy-MM-dd'}}</a>
-                    	<a ng-show='stageTypeId == stage.id'
+	                       title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+	                    	<img src='../assets/img/glyphicons_263_bank.png' />
+	                    	<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
+	                   		<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
+	                   		<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
+	            			<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
+            			</a>
+                    	<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
 	                    	ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
 	                    	ng-click='reEvaluatePolicy(application, policyEvaluation)'>
 	                    	<img ng-class="{ 'rotate-infinite' : reEvaluatingPolicy }" src='../assets/img/refresh.png' /></a>
-                    </div>
+                   	</div>
                 </td>
                 <td style="vertical-align: middle; text-align:center;">
                     <button ng-click='editApplication(application);' class='btn btn-mini btn-edit hover-vis'

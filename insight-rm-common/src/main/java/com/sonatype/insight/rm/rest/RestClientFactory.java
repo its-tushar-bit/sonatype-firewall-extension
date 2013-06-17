@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluation;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ScanClient;
-import com.sonatype.insight.brain.client.ValidationClient;
+import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
@@ -33,9 +33,9 @@ public class RestClientFactory
         return new BaseClient( config.getConfig() );
     }
 
-    ValidationClient newValidationClient( final Configuration config )
+    ConfigurationClient newConfigurationClient( final Configuration config )
     {
-        return new ValidationClient( config );
+        return new ConfigurationClient( config );
     }
 
     ScanClient newScanClient( final Configuration config, final String appId )
@@ -60,7 +60,7 @@ public class RestClientFactory
         {
             try
             {
-                newValidationClient( config ).validateConfiguration();
+                newConfigurationClient( config ).validateConfiguration();
             }
             catch ( IOException e )
             {
@@ -74,7 +74,7 @@ public class RestClientFactory
         {
             try
             {
-                return newValidationClient( config ).getApplicationIdNameMap();
+                return newConfigurationClient( config ).getApplicationIdNameMap();
             }
             catch ( IOException e )
             {
@@ -119,7 +119,7 @@ public class RestClientFactory
         {
             try
             {
-                newValidationClient( config ).validateApplicationId( appId );
+                newConfigurationClient( config ).validateApplicationId( appId );
             }
             catch ( IOException e )
             {

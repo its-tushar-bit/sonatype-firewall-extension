@@ -12,16 +12,17 @@ import java.util.TreeMap;
 
 import org.apache.http.client.HttpResponseException;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
-public class ValidationClient
+public class ConfigurationClient
     extends AbstractClient
 {
-    public ValidationClient( final Configuration config )
+    public ConfigurationClient( final Configuration config )
     {
         super( config );
     }
@@ -91,5 +92,12 @@ public class ValidationClient
         {
             throw new IOException( text );
         }
+    }
+
+    public ProprietaryConfig getProprietaryConfiguration()
+        throws IOException
+    {
+        Result result = get( path( "rest/config/proprietary" ) );
+        return JsonUtils.parse( result.text(), ProprietaryConfig.class );
     }
 }

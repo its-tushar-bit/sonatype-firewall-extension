@@ -61,6 +61,7 @@
     <module>insight-brain-client</module>
     <module>insight-rm-common</module>
     <module>sonatype-clm-server</module>
+    <module>sonatype-clm-scanner</module>
   </modules>
 
   <dependencyManagement>
@@ -140,6 +141,12 @@
         <version>${logback.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>javax.inject</groupId>
+        <artifactId>javax.inject</artifactId>
+        <version>1</version>
+        <scope>provided</scope>
+      </dependency>
       <dependency>
         <groupId>org.sonatype.sisu</groupId>
         <artifactId>sisu-guice</artifactId>
@@ -240,6 +247,11 @@
       <dependency>
         <groupId>com.sonatype.insight.scan</groupId>
         <artifactId>insight-scanner-model</artifactId>
+        <version>${insight-scanner.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-scanner-model-io</artifactId>
         <version>${insight-scanner.version}</version>
       </dependency>
       <dependency>

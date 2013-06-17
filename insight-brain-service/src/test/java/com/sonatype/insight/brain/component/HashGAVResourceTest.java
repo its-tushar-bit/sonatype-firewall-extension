@@ -31,6 +31,9 @@ public class HashGAVResourceTest
         String extension = "HashGAVResourceTest_E";
         String classifier = "HashGAVResourceTest_C";
 
+        setSaasResponseForURI( "rest/ide/component/isKnown?groupId=" + groupId + "&artifactId=" + artifactId
+            + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, "false", 200 );
+
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( hashGAV ) );
         assertResponseStatus( 200, response );
@@ -38,6 +41,27 @@ public class HashGAVResourceTest
         assertHashGAV( hash, groupId, artifactId, version, extension, classifier, hashGAV );
 
         new HashGAVDAO().delete( hashGAV );
+    }
+
+    @Test
+    public void testSetHashGAV_KnownToSaaS()
+        throws Exception
+    {
+        String hash = "ab1234ab1234ab";
+        String groupId = "HashGAVResourceTest_G";
+        String artifactId = "HashGAVResourceTest_A";
+        String version = "HashGAVResourceTest_V";
+        String extension = "HashGAVResourceTest_E";
+        String classifier = "HashGAVResourceTest_C";
+
+        setSaasResponseForURI( "rest/ide/component/isKnown?groupId=" + groupId + "&artifactId=" + artifactId
+            + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, "true", 200 );
+
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( hashGAV ) );
+        assertResponseStatus( 400, response );
+        assertEquals( "The 'HashGAVResourceTest_G:HashGAVResourceTest_A:HashGAVResourceTest_V:HashGAVResourceTest_E:HashGAVResourceTest_C' coordinates are already in use",
+                      response.getResponseBody() );
     }
 
     private void assertHashGAV( String hash, String groupId, String artifactId, String version, String extension,

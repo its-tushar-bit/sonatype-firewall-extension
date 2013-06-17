@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -25,7 +26,9 @@ public class HashGAVDAOTest
     {
         HashGAVDAO dao = new HashGAVDAO();
 
-        String hash = "ab1234ab1234ab";
+        String hash = "123456789012345678901";
+        assertTrue( hash.length() > 20 );
+        String truncatedHash = hash.substring( 0, 20 );
         String groupId = "HashGAVDAOTest_G";
         String artifactId = "HashGAVDAOTest_A";
         String version = "HashGAVDAOTest_V";
@@ -40,7 +43,7 @@ public class HashGAVDAOTest
         // Read
         hashGAV = dao.getById( hashGAV.getId() );
         assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, hashGAV );
+        assertHashGAV( truncatedHash, groupId, artifactId, version, extension, classifier, hashGAV );
 
         // Update
         try

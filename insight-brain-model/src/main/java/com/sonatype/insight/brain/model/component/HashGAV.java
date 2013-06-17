@@ -45,7 +45,7 @@ public class HashGAV
 
     public HashGAV( String hash, String groupId, String artifactId, String version, String extension, String classifier )
     {
-        this.hash = hash;
+        setHash( hash );
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
@@ -130,6 +130,12 @@ public class HashGAV
 
     public void setHash( String hash )
     {
+        // We use only the first 10 bytes of the hashes, so we have to truncate to the first 20 chars in the string
+        // representation of a hash.
+        if ( hash != null && hash.length() > 20 )
+        {
+            hash = hash.substring( 0, 20 );
+        }
         this.hash = hash;
     }
 

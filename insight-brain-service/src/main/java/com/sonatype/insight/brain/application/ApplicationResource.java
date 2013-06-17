@@ -406,7 +406,7 @@ public class ApplicationResource
                                                            policyEvaluation.getScanId(), stage );
             final com.sonatype.clm.dto.model.policy.PolicyEvaluation policyEvaluationResult =
                 new com.sonatype.clm.dto.model.policy.PolicyEvaluation();
-            policyEvaluationResult.setAlerts( alerts );
+            // policyEvaluationResult.setAlerts( alerts );
             policyEvaluationUtils.calculateCounters( policyEvaluationResult );
             policyEvaluationResults.put( stage.getStageTypeId(), policyEvaluationResult );
         }

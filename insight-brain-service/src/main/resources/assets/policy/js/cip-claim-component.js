@@ -16,7 +16,11 @@
                     node.empty();
                     container.appendTo(node);
 
-                    angular.module('claimComponent' + timestamp, []);
+                    angular.module('claimComponent' + timestamp, []).service('CurrentHash', function () {
+                        return {
+                            hash: hash
+                        };
+                    });
                     angular.bootstrap(container[0], ['ClaimComponent', 'claimComponent' + timestamp]);
                 }
             }
@@ -24,11 +28,20 @@
         
         var claimApp = angular.module('ClaimComponent', []);
 
-        claimApp.controller('ClaimComponentController', ['$http', '$scope', function ($http, $scope) {
+        claimApp.controller('ClaimComponentController', ['$http', '$scope', 'CurrentHash', function ($http, $scope, CurrentHash) {
             $scope.claimData = {};
             
             $scope.claimClick = function() {
-                
+                if ($scope.formValid()) {
+                    $scope.claimData.hash = CurrentHash.hash;
+                    $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function (data) {
+                        $scope.claimData = {};
+                        //TODO: add some notification of success??
+                    }).error(function(){
+                        //TODO: add proper error handling
+                        alert('error');
+                    });
+                }
             };
             
             $scope.formValid = function() {
@@ -71,7 +84,7 @@
     ClaimComponentTab.prototype = new Insight.InformationPanelPlugin();
 
     ClaimComponentTab.prototype.isVisible = function () {
-        return !((freemium && !this.options.sampleData) || this.gav.matchState !== 'exact');
+        return !freemium || this.gav.matchState !== 'exact';
     };
 
     ClaimComponentTab.prototype.create = function () {

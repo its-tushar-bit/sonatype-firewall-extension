@@ -50,10 +50,6 @@ public class Parameters
     @Parameter( names = "-D", description = "Configuration properties, e.g. -D key=value", hidden = true )
     private List<String> properties = new ArrayList<String>();
 
-    @Parameter( names = { "-pp", "--proprietary-packages" }, description = "Comma separated list of proprietary packages to hide names of"
-        + ", e.g. com.sonatype,org.sonatype" )
-    private String proprietaryPackages;
-
     @Parameter( names = { "-o", "--output-directory" }, description = "Path to output directory for scan results", hidden = true )
     private File outputDirectory =
         new File( System.getProperty( "java.io.tmpdir", "" ), "sonatype-clm" ).getAbsoluteFile();
@@ -143,11 +139,6 @@ public class Parameters
     public List<String> getProperties()
     {
         return properties;
-    }
-
-    public String getProprietaryPackages()
-    {
-        return proprietaryPackages;
     }
 
     public File getOutputDirectory()

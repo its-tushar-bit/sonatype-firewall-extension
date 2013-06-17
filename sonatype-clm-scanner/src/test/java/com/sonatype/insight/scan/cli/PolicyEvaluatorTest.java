@@ -35,6 +35,7 @@ import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.util.StatusPrinter;
 
 import com.google.inject.Binder;
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -275,13 +276,15 @@ public class PolicyEvaluatorTest
     public void testScan()
         throws Exception
     {
+        ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+        proprietaryConfig.setPackages( Arrays.asList( "com.sonatype" ) );
         ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass( File.class );
         when( restClient.getApplications() ).thenReturn( Collections.singletonMap( "the-app-id", "My App" ) );
+        when( restClient.getProprietaryConfiguration() ).thenReturn( proprietaryConfig );
         when( restClient.uploadScan( eq( "the-app-id" ), scanFile.capture() ) ).thenReturn( newReceipt() );
         when( restClient.evaluatePolicy( eq( "the-app-id" ), eq( "the-scan-id" ), eq( Stage.ID_BUILD ) ) ).thenReturn( new PolicyEvaluationResult() );
         Parameters params =
-            new Parameters( "-s", "http://localhost:8070/", "-i", "the-app-id", "-pp", "com.sonatype",
-                            "src/test/data/artifact.jar" );
+            new Parameters( "-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar" );
         evaluator.run( params );
         assertNotNull( scanFile.getValue() );
         Scan scan = scanReader.read( scanFile.getValue() );
@@ -306,6 +309,24 @@ public class PolicyEvaluatorTest
             assertNotNull( item.getSha1JA001() );
             assertEquals( "proprietaryPackages", item.getNoPathReason() );
         }
+    }
+
+    @Test
+    public void testNoGlobalProprietaryConfig()
+        throws Exception
+    {
+        ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass( File.class );
+        when( restClient.getApplications() ).thenReturn( Collections.singletonMap( "the-app-id", "My App" ) );
+        when( restClient.getProprietaryConfiguration() ).thenThrow( new HttpResponseException( 404, "outdated" ) );
+        when( restClient.uploadScan( eq( "the-app-id" ), scanFile.capture() ) ).thenReturn( newReceipt() );
+        when( restClient.evaluatePolicy( eq( "the-app-id" ), eq( "the-scan-id" ), eq( Stage.ID_BUILD ) ) ).thenReturn( new PolicyEvaluationResult() );
+        Parameters params =
+            new Parameters( "-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar" );
+        evaluator.run( params );
+        assertLog( "[WARN] CLM server is outdated and does not provide configuration for proprietary components" );
+        assertNotNull( scanFile.getValue() );
+        Scan scan = scanReader.read( scanFile.getValue() );
+        assertNotNull( scan );
     }
 
 }

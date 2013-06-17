@@ -15,8 +15,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.http.client.HttpResponseException;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -55,7 +57,7 @@ public class PolicyEvaluator
 
         validateInputPaths( params.getFiles() );
 
-        File scanFile = doScan( params );
+        File scanFile = doScan( params, getProprietaryConfiguration( params, restClient ) );
 
         evaluatePolicy( params, restClient, scanFile );
     }
@@ -113,6 +115,29 @@ public class PolicyEvaluator
         }
     }
 
+    private ProprietaryConfig getProprietaryConfiguration( Parameters params, RestClient restClient )
+        throws ExitException
+    {
+        log.debug( "Retrieving configuration for proprietary components from CLM server..." );
+        try
+        {
+            return restClient.getProprietaryConfiguration();
+        }
+        catch ( HttpResponseException e )
+        {
+            if ( e.getStatusCode() == 404 )
+            {
+                log.warn( "CLM server is outdated and does not provide configuration for proprietary components" );
+                return new ProprietaryConfig();
+            }
+            throw new ExitException( 2, e );
+        }
+        catch ( IOException e )
+        {
+            throw new ExitException( 2, e );
+        }
+    }
+
     private void validateInputPaths( List<File> files )
         throws ExitException
     {
@@ -131,14 +156,14 @@ public class PolicyEvaluator
         }
     }
 
-    private File doScan( Parameters params )
+    private File doScan( Parameters params, ProprietaryConfig proprietaryConfig )
         throws ExitException
     {
         try
         {
             params.getOutputDirectory().mkdirs();
             File scanFile = File.createTempFile( "scan-", ".xml.gz", params.getOutputDirectory() );
-            scanner.scan( scanFile, params.getFiles(), getScanConfiguration( params ) );
+            scanner.scan( scanFile, params.getFiles(), getScanConfiguration( params, proprietaryConfig ) );
             return scanFile;
         }
         catch ( IOException e )
@@ -148,7 +173,7 @@ public class PolicyEvaluator
         }
     }
 
-    private Properties getScanConfiguration( Parameters params )
+    private Properties getScanConfiguration( Parameters params, ProprietaryConfig proprietaryConfig )
     {
         Properties props = new Properties();
         for ( String property : params.getProperties() )
@@ -165,9 +190,9 @@ public class PolicyEvaluator
                 props.setProperty( key, val );
             }
         }
-        if ( params.getProprietaryPackages() != null )
+        if ( proprietaryConfig != null )
         {
-            props.put( "proprietaryPackages", params.getProprietaryPackages() );
+            props.put( "proprietaryPackages", StringUtils.join( proprietaryConfig.getPackages().iterator(), "," ) );
         }
         return props;
     }

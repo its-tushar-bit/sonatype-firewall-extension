@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -42,6 +43,12 @@ public class RestClientFactory
             throws IOException
         {
             return new ConfigurationClient( config ).getApplicationIdNameMap();
+        }
+
+        public ProprietaryConfig getProprietaryConfiguration()
+            throws IOException
+        {
+            return new ConfigurationClient( config ).getProprietaryConfiguration();
         }
 
         public ScanReceipt uploadScan( String appId, File scanFile )

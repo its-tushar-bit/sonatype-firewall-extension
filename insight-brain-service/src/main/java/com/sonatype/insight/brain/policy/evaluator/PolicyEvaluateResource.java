@@ -100,8 +100,7 @@ public class PolicyEvaluateResource
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public PolicyEvaluationResult evaluate( @PathParam( "applicationPublicId" )
-    final String applicationPublicId,
+    public PolicyEvaluationResult evaluate( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                       @QueryParam( "scanId" ) final String scanId, final Stage stage,
                                       @HeaderParam( "user-agent" ) final String userAgent )
         throws IOException

@@ -12,6 +12,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.codehaus.plexus.util.StringUtils;
+
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.model.component.MavenCoordinates;
 
@@ -39,8 +41,18 @@ public class SaasResourceClient
         queryParams.put( "groupId", coordinates.getGroupId() );
         queryParams.put( "artifactId", coordinates.getArtifactId() );
         queryParams.put( "version", coordinates.getVersion() );
-        queryParams.put( "extension", coordinates.getExtension() );
-        queryParams.put( "classifier", coordinates.getClassifier() );
+        
+        //optional fields
+        if (StringUtils.isNotBlank( coordinates.getExtension() ) )
+        {
+            queryParams.put( "extension", coordinates.getExtension() );
+        }
+        
+        if (StringUtils.isNotBlank( coordinates.getClassifier() ) )
+        {
+            queryParams.put( "classifier", coordinates.getClassifier() );
+        }
+        
         return client.get( ComponentSummary.class, "rest/ide/component", queryParams );
     }
 }

@@ -32,14 +32,24 @@
             $scope.claimData = {};
             
             $scope.claimClick = function() {
+                $scope.createError = '';
                 if ($scope.formValid()) {
                     $scope.claimData.hash = CurrentHash.hash;
                     $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function (data) {
                         $scope.claimData = {};
                         //TODO: add some notification of success??
-                    }).error(function(){
-                        //TODO: add proper error handling
-                        alert('error');
+                        //TODO: need to update source in the bom.json file
+                        //TODO: need to close the info panel
+                        //TODO: need to refresh the component list from json
+                    }).error(function(data, status, headersFn, config){
+                        var header = headersFn();
+                        if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+                            $scope.createError = 'Server Error';
+                        } else if (status === 0) {
+                            $scope.errorResponse = 'Unable to connect to CLM server';
+                        } else {
+                            $scope.createError = data;
+                        }
                     });
                 }
             };
@@ -84,7 +94,7 @@
     ClaimComponentTab.prototype = new Insight.InformationPanelPlugin();
 
     ClaimComponentTab.prototype.isVisible = function () {
-        return !freemium || this.gav.matchState !== 'exact';
+        return !freemium && this.gav.matchState !== 'exact';
     };
 
     ClaimComponentTab.prototype.create = function () {

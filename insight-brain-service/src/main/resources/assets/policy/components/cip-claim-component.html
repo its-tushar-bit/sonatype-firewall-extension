@@ -2,6 +2,14 @@
 	<div style='display:inline-block;margin-left:10px;margin-bottom:10px;box-sizing:border-box;-moz-box-sizing:border-box;width:100%' class='well'>
 		<table style='border-spacing:0;border-collapse:collapse;width:100%'>
 			<tr>
+				<td colspan='2' ng-show='createError'>
+					<div class='alert alert-error' style='width:775px;'>
+						<button type='button' class='close' ng-click='createError = ""'>&times;</button>
+						<strong>Error:</strong> {{createError}}
+					</div>
+				</td>
+			</tr>
+			<tr>
 				<td style='vertical-align:top;width:50%;'>
 					<div class='form-horizontal'>
 						<div class='control-group' style='margin-bottom:2px;'>

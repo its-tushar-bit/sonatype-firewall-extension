@@ -224,4 +224,43 @@ var angularCommon;
 			}
 		};
 	}]);
+
+	angularCommon.filter('filterReportColumns', function () {
+		return function (items) {
+			var arrayToReturn = [];
+			if (items) {
+				angular.forEach(items, function (item, index) {
+					switch (item.name) {
+						case 'Build':
+						case 'Stage Release':
+						case 'Release':
+							arrayToReturn.push(item);
+					}
+                });
+			}
+			return arrayToReturn;
+		};
+	});
+	
+	angularCommon.service('policyEvaluator', function ($q, hudson, CLMLocations) {
+		return {
+			evaluate: function(application, policyEvaluation) {
+				var deferred = $q.defer();
+				var stage = policyEvaluation.stage;
+				hudson.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
+					policyEvaluation.time = new Date();
+					for (var stageTypeId in application.policyEvaluationsResults) {
+		                if (stageTypeId === stage.stageTypeId) {
+		                	application.policyEvaluationsResults[stageTypeId] = data;
+		                    break;
+		                }
+		            }
+					deferred.resolve(data);
+				}).error(function (error) {
+					deferred.reject({ data: error.data, status : error.status, headers : error.headers, config : error.config });
+				});
+				return deferred.promise;
+			}
+		}
+	});
 }());

@@ -8,9 +8,9 @@
 (function () {
 	'use strict';
 
-	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor']);
+	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMLocation']);
 
-	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore) {
+	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'policyEvaluator', function ($scope, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, policyEvaluator) {
 
 		function capitalize(text) {
 			if (text && text.length > 1) {
@@ -18,6 +18,27 @@
 			}
 			return text;
 		}
+		
+		// Needs to be moved to an application store. This work is already done in the post insight-brain-1.4.x release and therefore not redone here
+		$http.get(clmAppLocations.getApplicationUrl(), {
+			params: { timestamp: new Date().getTime() }
+		}).success(function (data) {
+			$scope.application = data;
+		}).error(function (error) { 
+			handleHttpError('Policy Initialization Error', error.data, error.status);
+		});
+		
+		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
+			if (!$scope.reEvaluatingPolicy) {
+				$scope.reEvaluatingPolicy = true;
+				policyEvaluator.evaluate(application, policyEvaluation).then(function(data) {
+					$scope.reEvaluatingPolicy = false;
+				}, function(error) {
+					$scope.reEvaluatingPolicy = false;
+					handleHttpError('Policy Initialization Error', error.data, error.status);
+				});
+			}
+		};
 
 		$scope.getActionCount = function (policy) {
 			var actionCount = 0;
@@ -138,5 +159,7 @@
 		}, function (error) {
 			handleHttpError('Policy Initialization Error', error.data, error.status);
 		});
+		
+		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
 }());

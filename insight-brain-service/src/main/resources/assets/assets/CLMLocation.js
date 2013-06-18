@@ -109,6 +109,10 @@
 
 			getPolicyUrl: function () {
 				return this.getBaseUrl() + '/rest/policy/' + appId.encoded;
+			},
+			
+			getApplicationUrl: function () {
+				return this.getBaseUrl() + '/rest/application/' + appId.encoded;
 			}
 		};
 	}]);

@@ -9,7 +9,7 @@
 
 	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, commonCodeFactory) {
+	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', 'policyEvaluator', function ($scope, $http, hudson, clmLocations, commonCodeFactory, policyEvaluator) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 
@@ -90,17 +90,9 @@
 		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
 			if (!$scope.reEvaluatingPolicy) {
 				$scope.reEvaluatingPolicy = true;
-				var stage = policyEvaluation.stage;
-				hudson.post(clmLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
-					policyEvaluation.time = new Date();
-					for (var stageTypeId in application.policyEvaluationsResults) {
-		                if (stageTypeId === stage.stageTypeId) {
-		                	application.policyEvaluationsResults[stageTypeId] = data;
-		                    break;
-		                }
-		            }
+				policyEvaluator.evaluate(application, policyEvaluation).then(function(data) {
 					$scope.reEvaluatingPolicy = false;
-				}).error(function () {
+				}, function(error) {
 					$scope.reEvaluatingPolicy = false;
 					$scope.$broadcast('serverAlert', arguments); 
 				});
@@ -138,23 +130,6 @@
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
-
-	managementModule.filter('filterReportColumns', function () {
-		return function (items) {
-			var arrayToReturn = [];
-			if (items) {
-				angular.forEach(items, function (item, index) {
-					switch (item.name) {
-						case 'Build':
-						case 'Stage Release':
-						case 'Release':
-							arrayToReturn.push(item);
-					}
-                });
-			}
-			return arrayToReturn;
-		};
-	});
 
 	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 		$scope.submitActive = false;

@@ -176,6 +176,10 @@ public class PolicyEvaluator
     private Properties getScanConfiguration( Parameters params, ProprietaryConfig proprietaryConfig )
     {
         Properties props = new Properties();
+        if ( proprietaryConfig != null )
+        {
+            props.put( "proprietaryPackages", StringUtils.join( proprietaryConfig.getPackages().iterator(), "," ) );
+        }
         for ( String property : params.getProperties() )
         {
             int eq = property.indexOf( '=' );
@@ -189,10 +193,6 @@ public class PolicyEvaluator
                 String val = property.substring( eq + 1 );
                 props.setProperty( key, val );
             }
-        }
-        if ( proprietaryConfig != null )
-        {
-            props.put( "proprietaryPackages", StringUtils.join( proprietaryConfig.getPackages().iterator(), "," ) );
         }
         return props;
     }

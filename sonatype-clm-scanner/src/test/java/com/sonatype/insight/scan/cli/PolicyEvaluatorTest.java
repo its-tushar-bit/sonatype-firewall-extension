@@ -312,6 +312,40 @@ public class PolicyEvaluatorTest
     }
 
     @Test
+    public void testGlobalProprietaryConfigOverriddenByClient()
+        throws Exception
+    {
+        ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+        proprietaryConfig.setPackages( Arrays.asList( "com.overridden" ) );
+        ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass( File.class );
+        when( restClient.getApplications() ).thenReturn( Collections.singletonMap( "the-app-id", "My App" ) );
+        when( restClient.getProprietaryConfiguration() ).thenReturn( proprietaryConfig );
+        when( restClient.uploadScan( eq( "the-app-id" ), scanFile.capture() ) ).thenReturn( newReceipt() );
+        when( restClient.evaluatePolicy( eq( "the-app-id" ), eq( "the-scan-id" ), eq( Stage.ID_BUILD ) ) ).thenReturn( new PolicyEvaluationResult() );
+        Parameters params =
+            new Parameters( "-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-D",
+                            "proprietaryPackages=com.sonatype" );
+        evaluator.run( params );
+        assertNotNull( scanFile.getValue() );
+        Scan scan = scanReader.read( scanFile.getValue() );
+        assertNotNull( scan );
+        ScanConfiguration config = scan.getConfiguration();
+        assertNotNull( config );
+        assertEquals( "com.sonatype", config.getString( "", "proprietaryPackages" ) );
+        assertEquals( 1, scan.getItems().size() );
+        ScanItem jar = scan.getItems().get( 0 );
+        assertEquals( "artifact.jar", jar.getPath() );
+        assertEquals( "87cf012929052d02c3f1", jar.getSha1() );
+        for ( ScanItem item : jar.getItems() )
+        {
+            assertNull( item.getPath() );
+            assertNotNull( item.getSha1() );
+            assertNotNull( item.getSha1JA001() );
+            assertEquals( "proprietaryPackages", item.getNoPathReason() );
+        }
+    }
+
+    @Test
     public void testNoGlobalProprietaryConfig()
         throws Exception
     {

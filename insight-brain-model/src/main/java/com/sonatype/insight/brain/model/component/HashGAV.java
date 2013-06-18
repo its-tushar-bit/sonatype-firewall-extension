@@ -17,42 +17,28 @@ import com.sonatype.insight.model.HasStringId;
 public class HashGAV
     implements HasStringId
 {
-    @Id
-    @Column( name = "hash_gav_id" )
     private String id;
 
-    @Column( name = "hash" )
     private String hash;
 
-    @Column( name = "group_id" )
-    private String groupId;
-
-    @Column( name = "artifact_id" )
-    private String artifactId;
-
-    @Column( name = "version" )
-    private String version;
-
-    @Column( name = "extension" )
-    private String extension;
-
-    @Column( name = "classifier" )
-    private String classifier;
+    /**
+     * Convenience object to store Maven coordinates.
+     */
+    private MavenCoordinates coords;
 
     public HashGAV()
     {
+        coords = new MavenCoordinates( null, null, null, null, null );
     }
 
     public HashGAV( String hash, String groupId, String artifactId, String version, String extension, String classifier )
     {
         setHash( hash );
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.version = version;
-        setExtension( extension );
-        setClassifier( classifier );
+        coords = new MavenCoordinates( groupId, artifactId, version, extension, classifier );
     }
 
+    @Id
+    @Column( name = "hash_gav_id" )
     @Override
     public String getId()
     {
@@ -65,64 +51,62 @@ public class HashGAV
         this.id = id;
     }
 
+    @Column( name = "group_id" )
     public String getGroupId()
     {
-        return groupId;
+        return coords.getGroupId();
     }
 
     public void setGroupId( String groupId )
     {
-        this.groupId = groupId;
+        this.coords.setGroupId( groupId );
     }
 
+    @Column( name = "artifact_id" )
     public String getArtifactId()
     {
-        return artifactId;
+        return coords.getArtifactId();
     }
 
     public void setArtifactId( String artifactId )
     {
-        this.artifactId = artifactId;
+        this.coords.setArtifactId( artifactId );
     }
 
+    @Column( name = "version" )
     public String getVersion()
     {
-        return version;
+        return coords.getVersion();
     }
 
     public void setVersion( String version )
     {
-        this.version = version;
+        this.coords.setVersion( version );
     }
 
+    @Column( name = "classifier" )
     public String getClassifier()
     {
-        return classifier;
+        return coords.getClassifier();
     }
 
     public void setClassifier( String classifier )
     {
-        if ( classifier != null && classifier.trim().isEmpty() )
-        {
-            classifier = null;
-        }
-        this.classifier = classifier;
+        this.coords.setClassifier( classifier );
     }
 
+    @Column( name = "extension" )
     public String getExtension()
     {
-        return extension;
+        return coords.getExtension();
     }
 
     public void setExtension( String extension )
     {
-        if ( extension != null && extension.trim().isEmpty() )
-        {
-            extension = null;
-        }
-        this.extension = extension;
+        this.coords.setExtension( extension );
     }
 
+    @Column( name = "hash" )
     public String getHash()
     {
         return hash;
@@ -141,6 +125,11 @@ public class HashGAV
 
     public String getGAVECString()
     {
-        return groupId + ':' + artifactId + ':' + version + ':' + extension + ':' + classifier;
+        return coords.getGAVECString();
+    }
+
+    public MavenCoordinates getCoordinates()
+    {
+        return MavenCoordinates.copy( coords );
     }
 }

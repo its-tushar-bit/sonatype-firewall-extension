@@ -31,9 +31,13 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -277,7 +281,35 @@ public final class Report
 
         cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
 
+        applyComponentIdentifications( reportFile );
+        
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+    }
+
+    private static void applyComponentIdentifications( File reportFile )
+        throws IOException
+    {
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        
+        ReportEntry bomReportEntry = getEntry( reportFile, "bom.json" );
+        ContainerNode<?> bomJsonData = JsonUtils.parse( bomReportEntry.buf );
+        for ( JsonNode bomJsonNode : bomJsonData.get( "aaData" ) )
+        {
+            String hash = bomJsonNode.get( "hash" ).asText();
+            HashGAV hashGAV = hashGAVDAO.getByHash( hash );
+            if ( hashGAV != null )
+            {
+                ObjectNode bomObjectNode = (ObjectNode)bomJsonNode;
+                bomObjectNode.put( "groupId", hashGAV.getGroupId() );
+                bomObjectNode.put( "artifactId", hashGAV.getArtifactId() );
+                bomObjectNode.put( "version", hashGAV.getVersion() );
+                bomObjectNode.put( "extension", hashGAV.getExtension() );
+                bomObjectNode.put( "classifier", hashGAV.getClassifier() );
+                bomObjectNode.put( "matchState", MatchState.EXACT.getId() );
+                bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
+            }
+        }
+        cache( getCacheFile( reportFile, "bom.json" ), JsonUtils.generate( bomJsonData ) );
     }
 
     private static void writeLicenseThreatsToReportFile( final String appId, final File reportFile )

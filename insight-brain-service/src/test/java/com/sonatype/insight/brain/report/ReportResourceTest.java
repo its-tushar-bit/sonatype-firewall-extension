@@ -13,6 +13,8 @@ import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -36,7 +38,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -51,6 +57,67 @@ import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+    @Test
+    public void testManuallyIdentifiedComponent()
+        throws Exception
+    {
+        String hash = "f0776db1593e215146d2";
+        String groupId = "testClaimedComponent_G";
+        String artifactId = "testClaimedComponent_A";
+        String version = "testClaimedComponent_V";
+        String extension = "testClaimedComponent_E";
+        String classifier = "testClaimedComponent_C";
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAVDAO.insert( hashGAV );
+
+        String applicationPublicId = "testClaimedComponent_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testClaimedComponent_ScanId";
+        String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        assertResponseStatus( 200,
+                              RestAccess.get( getRestBaseUrl()
+                                  + ReportResource.getReportPath( applicationPublicId, scanId ) ) );
+
+        String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+        boolean foundClaimedComponent = false;
+        String bomJsonData = response.getResponseBody();
+        for ( JsonNode bomJsonNode : JsonUtils.parse( bomJsonData ).get( "aaData" ) )
+        {
+            String bomJsonHash = bomJsonNode.get( "hash" ).asText();
+            JsonNode identificationSource = bomJsonNode.get( "identificationSource" );
+            if ( hash.equals( bomJsonHash ) )
+            {
+                assertEquals( IdentificationSource.MANUAL.getId(), identificationSource.asText() );
+                assertEquals( groupId, bomJsonNode.get( "groupId" ).asText() );
+                assertEquals( artifactId, bomJsonNode.get( "artifactId" ).asText() );
+                assertEquals( version, bomJsonNode.get( "version" ).asText() );
+                assertEquals( extension, bomJsonNode.get( "extension" ).asText() );
+                assertEquals( classifier, bomJsonNode.get( "classifier" ).asText() );
+                assertEquals( MatchState.EXACT.getId(), bomJsonNode.get( "matchState" ).asText() );
+                foundClaimedComponent = true;
+            }
+            else
+            {
+                assertNull( identificationSource );
+            }
+        }
+
+        assertTrue( foundClaimedComponent );
+
+        hashGAVDAO.delete( hashGAV );
+    }
+
     @Test
     public void testEmbedReport()
         throws Exception

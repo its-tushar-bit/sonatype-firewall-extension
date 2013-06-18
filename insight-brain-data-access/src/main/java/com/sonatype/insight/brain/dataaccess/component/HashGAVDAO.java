@@ -22,8 +22,25 @@ public class HashGAVDAO
         return get( em, sQuery, id );
     }
 
+    public HashGAV getByHash( String hash )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByHash( em, hash );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
     private HashGAV getByHash( EntityManager em, String hash )
     {
+        if ( hash != null && hash.length() > 20 )
+        {
+            hash = hash.substring( 0, 20 );
+        }
         String sQuery = "SELECT entity FROM HashGAV entity" + //
             " WHERE entity.hash=?1";
         return get( em, sQuery, hash );

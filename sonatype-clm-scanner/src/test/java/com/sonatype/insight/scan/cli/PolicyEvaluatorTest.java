@@ -302,6 +302,7 @@ public class PolicyEvaluatorTest
         ScanItem jar = scan.getItems().get( 0 );
         assertEquals( "artifact.jar", jar.getPath() );
         assertEquals( "87cf012929052d02c3f1", jar.getSha1() );
+        assertEquals( 1, jar.getItems().size() );
         for ( ScanItem item : jar.getItems() )
         {
             assertNull( item.getPath() );
@@ -361,6 +362,25 @@ public class PolicyEvaluatorTest
         assertNotNull( scanFile.getValue() );
         Scan scan = scanReader.read( scanFile.getValue() );
         assertNotNull( scan );
+    }
+
+    @Test
+    public void testGlobalProprietaryConfigFailure()
+        throws Exception
+    {
+        when( restClient.getApplications() ).thenReturn( Collections.singletonMap( "the-app-id", "My App" ) );
+        when( restClient.getProprietaryConfiguration() ).thenThrow( new HttpResponseException( 500, "error" ) );
+        Parameters params =
+            new Parameters( "-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar" );
+        try
+        {
+            evaluator.run( params );
+            fail( "Expected error" );
+        }
+        catch ( ExitException e )
+        {
+            assertLog( "[ERROR] Could not retrieve configuration for proprietary components from CLM server" );
+        }
     }
 
 }

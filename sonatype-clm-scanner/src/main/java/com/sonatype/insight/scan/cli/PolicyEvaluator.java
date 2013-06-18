@@ -123,17 +123,14 @@ public class PolicyEvaluator
         {
             return restClient.getProprietaryConfiguration();
         }
-        catch ( HttpResponseException e )
+        catch ( IOException e )
         {
-            if ( e.getStatusCode() == 404 )
+            if ( e instanceof HttpResponseException && ( (HttpResponseException) e ).getStatusCode() == 404 )
             {
                 log.warn( "CLM server is outdated and does not provide configuration for proprietary components" );
                 return new ProprietaryConfig();
             }
-            throw new ExitException( 2, e );
-        }
-        catch ( IOException e )
-        {
+            log.error( "Could not retrieve configuration for proprietary components from CLM server", e );
             throw new ExitException( 2, e );
         }
     }

@@ -22,6 +22,10 @@ public class MavenCoordinates
 
     private String classifier;
 
+    public MavenCoordinates()
+    {
+    }
+
     public MavenCoordinates( String groupId, String artifactId, String version, String extension, String classifier )
     {
         this.groupId = groupId;

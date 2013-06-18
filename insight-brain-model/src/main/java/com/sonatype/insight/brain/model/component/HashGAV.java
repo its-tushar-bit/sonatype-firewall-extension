@@ -28,7 +28,7 @@ public class HashGAV
 
     public HashGAV()
     {
-        coords = new MavenCoordinates( null, null, null, null, null );
+        coords = new MavenCoordinates();
     }
 
     public HashGAV( String hash, String groupId, String artifactId, String version, String extension, String classifier )

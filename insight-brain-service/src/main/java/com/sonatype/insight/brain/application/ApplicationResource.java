@@ -391,8 +391,7 @@ public class ApplicationResource
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
 
-        final List<PolicyEvaluation> policyEvaluationList =
-            work.getMostRecentPolicyEvaluations( application.getId() );
+        final List<PolicyEvaluation> policyEvaluationList = work.getMostRecentPolicyEvaluations( application.getId() );
         Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
         Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
         for ( PolicyEvaluation policyEvaluation : policyEvaluationList )

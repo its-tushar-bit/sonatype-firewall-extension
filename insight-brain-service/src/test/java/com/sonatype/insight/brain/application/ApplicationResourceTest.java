@@ -423,7 +423,7 @@ public class ApplicationResourceTest
         Assert.assertEquals( application.getId(), applicationSummary.getId() );
         Assert.assertEquals( application.getName(), applicationSummary.getName() );
 
-        policyEvaluations = applications[0].getPolicyEvaluations();
+        policyEvaluations = applicationSummary.getPolicyEvaluations();
         stageTypeIds = policyEvaluations.keySet().toArray( new String[0] );
 
         Assert.assertNotNull( policyEvaluations );
@@ -435,7 +435,7 @@ public class ApplicationResourceTest
         Assert.assertEquals( Stage.ID_RELEASE, policyEvaluations.get( stageTypeIds[1] ).getStage().getStageTypeId() );
         Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( stageTypeIds[1] ).getScanId() );
 
-        policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
+        policyEvaluationsResults = applicationSummary.getPolicyEvaluationsResults();
         stageTypeIds = policyEvaluationsResults.keySet().toArray( new String[0] );
 
         Assert.assertNotNull( policyEvaluationsResults );

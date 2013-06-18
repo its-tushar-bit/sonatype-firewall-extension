@@ -10,6 +10,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -31,8 +33,8 @@ public class HashGAVResourceTest
         String extension = "HashGAVResourceTest_E";
         String classifier = "HashGAVResourceTest_C";
 
-        setSaasResponseForURI( "rest/ide/component/isKnown?groupId=" + groupId + "&artifactId=" + artifactId
-            + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, "false", 200 );
+        setSaasResponseForURI( "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId
+            + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson( ComponentSummary.create( false ) ), 200 );
 
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( hashGAV ) );
@@ -54,8 +56,8 @@ public class HashGAVResourceTest
         String extension = "HashGAVResourceTest_E";
         String classifier = "HashGAVResourceTest_C";
 
-        setSaasResponseForURI( "rest/ide/component/isKnown?groupId=" + groupId + "&artifactId=" + artifactId
-            + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, "true", 200 );
+        setSaasResponseForURI( "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId
+            + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson( ComponentSummary.create( true ) ), 200 );
 
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( hashGAV ) );

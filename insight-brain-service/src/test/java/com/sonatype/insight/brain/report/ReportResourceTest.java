@@ -35,11 +35,15 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
+import com.yammer.dropwizard.testing.JsonHelpers;
 
 import eu.medsea.mimeutil.MimeType;
 import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
@@ -217,6 +221,39 @@ public class ReportResourceTest
         assertThat( response.getContentType(), equalTo( "application/pdf" ) );
         final Collection<?> mimeTypes = new MagicMimeMimeDetector().getMimeTypes( response.getResponseBodyAsStream() );
         assertThat( mimeTypes, contains( (Object) new MimeType( "application/pdf" ) ) );
+    }
+
+    @Test
+    public void testReevaluateReport()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        // Evaluate policy
+        Response response =
+            RestAccess.post( getRestBaseUrl()
+                                 + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}",
+                                                                                applicationPublicId ) + "?scanId="
+                                 + scanId, JsonHelpers.asJson( stage ) );
+
+        // ReEvaluate
+        response = RestAccess.get( resourcePrefix + "/reevaluatePolicy" );
+        assertResponseStatus( 307, response );
+        Assert.assertEquals( resourcePrefix + "/embedReport/index.html", response.getHeader( "Location" ) );
     }
 
     @Test

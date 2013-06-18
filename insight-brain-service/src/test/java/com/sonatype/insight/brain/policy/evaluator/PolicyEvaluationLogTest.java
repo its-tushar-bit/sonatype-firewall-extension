@@ -5,9 +5,14 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Rule;
@@ -51,6 +56,31 @@ public class PolicyEvaluationLogTest
         assertEquals( "scanId", eval.getScanId() );
         assertEquals( "user", eval.getUser() );
         assertTrue( System.currentTimeMillis() - eval.getTime() < 60 * 1000 );
+    }
+
+    @Test
+    public void testGet()
+        throws IOException
+    {
+        final Stage stage = new Stage( Stage.ID_BUILD );
+        final String scanId = "scanId";
+        final String user = "user";
+        final String ip = "ip";
+
+        PolicyEvaluationLog log = new PolicyEvaluationLog( tmpDir.getRoot() );
+
+        PolicyEvaluation evaluation = log.get( scanId );
+        assertNull( evaluation );
+
+        log.add( stage, scanId, user, ip );
+
+        evaluation = log.get( scanId );
+        assertNotNull( evaluation );
+        assertNotNull( evaluation.getStage() );
+        assertEquals( stage.getStageTypeId(), evaluation.getStage().getStageTypeId() );
+        assertEquals( scanId, evaluation.getScanId() );
+        assertEquals( user, evaluation.getUser() );
+        assertTrue( System.currentTimeMillis() - evaluation.getTime() < 60 * 1000 );
     }
 
     @Test

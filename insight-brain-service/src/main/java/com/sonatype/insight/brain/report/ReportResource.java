@@ -47,6 +47,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.ReportDownloader.ReportDownloadReponse;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -83,10 +86,13 @@ public class ReportResource
     
     private final ReportDownloader reportDownloader;
 
+    private final PolicyEvaluationUtils policyEvaluationUtils;
+
     @Inject
-    public ReportResource( ReportDownloader reportDownloader )
+    public ReportResource( final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils )
     {
         this.reportDownloader = reportDownloader;
+        this.policyEvaluationUtils = policyEvaluationUtils;
     }
 
     @GET
@@ -127,6 +133,29 @@ public class ReportResource
             return response.build();
         }
         return Response.status( Status.NOT_FOUND ).build();
+    }
+
+    @GET
+    @Path( "reevaluatePolicy" )
+    public Response reevaluatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, 
+                                      @PathParam( "scanId" ) final String scanId, 
+                                      @PathParam( "path" ) final String path,
+                                      @Context final HttpServletRequest httpRequest ) 
+          throws IOException
+    {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
+        PolicyEvaluation policyEvaluation = evalLog.get( scanId );
+
+        policyEvaluationUtils.evaluate( applicationPublicId, scanId, policyEvaluation.getStage() );
+        
+        final String embedRelativePath =
+            ReportResource.SERVICE_PATH.replace( "{applicationPublicId}", applicationPublicId ).replace( "{scanId}",
+                                                                                                         scanId );
+        UriBuilder embedReportBuilder = baseUrl.redirect().path( embedRelativePath ).path( "embedReport/index.html" );
+
+        return Response.temporaryRedirect( embedReportBuilder.build() ).build();
     }
 
     @GET

@@ -15,16 +15,24 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 @Named
@@ -36,11 +44,49 @@ public class PolicyEvaluationUtils
 
     private final ReportDownloader reportDownloader;
 
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
+
     @Inject
     public PolicyEvaluationUtils( final InsightWork insightWork, final ReportDownloader reportDownloader )
     {
         this.work = insightWork;
         this.reportDownloader = reportDownloader;
+    }
+
+    public PolicyEvaluationResult evaluate( final String applicationPublicId, final String scanId, final Stage stage )
+        throws IOException
+    {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+
+        final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
+
+        final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
+
+        final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
+        final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
+        final ReportEntry bomReportEntry = Report.getEntry( reportFile, "bom.json" );
+
+        if ( bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null )
+        {
+            throw new BadRequestException( "Unable to evaluate policy, the scan " + scanId + " could not be processed" );
+        }
+
+        final List<Component> components =
+            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf );
+
+        final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policyDAO, components );
+
+        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
+        Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
+
+        ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
+
+        final PolicyEvaluationResult policyEvaluation = new PolicyEvaluationResult();
+        policyEvaluation.setAlerts( alerts );
+        calculateCounters( policyEvaluation );
+
+        return policyEvaluation;
     }
 
     public void calculateCounters( PolicyEvaluationResult policyEvaluation )
@@ -114,5 +160,33 @@ public class PolicyEvaluationUtils
             }
         }
         return Collections.emptyList();
+    }
+
+    private static ObjectNode analyzeThreats( final List<PolicyAlert> policyAlerts )
+    {
+        final Map<String, JsonNode> componentThreats = new HashMap<String, JsonNode>();
+        for ( final PolicyAlert alert : policyAlerts )
+        {
+            final PolicyFact trigger = alert.getTrigger();
+            final int threatLevel = trigger.getThreatLevel();
+            for ( final ComponentFact component : trigger.getComponentFacts() )
+            {
+                final String id = component.getComponentId();
+                ObjectNode threat = (ObjectNode) componentThreats.get( id );
+                if ( threat == null )
+                {
+                    threat = JsonUtils.asTree( component );
+                    threat.remove( "constraintFacts" );
+                    componentThreats.put( id, threat );
+                }
+                if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
+                {
+                    threat.put( "policyId", trigger.getPolicyId() );
+                    threat.put( "policyName", trigger.getPolicyName() );
+                    threat.put( "policyThreatLevel", threatLevel );
+                }
+            }
+        }
+        return JsonUtils.aaDataNode( componentThreats.values() );
     }
 }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,32 +34,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.micromailer.Address;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportDownloader;
-import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.TemplateUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import freemarker.template.Template;
 
@@ -75,25 +61,18 @@ public class PolicyEvaluateResource
     private static Template policyThreatsTemplate;
 
     @Context
-    private InsightWork work;
-
-    @Context
     private InsightMail mail;
 
     @Context
     private BaseUrl baseUrl;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
-    
-    private final ReportDownloader reportDownloader;
-
     private final PolicyEvaluationUtils policyEvaluationUtils;
 
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
+
     @Inject
-    public PolicyEvaluateResource( final ReportDownloader reportDownloader,
-                                   final PolicyEvaluationUtils policyEvaluationUtils )
+    public PolicyEvaluateResource( final PolicyEvaluationUtils policyEvaluationUtils )
     {
-        this.reportDownloader = reportDownloader;
         this.policyEvaluationUtils = policyEvaluationUtils;
     }
 
@@ -111,32 +90,11 @@ public class PolicyEvaluateResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-
-        final File reportFile =
-            ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
-
-        final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
-        final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
-        final ReportEntry bomReportEntry = Report.getEntry( reportFile, "bom.json" );
-
-        if ( bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null )
-        {
-            throw new BadRequestException( "Unable to evaluate policy, the scan " + scanId + " could not be processed" );
-        }
-
-        final List<Component> components =
-            new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf );
-
-        final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policyDAO, components );
-
-        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
-        Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
-
-        ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
+        PolicyEvaluationResult policyEvaluation = policyEvaluationUtils.evaluate( applicationPublicId, scanId, stage );
 
         final List<PolicyAlert> oldAlerts =
             policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
+        final List<PolicyAlert> alerts = policyEvaluation.getAlerts();
 
         @SuppressWarnings( "unchecked" )
         List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
@@ -150,39 +108,7 @@ public class PolicyEvaluateResource
             sendNotifications( applicationPublicId, appId, scanId, stage, digest );
         }
 
-        final PolicyEvaluationResult policyEvaluation = new PolicyEvaluationResult();
-        policyEvaluation.setAlerts( alerts );
-        policyEvaluationUtils.calculateCounters( policyEvaluation );
-
         return policyEvaluation;
-    }
-
-    private static ObjectNode analyzeThreats( final List<PolicyAlert> policyAlerts )
-    {
-        final Map<String, JsonNode> componentThreats = new HashMap<String, JsonNode>();
-        for ( final PolicyAlert alert : policyAlerts )
-        {
-            final PolicyFact trigger = alert.getTrigger();
-            final int threatLevel = trigger.getThreatLevel();
-            for ( final ComponentFact component : trigger.getComponentFacts() )
-            {
-                final String id = component.getComponentId();
-                ObjectNode threat = (ObjectNode) componentThreats.get( id );
-                if ( threat == null )
-                {
-                    threat = JsonUtils.asTree( component );
-                    threat.remove( "constraintFacts" );
-                    componentThreats.put( id, threat );
-                }
-                if ( threatLevel > threat.path( "policyThreatLevel" ).asInt( -1 ) )
-                {
-                    threat.put( "policyId", trigger.getPolicyId() );
-                    threat.put( "policyName", trigger.getPolicyName() );
-                    threat.put( "policyThreatLevel", threatLevel );
-                }
-            }
-        }
-        return JsonUtils.aaDataNode( componentThreats.values() );
     }
 
     static Map<String, Object> createPolicyMailModel( final String serverUrl, final String cdnUrl,

@@ -441,6 +441,7 @@
             <include>policy/InsightLicenseGroupController.js</include>
             <include>policy/LabelController.js</include>
             <include>policy/js/cip-label-editor.js</include>
+            <include>policy/js/cip-claim-component.js</include>
             <include>assets/components/notification-manager/NotificationManager.js</include>
             <include>application/ClmManagementApp.js</include>
             <include>application/ManagementController.js</include>
@@ -453,6 +454,7 @@
             <include>policy/InsightPolicyControllerSpec.js</include>
             <include>policy/InsightLicenseGroupControllerSpec.js</include>
             <include>policy/CIPLabelEditorSpec.js</include>
+            <include>policy/cip-claim-component-spec.js</include>
             <include>policy/LabelControllerSpec.js</include>
             <include>policy/notification-management-spec.js</include>
             <include>policy/PolicyEditorSpec.js</include>

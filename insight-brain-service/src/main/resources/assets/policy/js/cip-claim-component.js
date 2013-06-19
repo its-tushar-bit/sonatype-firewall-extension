@@ -62,8 +62,6 @@
                     return false;
                 } else if (!data.version) {
                     return false;
-                } else if (!data.comment) {
-                    return false;
                 }
                 return true;
             }
@@ -91,44 +89,46 @@
         this.options = options;
     }
     
-    ClaimComponentTab.prototype = new Insight.InformationPanelPlugin();
-
-    ClaimComponentTab.prototype.isVisible = function () {
-        return !freemium && this.gav.matchState !== 'exact';
-    };
-
-    ClaimComponentTab.prototype.create = function () {
-        var timestamp = (new Date()).getTime(),
-            container = $('<div id="claim-component-' + timestamp + '"></div>'),
-            me = this,
-            retry = function () {
-                if (Insight.ClaimComponent) {
-                    Insight.ClaimComponent(container, applicationId, me.gav.hash);
-                } else {
-                    setTimeout(retry, 1000);
-                }
-            };
-        this.node.empty();
-        container.appendTo(this.node);
-
-        retry();
-    };
-
-    ClaimComponentTab.prototype.destroy = function () {
-        this.node.empty();
-    };
-
-    ClaimComponentTab.prototype.getTitle = function () {
-        return 'Claim Component';
-    };
+    if (window.Insight && window.Insight.InformationPanelPlugin) {
+        ClaimComponentTab.prototype = new Insight.InformationPanelPlugin();
     
-    function check() {
-        if (Insight.InformationPanelPlugins) {
-            Insight.InformationPanelPlugins.push(ClaimComponentTab);
-        } else {
-            setTimeout(check, 100);
+        ClaimComponentTab.prototype.isVisible = function () {
+            return !freemium && this.gav.matchState !== 'exact';
+        };
+    
+        ClaimComponentTab.prototype.create = function () {
+            var timestamp = (new Date()).getTime(),
+                container = $('<div id="claim-component-' + timestamp + '"></div>'),
+                me = this,
+                retry = function () {
+                    if (Insight.ClaimComponent) {
+                        Insight.ClaimComponent(container, applicationId, me.gav.hash);
+                    } else {
+                        setTimeout(retry, 1000);
+                    }
+                };
+            this.node.empty();
+            container.appendTo(this.node);
+    
+            retry();
+        };
+    
+        ClaimComponentTab.prototype.destroy = function () {
+            this.node.empty();
+        };
+    
+        ClaimComponentTab.prototype.getTitle = function () {
+            return 'Claim Component';
+        };
+        
+        function check() {
+            if (Insight.InformationPanelPlugins) {
+                Insight.InformationPanelPlugins.push(ClaimComponentTab);
+            } else {
+                setTimeout(check, 100);
+            }
         }
+    
+        setTimeout(check, 0);
     }
-
-    setTimeout(check, 0);
 }());

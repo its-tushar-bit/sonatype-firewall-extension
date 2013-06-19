@@ -38,6 +38,7 @@ describe('ApplicationController', function () {
 		});
 		$timeout.flush();
 		expect(scope.selectedApplication).not.toBeUndefined();
+		expect(scope.selectedApplication.publicId).toEqual('bom1-12345678');
 	}));
 });
 

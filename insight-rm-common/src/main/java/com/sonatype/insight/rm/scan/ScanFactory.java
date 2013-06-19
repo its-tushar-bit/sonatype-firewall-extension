@@ -30,13 +30,13 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.scan.archive.PathSelector;
+import com.sonatype.insight.scan.archive.PathSelector.Selection;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.Config;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
-import com.sonatype.insight.scan.file.PathSelector;
-import com.sonatype.insight.scan.file.PathSelector.Selection;
 import com.sonatype.insight.scan.hash.SHA1;
 import com.sonatype.insight.scan.model.Repository;
 import com.sonatype.insight.scan.model.Scan;

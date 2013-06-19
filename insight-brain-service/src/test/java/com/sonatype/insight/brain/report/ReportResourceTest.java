@@ -14,6 +14,8 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -31,6 +33,7 @@ import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,6 +64,7 @@ public class ReportResourceTest
     public void testManuallyIdentifiedComponent()
         throws Exception
     {
+        // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
         String hash = "f0776db1593e215146d2";
         String groupId = "testClaimedComponent_G";
         String artifactId = "testClaimedComponent_A";
@@ -112,8 +116,31 @@ public class ReportResourceTest
                 assertNull( identificationSource );
             }
         }
-
         assertTrue( foundClaimedComponent );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/licenses.json" );
+        assertResponseStatus( 200, response );
+        String licensesJsonData = response.getResponseBody();
+        assertNotNull( licensesJsonData );
+        assertFalse( StringUtils.isEmpty( licensesJsonData ) );
+        assertFalse( licensesJsonData.contains( hash ) );
+        assertFalse( licensesJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        String securityJsonData = response.getResponseBody();
+        assertNotNull( securityJsonData );
+        assertFalse( StringUtils.isEmpty( securityJsonData ) );
+        assertFalse( securityJsonData.contains( hash ) );
+        assertFalse( securityJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/partialmatched.json" );
+        assertResponseStatus( 200, response );
+        String partialmatched = response.getResponseBody();
+        assertNotNull( partialmatched );
+        assertFalse( StringUtils.isEmpty( partialmatched ) );
+        assertFalse( partialmatched.contains( hash ) );
+        assertFalse( partialmatched.contains( "commons-httpclient" ) );
 
         hashGAVDAO.delete( hashGAV );
     }

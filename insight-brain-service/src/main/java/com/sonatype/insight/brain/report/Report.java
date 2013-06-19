@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -126,6 +127,8 @@ public final class Report
         }
 
         embedApplicationPublicId( appId, reportFile );
+
+        applyComponentIdentifications( reportFile );
 
         final ReportEntry policyReportEntry = getEntry( reportFile, "policythreats.json" );
 
@@ -280,8 +283,6 @@ public final class Report
         badges.append( buildAlerts ).append( ']' );
 
         cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
-
-        applyComponentIdentifications( reportFile );
         
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
     }
@@ -291,6 +292,8 @@ public final class Report
     {
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         
+        Set<String> hashes = new LinkedHashSet<String>();
+        Set<String> gavs = new LinkedHashSet<String>();
         ReportEntry bomReportEntry = getEntry( reportFile, "bom.json" );
         ContainerNode<?> bomJsonData = JsonUtils.parse( bomReportEntry.buf );
         for ( JsonNode bomJsonNode : bomJsonData.get( "aaData" ) )
@@ -308,8 +311,77 @@ public final class Report
                 bomObjectNode.put( "matchState", MatchState.EXACT.getId() );
                 bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
             }
+            hashes.add( hash );
+            gavs.add( bomJsonNode.get( "groupId" ).asText() + ':' + bomJsonNode.get( "artifactId" ).asText() + ':'
+                + bomJsonNode.get( "version" ).asText() );
         }
         cache( getCacheFile( reportFile, "bom.json" ), JsonUtils.generate( bomJsonData ) );
+
+        // Remove all entries from licenses.json that don't have a correspondent record in bom.json
+        ReportEntry licensesReportEntry = getEntry( reportFile, "licenses.json" );
+        ContainerNode<?> licensesJsonData = JsonUtils.parse( licensesReportEntry.buf );
+        JsonNode licensesJsonNode = licensesJsonData.get( "aaData" );
+        boolean needsSave = false;
+        Iterator<JsonNode> iter = licensesJsonNode.iterator();
+        while ( iter.hasNext() )
+        {
+            JsonNode jsonNode = iter.next();
+            String gav =
+                jsonNode.get( "groupId" ).asText() + ':' + jsonNode.get( "artifactId" ).asText() + ':'
+                    + jsonNode.get( "version" ).asText();
+            if ( !gavs.contains( gav ) )
+            {
+                iter.remove();
+                needsSave = true;
+            }
+        }
+        if ( needsSave )
+        {
+            cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licensesJsonData ) );
+        }
+
+        // Remove all entries from security.json that don't have a correspondent record in bom.json
+        ReportEntry securityReportEntry = getEntry( reportFile, "security.json" );
+        ContainerNode<?> securityJsonData = JsonUtils.parse( securityReportEntry.buf );
+        JsonNode securityJsonNode = securityJsonData.get( "aaData" );
+        needsSave = false;
+        iter = securityJsonNode.iterator();
+        while ( iter.hasNext() )
+        {
+            JsonNode jsonNode = iter.next();
+            String gav =
+                jsonNode.get( "groupId" ).asText() + ':' + jsonNode.get( "artifactId" ).asText() + ':'
+                    + jsonNode.get( "version" ).asText();
+            if ( !gavs.contains( gav ) )
+            {
+                iter.remove();
+                needsSave = true;
+            }
+        }
+        if ( needsSave )
+        {
+            cache( getCacheFile( reportFile, "security.json" ), JsonUtils.generate( securityJsonData ) );
+        }
+
+        // Remove all entries from partialmatched.json that don't have a correspondent record in bom.json
+        ReportEntry partialmatchedReportEntry = getEntry( reportFile, "partialmatched.json" );
+        ContainerNode<?> partialmatchedJsonData = JsonUtils.parse( partialmatchedReportEntry.buf );
+        JsonNode partialmatchedJsonNode = partialmatchedJsonData.get( "aaData" );
+        needsSave = false;
+        iter = partialmatchedJsonNode.iterator();
+        while ( iter.hasNext() )
+        {
+            JsonNode jsonNode = iter.next();
+            if ( !hashes.contains( jsonNode.get( "hash" ) ) )
+            {
+                iter.remove();
+                needsSave = true;
+            }
+        }
+        if ( needsSave )
+        {
+            cache( getCacheFile( reportFile, "partialmatched.json" ), JsonUtils.generate( partialmatchedJsonData ) );
+        }
     }
 
     private static void writeLicenseThreatsToReportFile( final String appId, final File reportFile )
@@ -458,7 +530,7 @@ public final class Report
         throws IOException
     {
         ContainerNode<?> table = null;
-        final ReportEntry entry = extractEntry( reportFile, name );
+        final ReportEntry entry = getEntry( reportFile, name );
         if ( entry != null )
         {
             table = JsonUtils.fileStore( auditDir ).augment( JsonUtils.parse( entry.buf ), name );

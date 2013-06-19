@@ -77,6 +77,10 @@
 
 			evaluatePolicyUrl: function(applicationId, scanId) {
 				return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
+			},
+
+			getProprietaryConfig : function () {
+			    return this.getBaseUrl() + '/rest/config/proprietary';
 			}
 		};
 	}]).factory('CLMAppLocations', ['ApplicationId', function (appId) {

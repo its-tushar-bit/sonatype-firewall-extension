@@ -182,7 +182,7 @@
 				} else {
 					angular.forEach(policies, function (policy, index) {
 						if (policy.id === $state.params.policyId) {
-							state.currentPolicy = angular.copy(policy);
+							state.currentPolicy = policy.$clone();
 							return false;
 						}
 					});
@@ -196,7 +196,10 @@
 
 		$scope.savePolicy = function () {
 			$scope.state.currentPolicy.actions = policyStore.serializeActions($scope.state.actions);
-			$scope.state.currentPolicy.$save().then(returnFn, function (error) {
+			$scope.state.currentPolicy.$save().then(function (policy) {
+                $scope.state.currentPolicy = policy.$clone();
+                returnFn();
+            }, function (error) {
 				$scope.alerts.push({
 					type : 'error',
 					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'

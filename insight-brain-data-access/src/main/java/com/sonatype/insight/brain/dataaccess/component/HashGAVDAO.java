@@ -37,13 +37,11 @@ public class HashGAVDAO
 
     private HashGAV getByHash( EntityManager em, String hash )
     {
-        if ( hash != null && hash.length() > 20 )
-        {
-            hash = hash.substring( 0, 20 );
-        }
+        // Note that our truncated representation of the hash is what is stored, hence the transformation on the input
+        // hash.
         String sQuery = "SELECT entity FROM HashGAV entity" + //
             " WHERE entity.hash=?1";
-        return get( em, sQuery, hash );
+        return get( em, sQuery, HashGAV.truncateHash( hash ) );
     }
 
     private HashGAV getByGAVEC( EntityManager em, String groupId, String artifactId, String version, String extension,

@@ -9,7 +9,7 @@
 				<div ng-show='loadError'>An Error Occurred</div>
 				<div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
 				<div ng-show='!loadError && proprietary'>
-					<div list-editor place-holder='Proprietary Package' entries='packages' set-error='setEditorError'></div>
+					<div list-editor place-holder='Proprietary Package' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
 				</div>
 			</div>
 			<div class="modal-footer">

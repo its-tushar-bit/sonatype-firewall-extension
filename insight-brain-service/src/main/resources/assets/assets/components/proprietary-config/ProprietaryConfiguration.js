@@ -50,6 +50,10 @@
             $scope.error = error
         };
 
+        $scope.validatePackage = function (value) {
+            return new RegExp('^[^ /.][^ /]*[^ /.]$').test(value);
+        };
+
         $scope.doLoad();
     }]);
 }());

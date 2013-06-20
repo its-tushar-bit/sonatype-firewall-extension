@@ -33,7 +33,9 @@
 			                    	<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
 				                    	ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
 				                    	ng-click='reEvaluatePolicy(application, policyEvaluation)'>
-				                    	<img ng-class="{ 'rotate-infinite' : reEvaluatingPolicy }" src='../assets/img/refresh.png' /></a>
+				                    	<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
+				                    	<i ng-show='reEvaluatingPolicy' class='icon-time'></i>	
+			                    	</a>
 			                   	</div>
 			                </td>
 			            </tr>

@@ -46,8 +46,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -322,18 +324,21 @@ public class ReportResourceTest
         throws Exception
     {
         final String applicationPublicId = "ReportResourceTest_AppId";
-        createApplication( applicationPublicId );
+        final Application application = createApplication( applicationPublicId );
         final String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
         setLicenseFingerprint( licenseFingerprint );
-
-        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
 
         final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( application.getId() ) );
+        PolicyEvaluation policyEvaluation = evalLog.get( scanId );
+
+        Assert.assertNull( policyEvaluation );
 
         final Stage stage = new Stage( BuildStageType.ID );
 
@@ -345,9 +350,14 @@ public class ReportResourceTest
                                  + scanId, JsonHelpers.asJson( stage ) );
 
         // ReEvaluate
-        response = RestAccess.get( resourcePrefix + "/reevaluatePolicy" );
-        assertResponseStatus( 307, response );
-        Assert.assertEquals( resourcePrefix + "/embedReport/index.html", response.getHeader( "Location" ) );
+        assertResponseStatus( 200, response );
+
+        policyEvaluation = evalLog.get( scanId );
+        Assert.assertNotNull( policyEvaluation );
+        Assert.assertEquals( scanId, policyEvaluation.getScanId() );
+        Assert.assertNotNull( policyEvaluation.getStage() );
+        Assert.assertEquals( BuildStageType.ID, policyEvaluation.getStage().getStageTypeId() );
+        assertTrue( System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000 );
     }
 
     @Test

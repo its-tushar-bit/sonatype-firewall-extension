@@ -23,7 +23,7 @@ public class HashGAVResourceTest
     extends AbstractResourceTest
 {
     @Test
-    public void testSetHashGAV()
+    public void testSetHashGAV_UnknownToSaaS()
         throws Exception
     {
         String hash = "ab1234ab1234ab";

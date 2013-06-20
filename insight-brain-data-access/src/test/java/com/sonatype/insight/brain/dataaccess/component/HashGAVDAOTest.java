@@ -37,6 +37,7 @@ public class HashGAVDAOTest
 
         // Create
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        assertNull( hashGAV.getId() );
         dao.insert( hashGAV );
         assertNotNull( hashGAV.getId() );
 
@@ -45,11 +46,11 @@ public class HashGAVDAOTest
         assertNotNull( hashGAV );
         assertHashGAV( truncatedHash, groupId, artifactId, version, extension, classifier, hashGAV );
 
-        // Update
+        // Update is not allowed
         try
         {
             dao.update( hashGAV );
-            fail( "Expected UnsupportedOperationException" );
+            fail( "Expected UnsupportedOperationException, updates to HashGAV are not allowed" );
         }
         catch ( UnsupportedOperationException expected )
         {

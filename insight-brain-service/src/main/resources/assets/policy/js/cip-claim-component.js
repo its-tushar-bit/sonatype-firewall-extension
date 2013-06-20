@@ -36,37 +36,30 @@
                 if ($scope.formValid()) {
                     $scope.claimData.hash = CurrentHash.hash;
                     $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
-                        var mask = {}, dataView = InsightDatatable.getActiveTable().dataView, currentItem;
-                        
-                        $.each(dataView.getItems(), function(index, item){
+                        var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
+
+                        $.each(dataView.getItems(), function(index, item) {
                             if (item.hash === CurrentHash.hash) {
-                                currentItem = item;
+                                dataView.beginUpdate();
+                                dataView.updateItem(item.id, $.extend({}, item, {
+                                    identificationSource : 'Manual',
+                                    matchState : 'exact',
+                                    groupId : $scope.claimData.groupId,
+                                    artifactId : $scope.claimData.artifactId,
+                                    version : $scope.claimData.version,
+                                    classifier : $scope.claimData.classifier,
+                                    extension : $scope.claimData.extension
+                                }));
+                                dataView.endUpdate();
                                 return false;
                             }
                         });
-
-                        mask.identificationSource = 'Manual';
-                        mask.matchState = 'exact';
-                        mask.groupId = $scope.claimData.groupId;
-                        mask.artifactId = $scope.claimData.artifactId;
-                        mask.version = $scope.claimData.version;
-                        mask.classifier = $scope.claimData.classifier;
-                        mask.extension = $scope.claimData.extension;
                         
                         $scope.claimData = {};
                         
-                        InsightDatatable.updateBom({
-                            mask : mask,
-                            dataView : dataView,
-                            items : currentItem,
-                            callback : function() {
-                                dataView.beginUpdate();
-                                dataView.updateItem(currentItem.id, $.extend({}, currentItem, mask));
-                                dataView.endUpdate();
-                            }
-                        });
                         // TODO: add some notification of success??
-                        // TODO: need to close the info panel as the available tabs no longer match
+                        // TODO: need to close the info panel as the available
+                        // tabs no longer match??
                     }).error(function(data, status, headersFn, config) {
                         var header = headersFn();
                         if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
@@ -113,7 +106,7 @@
         this.node = node;
         this.options = options;
     }
-    
+
     function check() {
         if (Insight.InformationPanelPlugins) {
             Insight.InformationPanelPlugins.push(ClaimComponentTab);

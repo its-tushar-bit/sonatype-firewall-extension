@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
@@ -207,6 +208,10 @@ public class ComponentDAO
         component.setVersion( componentInfo.getVersion() );
 
         component.setMatchState( MatchState.getById( componentInfo.getMatchState() ) );
+        if ( componentInfo.getIdentificationSource() != null )
+        {
+            component.setIdentificationSource( IdentificationSource.getById( componentInfo.getIdentificationSource() ) );
+        }
 
         component.setCatalogDate( componentInfo.getCatalogDate() );
         if ( componentInfo.getRelativePopularity() != null )

@@ -50,6 +50,8 @@ public class Component
 
     private boolean proprietary;
 
+    private IdentificationSource identificationSource = IdentificationSource.SONATYPE;
+
     public Component()
     {
     }
@@ -352,5 +354,15 @@ public class Component
     public void setProprietary( boolean proprietary )
     {
         this.proprietary = proprietary;
+    }
+
+    public IdentificationSource getIdentificationSource()
+    {
+        return identificationSource;
+    }
+
+    public void setIdentificationSource( IdentificationSource identificationSource )
+    {
+        this.identificationSource = identificationSource;
     }
 }

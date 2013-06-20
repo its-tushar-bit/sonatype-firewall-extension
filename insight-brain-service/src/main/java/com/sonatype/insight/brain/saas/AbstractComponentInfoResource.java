@@ -35,11 +35,14 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -160,6 +163,25 @@ public abstract class AbstractComponentInfoResource
         else
         {
             componentDetails.setMatchState( MatchState.EXACT.getId() );
+        }
+
+        // Is this a manually claimed component?
+        HashGAV hashGAV = null;
+        if ( componentDetails.getHash() != null )
+        {
+            hashGAV = new HashGAVDAO().getByHash( componentDetails.getHash() );
+        }
+        if ( hashGAV != null )
+        {
+            componentDetails.setGroupId( hashGAV.getGroupId() );
+            componentDetails.setArtifactId( hashGAV.getArtifactId() );
+            componentDetails.setVersion( hashGAV.getVersion() );
+            componentDetails.setMatchState( MatchState.EXACT.getId() );
+            componentDetails.setIdentificationSource( IdentificationSource.MANUAL.getId() );
+        }
+        else
+        {
+            componentDetails.setIdentificationSource( IdentificationSource.SONATYPE.getId() );
         }
 
         Component component = loadComponent( applicationId, componentDetails );

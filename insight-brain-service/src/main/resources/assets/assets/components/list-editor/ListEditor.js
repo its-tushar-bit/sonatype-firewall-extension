@@ -21,6 +21,7 @@
 				doSave : '&save',
 				validator : '=validator',
 				placeHolder : '@placeHolder',
+				maxLength : '@maxLength',
 				entries : '=entries',
 				setError : '=setError'
 			},

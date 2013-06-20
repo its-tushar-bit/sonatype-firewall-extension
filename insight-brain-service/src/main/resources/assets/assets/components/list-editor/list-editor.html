@@ -2,7 +2,7 @@
 	<form ng-submit='add()' name='neditor' style='margin-bottom:0px'>
 		<div class='control-group' ng-class='{ error : neditor.$invalid }'>
 			<div class='input-append controls'>
-				<input type='text' name='currentEntry' class='span5' ng-model='currentEntry' placeholder='Enter {{placeHolder}}...' list-editor-validator required entersubmit>
+				<input type='text' name='currentEntry' class='span5' ng-model='currentEntry' maxlength='{{maxLength}}' placeholder='Enter {{placeHolder}}...' list-editor-validator required entersubmit>
 				<button class='btn' ng-disabled='neditor.$invalid' title='Add {{placeHolder}}'>Add</button>
 			</div>
 		</div>

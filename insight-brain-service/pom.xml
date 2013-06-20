@@ -438,6 +438,7 @@
             <include>policy/PolicyApp.js</include>
             <include>policy/InsightPolicyController.js</include>
             <include>assets/components/policy-editor/PolicyEditor.js</include>
+            <include>assets/components/list-editor/ListEditor.js</include>
             <include>policy/InsightLicenseGroupController.js</include>
             <include>policy/LabelController.js</include>
             <include>policy/js/cip-label-editor.js</include>
@@ -462,6 +463,7 @@
             <include>application/ManagementControllerSpec.js</include>
             <include>assets/AngularCommonSpec.js</include>
             <include>assets/ResourceSpec.js</include>
+            <include>assets/ListEditorSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>

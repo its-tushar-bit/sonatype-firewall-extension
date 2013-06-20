@@ -1,47 +1,73 @@
 /**
- * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved.
- * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
- * "Sonatype" is a trademark of Sonatype, Inc.
+ * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved. Includes the
+ *          third-party code listed at
+ *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
+ *          trademark of Sonatype, Inc.
  */
-/*global angular, $, window, CLM, setTimeout */
-(function () {
+/* global angular, $, window, CLM, setTimeout */
+(function() {
     'use strict';
 
     function doLoad() {
         $.extend(true, window, {
             'Insight' : {
-                'ClaimComponent' : function (node, applicationId, hash) {
-                    var timestamp = (new Date()).getTime(),
-                        container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-claim-component.html\'"></div>');
+                'ClaimComponent' : function(node, applicationId, hash) {
+                    var timestamp = (new Date()).getTime(), container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-claim-component.html\'"></div>');
                     node.empty();
                     container.appendTo(node);
 
-                    angular.module('claimComponent' + timestamp, []).service('CurrentHash', function () {
+                    angular.module('claimComponent' + timestamp, []).service('CurrentHash', function() {
                         return {
-                            hash: hash
+                            hash : hash
                         };
                     });
-                    angular.bootstrap(container[0], ['ClaimComponent', 'claimComponent' + timestamp]);
+                    angular.bootstrap(container[0], [ 'ClaimComponent', 'claimComponent' + timestamp ]);
                 }
             }
         });
-        
+
         var claimApp = angular.module('ClaimComponent', []);
 
-        claimApp.controller('ClaimComponentController', ['$http', '$scope', 'CurrentHash', function ($http, $scope, CurrentHash) {
+        claimApp.controller('ClaimComponentController', [ '$http', '$scope', 'CurrentHash', function($http, $scope, CurrentHash) {
             $scope.claimData = {};
-            
+
             $scope.claimClick = function() {
                 $scope.createError = '';
                 if ($scope.formValid()) {
                     $scope.claimData.hash = CurrentHash.hash;
-                    $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function (data) {
+                    $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
+                        var mask = {}, dataView = InsightDatatable.getActiveTable().dataView, currentItem;
+                        
+                        $.each(dataView.getItems(), function(index, item){
+                            if (item.hash === CurrentHash.hash) {
+                                currentItem = item;
+                                return false;
+                            }
+                        });
+
+                        mask.identificationSource = 'Manual';
+                        mask.matchState = 'exact';
+                        mask.groupId = $scope.claimData.groupId;
+                        mask.artifactId = $scope.claimData.artifactId;
+                        mask.version = $scope.claimData.version;
+                        mask.classifier = $scope.claimData.classifier;
+                        mask.extension = $scope.claimData.extension;
+                        
                         $scope.claimData = {};
-                        //TODO: add some notification of success??
-                        //TODO: need to update source in the bom.json file
-                        //TODO: need to close the info panel
-                        //TODO: need to refresh the component list from json
-                    }).error(function(data, status, headersFn, config){
+                        
+                        InsightDatatable.updateBom({
+                            mask : mask,
+                            dataView : dataView,
+                            items : currentItem,
+                            callback : function() {
+                                dataView.beginUpdate();
+                                dataView.updateItem(currentItem.id, $.extend({}, currentItem, mask));
+                                dataView.endUpdate();
+                            }
+                        });
+                        // TODO: add some notification of success??
+                        // TODO: need to close the info panel as the available tabs no longer match
+                    }).error(function(data, status, headersFn, config) {
                         var header = headersFn();
                         if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
                             $scope.createError = 'Server Error';
@@ -53,7 +79,7 @@
                     });
                 }
             };
-            
+
             $scope.formValid = function() {
                 var data = $scope.claimData;
                 if (!data.groupId) {
@@ -65,7 +91,7 @@
                 }
                 return true;
             }
-        }]);
+        } ]);
     }
 
     function check() {
@@ -79,9 +105,8 @@
     setTimeout(check, 0);
 }());
 
-
 /* add claim component tab as an information panel plugin */
-(function () {
+(function() {
     "use strict";
 
     function ClaimComponentTab(node, options) {
@@ -89,46 +114,43 @@
         this.options = options;
     }
     
+    function check() {
+        if (Insight.InformationPanelPlugins) {
+            Insight.InformationPanelPlugins.push(ClaimComponentTab);
+        } else {
+            setTimeout(check, 100);
+        }
+    }
+
     if (window.Insight && window.Insight.InformationPanelPlugin) {
         ClaimComponentTab.prototype = new Insight.InformationPanelPlugin();
-    
-        ClaimComponentTab.prototype.isVisible = function () {
+
+        ClaimComponentTab.prototype.isVisible = function() {
             return !freemium && this.gav.matchState !== 'exact';
         };
-    
-        ClaimComponentTab.prototype.create = function () {
-            var timestamp = (new Date()).getTime(),
-                container = $('<div id="claim-component-' + timestamp + '"></div>'),
-                me = this,
-                retry = function () {
-                    if (Insight.ClaimComponent) {
-                        Insight.ClaimComponent(container, applicationId, me.gav.hash);
-                    } else {
-                        setTimeout(retry, 1000);
-                    }
-                };
+
+        ClaimComponentTab.prototype.create = function() {
+            var timestamp = (new Date()).getTime(), container = $('<div id="claim-component-' + timestamp + '"></div>'), me = this, retry = function() {
+                if (Insight.ClaimComponent) {
+                    Insight.ClaimComponent(container, applicationId, me.gav.hash);
+                } else {
+                    setTimeout(retry, 1000);
+                }
+            };
             this.node.empty();
             container.appendTo(this.node);
-    
+
             retry();
         };
-    
-        ClaimComponentTab.prototype.destroy = function () {
+
+        ClaimComponentTab.prototype.destroy = function() {
             this.node.empty();
         };
-    
-        ClaimComponentTab.prototype.getTitle = function () {
+
+        ClaimComponentTab.prototype.getTitle = function() {
             return 'Claim Component';
         };
-        
-        function check() {
-            if (Insight.InformationPanelPlugins) {
-                Insight.InformationPanelPlugins.push(ClaimComponentTab);
-            } else {
-                setTimeout(check, 100);
-            }
-        }
-    
+
         setTimeout(check, 0);
     }
 }());

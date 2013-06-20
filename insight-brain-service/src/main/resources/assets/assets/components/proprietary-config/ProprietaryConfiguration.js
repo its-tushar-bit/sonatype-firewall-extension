@@ -19,6 +19,8 @@
     var module = angular.module('ProprietaryConfiguration', ['ListEditor']);
 
     module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
+        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$'); 
+
         $scope.doLoad = function () {
             $http.get(clmLocations.getProprietaryConfig(), { params : { "ts" : new Date().getTime() } }).success(function (data) {
                 $scope.proprietary = data;
@@ -51,7 +53,7 @@
         };
 
         $scope.validatePackage = function (value) {
-            return new RegExp('^[^ /.][^ /]*[^ /.]$').test(value);
+            return PACKAGE_REGEXP.test(value);
         };
 
         $scope.doLoad();

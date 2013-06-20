@@ -29,10 +29,13 @@
         };
 
         $scope.save = function () {
+            var proprietary = angular.extend({}, $scope.proprietary, { packages : angular.copy($scope.packages) });
+
             $scope.saving = true;
-            $scope.proprietary.packages = $scope.packages;
-            $http.put(clmLocations.getProprietaryConfig(), $scope.proprietary).success(function () {
+
+            $http.put(clmLocations.getProprietaryConfig(), proprietary).success(function () {
                 $scope.saving = false;
+                $scope.proprietary = proprietary;
             }).error(function (data, status, headersFn, config) {
                 $scope.saving = false;
                 $scope.error = getMessage.apply(null, arguments);

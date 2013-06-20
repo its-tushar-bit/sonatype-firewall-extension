@@ -26,10 +26,20 @@ describe('ListEditor', function () {
     }
     var scope,
         template;
-    
-    $.ajax('src/main/resources/assets/assets/components/list-editor/list-editor.html', { async : false }).success(function (data) {
-        template = data;
-    });
+
+    (function () {
+        var baseUrl;
+        if (location.hostname) {
+            baseUrl = 'src/main/resources/assets/';
+        } else {
+            baseUrl = 'src/';
+        }
+        $.ajax(baseUrl + 'assets/components/list-editor/list-editor.html', {
+            async : false
+        }).success(function (data) {
+            template = data;
+        });
+    }());
 
     beforeEach(module('ListEditor'));
 

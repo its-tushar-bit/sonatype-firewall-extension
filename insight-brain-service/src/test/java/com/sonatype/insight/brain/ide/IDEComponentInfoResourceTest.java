@@ -319,19 +319,19 @@ public class IDEComponentInfoResourceTest
     }
 
     @Test
-    public void testGetComponentDetails_ClaimedComponent()
+    public void testGetComponentDetails_ManuallyIdentifiedComponent()
         throws Exception
     {
         String applicationPublicId = "IdeResourceTest_AppId";
         createApplication( applicationPublicId );
 
-        // Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
-        // constraint1.addCondition( new Condition( ProprietaryConditionType.ID, "is true" ) );
-        // Policy policy1 = new Policy( "PolicyId1", "Policy1" );
-        // policy1.setThreatLevel( 8 );
-        // policy1.addConstraint( constraint1 );
-        // policy1.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
-        // addPolicy( applicationPublicId, policy1 );
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+        addPolicy( applicationPublicId, policy1 );
 
         String hash = "01234567890123456789";
         String groupId = "g1";
@@ -354,7 +354,7 @@ public class IDEComponentInfoResourceTest
         List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertNotNull( policyAlerts );
-        // Assert.assertEquals( 0, policyAlerts.size() );
+        Assert.assertEquals( 0, policyAlerts.size() );
 
         HashGAV hashGAV =
             new HashGAV( hash, "Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version, null /* extension */,
@@ -373,8 +373,8 @@ public class IDEComponentInfoResourceTest
         Assert.assertEquals( MatchState.EXACT.getId(), componentDetails.getMatchState() );
         Assert.assertEquals( IdentificationSource.MANUAL.getId(), componentDetails.getIdentificationSource() );
         policyAlerts = componentDetails.getPolicyAlerts();
-        // Assert.assertEquals( 1, policyAlerts.size() );
-        // Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
     }
 
     private String getServiceURL()

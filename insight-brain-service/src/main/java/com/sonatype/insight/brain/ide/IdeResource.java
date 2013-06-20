@@ -30,9 +30,13 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -99,6 +103,22 @@ public class IdeResource
         MatchedComponent matchedComponent =
             client.get( req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}", scanType,
                         path );
+        // Is this a manually claimed component?
+        HashGAV hashGAV = new HashGAVDAO().getByHash( matchedComponent.getHash() );
+        if ( hashGAV != null )
+        {
+            matchedComponent.setGroupId( hashGAV.getGroupId() );
+            matchedComponent.setArtifactId( hashGAV.getArtifactId() );
+            matchedComponent.setVersion( hashGAV.getVersion() );
+            matchedComponent.setMatchState( MatchState.EXACT.getId() );
+            matchedComponent.setIdentificationSource( IdentificationSource.MANUAL.getId() );
+            matchedComponent.setWaitDelta( null );
+            matchedComponent.setSimpleMatch( true );
+        }
+        else
+        {
+            matchedComponent.setIdentificationSource( IdentificationSource.SONATYPE.getId() );
+        }
 
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null
@@ -157,6 +177,7 @@ public class IdeResource
         ide.setVersion( mComponent.getVersion() );
         ide.setHash( mComponent.getHash() );
         ide.setMatchState( mComponent.getMatchState() );
+        ide.setIdentificationSource( mComponent.getIdentificationSource() );
         ide.setSimpleMatch( mComponent.isSimpleMatch() );
         ide.setWaitDelta( mComponent.getWaitDelta() );
         return ide;

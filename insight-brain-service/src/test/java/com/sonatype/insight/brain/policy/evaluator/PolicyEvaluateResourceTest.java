@@ -23,7 +23,9 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -33,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
@@ -155,6 +158,71 @@ public class PolicyEvaluateResourceTest
                                                                 FailActionType.ID, constraintSV.getId(),
                                                                 "Constraint SV", SecurityVulnerabilityConditionType.ID,
                                                                 policyAlerts );
+    }
+
+    @Test
+    public void testEvaluate_ManuallyIdentifiedComponent()
+        throws Exception
+    {
+        String applicationPublicId = "testEvaluate_ManuallyIdentifiedComponent_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testEvaluate_ManuallyIdentifiedComponent_ScanId";
+        String licenseFingerprint = "testEvaluate_ManuallyIdentifiedComponent_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        Constraint constraint1 = new Constraint( null /* constraintId */, "Constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( MatchStateConditionType.ID, "is", "exact" );
+        constraint1.addCondition( condition1 );
+
+        Action action = new Action( FailActionType.ID );
+
+        Policy policy1 = new Policy( null /* policyId */, "Policy 1" );
+        policy1.setThreatLevel( 5 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, action );
+        Response response = addPolicy( applicationPublicId, policy1 );
+        policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+        constraint1 = policy1.getConstraints().get( 0 );
+
+        Stage stage = new Stage( BuildStageType.ID );
+
+        String hash = "5801a1a27a36f88e2089";
+        String groupId = "G";
+        String artifactId = "A";
+        String version = "V";
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, null /* extension */, null /* classifier */);
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAVDAO.insert( hashGAV );
+        // The report file is not available yet
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 404, response );
+
+        // Simulate that the report is available
+        URL testReportFileUrl =
+            getClass().getResource( "/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        hashGAVDAO.delete( hashGAV );
+        assertResponseStatus( 200, response );
+        PolicyEvaluationResult policyEval =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
+        Assert.assertNotNull( policyEval );
+        Assert.assertEquals( 1, policyEval.getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEval.getCriticalComponentCount() );
+        Assert.assertEquals( 1, policyEval.getSevereComponentCount() );
+        Assert.assertEquals( 0, policyEval.getModerateComponentCount() );
+        List<PolicyAlert> policyAlerts = policyEval.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        AbstractPolicyEvaluationTest.assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
+        Component expectedComponentExact = new Component( groupId, artifactId, version, MatchState.EXACT );
+        expectedComponentExact.setHash( hash );
+        AbstractPolicyEvaluationTest.assertContainsPolicyAlert( expectedComponentExact, policy1.getId(), "Policy 1",
+                                                                FailActionType.ID, constraint1.getId(), "Constraint 1",
+                                                                MatchStateConditionType.ID, policyAlerts );
     }
 
     @Test

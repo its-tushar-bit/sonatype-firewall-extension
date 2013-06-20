@@ -13,12 +13,17 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
+import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -79,6 +84,7 @@ public class IdeResourceTest
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
         Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertEquals( IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource() );
         Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
         Assert.assertNotNull( policyAlerts );
@@ -120,6 +126,7 @@ public class IdeResourceTest
         Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
         Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
         Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertEquals( IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource() );
         Assert.assertFalse( ideMatchedComponent.isSimpleMatch() );
         List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
         Assert.assertNotNull( policyAlerts );
@@ -525,6 +532,51 @@ public class IdeResourceTest
         policyAlerts = ideMatchedComponent.getAlerts();
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 0, policyAlerts.size() );
+    }
+
+    @Test
+    public void testDoScan_ManuallyIdentifiedComponent()
+        throws Exception
+    {
+        String applicationPublicId = "IdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+        addPolicy( applicationPublicId, policy1 );
+
+        String hash = "abababa1234babababab";
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, null /* extension */, null /* classifier */);
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAVDAO.insert( hashGAV );
+        String serviceUrl =
+            getScanUrl( "simple", applicationPublicId, hash, null, null, null, null, "false" /* proprietary */);
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
+        MatchedComponent saasResponse = new MatchedComponent();
+        saasResponse.setHash( hash );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasResponse ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        hashGAVDAO.delete( hashGAV );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( groupId, ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( artifactId, ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( version, ideMatchedComponent.getVersion() );
+        Assert.assertEquals( hash, ideMatchedComponent.getHash() );
+        Assert.assertEquals( MatchState.EXACT.getId(), ideMatchedComponent.getMatchState() );
+        Assert.assertEquals( IdentificationSource.MANUAL.getId(), ideMatchedComponent.getIdentificationSource() );
+        Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
+        List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
     }
 
     @Test

@@ -1,7 +1,19 @@
 /*global window*/
 var CLM = {
-    path : '../brain/'
-};
+        path : '../brain/'
+    },
+    InsightDatatable = {
+        getActiveTable : function () {
+            return {
+                dataView : {
+                    getItems : function () {
+                        return [];
+                    }
+                }
+            }
+        }
+    };
+
 window.Insight = {
     InformationPanelPlugin : function() {
     }

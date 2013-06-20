@@ -20,7 +20,7 @@
 
     module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
         $scope.doLoad = function () {
-            $http.get(clmLocations.getProprietaryConfig()).success(function (data) {
+            $http.get(clmLocations.getProprietaryConfig(), { params : { "ts" : new Date().getTime() } }).success(function (data) {
                 $scope.proprietary = data;
                 $scope.reset();
             }).error(function () {

@@ -4,6 +4,10 @@ describe('ProprietaryConfiguration', function () {
     var scope,
         controller;
 
+    function toRegExp(getUrl) {
+        return new RegExp(getUrl + '\\?ts=[0-9]+');
+    }
+
     beforeEach(module('ProprietaryConfiguration', 'CLMLocation'));
     afterEach(function () {
         scope.$destroy();
@@ -13,7 +17,7 @@ describe('ProprietaryConfiguration', function () {
     describe('Load', function () {
         it('Success', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
             scope = $rootScope.$new();
-            $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond({ packages : ['foo']});
+            $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
             controller = $controller('ProprietaryConfigurationController', { $scope : scope });
             $httpBackend.flush();
 
@@ -23,7 +27,7 @@ describe('ProprietaryConfiguration', function () {
 
         it('Error', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
             scope = $rootScope.$new();
-            $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(500, 'A Random Error');
+            $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond(500, 'A Random Error');
             controller = $controller('ProprietaryConfigurationController', { $scope : scope });
             $httpBackend.flush();
             expect(scope.packages).toBeUndefined();
@@ -34,7 +38,7 @@ describe('ProprietaryConfiguration', function () {
     it('Reset', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
         scope = $rootScope.$new();
 
-        $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond({ packages : ['foo']});
+        $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
         controller = $controller('ProprietaryConfigurationController', { $scope : scope });
         $httpBackend.flush();
 
@@ -49,7 +53,7 @@ describe('ProprietaryConfiguration', function () {
     describe('Save', function () {
         it('Success', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
             scope = $rootScope.$new();
-            $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond({ packages : ['foo']});
+            $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
             controller = $controller('ProprietaryConfigurationController', { $scope : scope });
             $httpBackend.flush();
 
@@ -67,7 +71,7 @@ describe('ProprietaryConfiguration', function () {
 
         it('Error', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
             scope = $rootScope.$new();
-            $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond({ packages : ['foo']});
+            $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
             controller = $controller('ProprietaryConfigurationController', { $scope : scope });
             $httpBackend.flush();
 

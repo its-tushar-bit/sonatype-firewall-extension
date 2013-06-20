@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -141,7 +140,7 @@ public class ReportResource
     public Response reevaluatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, 
                                       @PathParam( "scanId" ) final String scanId, 
                                       @Context final HttpServletRequest httpRequest ) 
-        throws IOException, URISyntaxException
+        throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
@@ -158,8 +157,7 @@ public class ReportResource
     @Produces( "application/pdf" )
     public Response printReport( @PathParam( "applicationPublicId" ) final String applicationPublicId,
                                  @PathParam( "scanId" ) final String scanId,
- @QueryParam( "projectName" )
-    final String projectName,
+                                 @QueryParam( "projectName" ) final String projectName,
                                  @QueryParam( "buildNumber" ) final int buildNumber )
         throws IOException
     {

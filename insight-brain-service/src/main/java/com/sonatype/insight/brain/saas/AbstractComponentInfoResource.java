@@ -125,7 +125,8 @@ public abstract class AbstractComponentInfoResource
                                                  @QueryParam( "artifactId" ) String artifactId,
                                                  @QueryParam( "version" ) String version,
                                                  @QueryParam( "hash" ) String hash,
-                                                 @QueryParam( "matchState" ) String matchState )
+                                                 @QueryParam( "matchState" ) String matchState,
+                                                 @QueryParam( "proprietary" ) boolean proprietary )
         throws IOException
     {
         long start = System.currentTimeMillis();
@@ -162,6 +163,7 @@ public abstract class AbstractComponentInfoResource
         }
 
         Component component = loadComponent( applicationId, componentDetails );
+        component.setProprietary( proprietary );
 
         // Evaluate the policies
         List<PolicyAlert> policyAlerts =

@@ -16,6 +16,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -88,7 +89,8 @@ public class IdeResource
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent doScan( @PathParam( "scanType" ) String scanType,
                                        @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                       @PathParam( "path" ) String path, @Context HttpServletRequest req )
+                                       @PathParam( "path" ) String path,
+                                       @QueryParam( "proprietary" ) boolean proprietary, @Context HttpServletRequest req )
         throws IOException
     {
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -112,6 +114,7 @@ public class IdeResource
 
             ComponentDAO componentDAO = new ComponentDAO();
             Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
+            component.setProprietary( proprietary );
             List<PolicyAlert> policyAlerts =
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
                                     Collections.singletonList( component ) );
@@ -133,10 +136,12 @@ public class IdeResource
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent postScan( @PathParam( "scanType" ) String scanType,
                                          @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                         @PathParam( "path" ) String path, @Context HttpServletRequest req )
+                                         @PathParam( "path" ) String path,
+                                         @QueryParam( "proprietary" ) boolean proprietary,
+                                         @Context HttpServletRequest req )
         throws IOException
     {
-        return doScan( scanType, applicationPublicId, path, req );
+        return doScan( scanType, applicationPublicId, path, proprietary, req );
     }
 
     private PolicyDAO policyDAO()

@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -459,6 +460,74 @@ public class IdeResourceTest
     }
 
     @Test
+    public void testDoScan_Proprietary()
+        throws Exception
+    {
+        String applicationPublicId = "IdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( ProprietaryConditionType.ID, "is true" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+        addPolicy( applicationPublicId, policy1 );
+
+        String serviceUrl =
+            getScanUrl( "simple", applicationPublicId, "abababababababababab", null, null, null, null, "true" );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        IdeMatchedComponent ideMatchedComponent =
+            JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
+        List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+
+        serviceUrl =
+            getScanUrl( "enhanced", applicationPublicId, "abababababababababab", null, null, null, null, "true" );
+        saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
+        response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
+        policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+
+        serviceUrl =
+            getScanUrl( "simple", applicationPublicId, "abababababababababab", null, null, null, null, "false" );
+        saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
+        setSaasResponseForURI( saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json" );
+        response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        ideMatchedComponent = JsonHelpers.fromJson( response.getResponseBody(), IdeMatchedComponent.class );
+        Assert.assertEquals( "g1", ideMatchedComponent.getGroupId() );
+        Assert.assertEquals( "a1", ideMatchedComponent.getArtifactId() );
+        Assert.assertEquals( "v1", ideMatchedComponent.getVersion() );
+        Assert.assertEquals( "abababababababababab", ideMatchedComponent.getHash() );
+        Assert.assertEquals( "exact", ideMatchedComponent.getMatchState() );
+        Assert.assertTrue( ideMatchedComponent.isSimpleMatch() );
+        policyAlerts = ideMatchedComponent.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 0, policyAlerts.size() );
+    }
+
+    @Test
     public void testGetComponentVersions()
         throws Exception
     {
@@ -531,19 +600,19 @@ public class IdeResourceTest
 
     private String getScanSimpleUrl( String applicationPublicId, String hash )
     {
-        return getScanUrl( "simple", applicationPublicId, hash, null, null, null, null );
+        return getScanUrl( "simple", applicationPublicId, hash, null, null, null, null, null );
     }
 
     private String getScanEnhancedUrl( String applicationPublicId, String hash )
     {
-        return getScanUrl( "enhanced", applicationPublicId, hash, null, null, null, null );
+        return getScanUrl( "enhanced", applicationPublicId, hash, null, null, null, null, null );
     }
 
     private String getScanUrl( String mode, String applicationPublicId, String hash, String filename, String groupId,
-                               String artifactId, String version )
+                               String artifactId, String version, String proprietary )
     {
         return getServiceURL() + "/scan/" + mode + "/" + applicationPublicId + "/" + hash
-            + getQueryParams( "filename", filename, "groupId", groupId, "artifactId", artifactId, "version", version );
+            + getQueryParams( "filename", filename, "groupId", groupId, "artifactId", artifactId, "version", version, "proprietary", proprietary );
     }
 
     private String getComponentVersionsUrl( String groupId, String artifactId )

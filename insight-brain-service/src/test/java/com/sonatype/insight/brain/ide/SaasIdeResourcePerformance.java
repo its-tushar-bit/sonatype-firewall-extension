@@ -146,7 +146,7 @@ public class SaasIdeResourcePerformance
             throws Exception
         {
             long start = System.currentTimeMillis();
-            resource.doScan( "simple", applicationId, hash, request );
+            resource.doScan( "simple", applicationId, hash, false, request );
             return System.currentTimeMillis() - start;
         }
     }

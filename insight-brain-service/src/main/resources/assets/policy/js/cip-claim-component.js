@@ -33,6 +33,7 @@
 
             $scope.claimClick = function() {
                 $scope.createError = '';
+                $scope.createSuccess = '';
                 if ($scope.formValid()) {
                     $scope.claimData.hash = CurrentHash.hash;
                     $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
@@ -55,9 +56,8 @@
                             }
                         });
                         
+                        $scope.createSuccess = 'Component successfully claimed as ' + $scope.claimData.groupId + ':' + $scope.claimData.artifactId + ':' + $scope.claimData.version + ':';
                         $scope.claimData = {};
-                        
-                        // TODO: add some notification of success??
                         // TODO: need to close the info panel as the available
                         // tabs no longer match??
                     }).error(function(data, status, headersFn, config) {

@@ -72,6 +72,7 @@ public class PolicyEvaluatorTest
 
     private ArgumentCaptor<Configuration> httpConfig;
 
+    @Override
     @Before
     public void setUp()
         throws Exception

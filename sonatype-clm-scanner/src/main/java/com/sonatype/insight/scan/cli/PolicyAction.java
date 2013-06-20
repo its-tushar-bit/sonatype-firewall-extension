@@ -10,6 +10,7 @@ public enum PolicyAction
 
     NONE, WARN, FAIL;
 
+    @Override
     public String toString()
     {
         switch ( this )
@@ -22,7 +23,7 @@ public enum PolicyAction
                 return "Failure";
         }
         return super.toString();
-    };
+    }
 
     public PolicyAction combine( PolicyAction that )
     {

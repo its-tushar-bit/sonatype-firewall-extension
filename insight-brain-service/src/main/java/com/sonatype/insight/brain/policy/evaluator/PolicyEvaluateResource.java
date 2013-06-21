@@ -90,10 +90,10 @@ public class PolicyEvaluateResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        PolicyEvaluationResult policyEvaluation = policyEvaluationUtils.evaluate( applicationPublicId, scanId, stage );
-
         final List<PolicyAlert> oldAlerts =
             policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
+
+        PolicyEvaluationResult policyEvaluation = policyEvaluationUtils.evaluate( applicationPublicId, scanId, stage );
         final List<PolicyAlert> alerts = policyEvaluation.getAlerts();
 
         @SuppressWarnings( "unchecked" )

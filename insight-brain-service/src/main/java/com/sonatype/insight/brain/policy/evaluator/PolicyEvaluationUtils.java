@@ -59,6 +59,10 @@ public class PolicyEvaluationUtils
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
+        // add new entry in the rolling log (TODO: populate invoker's details)
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
+        evalLog.add( stage, scanId, "anonymous", "127.0.0.1" );
+
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
 
         final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
@@ -138,9 +142,6 @@ public class PolicyEvaluationUtils
         // retrieve last known scanId for stage
         com.sonatype.insight.brain.model.policy.PolicyEvaluation last = evalLog.last( stage.getStageTypeId() );
         final String oldScanId = ( last != null ) ? last.getScanId() : null;
-
-        // add new entry in the rolling log (TODO: populate invoker's details)
-        evalLog.add( stage, scanId, "anonymous", "127.0.0.1" );
 
         if ( !StringUtils.isBlank( oldScanId ) )
         {

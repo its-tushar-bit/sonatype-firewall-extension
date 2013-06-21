@@ -40,7 +40,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.component.HashGAVResource;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
@@ -144,6 +146,96 @@ public class ReportResourceTest
         assertFalse( partialmatched.contains( hash ) );
         assertFalse( partialmatched.contains( "commons-httpclient" ) );
 
+        hashGAVDAO.delete( hashGAV );
+    }
+
+    @Test
+    public void testManuallyIdentifiedComponentInvalidatesCachedReportData()
+        throws Exception
+    {
+        String applicationPublicId = "testClaimedComponent_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testClaimedComponent_ScanId";
+        String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        // populate JSON data cache before claiming the component
+        String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+
+        // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
+        String hash = "f0776db1593e215146d2";
+        String groupId = "testClaimedComponent_G";
+        String artifactId = "testClaimedComponent_A";
+        String version = "testClaimedComponent_V";
+        String extension = "testClaimedComponent_E";
+        String classifier = "testClaimedComponent_C";
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        setSaasResponseForURI( "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version="
+                                   + version + "&extension=" + extension + "&classifier=" + classifier,
+                               JsonHelpers.asJson( ComponentSummary.create( false ) ), 200 );
+        response = RestAccess.post( getRestBaseUrl() + HashGAVResource.SERVICE_PATH, JsonHelpers.asJson( hashGAV ) );
+        assertResponseStatus( 200, response );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+        boolean foundClaimedComponent = false;
+        String bomJsonData = response.getResponseBody();
+        for ( JsonNode bomJsonNode : JsonUtils.parse( bomJsonData ).get( "aaData" ) )
+        {
+            String bomJsonHash = bomJsonNode.get( "hash" ).asText();
+            JsonNode identificationSource = bomJsonNode.get( "identificationSource" );
+            if ( hash.equals( bomJsonHash ) )
+            {
+                assertEquals( IdentificationSource.MANUAL.getId(), identificationSource.asText() );
+                assertEquals( groupId, bomJsonNode.get( "groupId" ).asText() );
+                assertEquals( artifactId, bomJsonNode.get( "artifactId" ).asText() );
+                assertEquals( version, bomJsonNode.get( "version" ).asText() );
+                assertEquals( extension, bomJsonNode.get( "extension" ).asText() );
+                assertEquals( classifier, bomJsonNode.get( "classifier" ).asText() );
+                assertEquals( MatchState.EXACT.getId(), bomJsonNode.get( "matchState" ).asText() );
+                foundClaimedComponent = true;
+            }
+            else
+            {
+                assertNull( identificationSource );
+            }
+        }
+        assertTrue( foundClaimedComponent );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/licenses.json" );
+        assertResponseStatus( 200, response );
+        String licensesJsonData = response.getResponseBody();
+        assertNotNull( licensesJsonData );
+        assertFalse( StringUtils.isEmpty( licensesJsonData ) );
+        assertFalse( licensesJsonData.contains( hash ) );
+        assertFalse( licensesJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        String securityJsonData = response.getResponseBody();
+        assertNotNull( securityJsonData );
+        assertFalse( StringUtils.isEmpty( securityJsonData ) );
+        assertFalse( securityJsonData.contains( hash ) );
+        assertFalse( securityJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/partialmatched.json" );
+        assertResponseStatus( 200, response );
+        String partialmatched = response.getResponseBody();
+        assertNotNull( partialmatched );
+        assertFalse( StringUtils.isEmpty( partialmatched ) );
+        assertFalse( partialmatched.contains( hash ) );
+        assertFalse( partialmatched.contains( "commons-httpclient" ) );
+
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAV = hashGAVDAO.getByHash( hashGAV.getHash() );
         hashGAVDAO.delete( hashGAV );
     }
 

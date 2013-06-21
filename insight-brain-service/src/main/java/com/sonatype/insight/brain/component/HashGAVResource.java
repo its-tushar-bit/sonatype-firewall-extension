@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MavenCoordinates;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -63,6 +64,8 @@ public class HashGAVResource
         
         hashGAV.setId( null );
         new HashGAVDAO().insert( hashGAV );
+
+        ReportResource.flushReportChanges();
 
         return hashGAV;
     }

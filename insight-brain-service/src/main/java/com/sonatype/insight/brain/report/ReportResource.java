@@ -381,6 +381,11 @@ public class ReportResource
         MODIFICATION_COUNTS.remove( appId + '-' + scanId );
     }
 
+    public static void flushReportChanges()
+    {
+        MODIFICATION_COUNTS.clear();
+    }
+
     private static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )
         throws IOException
     {

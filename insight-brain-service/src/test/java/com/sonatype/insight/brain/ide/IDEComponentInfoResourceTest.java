@@ -359,6 +359,7 @@ public class IDEComponentInfoResourceTest
         HashGAV hashGAV =
             new HashGAV( hash, "Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version, null /* extension */,
                          null /* classifier */);
+        hashGAV.setComment( "ClaimedComment" );
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         hashGAVDAO.insert( hashGAV );
         response = RestAccess.get( serviceUrl );
@@ -372,6 +373,7 @@ public class IDEComponentInfoResourceTest
         Assert.assertEquals( "Claimed" + version, componentDetails.getVersion() );
         Assert.assertEquals( MatchState.EXACT.getId(), componentDetails.getMatchState() );
         Assert.assertEquals( IdentificationSource.MANUAL.getId(), componentDetails.getIdentificationSource() );
+        Assert.assertEquals( "ClaimedComment", componentDetails.getIdentificationSourceComment() );
         policyAlerts = componentDetails.getPolicyAlerts();
         Assert.assertEquals( 1, policyAlerts.size() );
         Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );

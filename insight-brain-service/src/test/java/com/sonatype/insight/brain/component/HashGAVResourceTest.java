@@ -32,15 +32,17 @@ public class HashGAVResourceTest
         String version = "HashGAVResourceTest_V";
         String extension = "HashGAVResourceTest_E";
         String classifier = "HashGAVResourceTest_C";
+        String comment = "HashGAVResourceTest_Comment";
 
         setSaasResponseForURI( "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId
             + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson( ComponentSummary.create( false ) ), 200 );
 
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        hashGAV.setComment( comment );
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( hashGAV ) );
         assertResponseStatus( 200, response );
         hashGAV = JsonHelpers.fromJson( response.getResponseBody(), HashGAV.class );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, hashGAV );
+        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, comment, hashGAV );
 
         new HashGAVDAO().delete( hashGAV );
     }
@@ -67,7 +69,7 @@ public class HashGAVResourceTest
     }
 
     private void assertHashGAV( String hash, String groupId, String artifactId, String version, String extension,
-                                String classifier, HashGAV hashGAV )
+                                String classifier, String comment, HashGAV hashGAV )
     {
         assertEquals( hash, hashGAV.getHash() );
         assertEquals( groupId, hashGAV.getGroupId() );
@@ -75,6 +77,7 @@ public class HashGAVResourceTest
         assertEquals( version, hashGAV.getVersion() );
         assertEquals( extension, hashGAV.getExtension() );
         assertEquals( classifier, hashGAV.getClassifier() );
+        assertEquals( comment, hashGAV.getComment() );
     }
 
     private String getServiceURL()

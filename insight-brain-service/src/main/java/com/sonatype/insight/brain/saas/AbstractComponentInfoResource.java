@@ -178,6 +178,7 @@ public abstract class AbstractComponentInfoResource
             componentDetails.setVersion( hashGAV.getVersion() );
             componentDetails.setMatchState( MatchState.EXACT.getId() );
             componentDetails.setIdentificationSource( IdentificationSource.MANUAL.getId() );
+            componentDetails.setIdentificationSourceComment( hashGAV.getComment() );
         }
         else
         {

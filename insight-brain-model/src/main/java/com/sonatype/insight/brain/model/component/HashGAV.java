@@ -26,6 +26,8 @@ public class HashGAV
 
     private String hash;
 
+    private String comment;
+
     /**
      * Convenience object to store Maven coordinates.
      */
@@ -120,6 +122,17 @@ public class HashGAV
     public void setHash( String hash )
     {
         this.hash = truncateHash( hash );
+    }
+
+    @Column( name = "comment" )
+    public String getComment()
+    {
+        return comment;
+    }
+
+    public void setComment( String comment )
+    {
+        this.comment = comment;
     }
 
     public String getGAVECString()

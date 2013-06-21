@@ -131,7 +131,7 @@ public final class Report
 
         final JsonStore auditStore = JsonUtils.fileStore( auditDir );
 
-        applyComponentIdentifications( reportFile, auditStore );
+        applyComponentRelatedChanges( reportFile, auditStore );
 
         // this data item is not in the original report, but is placed in the cache by the policy evaluator
         final ReportEntry policyReportEntry = getEntry( reportFile, "policythreats.json" );
@@ -294,9 +294,9 @@ public final class Report
     }
 
     /**
-     * Fetches raw bom/license/security/partialmatched data, updates claimed components, applies any edits
+     * Applies changes to component data (bom/license/security/partialmatched) including claiming components
      */
-    private static void applyComponentIdentifications( final File reportFile, final JsonStore auditStore )
+    private static void applyComponentRelatedChanges( final File reportFile, final JsonStore auditStore )
         throws IOException
     {
         HashGAVDAO hashGAVDAO = new HashGAVDAO();

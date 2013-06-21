@@ -9,6 +9,8 @@ package com.sonatype.insight.brain.model.component;
  * Identity of a component in the Maven coordinate system.
  * 
  * Refer to http://maven.apache.org/pom.html#Maven_Coordinates
+ * 
+ * @since 1.4.1
  */
 public class MavenCoordinates
 {

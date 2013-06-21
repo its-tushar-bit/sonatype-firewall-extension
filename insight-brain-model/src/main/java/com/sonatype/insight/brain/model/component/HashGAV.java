@@ -12,6 +12,11 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+/**
+ * Association of a component hash to a Maven coordinate.
+ * 
+ * @since 1.4.1
+ */
 @Entity
 @Table( name = "hash_gav" )
 public class HashGAV

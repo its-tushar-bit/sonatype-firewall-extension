@@ -11,6 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The source system that identified a component. 
+ * 
+ * @since 1.4.1
+ */
 public class IdentificationSource
 {
     private final static Map<String, IdentificationSource> byId = new LinkedHashMap<String, IdentificationSource>();

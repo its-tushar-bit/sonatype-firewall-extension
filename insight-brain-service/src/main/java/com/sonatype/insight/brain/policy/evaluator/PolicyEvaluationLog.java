@@ -40,7 +40,7 @@ public class PolicyEvaluationLog
         auditStore = JsonUtils.fileStore( auditDir );
     }
 
-    public PolicyEvaluation last( final String stageId )
+    public PolicyEvaluation lastByStage( final String stageId )
         throws IOException
     {
         migrate();
@@ -52,7 +52,7 @@ public class PolicyEvaluationLog
         return null;
     }
 
-    public PolicyEvaluation get( final String scanId )
+    public PolicyEvaluation findByScan( final String scanId )
         throws IOException
     {
         for ( StageType stageType : StageTypes.getAll() )
@@ -63,10 +63,9 @@ public class PolicyEvaluationLog
                 JsonNode auditData = auditContainer.get( "aaData" );
                 for ( JsonNode audit : auditData )
                 {
-                    PolicyEvaluation policyEvaluation = JsonUtils.asPojo( audit, PolicyEvaluation.class );
-                    if ( policyEvaluation.getScanId().equals( scanId ) )
+                    if ( audit.get( "scanId" ).asText().equals( scanId ) )
                     {
-                        return policyEvaluation;
+                        return JsonUtils.asPojo( audit, PolicyEvaluation.class );
                     }
                 }
             }

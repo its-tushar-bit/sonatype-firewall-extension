@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -138,14 +139,19 @@ public class ReportResource
     @GET
     @Path( "reevaluatePolicy" )
     public Response reevaluatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, 
-                                      @PathParam( "scanId" ) final String scanId, 
-                                      @Context final HttpServletRequest httpRequest ) 
+ @PathParam( "scanId" )
+    final String scanId )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
-        PolicyEvaluation policyEvaluation = evalLog.get( scanId );
+        PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
+
+        if ( policyEvaluation == null )
+        {
+            throw new BadRequestException( "Policy evaluation for scan " + scanId + " does not exist on the server" );
+        }
 
         policyEvaluationUtils.evaluate( applicationPublicId, scanId, policyEvaluation.getStage() );
 

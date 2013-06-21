@@ -106,7 +106,7 @@ public class InsightWork
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( getAuditDir( appId ) );
         for ( StageType stageType : StageTypes.getAll() )
         {
-            PolicyEvaluation eval = evalLog.last( stageType.getId() );
+            PolicyEvaluation eval = evalLog.lastByStage( stageType.getId() );
             if ( eval != null )
             {
                 policyEvaluations.add( eval );

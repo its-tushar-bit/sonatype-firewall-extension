@@ -428,7 +428,7 @@ public class ReportResourceTest
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( application.getId() ) );
-        PolicyEvaluation policyEvaluation = evalLog.get( scanId );
+        PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
 
         Assert.assertNull( policyEvaluation );
 
@@ -444,7 +444,7 @@ public class ReportResourceTest
         // ReEvaluate
         assertResponseStatus( 200, response );
 
-        policyEvaluation = evalLog.get( scanId );
+        policyEvaluation = evalLog.findByScan( scanId );
         Assert.assertNotNull( policyEvaluation );
         Assert.assertEquals( scanId, policyEvaluation.getScanId() );
         Assert.assertNotNull( policyEvaluation.getStage() );

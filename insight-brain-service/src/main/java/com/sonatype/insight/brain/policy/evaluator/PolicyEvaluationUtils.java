@@ -140,7 +140,7 @@ public class PolicyEvaluationUtils
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
 
         // retrieve last known scanId for stage
-        com.sonatype.insight.brain.model.policy.PolicyEvaluation last = evalLog.last( stage.getStageTypeId() );
+        com.sonatype.insight.brain.model.policy.PolicyEvaluation last = evalLog.lastByStage( stage.getStageTypeId() );
         final String oldScanId = ( last != null ) ? last.getScanId() : null;
 
         if ( !StringUtils.isBlank( oldScanId ) )

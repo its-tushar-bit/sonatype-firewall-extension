@@ -69,6 +69,9 @@ public class ComponentDAO
                     final JsonNode componentJson = bomJsonArray.get( i );
                     final String matchStateString = componentJson.get( "matchState" ).asText();
                     final MatchState matchState = MatchState.getById( matchStateString );
+                    final String identificationSourceString =
+                        JsonUtils.getNullableString( componentJson.get( "identificationSource" ) );
+                    final IdentificationSource identificationSource = IdentificationSource.getById( identificationSourceString );
                     final boolean proprietary = componentJson.get( "proprietary" ).booleanValue();
                     String hash = componentJson.get( "hash" ).asText();
 
@@ -76,6 +79,7 @@ public class ComponentDAO
                     component.setHash( hash );
                     component.setMatchState( matchState );
                     component.setProprietary( proprietary );
+                    component.setIdentificationSource( identificationSource );
                     componentsByHash.put( hash, component );
                     if ( !matchState.equals( MatchState.UNKNOWN ) )
                     {

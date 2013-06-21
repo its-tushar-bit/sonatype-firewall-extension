@@ -294,6 +294,7 @@
 				case 'LicenseValueType':
 				case 'LicenseThreatGroupValueType':
 				case 'LicenseStatusValueType':
+				case 'IdentificationSourceValueType':
 				case 'MatchStateValueType':
 				case 'SecurityVulnerabilityStatusValueType':
 				case 'LabelValueType':

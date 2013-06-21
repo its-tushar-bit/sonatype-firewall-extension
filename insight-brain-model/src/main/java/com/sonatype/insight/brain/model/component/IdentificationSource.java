@@ -41,6 +41,10 @@ public class IdentificationSource
 
     public static IdentificationSource getById( String id )
     {
+        if ( id == null )
+        {
+            return SONATYPE;
+        }
         return byId.get( id );
     }
 

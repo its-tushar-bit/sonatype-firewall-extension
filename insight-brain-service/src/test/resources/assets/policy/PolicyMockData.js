@@ -49,6 +49,12 @@ PolicyMockData = {
           "valueTypeId" : "AgeInDaysValueType",
           "valueHint" : "Enter term"
         }, {
+          "name" : "Identification Source",
+          "id" : "IdentificationSource",
+          "supportedOperators" : ["is", "is not"],
+          "valueTypeId" : "IdentificationSourceValueType",
+          "valueHint" : null
+        }, {
           "name" : "Match State",
           "id" : "MatchState",
           "supportedOperators" : ["is", "is not"],

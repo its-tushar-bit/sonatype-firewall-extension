@@ -410,7 +410,7 @@ public class ReportResourceTest
         assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
 
         // edit the state
-        final String edit =
+        String edit =
             "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
         response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
         assertResponseStatus( 200, response );
@@ -426,11 +426,33 @@ public class ReportResourceTest
                 + UrlUtils.encodeUrlComponent( "{\"hash\":\"1249e25aebb15358bedd\"}" ) );
         assertResponseStatus( 200, response );
 
-        final String feed =
+        String feed =
             "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
+
+        // edit the state again
+        edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\" }";
+        response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
+        assertResponseStatus( 200, response );
+
+        // verify the state has changed again
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), containsString( "\"state\" : \"confirmed\"" ) );
+
+        // check the audit log reflects this change
+        response =
+            RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
+                + UrlUtils.encodeUrlComponent( "{\"hash\":\"1249e25aebb15358bedd\"}" ) );
+        assertResponseStatus( 200, response );
+
+        feed =
+            "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
+                + "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+
+        assertThat( response.getResponseBody().replaceAll( "\"time\" : [0-9]+,", "" ), equalToIgnoringWhiteSpace( feed ) );
 
         // edit the license
         final String licenseEdit =

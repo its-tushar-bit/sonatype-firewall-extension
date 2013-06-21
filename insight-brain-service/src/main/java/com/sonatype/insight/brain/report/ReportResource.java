@@ -139,8 +139,7 @@ public class ReportResource
     @GET
     @Path( "reevaluatePolicy" )
     public Response reevaluatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, 
- @PathParam( "scanId" )
-    final String scanId )
+                                      @PathParam( "scanId" ) final String scanId )
         throws IOException
     {
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );

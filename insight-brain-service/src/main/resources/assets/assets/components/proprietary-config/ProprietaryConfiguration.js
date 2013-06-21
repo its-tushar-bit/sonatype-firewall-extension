@@ -49,7 +49,7 @@
         };
 
         $scope.setEditorError = function (error) {
-            $scope.error = error
+            $scope.error = error;
         };
 
         $scope.validatePackage = function (value) {

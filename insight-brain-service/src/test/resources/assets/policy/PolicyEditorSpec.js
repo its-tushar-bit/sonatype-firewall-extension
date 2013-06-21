@@ -304,7 +304,7 @@ describe('PolicyEditor', function() {
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);
 
-		var coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none" });
+		var coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none"; });
 		expect(coordinatesOperator.length).toEqual(1);
 		var coordinateOptions = coordinatesOperator.find('option');
 		expect(coordinateOptions.length).toEqual(2);
@@ -318,7 +318,7 @@ describe('PolicyEditor', function() {
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);
 		
-		coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none" });
+		coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none"; });
 		expect(coordinatesOperator.length).toEqual(1);
 		coordinateOptions = coordinatesOperator.find('option');
 		expect(coordinateOptions.length).toEqual(2);

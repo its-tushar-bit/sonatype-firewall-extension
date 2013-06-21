@@ -345,7 +345,7 @@ PolicyMockData = {
       "actions" : {},
       "threatLevel" : 5,
       "name" : "createPolicyTest"
-    }
+    };
   },
   getEditTestPolicy : function() {
     return {

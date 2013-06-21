@@ -19,7 +19,6 @@
 		},
 		basePath = (function () {
 			var scripts = window.document.getElementsByTagName('script'),
-				i,
 				index;
 			if (scripts.length) {
 				for (var i = 0; i < scripts.length; i++) {

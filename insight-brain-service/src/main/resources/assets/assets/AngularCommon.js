@@ -261,6 +261,6 @@ var angularCommon;
 				});
 				return deferred.promise;
 			}
-		}
+		};
 	});
 }());

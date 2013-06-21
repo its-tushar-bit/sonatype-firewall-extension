@@ -116,7 +116,7 @@ describe('ApplicationManagementController', function () {
 	it('reevaluates policy', function() {
 		var policyResponse = ApplicationMockData.getPolicyEvaluationData();
 		
-		httpBackend.expectPOST(clmLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse)
+		httpBackend.expectPOST(clmLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
 		
 		scope.reEvaluatePolicy(mockApplication, mockApplication.policyEvaluations.build);
 		

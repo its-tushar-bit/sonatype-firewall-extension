@@ -55,7 +55,6 @@ public class ConditionTypes
 
     static
     {
-        // Note: The order condition types are added here determines the order they are displayed in the UI
         add( LabelConditionType );
         add( LicenseConditionType );
         add( LicenseStatusConditionType );

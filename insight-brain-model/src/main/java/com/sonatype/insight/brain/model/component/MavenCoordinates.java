@@ -106,6 +106,12 @@ public class MavenCoordinates
 
     public String getGAVECString()
     {
-        return groupId + ':' + artifactId + ':' + version + ':' + extension + ':' + classifier;
+        StringBuilder buffer = new StringBuilder( 128 );
+        buffer.append( groupId ).append( ':' ).append( artifactId ).append( ':' ).append( version ).append( ':' ).append( extension );
+        if ( classifier != null )
+        {
+            buffer.append( ':' ).append( classifier );
+        }
+        return buffer.toString();
     }
 }

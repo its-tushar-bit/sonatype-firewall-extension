@@ -1,0 +1,10 @@
+.glyphicons-sonatype:before {
+  *zoom: 1;
+  font: 24px/30px 'Glyphicons';
+  font-style: normal;
+  color: #1d1d1b;
+}
+
+.glyphicons-sonatype.bin:before {
+  content: "\e017";
+}

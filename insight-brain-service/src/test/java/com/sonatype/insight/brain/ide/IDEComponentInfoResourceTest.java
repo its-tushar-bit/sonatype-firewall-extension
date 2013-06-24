@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
@@ -327,6 +329,7 @@ public class IDEComponentInfoResourceTest
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        constraint1.addCondition( new Condition( AgeInDaysConditionType.ID, "younger than", "30" ) );
         Policy policy1 = new Policy( "PolicyId1", "Policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
@@ -360,6 +363,7 @@ public class IDEComponentInfoResourceTest
             new HashGAV( hash, "Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version, null /* extension */,
                          null /* classifier */);
         hashGAV.setComment( "ClaimedComment" );
+        hashGAV.setCreateTime( new Date() );
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         hashGAVDAO.insert( hashGAV );
         response = RestAccess.get( serviceUrl );

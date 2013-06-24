@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.component;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -27,6 +29,8 @@ public class HashGAV
     private String hash;
 
     private String comment;
+
+    private Date createTime;
 
     /**
      * Convenience object to store Maven coordinates.
@@ -133,6 +137,22 @@ public class HashGAV
     public void setComment( String comment )
     {
         this.comment = comment;
+    }
+
+    @Column( name = "create_time" )
+    public Date getCreateTime()
+    {
+        return createTime;
+    }
+
+    public void setCreateTime( Date createTime )
+    {
+        this.createTime = createTime;
+    }
+
+    public Long getCreateTimeLong()
+    {
+        return ( createTime != null ) ? createTime.getTime() : null;
     }
 
     public String getGAVECString()

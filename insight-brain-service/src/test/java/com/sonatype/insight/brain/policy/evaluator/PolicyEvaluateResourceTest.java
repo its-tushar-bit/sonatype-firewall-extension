@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -174,8 +176,8 @@ public class PolicyEvaluateResourceTest
         saasReportFile.delete();
 
         Constraint constraint1 = new Constraint( null /* constraintId */, "Constraint 1", LogicalOperator.AND );
-        Condition condition1 = new Condition( MatchStateConditionType.ID, "is", "exact" );
-        constraint1.addCondition( condition1 );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        constraint1.addCondition( new Condition( AgeInDaysConditionType.ID, "younger than", "30" ) );
 
         Action action = new Action( FailActionType.ID );
 
@@ -194,6 +196,7 @@ public class PolicyEvaluateResourceTest
         String artifactId = "A";
         String version = "V";
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, null /* extension */, null /* classifier */);
+        hashGAV.setCreateTime( new Date() );
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         hashGAVDAO.insert( hashGAV );
         // The report file is not available yet

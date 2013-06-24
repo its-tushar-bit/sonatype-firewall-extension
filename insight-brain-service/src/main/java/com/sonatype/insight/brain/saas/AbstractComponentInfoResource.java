@@ -177,6 +177,7 @@ public abstract class AbstractComponentInfoResource
             componentDetails.setArtifactId( hashGAV.getArtifactId() );
             componentDetails.setVersion( hashGAV.getVersion() );
             componentDetails.setMatchState( MatchState.EXACT.getId() );
+            componentDetails.setCatalogDate( hashGAV.getCreateTimeLong() );
             componentDetails.setIdentificationSource( IdentificationSource.MANUAL.getId() );
             componentDetails.setIdentificationSourceComment( hashGAV.getComment() );
         }

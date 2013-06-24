@@ -11,6 +11,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
+
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -34,9 +36,11 @@ public class HashGAVDAOTest
         String version = "HashGAVDAOTest_V";
         String extension = "HashGAVDAOTest_E";
         String classifier = "HashGAVDAOTest_C";
+        Date createTime = new Date();
 
         // Create
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        hashGAV.setCreateTime( createTime );
         assertNull( hashGAV.getId() );
         dao.insert( hashGAV );
         assertNotNull( hashGAV.getId() );
@@ -44,7 +48,7 @@ public class HashGAVDAOTest
         // Read
         hashGAV = dao.getById( hashGAV.getId() );
         assertNotNull( hashGAV );
-        assertHashGAV( truncatedHash, groupId, artifactId, version, extension, classifier, hashGAV );
+        assertHashGAV( truncatedHash, groupId, artifactId, version, extension, classifier, createTime, hashGAV );
 
         // Update is not allowed
         try
@@ -81,7 +85,7 @@ public class HashGAVDAOTest
         assertNotNull( hashGAV.getId() );
         hashGAV = dao.getById( hashGAV.getId() );
         assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, hashGAV );
+        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, null, hashGAV );
 
         dao.delete( hashGAV );
     }
@@ -104,7 +108,7 @@ public class HashGAVDAOTest
         assertNotNull( hashGAV.getId() );
         hashGAV = dao.getById( hashGAV.getId() );
         assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, null /* extension */, classifier, hashGAV );
+        assertHashGAV( hash, groupId, artifactId, version, null /* extension */, classifier, null, hashGAV );
 
         dao.delete( hashGAV );
     }
@@ -127,7 +131,7 @@ public class HashGAVDAOTest
         assertNotNull( hashGAV.getId() );
         hashGAV = dao.getById( hashGAV.getId() );
         assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, hashGAV );
+        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, null, hashGAV );
 
         dao.delete( hashGAV );
     }
@@ -150,13 +154,13 @@ public class HashGAVDAOTest
         assertNotNull( hashGAV.getId() );
         hashGAV = dao.getById( hashGAV.getId() );
         assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, null /* classifier */, hashGAV );
+        assertHashGAV( hash, groupId, artifactId, version, extension, null /* classifier */, null, hashGAV );
 
         dao.delete( hashGAV );
     }
 
     private void assertHashGAV( String hash, String groupId, String artifactId, String version, String extension,
-                                String classifier, HashGAV hashGAV )
+                                String classifier, Date createTime, HashGAV hashGAV )
     {
         assertEquals( hash, hashGAV.getHash() );
         assertEquals( groupId, hashGAV.getGroupId() );
@@ -164,6 +168,7 @@ public class HashGAVDAOTest
         assertEquals( version, hashGAV.getVersion() );
         assertEquals( extension, hashGAV.getExtension() );
         assertEquals( classifier, hashGAV.getClassifier() );
+        assertEquals( createTime, hashGAV.getCreateTime() );
     }
 
     @Test

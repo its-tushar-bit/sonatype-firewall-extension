@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.ide;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
@@ -543,6 +544,7 @@ public class IdeResourceTest
 
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        constraint1.addCondition( new Condition( AgeInDaysConditionType.ID, "younger than", "30" ) );
         Policy policy1 = new Policy( "PolicyId1", "Policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
@@ -553,7 +555,9 @@ public class IdeResourceTest
         String groupId = "g1";
         String artifactId = "a1";
         String version = "v1";
+        Date createTime = new Date();
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, null /* extension */, null /* classifier */);
+        hashGAV.setCreateTime( createTime );
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         hashGAVDAO.insert( hashGAV );
         String serviceUrl =

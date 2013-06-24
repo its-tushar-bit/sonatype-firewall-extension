@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -75,7 +76,9 @@ public class ReportResourceTest
         String version = "testClaimedComponent_V";
         String extension = "testClaimedComponent_E";
         String classifier = "testClaimedComponent_C";
+        Date createTime = new Date();
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        hashGAV.setCreateTime( createTime );
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         hashGAVDAO.insert( hashGAV );
 
@@ -113,6 +116,7 @@ public class ReportResourceTest
                 assertEquals( extension, bomJsonNode.get( "extension" ).asText() );
                 assertEquals( classifier, bomJsonNode.get( "classifier" ).asText() );
                 assertEquals( MatchState.EXACT.getId(), bomJsonNode.get( "matchState" ).asText() );
+                assertEquals( createTime.getTime(), bomJsonNode.get( "createTime" ).asLong() );
                 foundClaimedComponent = true;
             }
             else

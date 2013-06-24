@@ -318,6 +318,7 @@ public final class Report
                 bomObjectNode.put( "extension", hashGAV.getExtension() );
                 bomObjectNode.put( "classifier", hashGAV.getClassifier() );
                 bomObjectNode.put( "matchState", MatchState.EXACT.getId() );
+                bomObjectNode.put( "createTime", hashGAV.getCreateTimeLong() );
                 bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
             }
             hashes.add( hash );

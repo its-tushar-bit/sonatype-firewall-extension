@@ -68,6 +68,7 @@ CREATE TABLE hash_gav (
   extension varchar(50),
   classifier varchar(50),
   comment varchar(1000) NULL,
+  create_time datetime NULL,
   CONSTRAINT hash_gav_id PRIMARY KEY (hash_gav_id),
   CONSTRAINT hash_gav_hash_uk UNIQUE KEY (hash),
   CONSTRAINT hash_gav_gavec_uk UNIQUE KEY (group_id, artifact_id, version, extension, classifier)

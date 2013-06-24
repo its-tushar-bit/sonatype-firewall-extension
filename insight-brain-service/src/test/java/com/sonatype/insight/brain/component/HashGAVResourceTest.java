@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.component;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Date;
+
 import org.junit.Test;
 
 import com.ning.http.client.Response;
@@ -33,16 +35,18 @@ public class HashGAVResourceTest
         String extension = "HashGAVResourceTest_E";
         String classifier = "HashGAVResourceTest_C";
         String comment = "HashGAVResourceTest_Comment";
+        Date createTime = new Date();
 
         setSaasResponseForURI( "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId
             + "&version=" + version + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson( ComponentSummary.create( false ) ), 200 );
 
         HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
         hashGAV.setComment( comment );
+        hashGAV.setCreateTime( createTime );
         Response response = RestAccess.post( getServiceURL(), JsonHelpers.asJson( hashGAV ) );
         assertResponseStatus( 200, response );
         hashGAV = JsonHelpers.fromJson( response.getResponseBody(), HashGAV.class );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, comment, hashGAV );
+        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, comment, createTime, hashGAV );
 
         new HashGAVDAO().delete( hashGAV );
     }
@@ -69,7 +73,7 @@ public class HashGAVResourceTest
     }
 
     private void assertHashGAV( String hash, String groupId, String artifactId, String version, String extension,
-                                String classifier, String comment, HashGAV hashGAV )
+                                String classifier, String comment, Date createTime, HashGAV hashGAV )
     {
         assertEquals( hash, hashGAV.getHash() );
         assertEquals( groupId, hashGAV.getGroupId() );
@@ -78,6 +82,7 @@ public class HashGAVResourceTest
         assertEquals( extension, hashGAV.getExtension() );
         assertEquals( classifier, hashGAV.getClassifier() );
         assertEquals( comment, hashGAV.getComment() );
+        assertEquals( createTime, hashGAV.getCreateTime() );
     }
 
     private String getServiceURL()

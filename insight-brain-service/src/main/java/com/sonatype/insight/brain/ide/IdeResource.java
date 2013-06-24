@@ -110,6 +110,7 @@ public class IdeResource
             matchedComponent.setGroupId( hashGAV.getGroupId() );
             matchedComponent.setArtifactId( hashGAV.getArtifactId() );
             matchedComponent.setVersion( hashGAV.getVersion() );
+            matchedComponent.setCatalogDate( hashGAV.getCreateTimeLong() );
             matchedComponent.setMatchState( MatchState.EXACT.getId() );
             matchedComponent.setIdentificationSource( IdentificationSource.MANUAL.getId() );
             matchedComponent.setWaitDelta( null );

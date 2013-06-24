@@ -107,7 +107,11 @@ public class MavenCoordinates
     public String getGAVECString()
     {
         StringBuilder buffer = new StringBuilder( 128 );
-        buffer.append( groupId ).append( ':' ).append( artifactId ).append( ':' ).append( version ).append( ':' ).append( extension );
+        buffer.append( groupId ).append( ':' ).append( artifactId ).append( ':' ).append( version );
+        if ( extension != null )
+        {
+            buffer.append( ':' ).append( extension );
+        }
         if ( classifier != null )
         {
             buffer.append( ':' ).append( classifier );

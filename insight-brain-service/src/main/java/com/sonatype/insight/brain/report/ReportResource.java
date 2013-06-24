@@ -131,6 +131,12 @@ public class ReportResource
             {
                 response.expires( new Date( System.currentTimeMillis() + YEAR ) );
             }
+            else
+            {
+                // JSON files should always check with the server to ensure they are updated. A 304 will be returned if
+                // they don't need updating
+                response.expires( new Date() );
+            }
             return response.build();
         }
         return Response.status( Status.NOT_FOUND ).build();

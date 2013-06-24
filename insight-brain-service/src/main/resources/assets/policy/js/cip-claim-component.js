@@ -12,6 +12,14 @@
         $.extend(true, window, {
             'Insight' : {
                 'ClaimComponent' : function(node, applicationId, hash) {
+                    function applyFocus() {
+                        if (node.find('input').length > 0) {
+                            node.find('input')[0].focus();
+                            return;
+                        }
+                        
+                        setTimeout(applyFocus, 100);
+                    }
                     var timestamp = (new Date()).getTime(), container = $('<div ng-include src="\'' + CLM.path + 'policy-assets/components/cip-claim-component.html\'"></div>');
                     node.empty();
                     container.appendTo(node);
@@ -22,6 +30,8 @@
                         };
                     });
                     angular.bootstrap(container[0], [ 'ClaimComponent', 'claimComponent' + timestamp ]);
+                    
+                    applyFocus();
                 }
             }
         });

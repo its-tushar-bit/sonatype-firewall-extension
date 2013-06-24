@@ -65,6 +65,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+/**
+ * HTTP client for accessing Sonatype hosted services (SaaS).
+ */
 @Named
 @Singleton
 public class SaasClient
@@ -166,7 +169,7 @@ public class SaasClient
                 case 409:
                     throw new ConflictException( getErrorMessage( response ) );
                 default:
-                    throw new InternalServerException( "SAAS Error: " + getErrorMessage( response ) );
+                    throw new InternalServerException( "SaaS Error: " + getErrorMessage( response ) );
             }
         }
         finally
@@ -182,7 +185,7 @@ public class SaasClient
                     log.error( "Failed to consume response entity", e );
                 }
             }
-            log.debug( "Completed Saas request in {} ms.", System.currentTimeMillis() - start );
+            log.debug( "Completed SaaS request in {} ms.", System.currentTimeMillis() - start );
         }
     }
 
@@ -345,7 +348,7 @@ public class SaasClient
         }
         
         String result = uriBuilder.build( (Object[]) uriParams ).toString();
-        log.debug( "Constructed Saas URI: {}", result );
+        log.debug( "Constructed SaaS URI: {}", result );
         return result;
     }
 

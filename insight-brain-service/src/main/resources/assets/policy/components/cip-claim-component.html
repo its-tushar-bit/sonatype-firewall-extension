@@ -19,31 +19,31 @@
 						<div class='control-group' style='margin-bottom:2px;'>
 							<label class='control-label'>Group ID</label>
 			                <div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' />
+			            		<input class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' disablenav/>
 			            	</div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:2px;'>
 							<label class='control-label'>Artifact ID</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' />
+			            		<input class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' disablenav/>
 			            	</div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:2px;'>
 							<label class='control-label'>Version</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...' />
+			            		<input class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...' disablenav/>
 			                </div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:2px;'>
 							<label class='control-label'>Classifier</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.classifier' placeholder='Enter classifier...' />
+			            		<input class='input-xlarge' type='text' ng-model='claimData.classifier' placeholder='Enter classifier...' disablenav/>
 			                </div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:2px;'>
 							<label class='control-label'>Extension</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.extension' placeholder='Enter extension...' />
+			            		<input class='input-xlarge' type='text' ng-model='claimData.extension' placeholder='Enter extension...' disablenav/>
 			                </div>
 			            </div>
 					</div>
@@ -53,7 +53,7 @@
 						<div class='control-group'>
 							<label class='control-label'>Comment</label>
 			            	<div class='controls'>
-			            		<textarea class='input-xlarge' ng-model='claimData.comment' style='height:86px;padding:0px;margin-bottom:0px;' placeholder='Enter comment...'></textarea>
+			            		<textarea class='input-xlarge' ng-model='claimData.comment' style='height:86px;padding:0px;margin-bottom:0px;' placeholder='Enter comment...' disablenav></textarea>
 			            	</div>
 			            </div>
 		            </div>
@@ -61,7 +61,7 @@
 			</tr>
 		</table>
 		<div class='controls' style='text-align:right'>
-			<button type='none' class='btn btn-primary' ng-disabled='!formValid()' ng-click='claimClick()'>Claim</button>
+			<button type='none' class='btn btn-primary' ng-disabled='!formValid()' ng-click='claimClick()' disablenav>Claim</button>
 		</div>
 	</div>
 </div>

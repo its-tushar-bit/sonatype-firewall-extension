@@ -1,5 +1,5 @@
 <div ng-controller="ClaimComponentController" style='padding:5px' class='claimComponent'>
-	<div style='display:inline-block;margin-left:10px;margin-bottom:10px;box-sizing:border-box;-moz-box-sizing:border-box;width:100%' class='well'>
+	<div style='display:inline-block;margin-bottom:10px;box-sizing:border-box;-moz-box-sizing:border-box;width:100%' class='well'>
 		<table style='border-spacing:0;border-collapse:collapse;width:100%'>
 			<tr>
 				<td colspan='2'>
@@ -16,31 +16,31 @@
 			<tr>
 				<td style='vertical-align:top;width:50%;'>
 					<div class='form-horizontal'>
-						<div class='control-group' style='margin-bottom:2px;'>
+						<div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Group ID</label>
 			                <div class='controls'>
 			            		<input class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' disablenav/>
 			            	</div>
 			            </div>
-			            <div class='control-group' style='margin-bottom:2px;'>
+			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Artifact ID</label>
 			            	<div class='controls'>
 			            		<input class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' disablenav/>
 			            	</div>
 			            </div>
-			            <div class='control-group' style='margin-bottom:2px;'>
+			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Version</label>
 			            	<div class='controls'>
 			            		<input class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...' disablenav/>
 			                </div>
 			            </div>
-			            <div class='control-group' style='margin-bottom:2px;'>
+			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Classifier</label>
 			            	<div class='controls'>
 			            		<input class='input-xlarge' type='text' ng-model='claimData.classifier' placeholder='Enter classifier...' disablenav/>
 			                </div>
 			            </div>
-			            <div class='control-group' style='margin-bottom:2px;'>
+			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Extension</label>
 			            	<div class='controls'>
 			            		<input class='input-xlarge' type='text' ng-model='claimData.extension' placeholder='Enter extension...' disablenav/>
@@ -60,7 +60,7 @@
 				</td>
 			</tr>
 		</table>
-		<div class='controls' style='text-align:right'>
+		<div class='controls' style='text-align:right;padding-right:45px;'>
 			<button type='none' class='btn btn-primary' ng-disabled='!formValid()' ng-click='claimClick()' disablenav>Claim</button>
 		</div>
 	</div>

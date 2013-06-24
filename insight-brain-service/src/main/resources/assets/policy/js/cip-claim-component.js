@@ -56,7 +56,7 @@
                             }
                         });
                         
-                        $scope.createSuccess = 'Component successfully claimed as ' + $scope.claimData.groupId + ':' + $scope.claimData.artifactId + ':' + $scope.claimData.version + ':';
+                        $scope.createSuccess = 'Component successfully claimed as ' + $scope.claimData.groupId + ':' + $scope.claimData.artifactId + ':' + $scope.claimData.version;
                         $scope.claimData = {};
                         // TODO: need to close the info panel as the available
                         // tabs no longer match??

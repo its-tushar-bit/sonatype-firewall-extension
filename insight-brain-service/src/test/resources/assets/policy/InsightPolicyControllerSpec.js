@@ -90,4 +90,34 @@ describe('InsightPolicyController tests', function() {
         expect(scope.state.policyList.length).toEqual(4);
         expect(scope.state.policyList[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
     }));
+    
+	
+	it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
+		var policyResponse = PolicyMockData.getPolicyEvaluationData();
+		var mockApplication = {
+				publicId: 'publicId',
+				policyEvaluations: {
+					build: {
+						scanId: 'scanId',
+						stage: {
+	                		stageTypeId: 'build'
+	                	}
+					}
+				},
+				policyEvaluationsResults: {
+					build: {}
+				}
+		};
+		
+		$httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
+		
+		scope.reEvaluatePolicy(mockApplication, mockApplication.policyEvaluations.build);
+		
+		$httpBackend.flush();
+		
+		expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
+		expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
+		expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
+		expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
+	}));
 });

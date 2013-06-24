@@ -89,7 +89,7 @@ describe('PolicyEditor', function() {
 		return $http;
 	} ]);
 
-	beforeEach(module('ApplicationId', 'PolicyEditor'));
+	beforeEach(module('ApplicationId', 'PolicyEditor', 'CLMLocation'));
 	
 	afterEach(function() {
 		angular.element('#policyEditor').remove();

@@ -25,14 +25,5 @@ ApplicationMockData = {
             	}
             }
         ];
-    },
-    getPolicyEvaluationData : function() {
-    	return {
-	    	"alerts": [ ],
-	    	"affectedComponentCount": 5,
-	    	"criticalComponentCount": 5,
-	    	"severeComponentCount": 0,
-	    	"moderateComponentCount": 0
-    	}
     }
 };

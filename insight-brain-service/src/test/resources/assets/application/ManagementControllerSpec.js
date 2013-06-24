@@ -112,19 +112,4 @@ describe('ApplicationManagementController', function () {
 		scope.confirmDeleteApplication(mockApplication);
 		scope.deleteApplication();
 	});
-	
-	it('reevaluates policy', function() {
-		var policyResponse = ApplicationMockData.getPolicyEvaluationData();
-		
-		httpBackend.expectPOST(clmLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
-		
-		scope.reEvaluatePolicy(mockApplication, mockApplication.policyEvaluations.build);
-		
-		httpBackend.flush();
-		
-		expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
-		expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
-		expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
-		expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
-	});
 });

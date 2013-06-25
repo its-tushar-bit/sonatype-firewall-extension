@@ -405,17 +405,18 @@ ul.tri-pane {
 .tri-pane .active {
 }
 .tri-pane > .active:after {
-	content: "\f0d8";
-	font-family: FontAwesome;
+	content: "\e113";
+	font-family: 'Glyphicons Halflings';
 	color: #C6C6C6;
 	font-weight: normal;
 	font-style: normal;
 	text-decoration: inherit;
 	-webkit-font-smoothing: antialiased;
 	font-size: 1.5em;
+	line-height: 16px;
 	display: block;
 	text-align: center;
-	margin-top: -6px;
+	margin-top: -8px;
 }
 
 /**

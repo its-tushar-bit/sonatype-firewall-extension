@@ -146,7 +146,7 @@ describe('PolicyEditor', function() {
 
 		policy.constraints.push({}); // Invalid constraint but PolicyEditor doesn't handle that validation
 		controller.setNameInput('Policy1');
-		expect(controller.isSaveDisabled()).toEqual(true);
+		expect(controller.isSaveDisabled()).toEqual(false);
 	}));
 
 	it('Test Store Not Modified', inject(function ($routeParams) {

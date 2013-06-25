@@ -122,6 +122,7 @@ public class ReportResourceTest
                 assertEquals( classifier, bomJsonNode.get( "classifier" ).asText() );
                 assertEquals( MatchState.EXACT.getId(), bomJsonNode.get( "matchState" ).asText() );
                 assertEquals( createTime.getTime(), bomJsonNode.get( "createTime" ).asLong() );
+                assertEquals( 0F, bomJsonNode.get( "relativePopularity" ).asDouble(), 0F );
                 foundClaimedComponent = true;
             }
             else

@@ -319,6 +319,7 @@ public final class Report
                 bomObjectNode.put( "classifier", hashGAV.getClassifier() );
                 bomObjectNode.put( "matchState", MatchState.EXACT.getId() );
                 bomObjectNode.put( "createTime", hashGAV.getCreateTimeLong() );
+                bomObjectNode.put( "relativePopularity", 0F );
                 bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
             }
             hashes.add( hash );

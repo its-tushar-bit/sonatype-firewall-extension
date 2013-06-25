@@ -7,6 +7,9 @@
 /* global angular, $, window, CLM, setTimeout */
 (function() {
     'use strict';
+    function pad (str, max) {
+        return ('' + str).length < max ? pad("0" + str, max) : str;
+    }
 
         $.extend(true, window, {
             'Insight' : {
@@ -39,10 +42,6 @@
 
         claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentHash', function(hudson, $scope, CurrentHash) {
             $scope.resetClaimData = function() {
-                function pad (str, max) {
-                    return ('' + str).length < max ? pad("0" + str, max) : str;
-                }
-                
                 var now = new Date();
                 $scope.claimData = {
                     //note month is 0 based, so need to bump it up
@@ -67,11 +66,11 @@
                                 dataView.updateItem(item.id, $.extend({}, item, {
                                     identificationSource : 'Manual',
                                     matchState : 'exact',
-                                    groupId : $scope.claimData.groupId,
-                                    artifactId : $scope.claimData.artifactId,
-                                    version : $scope.claimData.version,
-                                    classifier : $scope.claimData.classifier,
-                                    extension : $scope.claimData.extension,
+                                    groupId : data.groupId,
+                                    artifactId : data.artifactId,
+                                    version : data.version,
+                                    classifier : data.classifier,
+                                    extension : data.extension,
                                     createTime : createTime,
                                     age : age
                                 }));
@@ -80,7 +79,7 @@
                             }
                         });
                         
-                        $scope.createSuccess = 'Component successfully claimed as ' + $scope.claimData.groupId + ':' + $scope.claimData.artifactId + ':' + $scope.claimData.version;
+                        $scope.createSuccess = 'Component successfully claimed as ' + data.groupId + ':' + data.artifactId + ':' + data.version;
                         $scope.resetClaimData();
                         // TODO: need to close the info panel as the available
                         // tabs no longer match??
@@ -127,6 +126,10 @@
            return function (scope, element, attrs) {
                element.datepicker({
                    format: 'yyyy-mm-dd'
+               }).on('changeDate', function(ev){
+                   scope.$apply(function(){
+                       scope.claimData.createTime = ev.date.getFullYear() + '-' + pad(ev.date.getMonth() + 1,2) + '-' + pad(ev.date.getDate(),2);
+                   });
                });
            } 
         });

@@ -10,14 +10,9 @@ var CLM = {
                         return [];
                     }
                 }
-            }
+            };
         }
     };
-
-window.Insight = {
-    InformationPanelPlugin : function() {
-    }
-};
 
 describe('CIP Claim Component tests', function() {
     var scope, $http;

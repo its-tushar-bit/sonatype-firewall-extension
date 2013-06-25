@@ -23,8 +23,8 @@
 	}
 
     var head = $('head'),
-        scripts = [ 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js', 'policy-assets/js/cip-claim-component.js', 'assets/js/Hudson.js', 'assets/CLMLocation.js' ],
-        styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css' ];
+        scripts = [ 'assets/bootstrap/bootstrap-datepicker.js', 'policy-assets/js/cip-label-editor.js', 'policy-assets/js/cip-policy-violations.js', 'policy-assets/js/cip-claim-component.js', 'assets/js/Hudson.js', 'assets/CLMLocation.js' ],
+        styles = [ 'policy-assets/css/cip-label-editor.css', 'policy-assets/css/cip-policy-violations.css', 'policy-assets/css/cip-claim-component.css' ];
 
 	if (!window.angular) {
 		loadScript(null, 'assets/angular/angular-1.0.6.min.js', function () {

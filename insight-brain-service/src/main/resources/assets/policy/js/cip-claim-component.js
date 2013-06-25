@@ -38,7 +38,17 @@
         var claimApp = angular.module('ClaimComponent', ['Hudson']);
 
         claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentHash', function(hudson, $scope, CurrentHash) {
-            $scope.claimData = {};
+            $scope.resetClaimData = function() {
+                function pad (str, max) {
+                    return ('' + str).length < max ? pad("0" + str, max) : str;
+                }
+                
+                var now = new Date();
+                $scope.claimData = {
+                    //note month is 0 based, so need to bump it up
+                    createTime : now.getFullYear() + '-' + pad(now.getMonth() + 1,2) + '-' + pad(now.getDate(),2)
+                }
+            }
 
             $scope.claimClick = function() {
                 $scope.createError = '';
@@ -66,7 +76,7 @@
                         });
                         
                         $scope.createSuccess = 'Component successfully claimed as ' + $scope.claimData.groupId + ':' + $scope.claimData.artifactId + ':' + $scope.claimData.version;
-                        $scope.claimData = {};
+                        $scope.resetClaimData();
                         // TODO: need to close the info panel as the available
                         // tabs no longer match??
                     }).error(function(data, status, headersFn, config) {
@@ -93,6 +103,8 @@
                 }
                 return true;
             };
+            
+            $scope.resetClaimData();
         } ]);
         
         claimApp.directive('disablenav', function () {
@@ -104,6 +116,14 @@
                     }
                 });
             };
+        });
+
+        claimApp.directive('datepicker', function() {
+           return function (scope, element, attrs) {
+               element.datepicker({
+                   format: 'yyyy-mm-dd'
+               });
+           } 
         });
 }());
 

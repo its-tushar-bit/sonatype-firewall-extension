@@ -69,7 +69,7 @@
                                     classifier : data.classifier,
                                     extension : data.extension,
                                     createTime : data.createTime,
-                                    age : $scope.claimData.createTime ? Math.floor((new Date().getTime() - $scope.claimData.createTime) / (1000 * 60 * 60 * 24)) : null
+                                    age : data.createTime ? Math.floor((new Date().getTime() - data.createTime) / (1000 * 60 * 60 * 24)) : null
                                 }));
                                 dataView.endUpdate();
                                 return false;

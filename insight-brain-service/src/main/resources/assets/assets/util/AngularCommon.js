@@ -237,65 +237,57 @@ var angularCommon;
 			}
 		};
 	}]);
-
-	angularCommon.directive('inlineEditor', ['$parse', function($parse) {
-		return {
-			replace: true,
-			templateUrl: '../assets/components/inlineEditor.html',
-			scope: {
-				value: '=editorValue',
-				isLarge: '=editorLarge',
-				forceEdit : '&forceEdit',
-				validatorFn : '&validatorFn'
-			},
-			restrict: 'A',
-			priority : 99,
-			link: function postLink ($scope, element, attr) {
-				$scope.placeholder = attr.editorPlaceholder;
-				$scope.isEdit = $parse(attr.forceEdit)($scope.$parent);
-
-				var textBox = element.find('input');
-				element.find('div').on('click', function() {
-					$scope.$apply(function() {
-						$scope.isEdit = true;
-					});
-					textBox.focus();
-				});
-				textBox.on('blur', function() {
-				    function fn() {
-				        var val = textBox.val();
-                        var validator = $scope.validatorFn();
-                        //call the validator if passed in
-                        if (validator) {
-                            $scope.valueInvalid = validator(val);
-                            
-                            //if invalid, just dump out now, no need to do anything else here
-                            if ($scope.valueInvalid) {
-                                return;
-                            }
-                        }
-                        
-                        if (val) {
-                            $scope.isEdit = false;
-                        }
-				    }
-				    
-				    //there are occassions where a digest could already be running, so check first
-				    //and run if necessary
-				    if(!$scope.$$phase) {
-    				    $scope.$apply(function(){
-        				    fn();
-    				    });
-				    } else {
-				        fn();
-				    }
-				});
-				$scope.$watch('forceEdit()', function (newValue, oldValue) {
-					$scope.isEdit = newValue;
-				});
-			}
-		}
-	}]);
+	
+	/**
+	 * AngularJS support for x-editable controls
+	 */
+	angularCommon.directive('xeditable', function($timeout, $parse) {
+	    return {
+	        restrict: 'A',
+	        require: "ngModel",
+	        link: function(scope, element, attrs, ngModel) {
+	            var loadXeditable = function() {
+	            	var args = {
+	                	mode: 'inline',
+	                	success: function(response, value) {
+	                        ngModel.$setViewValue(value);
+	                        scope.$apply();
+	                    }
+	                };
+	            	if (attrs.validate) {
+	            		var validateFn = $parse(attrs.validate)(scope);
+	            		args.validate = validateFn;
+	            	}
+	            	if (attrs.source) {
+	            		var source = $parse(attrs.source)(scope);
+	            		var parsedSource = [];
+	            		if (attrs.keyValue && attrs.displayValue) {
+	            			$.each(source, function(index, value) {
+	            				parsedSource.push({ value: $parse(attrs.keyValue)(value), text: $parse(attrs.displayValue)(value) });
+	            			});
+	            		} else if (attrs.displayValue) {
+	            			$.each(source, function(index, value) {
+	            				parsedSource.push($parse(attrs.displayValue)(value));
+	            			});
+	            		} else {
+	            			parsedSource = source;
+	            		}
+	            		
+	            		args.source = parsedSource;
+	            	}
+	                element.editable(args);
+	                scope.$watch(attrs.ngModel, function(newValue) {
+	                	if (element.editable('getValue') !== newValue) {
+	                		element.editable('setValue', newValue);
+	                	}
+	                });
+	            }
+	            $timeout(function() {
+	                loadXeditable();
+	            }, 10);
+	        }
+	    };
+	});
 
 	/**
 	 * Creates a URL which is relative to the current page.  (..) ar accepted

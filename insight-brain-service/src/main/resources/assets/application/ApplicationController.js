@@ -230,7 +230,7 @@
 				$scope.alerts.push({ type: 'error', msg: rejection.data }); 
 			});
 		};
-
+		
 		// This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
 		$scope.save = function () {
 			if ($scope.submitActive) {

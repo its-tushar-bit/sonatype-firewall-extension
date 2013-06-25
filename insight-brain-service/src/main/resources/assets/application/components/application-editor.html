@@ -24,28 +24,23 @@
 		            <a ng-click='generateIcon()'>Want a robot?</a>
 	            </div>
    			</div>
-			<div inline-editor editor-value='selectedApplication.name' editor-large='true' editor-placeholder="Application Name"
-				force-edit="selectedApplication && selectedApplication.id == null" style='margin-bottom: 5px;'></div>
+			<div class='header-name-editor'>
+				<a ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Application Name' 
+					data-type='text' style='margin-bottom: 5px;'></a>
+			</div>
 			<span style='padding-left: 9px'>Application</span>
 			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
 				<div ng-switch-when='null'>
-					<div inline-editor editor-value='selectedApplication.publicId' editor-placeholder=' Application ID'
-						force-edit="selectedApplication && selectedApplication.id == null"></div>
+					<a ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Application ID'
+						data-type='text'></a>
 				</div>
 				<span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
 			</div>
 			<span>in</span>
 			<div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
-				<div ng-switch-when='null' class="btn-group">
-					<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-						{{getOrganizationName(selectedApplication.organizationId)}}
-						<span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu">
-						<li ng-repeat='organization in organizations'>
-							<a ng-click='changeOrganization(organization)'>{{organization.name}}</a>
-						</li>
-					</ul>
+				<div ng-switch-when='null'>
+					<a ng-model='selectedApplication.organizationId' xeditable href='javascript;;' data-emptytext='Assign Org'
+						data-type='select' source='organizations' key-value='id' display-value='name'></a>
 				</div>
 				<span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
 			</div>

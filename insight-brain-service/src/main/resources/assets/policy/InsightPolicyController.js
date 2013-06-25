@@ -8,7 +8,7 @@
 (function () {
 	'use strict';
 
-	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMLocation']);
+	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMLocation', 'AngularCommon']);
 
 	policyModule.controller('InsightPolicyController', ['$scope', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'policyEvaluator', function ($scope, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, policyEvaluator) {
 

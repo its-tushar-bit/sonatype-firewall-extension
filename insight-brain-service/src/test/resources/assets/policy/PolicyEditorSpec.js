@@ -89,7 +89,7 @@ describe('PolicyEditor', function() {
 		return $http;
 	} ]);
 
-	beforeEach(module('ApplicationId', 'PolicyEditor', 'CLMLocation'));
+	beforeEach(module('ApplicationId', 'PolicyEditor', 'AngularCommon', 'CLMLocation'));
 	
 	afterEach(function() {
 		angular.element('#policyEditor').remove();
@@ -146,7 +146,7 @@ describe('PolicyEditor', function() {
 
 		policy.constraints.push({}); // Invalid constraint but PolicyEditor doesn't handle that validation
 		controller.setNameInput('Policy1');
-		expect(controller.isSaveDisabled()).toEqual(false);
+		expect(controller.isSaveDisabled()).toEqual(true);
 	}));
 
 	it('Test Store Not Modified', inject(function ($routeParams) {

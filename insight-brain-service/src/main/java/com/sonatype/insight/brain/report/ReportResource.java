@@ -28,6 +28,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -119,7 +120,7 @@ public class ReportResource
         }
         if ( reportEntry != null )
         {
-            final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+            final long ifModifiedSince = httpRequest.getDateHeader( HttpHeaders.IF_MODIFIED_SINCE );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
             {
                 return Response.status( 304 ).build();
@@ -207,7 +208,7 @@ public class ReportResource
             final File reportFile =
                 fetchReport( reportDownloader, work, appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
-            final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+            final long ifModifiedSince = httpRequest.getDateHeader( HttpHeaders.IF_MODIFIED_SINCE );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
             {
                 return Response.status( 304 ).build();

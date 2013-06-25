@@ -72,7 +72,7 @@ public class ReportResource
     private static final ConcurrentMap<String, Lock> LOCK_TABLE =
         CacheBuilder.newBuilder().weakValues().<String, Lock> build().asMap();
 
-    private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
+    private static final long YEAR = (long) 365 * 24 * 60 * 60 * 1000;
 
     static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS =
         CacheBuilder.newBuilder().maximumSize( 8192 ).<String, Integer> build().asMap();

@@ -43,9 +43,9 @@
         claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentHash', function(hudson, $scope, CurrentHash) {
             $scope.resetClaimData = function() {
                 var now = new Date();
+                $scope.now = now.getFullYear() + '-' + pad(now.getMonth() + 1,2) + '-' + pad(now.getDate(),2)
                 $scope.claimData = {
-                    //note month is 0 based, so need to bump it up
-                    createTime : now.getFullYear() + '-' + pad(now.getMonth() + 1,2) + '-' + pad(now.getDate(),2)
+                    createTime : now.getTime()
                 }
             }
 
@@ -59,9 +59,6 @@
 
                         $.each(dataView.getItems(), function(index, item) {
                             if (item.hash === CurrentHash.hash) {
-                                var createTimeParts = /([0-9]+)-([0-9]+)-([0-9]+)/.exec($scope.claimData.createTime),
-                                    createTime = createTimeParts ? new Date(createTimeParts[1], createTimeParts[2] - 1, createTimeParts[3]).getTime() : null,
-                                    age = createTime ? Math.floor((new Date().getTime() - createTime) / (1000 * 60 * 60 * 24)) : null;
                                 dataView.beginUpdate();
                                 dataView.updateItem(item.id, $.extend({}, item, {
                                     identificationSource : 'Manual',
@@ -71,8 +68,8 @@
                                     version : data.version,
                                     classifier : data.classifier,
                                     extension : data.extension,
-                                    createTime : createTime,
-                                    age : age
+                                    createTime : data.createTime,
+                                    age : $scope.claimData.createTime ? Math.floor((new Date().getTime() - $scope.claimData.createTime) / (1000 * 60 * 60 * 24)) : null
                                 }));
                                 dataView.endUpdate();
                                 return false;
@@ -128,7 +125,7 @@
                    format: 'yyyy-mm-dd'
                }).on('changeDate', function(ev){
                    scope.$apply(function(){
-                       scope.claimData.createTime = ev.date.getFullYear() + '-' + pad(ev.date.getMonth() + 1,2) + '-' + pad(ev.date.getDate(),2);
+                       scope.claimData.createTime = ev.date.getTime();
                    });
                });
            } 

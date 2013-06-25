@@ -60,6 +60,9 @@
 
                         $.each(dataView.getItems(), function(index, item) {
                             if (item.hash === CurrentHash.hash) {
+                                var createTimeParts = /([0-9]+)-([0-9]+)-([0-9]+)/.exec($scope.claimData.createTime),
+                                    createTime = createTimeParts ? new Date(createTimeParts[1], createTimeParts[2] - 1, createTimeParts[3]).getTime() : null,
+                                    age = createTime ? Math.floor((new Date().getTime() - createTime) / (1000 * 60 * 60 * 24)) : null;
                                 dataView.beginUpdate();
                                 dataView.updateItem(item.id, $.extend({}, item, {
                                     identificationSource : 'Manual',
@@ -68,7 +71,9 @@
                                     artifactId : $scope.claimData.artifactId,
                                     version : $scope.claimData.version,
                                     classifier : $scope.claimData.classifier,
-                                    extension : $scope.claimData.extension
+                                    extension : $scope.claimData.extension,
+                                    createTime : createTime,
+                                    age : age
                                 }));
                                 dataView.endUpdate();
                                 return false;

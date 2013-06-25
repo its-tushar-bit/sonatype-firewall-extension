@@ -23,12 +23,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -241,6 +246,52 @@ public class ReportResourceTest
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
         hashGAV = hashGAVDAO.getByHash( hashGAV.getHash() );
         hashGAVDAO.delete( hashGAV );
+    }
+
+    @Test
+    public void tesEmbedReportEntryExpirationDate()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final Calendar calendar = Calendar.getInstance();
+        final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat( "E, dd MMM yyyy HH:mm" );
+        expirationHeaderFormat.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+
+        calendar.setTime( new Date() );
+        calendar.set( Calendar.YEAR, calendar.get( Calendar.YEAR ) + 1 );
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/index.html" );
+        assertResponseStatus( 200, response );
+        String expiresHeader = response.getHeader( "Expires" );
+        assertNotNull( expiresHeader );
+        assertTrue( "index.html expires in one year",
+                    expiresHeader.contains( expirationHeaderFormat.format( calendar.getTime() ) ) );
+
+        calendar.setTime( new Date() );
+        response = RestAccess.get( resourcePrefix + "/embedReport/data.json" );
+        assertResponseStatus( 200, response );
+        expiresHeader = response.getHeader( "Expires" );
+        assertTrue( "data.json expires immediately",
+                    expiresHeader.contains( expirationHeaderFormat.format( calendar.getTime() ) ) );
+
+        Map<String, String> ifModifiedSinceHeader = new HashMap<String, String>();
+        calendar.set( Calendar.DAY_OF_MONTH, calendar.get( Calendar.DAY_OF_MONTH ) + 1 );
+        ifModifiedSinceHeader.put( "If-Modified-Since",
+                                   new SimpleDateFormat( "E, dd MMM yyyy HH:mm:ss" ).format( calendar.getTime() ) );
+        response = RestAccess.get( resourcePrefix + "/embedReport/data.json", ifModifiedSinceHeader );
+        assertResponseStatus( 304, response );
     }
 
     @Test

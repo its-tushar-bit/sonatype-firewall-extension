@@ -30,7 +30,7 @@
 		return this.baseUrl;
 	}
 
-	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', [function () {
+	angular.module('CLMLocation', []).factory('CLMLocations', [function () {
 		return {
 			getBaseUrl : getBaseUrl,
 

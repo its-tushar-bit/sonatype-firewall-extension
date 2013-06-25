@@ -8,7 +8,6 @@
 (function() {
     'use strict';
 
-    function doLoad() {
         $.extend(true, window, {
             'Insight' : {
                 'ClaimComponent' : function(node, applicationId, hash) {
@@ -36,9 +35,9 @@
             }
         });
 
-        var claimApp = angular.module('ClaimComponent', []);
+        var claimApp = angular.module('ClaimComponent', ['Hudson']);
 
-        claimApp.controller('ClaimComponentController', [ '$http', '$scope', 'CurrentHash', function($http, $scope, CurrentHash) {
+        claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentHash', function(hudson, $scope, CurrentHash) {
             $scope.claimData = {};
 
             $scope.claimClick = function() {
@@ -46,7 +45,7 @@
                 $scope.createSuccess = '';
                 if ($scope.formValid()) {
                     $scope.claimData.hash = CurrentHash.hash;
-                    $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
+                    hudson.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
                         var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
 
                         $.each(dataView.getItems(), function(index, item) {
@@ -106,17 +105,6 @@
                 });
             };
         });
-    }
-
-    function check() {
-        if (window.angular) {
-            doLoad();
-        } else {
-            setTimeout(check, 100);
-        }
-    }
-
-    setTimeout(check, 0);
 }());
 
 /* add claim component tab as an information panel plugin */

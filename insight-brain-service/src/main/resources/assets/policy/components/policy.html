@@ -23,7 +23,7 @@
 			                    <div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
 			                    	<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
 				                       ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-				                       title='View Report' href='..#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+				                       title='View Report' href='../application-assets/#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
 				                    	<img src='../assets/img/glyphicons_263_bank.png' />
 				                    	<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
 				                   		<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>

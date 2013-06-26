@@ -115,8 +115,8 @@
                 $scope.submitted = true;
                 if ($scope.claimForm.$valid) {
                     $scope.claimData.hash = CurrentHash.hash;
-                    if ($scope.claimData.createTime) {
-                        $scope.claimData.createTime = parseDate($scope.claimData.createTime, parseFormat('mm/dd/yyyy')).getTime();
+                    if ($scope.claimData.createTimeText) {
+                        $scope.claimData.createTime = parseDate($scope.claimData.createTimeText, parseFormat('mm/dd/yyyy')).getTime();
                     }
                     hudson.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
                         var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
@@ -189,8 +189,7 @@
                    format: 'mm/dd/yyyy'
                }).on('changeDate', function(event){
                    scope.$apply(function(){
-                       scope.claimData.createTime = formatDate(event.date, parseFormat('mm/dd/yyyy'));
-                       scope.claimData.createTimeObj = event.date;
+                       scope.claimData.createTimeText = formatDate(event.date, parseFormat('mm/dd/yyyy'));
                    });
                });
            } 

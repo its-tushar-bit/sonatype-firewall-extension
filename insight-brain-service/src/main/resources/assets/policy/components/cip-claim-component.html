@@ -4,11 +4,11 @@
 		<table>
 			<tr>
 				<td colspan='2'>
-					<div ng-show='createError' class='alert alert-error' style='width:775px;'>
+					<div ng-show='createError' class='alert alert-error' style='width:712px;'>
 						<button type='button' class='close' ng-click='createError = ""'>&times;</button>
 						<strong>Error:</strong> {{createError}}
 					</div>
-					<div ng-show='createSuccess' class='alert alert-success' style='width:775px;'>
+					<div ng-show='createSuccess' class='alert alert-success' style='width:712px;'>
 						<button type='button' class='close' ng-click='createSuccess = ""'>&times;</button>
 						<strong>Success:</strong> {{createSuccess}}
 					</div>
@@ -63,11 +63,11 @@
 					    <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Created</label>
 			            	<div class='controls'>
-				            	<div class="input-append date" data-date="{{claimData.createTime}}" datepicker>
-									<input class="span2" name="createTime" type="date" ng-model="claimData.createTime" ng-pattern='/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/' disablenav>
+				            	<div class="input-append date" data-date="{{claimData.createTimeText}}" datepicker>
+									<input class="span2" name="createTimeText" type="date" ng-model="claimData.createTimeText" ng-pattern='/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/' disablenav>
 									<span class="add-on"><i class="icon-calendar"></i></span>
 								</div>
-								<div class="validation-error" ng-show="claimForm.createTime.$dirty && claimForm.createTime.$error.pattern">
+								<div class="validation-error" ng-show="claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern">
 									<span>Date format is MM/DD/YYYY</span>
                                 </div>
 			                </div>
@@ -79,7 +79,7 @@
 			            	</div>
 			            </div>
 			            <div class='controls' style='text-align:right;'>
-							<button type='none' class='btn btn-primary' disablenav>Claim</button>
+							<button type='none' class='btn btn-primary' ng-disabled="submitted" disablenav>Claim</button>
 						</div>
 		            </div>
 				</td>

@@ -1,5 +1,6 @@
 <div ng-controller="ClaimComponentController" style='padding:5px' class='claimComponent'>
 	<div class='well'>
+	<form name="claimForm" novalidate ng-submit="claimSubmit()">
 		<table>
 			<tr>
 				<td colspan='2'>
@@ -19,58 +20,71 @@
 						<div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Group ID</label>
 			                <div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' disablenav/>
+			            		<input name="groupId" class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' disablenav required/>
+			            		<div class="validation-error" ng-show="submitted && claimForm.groupId.$error.required">
+									<span>Group ID is required</span>
+                                </div>
 			            	</div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Artifact ID</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' disablenav/>
+			            		<input name='artifactId' class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' disablenav required/>
+			            		<div class="validation-error" ng-show="submitted && claimForm.artifactId.$error.required">
+									<span>Artifact ID is required</span>
+                                </div>
 			            	</div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Version</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...' disablenav/>
+			            		<input name='version' class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...' disablenav required/>
+			            		<div class="validation-error" ng-show="submitted && claimForm.version.$error.required">
+									<span>Version is required</span>
+                                </div>
 			                </div>
 			            </div>
 			            <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Classifier</label>
 			            	<div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.classifier' placeholder='Enter classifier...' disablenav/>
-			                </div>
-			            </div>
-			            <div class='control-group' style='margin-bottom:10px;'>
-							<label class='control-label'>Extension</label>
-			            	<div class='controls'>
-			            		<input class='input-xlarge' type='text' ng-model='claimData.extension' placeholder='Enter extension...' disablenav/>
+			            		<input class='input-xlarge' type='text' ng-model='claimData.classifier' disablenav/>
 			                </div>
 			            </div>
 					</div>
 				</td>
 				<td style='vertical-align:top;width:50%;'>
 					<div class='form-horizontal'>
+			            <div class='control-group' style='margin-bottom:10px;'>
+							<label class='control-label'>Extension</label>
+			            	<div class='controls'>
+			            		<input class='input-xlarge' type='text' ng-model='claimData.extension' disablenav/>
+			                </div>
+			            </div>
 					    <div class='control-group' style='margin-bottom:10px;'>
 							<label class='control-label'>Created</label>
 			            	<div class='controls'>
 				            	<div class="input-append date" data-date="{{claimData.createTime}}" datepicker>
-									<input class="span2" type="text" value="{{now}}" readonly disablenav>
+									<input class="span2" name="createTime" type="date" ng-model="claimData.createTime" ng-pattern='/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/' disablenav>
 									<span class="add-on"><i class="icon-calendar"></i></span>
-								</div>	
+								</div>
+								<div class="validation-error" ng-show="claimForm.createTime.$dirty && claimForm.createTime.$error.pattern">
+									<span>Date format is MM/DD/YYYY</span>
+                                </div>
 			                </div>
 			            </div>
 						<div class='control-group'>
 							<label class='control-label'>Comment</label>
 			            	<div class='controls'>
-			            		<textarea class='input-xlarge' ng-model='claimData.comment' style='height:86px;padding:0px;margin-bottom:0px;' placeholder='Enter comment...' disablenav></textarea>
+			            		<textarea class='input-xlarge' ng-model='claimData.comment' style='height:86px;' disablenav></textarea>
 			            	</div>
 			            </div>
+			            <div class='controls' style='text-align:right;'>
+							<button type='none' class='btn btn-primary' disablenav>Claim</button>
+						</div>
 		            </div>
 				</td>
 			</tr>
 		</table>
-		<div class='controls' style='text-align:right;padding-right:45px;'>
-			<button type='none' class='btn btn-primary' ng-disabled='!formValid()' ng-click='claimClick()' disablenav>Claim</button>
-		</div>
+		</form>
 	</div>
 </div>

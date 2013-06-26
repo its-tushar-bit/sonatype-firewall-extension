@@ -24,3 +24,8 @@
 	-moz-background-clip: padding;
 	background-clip: padding-box;
 }
+
+.validation-error {
+	color: #FF0000;
+	font-size: 12px;
+}

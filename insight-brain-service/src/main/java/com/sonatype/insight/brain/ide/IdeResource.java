@@ -113,6 +113,7 @@ public class IdeResource
             matchedComponent.setCatalogDate( hashGAV.getCreateTimeLong() );
             matchedComponent.setMatchState( MatchState.EXACT.getId() );
             matchedComponent.setIdentificationSource( IdentificationSource.MANUAL.getId() );
+            matchedComponent.setSecurityVulnerabilities( null );
             matchedComponent.setWaitDelta( null );
             matchedComponent.setSimpleMatch( true );
         }

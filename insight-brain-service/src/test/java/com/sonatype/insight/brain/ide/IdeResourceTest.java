@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
@@ -545,6 +546,7 @@ public class IdeResourceTest
         Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
         constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
         constraint1.addCondition( new Condition( AgeInDaysConditionType.ID, "younger than", "30" ) );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "absent" ) );
         Policy policy1 = new Policy( "PolicyId1", "Policy1" );
         policy1.setThreatLevel( 8 );
         policy1.addConstraint( constraint1 );
@@ -565,6 +567,7 @@ public class IdeResourceTest
         String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
         MatchedComponent saasResponse = new MatchedComponent();
         saasResponse.setHash( hash );
+        saasResponse.addSecurityVulnerability( new SecurityVulnerability( "12345", "osvdb", 5f ) );
         setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasResponse ), 200 );
         Response response = RestAccess.get( serviceUrl );
         hashGAVDAO.delete( hashGAV );

@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -250,7 +251,7 @@ public class ReportResourceTest
     }
 
     @Test
-    public void tesEmbedReportEntryExpirationDate()
+    public void testEmbedReportEntryExpirationDate()
         throws Exception
     {
         final String applicationPublicId = "ReportResourceTest_AppId";
@@ -268,7 +269,7 @@ public class ReportResourceTest
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
         final Calendar calendar = Calendar.getInstance();
-        final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat( "E, dd MMM yyyy HH:mm" );
+        final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat( "E, dd MMM yyyy HH:mm", Locale.ENGLISH );
         expirationHeaderFormat.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
 
         calendar.setTime( new Date() );
@@ -290,7 +291,7 @@ public class ReportResourceTest
         Map<String, String> ifModifiedSinceHeader = new HashMap<String, String>();
         calendar.set( Calendar.DAY_OF_MONTH, calendar.get( Calendar.DAY_OF_MONTH ) + 1 );
         ifModifiedSinceHeader.put( "If-Modified-Since",
-                                   new SimpleDateFormat( "E, dd MMM yyyy HH:mm:ss" ).format( calendar.getTime() ) );
+                                   new SimpleDateFormat( "E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH ).format( calendar.getTime() ) );
         response = RestAccess.get( resourcePrefix + "/embedReport/data.json", ifModifiedSinceHeader );
         assertResponseStatus( 304, response );
     }

@@ -44,7 +44,7 @@
 
                 function setDimensions() {
                     var iframe = angular.element('iframe');
-                    if (!iframe) {
+                    if (!iframe || iframe.length === 0) {
                         clearTimeout(resizeTimeoutId);
                         return;
                     }

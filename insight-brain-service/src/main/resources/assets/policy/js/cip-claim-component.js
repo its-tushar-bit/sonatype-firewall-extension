@@ -107,6 +107,7 @@
             $scope.resetClaimData = function() {
                 $scope.claimData = {};
                 $scope.submitted = false;
+                $scope.disableSubmit = false;
             }
 
             $scope.claimSubmit = function() {
@@ -114,6 +115,7 @@
                 $scope.createSuccess = '';
                 $scope.submitted = true;
                 if ($scope.claimForm.$valid) {
+                    $scope.disableSubmit = true;
                     $scope.claimData.hash = CurrentHash.hash;
                     if ($scope.claimData.createTimeText) {
                         $scope.claimData.createTime = parseDate($scope.claimData.createTimeText, parseFormat('mm/dd/yyyy')).getTime();
@@ -153,6 +155,7 @@
                         } else {
                             $scope.createError = data;
                         }
+                        $scope.disableSubmit = false;
                     });
                 }
             };

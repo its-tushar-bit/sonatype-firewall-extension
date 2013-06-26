@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +58,7 @@ public class TestRepositoryItem
 
     public static void add( ScanConfiguration config, File basedir )
     {
-        add( config, basedir, "", basedir.listFiles() );
+        add( config, basedir, "", sort( basedir.listFiles() ));
     }
 
     private static void add( ScanConfiguration config, File basedir, String prefix, File[] children )
@@ -75,7 +76,7 @@ public class TestRepositoryItem
                         config.addItem( new TestRepositoryItem( basedir, path, coords ) );
                     }
                 }
-                add( config, basedir, prefix + child.getName() + '/', child.listFiles() );
+                add( config, basedir, prefix + child.getName() + '/', sort( child.listFiles() ) );
             }
         }
     }
@@ -90,6 +91,16 @@ public class TestRepositoryItem
                                                    m.group( 5 ), m.group( 6 ) );
         }
         return null;
+    }
+
+    private static File[] sort( final File[] files )
+    {
+        if(files == null)
+        {
+            return null;
+        }
+        Arrays.sort( files );
+        return files;
     }
 
 }

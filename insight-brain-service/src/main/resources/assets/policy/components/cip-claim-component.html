@@ -1,16 +1,16 @@
 <div ng-controller="ClaimComponentController" style='padding:5px' class='claimComponent'>
-	<div class='well'>
+<div ng-show='createSuccess' class='alert alert-success' style='width:712px;'>
+						<button type='button' class='close' ng-click='createSuccess = ""'>&times;</button>
+						<strong>Success:</strong> {{createSuccess}}
+					</div>
+	<div class='well' ng-hide='createSuccess'>
 	<form name="claimForm" novalidate ng-submit="claimSubmit()">
 		<table>
 			<tr>
 				<td colspan='2'>
-					<div ng-show='createError' class='alert alert-error' style='width:712px;'>
+					<div ng-show='createError' class='alert alert-error' style='width:712px; max-width: 712;'>
 						<button type='button' class='close' ng-click='createError = ""'>&times;</button>
 						<strong>Error:</strong> {{createError}}
-					</div>
-					<div ng-show='createSuccess' class='alert alert-success' style='width:712px;'>
-						<button type='button' class='close' ng-click='createSuccess = ""'>&times;</button>
-						<strong>Success:</strong> {{createSuccess}}
 					</div>
 				</td>
 			</tr>

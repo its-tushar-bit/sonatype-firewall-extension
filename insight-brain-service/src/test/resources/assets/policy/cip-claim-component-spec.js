@@ -43,9 +43,13 @@ describe('CIP Claim Component tests', function() {
         expect(scope.formValid()).toEqual(false);
         scope.claimData.version = 'version';
         expect(scope.formValid()).toEqual(true);
+        
+        scope.claimForm = {
+            $valid: true
+        };
 
         $http.expectPOST('../brain/rest/component/identified').respond({});
-        scope.claimClick();
+        scope.claimSubmit();
         $http.flush();
     });
 });

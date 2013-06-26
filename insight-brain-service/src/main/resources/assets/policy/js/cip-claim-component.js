@@ -24,6 +24,9 @@
             return date.join(format.separator);
         };
         var parseFormat = function(format){
+            if (!format) {
+                return;
+            }
             var separator = format.match(/[.\/\-\s].*?/),
                 parts = format.split(/\W+/);
             if (!separator || !parts || parts.length === 0){
@@ -32,6 +35,9 @@
             return {separator: separator, parts: parts};
         };
         var parseDate = function(date, format) {
+            if (!date) {
+                return;
+            }
             var parts = date.split(format.separator),
                 date = new Date(),
                 val;
@@ -109,7 +115,9 @@
                 $scope.submitted = true;
                 if ($scope.claimForm.$valid) {
                     $scope.claimData.hash = CurrentHash.hash;
-                    $scope.claimData.createTime = parseDate($scope.claimData.createTime, parseFormat('mm/dd/yyyy')).getTime();
+                    if ($scope.claimData.createTime) {
+                        $scope.claimData.createTime = parseDate($scope.claimData.createTime, parseFormat('mm/dd/yyyy')).getTime();
+                    }
                     hudson.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
                         var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
 

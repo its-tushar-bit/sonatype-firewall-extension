@@ -19,7 +19,14 @@
 		script.type = 'text/javascript';
 		script.src = CLM.path + scriptSrc;
 		$('head')[0].appendChild(script);
-		script.onload = onLoad;
+		if (onLoad) {
+			script.onload = script.onreadystatechange = function () {
+				if (!script.readyState || (script.readyState === 'complete' || script.readyState === 'loaded')) {
+					script.onload = script.onreadystatechange = null;
+					onLoad();
+				}
+			};
+		}
 	}
 
     var head = $('head'),

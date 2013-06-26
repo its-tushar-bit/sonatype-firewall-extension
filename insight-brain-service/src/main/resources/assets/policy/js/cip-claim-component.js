@@ -108,7 +108,7 @@
             $scope.claimData = {};
             $scope.submitted = false;
             $scope.disableSubmit = false;
-        }
+        };
 
         $scope.claimSubmit = function() {
             $scope.createError = '';
@@ -195,7 +195,7 @@
                     scope.claimData.createTimeText = formatDate(event.date, parseFormat('mm/dd/yyyy'));
                 });
             });
-        }
+        };
     });
 }());
 

@@ -145,7 +145,8 @@
                 format : 'mm/dd/yyyy',
                 autoclose : true,
                 endDate : new Date(),
-                clearBtn : true
+                clearBtn : true,
+                forceParse : false
             }).on('changeDate', function(event) {
                 scope.$apply(function() {
                     scope.claimData.createTimeText = dateToString(event.date);

@@ -15,7 +15,7 @@
     };
     var stringToDate = function(str) {
         var parts = str.split('/');
-        return new Date(parts[2],parts[0],parts[1]);
+        return new Date(parts[2],parts[0] - 1,parts[1]);
     };
 
     $.extend(true, window, {

@@ -1,3 +1,26 @@
+.claimComponent {
+	padding: 5px; 
+}
+.claimComponent .validation-error {
+	color: #FF0000;
+	font-size: 12px;
+}
+.claimComponent form {
+	margin: 0px;
+}
+.claimComponent .control-group {
+	margin-bottom: 10px;
+}
+.claimComponent td {
+	vertical-align: top;
+	width: 50%;
+}
+.claimComponent .alert {
+	margin:auto;
+	margin-top:20px;
+	padding-top:5px;
+	width:50%'
+}
 /*!
  * .dropdown-menu copied from bootstrap css, didnt want to pull it all in, for fear of what might get styled inadvertently
  * Bootstrap v2.3.1
@@ -33,9 +56,4 @@
 	-webkit-background-clip: padding-box;
 	-moz-background-clip: padding;
 	background-clip: padding-box;
-}
-
-.validation-error {
-	color: #FF0000;
-	font-size: 12px;
 }

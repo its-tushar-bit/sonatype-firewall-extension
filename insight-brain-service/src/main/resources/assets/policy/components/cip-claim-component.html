@@ -1,9 +1,9 @@
-<div ng-controller="ClaimComponentController" style='padding: 5px' class='claimComponent'>
-	<div ng-show='createSuccess' class='alert alert-success' style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>
+<div ng-controller="ClaimComponentController" class='claimComponent'>
+	<div ng-show='createSuccess' class='alert alert-success'>
 		<h4>Success:</h4>
 		<p>{{createSuccess}}</p>
 	</div>
-	<div ng-show='createError' class='alert alert-error'  style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>
+	<div ng-show='createError' class='alert alert-error'>
 		<h4>Error</h4>
 		<p>{{createError}}</p>
 		<p><button type='button' class='btn btn-danger' ng-click='createError = null'><i class='icon-white  icon-arrow-left'></i> Back</button></p>
@@ -12,9 +12,9 @@
 		<form name="claimForm" novalidate ng-submit="claimSubmit()">
 			<table>
 				<tr>
-					<td style='vertical-align: top; width: 50%;'>
+					<td>
 						<div class='form-horizontal'>
-							<div class='control-group' style='margin-bottom: 10px;'>
+							<div class='control-group'>
 								<label class='control-label'>Group ID</label>
 								<div class='controls'>
 									<input name="groupId" class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter group id...' disablenav required />
@@ -23,7 +23,7 @@
 									</div>
 								</div>
 							</div>
-							<div class='control-group' style='margin-bottom: 10px;'>
+							<div class='control-group'>
 								<label class='control-label'>Artifact ID</label>
 								<div class='controls'>
 									<input name='artifactId' class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter artifact id...' disablenav
@@ -33,7 +33,7 @@
 									</div>
 								</div>
 							</div>
-							<div class='control-group' style='margin-bottom: 10px;'>
+							<div class='control-group'>
 								<label class='control-label'>Version</label>
 								<div class='controls'>
 									<input name='version' class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter version...'
@@ -43,7 +43,7 @@
 									</div>
 								</div>
 							</div>
-							<div class='control-group' style='margin-bottom: 10px;'>
+							<div class='control-group'>
 								<label class='control-label'>Classifier</label>
 								<div class='controls'>
 									<input class='input-xlarge' type='text' ng-model='claimData.classifier' disablenav />
@@ -51,15 +51,15 @@
 							</div>
 						</div>
 					</td>
-					<td style='vertical-align: top; width: 50%;'>
+					<td>
 						<div class='form-horizontal'>
-							<div class='control-group' style='margin-bottom: 10px;'>
+							<div class='control-group'>
 								<label class='control-label'>Extension</label>
 								<div class='controls'>
 									<input class='input-xlarge' type='text' ng-model='claimData.extension' disablenav />
 								</div>
 							</div>
-							<div class='control-group' style='margin-bottom: 10px;'>
+							<div class='control-group'>
 								<label class='control-label'>Created</label>
 								<div class='controls'>
 									<div class="input-append date" data-date="{{claimData.createTimeText}}" datepicker>

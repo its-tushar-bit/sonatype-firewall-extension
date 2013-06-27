@@ -16,7 +16,8 @@
     var stringToDate = function(str) {
         var parts = str.split('/');
         return new Date(parts[2],parts[0],parts[1]);
-    }
+    };
+
     $.extend(true, window, {
         'Insight' : {
             'ClaimComponent' : function(node, applicationId, hash) {
@@ -113,6 +114,15 @@
                 return false;
             }
             return true;
+        };
+        
+        $scope.getValidationMessage = function () {
+            var claimForm = $scope.claimForm;
+            if ($scope.submitted && (claimForm.groupId.$error.required || claimForm.artifactId.$error.required || claimForm.version.$error.required)) {
+                return 'Group ID, Artifact ID and Version are required';
+            } else if (claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern) {
+                return 'Date format is MM/DD/YYYY';
+            }
         };
 
         $scope.resetClaimData();

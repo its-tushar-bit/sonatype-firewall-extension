@@ -4,6 +4,8 @@
 .claimComponent .validation-error {
 	color: #FF0000;
 	font-size: 12px;
+	vertical-align: middle;
+	margin-left: 105px;
 }
 .claimComponent form {
 	margin: 0px;

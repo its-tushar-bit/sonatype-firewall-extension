@@ -61,7 +61,7 @@ update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CDDL
 update license set license_category_id = 'COPYLEFT' where license_id = 'CDDL-1.1-GPL-2.0';
 update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CDDL-UNSPECIFIED';
 update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CECILL-1.0';
-update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CECILL-1.1English';
+update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CECILL-1.1';
 update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CECILL-2.0';
 update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CECILL-B';
 update license set license_category_id = 'WEAKCOPYLEFT' where license_id = 'CECILL-C';
@@ -153,6 +153,7 @@ update license set license_category_id = null where license_id = 'OLDAP-2.8';
 update license set license_category_id = null where license_id = 'OpenSSL';
 update license set license_category_id = 'COPYLEFT' where license_id = 'OSL-1.0';
 update license set license_category_id = 'COPYLEFT' where license_id = 'OSL-2.0';
+update license set license_category_id = 'COPYLEFT' where license_id = 'OSL-2.1';
 update license set license_category_id = 'COPYLEFT' where license_id = 'OSL-3.0';
 update license set license_category_id = 'COPYLEFT' where license_id = 'OSL-UNSPECIFIED';
 update license set license_category_id = null where license_id = 'PDDL-1.0';

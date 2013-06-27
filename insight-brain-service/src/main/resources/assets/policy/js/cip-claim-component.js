@@ -132,7 +132,9 @@
     claimApp.directive('datepicker', function() {
         return function(scope, element, attrs) {
             element.datepicker({
-                format : 'mm/dd/yyyy'
+                format : 'mm/dd/yyyy',
+                autoclose : true,
+                endDate : new Date()
             }).on('changeDate', function(event) {
                 scope.$apply(function() {
                     scope.claimData.createTimeText = dateToString(event.date);

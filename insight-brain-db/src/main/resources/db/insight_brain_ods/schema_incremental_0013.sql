@@ -1,8 +1,9 @@
 SET SCHEMA insight_brain_ods;
 
-ALTER TABLE license_threat_group_license
-  DROP CONSTRAINT license_threat_group_license_uk;
-
-ALTER TABLE license_threat_group_license
-  ADD CONSTRAINT license_threat_group_license_uk UNIQUE KEY (license_threat_group_id, license_id);
-  
+CREATE TABLE organization (
+  organization_id varchar(50) NOT NULL,
+  name varchar(60) NOT NULL,
+  name_lowercase_no_whitespace varchar(60) NOT NULL,
+  CONSTRAINT organization_pk PRIMARY KEY (organization_id),
+  CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+);

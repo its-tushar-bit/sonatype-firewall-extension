@@ -7,73 +7,16 @@
 /* global angular, $, window, CLM, setTimeout */
 (function() {
     'use strict';
-    // from the datepicker.js
-    var formatDate = function(date, format) {
-        var val = {
-            d : date.getDate(),
-            m : date.getMonth() + 1,
-            yy : date.getFullYear().toString().substring(2),
-            yyyy : date.getFullYear()
-        };
-        val.dd = (val.d < 10 ? '0' : '') + val.d;
-        val.mm = (val.m < 10 ? '0' : '') + val.m;
-        var date = [];
-        for ( var i = 0, cnt = format.parts.length; i < cnt; i++) {
-            date.push(val[format.parts[i]]);
+    var dateToString = function(date) {
+        function pad(str) {
+            return ('' + str).length < 2 ? pad("0" + str, 2) : str;
         }
-        return date.join(format.separator);
+        return pad(date.getMonth() + 1) + '/' + pad(date.getDate()) + '/' + date.getFullYear();
     };
-    var parseFormat = function(format) {
-        if (!format) {
-            return;
-        }
-        var separator = format.match(/[.\/\-\s].*?/), parts = format.split(/\W+/);
-        if (!separator || !parts || parts.length === 0) {
-            throw new Error("Invalid date format.");
-        }
-        return {
-            separator : separator,
-            parts : parts
-        };
-    };
-    var parseDate = function(date, format) {
-        if (!date) {
-            return;
-        }
-        var parts = date.split(format.separator), date = new Date(), val;
-        date.setHours(0);
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-        if (parts.length === format.parts.length) {
-            var year = date.getFullYear(), day = date.getDate(), month = date.getMonth();
-            for ( var i = 0, cnt = format.parts.length; i < cnt; i++) {
-                val = parseInt(parts[i], 10) || 1;
-                switch (format.parts[i]) {
-                case 'dd':
-                case 'd':
-                    day = val;
-                    date.setDate(val);
-                    break;
-                case 'mm':
-                case 'm':
-                    month = val - 1;
-                    date.setMonth(val - 1);
-                    break;
-                case 'yy':
-                    year = 2000 + val;
-                    date.setFullYear(2000 + val);
-                    break;
-                case 'yyyy':
-                    year = val;
-                    date.setFullYear(val);
-                    break;
-                }
-            }
-            date = new Date(year, month, day, 0, 0, 0);
-        }
-        return date;
-    };
+    var stringToDate = function(str) {
+        var parts = str.split('/');
+        return new Date(parts[2],parts[0],parts[1]);
+    }
     $.extend(true, window, {
         'Insight' : {
             'ClaimComponent' : function(node, applicationId, hash) {
@@ -118,7 +61,7 @@
                 $scope.disableSubmit = true;
                 $scope.claimData.hash = CurrentHash.hash;
                 if ($scope.claimData.createTimeText) {
-                    $scope.claimData.createTime = parseDate($scope.claimData.createTimeText, parseFormat('mm/dd/yyyy')).getTime();
+                    $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
                 }
                 hudson.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
                     var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
@@ -192,7 +135,7 @@
                 format : 'mm/dd/yyyy'
             }).on('changeDate', function(event) {
                 scope.$apply(function() {
-                    scope.claimData.createTimeText = formatDate(event.date, parseFormat('mm/dd/yyyy'));
+                    scope.claimData.createTimeText = dateToString(event.date);
                 });
             });
         };

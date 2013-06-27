@@ -88,7 +88,7 @@
             $scope.submitActive = false;
             $scope.alerts.push({
 				type : 'error',
-				msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage.fromStatusData(status, data) + ')'
+				msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage({ status: status, data: data}) + ')'
 			});
         }
         $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];

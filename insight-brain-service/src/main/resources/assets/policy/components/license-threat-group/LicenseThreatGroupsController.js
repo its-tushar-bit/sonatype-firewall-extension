@@ -268,7 +268,7 @@
 		});
     });
 
-    licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore) {
+    licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
         $scope.alerts = [];
 
         $scope.searchEnter = function () {
@@ -315,7 +315,7 @@
                 }, function(rejection) {
                 	$scope.alerts.push({
     					type : 'error',
-    					msg : rejection.data
+    					msg : 'An error occurred while saving the license threat group. (' + Messages.getHttpErrorMessage(error) + ')'
     				});
                 });
 

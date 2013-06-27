@@ -46,7 +46,7 @@
 			function errorFn(data, status, headersFn, config) {
 				$scope.alerts.push({
 					type : 'error',
-					msg : messages.getHttpErrorMessage.fromStatusData(status, data)
+					msg : messages.getHttpErrorMessage({ status: status,  data: data })
 				});
 			}
 

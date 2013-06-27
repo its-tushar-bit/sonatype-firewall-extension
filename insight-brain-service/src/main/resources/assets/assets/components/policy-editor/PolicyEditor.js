@@ -202,7 +202,7 @@
             }, function (error) {
 				$scope.alerts.push({
 					type : 'error',
-					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage.fromError(error) + ')'
+					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
 				});
 			});
 		};

@@ -321,27 +321,18 @@ var angularCommon;
 	}]);
 
 	angularCommon.service('Messages', function () {
-		function getErrorMessage(status, data) {
-			return status === 0 ? 'Unable to reach CLM server' : status + ' - ' + data;
-		}
-		
 		return {
-			getHttpErrorMessage : {
-				fromError : function (args) {
-				    if (!args) {
-				    	return;
-				    }
-					if (angular.isArray(args)) {
-						args = {
-							status : args[1],
-							data : args[0]
-						};
-					}
-					return getErrorMessage(args.status, args.data); 
-				},
-				fromStatusData : function (status, data) {
-					return getErrorMessage(status, data);
-				} 
+			getHttpErrorMessage : function (args) {
+			    if (!args) {
+			    	return;
+			    }
+				if (angular.isArray(args)) {
+					args = {
+						status : args[1],
+						data : args[0]
+					};
+				}
+				return args.status === 0 ? 'Unable to reach CLM server' : args.status + ' - ' + args.data; 
 			}
 		};
 	});

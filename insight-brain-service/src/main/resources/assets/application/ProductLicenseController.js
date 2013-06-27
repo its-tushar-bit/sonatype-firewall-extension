@@ -8,7 +8,7 @@
 (function () {
     'use strict';
 
-    var adminModule = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation', 'ProprietaryConfiguration' ]);
+    var adminModule = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
 
     adminModule.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
 		function showLicense() {

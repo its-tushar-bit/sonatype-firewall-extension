@@ -134,7 +134,8 @@
             element.datepicker({
                 format : 'mm/dd/yyyy',
                 autoclose : true,
-                endDate : new Date()
+                endDate : new Date(),
+                clearBtn : true
             }).on('changeDate', function(event) {
                 scope.$apply(function() {
                     scope.claimData.createTimeText = dateToString(event.date);

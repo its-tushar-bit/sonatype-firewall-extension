@@ -17,6 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ========================================================= */
+/*
+ * Note this includes changes from a pull request
+ * https://github.com/eternicode/bootstrap-datepicker/pull/513
+ */
 
 (function( $ ) {
 
@@ -28,6 +32,8 @@
 		return UTCDate(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
 	}
 
+	var $window = $(window);
+	
 	// Picker object
 
 	var Datepicker = function(element, options) {
@@ -353,13 +359,66 @@
 			var zIndex = parseInt(this.element.parents().filter(function() {
 							return $(this).css('z-index') != 'auto';
 						}).first().css('z-index'))+10;
-			var offset = this.component ? this.component.parent().offset() : this.element.offset();
-			var height = this.component ? this.component.outerHeight(true) : this.element.outerHeight(true);
+			            var positionElement = this.component ? this.component.parent() : this.element; // the datepicker will be positioned so it visually points to this element
+			      var height = positionElement.outerHeight();
+			            var windowScroll = {
+			                top : $window.scrollTop()
+			            };
+			            var maxPinpoint  = {
+			                top : windowScroll.top + $window.height() - this.picker.outerHeight()
+			            };
+			            var minPinpoint = {
+			                top : windowScroll.top
+			            };
+			            var oppositePlacement = function(placement) {
+			                switch (placement) {
+			                    case "bottom" :
+			                        return "top";
+			                    case "top" :
+			                        return "bottom";
+			                }
+			            };
+			            var that = this;
+			            var pinpointForPlacement = function(placement, i) {
+			                var ret = {};
+			                var pinpoint;
+			                if (typeof i === 'number') { // counter to keep track of the recursion, we don't want to get more than 1 recursive call here
+			                    i++;
+			                }
+			                else {
+			                    i = 0;
+			                }
+			                switch (placement) {
+			                    case "bottom" :
+			                        pinpoint = positionElement.offset().top + height - parseFloat(that.picker.css("margin-top"));
+			                        if (pinpoint > maxPinpoint.top && i <= 1) {
+			                            ret = pinpointForPlacement(oppositePlacement(placement), i);
+			                        }
+			                        else {
+			                            ret.y = pinpoint;
+			                            ret.placement = placement;
+			                        }
+			                        break;
+			                    case "top" :
+			                        pinpoint = positionElement.offset().top - that.picker.outerHeight() + parseFloat(that.picker.css("margin-bottom"));
+			                        if (pinpoint < minPinpoint.top && i <= 1) {
+			                            ret = pinpointForPlacement(oppositePlacement(placement), i);
+			                        }
+			                        else {
+			                            ret.y = pinpoint;
+			                            ret.placement = placement;
+			                        }
+			                        break;
+			                }
+			                return ret;
+			            };
+			            var placement = pinpointForPlacement(this.o.placement);
+			
 			this.picker.css({
-				top: offset.top + height,
-				left: offset.left,
+			    top: placement.y,
+			    left: positionElement.offset().left,
 				zIndex: zIndex
-			});
+			}).addClass('datepicker-placement-' + placement.placement);
 		},
 
 		_allow_update: true,
@@ -1013,7 +1072,9 @@
 		startView: 0,
 		todayBtn: false,
 		todayHighlight: false,
-		weekStart: 0
+		weekStart: 0,
+		//currently only "bottom" and "top" supported
+		placement: "bottom"
 	};
 	var locale_opts = $.fn.datepicker.locale_opts = [
 		'format',

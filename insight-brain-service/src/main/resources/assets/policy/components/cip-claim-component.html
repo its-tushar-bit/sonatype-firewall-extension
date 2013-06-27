@@ -1,19 +1,16 @@
 <div ng-controller="ClaimComponentController" style='padding: 5px' class='claimComponent'>
-	<div ng-show='createSuccess' class='alert alert-success' style='width: 712px;'>
-		<button type='button' class='close' ng-click='createSuccess = ""'>&times;</button>
-		<strong>Success:</strong> {{createSuccess}}
+	<div ng-show='createSuccess' class='alert alert-success' style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>
+		<h4>Success:</h4>
+		<p>{{createSuccess}}</p>
 	</div>
-	<div class='well' ng-hide='createSuccess'>
+	<div ng-show='createError' class='alert alert-error'  style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>
+		<h4>Error</h4>
+		<p>{{createError}}</p>
+		<p><button type='button' class='btn btn-danger' ng-click='createError = null'><i class='icon-white  icon-arrow-left'></i> Back</button></p>
+	</div>
+	<div class='well' ng-hide='createSuccess || createError'>
 		<form name="claimForm" novalidate ng-submit="claimSubmit()">
 			<table>
-				<tr>
-					<td colspan='2'>
-						<div ng-show='createError' class='alert alert-error' style='width: 712px; max-width: 712;'>
-							<button type='button' class='close' ng-click='createError = ""'>&times;</button>
-							<strong>Error:</strong> {{createError}}
-						</div>
-					</td>
-				</tr>
 				<tr>
 					<td style='vertical-align: top; width: 50%;'>
 						<div class='form-horizontal'>

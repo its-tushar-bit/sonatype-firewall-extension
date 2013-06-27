@@ -7,14 +7,30 @@
 /* global angular, $, window, CLM, setTimeout */
 (function() {
     'use strict';
-    var dateToString = function(date) {
-        function pad(str) {
-            return ('' + str).length < 2 ? pad("0" + str, 2) : str;
+    
+    function pad(str) {
+        return ('' + str).length < 2 ? pad("0" + str, 2) : str;
+    };
+    
+    function dateToString(date) {
+        if (!date) {
+            return null;
         }
+        
         return pad(date.getMonth() + 1) + '/' + pad(date.getDate()) + '/' + date.getFullYear();
     };
-    var stringToDate = function(str) {
+    
+    function stringToDate(str) {
+        if (!str) {
+            return null;
+        }
+        
         var parts = str.split('/');
+        
+        if (parts.length != 3) {
+            return null;
+        }
+        
         return new Date(parts[2],parts[0] - 1,parts[1]);
     };
 

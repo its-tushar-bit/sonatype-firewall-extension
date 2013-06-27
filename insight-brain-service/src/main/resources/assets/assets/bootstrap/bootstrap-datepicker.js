@@ -246,7 +246,7 @@
 		},
 		_trigger: function(event, altdate){
 			var date = altdate || this.date,
-				local_date = new Date(date.getTime() + (date.getTimezoneOffset()*60000));
+				local_date = date ? new Date(date.getTime() + (date.getTimezoneOffset()*60000)) : null ;
 
 			this.element.trigger({
 				type: event,
@@ -699,6 +699,7 @@
 									element = this.element.find('input');
 								if (element)
 									element.val("").change();
+								this.date = null;
 								this._trigger('changeDate');
 								this.update();
 								if (this.o.autoclose)

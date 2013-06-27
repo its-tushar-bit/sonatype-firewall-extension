@@ -51,70 +51,6 @@ var angularCommon;
 			}
 		};
 	});
-	
-	angularCommon.directive('errorAlert', ['$parse', function ($parse) {
-		return {
-			replace: true,
-			templateUrl: '../assets/components/errorAlert.html',
-			scope: {
-				errorPrefix: '@'
-			},
-			link: function(scope, element, attrs) {
-				function showAlert(errorResponse) {
-					scope.errorResponse = errorResponse;
-				}
-				
-				function serverAlert(data, status, headersFn, config) {
-					var header = headersFn();
-					if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-						scope.errorResponse = 'Server Error';
-					} else if (status === 0) {
-						scope.errorResponse = 'Unable to connect to CLM server';
-					} else {
-						scope.errorResponse = data;
-					}
-				}
-				
-				function postAlert(jqXHR){
-					var contentType = jqXHR.getResponseHeader('Content-Type');
-					if (contentType.indexOf('text/html') === 0) {
-						scope.errorResponse = 'Server Error';
-					} else {
-						scope.errorResponse = jqXHR.responseText;
-					}
-				}
-				
-				// Angular does not have optional '=' scope bindings until 1.1. Here is a crude implementation
-				if (attrs.errorResponse) {
-					var getResponse = $parse(attrs.errorResponse);
-			        var setResponse = getResponse.assign;
-			        scope.$watch(
-			            function watchResponse() {
-			                 return getResponse(scope.$parent); 
-			            },
-			            function updateResponse(value) {
-			            	scope.errorResponse = value;
-			            }
-			        );
-			        scope.$watch('errorResponse', function updateResponse(value) {
-			        		setResponse(scope.$parent, value);
-			            }
-			        );
-			        scope.errorResponse = getResponse ? getResponse(scope.$parent) : null;
-				}
-				
-				scope.$on('showAlert', function (event, arg) {
-					showAlert(arg);
-				});
-				scope.$on('serverAlert', function (event, arg) {
-					serverAlert.apply(null, arg);
-				});
-				scope.$on('postAlert', function (event, arg) {
-					postAlert(arg);
-				});
-			}
-		};
-	}]);
 
 	/**
 	 * @deprecated This along with CSS can be removed in Emerald
@@ -385,18 +321,27 @@ var angularCommon;
 	}]);
 
 	angularCommon.service('Messages', function () {
+		function getErrorMessage(status, data) {
+			return status === 0 ? 'Unable to reach CLM server' : status + ' - ' + data;
+		}
+		
 		return {
-			getHttpErrorMessage : function (args) {
-			    if (!args) {
-			    	return;
-			    }
-				if (angular.isArray(args)) {
-					args = {
-						status : args[1],
-						data : args[0]
-					};
-				}
-				return args.status === 0 ? 'Unable to reach CLM server' : args.status + ' - ' + args.data;
+			getHttpErrorMessage : {
+				fromError : function (args) {
+				    if (!args) {
+				    	return;
+				    }
+					if (angular.isArray(args)) {
+						args = {
+							status : args[1],
+							data : args[0]
+						};
+					}
+					return getErrorMessage(args.status, args.data); 
+				},
+				fromStatusData : function (status, data) {
+					return getErrorMessage(status, data);
+				} 
 			}
 		};
 	});

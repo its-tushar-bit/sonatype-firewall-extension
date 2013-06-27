@@ -81,18 +81,15 @@
 		$scope.doLoad();
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', function ($scope, $http, hudson, clmAppLocations) {
-
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', 'Messages', function ($scope, $http, hudson, clmAppLocations, messages) {
+        $scope.alerts = [];
+    	
         function errorFn(data, status, headersFn, config) {
             $scope.submitActive = false;
-            var header = headersFn();
-            if ($scope.labelEditor) {
-                if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-                    $scope.labelEditor.editErrorResponse = 'Server Error';
-                } else {
-                    $scope.labelEditor.editErrorResponse = data;
-                }
-            }
+            $scope.alerts.push({
+				type : 'error',
+				msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage.fromStatusData(status, data) + ')'
+			});
         }
         $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
@@ -132,13 +129,7 @@
                 }).error(errorFn);
             }
         };
-
-        $scope.clearEditError = function () {
-            if ($scope.labelEditor) {
-                $scope.labelEditor.editErrorResponse = null;
-            }
-        };
-
+        
 		$scope.$watch('selectedLabel', function (newValue) {
 			if (newValue) {
 				$scope.submitActive = false;

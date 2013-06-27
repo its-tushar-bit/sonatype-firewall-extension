@@ -44,12 +44,10 @@
 			var componentLabelsUrl = CLM.path + 'rest/label/component/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash;
 
 			function errorFn(data, status, headersFn, config) {
-				var header = headersFn();
-				if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-					$scope.editErrorResponse = 'Server Error';
-				} else {
-					$scope.editErrorResponse = data;
-				}
+				$scope.alerts.push({
+					type : 'error',
+					msg : messages.getHttpErrorMessage.fromStatusData(status, data)
+				});
 			}
 
 			function persist(labelArr, color) {
@@ -58,6 +56,8 @@
 					$scope.reloadAppLabels(); // Only really necessary if someone adds a brand new label, and removes it in the same session
 				}).error(errorFn);
 			}
+			
+			$scope.alerts = [];
 
 			$scope.reloadLabels = function () {
 				$http.get(componentLabelsUrl, { params : { timestamp : new Date().getTime() } }).success(function (data) {
@@ -128,7 +128,7 @@
 						$scope.labelInput += candidate + ' ';
 					});
 					$scope.labelInput = $.trim($scope.labelInput);
-					$scope.editErrorResponse = '';
+					$scope.alerts = [];
 				}
 			};
 

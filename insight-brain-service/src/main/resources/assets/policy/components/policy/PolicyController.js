@@ -118,7 +118,7 @@
 					policy.$delete().then(angular.noop, function (error) {
 						$scope.alerts.push({
 							type : 'error',
-							msg : 'An error occurred while deleting policy. (' + messages.getHttpErrorMessage(error) + ')'
+							msg : 'An error occurred while deleting policy. (' + messages.getHttpErrorMessage.fromError(error) + ')'
 						});
 					});
 				}, angular.noop);

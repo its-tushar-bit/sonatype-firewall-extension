@@ -269,17 +269,7 @@
     });
 
     licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore) {
-        function onError(data, status, headersFn, config) {
-            $scope.submitActive = false;
-            var header = headersFn();
-            if ($scope.licenseGroupEditor) {
-                if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-                    $scope.licenseGroupEditor.editErrorResponse = 'Server Error';
-                } else {
-                    $scope.licenseGroupEditor.editErrorResponse = data;
-                }
-            }
-        }
+        $scope.alerts = [];
 
         $scope.searchEnter = function () {
             var filter = $filter('filterLicenses');
@@ -320,24 +310,21 @@
                 		}
                 	}
                 	
-                	$scope.licenseGroupEditor.editErrorResponse = null;
+                	$scope.alerts = [];
                 	$scope.$emit('license.cancelLicenseGroupEdit');
                 }, function(rejection) {
-                	onError(rejection.data, rejection.status, rejection.headers, rejection.config);
+                	$scope.alerts.push({
+    					type : 'error',
+    					msg : rejection.data
+    				});
                 });
 
                 $scope.submitActive = false;
             })($scope.selectedGroup);
-
-            $scope.clearEditError = function () {
-                if ($scope.licenseGroupEditor) {
-                    $scope.licenseGroupEditor.editErrorResponse = null;
-                }
-            };
         };
 
 		$scope.cancelLicenseGroupEdit = function () {
-			$scope.licenseGroupEditor.editErrorResponse = null;
+			$scope.alerts = [];
 			$scope.$emit('license.cancelLicenseGroupEdit');
 		};
 		$scope.$watch('selectedLabel', function (newValue) {

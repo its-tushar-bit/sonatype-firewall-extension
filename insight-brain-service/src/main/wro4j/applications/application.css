@@ -2,3 +2,6 @@
     padding: 10px;
     font-weight: bold;
 }
+#applicationManagement table td {
+	vertical-align: middle;
+}

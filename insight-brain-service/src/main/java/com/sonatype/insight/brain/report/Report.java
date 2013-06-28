@@ -301,7 +301,7 @@ public final class Report
     {
         HashGAVDAO hashGAVDAO = new HashGAVDAO();
 
-        Set<String> hashes = new LinkedHashSet<String>();
+        Set<String> claimedHashes = new LinkedHashSet<String>();
         Set<String> gavs = new LinkedHashSet<String>();
         ReportEntry bomReportEntry = extractEntry( reportFile, "bom.json" );
         ContainerNode<?> bomJsonData = JsonUtils.parse( bomReportEntry.buf );
@@ -321,8 +321,8 @@ public final class Report
                 bomObjectNode.put( "createTime", hashGAV.getCreateTimeLong() );
                 bomObjectNode.put( "relativePopularity", 0F );
                 bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
+                claimedHashes.add( hash );
             }
-            hashes.add( hash );
             gavs.add( bomJsonNode.get( "groupId" ).asText() + ':' + bomJsonNode.get( "artifactId" ).asText() + ':'
                 + bomJsonNode.get( "version" ).asText() );
         }
@@ -378,7 +378,7 @@ public final class Report
         // finally save the changes
         cache( getCacheFile( reportFile, "security.json" ), JsonUtils.generate( securityJsonData ) );
 
-        // Remove all entries from partialmatched.json that don't have a correspondent record in bom.json
+        // Remove all entries from partialmatched.json that were claimed as exact match
 
         // must start from un-edited data
         ReportEntry partialmatchedReportEntry = extractEntry( reportFile, "partialmatched.json" );
@@ -387,7 +387,8 @@ public final class Report
         while ( iter.hasNext() )
         {
             JsonNode jsonNode = iter.next();
-            if ( !hashes.contains( jsonNode.get( "hash" ) ) )
+            String hash = jsonNode.path( "hash" ).asText();
+            if ( claimedHashes.contains( hash ) )
             {
                 iter.remove();
             }

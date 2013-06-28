@@ -156,6 +156,8 @@ public class ReportResourceTest
         assertFalse( StringUtils.isEmpty( partialmatched ) );
         assertFalse( partialmatched.contains( hash ) );
         assertFalse( partialmatched.contains( "commons-httpclient" ) );
+        assertTrue( partialmatched.contains( "c32df577f739535648b0" ) );
+        assertTrue( partialmatched.contains( "org.slf4j.api_1.6.1.v20100831-0715.jar" ) );
 
         hashGAVDAO.delete( hashGAV );
     }

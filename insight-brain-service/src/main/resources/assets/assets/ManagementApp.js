@@ -107,7 +107,7 @@
 		});
 	}]);
 
-	managementModule.controller('ManagementController', function($scope, $state) {
+	managementModule.controller('ManagementController', function($scope, $state, commonCodeFactory) {
 		$scope.$state = $state;
 
 		$scope.managementPanes = [
@@ -146,6 +146,12 @@
 				$state.transitionTo('management.application');
 			}
 		});
+
+        $scope.syncAlerts = [];
+        var error = commonCodeFactory.getEncodedQueryString('errorMessage');
+        if (error) {
+            $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
+        }
 	});
 }());
 

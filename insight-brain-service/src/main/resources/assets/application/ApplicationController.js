@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	var applicationModule = angular.module('ApplicationModule', ['ui.compat', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels'], ['$stateProvider', function ($stateProvider) {
+	var applicationModule = angular.module('ApplicationModule', ['ui.compat', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon'], ['$stateProvider', function ($stateProvider) {
 		$stateProvider.state('management.application', {
 			parent : 'management',
 			url : '/application',
@@ -115,9 +115,6 @@
 		};
 		
 		$scope.alerts = [];
-		$scope.closeAlert = function(index) {
-			$scope.alerts.splice(index, 1);
-		};
 		
 		$scope.generateIcon = function () {
 			var name = $scope.selectedApplication.name,
@@ -265,6 +262,7 @@
 			if (!application.id) {
 				hudson.post(CLMLocations.getApplicationsUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
+                        $scope.selectedApplication.id = data.id;
 						saveIcon();
 					});
 				}).error(function (data) { 

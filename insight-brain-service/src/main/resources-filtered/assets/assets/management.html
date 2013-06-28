@@ -1,3 +1,4 @@
+<div class='marginless-alert' clm-alerts='syncAlerts'></div>
 <div class="navigation">
 	<ul class="nav nav-list">
 		<li ng-repeat='managementPane in managementPanes' ng-class="{'active': $state.current.name.indexOf(managementPane.state.replace('/', '.')) !== -1, 'disabled': !managementPane.isEnabled}">

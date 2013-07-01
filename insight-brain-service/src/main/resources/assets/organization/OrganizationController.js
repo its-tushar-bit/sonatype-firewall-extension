@@ -5,6 +5,24 @@
  *          trademark of Sonatype, Inc.
  */
 /* global angular, $, clmBuildTimestamp, window */
+(function () {
+	'use strict';
+
+	var organizationModule = angular.module('OrganizationModule', ['ui.compat', 'ManagementModule', 'Organization'], ['$stateProvider', function ($stateProvider) {
+		$stateProvider.state('management.organization', {
+			parent : 'management',
+			url : '/organization',
+			controller : 'OrganizationController',
+			templateUrl : '../organization-assets/components/organization-navigator.html'
+		}).state('management.organization.view', {
+			parent : 'management.organization',
+			url : '/{organizationId}',
+			controller : 'OrganizationEditorController',
+			templateUrl : '../organization-assets/components/organization-editor.html'
+		});
+	}]);
+}());
+
 (function() {
     'use strict';
 

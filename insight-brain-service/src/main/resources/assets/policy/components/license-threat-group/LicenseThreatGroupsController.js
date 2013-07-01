@@ -17,7 +17,7 @@
 			if (isNew) {
 				currentStoreAppId = ApplicationId.encoded();
 				licenseGroupStore = CLMResource.getStore(angular.extend({ url : CLMAppLocations.getLicenseGroupsUrl() }, licenseGroupStoreTemplate));
-			};
+			}
 			return isNew;
 		}
 		

@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
@@ -141,20 +142,7 @@ public class ApplicationResourceTest
 
         // Test Get Icon (from added application)
         iconResponse = RestAccess.get( getGetIconServiceUrl( applicationPublicId ) );
-        assertResponseStatus( 200, iconResponse );
-        InputStream iconStream = iconResponse.getResponseBodyAsStream();
-        BufferedImage icon = null;
-        try
-        {
-            icon = ImageIO.read( iconStream );
-        }
-        finally
-        {
-            iconStream.close();
-        }
-        Assert.assertNotNull( icon );
-        Assert.assertEquals( 420, icon.getHeight() );
-        Assert.assertEquals( 420, icon.getWidth() );
+        testValidIconResponse( iconResponse );
 
         // Test application update
         application.setName( applicationName + "updated" );
@@ -204,10 +192,64 @@ public class ApplicationResourceTest
                              iconResponse.getHeader( "Location" ) );
     }
 
+    @Test
+    public void testSyncIcon()
+        throws IOException, ExecutionException, InterruptedException
+    {
+        final String applicationPublicId = "testID";
+        Application application = createApplication( applicationPublicId );
+
+        byte[] defaultIconByteArray = loadDefaultIcon();
+
+        // Test Sync Update Application Icon
+        AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost( getSetSyncIconServiceUrl() );
+        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        builder.addBodyPart(
+            new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", defaultIconByteArray ) ) );
+        Future<Response> futureResponse = builder.execute();
+        Response response = futureResponse.get();
+        assertResponseStatus( 303, response );
+        Assert.assertEquals( getRestBaseUrl() + "assets/index.html", response.getHeader( "Location" ) );
+
+        // Test Sync Fail Update Application Icon
+        builder = RestAccess.getClient().preparePost( getSetSyncIconServiceUrl() );
+        builder.addBodyPart( new StringPart( "applicationId", application.getId() ) );
+        builder.addBodyPart( new StringPart( "hasRobotSource", "false" ) );
+        builder.addBodyPart( new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png",
+                                                                            IconUtils.loadInvalidIcon() ) ) );
+        futureResponse = builder.execute();
+        response = futureResponse.get();
+        assertResponseStatus( 303, response );
+        Assert.assertEquals(
+            getRestBaseUrl() + "assets/index.html?errorMessage=defaulticon_application.png+is+not+a+valid+image.",
+            response.getHeader( "Location" ) );
+    }
+
     private byte[] loadDefaultIcon()
         throws IOException
     {
         return IconUtils.loadIcon( "defaulticon_application.png" );
+    }
+
+    private void testValidIconResponse( Response iconResponse )
+        throws Exception
+    {
+        assertResponseStatus( 200, iconResponse );
+        Assert.assertNotNull( iconResponse.getResponseBodyAsBytes() );
+        InputStream iconStream = iconResponse.getResponseBodyAsStream();
+        BufferedImage icon = null;
+        try
+        {
+            icon = ImageIO.read( iconStream );
+        }
+        finally
+        {
+            iconStream.close();
+        }
+        Assert.assertNotNull( icon );
+        Assert.assertEquals( 420, icon.getHeight() );
+        Assert.assertEquals( 420, icon.getWidth() );
     }
     
     @Test
@@ -510,8 +552,7 @@ public class ApplicationResourceTest
         String saasUrl = "rest/application/icon/generate/" + hashcode;
         setSaasResponseForURI( saasUrl, 200, loadDefaultIcon() );
         Response response = RestAccess.get( url );
-        assertResponseStatus( 200, response );
-        Assert.assertNotNull( response.getResponseBodyAsBytes() );
+        testValidIconResponse( response );
     }
 
     private void createDirectory( File dir )
@@ -543,6 +584,11 @@ public class ApplicationResourceTest
     private String getSetIconServiceUrl()
     {
         return getServiceURL() + "/" + ApplicationResource.ICON_PATH;
+    }
+
+    private String getSetSyncIconServiceUrl()
+    {
+        return getServiceURL() + "/" + ApplicationResource.ICON_PATH_SYNC;
     }
 
     private String getGenerateIconServiceUrl( String hashcode )

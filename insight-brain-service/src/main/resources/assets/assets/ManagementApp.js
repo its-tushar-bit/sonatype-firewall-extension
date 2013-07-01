@@ -120,16 +120,6 @@
 				name: 'Organizations',
 				state: 'management/organization',
 				isEnabled: true
-			},
-			{
-				name: 'Security',
-				state: 'management/security',
-				isEnabled: true
-			},
-			{
-				name: 'Metadata',
-				state: 'management/metadata',
-				isEnabled: false
 			}
 		];
 		

@@ -63,10 +63,10 @@
         });
     } ]);
 
-    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools) {
+    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations) {
         $scope.$state = $state;
         $scope.submitActive = false;
-        $scope.addOrganizationSync = CLMLocations.addOrganizationIconSync();
+        $scope.addOrganizationSync = clmAppLocations.addIconSync();
         $scope.hasRobotSource = false;
         $scope.alerts = [];
 
@@ -190,7 +190,7 @@
                 }
 
                 hudson.ajaxPost({
-                    url : CLMLocations.addOrganizationIcon(),
+                    url : clmAppLocations.addIcon(),
                     data : formData,
                     success : function(data, status, jqXHR) {
                         $scope.$apply(function() {
@@ -227,4 +227,14 @@
             }
         });
     } ]);
+
+
+	organizationModule.service('OrganizationId', function ($state) {
+		return {
+			encoded : function () {
+				var organizationId = $state.params.organizationId;
+				return organizationId ? encodeURI(organizationId) : null;
+			}
+		};
+	});
 }());

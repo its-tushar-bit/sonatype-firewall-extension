@@ -8,14 +8,15 @@ describe('ApplicationController', function () {
 	}
 
 	beforeEach(module('ApplicationModule'));
-	beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
+	beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
-		clmLocations = CLMLocations;
+
+		$state.current.name = 'management.application';
 
 		var applicationsData = ApplicationMockData.getApplicationsData();
 		mockApplication = applicationsData[0];
-		httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(applicationsData);
+		httpBackend.whenGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
 		scope = $rootScope.$new();
 		state = $state;
@@ -49,16 +50,17 @@ describe('ApplicationEditorController', function () {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
 	}
 
-	beforeEach(module('ApplicationModule', 'Organization'));
+	beforeEach(module('ApplicationModule', 'OrganizationModule'));
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
-		clmLocations = CLMLocations;
+
+		$state.current.name = 'management.application';
 
 		var applicationsData = ApplicationMockData.getApplicationsData();
 		mockApplication = applicationsData[0];
-		httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(applicationsData);
-		
+		httpBackend.whenGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+
 		var organizationData = OrganizationMockData.getGETResponse();
 		mockOrganization = organizationData[0];
         httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
@@ -135,7 +137,7 @@ describe('ApplicationEditorController', function () {
 		expect(angular.equals(scope.selectedApplication, originalMockApplication)).toBeTruthy();
 	}));
 	
-	it('saves an application', inject(function($httpBackend, CLMLocations) {
+	it('saves an application', inject(function($httpBackend, CLMAppLocations) {
 		scope.applicationEditor = {};
 		scope.applicationEditor.$valid = true;
 		
@@ -143,7 +145,7 @@ describe('ApplicationEditorController', function () {
 		scope.selectedApplication.name = "newName";
 		scope.generateIcon();
 		
-		$httpBackend.expectPUT(CLMLocations.getApplicationsUrl()).respond(mockApplication);
+		$httpBackend.expectPUT(CLMAppLocations.getEntitiesUrl()).respond(mockApplication);
 		
 		var hasFormData = window.FormData;
 		window.FormData = false;
@@ -155,10 +157,10 @@ describe('ApplicationEditorController', function () {
 		window.FormData = hasFormData;
 	}));
 
-	it('deletes an application', function () {
-		httpBackend.expectDELETE(clmLocations.getApplicationUrl(mockApplication.publicId)).respond({});
+	it('deletes an application', inject(function(CLMAppLocations) {
+		httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
 
 		scope.confirmDeleteApplication(mockApplication);
 		scope.deleteApplication();
-	});
+	}));
 });

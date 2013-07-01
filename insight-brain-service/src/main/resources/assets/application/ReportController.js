@@ -9,8 +9,8 @@
 
     var reportModule = angular.module('Report', ['CLMLocation']);
 
-    reportModule.controller('ReportController', ['$scope', '$routeParams', '$http', 'CLMLocations', function ($scope, $routeParams, $http, clmLocations) {
-        $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
+    reportModule.controller('ReportController', ['$scope', '$routeParams', '$http', 'CLMLocations', 'CLMAppLocations', function ($scope, $routeParams, $http, clmLocations, clmAppLocations) {
+        $http.get(clmAppLocations.getEntityUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
             var stageId = decodeURIComponent($routeParams.encodedStageId);

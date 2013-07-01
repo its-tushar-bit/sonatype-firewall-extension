@@ -30,7 +30,7 @@
 		return this.baseUrl;
 	}
 
-	angular.module('CLMLocation', []).factory('CLMLocations', [function () {
+	angular.module('CLMLocation', ['AngularCommon', 'ApplicationModule', 'OrganizationModule']).factory('CLMLocations', [function () {
 		return {
 			getBaseUrl : getBaseUrl,
 
@@ -54,18 +54,10 @@
 				return this.getBaseUrl() + '/rest/application';
 			},
 
-			addIcon: function () {
-				return this.getBaseUrl() + '/rest/application/icon';
+			getOrganizationsUrl: function() {
+				return this.getBaseUrl() + '/rest/organization';
 			},
 
-			addIconSync: function () {
-				return this.getBaseUrl() + '/rest/application/icon/sync';
-			},
-
-			getApplicationUrl: function (applicationId) {
-				return this.getBaseUrl() + '/rest/application/' + encodeURIComponent(applicationId);
-			},
-			
 			getLicenseSummaryUrl: function() {
 				return this.getBaseUrl() + '/rest/product/license?ts=' + new Date().getTime();
 			},
@@ -74,62 +66,73 @@
 				// TODO $.browser is deprecated
 				return this.getBaseUrl() + '/rest/product/license'+ ($.browser.msie ? '?isIE=true' : '');
 			},
-			
-			getOrganizationsUrl: function() {
-			    return this.getBaseUrl() + '/rest/organization';
-			},
-			
-			addOrganizationIcon: function () {
-                return this.getBaseUrl() + '/rest/organization/icon';
-            },
-
-            addOrganizationIconSync: function () {
-                return this.getBaseUrl() + '/rest/organization/icon/sync';
-            },
 
 			evaluatePolicyUrl: function(applicationId, scanId) {
 				return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
 			},
 
 			getProprietaryConfig : function () {
-			    return this.getBaseUrl() + '/rest/config/proprietary';
+				return this.getBaseUrl() + '/rest/config/proprietary';
 			}
 		};
-	}]).factory('CLMAppLocations', ['ApplicationId', function (appId) {
-		var getEncodedApplicationId = (typeof appId.encoded === 'function') ? appId.encoded : function () { return appId.encoded; };
+	}]).factory('CLMAppLocations', ['ApplicationId', 'OrganizationId', '$state', function (appId, orgId, $state) {
+		var getServicePath = function() {
+			return $state.current.name.indexOf('application') !== -1 ? 'application' : 'organization';
+		};
+
+		var getId = function() {
+			return $state.current.name.indexOf('application') !== -1 ? appId.encoded() : orgId.encoded();
+		};
+
+		var getServicePathWithId = function() {
+			return $state.current.name.indexOf('application') !== -1 ? 'application/' + appId.encoded() : 'organization/' + orgId.encoded();
+		};
+
 		return {
 			getBaseUrl: getBaseUrl,
 
 			getLabelsUrl: function () {
-				return this.getBaseUrl() + '/rest/label/application/' + getEncodedApplicationId();
+				return this.getBaseUrl() + '/rest/label/' + getServicePathWithId();
 			},
 
 			getDeleteLabelsUrl: function (label) {
-				return this.getBaseUrl() + '/rest/label/application/' + getEncodedApplicationId() + '/' + encodeURIComponent(label.id);
+				return this.getBaseUrl() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
 			},
 
 			getLicenseGroupsUrl: function () {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getEncodedApplicationId();
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/' + getServicePathWithId();
 			},
 
 			getDeleteLicenseGroupUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/application/' + getEncodedApplicationId() + '/' + encodeURIComponent(group.id);
+				return this.getBaseUrl() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id);
 			},
 
 			getLicenseGroupLicensesUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/application/' + getEncodedApplicationId() + '/' + group.id;
+				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
 			},
 
 			getConditionValueTypeUrl: function () {
-				return this.getBaseUrl() + '/rest/conditionValueType/' + getEncodedApplicationId();
+				return this.getBaseUrl() + '/rest/conditionValueType/' + getId();
 			},
 
 			getPolicyUrl: function () {
 				return this.getBaseUrl() + '/rest/policy/' + getEncodedApplicationId();
 			},
-			
-			getApplicationUrl: function () {
-				return this.getBaseUrl() + '/rest/application/' + getEncodedApplicationId();
+
+			getEntitiesUrl: function() {
+				return this.getBaseUrl() + '/rest/' + getServicePath();
+			},
+
+			getEntityUrl: function (entityId) {
+				return this.getBaseUrl() + '/rest/' + getServicePath() + '/' + encodeURIComponent(entityId);
+			},
+
+			addIcon: function () {
+				return this.getBaseUrl() + '/rest/' + getServicePath() + '/icon';
+			},
+
+			addIconSync: function () {
+				return this.getBaseUrl() + '/rest/' + getServicePath() + '/icon/sync';
 			}
 		};
 	}]);

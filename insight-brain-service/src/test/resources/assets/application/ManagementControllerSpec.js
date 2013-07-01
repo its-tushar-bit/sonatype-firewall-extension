@@ -1,7 +1,7 @@
 var clmTimestamp = '';
 
 describe('ApplicationManagementController', function () {
-	var scope, httpBackend, rootScope, clmLocations, compile, mockApplication, sniffer;
+	var scope, httpBackend, rootScope, clmAppLocations, compile, mockApplication, sniffer;
 
 	function toRegExp(getUrl) {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
@@ -15,13 +15,13 @@ describe('ApplicationManagementController', function () {
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, CLMAppLocations, regexFactory, $compile, $sniffer) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
-		clmLocations = CLMLocations;
+		clmAppLocations = CLMAppLocations;
 		compile = $compile;
 		sniffer = $sniffer;
 
 		var applicationsData = ApplicationMockData.getApplicationsData();
 		mockApplication = applicationsData[0];
-		httpBackend.whenGET(toRegExp(CLMLocations.getApplicationsUrl())).respond(applicationsData);
+		httpBackend.whenGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 		httpBackend.whenGET(toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
 
 		scope = $rootScope.$new();
@@ -76,7 +76,7 @@ describe('ApplicationManagementController', function () {
 
 		scope.selectedApplication = { id: null, publicId: 'publicID', name: 'name' };
 
-		httpBackend.expectPOST(clmLocations.getApplicationsUrl(), {
+		httpBackend.expectPOST(clmAppLocations.getEntitiesUrl(), {
 			id: null,
 			publicId: "publicID",
 			name: "name"
@@ -107,7 +107,7 @@ describe('ApplicationManagementController', function () {
 	});
 
 	it('deletes an application', function () {
-		httpBackend.expectDELETE(clmLocations.getApplicationUrl(mockApplication.publicId)).respond({});
+		httpBackend.expectDELETE(clmAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
 
 		scope.confirmDeleteApplication(mockApplication);
 		scope.deleteApplication();

@@ -81,7 +81,7 @@
 		});
 	});
 
-	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMLocations, $http, hudson) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, $http, hudson) {
 		function formReset() {
 			var applicationPublicId = $scope.selectedApplication.publicId;
 			$state.transitionTo('management.application').then(function() {
@@ -94,7 +94,7 @@
 		$scope.$state = $state;
 
 		$scope.submitActive = false;
-		$scope.addApplicationSync = CLMLocations.addIconSync();
+		$scope.addApplicationSync = CLMAppLocations.addIconSync();
 		$scope.hasRobotSource = false;
 		
 		OrganizationStore.get().then(function(results) {
@@ -219,7 +219,7 @@
 		
 		$scope.deleteApplication = function () {
 			$scope.deletedEnabled = false;
-			$http['delete'](CLMLocations.getApplicationUrl($scope.selectedApplication.publicId)).success(function () {
+			$http['delete'](CLMAppLocations.getEntityUrl($scope.selectedApplication.publicId)).success(function () {
 				angular.forEach($scope.applications, function (applicationCandidate, key) {
 					if (applicationCandidate.id === $scope.selectedApplication.id) {
 						$scope.applications.splice(key, 1);
@@ -266,7 +266,7 @@
 			};
 
 			if (!application.id) {
-				hudson.post(CLMLocations.getApplicationsUrl(), application).success(function (data) {
+				hudson.post(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
                         $scope.selectedApplication.id = data.id;
 						saveIcon();
@@ -276,7 +276,7 @@
 					$scope.alerts.push({ type: 'error', msg: data }); 
 				});
 			} else {
-				$http.put(CLMLocations.getApplicationsUrl(), application).success(function (data) {
+				$http.put(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
 						saveIcon();
 					});
@@ -314,7 +314,7 @@
 				}
 
 				hudson.ajaxPost({
-					url: CLMLocations.addIcon(),
+					url: CLMAppLocations.addIcon(),
 					data: formData,
 					success: function (data, status, jqXHR) {
 						$scope.$apply(function () {

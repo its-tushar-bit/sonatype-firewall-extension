@@ -9,7 +9,7 @@
 
 	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', 'policyEvaluator', function ($scope, $http, hudson, clmLocations, commonCodeFactory, policyEvaluator) {
+	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, clmAppLocations, commonCodeFactory) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 
@@ -24,7 +24,7 @@
 			$scope.stages = data;
 		}).error(function () { $scope.$broadcast('showServerError', arguments); });
 
-		$http.get(clmLocations.getApplicationsUrl(), {
+		$http.get(clmAppLocations.getEntitiesUrl(), {
 			params: { timestamp: new Date().getTime() }
 		}).success(function (data) {
 			$scope.applications = data;
@@ -76,7 +76,7 @@
 
 		$scope.deleteApplication = function () {
 			$scope.deletedEnabled = false;
-			$http['delete'](clmLocations.getApplicationUrl($scope.selectedApplication.publicId)).success(function () {
+			$http['delete'](clmAppLocations.getEntityUrl($scope.selectedApplication.publicId)).success(function () {
 				angular.forEach($scope.applications, function (applicationCandidate, key) {
 					if (applicationCandidate.id === $scope.selectedApplication.id) {
 						$scope.applications.splice(key, 1);
@@ -119,9 +119,9 @@
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
 
-	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
+	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMAppLocations', function ($scope, $http, hudson, clmAppLocations) {
 		$scope.submitActive = false;
-		$scope.addApplicationSync = clmLocations.addIconSync();
+		$scope.addApplicationSync = clmAppLocations.addIconSync();
 		if ($scope.selectedApplication.publicId) {
 			$scope.userIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
 		} else {
@@ -214,13 +214,13 @@
 			};
 
 			if (!application.id) {
-				hudson.post(clmLocations.getApplicationsUrl(), application).success(function (data) {
+				hudson.post(clmAppLocations.getEntitiesUrl(), application).success(function (data) {
 					$scope.applications.push(data);
 					$scope.selectedApplication = data;
 					saveIcon();
 				}).error(function () { $scope.$broadcast('serverAlert', arguments); });
 			} else {
-				$http.put(clmLocations.getApplicationsUrl(), application).success(function (data) {
+				$http.put(clmAppLocations.getEntitiesUrl(), application).success(function (data) {
 					angular.forEach($scope.applications, function (application, key) {
 						if (data.id === application.id) {
 							$scope.applications[key] = data;
@@ -258,7 +258,7 @@
 				}
 
 				hudson.ajaxPost({
-					url: clmLocations.addIcon(),
+					url: clmAppLocations.addIcon(),
 					data: formData,
 					success: function (data, status, jqXHR) {
 						// We need to regrab the icon here because it doesn't exist when the browser first requests

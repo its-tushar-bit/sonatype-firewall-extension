@@ -222,7 +222,7 @@ public class PolicyDAO
         return JsonUtils.fileStore( getPolicyDir( ownerId ) );
     }
 
-    File getPolicyDir( final String ownerId )
+    public File getPolicyDir( final String ownerId )
     {
         return new File( workDir, "policy/" + ownerId );
     }

@@ -28,6 +28,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -47,12 +48,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.ReportDownloader.ReportDownloadReponse;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -68,7 +73,7 @@ public class ReportResource
     private static final ConcurrentMap<String, Lock> LOCK_TABLE =
         CacheBuilder.newBuilder().weakValues().<String, Lock> build().asMap();
 
-    private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
+    private static final long YEAR = (long) 365 * 24 * 60 * 60 * 1000;
 
     static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS =
         CacheBuilder.newBuilder().maximumSize( 8192 ).<String, Integer> build().asMap();
@@ -83,10 +88,13 @@ public class ReportResource
     
     private final ReportDownloader reportDownloader;
 
+    private final PolicyEvaluationUtils policyEvaluationUtils;
+
     @Inject
-    public ReportResource( ReportDownloader reportDownloader )
+    public ReportResource( final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils )
     {
         this.reportDownloader = reportDownloader;
+        this.policyEvaluationUtils = policyEvaluationUtils;
     }
 
     @GET
@@ -112,7 +120,7 @@ public class ReportResource
         }
         if ( reportEntry != null )
         {
-            final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+            final long ifModifiedSince = httpRequest.getDateHeader( HttpHeaders.IF_MODIFIED_SINCE );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
             {
                 return Response.status( 304 ).build();
@@ -124,9 +132,36 @@ public class ReportResource
             {
                 response.expires( new Date( System.currentTimeMillis() + YEAR ) );
             }
+            else
+            {
+                // JSON files should always check with the server to ensure they are updated. A 304 will be returned if
+                // they don't need updating
+                response.expires( new Date() );
+            }
             return response.build();
         }
         return Response.status( Status.NOT_FOUND ).build();
+    }
+
+    @GET
+    @Path( "reevaluatePolicy" )
+    public Response reevaluatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, 
+                                      @PathParam( "scanId" ) final String scanId )
+        throws IOException
+    {
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        String appId = application.getId();
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
+        PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
+
+        if ( policyEvaluation == null )
+        {
+            throw new BadRequestException( "Policy evaluation for scan " + scanId + " does not exist on the server" );
+        }
+
+        policyEvaluationUtils.evaluate( applicationPublicId, scanId, policyEvaluation.getStage() );
+
+        return Response.ok().build();
     }
 
     @GET
@@ -173,7 +208,7 @@ public class ReportResource
             final File reportFile =
                 fetchReport( reportDownloader, work, appId, scanId, false );
             reportEntry = Report.getEntry( reportFile, "licenses.json" );
-            final long ifModifiedSince = httpRequest.getDateHeader( "If-Modified-Since" );
+            final long ifModifiedSince = httpRequest.getDateHeader( HttpHeaders.IF_MODIFIED_SINCE );
             if ( ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000 )
             {
                 return Response.status( 304 ).build();
@@ -356,6 +391,11 @@ public class ReportResource
     public static void flushReportChanges( final String appId, final String scanId )
     {
         MODIFICATION_COUNTS.remove( appId + '-' + scanId );
+    }
+
+    public static void flushReportChanges()
+    {
+        MODIFICATION_COUNTS.clear();
     }
 
     private static byte[] augmentArtifactDetails( final byte[] detailData, final byte[] licenseData )

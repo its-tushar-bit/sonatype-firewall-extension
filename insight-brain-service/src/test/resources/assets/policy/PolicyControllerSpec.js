@@ -21,9 +21,9 @@ describe('PolicyController tests', function() {
     beforeEach(module('ApplicationId', 'Policy'));
     // setup our http backend to return what we want
     beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
-
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+        $httpBackend.expectGET(toRegExp(CLMAppLocations.getApplicationUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
 
         // inject the controller
@@ -92,4 +92,34 @@ describe('PolicyController tests', function() {
         expect(scope.state.policyList.length).toEqual(4);
         expect(scope.state.policyList[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
     }));
+    
+	
+	it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
+		var policyResponse = PolicyMockData.getPolicyEvaluationData();
+		var mockApplication = {
+				publicId: 'publicId',
+				policyEvaluations: {
+					build: {
+						scanId: 'scanId',
+						stage: {
+	                		stageTypeId: 'build'
+	                	}
+					}
+				},
+				policyEvaluationsResults: {
+					build: {}
+				}
+		};
+		
+		$httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
+		
+		scope.reEvaluatePolicy(mockApplication, mockApplication.policyEvaluations.build);
+		
+		$httpBackend.flush();
+		
+		expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
+		expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
+		expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
+		expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
+	}));
 });

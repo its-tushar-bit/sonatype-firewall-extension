@@ -49,6 +49,12 @@ PolicyMockData = {
           "valueTypeId" : "AgeInDaysValueType",
           "valueHint" : "Enter term"
         }, {
+          "name" : "Identification Source",
+          "id" : "IdentificationSource",
+          "supportedOperators" : ["is", "is not"],
+          "valueTypeId" : "IdentificationSourceValueType",
+          "valueHint" : null
+        }, {
           "name" : "Match State",
           "id" : "MatchState",
           "supportedOperators" : ["is", "is not"],
@@ -345,7 +351,7 @@ PolicyMockData = {
       "actions" : {},
       "threatLevel" : 5,
       "name" : "createPolicyTest"
-    }
+    };
   },
   getEditTestPolicy : function() {
     return {
@@ -421,5 +427,14 @@ PolicyMockData = {
             }]
       }
     };
+  },
+  getPolicyEvaluationData : function() {
+  	return {
+	    	"alerts": [ ],
+	    	"affectedComponentCount": 5,
+	    	"criticalComponentCount": 5,
+	    	"severeComponentCount": 0,
+	    	"moderateComponentCount": 0
+  	}
   }
 };

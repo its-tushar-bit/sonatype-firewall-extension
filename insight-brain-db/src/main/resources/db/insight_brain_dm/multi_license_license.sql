@@ -49,7 +49,7 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CC0-1.
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CDDL-1.0','CDDL-1.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CDDL-1.1','CDDL-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CECILL-1.0','CECILL-1.0');
-INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CECILL-1.1English','CECILL-1.1English');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CECILL-1.1','CECILL-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CECILL-2.0','CECILL-2.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CECILL-B','CECILL-B');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CECILL-C','CECILL-C');
@@ -123,6 +123,8 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Naumen
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NCSA','NCSA');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NGPL','NGPL');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Nokia','Nokia');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NPL-1.0','NPL-1.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NPL-1.1','NPL-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NPOSL-3.0','NPOSL-3.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NTP','NTP');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OCLC-2.0','OCLC-2.0');
@@ -133,6 +135,7 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OLDAP-
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OpenSSL','OpenSSL');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OSL-1.0','OSL-1.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OSL-2.0','OSL-2.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OSL-2.1','OSL-2.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OSL-3.0','OSL-3.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('PDDL-1.0','PDDL-1.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('PostgreSQL','PostgreSQL');

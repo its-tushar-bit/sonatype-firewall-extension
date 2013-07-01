@@ -51,6 +51,9 @@ div,p,a,li,td {
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_yellow.gif); background-size: cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
 												<td width="60" height="30"
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_dkblue.gif); background-size: cover; background-color: #0047B2; background-repeat: no-repeat;"><span
+													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatDarkBlueCount}</span></td>
+												<td width="60" height="30"
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_blue.gif); background-size: cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
 											</tr>

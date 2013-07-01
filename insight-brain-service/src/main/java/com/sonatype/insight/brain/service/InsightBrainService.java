@@ -107,7 +107,7 @@ public class InsightBrainService
         env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
 
         log.info( "Server base URL: {}", config.getBaseUrl() );
-        log.debug( "Saas address: {}", config.getSaasAddress() );
+        log.debug( "SaaS address: {}", config.getSaasAddress() );
         log.debug( "Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless() );
     }
 

@@ -8,9 +8,9 @@
 (function () {
 	'use strict';
 
-	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor']);
+	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMLocation', 'AngularCommon']);
 
-	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore) {
+	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'policyEvaluator', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, policyEvaluator) {
 
 		function capitalize(text) {
 			if (text && text.length > 1) {
@@ -18,6 +18,27 @@
 			}
 			return text;
 		}
+		
+		// Needs to be moved to an application store. This work is already done in the post insight-brain-1.4.x release and therefore not redone here
+		$http.get(clmAppLocations.getApplicationUrl(), {
+			params: { timestamp: new Date().getTime() }
+		}).success(function (data) {
+			$scope.application = data;
+		}).error(function (error) { 
+			handleHttpError('Policy Initialization Error', error.data, error.status);
+		});
+		
+		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
+			if (!$scope.reEvaluatingPolicy) {
+				$scope.reEvaluatingPolicy = true;
+				policyEvaluator.evaluate(application, policyEvaluation).then(function(data) {
+					$scope.reEvaluatingPolicy = false;
+				}, function(error) {
+					$scope.reEvaluatingPolicy = false;
+					handleHttpError('Policy Initialization Error', error.data, error.status);
+				});
+			}
+		};
 
 		function handleHttpError(headerText, bodyText, status) {
 			$scope.httpError = {
@@ -124,6 +145,16 @@
 				}, angular.noop);
 		};
 
+		$rootScope.$on('tabChange', function (event, args) {
+			if (args[0].indexOf('policy') >= 0 && $scope.state.policyChanged) {
+				event.preventDefault();
+				event.stopPropagation();
+				viewConfirmation("Unsaved Changes", "Navigating away will lose changes to the current policy.  Do you want to do this?", 'Yes', 'No', null, function () {
+					args[1]();
+				});
+			}
+		});
+
 		$scope.doLoad = function () {
 			$scope.error = null;
 			$q.all([policyStore.get().get(), actionStore.get()]).then(function (results) {
@@ -136,7 +167,9 @@
 				$scope.error = angular.isArray(errors) ? errors[0] : errors;
 			});
 		};
-		
+
 		$scope.doLoad();
+		
+		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
 }());

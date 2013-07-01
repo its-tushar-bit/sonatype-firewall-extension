@@ -53,9 +53,14 @@ public class InsightWork
         return new File( insightConfig.getSonatypeWork(), "audit/" + appId );
     }
 
+    public File getReportDir( final String appId )
+    {
+        return new File( insightConfig.getSonatypeWork(), "report/" + appId );
+    }
+
     public File getReportDir( final String appId, final String scanId )
     {
-        return new File( insightConfig.getSonatypeWork(), "report/" + appId + '/' + scanId );
+        return new File( getReportDir( appId ), scanId );
     }
 
     public File getReportFile( final String appId, final String scanId )
@@ -71,6 +76,11 @@ public class InsightWork
     public File getOrganizationIconDir()
     {
         return new File( insightConfig.getSonatypeWork(), "data/organization" );
+    }
+
+    public File getDataDir()
+    {
+        return new File( insightConfig.getSonatypeWork(), "data" );
     }
 
     public String findOwningAppId( final String scanId )
@@ -101,7 +111,7 @@ public class InsightWork
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( getAuditDir( appId ) );
         for ( StageType stageType : StageTypes.getAll() )
         {
-            PolicyEvaluation eval = evalLog.last( stageType.getId() );
+            PolicyEvaluation eval = evalLog.lastByStage( stageType.getId() );
             if ( eval != null )
             {
                 policyEvaluations.add( eval );

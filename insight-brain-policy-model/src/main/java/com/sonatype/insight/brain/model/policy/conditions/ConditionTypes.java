@@ -50,9 +50,11 @@ public class ConditionTypes
 
     public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
 
+    public static final IdentificationSourceConditionType IdentificationSourceConditionType =
+        new IdentificationSourceConditionType();
+
     static
     {
-        // Note: The order condition types are added here determines the order they are displayed in the UI
         add( LabelConditionType );
         add( LicenseConditionType );
         add( LicenseStatusConditionType );
@@ -66,6 +68,7 @@ public class ConditionTypes
         add( MatchStateConditionType );
         add( CoordinatesConditionType );
         add( ProprietaryConditionType );
+        add( IdentificationSourceConditionType );
     }
 
     public static Collection<ConditionType<?>> getAll()

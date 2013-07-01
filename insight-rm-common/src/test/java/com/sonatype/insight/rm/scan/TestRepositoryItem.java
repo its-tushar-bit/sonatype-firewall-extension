@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,12 +56,12 @@ public class TestRepositoryItem
         return super.getFile();
     }
 
-    public static void add( Scanner scanner, File basedir )
+    public static void add( ScanConfiguration config, File basedir )
     {
-        add( scanner, basedir, "", basedir.listFiles() );
+        add( config, basedir, "", sort( basedir.listFiles() ));
     }
 
-    private static void add( Scanner scanner, File basedir, String prefix, File[] children )
+    private static void add( ScanConfiguration config, File basedir, String prefix, File[] children )
     {
         if ( children != null )
         {
@@ -72,10 +73,10 @@ public class TestRepositoryItem
                     Coords coords = toCoords( path );
                     if ( coords != null )
                     {
-                        scanner.add( new TestRepositoryItem( basedir, path, coords ) );
+                        config.addItem( new TestRepositoryItem( basedir, path, coords ) );
                     }
                 }
-                add( scanner, basedir, prefix + child.getName() + '/', child.listFiles() );
+                add( config, basedir, prefix + child.getName() + '/', sort( child.listFiles() ) );
             }
         }
     }
@@ -90,6 +91,16 @@ public class TestRepositoryItem
                                                    m.group( 5 ), m.group( 6 ) );
         }
         return null;
+    }
+
+    private static File[] sort( final File[] files )
+    {
+        if(files == null)
+        {
+            return null;
+        }
+        Arrays.sort( files );
+        return files;
     }
 
 }

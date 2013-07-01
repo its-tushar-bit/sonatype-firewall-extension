@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.4.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>sonatype-clm-scanner</artifactId>
+
+  <properties>
+    <rt.jar>${java.home}/lib/rt.jar</rt.jar>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax.inject</groupId>
+      <artifactId>javax.inject</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.sisu</groupId>
+      <artifactId>sisu-inject-bean</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-model-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-archive</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sonatype.insight.scan</groupId>
+          <artifactId>insight-scanner-upload</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>1.30</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.sonatype.insight.scan.cli.PolicyEvaluatorCli</mainClass>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/sisu/javax.inject.Named</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/insight/configuration.properties</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/NOTICE</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/NOTICE.txt</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/LICENSE</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/LICENSE.txt</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>.gitignore</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/maven/*/*/**</exclude>
+                    <exclude>META-INF/maven/remote-resources.xml</exclude>
+                    <exclude>**/package.html</exclude>
+                    <exclude>**/asm*.dtd</exclude>
+                    <exclude>plugin.xml</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>xpp3:xpp3_min</artifact>
+                  <excludes>
+                    <!-- duplicated -->
+                    <exclude>org/xmlpull/v1/**</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>obfuscate</id>
+      <activation>
+        <property>
+          <name>!skip-obfuscate</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.wvengen</groupId>
+            <artifactId>proguard-maven-plugin</artifactId>
+            <version>2.0.6</version>
+            <executions>
+              <execution>
+                <id>obfuscate</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>proguard</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <injar>${project.build.finalName}.jar</injar>
+              <addMavenDescriptor>true</addMavenDescriptor>
+              <libs>
+                <lib>${rt.jar}</lib>
+              </libs>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>net.sf.proguard</groupId>
+                <artifactId>proguard-base</artifactId>
+                <version>4.9</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>seed-map</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.build.directory}/proguard_seeds.txt</file>
+                      <classifier>seeds</classifier>
+                      <type>txt</type>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/proguard_map.txt</file>
+                      <classifier>map</classifier>
+                      <type>txt</type>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>obfuscate-ci-osx</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <rt.jar>${java.home}/../Classes/classes.jar</rt.jar>
+      </properties>
+    </profile>
+  </profiles>
+</project>

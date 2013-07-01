@@ -91,8 +91,8 @@ describe('PolicyEditor', function() {
 		return $http;
 	} ]);
 
-	beforeEach(module('ApplicationId', 'PolicyEditor'));
-
+	beforeEach(module('ApplicationId', 'PolicyEditor', 'AngularCommon', 'CLMLocation'));
+	
 	afterEach(function() {
 		angular.element('#policyEditor').remove();
 	});

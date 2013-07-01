@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -23,6 +22,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.ReaderFactory;
+import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.PrettyPrintXMLWriter;
 import org.codehaus.plexus.util.xml.pull.MXParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
@@ -30,8 +30,11 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.scan.archive.PathSelector;
+import com.sonatype.insight.scan.archive.PathSelector.Selection;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
+import com.sonatype.insight.scan.file.Config;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.hash.SHA1;
@@ -42,73 +45,23 @@ import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.util.HashUtils;
 
-class DefaultScanner
-    implements Scanner
+public class ScanFactory
 {
 
-    private static final Logger log = LoggerFactory.getLogger( DefaultScanner.class );
+    private static final Logger log = LoggerFactory.getLogger( ScanFactory.class );
 
     private static final String CONFIGURATION_RESOURCE =
-        DefaultScanner.class.getName().replace( '.', '/' ).replace( DefaultScanner.class.getSimpleName(),
-                                                                    "configuration.properties" );
+        ScanFactory.class.getName().replace( '.', '/' ).replace( ScanFactory.class.getSimpleName(),
+                                                                 "configuration.properties" );
 
-    private final ScannerConfiguration config;
-
-    private final List<RepositoryItem> componentItems;
-
-    private final List<RepositoryItem> scanItems;
-
-    public DefaultScanner( final ScannerConfiguration config )
-    {
-        this.config = config;
-        componentItems = new ArrayList<RepositoryItem>( 128 );
-        scanItems = new ArrayList<RepositoryItem>();
-    }
-
-    @Override
-    public void add( final RepositoryItem item )
-    {
-        if ( item != null )
-        {
-            if ( isScanItem( item ) )
-            {
-                scanItems.add( item );
-            }
-            else if ( isComponentItem( item ) )
-            {
-                componentItems.add( item );
-            }
-        }
-    }
-
-    private boolean isScanItem( final RepositoryItem item )
-    {
-        final String path = item.getPath();
-        if ( path.endsWith( "-sonatype-clm-scan.xml.gz" ) )
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isComponentItem( final RepositoryItem item )
-    {
-        String path = item.getPath();
-        if ( path.endsWith( ".pom" ) || path.endsWith( ".asc" ) || path.endsWith( ".sha1" ) || path.endsWith( ".md5" ) )
-        {
-            return false;
-        }
-        if ( path.endsWith( "-sources.jar" ) || path.endsWith( "-javadoc.jar" ) || path.endsWith( "-tests.jar" ) )
-        {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public File scan()
+    public File forConfiguration( com.sonatype.insight.rm.scan.ScanConfiguration config )
         throws IOException
     {
+        if ( config == null )
+        {
+            throw new IllegalArgumentException( "scan configuration missing" );
+        }
+
         File scanFile = File.createTempFile( "sonatype-clm-scan-", ".xml.gz", config.getWorkDir() );
         try
         {
@@ -120,7 +73,7 @@ class DefaultScanner
                                                                                         32 * 1024 ) ), "UTF-8" );
             try
             {
-                scan( writer );
+                scan( config, writer );
             }
             finally
             {
@@ -140,11 +93,11 @@ class DefaultScanner
         return scanFile;
     }
 
-    private void scan( Writer writer )
+    private void scan( com.sonatype.insight.rm.scan.ScanConfiguration config, Writer writer )
         throws IOException
     {
         Scan scan = new Scan();
-        scan.setConfiguration( getConfiguration() );
+        scan.setConfiguration( getConfiguration( config ) );
         ScanSummary summary = scan.getSummary();
         summary.setStartTime();
 
@@ -154,6 +107,7 @@ class DefaultScanner
         Set<SHA1> componentHashes = new HashSet<SHA1>();
         Set<SHA1> scannedHashes = new HashSet<SHA1>();
 
+        List<RepositoryItem> componentItems = config.getComponentItems();
         for ( int i = componentItems.size() - 1; i >= 0; i-- )
         {
             RepositoryItem item = componentItems.get( i );
@@ -183,8 +137,10 @@ class DefaultScanner
                                                     config.getRepositoryFormat(), null ) );
         scanWriter.writeConfiguration( scan.getConfiguration() );
 
+        PathSelector proprietarySelector = new Config( scan.getConfiguration() ).hiddenResourceNamePathSelector;
+
         int archives = 0, files = 0, classFiles = 0;
-        for ( RepositoryItem item : scanItems )
+        for ( RepositoryItem item : config.getScanItems() )
         {
             if ( !moduleIds.contains( item.getCoordinates().getModuleId() ) )
             {
@@ -232,9 +188,21 @@ class DefaultScanner
                         else
                         {
                             xmlWriter.startElement( tag );
+
+                            boolean filterPath = "item".equals( tag );
                             for ( int i = 0, n = parser.getAttributeCount(); i < n; i++ )
                             {
-                                xmlWriter.addAttribute( parser.getAttributeName( i ), parser.getAttributeValue( i ) );
+                                String name = parser.getAttributeName( i );
+                                String value = parser.getAttributeValue( i );
+                                if ( filterPath && "path".equals( name ) && value != null
+                                    && proprietarySelector.isSelected( value ) != Selection.SELECTED )
+                                {
+                                    xmlWriter.addAttribute( "noPathReason", proprietarySelector.getName() );
+                                }
+                                else
+                                {
+                                    xmlWriter.addAttribute( name, value );
+                                }
                             }
 
                             if ( "dir".equals( tag ) )
@@ -351,10 +319,16 @@ class DefaultScanner
         return ( path != null && path.startsWith( "/" ) ) ? path.substring( 1 ) : path;
     }
 
-    private ScanConfiguration getConfiguration()
+    private ScanConfiguration getConfiguration( com.sonatype.insight.rm.scan.ScanConfiguration config )
         throws IOException
     {
-        final Properties properties = (Properties) config.getScanOptions().clone();
+        final Properties properties = new Properties();
+        if ( config.getProprietaryConfig() != null )
+        {
+            String proprietaryPackages = StringUtils.join( config.getProprietaryConfig().getPackages().iterator(), "," );
+            properties.setProperty( "proprietaryPackages", proprietaryPackages );
+        }
+        properties.putAll( config.getScanOptions() );
         final ScanPropertiesLoader loader =
             new ScanPropertiesLoader( LoggerFactory.getLogger( ScanPropertiesLoader.class ) );
         loader.resolveAliases( properties );

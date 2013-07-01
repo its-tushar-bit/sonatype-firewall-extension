@@ -63,4 +63,9 @@ public class ReleaseGraphKey
     {
         return ( o1 != null ) ? o1.equals( o2 ) : o2 == null;
     }
+
+    public String getGAV()
+    {
+        return groupId + ':' + artifactId + ':' + version;
+    }
 }

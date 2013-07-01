@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,17 +29,24 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -62,11 +70,20 @@ public class ApplicationResource
 
     private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    @Context
-    private InsightWork work;
+    private final InsightWork work;
+    
+    private final CLMLicenseManager licenseManager;
+
+    private final PolicyEvaluationUtils policyEvaluationUtils;
 
     @Inject
-    private CLMLicenseManager licenseManager;
+    public ApplicationResource( final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
+                                final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils )
+    {
+        this.work = work;
+        this.licenseManager = licenseManager;
+        this.policyEvaluationUtils = policyEvaluationUtils;
+    }
 
     @GET
     @Path( VALIDATE_PATH )
@@ -228,42 +245,54 @@ public class ApplicationResource
     public void deleteApplication( @PathParam( "applicationPublicId" ) final String applicationPublicId )
         throws IOException
     {
-        if ( isApplicationInUse( applicationPublicId ) )
-        {
-            throw new BadRequestException( "Cannot delete " + applicationPublicId + " because it has been used." );
-        }
+        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
 
-        Application application = applicationDAO.getByPublicId( applicationPublicId );
-        applicationDAO.deleteWithIcon( application, work.getApplicationIconDir() );
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
         policyDAO.deleteByOwnerId( application.getId() );
-    }
+        
+        FileUtils.deleteDirectory( work.getScanDir( application.getId() ) );
+        FileUtils.deleteDirectory( work.getAuditDir( application.getId() ) );
+        FileUtils.deleteDirectory( work.getReportDir( application.getId() ) );
 
-    private boolean isApplicationInUse( final String applicationPublicId )
-        throws IOException
-    {
-        ApplicationManagementSummary applicationManagementSummary = getApplication( applicationPublicId );
-        if ( !applicationManagementSummary.getPolicyEvaluations().isEmpty() )
-        {
-            return true;
-        }
-        if ( applicationManagementSummary.getScansCount() != 0 )
-        {
-            return true;
-        }
-        return false;
+        // delete application last, this way the operation can be retried later if anything goes wrong
+        applicationDAO.deleteWithIcon( application, work.getApplicationIconDir() );
     }
 
     private ApplicationManagementSummary getApplicationManagementSummary( final Application application )
         throws IOException
     {
-        log.debug( "Found application with public id {}", application.getPublicId() );
+        final String applicationPublicId = application.getPublicId();
+        final String applicationId = application.getId();
+        log.debug( "Found application with public id {}", applicationPublicId );
 
         final ApplicationManagementSummary applicationManagement =
             ApplicationManagementSummary.fromApplication( application );
-        applicationManagement.setPolicyEvaluations( work.getMostRecentPolicyEvaluations( application.getId() ) );
         File[] scans = work.getScanDir( applicationManagement.getId() ).listFiles();
         applicationManagement.setScansCount( scans != null ? scans.length : 0 );
+
+        final List<PolicyEvaluation> policyEvaluationList = work.getMostRecentPolicyEvaluations( application.getId() );
+        Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
+        Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
+        for ( PolicyEvaluation policyEvaluation : policyEvaluationList )
+        {
+            final Stage stage = policyEvaluation.getStage();
+            policyEvaluations.put( stage.getStageTypeId(), policyEvaluation );
+
+            List<PolicyAlert> alerts =
+                policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, applicationId,
+                                                           policyEvaluation.getScanId(), stage );
+            final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
+            policyEvaluationResult.setAlerts( alerts );
+            policyEvaluationUtils.calculateCounters( policyEvaluationResult );
+
+            // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
+            policyEvaluationResult.setAlerts( null );
+
+            policyEvaluationResults.put( stage.getStageTypeId(), policyEvaluationResult );
+        }
+
+        applicationManagement.setPolicyEvaluations( policyEvaluations );
+        applicationManagement.setPolicyEvaluationsResults( policyEvaluationResults );
 
         return applicationManagement;
     }

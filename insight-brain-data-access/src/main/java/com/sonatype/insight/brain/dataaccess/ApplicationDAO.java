@@ -44,12 +44,12 @@ public class ApplicationDAO
         Application application = getById( id );
         if ( application == null )
         {
-            throw new NotFoundException( "Cannot find application with id " + id + "." );
+            throw new NotFoundException( "Could not find an application with id " + id + "." );
         }
         return application;
     }
 
-    private Application getByPublicId( EntityManager em, String publicId )
+    public Application getByPublicId( EntityManager em, String publicId )
     {
         if ( publicId == null || publicId.trim().isEmpty() )
         {
@@ -80,12 +80,12 @@ public class ApplicationDAO
         Application application = getByPublicId( publicId );
         if ( application == null )
         {
-            throw new NotFoundException( "Cannot find application with public id " + publicId + "." );
+            throw new NotFoundException( "Could not find an application with public id " + publicId + "." );
         }
         return application;
     }
 
-    private Application getByName( EntityManager em, String name )
+    public Application getByName( EntityManager em, String name )
     {
         if ( name == null || name.trim().isEmpty() )
         {

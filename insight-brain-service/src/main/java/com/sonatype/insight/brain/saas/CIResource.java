@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -66,12 +67,11 @@ public class CIResource
     @PUT
     @Path( "scan/{applicationPublicId}" )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response putScan( @PathParam( "applicationPublicId" )
-    final String applicationPublicId, @Context
-    HttpServletRequest req )
+    public ScanReceipt putScan( @PathParam( "applicationPublicId" ) final String applicationPublicId,
+                                @Context HttpServletRequest req )
         throws IOException
     {
-        return Response.ok( uploader.upload( req, applicationPublicId, "rest/ci/scan" ) ).build();
+        return uploader.upload( req, applicationPublicId, "rest/ci/scan" );
     }
 
     @GET

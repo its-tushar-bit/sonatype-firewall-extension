@@ -67,7 +67,7 @@
                 $('#deleteLabelModal').modal('hide');
             }).error(function () {
                 $('#deleteLabelModal').modal('hide');
-                $scope.showServerError.apply(this, arguments);
+                $scope.$broadcast('showServerError', arguments);
             });
         };
 

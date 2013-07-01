@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -31,10 +32,15 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 public final class Report
@@ -123,18 +129,25 @@ public final class Report
 
         embedApplicationPublicId( appId, reportFile );
 
+        final JsonStore auditStore = JsonUtils.fileStore( auditDir );
+
+        applyComponentRelatedChanges( reportFile, auditStore );
+
+        // this data item is not in the original report, but is placed in the cache by the policy evaluator
         final ReportEntry policyReportEntry = getEntry( reportFile, "policythreats.json" );
 
-        final ContainerNode<?> security = applyChanges( reportFile, "security.json", auditDir );
-        final ContainerNode<?> licenses = applyChanges( reportFile, "licenses.json", auditDir );
-        final ContainerNode<?> partialMatched = applyChanges( reportFile, "partialmatched.json", auditDir );
+        // these data items have already had changes applied as part of applyComponentIdentifications above
+        final ContainerNode<?> security = JsonUtils.parse( getEntry( reportFile, "security.json" ).buf );
+        final ContainerNode<?> licenses = JsonUtils.parse( getEntry( reportFile, "licenses.json" ).buf );
+        final ContainerNode<?> partialMatched = JsonUtils.parse( getEntry( reportFile, "partialmatched.json" ).buf );
 
-        for ( final String name : JsonUtils.fileStore( auditDir ).list() )
+        for ( final String name : auditStore.list() )
         {
+            // make sure we don't wipe out the earlier component-identification changes
             if ( !"security.json".equals( name ) && !"licenses.json".equals( name )
-                && !"partialmatched.json".equals( name ) )
+                && !"partialmatched.json".equals( name ) && !"bom.json".equals( name ) )
             {
-                applyChanges( reportFile, name, auditDir );
+                applyChanges( reportFile, name, auditStore );
             }
         }
 
@@ -170,7 +183,10 @@ public final class Report
             {
                 final int level = row.path( "policyThreatLevel" ).asInt();
                 policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
-                policyComponentCount++;
+                if ( level >= 2 )
+                {
+                    policyComponentCount++;
+                }
             }
         }
 
@@ -275,6 +291,114 @@ public final class Report
         cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
 
         return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+    }
+
+    /**
+     * Applies changes to component data (bom/license/security/partialmatched) including claiming components
+     */
+    private static void applyComponentRelatedChanges( final File reportFile, final JsonStore auditStore )
+        throws IOException
+    {
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+
+        Set<String> claimedHashes = new LinkedHashSet<String>();
+        Set<String> gavs = new LinkedHashSet<String>();
+        ReportEntry bomReportEntry = extractEntry( reportFile, "bom.json" );
+        ContainerNode<?> bomJsonData = JsonUtils.parse( bomReportEntry.buf );
+        for ( JsonNode bomJsonNode : bomJsonData.get( "aaData" ) )
+        {
+            String hash = bomJsonNode.get( "hash" ).asText();
+            HashGAV hashGAV = hashGAVDAO.getByHash( hash );
+            if ( hashGAV != null )
+            {
+                ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
+                bomObjectNode.put( "groupId", hashGAV.getGroupId() );
+                bomObjectNode.put( "artifactId", hashGAV.getArtifactId() );
+                bomObjectNode.put( "version", hashGAV.getVersion() );
+                bomObjectNode.put( "extension", hashGAV.getExtension() );
+                bomObjectNode.put( "classifier", hashGAV.getClassifier() );
+                bomObjectNode.put( "matchState", MatchState.EXACT.getId() );
+                bomObjectNode.put( "createTime", hashGAV.getCreateTimeLong() );
+                bomObjectNode.put( "relativePopularity", 0F );
+                bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
+                claimedHashes.add( hash );
+            }
+            gavs.add( bomJsonNode.get( "groupId" ).asText() + ':' + bomJsonNode.get( "artifactId" ).asText() + ':'
+                + bomJsonNode.get( "version" ).asText() );
+        }
+
+        // save the claimed changes
+        cache( getCacheFile( reportFile, "bom.json" ), JsonUtils.generate( bomJsonData ) );
+
+        // Remove all entries from licenses.json that don't have a correspondent record in bom.json
+
+        // must start from un-edited data
+        ReportEntry licensesReportEntry = extractEntry( reportFile, "licenses.json" );
+        ContainerNode<?> licensesJsonData = JsonUtils.parse( licensesReportEntry.buf );
+        Iterator<JsonNode> iter = licensesJsonData.get( "aaData" ).iterator();
+        while ( iter.hasNext() )
+        {
+            JsonNode jsonNode = iter.next();
+            String gav =
+                jsonNode.get( "groupId" ).asText() + ':' + jsonNode.get( "artifactId" ).asText() + ':'
+                    + jsonNode.get( "version" ).asText();
+            if ( !gavs.contains( gav ) )
+            {
+                iter.remove();
+            }
+        }
+
+        // now apply any data edits
+        auditStore.augment( licensesJsonData, "licenses.json" );
+
+        // finally save the changes
+        cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licensesJsonData ) );
+
+        // Remove all entries from security.json that don't have a correspondent record in bom.json
+
+        // must start from un-edited data
+        ReportEntry securityReportEntry = extractEntry( reportFile, "security.json" );
+        ContainerNode<?> securityJsonData = JsonUtils.parse( securityReportEntry.buf );
+        iter = securityJsonData.get( "aaData" ).iterator();
+        while ( iter.hasNext() )
+        {
+            JsonNode jsonNode = iter.next();
+            String gav =
+                jsonNode.get( "groupId" ).asText() + ':' + jsonNode.get( "artifactId" ).asText() + ':'
+                    + jsonNode.get( "version" ).asText();
+            if ( !gavs.contains( gav ) )
+            {
+                iter.remove();
+            }
+        }
+
+        // now apply any data edits
+        auditStore.augment( securityJsonData, "security.json" );
+
+        // finally save the changes
+        cache( getCacheFile( reportFile, "security.json" ), JsonUtils.generate( securityJsonData ) );
+
+        // Remove all entries from partialmatched.json that were claimed as exact match
+
+        // must start from un-edited data
+        ReportEntry partialmatchedReportEntry = extractEntry( reportFile, "partialmatched.json" );
+        ContainerNode<?> partialmatchedJsonData = JsonUtils.parse( partialmatchedReportEntry.buf );
+        iter = partialmatchedJsonData.get( "aaData" ).iterator();
+        while ( iter.hasNext() )
+        {
+            JsonNode jsonNode = iter.next();
+            String hash = jsonNode.path( "hash" ).asText();
+            if ( claimedHashes.contains( hash ) )
+            {
+                iter.remove();
+            }
+        }
+
+        // now apply any data edits
+        auditStore.augment( partialmatchedJsonData, "partialmatched.json" );
+
+        // finally save the changes
+        cache( getCacheFile( reportFile, "partialmatched.json" ), JsonUtils.generate( partialmatchedJsonData ) );
     }
 
     private static void writeLicenseThreatsToReportFile( final String appId, final File reportFile )
@@ -419,14 +543,14 @@ public final class Report
         Pdf.delete( reportFile );
     }
 
-    private static ContainerNode<?> applyChanges( final File reportFile, final String name, final File auditDir )
+    private static ContainerNode<?> applyChanges( final File reportFile, final String name, final JsonStore auditStore )
         throws IOException
     {
         ContainerNode<?> table = null;
-        final ReportEntry entry = extractEntry( reportFile, name );
+        final ReportEntry entry = extractEntry( reportFile, name ); // must start from un-edited data
         if ( entry != null )
         {
-            table = JsonUtils.fileStore( auditDir ).augment( JsonUtils.parse( entry.buf ), name );
+            table = auditStore.augment( JsonUtils.parse( entry.buf ), name );
             cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
         }
         return table;

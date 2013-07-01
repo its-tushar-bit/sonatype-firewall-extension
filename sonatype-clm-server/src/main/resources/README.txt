@@ -30,3 +30,11 @@ Support and further information
 ===============================
 
 More information, documentation, and support can be found on our support site: http://links.sonatype.com/products/clm/ci/support
+
+
+Deprecation Warning
+===============================
+
+This is the last release to support Java 6, future releases will require Java 7 as runtime.
+
+Likewise, this is the last release supporting Internet Explorer 8. Going forward, Internet Explorer 9+ or equivalent modern browsers from other vendors will be required for proper interaction with the web application.

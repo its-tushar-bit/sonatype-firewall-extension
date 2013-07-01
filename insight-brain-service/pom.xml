@@ -423,7 +423,7 @@
       <plugin>
         <groupId>com.github.searls</groupId>
         <artifactId>jasmine-maven-plugin</artifactId>
-        <version>1.2.0.0</version>
+        <version>1.3.1.2</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -452,6 +452,11 @@
             <include>policy/components/license-threat-group/LicenseThreatGroupsController.js</include>
             <include>policy/components/label-editor/LabelsController.js</include>
             <include>policy/components/cip/cip-label-editor.js</include>
+            <include>assets/components/list-editor/ListEditor.js</include>
+            <include>assets/components/proprietary-config/ProprietaryConfiguration.js</include>
+            <include>policy/LabelController.js</include>
+            <include>policy/components/cip/cip-label-editor.js</include>
+            <include>policy/components/cip/cip-claim-component.js</include>
             <include>assets/components/notification-manager/NotificationManager.js</include>
             <include>application/ClmManagementApp.js</include>
             <include>application/ManagementController.js</include>
@@ -467,6 +472,7 @@
             <include>policy/PolicyControllerSpec.js</include>
             <include>policy/LicenseThreatGroupControllerSpec.js</include>
             <include>policy/CIPLabelEditorSpec.js</include>
+            <include>policy/cip-claim-component-spec.js</include>
             <include>policy/LabelControllerSpec.js</include>
             <include>policy/notification-management-spec.js</include>
             <include>policy/PolicyEditorSpec.js</include>
@@ -478,6 +484,8 @@
             <include>application/ApplicationControllerSpec.js</include>
             <include>organization/OrganizationMockData.js</include>
             <include>organization/OrganizationControllerSpec.js</include>
+            <include>assets/ListEditorSpec.js</include>
+            <include>assets/ProprietaryConfigurationSpec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>

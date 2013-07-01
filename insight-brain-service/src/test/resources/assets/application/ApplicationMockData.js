@@ -6,23 +6,25 @@ ApplicationMockData = {
                 "name": "applicationName",
                 "publicId": "bom1-12345678",
                 "organizationId": "organizationId",
-                "policyEvaluations": [
-                    {
-                        "stage": {
-                            "stageTypeId": "build"
-                        },
-                        "scanId": "691d542fbdf741339c4fac28b641e2f0",
-                        "time": 1363110826078,
-                        "user": "anonymous"
-                    }, {
-                        "stage": {
-                            "stageTypeId": "release"
-                        },
-                        "scanId": "691d542fbdf741339c4fac28b641e2f1",
-                        "time": 1363010826078,
-                        "user": "anonymous"
-                    }
-                ]
+                "policyEvaluations": {
+                	"build": {
+	                	"stage": {
+	                		"stageTypeId": "build"
+	                	},
+	                	"scanId": "2e12e6a9811347a78031b8969b604c49",
+	                	"time": 1371487786570,
+	                	"user": "anonymous"
+                	}
+            	},
+                "policyEvaluationsResults": {
+                	"build": {
+	                	"alerts": [ ],
+	                	"affectedComponentCount": 0,
+	                	"criticalComponentCount": 0,
+	                	"severeComponentCount": 0,
+	                	"moderateComponentCount": 0
+                	}
+            	}
             }
         ];
     }

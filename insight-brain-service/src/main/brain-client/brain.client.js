@@ -8,7 +8,7 @@
 (function () {
 	"use strict";
 
-	var features = ["policy", "labels", "release-graph", "policy-violations", "notification"],// Lowercase
+	var features = ["policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy"],// Lowercase
 		param = window.$ ? $.param : function (obj) {
 			var string = '',
 				field;
@@ -19,7 +19,6 @@
 		},
 		basePath = (function () {
 			var scripts = window.document.getElementsByTagName('script'),
-				i,
 				index;
 			if (scripts.length) {
 				for (var i = 0; i < scripts.length; i++) {

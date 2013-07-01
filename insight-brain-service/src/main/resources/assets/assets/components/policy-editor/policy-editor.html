@@ -152,6 +152,8 @@
 										</select>
 										<select ng-model="condition.value" ng-switch-when="LicenseStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
 										</select>
+										<select ng-model="condition.value" ng-switch-when="IdentificationSourceValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+										</select>
 										<select ng-model="condition.value" ng-switch-when="MatchStateValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
 										</select>
 										<select ng-model="condition.value" ng-switch-when="SecurityVulnerabilityStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>

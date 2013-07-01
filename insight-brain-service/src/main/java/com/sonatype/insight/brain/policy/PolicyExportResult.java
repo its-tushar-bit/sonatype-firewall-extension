@@ -5,8 +5,21 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.List;
+
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Policy;
+
 
 public class PolicyExportResult
 {
-    public String filename;
+    public List<Policy> policies;
+
+    public List<Label> labels;
+
+    public List<LicenseThreatGroup> licenseThreatGroups;
+
+    public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
 }

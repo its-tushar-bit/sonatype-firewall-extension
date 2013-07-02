@@ -34,4 +34,15 @@
             <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
 		</div>
 	</form>
+    <div ng-switch on='selectedOrganization.id'>
+        <div ng-switch-when='null'></div>
+        <div ng-switch-default>
+            <ul class='tri-pane'>
+                <li ng-class='{ active : isCurrentTab("licenses")}'>
+                    <a ng-href='#/management/organization/{{$state.params.organizationId}}/licenses'>LICENSES</a>
+                </li>
+            </ul>
+            <div ui-view></div>
+        </div>
+    </div>
 </div>

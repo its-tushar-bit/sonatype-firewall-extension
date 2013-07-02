@@ -19,6 +19,11 @@
 			url : '/{organizationId}',
 			controller : 'OrganizationEditorController',
 			templateUrl : '../organization-assets/components/organization-editor.html'
+		}).state('management.organization.view.licenses', {
+			parent : 'management.organization.view',
+			url : '/licenses',
+			controller : 'LicenseThreatGroupController',
+			templateUrl : '../policy-assets/components/license-threat-group/license-threat-group.html'
 		});
 	}]);
 }());

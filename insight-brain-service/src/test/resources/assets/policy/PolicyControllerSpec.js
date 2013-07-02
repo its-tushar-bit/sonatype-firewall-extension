@@ -20,10 +20,12 @@ describe('PolicyController tests', function() {
 
     beforeEach(module('ApplicationId', 'Policy'));
     // setup our http backend to return what we want
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
+		$state.current.name = "management.application";
+
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-        $httpBackend.expectGET(toRegExp(CLMAppLocations.getApplicationUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
+        $httpBackend.expectGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
 
         // inject the controller

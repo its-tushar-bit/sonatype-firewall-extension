@@ -116,7 +116,7 @@
 			},
 
 			getPolicyUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/' + getEncodedApplicationId();
+				return this.getBaseUrl() + '/rest/policy/' + getId();
 			},
 
 			getEntitiesUrl: function() {

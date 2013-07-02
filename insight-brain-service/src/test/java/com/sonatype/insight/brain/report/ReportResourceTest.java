@@ -499,8 +499,6 @@ public class ReportResourceTest
                                  + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}",
                                                                                 applicationPublicId ) + "?scanId="
                                  + scanId, JsonHelpers.asJson( stage ) );
-
-        // ReEvaluate
         assertResponseStatus( 200, response );
 
         policyEvaluation = evalLog.findByScan( scanId );
@@ -509,6 +507,20 @@ public class ReportResourceTest
         Assert.assertNotNull( policyEvaluation.getStage() );
         Assert.assertEquals( BuildStageType.ID, policyEvaluation.getStage().getStageTypeId() );
         assertTrue( System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000 );
+
+        Thread.sleep( 1 );
+
+        // ReEvaluate
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+        response = RestAccess.get( resourcePrefix + "/reevaluatePolicy" );
+        assertResponseStatus( 200, response );
+
+        PolicyEvaluation policyReEvaluation = evalLog.findByScan( scanId );
+        Assert.assertNotNull( policyReEvaluation );
+        Assert.assertEquals( scanId, policyReEvaluation.getScanId() );
+        Assert.assertNotNull( policyReEvaluation.getStage() );
+        Assert.assertEquals( BuildStageType.ID, policyReEvaluation.getStage().getStageTypeId() );
+        assertTrue( policyReEvaluation.getTime() > policyEvaluation.getTime() );
     }
 
     @Test

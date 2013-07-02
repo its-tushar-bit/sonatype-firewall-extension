@@ -332,6 +332,9 @@
 				$scope.submitActive = false;
 			}
 		});
+        $scope.$on('$destroy', function () {
+            angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
+        });
     });
 
     licenseGroupModule.filter('filterLicenses', function () {

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.http.client.HttpResponseException;
@@ -53,11 +52,6 @@ public class ScanClientTest
         applicationDAO.insert( application );
     }
 
-    private void assertMatch( String pattern, String text )
-    {
-        assertTrue( text + " does not match pattern " + pattern, text != null && text.matches( pattern ) );
-    }
-
     @Test
     public void testUploadCiScan_AllGood()
         throws Exception
@@ -80,7 +74,7 @@ public class ScanClientTest
         catch ( HttpResponseException e )
         {
             assertEquals( 404, e.getStatusCode() );
-            assertMatch( "(?i).*Cannot find application.*", e.getMessage() );
+            assertEquals( "Could not find an application with public id invalid-id.", e.getMessage() );
         }
     }
 
@@ -107,7 +101,7 @@ public class ScanClientTest
         catch ( HttpResponseException e )
         {
             assertEquals( 404, e.getStatusCode() );
-            assertMatch( "(?i).*Cannot find application.*", e.getMessage() );
+            assertEquals( "Could not find an application with public id invalid-id.", e.getMessage() );
         }
     }
 

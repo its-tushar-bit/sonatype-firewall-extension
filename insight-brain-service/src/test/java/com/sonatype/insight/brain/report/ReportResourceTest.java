@@ -10,34 +10,60 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
+import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.component.HashGAVResource;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
+import com.yammer.dropwizard.testing.JsonHelpers;
 
 import eu.medsea.mimeutil.MimeType;
 import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
@@ -45,6 +71,233 @@ import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+    @Test
+    public void testManuallyIdentifiedComponent()
+        throws Exception
+    {
+        // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
+        String hash = "f0776db1593e215146d2";
+        String groupId = "testClaimedComponent_G";
+        String artifactId = "testClaimedComponent_A";
+        String version = "testClaimedComponent_V";
+        String extension = "testClaimedComponent_E";
+        String classifier = "testClaimedComponent_C";
+        Date createTime = new Date();
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        hashGAV.setCreateTime( createTime );
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAVDAO.insert( hashGAV );
+
+        String applicationPublicId = "testClaimedComponent_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testClaimedComponent_ScanId";
+        String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        assertResponseStatus( 200,
+                              RestAccess.get( getRestBaseUrl()
+                                  + ReportResource.getReportPath( applicationPublicId, scanId ) ) );
+
+        String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+        boolean foundClaimedComponent = false;
+        String bomJsonData = response.getResponseBody();
+        for ( JsonNode bomJsonNode : JsonUtils.parse( bomJsonData ).get( "aaData" ) )
+        {
+            String bomJsonHash = bomJsonNode.get( "hash" ).asText();
+            JsonNode identificationSource = bomJsonNode.get( "identificationSource" );
+            if ( hash.equals( bomJsonHash ) )
+            {
+                assertEquals( IdentificationSource.MANUAL.getId(), identificationSource.asText() );
+                assertEquals( groupId, bomJsonNode.get( "groupId" ).asText() );
+                assertEquals( artifactId, bomJsonNode.get( "artifactId" ).asText() );
+                assertEquals( version, bomJsonNode.get( "version" ).asText() );
+                assertEquals( extension, bomJsonNode.get( "extension" ).asText() );
+                assertEquals( classifier, bomJsonNode.get( "classifier" ).asText() );
+                assertEquals( MatchState.EXACT.getId(), bomJsonNode.get( "matchState" ).asText() );
+                assertEquals( createTime.getTime(), bomJsonNode.get( "createTime" ).asLong() );
+                assertEquals( 0F, bomJsonNode.get( "relativePopularity" ).asDouble(), 0F );
+                foundClaimedComponent = true;
+            }
+            else
+            {
+                assertNull( identificationSource );
+            }
+        }
+        assertTrue( foundClaimedComponent );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/licenses.json" );
+        assertResponseStatus( 200, response );
+        String licensesJsonData = response.getResponseBody();
+        assertNotNull( licensesJsonData );
+        assertFalse( StringUtils.isEmpty( licensesJsonData ) );
+        assertFalse( licensesJsonData.contains( hash ) );
+        assertFalse( licensesJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        String securityJsonData = response.getResponseBody();
+        assertNotNull( securityJsonData );
+        assertFalse( StringUtils.isEmpty( securityJsonData ) );
+        assertFalse( securityJsonData.contains( hash ) );
+        assertFalse( securityJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/partialmatched.json" );
+        assertResponseStatus( 200, response );
+        String partialmatched = response.getResponseBody();
+        assertNotNull( partialmatched );
+        assertFalse( StringUtils.isEmpty( partialmatched ) );
+        assertFalse( partialmatched.contains( hash ) );
+        assertFalse( partialmatched.contains( "commons-httpclient" ) );
+        assertTrue( partialmatched.contains( "c32df577f739535648b0" ) );
+        assertTrue( partialmatched.contains( "org.slf4j.api_1.6.1.v20100831-0715.jar" ) );
+
+        hashGAVDAO.delete( hashGAV );
+    }
+
+    @Test
+    public void testManuallyIdentifiedComponentInvalidatesCachedReportData()
+        throws Exception
+    {
+        String applicationPublicId = "testClaimedComponent_AppId";
+        createApplication( applicationPublicId );
+        String scanId = "testClaimedComponent_ScanId";
+        String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        // populate JSON data cache before claiming the component
+        String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+
+        // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
+        String hash = "f0776db1593e215146d2";
+        String groupId = "testClaimedComponent_G";
+        String artifactId = "testClaimedComponent_A";
+        String version = "testClaimedComponent_V";
+        String extension = "testClaimedComponent_E";
+        String classifier = "testClaimedComponent_C";
+        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
+        setSaasResponseForURI( "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version="
+                                   + version + "&extension=" + extension + "&classifier=" + classifier,
+                               JsonHelpers.asJson( ComponentSummary.create( false ) ), 200 );
+        response = RestAccess.post( getRestBaseUrl() + HashGAVResource.SERVICE_PATH, JsonHelpers.asJson( hashGAV ) );
+        assertResponseStatus( 200, response );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+        boolean foundClaimedComponent = false;
+        String bomJsonData = response.getResponseBody();
+        for ( JsonNode bomJsonNode : JsonUtils.parse( bomJsonData ).get( "aaData" ) )
+        {
+            String bomJsonHash = bomJsonNode.get( "hash" ).asText();
+            JsonNode identificationSource = bomJsonNode.get( "identificationSource" );
+            if ( hash.equals( bomJsonHash ) )
+            {
+                assertEquals( IdentificationSource.MANUAL.getId(), identificationSource.asText() );
+                assertEquals( groupId, bomJsonNode.get( "groupId" ).asText() );
+                assertEquals( artifactId, bomJsonNode.get( "artifactId" ).asText() );
+                assertEquals( version, bomJsonNode.get( "version" ).asText() );
+                assertEquals( extension, bomJsonNode.get( "extension" ).asText() );
+                assertEquals( classifier, bomJsonNode.get( "classifier" ).asText() );
+                assertEquals( MatchState.EXACT.getId(), bomJsonNode.get( "matchState" ).asText() );
+                foundClaimedComponent = true;
+            }
+            else
+            {
+                assertNull( identificationSource );
+            }
+        }
+        assertTrue( foundClaimedComponent );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/licenses.json" );
+        assertResponseStatus( 200, response );
+        String licensesJsonData = response.getResponseBody();
+        assertNotNull( licensesJsonData );
+        assertFalse( StringUtils.isEmpty( licensesJsonData ) );
+        assertFalse( licensesJsonData.contains( hash ) );
+        assertFalse( licensesJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        String securityJsonData = response.getResponseBody();
+        assertNotNull( securityJsonData );
+        assertFalse( StringUtils.isEmpty( securityJsonData ) );
+        assertFalse( securityJsonData.contains( hash ) );
+        assertFalse( securityJsonData.contains( "commons-httpclient" ) );
+
+        response = RestAccess.get( resourcePrefix + "/embedReport/partialmatched.json" );
+        assertResponseStatus( 200, response );
+        String partialmatched = response.getResponseBody();
+        assertNotNull( partialmatched );
+        assertFalse( StringUtils.isEmpty( partialmatched ) );
+        assertFalse( partialmatched.contains( hash ) );
+        assertFalse( partialmatched.contains( "commons-httpclient" ) );
+
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAV = hashGAVDAO.getByHash( hashGAV.getHash() );
+        hashGAVDAO.delete( hashGAV );
+    }
+
+    @Test
+    public void testEmbedReportEntryExpirationDate()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        createApplication( applicationPublicId );
+        final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        final Calendar calendar = Calendar.getInstance();
+        final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat( "E, dd MMM yyyy HH:mm", Locale.ENGLISH );
+        expirationHeaderFormat.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+
+        calendar.setTime( new Date() );
+        calendar.set( Calendar.YEAR, calendar.get( Calendar.YEAR ) + 1 );
+        Response response = RestAccess.get( resourcePrefix + "/embedReport/index.html" );
+        assertResponseStatus( 200, response );
+        String expiresHeader = response.getHeader( "Expires" );
+        assertNotNull( expiresHeader );
+        assertTrue( "index.html expires in one year",
+                    expiresHeader.contains( expirationHeaderFormat.format( calendar.getTime() ) ) );
+
+        calendar.setTime( new Date() );
+        response = RestAccess.get( resourcePrefix + "/embedReport/data.json" );
+        assertResponseStatus( 200, response );
+        expiresHeader = response.getHeader( "Expires" );
+        assertTrue( "data.json expires immediately",
+                    expiresHeader.contains( expirationHeaderFormat.format( calendar.getTime() ) ) );
+
+        Map<String, String> ifModifiedSinceHeader = new HashMap<String, String>();
+        calendar.set( Calendar.DAY_OF_MONTH, calendar.get( Calendar.DAY_OF_MONTH ) + 1 );
+        ifModifiedSinceHeader.put( "If-Modified-Since",
+                                   new SimpleDateFormat( "E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH ).format( calendar.getTime() ) );
+        response = RestAccess.get( resourcePrefix + "/embedReport/data.json", ifModifiedSinceHeader );
+        assertResponseStatus( 304, response );
+    }
+
     @Test
     public void testEmbedReport()
         throws Exception
@@ -170,6 +423,95 @@ public class ReportResourceTest
     }
 
     @Test
+    public void testPrintReport_AfterPreviousGenerationFailure()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        final String appId = createApplication( applicationPublicId ).getId();
+        final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        Response response;
+        try
+        {
+            response = RestAccess.get( resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8" );
+            assertResponseStatus( 200, response );
+
+            // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
+            File pdfFile =
+                new File( new File( new File( brain.getWorkDir(), "report/" + appId ), scanId ), "report.pdf" );
+            assertTrue( pdfFile.getPath(), pdfFile.isFile() );
+            new FileOutputStream( pdfFile ).close();
+
+            // printing again after fixing the mem setting should produce a proper PDF
+            response = RestAccess.get( resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8" );
+            assertResponseStatus( 200, response );
+            assertThat( response.getHeader( "Content-Disposition" ),
+                        stringContainsInOrder( Arrays.asList( "attachment; filename=", "Test%20Project-8-", ".pdf" ) ) );
+            assertThat( Long.parseLong( response.getHeader( "Content-Length" ) ), greaterThan( 0L ) );
+        }
+        finally
+        {
+            Pdf.destroy();
+        }
+
+        // validate content type and check the actual content is really a PDF
+        assertThat( response.getContentType(), equalTo( "application/pdf" ) );
+        final Collection<?> mimeTypes = new MagicMimeMimeDetector().getMimeTypes( response.getResponseBodyAsStream() );
+        assertThat( mimeTypes, contains( (Object) new MimeType( "application/pdf" ) ) );
+    }
+
+    @Test
+    public void testReevaluateReport()
+        throws Exception
+    {
+        final String applicationPublicId = "ReportResourceTest_AppId";
+        final Application application = createApplication( applicationPublicId );
+        final String scanId = "ReportResourceTest_ScanId";
+        final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( application.getId() ) );
+        PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
+
+        Assert.assertNull( policyEvaluation );
+
+        final Stage stage = new Stage( BuildStageType.ID );
+
+        // Evaluate policy
+        Response response =
+            RestAccess.post( getRestBaseUrl()
+                                 + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}",
+                                                                                applicationPublicId ) + "?scanId="
+                                 + scanId, JsonHelpers.asJson( stage ) );
+
+        // ReEvaluate
+        assertResponseStatus( 200, response );
+
+        policyEvaluation = evalLog.findByScan( scanId );
+        Assert.assertNotNull( policyEvaluation );
+        Assert.assertEquals( scanId, policyEvaluation.getScanId() );
+        Assert.assertNotNull( policyEvaluation.getStage() );
+        Assert.assertEquals( BuildStageType.ID, policyEvaluation.getStage().getStageTypeId() );
+        assertTrue( System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000 );
+    }
+
+    @Test
     public void testArtifactDetails()
         throws Exception
     {
@@ -219,7 +561,7 @@ public class ReportResourceTest
         assertThat( response.getResponseBody(), not( containsString( "\"state\" : \"accepted\"" ) ) );
 
         // edit the state
-        final String edit =
+        String edit =
             "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
         response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
         assertResponseStatus( 200, response );
@@ -235,11 +577,33 @@ public class ReportResourceTest
                 + UrlUtils.encodeUrlComponent( "{\"hash\":\"1249e25aebb15358bedd\"}" ) );
         assertResponseStatus( 200, response );
 
-        final String feed =
+        String feed =
             "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
         assertThat( response.getResponseBody().replaceFirst( "\"time\" : [0-9]+,", "" ),
                     equalToIgnoringWhiteSpace( feed ) );
+
+        // edit the state again
+        edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\" }";
+        response = RestAccess.post( resourcePrefix + "/augmentData/" + query, edit );
+        assertResponseStatus( 200, response );
+
+        // verify the state has changed again
+        response = RestAccess.get( resourcePrefix + "/embedReport/security.json" );
+        assertResponseStatus( 200, response );
+        assertThat( response.getResponseBody(), containsString( "\"state\" : \"confirmed\"" ) );
+
+        // check the audit log reflects this change
+        response =
+            RestAccess.get( resourcePrefix + "/auditLog/security.json?key="
+                + UrlUtils.encodeUrlComponent( "{\"hash\":\"1249e25aebb15358bedd\"}" ) );
+        assertResponseStatus( 200, response );
+
+        feed =
+            "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
+                + "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+
+        assertThat( response.getResponseBody().replaceAll( "\"time\" : [0-9]+,", "" ), equalToIgnoringWhiteSpace( feed ) );
 
         // edit the license
         final String licenseEdit =

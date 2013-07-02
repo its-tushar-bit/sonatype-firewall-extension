@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
@@ -20,10 +21,14 @@ import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -31,8 +36,10 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -261,6 +268,121 @@ public class IDEComponentInfoResourceTest
         assertResponseStatus( 402, response );
     }
 
+    @Test
+    public void testGetComponentDetails_ProprietaryComponent()
+        throws Exception
+    {
+        String applicationPublicId = "IdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( ProprietaryConditionType.ID, "is true" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+        addPolicy( applicationPublicId, policy1 );
+
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl =
+            getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
+                                    "similar", "true" );
+        String saasUrl = convertToSaasUrl( serviceUrl, applicationPublicId );
+        ComponentDetails saasComponentDetails = new ComponentDetails( groupId, artifactId, version );
+        setSaasResponseForURI( saasUrl, JsonHelpers.asJson( saasComponentDetails ), 200 );
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
+
+        serviceUrl =
+            getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, "01234567890123456789",
+                                    "similar", "false" );
+        response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+        componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 0, policyAlerts.size() );
+    }
+
+    @Test
+    public void testGetComponentDetails_ManuallyIdentifiedComponent()
+        throws Exception
+    {
+        String applicationPublicId = "IdeResourceTest_AppId";
+        createApplication( applicationPublicId );
+
+        Constraint constraint1 = new Constraint( "C1", "Constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( MatchStateConditionType.ID, "is", "exact" ) );
+        constraint1.addCondition( new Condition( AgeInDaysConditionType.ID, "younger than", "30" ) );
+        Policy policy1 = new Policy( "PolicyId1", "Policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        policy1.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+        addPolicy( applicationPublicId, policy1 );
+
+        String hash = "01234567890123456789";
+        String groupId = "g1";
+        String artifactId = "a1";
+        String version = "v1";
+        String serviceUrl =
+            getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, hash,
+                                    MatchState.SIMILAR.getId(), "false" /* proprietary */);
+        Response response = RestAccess.get( serviceUrl );
+        assertResponseStatus( 200, response );
+
+        ComponentDetails componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( hash, componentDetails.getHash() );
+        Assert.assertEquals( groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( version, componentDetails.getVersion() );
+        Assert.assertEquals( MatchState.SIMILAR.getId(), componentDetails.getMatchState() );
+        Assert.assertEquals( IdentificationSource.SONATYPE.getId(), componentDetails.getIdentificationSource() );
+        List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 0, policyAlerts.size() );
+
+        HashGAV hashGAV =
+            new HashGAV( hash, "Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version, null /* extension */,
+                         null /* classifier */);
+        hashGAV.setComment( "ClaimedComment" );
+        hashGAV.setCreateTime( new Date() );
+        HashGAVDAO hashGAVDAO = new HashGAVDAO();
+        hashGAVDAO.insert( hashGAV );
+        response = RestAccess.get( serviceUrl );
+        hashGAVDAO.delete( hashGAV );
+        assertResponseStatus( 200, response );
+        componentDetails = JsonHelpers.fromJson( response.getResponseBody(), ComponentDetails.class );
+        Assert.assertNotNull( componentDetails );
+        Assert.assertEquals( hash, componentDetails.getHash() );
+        Assert.assertEquals( "Claimed" + groupId, componentDetails.getGroupId() );
+        Assert.assertEquals( "Claimed" + artifactId, componentDetails.getArtifactId() );
+        Assert.assertEquals( "Claimed" + version, componentDetails.getVersion() );
+        Assert.assertEquals( MatchState.EXACT.getId(), componentDetails.getMatchState() );
+        Assert.assertEquals( IdentificationSource.MANUAL.getId(), componentDetails.getIdentificationSource() );
+        Assert.assertEquals( "ClaimedComment", componentDetails.getIdentificationSourceComment() );
+        policyAlerts = componentDetails.getPolicyAlerts();
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertEquals( "Policy1", policyAlerts.get( 0 ).getTrigger().getPolicyName() );
+    }
+
     private String getServiceURL()
     {
         return getRestBaseUrl() + IDEComponentInfoResource.SERVICE_PATH;
@@ -268,6 +390,12 @@ public class IDEComponentInfoResourceTest
 
     private String getComponentDetailsUrl( String applicationPublicId, String groupId, String artifactId,
                                            String version, String hash, String matchState )
+    {
+        return getComponentDetailsUrl( applicationPublicId, groupId, artifactId, version, hash, matchState, null );
+    }
+
+    private String getComponentDetailsUrl( String applicationPublicId, String groupId, String artifactId,
+                                           String version, String hash, String matchState, String proprietary )
     {
         UriBuilder builder = UriBuilder.fromUri( getServiceURL() );
         builder.path( "{appId}" );
@@ -281,6 +409,10 @@ public class IDEComponentInfoResourceTest
         if ( matchState != null )
         {
             builder.queryParam( "matchState", matchState );
+        }
+        if ( proprietary != null )
+        {
+            builder.queryParam( "proprietary", proprietary );
         }
         return builder.build( applicationPublicId ).toString();
     }

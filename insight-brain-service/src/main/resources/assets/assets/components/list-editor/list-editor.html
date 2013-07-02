@@ -1,0 +1,26 @@
+<div>
+	<form ng-submit='add()' name='neditor' style='margin-bottom:0px'>
+		<div class='control-group' ng-class='{ error : neditor.$invalid }'>
+			<div class='input-append controls'>
+				<input type='text' name='currentEntry' class='span5' ng-model='currentEntry' maxlength='{{maxLength}}' placeholder='Enter {{placeHolder}}...' list-editor-validator required entersubmit>
+				<button class='btn' ng-disabled='neditor.$invalid' title='Add {{placeHolder}}'>Add</button>
+			</div>
+		</div>
+	</form>
+	<div class='well well-small' style='padding: 3px; margin-bottom: 5px; height: 120px;'>
+		<div style='height:100%;overflow-y:auto'>
+			<table style='margin:auto'>
+				<tr ng-repeat='entry in entries' style='border-bottom: 1px solid #DDDDDD;'>
+					<td style='width: 1%; max-width: 370px;'>
+						<div style='max-width: 100%; text-overflow:ellipsis; overflow:hidden' title='{{entry}}'>{{entry}}</div>
+					</td>
+					<td style='width: 99%; text-align: right; '>
+						<button class='btn btn-mini' ng-click='remove($index)' title='Remove {{placeHolder}}'>
+							<i class='icon-minus-sign'></i>
+						</button>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

@@ -13,16 +13,15 @@
         $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
             params: { timestamp: new Date().getTime() }
         }).success(function (data) {
-            var stageId = decodeURIComponent($routeParams.encodedStageId),
-                i;
-            for (i = 0; i < data.policyEvaluations.length; i++) {
-                if (data.policyEvaluations[i].stage.stageTypeId === stageId) {
-                    $scope.policyEvaluation = data.policyEvaluations[i];
+            var stageId = decodeURIComponent($routeParams.encodedStageId);
+            for (var stageTypeId in data.policyEvaluations) {
+                if (stageTypeId === stageId) {
+                    $scope.policyEvaluation = data.policyEvaluations[stageTypeId];
                     break;
                 }
             }
             $scope.application = data;
-            $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html?readonly=true';
+            $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html';
             $http.get(clmLocations.getActionStageUrl(), {
                 params: { timestamp: new Date().getTime() }
             }).success(function (stages) {
@@ -45,7 +44,7 @@
 
                 function setDimensions() {
                     var iframe = angular.element('iframe');
-                    if (!iframe) {
+                    if (!iframe || iframe.length === 0) {
                         clearTimeout(resizeTimeoutId);
                         return;
                     }

@@ -28,6 +28,7 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -42,6 +43,8 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
 
@@ -206,6 +209,87 @@ public class ApplicationResourceTest
     {
         return IconUtils.loadIcon( "defaulticon_application.png" );
     }
+    
+    @Test
+    public void testDeleteApplicationWithData()
+        throws Exception
+    {
+        final ApplicationDAO applicationDAO = new ApplicationDAO();
+        final PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+
+        final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
+        final String applicationName = "testDeleteApplicationWithScanAppName";
+
+        Application application = new Application();
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
+
+        applicationDAO.insert( application );
+
+        final String licenseFingerprint = "testDeleteApplicationWithScan_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasScanFile = getScanResponseFile( licenseFingerprint );
+        saasScanFile.delete();
+
+        URL testScanResultUrl = getClass().getResource( "/CIResourceTest/scan.json" );
+        FileUtils.copyFile( new File( testScanResultUrl.getFile() ), saasScanFile );
+
+        Response response = RestAccess.put( getScanURL( applicationPublicId ), "" );
+
+        assertResponseStatus( 200, response );
+
+        final String applicationId = application.getId();
+
+        // TODO ideally, need to create these directories by calling into appropriate REST endpoints
+        final InsightConfig insightConfig = new InsightConfig();
+        insightConfig.setSonatypeWork( brain.getWorkDir().getAbsolutePath() );
+        final InsightWork insightWork = new InsightWork( insightConfig );
+        createDirectory( insightWork.getScanDir( applicationId ) );
+        createDirectory( insightWork.getAuditDir( applicationId ) );
+        createDirectory( insightWork.getReportDir( applicationId ) );
+        createDirectory( policyDAO.getPolicyDir( applicationId ) );
+        
+        response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+        application = applicationDAO.getByPublicId( applicationPublicId );
+
+        assertResponseStatus( 204, response );
+        Assert.assertNull( application );
+
+        Assert.assertEquals( 0, policyDAO.getByOwnerId( applicationId ).size() );
+        Assert.assertFalse( insightWork.getScanDir( applicationId ).exists() );
+        Assert.assertFalse( insightWork.getAuditDir( applicationId ).exists() );
+        Assert.assertFalse( insightWork.getReportDir( applicationId ).exists() );
+        Assert.assertFalse( policyDAO.getPolicyDir( applicationId ).exists() );
+    }
+
+    @Test
+    public void testDeleteNonExistingApplication()
+        throws Exception
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+
+        final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
+        final String applicationName = "testDeleteApplicationWithScanAppName";
+
+        Application application = new Application();
+        application.setName( applicationName );
+        application.setPublicId( applicationPublicId );
+
+        applicationDAO.insert( application );
+
+        Response response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+        application = applicationDAO.getByPublicId( applicationPublicId );
+
+        assertResponseStatus( 204, response );
+        Assert.assertNull( application );
+
+        response = RestAccess.delete( getServiceURL() + "/" + applicationPublicId );
+
+        assertResponseStatus( 404, response );
+        Assert.assertEquals( "Could not find an application with public id " + applicationPublicId + ".",
+                             response.getResponseBody() );
+    }
 
     @Test
     public void testAddApplication_exceedsLicense()
@@ -271,14 +355,34 @@ public class ApplicationResourceTest
         Assert.assertEquals( Arrays.asList( applications ).toString(), 1, applications.length );
         Assert.assertEquals( application.getId(), applications[0].getId() );
         Assert.assertEquals( application.getName(), applications[0].getName() );
-        Assert.assertNotNull( applications[0].getPolicyEvaluations() );
-        Assert.assertEquals( 2, applications[0].getPolicyEvaluations().size() );
-        Assert.assertEquals( Stage.ID_BUILD,
-                             applications[0].getPolicyEvaluations().get( 0 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( 0 ).getScanId() );
-        Assert.assertEquals( Stage.ID_RELEASE,
-                             applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
+        
+        Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations = applications[0].getPolicyEvaluations();
+        String[] stageTypeIds = policyEvaluations.keySet().toArray( new String[0] );
+        
+        Assert.assertNotNull( policyEvaluations );
+        Assert.assertEquals( 2, policyEvaluations.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( Stage.ID_BUILD, policyEvaluations.get( stageTypeIds[0] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId2, policyEvaluations.get( stageTypeIds[0] ).getScanId() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( Stage.ID_RELEASE, policyEvaluations.get( stageTypeIds[1] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId1, policyEvaluations.get( stageTypeIds[1] ).getScanId() );
+
+        Map<String, PolicyEvaluationResult> policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
+        stageTypeIds = policyEvaluationsResults.keySet().toArray( new String[0] );
+
+        Assert.assertNotNull( policyEvaluationsResults );
+        Assert.assertEquals( 2, policyEvaluationsResults.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getSevereComponentCount() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getSevereComponentCount() );
 
         // Scans count
         final File saasScanFile = getScanResponseFile( licenseFingerprint );
@@ -305,14 +409,34 @@ public class ApplicationResourceTest
         Assert.assertNotNull( applicationSummary );
         Assert.assertEquals( application.getId(), applicationSummary.getId() );
         Assert.assertEquals( application.getName(), applicationSummary.getName() );
-        Assert.assertNotNull( applications[0].getPolicyEvaluations() );
-        Assert.assertEquals( 2, applications[0].getPolicyEvaluations().size() );
-        Assert.assertEquals( Stage.ID_BUILD,
-                             applications[0].getPolicyEvaluations().get( 0 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( 0 ).getScanId() );
-        Assert.assertEquals( Stage.ID_RELEASE,
-                             applications[0].getPolicyEvaluations().get( 1 ).getStage().getStageTypeId() );
-        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( 1 ).getScanId() );
+
+        policyEvaluations = applicationSummary.getPolicyEvaluations();
+        stageTypeIds = policyEvaluations.keySet().toArray( new String[0] );
+
+        Assert.assertNotNull( policyEvaluations );
+        Assert.assertEquals( 2, policyEvaluations.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( Stage.ID_BUILD, policyEvaluations.get( stageTypeIds[0] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId2, applications[0].getPolicyEvaluations().get( stageTypeIds[0] ).getScanId() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( Stage.ID_RELEASE, policyEvaluations.get( stageTypeIds[1] ).getStage().getStageTypeId() );
+        Assert.assertEquals( scanId1, applications[0].getPolicyEvaluations().get( stageTypeIds[1] ).getScanId() );
+
+        policyEvaluationsResults = applicationSummary.getPolicyEvaluationsResults();
+        stageTypeIds = policyEvaluationsResults.keySet().toArray( new String[0] );
+
+        Assert.assertNotNull( policyEvaluationsResults );
+        Assert.assertEquals( 2, policyEvaluationsResults.size() );
+        Assert.assertEquals( Stage.ID_BUILD, stageTypeIds[0] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[0] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[0] ).getSevereComponentCount() );
+        Assert.assertEquals( Stage.ID_RELEASE, stageTypeIds[1] );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getAffectedComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getCriticalComponentCount() );
+        Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getModerateComponentCount() );
+        Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getSevereComponentCount() );
     }
 
     @Test
@@ -388,6 +512,14 @@ public class ApplicationResourceTest
         Response response = RestAccess.get( url );
         assertResponseStatus( 200, response );
         Assert.assertNotNull( response.getResponseBodyAsBytes() );
+    }
+
+    private void createDirectory( File dir )
+    {
+        if ( !dir.isDirectory() )
+        {
+            Assert.assertTrue( "create directory " + dir.getAbsolutePath(), dir.mkdirs() );
+        }
     }
 
     private String getValidateApplicationIdServiceURL( String applicationPublicId )

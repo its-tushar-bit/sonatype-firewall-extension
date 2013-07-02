@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.scan.cli;
+
+public class ExitException
+    extends Exception
+{
+
+    private static final long serialVersionUID = 1860065432528002161L;
+
+    private final int exitCode;
+
+    public ExitException( int exitCode )
+    {
+        this.exitCode = exitCode;
+    }
+
+    public ExitException( int exitCode, Throwable cause )
+    {
+        super( cause );
+        this.exitCode = exitCode;
+    }
+
+    public int getExitCode()
+    {
+        return exitCode;
+    }
+
+}

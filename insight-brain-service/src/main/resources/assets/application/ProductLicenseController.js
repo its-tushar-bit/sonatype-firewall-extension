@@ -8,9 +8,9 @@
 (function () {
     'use strict';
 
-    var adminModule = angular.module('Admin', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
+    var adminModule = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
 
-    adminModule.controller('AdminController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
+    adminModule.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
 		function showLicense() {
 			$scope.showInstall = false;
 			$('#eulaModal').modal('hide');

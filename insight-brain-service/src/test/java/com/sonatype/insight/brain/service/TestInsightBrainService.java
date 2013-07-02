@@ -254,4 +254,9 @@ public class TestInsightBrainService
     {
         return new File( new File( getWorkDir(), "audit" ), applicationId );
     }
+
+    public File getDataDir()
+    {
+        return new File( getWorkDir(), "data" );
+    }
 }

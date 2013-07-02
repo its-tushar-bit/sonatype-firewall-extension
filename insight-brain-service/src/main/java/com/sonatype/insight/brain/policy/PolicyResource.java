@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,25 +134,29 @@ public class PolicyResource
     @Path( "export" )
     @Produces( MediaType.APPLICATION_JSON )
     public PolicyExportResult exportPolicies( @PathParam( "policyOwnerId" ) String policyOwnerId )
-        throws IOException
     {
         String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
 
-        ExportDTO exportDTO = new ExportDTO();
+        PolicyExportResult exportDTO = new PolicyExportResult();
         exportDTO.policies = policyDAO().getByOwnerId( internalPolicyOwnerId );
         exportDTO.labels = new LabelDAO().getByApplicationId( internalPolicyOwnerId );
         exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( internalPolicyOwnerId );
         exportDTO.licenseThreatGroupLicenses =
             new LicenseThreatGroupLicenseDAO().getByOwnerId( internalPolicyOwnerId );
-        File exportDir = new File( new File( work.getWorkDir(), "export" ), internalPolicyOwnerId );
-        exportDir.mkdirs();
-        File exportFile = File.createTempFile( "policy-export-", ".json", exportDir );
-        JsonUtils.write( exportFile, exportDTO );
 
-        PolicyExportResult result = new PolicyExportResult();
-        result.filename = exportFile.getAbsolutePath();
+        return exportDTO;
+    }
 
-        return result;
+    private Label getLabelByName( List<Label> labels, String nameLowercase )
+    {
+        for ( Label label : labels )
+        {
+            if ( nameLowercase.equals( label.getLabelLowercase() ) )
+            {
+                return label;
+            }
+        }
+        return null;
     }
 
     @PUT
@@ -172,43 +176,78 @@ public class PolicyResource
         {
             IOUtil.close( importInputStream );
         }
-        ExportDTO exportDTO = JsonUtils.parse( importBytes, ExportDTO.class );
+        PolicyExportResult exportDTO = JsonUtils.parse( importBytes, PolicyExportResult.class );
 
-        // Create an application
+        Application application;
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = new Application();
-        application.setPublicId( policyOwnerId );
-        application.setName( policyOwnerId );
-        if ( applicationDAO.getByName( application.getName() ) != null )
-        {
-            application.setName( application.getName() + " " + System.currentTimeMillis() );
-        }
-
         EntityManager em = applicationDAO.createEntityManager();
         try
         {
             em.getTransaction().begin();
 
-            int appLimit = licenseManager.getApplicationCountLimit();
-            if ( applicationDAO.getAll( em ).size() >= appLimit )
+            LabelDAO labelDAO = new LabelDAO();
+            List<Label> oldLabels = new ArrayList<Label>();
+            application = applicationDAO.getByPublicId( em, policyOwnerId );
+            if ( application == null )
             {
-                throw new PaymentRequiredException( "You have exceeded the licensed limit of " + appLimit
-                    + " applications." );
+                // Create an application
+                int appLimit = licenseManager.getApplicationCountLimit();
+                if ( applicationDAO.getAll( em ).size() >= appLimit )
+                {
+                    throw new PaymentRequiredException( "You have exceeded the licensed limit of " + appLimit
+                        + " applications." );
+                }
+
+                application = new Application();
+                application.setPublicId( policyOwnerId );
+                application.setName( policyOwnerId );
+                if ( applicationDAO.getByName( em, application.getName() ) != null )
+                {
+                    application.setName( application.getName() + " " + System.currentTimeMillis() );
+                }
+
+                applicationDAO.insert( em, application );
             }
-            applicationDAO.insert( em, application );
+            else
+            {
+                // The application already exists. Delete all its license threat groups and policies.
+                // Do not delete its labels - labels need to be merged.
+                LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+                List<LicenseThreatGroup> licenseThreatGroups =
+                    licenseThreatGroupDAO.getByOwnerId( em, application.getId() );
+                for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
+                {
+                    licenseThreatGroupDAO.delete( em, licenseThreatGroup );
+                }
+
+                policyDAO().deleteByOwnerId( application.getId() );
+
+                oldLabels.addAll( labelDAO.getByApplicationId( em, application.getId() ) );
+            }
             String applicationId = application.getId();
 
-            LabelDAO labelDAO = new LabelDAO();
             if ( exportDTO.labels.size() > 0 )
             {
                 Map<String, String> idMap = new HashMap<String, String>();
                 for ( Label label : exportDTO.labels )
                 {
                     String oldId = label.getId();
-                    label.setId( null );
-                    label.setApplicationId( applicationId );
-                    labelDAO.insert( em, label );
-                    idMap.put( oldId, label.getId() );
+                    Label existingLabel = getLabelByName( oldLabels, label.getLabelLowercase() );
+                    if ( existingLabel != null )
+                    {
+                        oldLabels.remove( existingLabel );
+                        existingLabel.setLabel( label.getLabel() );
+                        existingLabel.setColor( label.getColor() );
+                        labelDAO.update( em, existingLabel );
+                        idMap.put( oldId, existingLabel.getId() );
+                    }
+                    else
+                    {
+                        label.setId( null );
+                        label.setApplicationId( applicationId );
+                        labelDAO.insert( em, label );
+                        idMap.put( oldId, label.getId() );
+                    }
                 }
                 for ( Policy policy : exportDTO.policies )
                 {
@@ -224,6 +263,12 @@ public class PolicyResource
                     }
                 }
             }
+            for ( Label label : oldLabels )
+            {
+                labelDAO.delete( em, label );
+            }
+            
+            
             if ( exportDTO.licenseThreatGroups.size() > 0 )
             {
                 Map<String, String> idMap = new HashMap<String, String>();
@@ -284,16 +329,5 @@ public class PolicyResource
     private PolicyDAO policyDAO()
     {
         return new PolicyDAO( work.getWorkDir() );
-    }
-    
-    private static class ExportDTO
-    {
-        public List<Policy> policies;
-
-        public List<Label> labels;
-
-        public List<LicenseThreatGroup> licenseThreatGroups;
-
-        public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
     }
 }

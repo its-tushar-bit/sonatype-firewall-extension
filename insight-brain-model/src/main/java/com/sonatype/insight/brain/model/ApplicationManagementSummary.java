@@ -1,8 +1,9 @@
 package com.sonatype.insight.brain.model;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 
 public class ApplicationManagementSummary
@@ -15,7 +16,9 @@ public class ApplicationManagementSummary
 
     private String organizationId;
 
-    private List<PolicyEvaluation> policyEvaluations;
+    private Map<String, PolicyEvaluation> policyEvaluations;
+
+    private Map<String, PolicyEvaluationResult> policyEvaluationsResults;
 
     private int scansCount;
 
@@ -59,14 +62,25 @@ public class ApplicationManagementSummary
         this.organizationId = organizationId;
     }
 
-    public List<PolicyEvaluation> getPolicyEvaluations()
+    public Map<String, PolicyEvaluation> getPolicyEvaluations()
     {
-        return ( policyEvaluations != null ) ? policyEvaluations : Collections.<PolicyEvaluation>emptyList();
+        return ( policyEvaluations != null ) ? policyEvaluations : Collections.<String, PolicyEvaluation> emptyMap();
     }
 
-    public void setPolicyEvaluations( List<PolicyEvaluation> policyEvaluations )
+    public void setPolicyEvaluations( Map<String, PolicyEvaluation> policyEvaluations )
     {
         this.policyEvaluations = policyEvaluations;
+    }
+
+    public Map<String, PolicyEvaluationResult> getPolicyEvaluationsResults()
+    {
+        return ( policyEvaluationsResults != null ) ? policyEvaluationsResults
+                        : Collections.<String, PolicyEvaluationResult> emptyMap();
+    }
+
+    public void setPolicyEvaluationsResults( Map<String, PolicyEvaluationResult> policyEvaluationsResults )
+    {
+        this.policyEvaluationsResults = policyEvaluationsResults;
     }
 
     public int getScansCount()

@@ -19,9 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.scan.upload.BOMCheckScanUploadResult;
 
 @Path( RepoManResource.SERVICE_PATH )
 @ProductLicenseEnforcementPoint( { CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release } )
@@ -46,13 +44,6 @@ public class RepoManResource
     HttpServletRequest req )
         throws IOException
     {
-        final BOMCheckScanUploadResult result = uploader.upload( req, applicationPublicId, "rest/rm/scan" );
-
-        final ScanReceipt receipt = new ScanReceipt();
-        receipt.setScanId( result.getScanId() );
-        receipt.setTimeToReport( result.getTimeToReport() );
-        receipt.setReportUrl( ReportResource.getReportPath( applicationPublicId, result.getScanId() ) );
-
-        return receipt;
+        return uploader.upload( req, applicationPublicId, "rest/rm/scan" );
     }
 }

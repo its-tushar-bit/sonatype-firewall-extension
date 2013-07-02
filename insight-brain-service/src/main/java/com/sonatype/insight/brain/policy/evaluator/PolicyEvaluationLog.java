@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -38,7 +40,7 @@ public class PolicyEvaluationLog
         auditStore = JsonUtils.fileStore( auditDir );
     }
 
-    public PolicyEvaluation last( final String stageId )
+    public PolicyEvaluation lastByStage( final String stageId )
         throws IOException
     {
         migrate();
@@ -46,6 +48,27 @@ public class PolicyEvaluationLog
         if ( auditContainer != null )
         {
             return JsonUtils.asPojo( auditContainer.get( "aaData" ).get( 0 ), PolicyEvaluation.class );
+        }
+        return null;
+    }
+
+    public PolicyEvaluation findByScan( final String scanId )
+        throws IOException
+    {
+        for ( StageType stageType : StageTypes.getAll() )
+        {
+            final ContainerNode<?> auditContainer = auditStore.history( null, filename( stageType.getId() ) );
+            if ( auditContainer != null )
+            {
+                JsonNode auditData = auditContainer.get( "aaData" );
+                for ( JsonNode audit : auditData )
+                {
+                    if ( audit.get( "scanId" ).asText().equals( scanId ) )
+                    {
+                        return JsonUtils.asPojo( audit, PolicyEvaluation.class );
+                    }
+                }
+            }
         }
         return null;
     }

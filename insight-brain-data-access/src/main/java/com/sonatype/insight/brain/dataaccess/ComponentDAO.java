@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
@@ -69,6 +70,9 @@ public class ComponentDAO
                     final JsonNode componentJson = bomJsonArray.get( i );
                     final String matchStateString = componentJson.get( "matchState" ).asText();
                     final MatchState matchState = MatchState.getById( matchStateString );
+                    final String identificationSourceString =
+                        JsonUtils.getNullableString( componentJson.get( "identificationSource" ) );
+                    final IdentificationSource identificationSource = IdentificationSource.getById( identificationSourceString );
                     final boolean proprietary = componentJson.get( "proprietary" ).booleanValue();
                     String hash = componentJson.get( "hash" ).asText();
 
@@ -76,6 +80,7 @@ public class ComponentDAO
                     component.setHash( hash );
                     component.setMatchState( matchState );
                     component.setProprietary( proprietary );
+                    component.setIdentificationSource( identificationSource );
                     componentsByHash.put( hash, component );
                     if ( !matchState.equals( MatchState.UNKNOWN ) )
                     {
@@ -208,6 +213,10 @@ public class ComponentDAO
         component.setVersion( componentInfo.getVersion() );
 
         component.setMatchState( MatchState.getById( componentInfo.getMatchState() ) );
+        if ( componentInfo.getIdentificationSource() != null )
+        {
+            component.setIdentificationSource( IdentificationSource.getById( componentInfo.getIdentificationSource() ) );
+        }
 
         component.setCatalogDate( componentInfo.getCatalogDate() );
         if ( componentInfo.getRelativePopularity() != null )

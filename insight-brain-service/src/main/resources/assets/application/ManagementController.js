@@ -9,7 +9,7 @@
 
 	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation']);
 
-	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, commonCodeFactory) {
+	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'commonCodeFactory', 'policyEvaluator', function ($scope, $http, hudson, clmLocations, commonCodeFactory, policyEvaluator) {
 		$scope.orderColumn = 'name';
 		$scope.orderDirection = true;
 
@@ -118,23 +118,6 @@
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
-
-	managementModule.filter('filterReportColumns', function () {
-		return function (items) {
-			var arrayToReturn = [];
-			if (items) {
-				angular.forEach(items, function (item, index) {
-					switch (item.name) {
-						case 'Build':
-						case 'Stage Release':
-						case 'Release':
-							arrayToReturn.push(item);
-					}
-                });
-			}
-			return arrayToReturn;
-		};
-	});
 
 	managementModule.controller('EditApplicationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
 		$scope.submitActive = false;

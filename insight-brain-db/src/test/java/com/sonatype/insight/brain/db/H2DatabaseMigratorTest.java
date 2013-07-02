@@ -12,7 +12,6 @@ import java.io.File;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sonatype.insight.db.DatabaseConfig;
@@ -26,7 +25,6 @@ public class H2DatabaseMigratorTest
     }
 
     @Test
-    @Ignore
     public void testMigrateOperationalDataStore()
         throws Exception
     {

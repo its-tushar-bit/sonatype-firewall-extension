@@ -16,6 +16,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -29,9 +30,13 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -88,7 +93,8 @@ public class IdeResource
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent doScan( @PathParam( "scanType" ) String scanType,
                                        @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                       @PathParam( "path" ) String path, @Context HttpServletRequest req )
+                                       @PathParam( "path" ) String path,
+                                       @QueryParam( "proprietary" ) boolean proprietary, @Context HttpServletRequest req )
         throws IOException
     {
         Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
@@ -97,6 +103,24 @@ public class IdeResource
         MatchedComponent matchedComponent =
             client.get( req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}", scanType,
                         path );
+        // Is this a manually claimed component?
+        HashGAV hashGAV = new HashGAVDAO().getByHash( matchedComponent.getHash() );
+        if ( hashGAV != null )
+        {
+            matchedComponent.setGroupId( hashGAV.getGroupId() );
+            matchedComponent.setArtifactId( hashGAV.getArtifactId() );
+            matchedComponent.setVersion( hashGAV.getVersion() );
+            matchedComponent.setCatalogDate( hashGAV.getCreateTimeLong() );
+            matchedComponent.setMatchState( MatchState.EXACT.getId() );
+            matchedComponent.setIdentificationSource( IdentificationSource.MANUAL.getId() );
+            matchedComponent.setSecurityVulnerabilities( null );
+            matchedComponent.setWaitDelta( null );
+            matchedComponent.setSimpleMatch( true );
+        }
+        else
+        {
+            matchedComponent.setIdentificationSource( IdentificationSource.SONATYPE.getId() );
+        }
 
         IdeMatchedComponent ideComponent = getComponent( matchedComponent );
         if ( ideComponent.getWaitDelta() == null
@@ -112,6 +136,7 @@ public class IdeResource
 
             ComponentDAO componentDAO = new ComponentDAO();
             Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
+            component.setProprietary( proprietary );
             List<PolicyAlert> policyAlerts =
                 evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
                                     Collections.singletonList( component ) );
@@ -133,10 +158,12 @@ public class IdeResource
     @Produces( MediaType.APPLICATION_JSON )
     public IdeMatchedComponent postScan( @PathParam( "scanType" ) String scanType,
                                          @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                         @PathParam( "path" ) String path, @Context HttpServletRequest req )
+                                         @PathParam( "path" ) String path,
+                                         @QueryParam( "proprietary" ) boolean proprietary,
+                                         @Context HttpServletRequest req )
         throws IOException
     {
-        return doScan( scanType, applicationPublicId, path, req );
+        return doScan( scanType, applicationPublicId, path, proprietary, req );
     }
 
     private PolicyDAO policyDAO()
@@ -152,6 +179,7 @@ public class IdeResource
         ide.setVersion( mComponent.getVersion() );
         ide.setHash( mComponent.getHash() );
         ide.setMatchState( mComponent.getMatchState() );
+        ide.setIdentificationSource( mComponent.getIdentificationSource() );
         ide.setSimpleMatch( mComponent.isSimpleMatch() );
         ide.setWaitDelta( mComponent.getWaitDelta() );
         return ide;

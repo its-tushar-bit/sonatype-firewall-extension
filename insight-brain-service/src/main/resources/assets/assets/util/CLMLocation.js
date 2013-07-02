@@ -13,7 +13,7 @@
 		}
 		this.baseUrl = '';
 
-		var baseSegments = ['/policy-assets/', '/application-assets/', '/unlicensed-assets/'],
+		var baseSegments = ['/policy-assets/', '/application-assets/', '/unlicensed-assets/', '/assets/'],
 			idx = -1;
 
 		for (var i = 0; i < baseSegments.length; i++) {
@@ -30,7 +30,7 @@
 		return this.baseUrl;
 	}
 
-	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', [function () {
+	angular.module('CLMLocation', []).factory('CLMLocations', [function () {
 		return {
 			getBaseUrl : getBaseUrl,
 
@@ -85,7 +85,15 @@
 
             addOrganizationIconSync: function () {
                 return this.getBaseUrl() + '/rest/organization/icon/sync';
-            }
+            },
+
+			evaluatePolicyUrl: function(applicationId, scanId) {
+				return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
+			},
+
+			getProprietaryConfig : function () {
+			    return this.getBaseUrl() + '/rest/config/proprietary';
+			}
 		};
 	}]).factory('CLMAppLocations', ['ApplicationId', function (appId) {
 		var getEncodedApplicationId = (typeof appId.encoded === 'function') ? appId.encoded : function () { return appId.encoded; };
@@ -118,6 +126,10 @@
 
 			getPolicyUrl: function () {
 				return this.getBaseUrl() + '/rest/policy/' + getEncodedApplicationId();
+			},
+			
+			getApplicationUrl: function () {
+				return this.getBaseUrl() + '/rest/application/' + getEncodedApplicationId();
 			}
 		};
 	}]);

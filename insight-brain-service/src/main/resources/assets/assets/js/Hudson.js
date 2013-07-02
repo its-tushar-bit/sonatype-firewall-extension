@@ -11,14 +11,14 @@
 		tested = null,
 		outstanding = [];
 
-	function startTest($http, clmLocations) {
+	function startTest($http, baseUrl) {
 		function complete() {
 			angular.forEach(outstanding, function (fn, key) {
 				fn();
 			});
 		}
 
-		tested = $http.get(clmLocations.getBaseUrl() + '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)').success(function () {
+		tested = $http.get(baseUrl.get() + '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)').success(function () {
 			hudson = true;
 			tested = true;
 			complete();
@@ -31,7 +31,7 @@
 			});
 	}
 
-	function wrap($http, method, args, clmLocations) {
+	function wrap($http, method, args, baseUrl) {
 		var success = [],
 			error = [],
 			result = {
@@ -70,7 +70,7 @@
 			},
 			request = function () {
 				if (hudson === true) {
-					$http.get(clmLocations.getBaseUrl() + '/../../../crumbIssuer/api/xml', {
+					$http.get(baseUrl.get() + '/../../../crumbIssuer/api/xml', {
 						params: {
 							timestamp: new Date().getTime(),
 							xpath: 'concat(//crumbRequestField,":",//crumb)'
@@ -90,9 +90,9 @@
 		return result;
 	}
 
-	angular.module('Hudson', ['CLMLocation']).service('hudson', ['$http', 'CLMLocations', function ($http, clmLocations) {
+	angular.module('Hudson', ['AngularCommon']).service('hudson', ['$http', 'BaseUrl', function ($http, baseUrl) {
 		if (tested === null) {
-			startTest($http, clmLocations);
+			startTest($http, baseUrl);
 		}
 		return {
 			post: function () {
@@ -104,7 +104,7 @@
 				if (!hudson && tested === true) {
 					return $http.post.apply($http, argArray);
 				}
-				return wrap($http, $http.post, argArray, clmLocations);
+				return wrap($http, $http.post, argArray, baseUrl);
 			},
 			xhrPost: function () {
 				var xhr = new XMLHttpRequest();
@@ -118,7 +118,7 @@
 						if (!hudson && tested === true) {
 							return xhr.send.apply(xhr, argArray);
 						}
-						return wrap($http, xhr.send, argArray, clmLocations);
+						return wrap($http, xhr.send, argArray, baseUrl);
 					}
 				};
 			},
@@ -138,7 +138,7 @@
 				if (!hudson && tested === true) {
 					return jQuery.ajax.apply(jQuery, argArray);
 				}
-				return wrap($http, jQuery.ajax, argArray, clmLocations);
+				return wrap($http, jQuery.ajax, argArray, baseUrl);
 			}
 		};
 	}]);

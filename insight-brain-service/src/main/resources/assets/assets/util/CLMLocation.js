@@ -7,79 +7,54 @@
 (function () {
 	"use strict";
 
-	function getBaseUrl() {
-		if (this.baseUrl) {
-			return this.baseUrl;
-		}
-		this.baseUrl = '';
-
-		var baseSegments = ['/policy-assets/', '/application-assets/', '/unlicensed-assets/', '/assets/'],
-			idx = -1;
-
-		for (var i = 0; i < baseSegments.length; i++) {
-			idx = window.location.href.indexOf(baseSegments[i]);
-			if (idx !== -1) {
-				break;
-			}
-		}
-
-		if (idx > -1) {
-			this.baseUrl = window.location.href.substring(0, idx);
-		}
-
-		return this.baseUrl;
-	}
-
-	angular.module('CLMLocation', ['AngularCommon', 'ApplicationModule', 'OrganizationModule']).factory('CLMLocations', [function () {
+	angular.module('CLMLocation', ['AngularCommon', 'ApplicationModule', 'OrganizationModule']).factory('CLMLocations', ['BaseUrl', function (baseUrl) {
 		return {
-			getBaseUrl : getBaseUrl,
-
 			getLicensesUrl: function () {
-				return this.getBaseUrl() + '/rest/license';
+				return baseUrl.get() + '/rest/license';
 			},
 
 			getConditionTypeUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/conditionType';
+				return baseUrl.get() + '/rest/policy/conditionType';
 			},
 
 			getActionTypeUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/actionType';
+				return baseUrl.get() + '/rest/policy/actionType';
 			},
 
 			getActionStageUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/stageType';
+				return baseUrl.get() + '/rest/policy/stageType';
 			},
 
 			getApplicationsUrl: function () {
-				return this.getBaseUrl() + '/rest/application';
+				return baseUrl.get() + '/rest/application';
 			},
 
 			getApplicationUrl: function(applicationId) {
-				return this.getBaseUrl() + '/rest/application/' + encodeURIComponent(applicationId);
+				return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationId);
 			},
 
 			getOrganizationsUrl: function() {
-				return this.getBaseUrl() + '/rest/organization';
+				return baseUrl.get() + '/rest/organization';
 			},
 
 			getLicenseSummaryUrl: function() {
-				return this.getBaseUrl() + '/rest/product/license?ts=' + new Date().getTime();
+				return baseUrl.get() + '/rest/product/license?ts=' + new Date().getTime();
 			},
 
 			getLicenseUploadUrl: function() {
 				// TODO $.browser is deprecated
-				return this.getBaseUrl() + '/rest/product/license'+ ($.browser.msie ? '?isIE=true' : '');
+				return baseUrl.get() + '/rest/product/license'+ ($.browser.msie ? '?isIE=true' : '');
 			},
 
 			evaluatePolicyUrl: function(applicationId, scanId) {
-				return this.getBaseUrl() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
+				return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
 			},
 
 			getProprietaryConfig : function () {
-				return this.getBaseUrl() + '/rest/config/proprietary';
+				return baseUrl.get() + '/rest/config/proprietary';
 			}
 		};
-	}]).factory('CLMAppLocations', ['ApplicationId', 'OrganizationId', '$state', function (appId, orgId, $state) {
+	}]).factory('CLMAppLocations', ['ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function (appId, orgId, $state, baseUrl) {
 		var getServicePath = function() {
 			return $state.current.name.indexOf('application') !== -1 ? 'application' : 'organization';
 		};
@@ -93,50 +68,48 @@
 		};
 
 		return {
-			getBaseUrl: getBaseUrl,
-
 			getLabelsUrl: function () {
-				return this.getBaseUrl() + '/rest/label/' + getServicePathWithId();
+				return baseUrl.get() + '/rest/label/' + getServicePathWithId();
 			},
 
 			getDeleteLabelsUrl: function (label) {
-				return this.getBaseUrl() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
+				return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
 			},
 
 			getLicenseGroupsUrl: function () {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/' + getServicePathWithId();
+				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId();
 			},
 
 			getDeleteLicenseGroupUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id);
+				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id);
 			},
 
 			getLicenseGroupLicensesUrl: function (group) {
-				return this.getBaseUrl() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
+				return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
 			},
 
 			getConditionValueTypeUrl: function () {
-				return this.getBaseUrl() + '/rest/conditionValueType/' + getId();
+				return baseUrl.get() + '/rest/conditionValueType/' + getId();
 			},
 
 			getPolicyUrl: function () {
-				return this.getBaseUrl() + '/rest/policy/' + getId();
+				return baseUrl.get() + '/rest/policy/' + getId();
 			},
 
 			getEntitiesUrl: function() {
-				return this.getBaseUrl() + '/rest/' + getServicePath();
+				return baseUrl.get() + '/rest/' + getServicePath();
 			},
 
 			getEntityUrl: function () {
-				return this.getBaseUrl() + '/rest/' + getServicePathWithId();
+				return baseUrl.get() + '/rest/' + getServicePathWithId();
 			},
 
 			addIcon: function () {
-				return this.getBaseUrl() + '/rest/' + getServicePath() + '/icon';
+				return baseUrl.get() + '/rest/' + getServicePath() + '/icon';
 			},
 
 			addIconSync: function () {
-				return this.getBaseUrl() + '/rest/' + getServicePath() + '/icon/sync';
+				return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
 			}
 		};
 	}]);

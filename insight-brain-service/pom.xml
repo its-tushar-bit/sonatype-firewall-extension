@@ -22,6 +22,8 @@
     <wro4j.version>1.6.3</wro4j.version>
     <licensing.version>1.3.2</licensing.version>
     <angularjs.version>1.0.7</angularjs.version>
+    <jasmine.version>1.3.1.2</jasmine.version>
+    <saga.version>1.4.2</saga.version>
   </properties>
 
   <dependencies>
@@ -423,7 +425,7 @@
       <plugin>
         <groupId>com.github.searls</groupId>
         <artifactId>jasmine-maven-plugin</artifactId>
-        <version>1.3.1.2</version>
+        <version>${jasmine.version}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -489,6 +491,32 @@
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
+          <keepServerAlive>true</keepServerAlive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.timurstrekalov</groupId>
+        <artifactId>saga-maven-plugin</artifactId>
+        <version>${saga.version}</version>
+        <executions>
+          <execution>
+            <id>jasmine-coverage</id>
+            <phase>test</phase>
+            <goals>
+              <goal>coverage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <baseDir>http://localhost:${jasmine.serverPort}</baseDir>
+          <backgroundJavaScriptTimeout>1000</backgroundJavaScriptTimeout>
+          <outputDir>${project.build.directory}/coverage</outputDir>
+          <sortBy>file</sortBy>
+          <noInstrumentPatterns>
+            <pattern>.*/.*[Ss]pec\.js</pattern>
+            <pattern>.*/.*[Mm]ock.*</pattern>
+            <pattern>.*/lib/.*</pattern>
+          </noInstrumentPatterns>
         </configuration>
       </plugin>
       <plugin>

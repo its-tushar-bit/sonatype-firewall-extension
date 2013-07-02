@@ -190,10 +190,18 @@ var angularCommon;
 	                        scope.$apply();
 	                    }
 	                };
-	            	if (attrs.validate) {
-	            		var validateFn = $parse(attrs.validate)(scope);
-	            		args.validate = validateFn;
-	            	}
+	            	
+	            	if (attrs.idField != undefined) {
+	            	    args.validate = function(value) {
+	            	        if($.trim(value) === '_new_') {
+	            	            return 'This is a reserved value';
+	            	        }
+	            	    };
+	            	} else if (attrs.validate) {
+                        var validateFn = $parse(attrs.validate)(scope);
+                        args.validate = validateFn;
+                    }
+	            	
 	            	if (attrs.source) {
 	            		var source = $parse(attrs.source)(scope);
 	            		var parsedSource = [];

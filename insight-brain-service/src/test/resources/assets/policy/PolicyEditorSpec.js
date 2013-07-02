@@ -342,9 +342,60 @@ describe('PolicyEditor', function() {
 	// TODO Test Response of PolicyEditorController to events from Constraint Controller
 	describe('PolicyStore', function () {
 		it('Default Values', inject(function (PolicyStore) {
-			 var newPolicy = PolicyStore.get().create();
-			 expect(newPolicy.threatLevel).toEqual(5);
-			 expect(newPolicy.constraints).toEqual([]);
+			var newPolicy = PolicyStore.get().create();
+			expect(newPolicy.threatLevel).toEqual(5);
+			expect(newPolicy.constraints).toEqual([]);
+		}));
+
+		it('isActionDirty', inject(function (PolicyStore) {
+			var policy = {
+					actions : {
+						procure: [],
+						develop: [],
+						build: [],
+						"stage-release": [],
+						release: [],
+						operate: []
+					}
+				},
+				deserializedActions = PolicyStore.deserializeActions(policy.actions);
+
+			// Empty, unchanged
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(false);
+
+			// Action has been removed
+			policy.actions.procure.push({
+				actionTypeId: "fail",
+				target: null
+			});
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(true);
+
+			// One action, unchanged
+			deserializedActions = PolicyStore.deserializeActions(policy.actions);
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(false);
+
+			// Notification has been removed
+			policy.actions.procure.push({
+				actionTypeId: "notify",
+				target: "foo@bar.com"
+			});
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(true);
+
+			// One action, one notification, unchanged
+			deserializedActions = PolicyStore.deserializeActions(policy.actions);
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(false);
+
+			// One action, one notification, action removed
+			policy.actions.procure.splice(0, 1);
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(true);
+
+			// one notification unchanged
+			deserializedActions = PolicyStore.deserializeActions(policy.actions);
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(false);
+
+			// one notification removed
+			policy.actions.procure.pop();
+			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(true);
 		}));
 	});
 });

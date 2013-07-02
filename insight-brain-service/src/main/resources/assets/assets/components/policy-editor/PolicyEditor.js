@@ -66,16 +66,19 @@
 				});
 				return uiActions;
 			},
-			actionEquals : function (policy, actions) {
+			isActionDirty : function (policy, actions) {
 				var changed = false;
-				angular.forEach(policy.actions, function (action, stage) {
-					angular.forEach(action, function (a) {
-						if (a.actionTypeId === 'notify') {
-							changed = changed || (actions[stage].notify.indexOf(a.target));
+				angular.forEach(actions, function (dAction, dStage) {
+					var emailCount = 0;
+					angular.forEach(policy.actions[dStage], function (policyAction) {
+						if (policyAction.actionTypeId === 'notify') {
+							changed = changed || (dAction.notify.indexOf(policyAction.target) === -1);
+							emailCount++;
 						} else {
-							changed = changed || (actions[stage].action !== a.actionTypeId);
+							changed = changed || (policyAction.actionTypeId !== dAction.action);
 						}
 					});
+					changed = changed || emailCount !== dAction.notify.length || (dAction.action !== null && emailCount === policy.actions[dStage].length);
 				});
 				return changed;
 			}
@@ -154,7 +157,7 @@
 			} else {
 				angular.forEach($scope.policies, function (policy, index) {
 					if (policy.id === $scope.state.currentPolicy.id) {
-						changed = !angular.equals(policy, $scope.state.currentPolicy) || policyStore.actionEquals($scope.state.currentPolicy, $scope.state.actions);
+						changed = $scope.state.currentPolicy.isDirty() || policyStore.isActionDirty($scope.state.currentPolicy, $scope.state.actions);
 					}
 				});
 			}

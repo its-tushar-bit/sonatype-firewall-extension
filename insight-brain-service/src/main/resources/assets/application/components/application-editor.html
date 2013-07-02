@@ -25,14 +25,14 @@
 	            </div>
    			</div>
 			<div class='header-name-editor'>
-				<a ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Application Name' 
-					data-type='text' style='margin-bottom: 5px;'></a>
+                          <a ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Application Name'
+                             validate='validateApplicationName' data-type='text' style='margin-bottom: 5px;'></a>
 			</div>
 			<span style='padding-left: 9px'>Application</span>
 			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
 				<div ng-switch-when='null'>
-					<a ng-model='selectedApplication.publicId' xeditable id-field href='javascript:;' data-emptytext='Application ID'
-						data-type='text'></a>
+                          <a ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Application ID'
+                             validate='validateApplicationId' data-type='text'></a>
 				</div>
 				<span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
 			</div>

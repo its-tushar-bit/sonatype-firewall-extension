@@ -81,6 +81,7 @@ describe('ApplicationEditorController', function () {
 		scope.selectedApplication.$getOriginal = function() {
 			return originalMockApplication;
 		};
+                scope.applications = [mockApplication];
 
 		$controller('applicationEditorController', { $scope: scope, $state: state });
 
@@ -171,4 +172,49 @@ describe('ApplicationEditorController', function () {
 		scope.confirmDeleteApplication(mockApplication);
 		scope.deleteApplication();
 	}));
+
+  it('validates application name', inject(function () {
+    scope.applicationEditor = {
+      $valid: true
+    };
+    scope.selectedApplication = {
+      "id": undefined,
+      "name": "applicationName",
+      "publicId": "bom1-12345678",
+      "organizationId": "organizationId",
+    };
+
+    expect(scope.validateApplicationName('applicationName')).toEqual('Name is already in use');
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationName('new name')).toBeUndefined();
+    expect(scope.applicationEditor.$invalid).toBeFalsy();
+
+    expect(scope.validateApplicationName('new  name')).toBeDefined();
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationName(' new name')).toBeDefined();
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationName('new name ')).toBeDefined();
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+  }));
+
+  it('validates application id', inject(function() {
+    scope.applicationEditor = {
+      $valid: true
+    };
+    scope.selectedApplication = {
+      "id": undefined,
+      "name": "applicationName",
+      "publicId": "bom1-12345678",
+      "organizationId": "organizationId",
+    };
+
+    expect(scope.validateApplicationId('bom1-12345678')).toEqual('Id is already in use');
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationId('new id')).toBeUndefined();
+    expect(scope.applicationEditor.$invalid).toBeFalsy();
+  }));
 });

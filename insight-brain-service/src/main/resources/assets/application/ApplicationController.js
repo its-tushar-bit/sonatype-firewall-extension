@@ -81,7 +81,7 @@
 		});
 	});
 
-	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, $http, hudson) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, $http, hudson, editorTools) {
 		function formReset() {
 			var applicationPublicId = $scope.selectedApplication.publicId;
 			$state.transitionTo('management.application').then(function() {
@@ -121,7 +121,7 @@
 		};
 		
 		$scope.alerts = [];
-		
+
 		$scope.generateIcon = function () {
 			var name = $scope.selectedApplication.name,
 				hash = 0;
@@ -143,7 +143,7 @@
 			if (element.files && element.files.length > 0) {
 				$scope.hasRobotSource = false;
 				var file = element.files[0],
-				src;
+				    src;
 				if (window.URL) {
 					src = window.URL.createObjectURL(file);
 				} else if (window.webkitURL) {
@@ -198,7 +198,7 @@
 		});
 
 		$scope.canSaveEdit = function () {
-			return $scope.applicationEditor.$valid && !$scope.submitActive;
+			return $scope.isFormDirty() && !$scope.applicationEditor.$invalid && !$scope.submitActive;
 		};
 		
 		$scope.cancel = function() {
@@ -230,7 +230,7 @@
 				$state.transitionTo('management.application');
 			}).error(function () { 
 				$('#deleteApplicationModal').modal('hide');
-				$scope.alerts.push({ type: 'error', msg: rejection.data }); 
+				$scope.pushAlert({ type: 'error', msg: rejection.data });
 			});
 		};
 		
@@ -249,7 +249,7 @@
 				if (icon.files.length > 0) {
 					if (icon.files[0].size > 5242880) {
 						$scope.$apply(function() {
-							$scope.alerts.push({ type: 'error', msg: 'Icon file size must be smaller than 5 MB.' });
+							$scope.pushAlert({ type: 'error', msg: 'Icon file size must be smaller than 5 MB.' });
 						});
 						return false;
 					}
@@ -273,7 +273,7 @@
 					});
 				}).error(function (data) { 
 					$scope.submitActive = false;
-					$scope.alerts.push({ type: 'error', msg: data }); 
+                                        $scope.pushAlert({ type: 'error', msg: data });
 				});
 			} else {
 				$http.put(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
@@ -282,12 +282,52 @@
 					});
 				}).error(function (data) {
 					$scope.submitActive = false;
-					$scope.alerts.push({ type: 'error', msg: data }); 
+                                        $scope.pushAlert({ type: 'error', msg: data });
 				});
 			}
 
 			return false;
 		};
+
+          $scope.closeAlert = function(index) {
+            $scope.alerts.splice(index, 1);
+          };
+
+          //clear existing alerts and add the specified ones
+          $scope.pushAlert = function (obj) {
+            $scope.alerts.length = 0;
+            $scope.alerts.push(obj);
+
+          };
+
+          //defer to common name validations(unique, whitespace enforcement, etc)
+          $scope.validateApplicationName = function (value) {
+            $scope.applicationEditor.$invalid = false;
+
+            var result = editorTools.validateName(value, $scope.selectedApplication, $scope.applications);
+
+            if (result !== true) {
+              $scope.applicationEditor.$invalid = true;
+              return result;
+            }
+          };
+
+          //unique IDs are required
+          $scope.validateApplicationId = function (publicId) {
+            $scope.applicationEditor.$invalid = false;
+
+            var result = true;
+            for (var i = 0; i < $scope.applications.length; i++) {
+              if (publicId == $scope.applications[i].publicId) {
+                result = false;
+              }
+            }
+
+            if (result !== true) {
+              $scope.applicationEditor.$invalid = true;
+              return 'Id is already in use';
+            }
+          };
 
 		function saveIcon() {
 			if (!$scope.iconChanged) {
@@ -335,7 +375,7 @@
 							} else {
 								errorText = jqXHR.responseText;
 							}
-							$scope.alerts.push({ type: 'error', msg: errorText });
+							$scope.pushAlert({ type: 'error', msg: errorText });
 						});
 					}
 				});

@@ -444,6 +444,7 @@
             <include>assets/lib/angular/angular-sanitize-${angularjs.version}.js</include>
             <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
             <include>assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
+            <include>assets/lib/X-editable/bootstrap-editable.min.js</include>
             <include>assets/js/Resource.js</include>
             <include>assets/js/EditorTools.js</include>
             <include>assets/util/CLMLocation.js</include>

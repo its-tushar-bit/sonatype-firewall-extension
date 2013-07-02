@@ -4,47 +4,45 @@
 		<h5><i class='icon-time'></i> Loading...</h5>
 	</div>
 	<div class='fade' ng-class='{in : state}'>
-		<div class='row'>
-			<div class='span6 offset3'>
-				<div class='content-container' style='text-align:center;padding-top: 5px;padding-right: 20px;margin-bottom:10px;'>
-					<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
-					<p><a relative-href="/new">Create</a> a new Policy.</p>
-					<table class='table table-striped table-bordered' style='margin:10px'>
-			            <thead>
-			            <tr>
-			                <th ng-repeat='stage in state.actionStageList | filterReportColumns' style='padding: 4px' class='buttonColumn'>
-			                    {{stage.name}} Report
-			                </th>
-			            </tr>
-			            </thead>
-			            <tr>
-			                <td ng-repeat='stage in state.actionStageList | filterReportColumns'>
-			                    <div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
-			                    	<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
-				                       ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-				                       title='View Report' href='../application-assets/#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-				                    	<img src='../assets/img/glyphicons_263_bank.png' />
-				                    	<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
-				                   		<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
-				                   		<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
-				            			<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
-			            			</a>
-			                    	<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
-				                    	ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-				                    	ng-click='reEvaluatePolicy(application, policyEvaluation)'>
-				                    	<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
-				                    	<i ng-show='reEvaluatingPolicy' class='icon-time'></i>	
-			                    	</a>
-			                   	</div>
-			                </td>
-			            </tr>
-			        </table>
-		        </div>
-	        </div>
-        </div>
+		<div style='margin:auto;width:460px'>
+			<div class='content-container' style='text-align:center;padding-top: 5px;padding-right: 20px;margin-bottom:10px;'>
+				<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
+				<p><a relative-href="/new">Create</a> a new Policy.</p>
+				<table class='table table-striped table-bordered' style='margin:10px'>
+					<thead>
+						<tr>
+							<th ng-repeat='stage in state.actionStageList | filterReportColumns' style='padding: 4px' class='buttonColumn'>
+								{{stage.name}} Report
+							</th>
+						</tr>
+					</thead>
+					<tr>
+						<td ng-repeat='stage in state.actionStageList | filterReportColumns'>
+							<div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
+								<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
+								   ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
+								   title='View Report' href='../application-assets/#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+									<img src='../assets/img/glyphicons_263_bank.png' />
+									<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
+									<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
+									<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
+									<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
+								</a>
+								<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
+									ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
+									ng-click='reEvaluatePolicy(application, policyEvaluation)'>
+									<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
+									<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
+								</a>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
 		<div clm-alerts='alerts'></div>
 		<div>
-		    <div class="policy-item" ng-repeat="policy in state.policyList">
+			<div class="policy-item" ng-repeat="policy in state.policyList">
 				<div style="float:right;" class='btn-group'>
 					<a class="btn btn-mini policy-button" title="Edit Policy" relative-href='/{{policy.id}}'"><i
 						class="icon-pencil" style="margin-top:0px;"></i></a>
@@ -67,7 +65,7 @@
 						}"></div>
 					<ul style="list-style:none;"><li>{{getActions(policy)}}</li></ul>
 				</div>
-		    </div>
+			</div>
 		</div>
 	</div>
 	<div id="confirmationModal" data-backdrop="static" class="modal fade">
@@ -79,7 +77,7 @@
 		</div>
 		<div class="modal-footer">
 			<button class="btn" data-dismiss='modal'>{{state.confirm.declineText}}</button>
-		    <button class="btn btn-danger" ng-click="state.confirm.acceptFn()">{{state.confirm.acceptText}}</button>
+			<button class="btn btn-danger" ng-click="state.confirm.acceptFn()">{{state.confirm.acceptText}}</button>
 		</div>
 	</div>
 </div>

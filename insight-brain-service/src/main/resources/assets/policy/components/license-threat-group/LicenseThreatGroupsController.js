@@ -51,15 +51,15 @@
 			
 			return deferred.promise;
 		}
-    	
+
     	function saveGroup(licenseIds) {
     		var deferred = $q.defer();
-    		
+
     		var licenseGroup = this;
     		licenseGroup.$save().then(function() {
     			$http.put(CLMAppLocations.getLicenseGroupLicensesUrl(licenseGroup), licenseIds).success(function (licenses) {
                 	licenseGroup.licenses = licenses;
-                	
+
                 	deferred.resolve(licenseGroup);
                 }).error(function (data, status, headers, config) {
         			deferred.reject({
@@ -77,10 +77,10 @@
     				config : rejection.config
     			});
             });
-    		
+
     		return deferred.promise;
     	}
-    	
+
 		var licenseGroupStoreTemplate = {
 			id : 'id',
 			template : { id: null, applicationId: null, licenses: [], name: '', threatLevel: 5 },
@@ -104,7 +104,7 @@
 			create: function() {
 				refreshLicenseStore();
 				var licenseGroup = licenseGroupStore.create();
-				licenseGroup.saveGroup = saveGroup
+				licenseGroup.saveGroup = saveGroup;
 				return licenseGroup;
 			}
 		};
@@ -167,7 +167,7 @@
         $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
         	var licenses = results[0];
         	var licenseGroups = results[1];
-        	
+
         	$scope.allLicenses = licenses.sort(sortLicense);
         	$scope.licenseGroups = licenseGroups;
         }, function(error, a) {

@@ -10,7 +10,7 @@
     
     function pad(str) {
         return ('' + str).length < 2 ? pad("0" + str, 2) : str;
-    };
+    }
     
     function dateToString(date) {
         if (!date) {
@@ -18,7 +18,7 @@
         }
         
         return pad(date.getMonth() + 1) + '/' + pad(date.getDate()) + '/' + date.getFullYear();
-    };
+    }
     
     function stringToDate(str) {
         if (!str) {
@@ -32,7 +32,7 @@
         }
         
         return new Date(parts[2],parts[0] - 1,parts[1]);
-    };
+    }
 
     $.extend(true, window, {
         'Insight' : {

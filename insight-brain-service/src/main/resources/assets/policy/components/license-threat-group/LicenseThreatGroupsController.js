@@ -327,11 +327,6 @@
 			$scope.alerts = [];
 			$scope.$emit('license.cancelLicenseGroupEdit');
 		};
-		$scope.$watch('selectedLabel', function (newValue) {
-			if (newValue) {
-				$scope.submitActive = false;
-			}
-		});
         $scope.$on('$destroy', function () {
             angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
         });

@@ -279,8 +279,8 @@ public class ApplicationResource
             policyEvaluations.put( stage.getStageTypeId(), policyEvaluation );
 
             List<PolicyAlert> alerts =
-                policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, applicationId,
-                                                           policyEvaluation.getScanId(), stage );
+                policyEvaluationUtils.findLastPolicyAlerts( applicationPublicId, applicationId,
+                                                            policyEvaluation.getScanId(), stage );
             final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
             policyEvaluationResult.setAlerts( alerts );
             policyEvaluationUtils.calculateCounters( policyEvaluationResult );

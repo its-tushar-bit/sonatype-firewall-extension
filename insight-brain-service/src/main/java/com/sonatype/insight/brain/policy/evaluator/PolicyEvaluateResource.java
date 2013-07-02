@@ -91,7 +91,7 @@ public class PolicyEvaluateResource
         String appId = application.getId();
 
         final List<PolicyAlert> oldAlerts =
-            policyEvaluationUtils.findOldPolicyAlerts( applicationPublicId, appId, scanId, stage );
+            policyEvaluationUtils.findLastPolicyAlerts( applicationPublicId, appId, scanId, stage );
 
         PolicyEvaluationResult policyEvaluation = policyEvaluationUtils.evaluate( applicationPublicId, scanId, stage );
         final List<PolicyAlert> alerts = policyEvaluation.getAlerts();

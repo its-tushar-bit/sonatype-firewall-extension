@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -86,17 +87,17 @@ public class PolicyEvaluationUtils
 
         ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
 
-        final PolicyEvaluationResult policyEvaluation = new PolicyEvaluationResult();
-        policyEvaluation.setAlerts( alerts );
-        calculateCounters( policyEvaluation );
+        final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
+        policyEvaluationResult.setAlerts( alerts );
+        calculateCounters( policyEvaluationResult );
 
-        return policyEvaluation;
+        return policyEvaluationResult;
     }
 
-    public void calculateCounters( PolicyEvaluationResult policyEvaluation )
+    public void calculateCounters( PolicyEvaluationResult policyEvaluationResult )
     {
         final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
-        for ( final PolicyAlert alert : policyEvaluation.getAlerts() )
+        for ( final PolicyAlert alert : policyEvaluationResult.getAlerts() )
         {
             final PolicyFact trigger = alert.getTrigger();
             final int policyThreatLevel = trigger.getThreatLevel();
@@ -127,27 +128,27 @@ public class PolicyEvaluationUtils
             }
         }
 
-        policyEvaluation.setAffectedComponentCount( componentThreatLevels.size() );
-        policyEvaluation.setCriticalComponentCount( criticalCount );
-        policyEvaluation.setSevereComponentCount( severeCount );
-        policyEvaluation.setModerateComponentCount( moderateCount );
+        policyEvaluationResult.setAffectedComponentCount( componentThreatLevels.size() );
+        policyEvaluationResult.setCriticalComponentCount( criticalCount );
+        policyEvaluationResult.setSevereComponentCount( severeCount );
+        policyEvaluationResult.setModerateComponentCount( moderateCount );
     }
 
-    public List<PolicyAlert> findOldPolicyAlerts( final String applicationPublicId, String appId, final String scanId,
-                                                  final Stage stage )
+    public List<PolicyAlert> findLastPolicyAlerts( final String applicationPublicId, String appId, final String scanId,
+                                                   final Stage stage )
         throws IOException
     {
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
 
         // retrieve last known scanId for stage
-        com.sonatype.insight.brain.model.policy.PolicyEvaluation last = evalLog.lastByStage( stage.getStageTypeId() );
-        final String oldScanId = ( last != null ) ? last.getScanId() : null;
+        PolicyEvaluation last = evalLog.lastByStage( stage.getStageTypeId() );
+        final String lastScanId = ( last != null ) ? last.getScanId() : null;
 
-        if ( !StringUtils.isBlank( oldScanId ) )
+        if ( !StringUtils.isBlank( lastScanId ) )
         {
             try
             {
-                final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, oldScanId, true );
+                final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, lastScanId, true );
                 final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
                 if ( reportEntry != null )
                 {

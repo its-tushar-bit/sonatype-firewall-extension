@@ -8,3 +8,18 @@
 .glyphicons-sonatype.bin:before {
   content: "\e017";
 }
+
+.glyphicons-halflings-sonatype:before {
+    *zoom: 1;
+    font: 12px/1em 'Glyphicons Halflings';
+    font-style: normal;
+    color: #1d1d1b;
+}
+
+.glyphicons-halflings-sonatype.expand:before {
+  content: "\e158";
+}
+
+.glyphicons-halflings-sonatype.collapse:before {
+  content: "\e159";
+}

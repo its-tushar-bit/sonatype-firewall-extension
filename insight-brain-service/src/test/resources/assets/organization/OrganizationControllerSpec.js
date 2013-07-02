@@ -1,17 +1,15 @@
 var clmTimestamp = '';
 
 describe('OrganizationController', function() {
-    var scope, httpBackend, rootScope, clmLocations, compile, mockOrganization, sniffer, organizationStore;
+    var scope, httpBackend, rootScope, clmLocations, compile, sniffer, organizationStore;
 
-    function toRegExp(getUrl) {
-        return new RegExp(getUrl + '\\?timestamp=[0-9]+');
-    }
-
-    angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
-        return $http;
-    } ]);
-
-    beforeEach(module('Organization', 'AngularCommon', 'CLMLocation', 'Hudson'));
+    beforeEach(module('Organization', 'AngularCommon', 'CLMLocation'));
+	beforeEach(module(function($provide) {
+		$provide.value('Hudson', ['$http', function($http) {
+				return $http;
+			}]
+		);
+	}));
     beforeEach(inject(function($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile, $sniffer, OrganizationStore) {
         httpBackend = $httpBackend;
         rootScope = $rootScope;

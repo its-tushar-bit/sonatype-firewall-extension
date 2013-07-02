@@ -7,11 +7,21 @@ describe('ApplicationManagementController', function () {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
 	}
 
-	angular.module('Hudson', []).factory('hudson', ['$http', function ($http) {
-		return $http;
-	}]);
-
-	beforeEach(module('ApplicationId', 'ApplicationManagement', 'AngularCommon', 'CLMLocation', 'Hudson'));
+	beforeEach(module('ApplicationManagement', 'AngularCommon', 'CLMLocation'));
+	beforeEach(module(function($provide) {
+		$provide.value('ApplicationId', {
+			encoded : function () {
+				return mockApplication.publicId;
+			}
+		}
+		);
+	}));
+	beforeEach(module(function($provide) {
+		$provide.value('Hudson', ['$http', function($http) {
+			return $http;
+		}]
+		);
+	}));
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, CLMAppLocations, regexFactory, $compile, $sniffer) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;
@@ -107,7 +117,7 @@ describe('ApplicationManagementController', function () {
 	});
 
 	it('deletes an application', function () {
-		httpBackend.expectDELETE(clmAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
+		httpBackend.expectDELETE(clmAppLocations.getEntityUrl()).respond({});
 
 		scope.confirmDeleteApplication(mockApplication);
 		scope.deleteApplication();

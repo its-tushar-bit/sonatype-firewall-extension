@@ -6,19 +6,21 @@ describe('PolicyController tests', function() {
     }
     var scope;
 
-    angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
-        return $http;
-    } ]);
-
-    angular.module('ApplicationId',[]).service('ApplicationId', function () {
-		return {
-			encoded : function () {
-			    return 'bom1-12345678';
+    beforeEach(module('Policy'));
+	beforeEach(module(function($provide) {
+		$provide.value('ApplicationId', {
+				encoded : function () {
+					return 'bom1-12345678';
+				}
 			}
-		};
-    });
-
-    beforeEach(module('ApplicationId', 'Policy'));
+		);
+	}));
+	beforeEach(module(function($provide) {
+		$provide.value('Hudson', ['$http', function($http) {
+				return $http;
+			}]
+		);
+	}));
     // setup our http backend to return what we want
     beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
 		$state.current.name = "management.application";

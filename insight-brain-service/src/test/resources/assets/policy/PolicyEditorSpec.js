@@ -79,19 +79,21 @@ describe('PolicyEditor', function() {
 		});
 	}
 
-    angular.module('ApplicationId',[]).service('ApplicationId', function () {
-		return {
-			encoded : function () {
-				return 'bom1-12345678';
+	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation'));
+	beforeEach(module(function($provide) {
+		$provide.value('ApplicationId', {
+				encoded : function () {
+					return 'bom1-12345678';
+				}
 			}
-		};
-    });
-
-	angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
-		return $http;
-	} ]);
-
-	beforeEach(module('ApplicationId', 'PolicyEditor', 'AngularCommon', 'CLMLocation'));
+		);
+	}));
+	beforeEach(module(function($provide) {
+		$provide.value('Hudson', ['$http', function($http) {
+				return $http;
+			}]
+		);
+	}));
 	
 	afterEach(function() {
 		angular.element('#policyEditor').remove();

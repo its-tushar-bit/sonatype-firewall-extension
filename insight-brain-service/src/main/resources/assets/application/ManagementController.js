@@ -76,7 +76,7 @@
 
 		$scope.deleteApplication = function () {
 			$scope.deletedEnabled = false;
-			$http['delete'](clmAppLocations.getEntityUrl($scope.selectedApplication.publicId)).success(function () {
+			$http['delete'](clmAppLocations.getEntityUrl()).success(function () {
 				angular.forEach($scope.applications, function (applicationCandidate, key) {
 					if (applicationCandidate.id === $scope.selectedApplication.id) {
 						$scope.applications.splice(key, 1);

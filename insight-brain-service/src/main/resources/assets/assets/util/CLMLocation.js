@@ -54,6 +54,10 @@
 				return this.getBaseUrl() + '/rest/application';
 			},
 
+			getApplicationUrl: function(applicationId) {
+				return this.getBaseUrl() + '/rest/application/' + encodeURIComponent(applicationId);
+			},
+
 			getOrganizationsUrl: function() {
 				return this.getBaseUrl() + '/rest/organization';
 			},
@@ -85,7 +89,7 @@
 		};
 
 		var getServicePathWithId = function() {
-			return $state.current.name.indexOf('application') !== -1 ? 'application/' + appId.encoded() : 'organization/' + orgId.encoded();
+			return getServicePath() + '/' + getId();
 		};
 
 		return {
@@ -123,8 +127,8 @@
 				return this.getBaseUrl() + '/rest/' + getServicePath();
 			},
 
-			getEntityUrl: function (entityId) {
-				return this.getBaseUrl() + '/rest/' + getServicePath() + '/' + encodeURIComponent(entityId);
+			getEntityUrl: function () {
+				return this.getBaseUrl() + '/rest/' + getServicePathWithId();
 			},
 
 			addIcon: function () {

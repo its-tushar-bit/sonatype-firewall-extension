@@ -143,6 +143,10 @@ public class ReportResource
         return Response.status( Status.NOT_FOUND ).build();
     }
 
+    /**
+     * Re-evaluates the policy for a scan. The policy must have been evaluated for the given scan at least once. This
+     * method should not send policy evaluation notifications.
+     */
     @GET
     @Path( "reevaluatePolicy" )
     public Response reevaluatePolicy( @PathParam( "applicationPublicId" ) final String applicationPublicId, 

@@ -216,5 +216,9 @@ describe('ApplicationEditorController', function () {
 
     expect(scope.validateApplicationId('new id')).toBeUndefined();
     expect(scope.applicationEditor.$invalid).toBeFalsy();
+
+    expect(scope.validateApplicationId('_new_')).toEqual('This is a reserved value');
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
   }));
 });

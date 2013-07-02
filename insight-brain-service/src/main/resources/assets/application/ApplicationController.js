@@ -316,9 +316,14 @@
           $scope.validateApplicationId = function (publicId) {
             $scope.applicationEditor.$invalid = false;
 
+            if($.trim(publicId) === '_new_') {
+              $scope.applicationEditor.$invalid = true;
+              return 'This is a reserved value';
+            }
+
             var result = true;
             for (var i = 0; i < $scope.applications.length; i++) {
-              if (publicId == $scope.applications[i].publicId) {
+              if (publicId === $scope.applications[i].publicId) {
                 result = false;
               }
             }

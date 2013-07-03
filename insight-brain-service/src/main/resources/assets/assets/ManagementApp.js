@@ -17,9 +17,14 @@
 		});
 		$routeProvider.when('', { redirectTo : '/management/application' });
 		$urlRouterProvider.otherwise( '/error' );
-	}]).run(['$rootScope', '$location', '$dialog', function ($rootScope, $location, $dialog) {
+	}]).run(['$rootScope', '$location', '$dialog', 'Messages', function ($rootScope, $location, $dialog, messages) {
 		// The page contains unsaved changes, continuing will discard them.
 		var state = null;
+
+		$rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
+		    $rootScope.error = messages.getHttpErrorMessage(error);
+		});
+
 		$rootScope.$on('$locationChangeStart', function (event, newUrl, oldUrl) {
 			// initial page load triggers state where new URL == old URL
 			var destination = $location.$$url,

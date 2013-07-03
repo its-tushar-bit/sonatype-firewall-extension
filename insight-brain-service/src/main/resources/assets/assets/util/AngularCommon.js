@@ -331,10 +331,16 @@ var angularCommon;
 				if (angular.isArray(args)) {
 					args = {
 						status : args[1],
-						data : args[0]
+						data : args[0],
+						headers : args.length > 5 ? args[4] : null
 					};
 				}
-				return args.status === 0 ? 'Unable to reach CLM server' : args.status + ' - ' + args.data; 
+				var message = '',
+				    headers = args.headers ? args.headers() : null;
+				if (!headers || !headers['content-type'] || headers['content-type'].indexOf('text/html') === -1) {
+				    message = ' - ' + args.data;
+				}
+				return args.status === 0 ? 'Unable to reach CLM server' : args.status + message;
 			}
 		};
 	});

@@ -55,23 +55,30 @@
 			</div>
 		</div>
 	</div>
-	<div class="second-row navbar navbar-inverse navbar-fixed-top">
-		<div class="navbar-inner">
-			<div class="container-fluid">
-				<div class="btn-group">
-					<a class="btn btn-inverse btn-black dropdown-toggle" data-toggle="dropdown" href="#">
-						{{ selectedDashboard.name }} <span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu">
-						<li ng-repeat="dashboard in availableDashboards">
-							<a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>
-						</li>
-				  	</ul>
+	<div ng-show='!error'>
+		<div class="second-row navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<div class="btn-group">
+						<a class="btn btn-inverse btn-black dropdown-toggle" data-toggle="dropdown" href="#">
+							{{ selectedDashboard.name }} <span class="caret"></span>
+						</a>
+						<ul class="dropdown-menu">
+							<li ng-repeat="dashboard in availableDashboards">
+								<a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>
+							</li>
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
+		<div class="third-row" ui-view>
+		</div>
 	</div>
-	<div class="third-row" ui-view>
+	<div ng-show='error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>
+		<h3>Error</h3>
+		<p>An unrecoverable error has occurred while loading the page.</p>
+		<p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
 	</div>
 </body>
 </html>

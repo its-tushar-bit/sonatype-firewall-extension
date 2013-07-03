@@ -62,7 +62,7 @@ public class Condition
         this.value = value;
     }
 
-    public ValidationResult validate( String applicationId )
+    public ValidationResult validate( String ownerId )
     {
         ConditionType<?> conditionType = ConditionTypes.getById( conditionTypeId );
         if ( conditionType == null )
@@ -72,7 +72,7 @@ public class Condition
 
         try
         {
-            conditionType.validateCondition( this, applicationId );
+            conditionType.validateCondition( this, ownerId );
         }
         catch ( InvalidConditionException e )
         {

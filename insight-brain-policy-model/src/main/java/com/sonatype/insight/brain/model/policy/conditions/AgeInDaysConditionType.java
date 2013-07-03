@@ -80,10 +80,10 @@ public class AgeInDaysConditionType
     }
 
     @Override
-    public void validateCondition( Condition condition, String applicationId )
+    public void validateCondition( Condition condition, String ownerId )
         throws InvalidConditionException
     {
-        super.validateCondition( condition, applicationId );
+        super.validateCondition( condition, ownerId );
 
         try
         {

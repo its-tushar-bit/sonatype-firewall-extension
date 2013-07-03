@@ -41,13 +41,13 @@ public class LabelConditionType
     }
 
     @Override
-    public void validateCondition( Condition condition, String applicationId )
+    public void validateCondition( Condition condition, String ownerId )
         throws InvalidConditionException
     {
-        super.validateCondition( condition, applicationId );
+        super.validateCondition( condition, ownerId );
 
         String labelId = condition.getValue();
-        LabelValueType labelValueType = new LabelValueType( applicationId );
+        LabelValueType labelValueType = new LabelValueType( ownerId );
         for ( Label label : labelValueType.getAvailableValues() )
         {
             if ( label.getId().equals( labelId ) )

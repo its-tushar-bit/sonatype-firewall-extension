@@ -15,7 +15,7 @@ public abstract class AbstractConditionType<T>
     implements ConditionType<T>
 {
     @Override
-    public void validateCondition( Condition condition, String applicationId )
+    public void validateCondition( Condition condition, String ownerId )
         throws InvalidConditionException
     {
         if ( condition.getOperator() == null )

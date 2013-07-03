@@ -137,7 +137,7 @@ public class Policy
         stageActions.add( action );
     }
 
-    public ValidationResult validate( String applicationId )
+    public ValidationResult validate( String ownerId )
     {
         log.debug( "Validating " + this.toString() );
 
@@ -168,7 +168,7 @@ public class Policy
                         constraintNames.add( constraintName );
                     }
                 }
-                constraintResult.merge( constraint.validate( applicationId ) );
+                constraintResult.merge( constraint.validate( ownerId ) );
             }
             if ( !constraintResult.isValid() )
             {

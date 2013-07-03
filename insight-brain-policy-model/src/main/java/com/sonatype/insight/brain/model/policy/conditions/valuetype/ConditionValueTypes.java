@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class ConditionValueTypes
 {
-    public static Collection<ConditionValueType<?>> getAll( String applicationId )
+    public static Collection<ConditionValueType<?>> getAll( String ownerId )
     {
         List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<ConditionValueType<?>>();
         allConditionValueTypes.add( new AgeInDaysValueType() );
@@ -21,9 +21,9 @@ public class ConditionValueTypes
         allConditionValueTypes.add( new FloatValueType() );
         allConditionValueTypes.add( new IntegerValueType() );
         allConditionValueTypes.add( new IdentificationSourceValueType() );
-        allConditionValueTypes.add( new LabelValueType( applicationId ) );
+        allConditionValueTypes.add( new LabelValueType( ownerId ) );
         allConditionValueTypes.add( new LicenseStatusValueType() );
-        allConditionValueTypes.add( new LicenseThreatGroupValueType( applicationId ) );
+        allConditionValueTypes.add( new LicenseThreatGroupValueType( ownerId ) );
         allConditionValueTypes.add( new LicenseValueType() );
         allConditionValueTypes.add( new MatchStateValueType() );
         allConditionValueTypes.add( new PercentageValueType() );

@@ -33,7 +33,7 @@ public interface ConditionType<T>
 
     String explainMatch( Condition condition, Component component );
 
-    void validateCondition( Condition condition, String applicationId )
+    void validateCondition( Condition condition, String ownerId )
         throws InvalidConditionException;
 
     boolean evaluateCondition( Component component, String operator, T value );

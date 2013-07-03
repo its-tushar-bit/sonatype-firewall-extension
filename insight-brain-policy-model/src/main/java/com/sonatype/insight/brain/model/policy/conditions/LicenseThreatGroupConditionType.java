@@ -42,13 +42,13 @@ public class LicenseThreatGroupConditionType
     }
 
     @Override
-    public void validateCondition( Condition condition, String applicationId )
+    public void validateCondition( Condition condition, String ownerId )
         throws InvalidConditionException
     {
-        super.validateCondition( condition, applicationId );
+        super.validateCondition( condition, ownerId );
 
         String licenseThreatGroupId = condition.getValue();
-        LicenseThreatGroupValueType licenseThreatGroupValueType = new LicenseThreatGroupValueType( applicationId );
+        LicenseThreatGroupValueType licenseThreatGroupValueType = new LicenseThreatGroupValueType( ownerId );
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroupValueType.getAvailableValues() )
         {
             if ( licenseThreatGroup.getId().equals( licenseThreatGroupId ) )

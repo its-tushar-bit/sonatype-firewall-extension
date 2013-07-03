@@ -64,10 +64,10 @@ public class LicenseStatusConditionType
     }
 
     @Override
-    public void validateCondition( Condition condition, String applicationId )
+    public void validateCondition( Condition condition, String ownerId )
         throws InvalidConditionException
     {
-        super.validateCondition( condition, applicationId );
+        super.validateCondition( condition, ownerId );
 
         if ( LicenseStatus.getById( condition.getValue() ) == null )
         {

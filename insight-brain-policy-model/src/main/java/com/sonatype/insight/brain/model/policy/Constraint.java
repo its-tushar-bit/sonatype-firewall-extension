@@ -96,7 +96,7 @@ public class Constraint
         conditions.add( condition );
     }
 
-    public ValidationResult validate( String applicationId )
+    public ValidationResult validate( String ownerId )
     {
         ValidationResult result = new ValidationResult();
         if ( name == null || name.trim().isEmpty() )
@@ -112,7 +112,7 @@ public class Constraint
         ValidationResult conditionsResult = new ValidationResult();
         for ( Condition condition : conditions )
         {
-            conditionsResult.merge( condition.validate( applicationId ) );
+            conditionsResult.merge( condition.validate( ownerId ) );
         }
 
         if ( !conditionsResult.isValid() )

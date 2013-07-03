@@ -30,8 +30,8 @@
 	}
 
     var head = $('head'),
-        scripts = [ 'assets/bootstrap/bootstrap-datepicker.js', 'policy-assets/components/cip/cip-label-editor.js', 'policy-assets/components/cip/cip-policy-violations.js', 'policy-assets/components/cip/cip-claim-component.js', 'assets/js/Hudson.js', 'assets/util/AngularCommon.js' ],
-        styles = [ 'assets/bootstrap/datepicker.css', 'policy-assets/components/cip/cip-label-editor.css', 'policy-assets/components/cip/cip-policy-violations.css', 'policy-assets/components/cip/cip-claim-component.css' ];
+        scripts = [ 'assets/lib/datepicker/bootstrap-datepicker.js', 'policy-assets/components/cip/cip-label-editor.js', 'policy-assets/components/cip/cip-policy-violations.js', 'policy-assets/components/cip/cip-claim-component.js', 'assets/js/Hudson.js', 'assets/util/AngularCommon.js' ],
+        styles = [ 'assets/lib/datepicker/datepicker.css', 'policy-assets/components/cip/cip-label-editor.css', 'policy-assets/components/cip/cip-policy-violations.css', 'policy-assets/components/cip/cip-claim-component.css' ];
 
 	if (!window.angular) {
 		loadScript(null, 'assets/lib/angular/angular-${angularjs.version}.min.js', function () {

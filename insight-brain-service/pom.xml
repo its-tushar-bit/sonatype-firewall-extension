@@ -468,27 +468,10 @@
             <include>application/ApplicationController.js</include>
           </sourceIncludes>
           <specIncludes>
-            <include>assets/angular-mocks-*.js</include>
-            <include>assets/MockData.js</include>
-            <include>policy/PolicyMockData.js</include>
-            <include>policy/LicenseGroupMockData.js</include>
-            <include>policy/PolicyControllerSpec.js</include>
-            <include>policy/LicenseThreatGroupControllerSpec.js</include>
-            <include>policy/CIPLabelEditorSpec.js</include>
-            <include>policy/cip-claim-component-spec.js</include>
-            <include>policy/LabelControllerSpec.js</include>
-            <include>policy/notification-management-spec.js</include>
-            <include>policy/PolicyEditorSpec.js</include>
-            <include>application/ApplicationMockData.js</include>
-            <include>application/ManagementControllerSpec.js</include>
-            <include>assets/AngularCommonSpec.js</include>
-            <include>assets/ResourceSpec.js</include>
-            <include>assets/ManagementAppSpec.js</include>
-            <include>application/ApplicationControllerSpec.js</include>
-            <include>organization/OrganizationMockData.js</include>
-            <include>organization/OrganizationControllerSpec.js</include>
-            <include>assets/ListEditorSpec.js</include>
-            <include>assets/ProprietaryConfigurationSpec.js</include>
+            <include>**/lib/*.js</include>
+            <include>**/*MockData.js</include>
+            <include>**/*-spec.js</include>
+            <include>**/*Spec.js</include>
           </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
@@ -514,9 +497,10 @@
           <outputDir>${project.build.directory}/coverage</outputDir>
           <sortBy>file</sortBy>
           <noInstrumentPatterns>
-            <pattern>.*/.*[Ss]pec\.js</pattern>
-            <pattern>.*/.*[Mm]ock.*</pattern>
-            <pattern>.*/lib/.*</pattern>
+            <pattern>.*/lib/.*\.js</pattern>
+            <pattern>.*/.*MockData\.js</pattern>
+            <pattern>.*/.*-spec\.js</pattern>
+            <pattern>.*/.*Spec\.js</pattern>
           </noInstrumentPatterns>
         </configuration>
       </plugin>

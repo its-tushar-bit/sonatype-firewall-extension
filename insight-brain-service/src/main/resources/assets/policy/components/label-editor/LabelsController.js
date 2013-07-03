@@ -83,7 +83,7 @@
 
     labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', 'Messages', function ($scope, $http, hudson, clmAppLocations, messages) {
         $scope.alerts = [];
-    	
+
         function errorFn(data, status, headersFn, config) {
             $scope.submitActive = false;
             $scope.alerts.push({
@@ -134,6 +134,17 @@
 			if (newValue) {
 				$scope.submitActive = false;
 			}
+		});
+		$scope.$on('pageChangeStarted', function (event) {
+		    if ($scope.selectedLabel.id) {
+		        angular.forEach($scope.labels, function (candidate) {
+		            if (candidate.id === $scope.selectedLabel.id && !angular.equals(candidate, $scope.selectedLabel)) {
+		                event.preventDefault();
+		            }
+		        });
+		    } else if ($scope.selectedLabel.label) {
+		        event.preventDefault();
+		    }
 		});
     }]);
 

@@ -47,8 +47,8 @@ describe('PolicyEditor', function() {
 
 	function getConstraintEditorController() {
 		inject(function($httpBackend, CLMLocations, CLMAppLocations) {
-			$httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).respond(PolicyMockData.getConditionTypeData());
-			$httpBackend.expectGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
+			$httpBackend.expectGET(cacheBust(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+			$httpBackend.expectGET(cacheBust(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 		});
 		
 		return getController('ConstraintEditorController');
@@ -63,13 +63,13 @@ describe('PolicyEditor', function() {
 
 	function expectPolicyRequest(responseData) {
 		inject(function($httpBackend, CLMAppLocations) {
-			$httpBackend.expectGET(new RegExp(CLMAppLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(angular.copy(responseData));
+			$httpBackend.expectGET(cacheBust(CLMAppLocations.getPolicyUrl())).respond(angular.copy(responseData));
 		});
 	}
 
 	function expectNewPolicy(response) {
 		inject(function($httpBackend, CLMAppLocations) {
-			$httpBackend.expectPOST(new RegExp(CLMAppLocations.getPolicyUrl() + '\\?timestamp=[0-9]+')).respond(response);
+			$httpBackend.expectPOST(cacheBust(CLMAppLocations.getPolicyUrl())).respond(response);
 		});
 	}
 
@@ -84,12 +84,23 @@ describe('PolicyEditor', function() {
 		return $http;
 	}]);
 
+        function cacheBust(url) {
+          return new RegExp(url + '\\?timestamp=[0-9]+')
+        }
+
+	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMAppLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {
 					return 'bom1-12345678';
 				}
 			}
+		);
+	}));
+	beforeEach(module(function($provide) {
+		$provide.value('Hudson', ['$http', function($http) {
+				return $http;
+			}]
 		);
 	}));
 	

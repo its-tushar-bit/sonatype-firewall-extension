@@ -27,7 +27,7 @@
 
         $scope.reload = function () {
             if (window.location.href.indexOf('unlicensed-assets') > -1) {
-                window.location.href = window.location.href.replace('unlicensed-assets', 'application-assets');
+                window.location.href = window.location.href.replace('unlicensed-assets', 'assets');
             } else {
                 window.location.reload();
             }

@@ -8,10 +8,10 @@
     'use strict';
 
     var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation']);
-    
+
     licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource, ApplicationId) {
 		var currentStoreAppId = null, licenseGroupStore = null;
-		
+
 		function refreshLicenseStore() {
 			var isNew = !licenseGroupStore || currentStoreAppId !== ApplicationId.encoded(); 
 			if (isNew) {
@@ -22,11 +22,11 @@
 			}
 			return isNew;
 		}
-		
+
     	function populateGroupLicenses(licenseGroups) {
 			var deferred = $q.defer();
 			var licenseCount = licenseGroups.length;
-			
+
 			if (licenseGroups.length > 0) {
 				angular.forEach(licenseGroups, function (group, index) {
 	                $http.get(CLMAppLocations.getLicenseGroupLicensesUrl(group), {
@@ -50,7 +50,7 @@
 			} else {
 				deferred.resolve(licenseGroups);
 			}
-			
+
 			return deferred.promise;
 		}
 
@@ -111,7 +111,7 @@
 			}
 		};
 	});
-    
+
     licenseGroupModule.service('licenseStore', function (CLMLocations, CLMResource) {
 		var licenseStore = CLMResource.getStore({
 			id : 'id',
@@ -151,7 +151,7 @@
         $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
         $scope.allLicenses = null;
         $scope.allExpanded = false;
-        
+
         $scope.threatLevels = [
                                {'value': 10, 'name': '10'},
                                {'value': 9, 'name': '9'},
@@ -165,7 +165,7 @@
                                {'value': 1, 'name': '1'},
                                {'value': 0, 'name': 'No Threat'}
                            ];
-        
+
         $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
         	var licenses = results[0];
         	var licenseGroups = results[1];
@@ -175,7 +175,7 @@
         }, function(error, a) {
         	alert(error);
         });
-        
+
         $scope.getDisplayName = function(licenseId) {
         	for (var i = 0; i < $scope.allLicenses.length; i++) {
         		if ($scope.allLicenses[i].id === licenseId) {
@@ -183,7 +183,7 @@
         		}
         	}
         };
-        
+
         $scope.editLicenseGroup = function (group) {
         	$scope.selectedGroup = licenseGroupStore.create();
         	if (group) {
@@ -212,10 +212,10 @@
             }
 
             $scope.licenses = availableLicenses;
-            
+
             angular.element('#licenseModal').modal('show');
         };
-        
+
         $scope.inlineChangeThreatLevel = function(licenseGroup, threatLevel) {
         	licenseGroup.threatLevel = threatLevel.value;
         };
@@ -230,7 +230,7 @@
 				}
 			}
 		};
-        
+
         $scope.inlineSaveLicenseGroup = function() {
     		for (var i = 0; i < $scope.licenseGroups.length; i++) {
 				var licenseThreatGroup = $scope.licenseGroups[i];
@@ -242,7 +242,7 @@
 				}
     		}
         };
-        
+
         $scope.inlineRevertLicenseGroups = function() {
     		for (var i = 0; i < $scope.licenseGroups.length; i++) {
     			var licenseGroup = $scope.licenseGroups[i];
@@ -254,7 +254,7 @@
 			var original = licenseThreatGroup.$getOriginal();
 			angular.extend(licenseThreatGroup, original);
 		}
-        
+
         $scope.toggleAll = function() {
         	var action = $scope.allExpanded ? 'hide' : 'show';
         	angular.element('.accordion-body').collapse(action);
@@ -321,7 +321,7 @@
                 var licenseIds = filter($scope.licenses, { isApplied: true }).map(function (l) {
                     return l.id;
                 });
-                
+
                 licenseGroup.saveGroup(licenseIds).then(function(licenseGroup) {
                 	for (var i = 0; i < $scope.licenseGroups.length; i++) {
                 		var licenseGroupIter = $scope.licenseGroups[i];
@@ -329,7 +329,7 @@
                 			$scope.licenseGroups[i] = licenseGroup;
                 		}
                 	}
-                	
+
                 	$scope.alerts = [];
                 	$scope.$emit('license.cancelLicenseGroupEdit');
                 }, function(rejection) {

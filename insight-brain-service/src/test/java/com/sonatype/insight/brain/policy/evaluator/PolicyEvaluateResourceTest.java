@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -25,6 +26,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -32,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
@@ -228,12 +231,21 @@ public class PolicyEvaluateResourceTest
                                                                 MatchStateConditionType.ID, policyAlerts );
     }
 
+    private void assertPolicyEvaluation( String applicationId, String scanId, boolean isReevaluation )
+        throws IOException
+    {
+        PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog( brain.getAuditDir( applicationId ) );
+        PolicyEvaluation policyEvaluation = policyEvaluationLog.findByScan( scanId );
+        Assert.assertNotNull( policyEvaluation );
+        Assert.assertEquals( isReevaluation, policyEvaluation.isReevaluation() );
+    }
+
     @Test
     public void testEvaluate()
         throws Exception
     {
         final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-        createApplication( applicationPublicId );
+        Application application = createApplication( applicationPublicId );
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
         String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
         setLicenseFingerprint( licenseFingerprint );
@@ -268,10 +280,6 @@ public class PolicyEvaluateResourceTest
 
         final Stage stage = new Stage( BuildStageType.ID );
 
-        // The report file is not available yet
-        Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
-        assertResponseStatus( 404, response );
-
         // Simulate that the report is available
         final URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
         FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
@@ -283,7 +291,7 @@ public class PolicyEvaluateResourceTest
         messagesB.clear();
 
         // evaluate policy
-        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        Response response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
         PolicyEvaluationResult policyEval =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
@@ -296,6 +304,7 @@ public class PolicyEvaluateResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 2, policyAlerts.size() );
         AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts.get( 0 ) );
+        assertPolicyEvaluation( application.getId(), scanId, false /* isReevaluation */);
 
         // check the calculated policy threat
         response = RestAccess.get( getThreatsURL( applicationPublicId, scanId ) );
@@ -323,6 +332,7 @@ public class PolicyEvaluateResourceTest
         Assert.assertNotNull( policyAlerts );
         Assert.assertEquals( 2, policyAlerts.size() );
         AbstractPolicyEvaluationTest.assertFactCounts( 1, 7, policyAlerts.get( 0 ) );
+        assertPolicyEvaluation( application.getId(), scanId, true /* isReevaluation */);
 
         // notification message should not have been sent since the results are the same
         Assert.assertTrue( messagesA.isEmpty() );

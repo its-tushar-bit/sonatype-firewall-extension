@@ -41,6 +41,8 @@ public class PolicyEvaluationUtils
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluationUtils.class );
 
+    private static final String PRIMARY_POLICY_ALERTS_FILENAME = "primarypolicyalerts.json";
+
     private final InsightWork work;
 
     private final ReportDownloader reportDownloader;
@@ -62,7 +64,8 @@ public class PolicyEvaluationUtils
 
         // add new entry in the rolling log (TODO: populate invoker's details)
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
-        evalLog.add( stage, scanId, "anonymous", "127.0.0.1" );
+        boolean isReevaluation = ( evalLog.findByScan( scanId ) != null );
+        evalLog.add( stage, scanId, isReevaluation, "anonymous", "127.0.0.1" );
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
 
@@ -83,6 +86,11 @@ public class PolicyEvaluationUtils
         final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policyDAO, components );
 
         Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
+        if ( !isReevaluation )
+        {
+            Report.putEntry( reportFile, PRIMARY_POLICY_ALERTS_FILENAME,
+                             JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
+        }
         Report.putEntry( reportFile, "policythreats.json", JsonUtils.generate( analyzeThreats( alerts ) ) );
 
         ReportResource.flushReportChanges( appId, scanId ); // ensure policy count is recalculated on fetch
@@ -140,7 +148,7 @@ public class PolicyEvaluationUtils
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
 
         // retrieve last known scanId for stage
-        PolicyEvaluation last = evalLog.lastByStage( stage.getStageTypeId() );
+        PolicyEvaluation last = evalLog.lastPrimaryByStage( stage.getStageTypeId() );
         final String lastScanId = ( last != null ) ? last.getScanId() : null;
 
         if ( !StringUtils.isBlank( lastScanId ) )
@@ -148,7 +156,7 @@ public class PolicyEvaluationUtils
             try
             {
                 final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, lastScanId, true );
-                final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
+                final ReportEntry reportEntry = Report.getEntry( reportFile, PRIMARY_POLICY_ALERTS_FILENAME );
                 if ( reportEntry != null )
                 {
                     return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );

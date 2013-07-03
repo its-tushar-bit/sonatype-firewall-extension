@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -38,24 +39,35 @@ import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.mail.Message;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.HashGAVResource;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
@@ -476,11 +488,11 @@ public class ReportResourceTest
     {
         final String applicationPublicId = "ReportResourceTest_AppId";
         final Application application = createApplication( applicationPublicId );
-        final String scanId = "ReportResourceTest_ScanId";
+        String scanId = "ReportResourceTest_ScanId";
         final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
         setLicenseFingerprint( licenseFingerprint );
 
-        final File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
         saasReportFile.delete();
 
         final URL testReportResultUrl = getClass().getResource( "/ReportResourceTest/report.zip" );
@@ -488,10 +500,22 @@ public class ReportResourceTest
 
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( application.getId() ) );
         PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
-
         Assert.assertNull( policyEvaluation );
 
+        final Constraint constraint = new Constraint( "C1", "testReevaluateReport constraint 1", LogicalOperator.AND );
+        final Condition condition = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        constraint.addCondition( condition );
+        final Policy policy = new Policy( "P1", "testReevaluateReport policy1" );
+        policy.setThreatLevel( 8 );
+        policy.addConstraint( constraint );
+        final Action notifyAction = new Action( NotifyActionType.ID );
+        notifyAction.setTarget( "manager@test.corp" );
+        policy.addAction( BuildStageType.ID, notifyAction );
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        policyDAO.insert( application.getId(), policy );
         final Stage stage = new Stage( BuildStageType.ID );
+
+        List<Message> notifications = Mailbox.get( "manager@test.corp" );
 
         // Evaluate policy
         Response response =
@@ -507,10 +531,16 @@ public class ReportResourceTest
         Assert.assertNotNull( policyEvaluation.getStage() );
         Assert.assertEquals( BuildStageType.ID, policyEvaluation.getStage().getStageTypeId() );
         assertTrue( System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000 );
+        Assert.assertFalse( policyEvaluation.isReevaluation() );
+
+        Assert.assertEquals( 1, notifications.size() );
+        notifications.clear();
 
         Thread.sleep( 1 );
 
         // ReEvaluate
+        policy.setName( policy.getName() + " Updated" );
+        policyDAO.update( application.getId(), policy );
         final String resourcePrefix = getServiceURL( applicationPublicId, scanId );
         response = RestAccess.get( resourcePrefix + "/reevaluatePolicy" );
         assertResponseStatus( 200, response );
@@ -521,6 +551,32 @@ public class ReportResourceTest
         Assert.assertNotNull( policyReEvaluation.getStage() );
         Assert.assertEquals( BuildStageType.ID, policyReEvaluation.getStage().getStageTypeId() );
         assertTrue( policyReEvaluation.getTime() > policyEvaluation.getTime() );
+        assertTrue( policyReEvaluation.isReevaluation() );
+
+        Assert.assertEquals( 0, notifications.size() );
+
+        // Evaluate the policy for a new scan for the same app. It should send notifications since this is not a
+        // reevaluation.
+        scanId = "ReportResourceTest_ScanId1";
+        saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+        FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
+        response =
+            RestAccess.post( getRestBaseUrl()
+                                 + PolicyEvaluateResource.SERVICE_PATH.replace( "{applicationPublicId}",
+                                                                                applicationPublicId ) + "?scanId="
+                                 + scanId, JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+
+        policyEvaluation = evalLog.findByScan( scanId );
+        Assert.assertNotNull( policyEvaluation );
+        Assert.assertEquals( scanId, policyEvaluation.getScanId() );
+        Assert.assertNotNull( policyEvaluation.getStage() );
+        Assert.assertEquals( BuildStageType.ID, policyEvaluation.getStage().getStageTypeId() );
+        assertTrue( System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000 );
+        Assert.assertFalse( policyEvaluation.isReevaluation() );
+
+        Assert.assertEquals( 1, notifications.size() );
     }
 
     @Test

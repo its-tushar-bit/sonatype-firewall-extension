@@ -54,6 +54,30 @@ public class PolicyEvaluationLogTest
         assertNotNull( eval.getStage() );
         assertEquals( Stage.ID_BUILD, eval.getStage().getStageTypeId() );
         assertEquals( "scanId", eval.getScanId() );
+        assertFalse( "isReevaluation", eval.isReevaluation() );
+        assertEquals( "user", eval.getUser() );
+        assertTrue( System.currentTimeMillis() - eval.getTime() < 60 * 1000 );
+    }
+
+    @Test
+    public void testAdd_Reevaluation()
+        throws Exception
+    {
+        PolicyEvaluationLog log = new PolicyEvaluationLog( tmpDir.getRoot() );
+        log.add( new Stage( Stage.ID_BUILD ), "scanId", true /* isReevaluation */, "user", "ip" );
+
+        assertNull( log.lastByStage( Stage.ID_RELEASE ) );
+        assertNull( log.lastByStage( Stage.ID_STAGE_RELEASE ) );
+        assertNull( log.lastByStage( Stage.ID_OPERATE ) );
+        assertNull( log.lastByStage( Stage.ID_PROCURE ) );
+        assertNull( log.lastByStage( Stage.ID_DEVELOP ) );
+
+        PolicyEvaluation eval = log.lastByStage( Stage.ID_BUILD );
+        assertNotNull( eval );
+        assertNotNull( eval.getStage() );
+        assertEquals( Stage.ID_BUILD, eval.getStage().getStageTypeId() );
+        assertEquals( "scanId", eval.getScanId() );
+        assertTrue( "isReevaluation", eval.isReevaluation() );
         assertEquals( "user", eval.getUser() );
         assertTrue( System.currentTimeMillis() - eval.getTime() < 60 * 1000 );
     }

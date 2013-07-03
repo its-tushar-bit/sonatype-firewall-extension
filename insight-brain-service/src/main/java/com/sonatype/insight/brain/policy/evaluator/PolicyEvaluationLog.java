@@ -52,6 +52,29 @@ public class PolicyEvaluationLog
         return null;
     }
 
+    /**
+     * Returns the last primary evaluation (i.e. not a reevaluation) for the given stage.
+     */
+    public PolicyEvaluation lastPrimaryByStage( final String stageId )
+        throws IOException
+    {
+        migrate();
+        final ContainerNode<?> auditContainer = auditStore.history( null, filename( stageId ) );
+        if ( auditContainer != null )
+        {
+            JsonNode auditData = auditContainer.get( "aaData" );
+            for ( JsonNode audit : auditData )
+            {
+                PolicyEvaluation policyEvaluation = JsonUtils.asPojo( audit, PolicyEvaluation.class );
+                if ( !policyEvaluation.isReevaluation() )
+                {
+                    return policyEvaluation;
+                }
+            }
+        }
+        return null;
+    }
+
     public PolicyEvaluation findByScan( final String scanId )
         throws IOException
     {
@@ -73,17 +96,25 @@ public class PolicyEvaluationLog
         return null;
     }
 
-    private ObjectNode create( final Stage stage, final String scanId )
+    private ObjectNode create( final Stage stage, final String scanId, final boolean isReevaluation )
     {
         final ObjectNode logEntry = JsonUtils.asTree( Collections.singletonMap( "stage", stage ) );
         logEntry.put( "scanId", scanId );
+        logEntry.put( "reevaluation", isReevaluation );
         return logEntry;
     }
 
     public void add( final Stage stage, final String scanId, final String user, final String ip )
         throws IOException
     {
-        add( JsonUtils.stamp( user, ip, "", create( stage, scanId ) ) );
+        add( stage, scanId, false /* isReevaluation */, user, ip );
+    }
+
+    public void add( final Stage stage, final String scanId, final boolean isReevaluation, final String user,
+                     final String ip )
+        throws IOException
+    {
+        add( JsonUtils.stamp( user, ip, "", create( stage, scanId, isReevaluation ) ) );
     }
 
     private void add( final ObjectNode stampedLogEntry )

@@ -13,6 +13,8 @@ public class PolicyEvaluation
 
     private String scanId;
 
+    private boolean isReevaluation;
+
     private long time;
 
     private String user;
@@ -55,5 +57,15 @@ public class PolicyEvaluation
     public void setScanId( String scanId )
     {
         this.scanId = scanId;
+    }
+
+    public boolean isReevaluation()
+    {
+        return isReevaluation;
+    }
+
+    public void setReevaluation( boolean isReevaluation )
+    {
+        this.isReevaluation = isReevaluation;
     }
 }

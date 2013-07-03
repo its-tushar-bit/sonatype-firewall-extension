@@ -11,11 +11,12 @@ describe('ApplicationController', function () {
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {
-					return mockApplication.publicId;
+					return 'bom1-12345678';
 				}
 			}
 		);
 	}));
+
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;

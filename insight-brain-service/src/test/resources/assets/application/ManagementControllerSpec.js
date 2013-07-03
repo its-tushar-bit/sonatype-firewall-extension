@@ -7,7 +7,11 @@ describe('ApplicationManagementController', function () {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
 	}
 
-	beforeEach(module('ApplicationManagement', 'AngularCommon', 'CLMAppLocation'));
+	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+		return $http;
+	}]);
+
+	beforeEach(module('ApplicationManagement', 'AngularCommon', 'CLMLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 			encoded : function () {
@@ -16,12 +20,7 @@ describe('ApplicationManagementController', function () {
 		}
 		);
 	}));
-	beforeEach(module(function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-			return $http;
-		}]
-		);
-	}));
+
 	beforeEach(inject(function ($httpBackend, $rootScope, $controller, hudson, CLMLocations, CLMAppLocations, regexFactory, $compile, $sniffer) {
 		httpBackend = $httpBackend;
 		rootScope = $rootScope;

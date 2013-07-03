@@ -7,7 +7,11 @@ describe('LicenseThreatGroupController', function() {
 		return new RegExp( getUrl + '\\?timestamp=[0-9]+' );
 	}
 
-	beforeEach(module('LicenseThreatGroup', 'CLMAppLocation'));
+	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+		return $http;
+	}]);
+
+	beforeEach(module('LicenseThreatGroup', 'CLMLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {
@@ -16,12 +20,7 @@ describe('LicenseThreatGroupController', function() {
 			}
 		);
 	}));
-	beforeEach(module(function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-				return $http;
-			}]
-		);
-	}));
+
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
 

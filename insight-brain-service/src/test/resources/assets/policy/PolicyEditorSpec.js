@@ -79,19 +79,17 @@ describe('PolicyEditor', function() {
 		});
 	}
 
-	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMAppLocation'));
+	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation'));
+	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+		return $http;
+	}]);
+
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {
 					return 'bom1-12345678';
 				}
 			}
-		);
-	}));
-	beforeEach(module(function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-				return $http;
-			}]
 		);
 	}));
 	

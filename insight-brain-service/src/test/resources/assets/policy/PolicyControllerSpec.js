@@ -6,7 +6,12 @@ describe('PolicyController tests', function() {
     }
     var scope;
 
+	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+		return $http;
+	}]);
+
     beforeEach(module('Policy'));
+
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {
@@ -15,12 +20,7 @@ describe('PolicyController tests', function() {
 			}
 		);
 	}));
-	beforeEach(module(function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-				return $http;
-			}]
-		);
-	}));
+
     // setup our http backend to return what we want
     beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
 		$state.current.name = "management.application";

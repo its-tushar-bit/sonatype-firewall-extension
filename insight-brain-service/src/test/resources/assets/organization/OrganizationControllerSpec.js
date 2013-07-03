@@ -3,13 +3,12 @@ var clmTimestamp = '';
 describe('OrganizationController', function() {
     var scope, httpBackend, rootScope, clmLocations, compile, sniffer, organizationStore;
 
+	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+		return $http;
+	}]);
+
     beforeEach(module('Organization', 'AngularCommon', 'CLMLocation'));
-	beforeEach(module(function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-				return $http;
-			}]
-		);
-	}));
+
     beforeEach(inject(function($httpBackend, $rootScope, $controller, hudson, CLMLocations, regexFactory, $compile, $sniffer, OrganizationStore) {
         httpBackend = $httpBackend;
         rootScope = $rootScope;

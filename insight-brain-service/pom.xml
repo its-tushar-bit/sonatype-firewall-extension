@@ -445,27 +445,7 @@
             <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
             <include>assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
             <include>assets/lib/X-editable/bootstrap-editable.min.js</include>
-            <include>assets/js/Resource.js</include>
-            <include>assets/js/EditorTools.js</include>
-            <include>assets/util/CLMLocation.js</include>
-            <include>assets/util/AngularCommon.js</include>
-            <include>policy/PolicyApp.js</include>
-            <include>policy/components/policy/PolicyController.js</include>
-            <include>assets/components/policy-editor/PolicyEditor.js</include>
-            <include>policy/components/license-threat-group/LicenseThreatGroupsController.js</include>
-            <include>policy/components/label-editor/LabelsController.js</include>
-            <include>policy/components/cip/cip-label-editor.js</include>
-            <include>assets/components/list-editor/ListEditor.js</include>
-            <include>assets/components/proprietary-config/ProprietaryConfiguration.js</include>
-            <include>policy/LabelController.js</include>
-            <include>policy/components/cip/cip-label-editor.js</include>
-            <include>policy/components/cip/cip-claim-component.js</include>
-            <include>assets/components/notification-manager/NotificationManager.js</include>
-            <include>application/ClmManagementApp.js</include>
-            <include>application/ManagementController.js</include>
-            <include>assets/ManagementApp.js</include>
-            <include>organization/OrganizationController.js</include>
-            <include>application/ApplicationController.js</include>
+            <include>**/*.js</include>
           </sourceIncludes>
           <specIncludes>
             <include>**/lib/*.js</include>

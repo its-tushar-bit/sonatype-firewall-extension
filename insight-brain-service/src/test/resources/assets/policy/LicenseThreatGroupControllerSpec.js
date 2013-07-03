@@ -7,7 +7,7 @@ describe('LicenseThreatGroupController', function() {
 		return new RegExp( getUrl + '\\?timestamp=[0-9]+' );
 	}
 
-	beforeEach(module('LicenseThreatGroup', 'CLMLocation'));
+	beforeEach(module('LicenseThreatGroup', 'CLMAppLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {

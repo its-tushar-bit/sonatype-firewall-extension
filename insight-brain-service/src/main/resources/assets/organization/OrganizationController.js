@@ -31,7 +31,7 @@
 (function() {
     'use strict';
 
-    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMLocation', 'ResourceModule', 'EditorTools' ]);
+    var organizationModule = angular.module('Organization', [ 'AngularCommon', 'ui.compat', 'CLMAppLocation', 'ResourceModule', 'EditorTools' ]);
 
     organizationModule.controller('OrganizationController', [ '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore', function($scope, $state, $http, $location, $timeout, hudson, CLMLocations, OrganizationStore) {
         function switchOrganization() {

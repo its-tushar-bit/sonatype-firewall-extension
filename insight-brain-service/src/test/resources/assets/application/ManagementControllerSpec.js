@@ -7,7 +7,7 @@ describe('ApplicationManagementController', function () {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
 	}
 
-	beforeEach(module('ApplicationManagement', 'AngularCommon', 'CLMLocation'));
+	beforeEach(module('ApplicationManagement', 'AngularCommon', 'CLMAppLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 			encoded : function () {

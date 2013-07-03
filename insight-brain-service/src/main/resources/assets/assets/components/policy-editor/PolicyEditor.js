@@ -6,7 +6,7 @@
 /*global angular, $, window, Option */
 (function () {
 	'use strict';
-	var module = angular.module('PolicyEditor', ['CLMLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'AngularCommon']);
+	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'AngularCommon']);
 
 	module.service('PolicyStore', ['ApplicationId', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (appId, clmLocations, clmAppLocations, clmResource) {
 		var policyStoreTemplate = {

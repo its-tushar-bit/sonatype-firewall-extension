@@ -7,7 +7,7 @@
 (function () {
 	'use strict';
 
-	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMLocation']);
+	var managementModule = angular.module('ApplicationManagement', ['AngularCommon', 'Hudson', 'CLMAppLocation']);
 
 	managementModule.controller('ApplicationManagementController', ['$scope', '$http', 'hudson', 'CLMLocations', 'CLMAppLocations', 'commonCodeFactory', function ($scope, $http, hudson, clmLocations, clmAppLocations, commonCodeFactory) {
 		$scope.orderColumn = 'name';

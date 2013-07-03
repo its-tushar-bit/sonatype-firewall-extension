@@ -7,7 +7,7 @@
 (function () {
 	"use strict";
 
-	angular.module('CLMLocation', ['AngularCommon', 'ApplicationModule', 'OrganizationModule']).factory('CLMLocations', ['BaseUrl', function (baseUrl) {
+	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', ['BaseUrl', function (baseUrl) {
 		return {
 			getLicensesUrl: function () {
 				return baseUrl.get() + '/rest/license';
@@ -52,64 +52,6 @@
 
 			getProprietaryConfig : function () {
 				return baseUrl.get() + '/rest/config/proprietary';
-			}
-		};
-	}]).factory('CLMAppLocations', ['ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function (appId, orgId, $state, baseUrl) {
-		var getServicePath = function() {
-			return $state.current.name.indexOf('application') !== -1 ? 'application' : 'organization';
-		};
-
-		var getId = function() {
-			return $state.current.name.indexOf('application') !== -1 ? appId.encoded() : orgId.encoded();
-		};
-
-		var getServicePathWithId = function() {
-			return getServicePath() + '/' + getId();
-		};
-
-		return {
-			getLabelsUrl: function () {
-				return baseUrl.get() + '/rest/label/' + getServicePathWithId();
-			},
-
-			getDeleteLabelsUrl: function (label) {
-				return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
-			},
-
-			getLicenseGroupsUrl: function () {
-				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId();
-			},
-
-			getDeleteLicenseGroupUrl: function (group) {
-				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id);
-			},
-
-			getLicenseGroupLicensesUrl: function (group) {
-				return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
-			},
-
-			getConditionValueTypeUrl: function () {
-				return baseUrl.get() + '/rest/conditionValueType/' + getId();
-			},
-
-			getPolicyUrl: function () {
-				return baseUrl.get() + '/rest/policy/' + getId();
-			},
-
-			getEntitiesUrl: function() {
-				return baseUrl.get() + '/rest/' + getServicePath();
-			},
-
-			getEntityUrl: function () {
-				return baseUrl.get() + '/rest/' + getServicePathWithId();
-			},
-
-			addIcon: function () {
-				return baseUrl.get() + '/rest/' + getServicePath() + '/icon';
-			},
-
-			addIconSync: function () {
-				return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
 			}
 		};
 	}]);

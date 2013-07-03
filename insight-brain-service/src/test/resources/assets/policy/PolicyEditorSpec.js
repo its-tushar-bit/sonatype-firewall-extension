@@ -79,7 +79,7 @@ describe('PolicyEditor', function() {
 		});
 	}
 
-	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation'));
+	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMAppLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {
 				encoded : function () {

@@ -93,12 +93,12 @@ public class PolicyEvaluationLogTest
 
         PolicyEvaluationLog log = new PolicyEvaluationLog( tmpDir.getRoot() );
 
-        PolicyEvaluation evaluation = log.findByScan( scanId );
+        PolicyEvaluation evaluation = log.lastByScan( scanId );
         assertNull( evaluation );
 
         log.add( stage, scanId, user, ip );
 
-        evaluation = log.findByScan( scanId );
+        evaluation = log.lastByScan( scanId );
         assertNotNull( evaluation );
         assertNotNull( evaluation.getStage() );
         assertEquals( stage.getStageTypeId(), evaluation.getStage().getStageTypeId() );

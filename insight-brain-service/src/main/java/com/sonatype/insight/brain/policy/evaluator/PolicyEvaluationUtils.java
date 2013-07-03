@@ -64,7 +64,7 @@ public class PolicyEvaluationUtils
 
         // add new entry in the rolling log (TODO: populate invoker's details)
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
-        boolean isReevaluation = ( evalLog.findByScan( scanId ) != null );
+        boolean isReevaluation = ( evalLog.lastByScan( scanId ) != null );
         evalLog.add( stage, scanId, isReevaluation, "anonymous", "127.0.0.1" );
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );

@@ -75,7 +75,7 @@ public class PolicyEvaluationLog
         return null;
     }
 
-    public PolicyEvaluation findByScan( final String scanId )
+    public PolicyEvaluation lastByScan( final String scanId )
         throws IOException
     {
         for ( StageType stageType : StageTypes.getAll() )

@@ -235,7 +235,7 @@ public class PolicyEvaluateResourceTest
         throws IOException
     {
         PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog( brain.getAuditDir( applicationId ) );
-        PolicyEvaluation policyEvaluation = policyEvaluationLog.findByScan( scanId );
+        PolicyEvaluation policyEvaluation = policyEvaluationLog.lastByScan( scanId );
         Assert.assertNotNull( policyEvaluation );
         Assert.assertEquals( isReevaluation, policyEvaluation.isReevaluation() );
     }

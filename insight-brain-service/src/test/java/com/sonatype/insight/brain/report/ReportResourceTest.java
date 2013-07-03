@@ -499,7 +499,7 @@ public class ReportResourceTest
         FileUtils.copyFile( new File( testReportResultUrl.getFile() ), saasReportFile );
 
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( application.getId() ) );
-        PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
+        PolicyEvaluation policyEvaluation = evalLog.lastByScan( scanId );
         Assert.assertNull( policyEvaluation );
 
         final Constraint constraint = new Constraint( "C1", "testReevaluateReport constraint 1", LogicalOperator.AND );
@@ -525,7 +525,7 @@ public class ReportResourceTest
                                  + scanId, JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
 
-        policyEvaluation = evalLog.findByScan( scanId );
+        policyEvaluation = evalLog.lastByScan( scanId );
         Assert.assertNotNull( policyEvaluation );
         Assert.assertEquals( scanId, policyEvaluation.getScanId() );
         Assert.assertNotNull( policyEvaluation.getStage() );
@@ -545,7 +545,7 @@ public class ReportResourceTest
         response = RestAccess.get( resourcePrefix + "/reevaluatePolicy" );
         assertResponseStatus( 200, response );
 
-        PolicyEvaluation policyReEvaluation = evalLog.findByScan( scanId );
+        PolicyEvaluation policyReEvaluation = evalLog.lastByScan( scanId );
         Assert.assertNotNull( policyReEvaluation );
         Assert.assertEquals( scanId, policyReEvaluation.getScanId() );
         Assert.assertNotNull( policyReEvaluation.getStage() );
@@ -568,7 +568,7 @@ public class ReportResourceTest
                                  + scanId, JsonHelpers.asJson( stage ) );
         assertResponseStatus( 200, response );
 
-        policyEvaluation = evalLog.findByScan( scanId );
+        policyEvaluation = evalLog.lastByScan( scanId );
         Assert.assertNotNull( policyEvaluation );
         Assert.assertEquals( scanId, policyEvaluation.getScanId() );
         Assert.assertNotNull( policyEvaluation.getStage() );

@@ -156,7 +156,7 @@ public class ReportResource
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
-        PolicyEvaluation policyEvaluation = evalLog.findByScan( scanId );
+        PolicyEvaluation policyEvaluation = evalLog.lastByScan( scanId );
 
         if ( policyEvaluation == null )
         {

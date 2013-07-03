@@ -17,6 +17,8 @@
 			if (isNew) {
 				currentStoreAppId = ApplicationId.encoded();
 				licenseGroupStore = CLMResource.getStore(angular.extend({ url : CLMAppLocations.getLicenseGroupsUrl() }, licenseGroupStoreTemplate));
+				licenseGroupStore.objectMethods.push('licenses');
+				licenseGroupStore.objectMethods.push('$saveGroup');
 			}
 			return isNew;
 		}
@@ -217,23 +219,41 @@
         $scope.inlineChangeThreatLevel = function(licenseGroup, threatLevel) {
         	licenseGroup.threatLevel = threatLevel.value;
         };
+
+		$scope.hasInlineChanges = function() {
+			if (!$scope.licenseGroups) {
+				return false;
+			}
+			for (var i = 0; i < $scope.licenseGroups.length; i++) {
+				if ($scope.licenseGroups[i].isDirty()) {
+					return true;
+				}
+			}
+		};
         
         $scope.inlineSaveLicenseGroup = function() {
     		for (var i = 0; i < $scope.licenseGroups.length; i++) {
-    			$scope.licenseGroups[i].$save().then(angular.noop, function(rejection) {
-					$scope.alerts.push({ type: 'error', msg: rejection.data });
-					$scope.inlineRevertLicenseGroup();
-    			});
+				var licenseThreatGroup = $scope.licenseGroups[i];
+				if (licenseThreatGroup.isDirty()) {
+					licenseThreatGroup.$save().then(angular.noop, function(rejection) {
+						$scope.alerts.push({ type: 'error', msg: rejection.data });
+						$scope.inlineRevertLicenseGroup(licenseThreatGroup);
+					});
+				}
     		}
         };
         
-        $scope.inlineRevertLicenseGroup = function() {
+        $scope.inlineRevertLicenseGroups = function() {
     		for (var i = 0; i < $scope.licenseGroups.length; i++) {
     			var licenseGroup = $scope.licenseGroups[i];
-    			var original = licenseGroup.$getOriginal();
-    			angular.extend(licenseGroup, original);
+				$scope.inlineRevertLicenseGroup(licenseGroup);
     		}
         };
+
+		$scope.inlineRevertLicenseGroup = function(licenseThreatGroup) {
+			var original = licenseThreatGroup.$getOriginal();
+			angular.extend(licenseThreatGroup, original);
+		}
         
         $scope.toggleAll = function() {
         	var action = $scope.allExpanded ? 'hide' : 'show';

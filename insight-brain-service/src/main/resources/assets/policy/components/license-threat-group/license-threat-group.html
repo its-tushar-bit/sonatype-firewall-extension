@@ -42,8 +42,8 @@
 			</div>
 		</div>
 	</div>
-	<div class='floatRight'>
-		<button class="btn" ng-click='inlineRevertLicenseGroup()' type="button">Cancel</button>
+	<div ng-show='hasInlineChanges()' class='floatRight'>
+		<button class="btn" ng-click='inlineRevertLicenseGroups()' type="button">Cancel</button>
 		<button class="btn btn-primary" ng-click='inlineSaveLicenseGroup()' type="button">Save</button>
 	</div>
 	<div id='licenseModal' data-backdrop='static' class='modal hide fade'>

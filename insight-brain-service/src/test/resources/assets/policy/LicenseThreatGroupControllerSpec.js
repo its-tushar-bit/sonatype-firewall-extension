@@ -22,13 +22,14 @@ describe('LicenseThreatGroupController', function() {
 	}));
 
 
-	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations) {
+	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
 
-		mockGroup = LicenseGroupMockData.getLicenseGroupData()[0];
 		$httpBackend.whenGET(toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
 		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
-		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
-
+		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
+		licenseGroupStore.get().then(function (data) {
+		    mockGroup = data[0];
+		});
 		scope = $rootScope.$new();
 
 		$controller('LicenseThreatGroupController', {$scope: scope});

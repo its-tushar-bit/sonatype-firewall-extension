@@ -183,6 +183,7 @@
 				|| currentApplication.organizationId !== originalApplication.organizationId || $scope.iconChanged;
 		};
 		
+		//make sure user is aware they are about to lose changes
 		$scope.$on('pageChangeStarted', function(event, destination) {
 			var application = $scope.selectedApplication;
 			if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {

@@ -25,6 +25,7 @@
 			var destination = $location.$$url,
 				e;
 			if (newUrl !== oldUrl && newUrl != state) {
+			    //give components a chance to negate the page change
 				e = $rootScope.$broadcast('pageChangeStarted', destination);
 				if (e.defaultPrevented) {
 					event.preventDefault();
@@ -55,10 +56,13 @@
 			return e.defaultPrevented  ? e.message || 'The page may contain unsaved changes, continuing will discard them.' : undefined;
 		};
 
+		//make sure to cleanup event listeners
 		$rootScope.$on('$destroy', function () {
 			$rootScope.$broadcast('pageChangeAccepted', destination);
 			$(window).unbind('beforeunload', fn);
 		});
+		
+		//this causes the browser to notify the user that the page contains unsaved data
 		$(window).bind('beforeunload', fn);
 	}]);
 

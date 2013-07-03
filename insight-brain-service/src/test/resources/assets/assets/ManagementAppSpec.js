@@ -30,4 +30,17 @@ describe('dashboardApp', function () {
 		$httpBackend.expectGET('../organization-assets/components/organization-navigator.html').respond('<div></div>');
 		state.transitionTo('management.organization', {});
 	}));
+	
+	it('Validate location change event is broadcast', inject(function($rootScope) {
+        var success = false;
+        $rootScope.$on('pageChangeStarted', function(event, destination){
+            success = true;
+        });
+        
+        $rootScope.$broadcast('$locationChangeStart', 'http://www.cnn.com', 'http://www.google.com');
+        
+        waitsFor(function() {
+            return success;
+        }, "pageChangeStarted event not properly retrieved", 1000);
+    }));
 });

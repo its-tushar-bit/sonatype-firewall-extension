@@ -255,6 +255,7 @@
 			}
 		});
 
+		//make sure user is aware they are about to lose changes
 		$scope.$on('pageChangeStarted', function (event) {
 			if (isDirty()) {
 				event.preventDefault();
@@ -408,6 +409,7 @@
 			$('#editConstraintModal').modal('show');
 		});
 
+		//make sure user is aware they are about to lose changes
 		$scope.$on('pageChangeStarted', function (event) {
 			if ($scope.originalConstraint != null || $scope.currentConstraint != null) {
 				event.preventDefault();

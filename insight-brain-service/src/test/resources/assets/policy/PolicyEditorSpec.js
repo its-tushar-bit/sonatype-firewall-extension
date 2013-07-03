@@ -296,7 +296,7 @@ describe('PolicyEditor', function() {
 			operator : 'OR'
 		};
 
-		$httpBackend.expectGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
+		$httpBackend.expectGET(cacheBust(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 		
 		$compile(body)(scope);
 		

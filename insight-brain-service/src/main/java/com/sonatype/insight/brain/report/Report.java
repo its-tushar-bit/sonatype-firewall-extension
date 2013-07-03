@@ -327,6 +327,9 @@ public final class Report
                 + bomJsonNode.get( "version" ).asText() );
         }
 
+        // now apply any data edits (e.g. modified flag)
+        auditStore.augment( bomJsonData, "bom.json" );
+
         // save the claimed changes
         cache( getCacheFile( reportFile, "bom.json" ), JsonUtils.generate( bomJsonData ) );
 

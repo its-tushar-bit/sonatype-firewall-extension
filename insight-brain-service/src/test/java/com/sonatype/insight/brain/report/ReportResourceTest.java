@@ -648,6 +648,33 @@ public class ReportResourceTest
             }
         }
         Assert.assertTrue( "Did not find expected overridden license", found );
+
+        // edit the BoM
+        final String bomEdit =
+            "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
+        final String bomQuery = "bom.json?user=test&where=ReportResourceTest";
+
+        response = RestAccess.post( resourcePrefix + "/augmentData/" + bomQuery, bomEdit );
+        assertResponseStatus( 200, response );
+
+        // verify the BoM change has been applied
+        response = RestAccess.get( resourcePrefix + "/embedReport/bom.json" );
+        assertResponseStatus( 200, response );
+        found = false;
+        final String bomJsonString = response.getResponseBody();
+        final JsonNode bomJsonData = JsonUtils.parse( bomJsonString ).get( "aaData" );
+        for ( JsonNode bomJsonNode : bomJsonData )
+        {
+            if ( "commons-pool".equals( bomJsonNode.get( "groupId" ).asText() )
+                && "commons-pool".equals( bomJsonNode.get( "artifactId" ).asText() )
+                && "1.4".equals( bomJsonNode.get( "version" ).asText() ) )
+            {
+                found = true;
+                Assert.assertEquals( "true", bomJsonNode.path( "modified" ).asText() );
+                break;
+            }
+        }
+        Assert.assertTrue( "Did not find augmented record in BoM", found );
     }
 
     @Test

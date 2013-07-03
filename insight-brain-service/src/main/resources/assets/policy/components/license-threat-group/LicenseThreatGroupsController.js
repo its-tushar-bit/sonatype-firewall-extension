@@ -185,9 +185,12 @@
         };
 
         $scope.editLicenseGroup = function (group) {
-        	$scope.selectedGroup = licenseGroupStore.create();
         	if (group) {
-        		$scope.selectedGroup = angular.extend($scope.selectedGroup, group);
+				$scope.selectedGroup = group.$clone();
+				$scope.selectedGroup.licenses = group.licenses;
+				$scope.selectedGroup.$saveGroup = group.$saveGroup;
+			} else {
+				$scope.selectedGroup = licenseGroupStore.create();
         	}
 
             // Reset master license list
@@ -286,6 +289,16 @@
 			delete $scope.newGroupName;
 			angular.element('#licenseModal').modal('hide');
 		});
+
+		$scope.$on('pageChangeStarted', function (event) {
+			var dirty = false;
+			angular.forEach($scope.licenseGroups, function (group, index) {
+				dirty = dirty || group.isDirty();
+			});
+			if (dirty) {
+				event.preventDefault();
+			}
+		});
     });
 
     licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
@@ -349,6 +362,12 @@
 		};
         $scope.$on('$destroy', function () {
             angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
+        });
+
+        $scope.$on('pageChangeStarted', function (event) {
+            if ($scope.selectedGroup.isDirty()) {
+                event.preventDefault();
+            }
         });
     });
 

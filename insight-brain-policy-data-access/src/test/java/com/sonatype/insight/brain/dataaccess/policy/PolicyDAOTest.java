@@ -8,11 +8,17 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.io.File;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -24,6 +30,42 @@ public class PolicyDAOTest
 {
     @Rule
     public TemporaryFolder tempDir = new TemporaryFolder();
+
+    private Organization org;
+
+    private Application app;
+
+    private PolicyDAO policyDAO;
+
+    @Before
+    public void setUp()
+        throws Exception
+    {
+        org = new Organization( "orgName" );
+        new OrganizationDAO().insert( org );
+        app = new Application();
+        app.setName( "appName" );
+        app.setPublicId( "appId" );
+        app.setOrganizationId( org.getId() );
+        new ApplicationDAO().insert( app );
+        policyDAO = new PolicyDAO( tempDir.newFolder() );
+    }
+
+    @After
+    public void tearDown()
+        throws Exception
+    {
+        ApplicationDAO appDAO = new ApplicationDAO();
+        for ( Application app : appDAO.getAll() )
+        {
+            appDAO.delete( app );
+        }
+        OrganizationDAO orgDAO = new OrganizationDAO();
+        for ( Organization org : orgDAO.getAll() )
+        {
+            orgDAO.delete( org );
+        }
+    }
 
     @Test
     public void testUpdatePolicyDoesNotExist()
@@ -98,6 +140,51 @@ public class PolicyDAOTest
     }
 
     @Test
+    public void testInsertNameClashWithChildAppPolicy()
+        throws Exception
+    {
+        // Add a policy at app level
+        String policyName = "PolicyDAOTest new policy";
+        Policy policy = newPolicy( policyName );
+        policyDAO.insert( app.getId(), policy );
+
+        // Add another policy with the same name at org level
+        policy = newPolicy( policyName );
+        try
+        {
+            policyDAO.insert( org.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for application 'appName'", expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testInsertNameClashWithParentOrgPolicy()
+        throws Exception
+    {
+        // Add a policy at org level
+        String policyName = "PolicyDAOTest new policy";
+        Policy policy = newPolicy( policyName );
+        policyDAO.insert( org.getId(), policy );
+
+        // Add another policy with the same name at app level
+        policy = newPolicy( policyName );
+        try
+        {
+            policyDAO.insert( app.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for the parent organization",
+                                 expected.getMessage() );
+        }
+    }
+
+    @Test
     public void testUpdateNameNotUnique()
         throws Exception
     {
@@ -137,6 +224,59 @@ public class PolicyDAOTest
             {
                 throw expected;
             }
+        }
+    }
+
+    @Test
+    public void testUpdateNameClashWithParentOrgPolicy()
+        throws Exception
+    {
+        // Add a policy at org level
+        String policyName = "PolicyDAOTest new policy";
+        Policy policy = newPolicy( policyName );
+        policyDAO.insert( org.getId(), policy );
+
+        // Add a policy at app level
+        policy = newPolicy( "unique-name" );
+        policyDAO.insert( app.getId(), policy );
+
+        // Rename policy at app level
+        policy.setName( policyName );
+        try
+        {
+            policyDAO.update( app.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for the parent organization",
+                                 expected.getMessage() );
+        }
+    }
+
+    @Test
+    public void testUpdateNameClashWithChildAppPolicy()
+        throws Exception
+    {
+        // Add a policy at app level
+        String policyName = "PolicyDAOTest new policy";
+        Policy policy = newPolicy( policyName );
+        policyDAO.insert( app.getId(), policy );
+
+        // Add a policy at org level
+        policy = newPolicy( "unique-name" );
+        policyDAO.insert( org.getId(), policy );
+
+        // Rename policy at org level
+        policy.setName( policyName );
+        try
+        {
+            policyDAO.update( org.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for application 'appName'", expected.getMessage() );
         }
     }
 
@@ -416,5 +556,15 @@ public class PolicyDAOTest
         Assert.assertEquals( expected.getConditionTypeId(), actual.getConditionTypeId() );
         Assert.assertEquals( expected.getOperator(), actual.getOperator() );
         Assert.assertEquals( expected.getValue(), actual.getValue() );
+    }
+
+    private Policy newPolicy( String name )
+    {
+        Policy policy = new Policy();
+        policy.setName( name );
+        Constraint constraint = new Constraint( null, "Contraint", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        return policy;
     }
 }

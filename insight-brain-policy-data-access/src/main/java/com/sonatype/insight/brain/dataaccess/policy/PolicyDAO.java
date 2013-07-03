@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -69,6 +71,8 @@ public class PolicyDAO
             throw new InvalidPolicyException( validationResult );
         }
 
+        validateNameWithinHierarchy( ownerId, policy.getName() );
+
         final JsonStore store = policyStore( ownerId );
         try
         {
@@ -107,6 +111,8 @@ public class PolicyDAO
         {
             throw new InvalidPolicyException( validationResult );
         }
+
+        validateNameWithinHierarchy( ownerId, policy.getName() );
 
         final JsonStore store = policyStore( ownerId );
         try
@@ -230,5 +236,49 @@ public class PolicyDAO
     private static String newUUID()
     {
         return UUID.randomUUID().toString().replace( "-", "" );
+    }
+
+    private Policy getByOwnerIdAndName( final String ownerId, final String name )
+    {
+        for ( Policy policy : getByOwnerId( ownerId ) )
+        {
+            if ( policy.getName().equals( name ) )
+            {
+                return policy;
+            }
+        }
+        return null;
+    }
+
+    private void validateNameWithinHierarchy( final String ownerId, final String name )
+        throws InvalidPolicyException
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application parentApplication = applicationDAO.getById( ownerId );
+        if ( parentApplication != null )
+        {
+            // The owner is an application
+            if ( parentApplication.getOrganizationId() != null )
+            {
+                if ( getByOwnerIdAndName( parentApplication.getOrganizationId(), name ) != null )
+                {
+                    throw new InvalidPolicyException( "A policy with the same name already exists"
+                        + " for the parent organization" );
+                }
+            }
+        }
+        else
+        {
+            // The owner is an organization
+            List<Application> applications = applicationDAO.getByOrganizationId( ownerId );
+            for ( Application application : applications )
+            {
+                if ( getByOwnerIdAndName( application.getId(), name ) != null )
+                {
+                    throw new InvalidPolicyException( "A policy with the same name already exists"
+                        + " for application '" + application.getName() + "'" );
+                }
+            }
+        }
     }
 }

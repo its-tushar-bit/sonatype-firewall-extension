@@ -138,6 +138,19 @@ public class ApplicationDAO
         return getList( em, sQuery, organizationId );
     }
 
+    public List<Application> getByOrganizationId( String organizationId )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByOrganizationId( em, organizationId );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
     @Override
     public void insert( EntityManager em, Application application )
     {

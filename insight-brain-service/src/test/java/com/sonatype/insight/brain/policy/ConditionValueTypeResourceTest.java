@@ -23,15 +23,28 @@ public class ConditionValueTypeResourceTest
         String appPublicId = "ConditionValueTypeResourceTest_AppId";
         createApplication( appPublicId );
 
-        final Response response = RestAccess.get( getServiceURL( appPublicId ) );
+        final Response response = RestAccess.get( getServiceURL( "application", appPublicId ) );
         assertResponseStatus( 200, response );
         final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
         Assert.assertNotNull( conditionValueTypes );
         Assert.assertTrue( conditionValueTypes.length > 0 );
     }
 
-    private String getServiceURL( String policyOwnerId )
+    @Test
+    public void testGetConditionValueTypes_Organization()
+        throws Exception
     {
-        return getRestBaseUrl() + ConditionValueTypeResource.SERVICE_PATH.replace( "{policyOwnerId}", policyOwnerId );
+        String orgId = createOrganization( "test" ).getId();
+
+        final Response response = RestAccess.get( getServiceURL( "organization", orgId ) );
+        assertResponseStatus( 200, response );
+        final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
+        Assert.assertNotNull( conditionValueTypes );
+        Assert.assertTrue( conditionValueTypes.length > 0 );
+    }
+
+    private String getServiceURL( String ownerType, String ownerId )
+    {
+        return getRestBaseUrl() + expandRestUrl( ConditionValueTypeResource.SERVICE_PATH, ownerType, ownerId );
     }
 }

@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.ws.rs.core.UriBuilder;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
@@ -193,6 +195,11 @@ public abstract class AbstractBrainServiceTest
             restBaseUrl = restBaseUrl + "/";
         }
         return restBaseUrl;
+    }
+
+    protected String expandRestUrl( String templateUrl, Object... paramValues )
+    {
+        return UriBuilder.fromPath( templateUrl ).build( paramValues ).toString();
     }
 
     protected void setSaasResponseForURI( String uri, int status, Object body )

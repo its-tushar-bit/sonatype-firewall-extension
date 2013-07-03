@@ -42,6 +42,10 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class PolicyResourceTest
     extends AbstractResourceTest
 {
+    private static final String APP = "application";
+
+    private static final String ORG = "organization";
+
     @Test
     public void testExportImport_Insert()
         throws Exception
@@ -74,11 +78,11 @@ public class PolicyResourceTest
         constraint2.addCondition( new Condition( LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ) );
         policy.addConstraint( constraint2 );
         policy.addAction( BuildStageType.ID, new Action( Action.ID_FAIL ) );
-        Response response = RestAccess.post( getServiceURL( applicationPublicId ), JsonHelpers.asJson( policy ) );
+        Response response = RestAccess.post( getServiceURL( APP, applicationPublicId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
 
         // Export
-        response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
+        response = RestAccess.get( getServiceURL( "application", applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
         PolicyExportResult policyExportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
@@ -90,7 +94,7 @@ public class PolicyResourceTest
 
         // Import
         String newApplicationPublicId = applicationPublicId + "1";
-        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
+        response = RestAccess.put( getServiceURL( APP, newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
@@ -114,7 +118,7 @@ public class PolicyResourceTest
         Assert.assertEquals( 1, licenseThreatGroupLicenses.size() );
         Assert.assertEquals( licenseThreatGroupLicense.getLicenseId(),
                              licenseThreatGroupLicenses.get( 0 ).getLicenseId() );
-        response = RestAccess.get( getServiceURL( newApplicationPublicId ) );
+        response = RestAccess.get( getServiceURL( APP, newApplicationPublicId ) );
         assertResponseStatus( 200, response );
         Policy[] policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
         Assert.assertEquals( 1, policies.length );
@@ -124,7 +128,7 @@ public class PolicyResourceTest
 
         // Import again for a different application
         newApplicationPublicId = applicationPublicId + "2";
-        response = RestAccess.put( getServiceURL( newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
+        response = RestAccess.put( getServiceURL( APP, newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         Assert.assertNotNull( policyImportResult );
@@ -146,7 +150,7 @@ public class PolicyResourceTest
         Assert.assertEquals( 1, licenseThreatGroupLicenses.size() );
         Assert.assertEquals( licenseThreatGroupLicense.getLicenseId(),
                              licenseThreatGroupLicenses.get( 0 ).getLicenseId() );
-        response = RestAccess.get( getServiceURL( newApplicationPublicId ) );
+        response = RestAccess.get( getServiceURL( APP, newApplicationPublicId ) );
         assertResponseStatus( 200, response );
         policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
         Assert.assertEquals( 1, policies.length );
@@ -189,11 +193,11 @@ public class PolicyResourceTest
         constraint2.addCondition( new Condition( LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ) );
         policy.addConstraint( constraint2 );
         policy.addAction( BuildStageType.ID, new Action( Action.ID_FAIL ) );
-        Response response = RestAccess.post( getServiceURL( applicationPublicId ), JsonHelpers.asJson( policy ) );
+        Response response = RestAccess.post( getServiceURL( APP, applicationPublicId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
 
         // Export
-        response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
+        response = RestAccess.get( getServiceURL( APP, applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
         PolicyExportResult policyExportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
@@ -214,7 +218,7 @@ public class PolicyResourceTest
         labelDAO.insert( label3 );
 
         // Import
-        response = RestAccess.put( getServiceURL( applicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
+        response = RestAccess.put( getServiceURL( APP, applicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
@@ -244,7 +248,7 @@ public class PolicyResourceTest
         Assert.assertEquals( licenseThreatGroupLicense.getLicenseId(),
                              licenseThreatGroupLicenses.get( 0 ).getLicenseId() );
         Assert.assertNotEquals( licenseThreatGroupLicense.getId(), licenseThreatGroupLicenses.get( 0 ).getId() );
-        response = RestAccess.get( getServiceURL( applicationPublicId ) );
+        response = RestAccess.get( getServiceURL( APP, applicationPublicId ) );
         assertResponseStatus( 200, response );
         Policy[] policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
         Assert.assertEquals( 1, policies.length );
@@ -264,14 +268,14 @@ public class PolicyResourceTest
         createApplication( applicationPublicId, false /* createLicenseThreatGroups */);
 
         // Export
-        Response response = RestAccess.get( getServiceURL( applicationPublicId ) + "/export" );
+        Response response = RestAccess.get( getServiceURL( APP, applicationPublicId ) + "/export" );
         assertResponseStatus( 200, response );
         PolicyExportResult policyExportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
         Assert.assertNotNull( policyExportResult );
 
         // Import
-        response = RestAccess.put( getServiceURL( applicationPublicId + "1" ) + "/import", JsonHelpers.asJson( policyExportResult ) );
+        response = RestAccess.put( getServiceURL( APP, applicationPublicId + "1" ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 402, response );
         Assert.assertEquals( "You have exceeded the licensed limit of 1 applications.", response.getResponseBody() );
     }
@@ -286,14 +290,25 @@ public class PolicyResourceTest
 
         JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + appId ) );
 
-        Assert.assertEquals( 0, store.modificationCount() );
-
-        testCRUD( applicationPublicId, store );
+        testCRUD( APP, applicationPublicId, store );
     }
 
-    private void testCRUD( String policyOwnerId, JsonStore store )
+    @Test
+    public void testCRUD_OrganizationLevel()
         throws Exception
     {
+        String orgId = createOrganization( "test" ).getId();
+
+        JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + orgId ) );
+
+        testCRUD( ORG, orgId, store );
+    }
+
+    private void testCRUD( String ownerType, String ownerId, JsonStore store )
+        throws Exception
+    {
+        Assert.assertEquals( 0, store.modificationCount() );
+
         // Add a policy
         Policy policy = new Policy();
         policy.setName( "PolicyResourceTest new policy" );
@@ -301,7 +316,7 @@ public class PolicyResourceTest
         constraint.setName( "PolicyResourceTest new constraint" );
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
-        Response response = RestAccess.post( getServiceURL( policyOwnerId ), JsonHelpers.asJson( policy ) );
+        Response response = RestAccess.post( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         final Policy policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
         Assert.assertNotNull( policy1.getId() );
@@ -310,7 +325,7 @@ public class PolicyResourceTest
         Assert.assertEquals( 1, store.modificationCount() );
 
         // Get all policies
-        response = RestAccess.get( getServiceURL( policyOwnerId ) );
+        response = RestAccess.get( getServiceURL( ownerType, ownerId ) );
         assertResponseStatus( 200, response );
         Policy[] policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
         Assert.assertNotNull( policies );
@@ -329,7 +344,7 @@ public class PolicyResourceTest
         // Update a policy
         policy = policies[0];
         policy.setName( "PolicyResourceTest updated policy" );
-        response = RestAccess.put( getServiceURL( policyOwnerId ), JsonHelpers.asJson( policy ) );
+        response = RestAccess.put( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         final Policy policy2 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
         Assert.assertEquals( "PolicyResourceTest updated policy", policy2.getName() );
@@ -337,7 +352,7 @@ public class PolicyResourceTest
         Assert.assertEquals( 2, store.modificationCount() );
 
         // Get all policies
-        response = RestAccess.get( getServiceURL( policyOwnerId ) );
+        response = RestAccess.get( getServiceURL( ownerType, ownerId ) );
         assertResponseStatus( 200, response );
         policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
         Assert.assertNotNull( policies );
@@ -357,13 +372,13 @@ public class PolicyResourceTest
 
         // Delete a policy
         policy = policies[0];
-        response = RestAccess.delete( getServiceURL( policyOwnerId, policy.getId() ) );
+        response = RestAccess.delete( getServiceURL( ownerType, ownerId, policy.getId() ) );
         assertResponseStatus( 204, response );
 
         Assert.assertEquals( 3, store.modificationCount() );
 
         // Get all policies
-        response = RestAccess.get( getServiceURL( policyOwnerId ) );
+        response = RestAccess.get( getServiceURL( ownerType, ownerId ) );
         assertResponseStatus( 200, response );
         policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
         Assert.assertNotNull( policies );
@@ -381,13 +396,28 @@ public class PolicyResourceTest
     }
 
     @Test
-    public void testCreateInvalidPolicy()
+    public void testCreateInvalidPolicy_AppLevel()
         throws Exception
     {
         String applicationPublicId = "PolicyResourceTest_testCreateInvalidPolicy";
         Application application = createApplication( applicationPublicId );
         String appId = application.getId();
         JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + appId ) );
+        testCreateInvalidPolicy( APP, applicationPublicId, store );
+    }
+
+    @Test
+    public void testCreateInvalidPolicy_OrgLevel()
+        throws Exception
+    {
+        String orgId = createOrganization( "test" ).getId();
+        JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + orgId ) );
+        testCreateInvalidPolicy( ORG, orgId, store );
+    }
+
+    private void testCreateInvalidPolicy( String ownerType, String ownerId, JsonStore store )
+        throws Exception
+    {
         Assert.assertEquals( 0, store.modificationCount() );
 
         Policy policy = new Policy();
@@ -396,19 +426,34 @@ public class PolicyResourceTest
         constraint.setName( "PolicyResourceTest new constraint" );
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
-        Response response = RestAccess.post( getServiceURL( applicationPublicId ), JsonHelpers.asJson( policy ) );
+        Response response = RestAccess.post( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
     }
 
     @Test
-    public void testUpdateInvalidPolicy()
+    public void testUpdateInvalidPolicy_AppLevel()
         throws Exception
     {
         String applicationPublicId = "PolicyResourceTest_testUpdateInvalidPolicy";
         Application application = createApplication( applicationPublicId );
         String appId = application.getId();
         JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + appId ) );
+        testUpdateInvalidPolicy( APP, applicationPublicId, store );
+    }
+
+    @Test
+    public void testUpdateInvalidPolicy_OrgLevel()
+        throws Exception
+    {
+        String orgId = createOrganization( "test" ).getId();
+        JsonStore store = JsonUtils.fileStore( new File( brain.getWorkDir(), "policy/" + orgId ) );
+        testUpdateInvalidPolicy( ORG, orgId, store );
+    }
+
+    private void testUpdateInvalidPolicy(String ownerType, String ownerId, JsonStore store)
+        throws Exception
+    {
         Assert.assertEquals( 0, store.modificationCount() );
 
         // Create a valid policy
@@ -418,24 +463,24 @@ public class PolicyResourceTest
         constraint.setName( "PolicyResourceTest new constraint" );
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
-        Response response = RestAccess.post( getServiceURL( applicationPublicId ), JsonHelpers.asJson( policy ) );
+        Response response = RestAccess.post( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         policy = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
 
         // Update invalid policy
         policy.setName( null );
-        response = RestAccess.put( getServiceURL( applicationPublicId ), JsonHelpers.asJson( policy ) );
+        response = RestAccess.put( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
     }
 
-    private String getServiceURL( final String policyOwnerId )
+    private String getServiceURL( final String ownerType, final String ownerId )
     {
-        return getRestBaseUrl() + PolicyResource.SERVICE_PATH.replace( "{policyOwnerId}", policyOwnerId );
+        return getRestBaseUrl() + expandRestUrl( PolicyResource.SERVICE_PATH, ownerType, ownerId );
     }
 
-    private String getServiceURL( final String policyOwnerId, final String policyId )
+    private String getServiceURL( final String ownerType, final String ownerId, final String policyId )
     {
-        return getServiceURL( policyOwnerId ) + "/" + policyId;
+        return getServiceURL( ownerType, ownerId ) + "/" + policyId;
     }
 }

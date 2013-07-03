@@ -44,11 +44,11 @@
 			},
 
 			getConditionValueTypeUrl: function () {
-				return baseUrl.get() + '/rest/conditionValueType/' + getId();
+				return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
 			},
 
 			getPolicyUrl: function () {
-				return baseUrl.get() + '/rest/policy/' + getId();
+				return baseUrl.get() + '/rest/policy/' + getServicePathWithId();
 			},
 
 			getEntitiesUrl: function() {

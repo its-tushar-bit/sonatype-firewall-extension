@@ -59,7 +59,7 @@ public class PolicyEvaluateResourceTest
     {
         final Response response =
             RestAccess.post( getRestBaseUrl()
-                                 + PolicyResource.SERVICE_PATH.replace( "{policyOwnerId}", applicationPublicId ),
+                                 + expandRestUrl( PolicyResource.SERVICE_PATH, "application", applicationPublicId ),
                              JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         return response;
@@ -70,7 +70,7 @@ public class PolicyEvaluateResourceTest
     {
         final Response response =
             RestAccess.put( getRestBaseUrl()
-                                + PolicyResource.SERVICE_PATH.replace( "{policyOwnerId}", applicationPublicId ),
+                                + expandRestUrl( PolicyResource.SERVICE_PATH, "application", applicationPublicId ),
                             JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
 

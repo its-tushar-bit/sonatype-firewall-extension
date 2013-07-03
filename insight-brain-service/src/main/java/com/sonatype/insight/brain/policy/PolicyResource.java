@@ -51,7 +51,9 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -59,7 +61,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 @Path( PolicyResource.SERVICE_PATH )
 public class PolicyResource
 {
-    public static final String SERVICE_PATH = "rest/policy/{policyOwnerId}";
+    public static final String SERVICE_PATH = "rest/policy/{ownerType: application|organization}/{ownerId}";
 
     private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
 
@@ -72,77 +74,80 @@ public class PolicyResource
     @Inject
     private CLMLicenseManager licenseManager;
 
-    static String getInternalPolicyOwnerId( String policyOwnerId )
-    {
-        Application application = new ApplicationDAO().getByPublicIdNotNull( policyOwnerId );
-        return application.getId();
-    }
-
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<Policy> getPolicies( @PathParam( "policyOwnerId" ) final String policyOwnerId )
+    public List<Policy> getPolicies( @PathParam( "ownerType" ) final String ownerType,
+                                     @PathParam( "ownerId" ) final String ownerId )
     {
-        log.debug( "Received request to get all policies for policyOwnerId {}", policyOwnerId );
+        log.debug( "Received request to get all {} policies for ownerId {}", ownerType, ownerId );
 
-        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        return policyDAO().getByOwnerId( internalPolicyOwnerId );
+        return policyDAO().getByOwnerId( internalOwnerId );
     }
 
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Policy addPolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId, final Policy policy,
+    public Policy addPolicy( @PathParam( "ownerType" ) final String ownerType,
+                             @PathParam( "ownerId" ) final String ownerId, final Policy policy,
                              @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
                              @Context final HttpServletRequest request )
     {
-        log.debug( "Received request to add policy for policyOwnerId {}", policyOwnerId );
+        log.debug( "Received request to add {} policy for ownerId {}", ownerType, ownerId );
 
-        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        return policyDAO().session( user, AuditUtils.findIP( request ), where ).insert( internalPolicyOwnerId, policy );
+        return policyDAO().session( user, AuditUtils.findIP( request ), where ).insert( internalOwnerId, policy );
     }
 
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Policy updatePolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId, final Policy policy,
+    public Policy updatePolicy( @PathParam( "ownerType" ) final String ownerType,
+                                @PathParam( "ownerId" ) final String ownerId, final Policy policy,
                                 @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
                                 @Context final HttpServletRequest request )
     {
-        log.debug( "Received request to update policy for policyOwnerId {}, policyId {}", policyOwnerId, policy.getId() );
+        log.debug( "Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId,
+                   policy.getId() );
 
-        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        return policyDAO().session( user, AuditUtils.findIP( request ), where ).update( internalPolicyOwnerId, policy );
+        return policyDAO().session( user, AuditUtils.findIP( request ), where ).update( internalOwnerId, policy );
     }
 
     @DELETE
     @Path( "{policyId}" )
-    public void deletePolicy( @PathParam( "policyOwnerId" ) final String policyOwnerId,
+    public void deletePolicy( @PathParam( "ownerType" ) final String ownerType,
+                              @PathParam( "ownerId" ) final String ownerId,
                               @PathParam( "policyId" ) final String policyId, @QueryParam( "user" ) final String user,
                               @QueryParam( "where" ) final String where, @Context final HttpServletRequest request )
     {
-        log.debug( "Received request to delete policy for policyOwnerId {}, policyId {}", policyOwnerId, policyId );
+        log.debug( "Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId );
 
-        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        policyDAO().session( user, AuditUtils.findIP( request ), where ).delete( internalPolicyOwnerId, policyId );
+        policyDAO().session( user, AuditUtils.findIP( request ), where ).delete( internalOwnerId, policyId );
     }
 
     @GET
     @Path( "export" )
     @Produces( MediaType.APPLICATION_JSON )
-    public PolicyExportResult exportPolicies( @PathParam( "policyOwnerId" ) String policyOwnerId )
+    public PolicyExportResult exportPolicies( @PathParam( "ownerType" ) final String ownerType,
+                                              @PathParam( "ownerId" ) String ownerId )
     {
-        String internalPolicyOwnerId = getInternalPolicyOwnerId( policyOwnerId );
+        if ( !"application".equals( ownerType ) )
+        {
+            throw new BadRequestException( "Policy export is only supported for applications" );
+        }
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         PolicyExportResult exportDTO = new PolicyExportResult();
-        exportDTO.policies = policyDAO().getByOwnerId( internalPolicyOwnerId );
-        exportDTO.labels = new LabelDAO().getByApplicationId( internalPolicyOwnerId );
-        exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( internalPolicyOwnerId );
-        exportDTO.licenseThreatGroupLicenses =
-            new LicenseThreatGroupLicenseDAO().getByOwnerId( internalPolicyOwnerId );
+        exportDTO.policies = policyDAO().getByOwnerId( internalOwnerId );
+        exportDTO.labels = new LabelDAO().getByApplicationId( internalOwnerId );
+        exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( internalOwnerId );
+        exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId( internalOwnerId );
 
         return exportDTO;
     }
@@ -162,10 +167,16 @@ public class PolicyResource
     @PUT
     @Path( "import" )
     @Produces( MediaType.APPLICATION_JSON )
-    public PolicyImportResult importPolicies( @PathParam( "policyOwnerId" ) String policyOwnerId,
+    public PolicyImportResult importPolicies( @PathParam( "ownerType" ) final String ownerType,
+                                              @PathParam( "ownerId" ) String ownerId,
                                               @Context HttpServletRequest servletRequest )
         throws IOException
     {
+        if ( !"application".equals( ownerType ) )
+        {
+            throw new BadRequestException( "Policy import is only supported for applications" );
+        }
+
         byte[] importBytes;
         InputStream importInputStream = servletRequest.getInputStream();
         try
@@ -187,7 +198,7 @@ public class PolicyResource
 
             LabelDAO labelDAO = new LabelDAO();
             List<Label> oldLabels = new ArrayList<Label>();
-            application = applicationDAO.getByPublicId( em, policyOwnerId );
+            application = applicationDAO.getByPublicId( em, ownerId );
             if ( application == null )
             {
                 // Create an application
@@ -199,8 +210,8 @@ public class PolicyResource
                 }
 
                 application = new Application();
-                application.setPublicId( policyOwnerId );
-                application.setName( policyOwnerId );
+                application.setPublicId( ownerId );
+                application.setName( ownerId );
                 if ( applicationDAO.getByName( em, application.getName() ) != null )
                 {
                     application.setName( application.getName() + " " + System.currentTimeMillis() );
@@ -320,7 +331,7 @@ public class PolicyResource
         result.applicationName = application.getName();
         UriBuilder uriBuilder =
             baseUrl.redirect().path( InsightBrainService.POLICY_ASSET_PATH ).path( "index.html" ).queryParam( "appId",
-                                                                                                              policyOwnerId );
+                                                                                                              ownerId );
         result.applicationURL = uriBuilder.build().toString();
 
         return result;

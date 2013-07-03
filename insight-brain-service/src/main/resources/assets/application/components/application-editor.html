@@ -1,5 +1,5 @@
 <div class='fade' ng-class='{ in : selectedApplication != null}'>
-	<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
+    <div clm-alerts='alerts'></div>
 	<div style="float:right; margin:10px;" class='btn-group'>
 		<a class="btn btn-mini" title="Remove Application" ng-click="confirmDeleteApplication(selectedApplication)"><i class='glyphicons-sonatype bin'></i></a>
 	</div>

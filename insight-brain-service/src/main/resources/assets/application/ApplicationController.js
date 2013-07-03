@@ -289,10 +289,6 @@
 			return false;
 		};
 
-          $scope.closeAlert = function(index) {
-            $scope.alerts.splice(index, 1);
-          };
-
           //clear existing alerts and add the specified ones
           $scope.pushAlert = function (obj) {
             $scope.alerts.length = 0;

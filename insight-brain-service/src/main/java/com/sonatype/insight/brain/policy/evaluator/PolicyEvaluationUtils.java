@@ -134,8 +134,7 @@ public class PolicyEvaluationUtils
         policyEvaluationResult.setModerateComponentCount( moderateCount );
     }
 
-    public List<PolicyAlert> findLastPolicyAlerts( final String applicationPublicId, String appId, final String scanId,
-                                                   final Stage stage )
+    public List<PolicyAlert> findLastPolicyAlerts( final String applicationPublicId, String appId, final Stage stage )
         throws IOException
     {
         PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
@@ -158,7 +157,22 @@ public class PolicyEvaluationUtils
             catch ( final Exception e )
             {
                 // don't abort sending notifications if old results are corrupt, just means full digest will be sent
-                log.warn( "Cannot load previous results for app id {}, scan id {}", applicationPublicId, scanId, e );
+                log.warn( "Cannot load last policy evaluation results for app id {}", applicationPublicId, e );
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    public List<PolicyAlert> findPolicyAlerts( final String applicationPublicId, String appId, final String scanId )
+        throws IOException
+    {
+        final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
+        if ( reportFile != null )
+        {
+            final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
+            if ( reportEntry != null )
+            {
+                return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );
             }
         }
         return Collections.emptyList();

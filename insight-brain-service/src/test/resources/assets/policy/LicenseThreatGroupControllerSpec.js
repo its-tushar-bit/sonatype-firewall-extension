@@ -22,7 +22,6 @@ describe('LicenseThreatGroup', function() {
 	}));
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
-
 		$httpBackend.whenGET(toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
 		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
 		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
@@ -35,12 +34,12 @@ describe('LicenseThreatGroup', function() {
 
 		$httpBackend.flush();
 	}));
+
 	afterEach(function () {
 		scope.$destroy();
 	});
 
 	describe('LicenseThreatGroupController', function () {
-		beforeEach();
 		it('loads licenses.', function() {
 			expect(scope.allLicenses).not.toBeUndefined();
 			expect(scope.allLicenses.length).toEqual(3);
@@ -85,5 +84,57 @@ describe('LicenseThreatGroup', function() {
 			scope.deleteLicenseGroup();
 
 		}));
+	});
+
+	describe('LicenseThreatGroupEditorController', function () {
+		var editorScope = null;
+		function getSelectedGroupLicenses() {
+			var selectedLicenses = [];
+			angular.forEach(editorScope.selectedGroupLicenses, function (value, key) {
+				if (value) {
+					selectedLicenses.push(key);
+				}
+			});
+			return selectedLicenses;
+		}
+		beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
+			editorScope = scope.$new();
+			$controller('LicenseThreatGroupEditorController', {$scope: editorScope});
+			scope.$apply(function () {
+				scope.editLicenseGroup(mockGroup);
+			});
+		}));
+		it('Selected', function () {
+			expect(getSelectedGroupLicenses().length).toEqual(2);
+			expect(editorScope.selectedGroupLicenses['AFL-UNSPECIFIED']).toEqual(true);
+			expect(editorScope.selectedGroupLicenses['AAL']).toEqual(true);
+		});
+		it('Add License', function () {
+			// editor
+			editorScope.$apply(function () {
+				editorScope.addLicense(LicenseGroupMockData.getLicensesData()[1]);
+			});
+			// Original not modified
+			expect(mockGroup.licenses.length).toEqual(2);
+
+			expect(editorScope.selectedGroup.licenses.length).toEqual(3);
+			expect(getSelectedGroupLicenses().length).toEqual(3);
+			expect(editorScope.selectedGroupLicenses['AFL-1.2']).toEqual(true);
+			// TODO Test save
+		});
+		it('Remove License', function () {
+
+			// editor
+			editorScope.$apply(function () {
+				editorScope.removeLicense(LicenseGroupMockData.getLicensesData()[2]);
+			});
+			// Original not modified
+			expect(mockGroup.licenses.length).toEqual(2);
+
+			expect(editorScope.selectedGroup.licenses.length).toEqual(1);
+			expect(getSelectedGroupLicenses().length).toEqual(1);
+			expect(editorScope.selectedGroupLicenses['AFL-UNSPECIFIED']).toEqual(true);
+			expect(editorScope.selectedGroupLicenses['AAL']).toEqual(null);
+		});
 	});
 });

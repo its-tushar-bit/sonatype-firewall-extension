@@ -1,19 +1,25 @@
-<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
-	<div class='new-entity-button'>
-		<a class="btn" href='#/management/organization/_new_'>
-			<i class="icon-plus"></i>&nbsp;New Organization
-		</a>
+<div>
+	<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
+		<div load-error='error' reload='doLoad()'></div>
+		<div ng-hide='error'>
+			<div class='new-entity-button'>
+				<a class="btn" href='#/management/organization/_new_'>
+					<i class="icon-plus"></i>&nbsp;New Organization
+				</a>
+			</div>
+			<div class='search input-prepend'>
+				<span class='add-on'><i
+					ng-class="{'icon-search': !orgFilter.name, 'icon-remove': orgFilter.name}"
+					ng-click="orgFilter.name = ''"></i></span> <input type='text'
+					ng-model='orgFilter.name' autocomplete="off" />
+			</div>
+			<ul class="nav nav-list">
+				<li ng-repeat='organization in organizations | filter: orgFilter'
+					ng-class="{'active': $state.params.organizationId == organization.id }">
+						<a href='#/management/organization/{{organization.id}}'>{{organization.name}}</a></li>
+				<li ng-hide='organizations'><h5><i class='icon icon-time'></i> Loading...</h5></li>
+			</ul>
+		</div>
 	</div>
-	<div class='search input-prepend'>
-		<span class='add-on'><i
-			ng-class="{'icon-search': !orgFilter.name, 'icon-remove': orgFilter.name}"
-			ng-click="orgFilter.name = ''"></i></span> <input type='text'
-			ng-model='orgFilter.name' autocomplete="off" />
-	</div>
-	<ul class="nav nav-list">
-		<li ng-repeat='organization in organizations | filter: orgFilter'
-			ng-class="{'active': $state.params.organizationId == organization.id }"><a
-			href='#/management/organization/{{organization.id}}'>{{organization.name}}</a></li>
-	</ul>
+	<div class="content" ui-view></div>
 </div>
-<div class="content" ui-view></div>

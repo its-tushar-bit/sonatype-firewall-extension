@@ -59,13 +59,18 @@
 
         $scope.$state = $state;
 
-        OrganizationStore.get().then(function(results) {
-            $scope.organizations = results;
-            $scope.$watch('$state.params.organizationId', switchOrganization);
-            switchOrganization();
-        }, function() {
-            $scope.$broadcast('showServerError', arguments);
-        });
+        $scope.doLoad = function () {
+            $scope.error = null;
+            OrganizationStore.get().then(function(results) {
+                $scope.organizations = results;
+                $scope.$watch('$state.params.organizationId', switchOrganization);
+                switchOrganization();
+            }, function(error) {
+                $scope.error = error;
+            });
+        };
+
+        $scope.doLoad();
     } ]);
 
     organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations) {
@@ -84,7 +89,7 @@
                 $scope.organizationEditor.$invalid = true;
                 return result;
             }
-        }
+        };
 
         $scope.closeAlert = function(index) {
             $scope.alerts.splice(index, 1);

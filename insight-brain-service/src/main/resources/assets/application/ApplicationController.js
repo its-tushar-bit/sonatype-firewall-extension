@@ -41,7 +41,7 @@
 		});
 	}]);
 
-	applicationModule.controller('applicationController', function($scope, $state, $timeout, $location, applicationStore) {
+	applicationModule.controller('applicationController', ['$scope', '$state', '$timeout', '$location', 'applicationStore', function($scope, $state, $timeout, $location, applicationStore) {
 		function switchApplication() {
 			$scope.selectedApplication = null;
 			$scope.userIconSource = null;
@@ -70,16 +70,19 @@
 			return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
 		};
 
-		applicationStore.get().then(function(applications) {
-			$scope.applications = applications;
-			switchApplication();
-			$scope.$watch('$state.params.applicationPublicId', switchApplication);
-			$scope.$on('resetApplication', switchApplication);
-		}, function (error) {
-            // TODO Error handling
-			alert(error.data);
-		});
-	});
+		$scope.doLoad = function () {
+			$scope.error = null;
+			applicationStore.get().then(function(applications) {
+				$scope.applications = applications;
+				switchApplication();
+				$scope.$watch('$state.params.applicationPublicId', switchApplication);
+				$scope.$on('resetApplication', switchApplication);
+			}, function (error) {
+				$scope.error = error;
+			});
+		};
+		$scope.doLoad();
+	}]);
 
 	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, $http, hudson, editorTools) {
 		function formReset() {
@@ -103,7 +106,7 @@
 		
 		$scope.getOrganizationName = function(organizationId) {
 			if (!organizationId) {
-				return "Assign Org..."
+				return "Assign Org...";
 			}
 			
 			if ($scope.organizations) {

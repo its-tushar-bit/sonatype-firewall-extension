@@ -8,7 +8,14 @@ package com.sonatype.insight.brain.license;
 import org.junit.Assert;
 
 import com.ning.http.client.Response;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -39,6 +46,26 @@ abstract class AbstractLicenseThreatGroupResourceTest
         Assert.assertNotNull( groups );
         Assert.assertEquals( 1, groups.length );
         assertLicenseThreatGroup( ownerId1, "AAA My group", 4, groups[0] );
+    }
+
+    protected void testDelete_InUseByPolicy( String ownerPublicId, String ownerId, String policyOwnerId )
+        throws Exception
+    {
+        LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+        LicenseThreatGroup ltg = new LicenseThreatGroup( ownerId, "ltgName", 5 );
+        ltgDAO.insert( ltg );
+
+        Policy policy = new Policy( null, "policyName" );
+        Constraint constraint = new Constraint( null, "constraintName", LogicalOperator.AND );
+        constraint.addCondition( new Condition( LicenseThreatGroupConditionType.ID, "is", ltg.getId() ) );
+        policy.addConstraint( constraint );
+        new PolicyDAO( brain.getWorkDir() ).insert( policyOwnerId, policy );
+
+        Response response = RestAccess.delete( getServiceURL( ownerPublicId ) + "/" + ltg.getId() );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Cannot delete the license threat group"
+            + " because it is used in a condition for the 'policyName' policy", response.getResponseBody() );
+        Assert.assertNotNull( ltgDAO.getById( ltg.getId() ) );
     }
 
     protected void testCRUD( String ownerPublicId, String ownerId )

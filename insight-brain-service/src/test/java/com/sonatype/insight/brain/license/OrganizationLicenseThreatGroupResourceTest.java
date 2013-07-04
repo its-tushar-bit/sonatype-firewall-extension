@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import org.junit.Test;
 
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
 public class OrganizationLicenseThreatGroupResourceTest
@@ -30,6 +31,22 @@ public class OrganizationLicenseThreatGroupResourceTest
             createOrganization( "testDeleteOwnerIdMismatch2", false /* createLicenseThreatGroups */);
         testDelete_OwnerIdMismatch( organization1.getId(), organization1.getId(), organization2.getId(),
                                     organization2.getId() );
+    }
+
+    @Test
+    public void testDelete_InUseByPolicy()
+        throws Exception
+    {
+        Organization org = createOrganization( "test", false );
+        testDelete_InUseByPolicy( org.getId(), org.getId(), org.getId() );
+    }
+
+    @Test
+    public void testDelete_InUseByPolicyInChildApp()
+        throws Exception
+    {
+        Application app = createApplication( "appPublicId", "appName" );
+        testDelete_InUseByPolicy( app.getOrganizationId(), app.getOrganizationId(), app.getId() );
     }
 
     @Override

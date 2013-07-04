@@ -32,6 +32,14 @@ public class ApplicationLicenseThreatGroupResourceTest
         testDelete_OwnerIdMismatch( appPublicId1, application1.getId(), appPublicId2, application2.getId() );
     }
 
+    @Test
+    public void testDelete_InUseByPolicy()
+        throws Exception
+    {
+        Application app = createApplication( "appPublicId" );
+        testDelete_InUseByPolicy( app.getPublicId(), app.getId(), app.getId() );
+    }
+
     @Override
     protected String getOwnerType()
     {

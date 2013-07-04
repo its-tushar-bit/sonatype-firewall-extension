@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.license;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -18,9 +20,18 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 @Named
@@ -30,6 +41,14 @@ public class LicenseThreatGroupResource
     public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
 
     private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+    private final InsightWork work;
+
+    @Inject
+    public LicenseThreatGroupResource( InsightWork work )
+    {
+        this.work = work;
+    }
 
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
@@ -85,6 +104,29 @@ public class LicenseThreatGroupResource
         {
             throw new NotFoundException( "Cannot find a license threat group with id " + licenseThreatGroupId
                 + " for owner id " + ownerId );
+        }
+
+        List<Policy> policies = new ArrayList<Policy>();
+        PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
+        policies.addAll( policyDAO.getByOwnerId( ownerId ) );
+        for ( Application app : new ApplicationDAO().getByOrganizationId( ownerId ) )
+        {
+            policies.addAll( policyDAO.getByOwnerId( app.getId() ) );
+        }
+        for ( Policy policy : policies )
+        {
+            for ( Constraint constraint : policy.getConstraints() )
+            {
+                for ( Condition condition : constraint.getConditions() )
+                {
+                    if ( LicenseThreatGroupConditionType.ID.equals( condition.getConditionTypeId() )
+                        && licenseThreatGroupId.equals( condition.getValue() ) )
+                    {
+                        throw new BadRequestException( "Cannot delete the license threat group because it is used"
+                            + " in a condition for the '" + policy.getName() + "' policy" );
+                    }
+                }
+            }
         }
 
         licenseThreatGroupDAO.delete( licenseThreatGroup );

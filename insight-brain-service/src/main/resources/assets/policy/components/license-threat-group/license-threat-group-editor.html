@@ -48,8 +48,9 @@
                     <div>
                         <div>
                             <div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-                                <i class='icon-plus-sign' ng-click='setIsApplied(l, true)'></i>&nbsp;<span
-                                    title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+                                <div ng-click='setIsApplied(l, true)'>
+                                  <i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+                                </div>
                             </div>
                         </div>
                     </div>

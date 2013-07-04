@@ -57,6 +57,11 @@
             }
         }
 
+        $scope.isCurrentTab = function (tabName) {
+            return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
+        };
+
+
         $scope.$state = $state;
 
         $scope.doLoad = function () {

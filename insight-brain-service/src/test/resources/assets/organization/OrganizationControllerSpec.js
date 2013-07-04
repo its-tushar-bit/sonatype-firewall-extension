@@ -50,6 +50,16 @@ describe('OrganizationController', function() {
         expect(scope.organizations[2].name).toEqual('org3');
     });
 
+    it('switches organizations', inject(function($timeout) {
+        expect(scope.selectedOrganization).toEqual(null);
+        scope.$apply(function() {
+            scope.$state.params.organizationId = '2';
+        });
+        $timeout.flush();
+        expect(scope.selectedOrganization).not.toBeUndefined();
+        expect(scope.selectedOrganization.name).toEqual('org2');
+    }));
+
     it('adds an organization', function() {
         scope.$state.params.organizationId = '_new_';
         scope.selectedOrganization = organizationStore.create();

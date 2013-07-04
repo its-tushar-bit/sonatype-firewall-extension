@@ -106,7 +106,7 @@
 			create: function() {
 				refreshLicenseStore();
 				var licenseGroup = licenseGroupStore.create();
-				licenseGroup.saveGroup = saveGroup;
+				licenseGroup.$saveGroup = saveGroup;
 				return licenseGroup;
 			}
 		};
@@ -335,7 +335,7 @@
                     return l.id;
                 });
 
-                licenseGroup.saveGroup(licenseIds).then(function(licenseGroup) {
+                licenseGroup.$saveGroup(licenseIds).then(function(licenseGroup) {
                 	for (var i = 0; i < $scope.licenseGroups.length; i++) {
                 		var licenseGroupIter = $scope.licenseGroups[i];
                 		if (licenseGroup.id === licenseGroupIter.id) {

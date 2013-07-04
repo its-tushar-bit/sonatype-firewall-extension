@@ -195,7 +195,8 @@ public class PolicyDAO
             final ArrayNode policies = loadPolicies( store );
             for ( int i = 0; i < policies.size(); i++ )
             {
-                if ( policyId.equals( policies.get( i ).get( "id" ).asText() ) )
+                Policy policy = JsonUtils.asPojo( policies.get( i ), Policy.class );
+                if ( policyId.equals( policy.getId() ) )
                 {
                     policies.remove( i );
                     savePolicies( store, policies );
@@ -272,11 +273,11 @@ public class PolicyDAO
             final ArrayNode policies = loadPolicies( store );
             for ( JsonNode policyJsonNode : policies )
             {
-                if ( policyJsonNode.path( "name" ).asText().equals( name ) )
+                Policy policy = JsonUtils.asPojo( policyJsonNode, Policy.class );
+                if ( policy.getName().equals( name ) )
                 {
                     // The policy may have been saved without an ownerId (i.e. before 1.6), so fill in the owner id
                     // here.
-                    Policy policy = JsonUtils.asPojo( policyJsonNode, Policy.class );
                     policy.setOwnerId( ownerId );
                     return policy;
                 }

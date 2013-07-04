@@ -138,6 +138,11 @@
 					// Update to existing object
 					$http.put(config.url, this, { params : config.params }).success(function (data) {
 						me.$updateOriginal(data);
+						angular.forEach(store, function (storeEntry) {
+						    if (storeEntry[config.id] === me[config.id]) {
+						        storeEntry.$updateOriginal(data);
+						    }
+						});
 						deferred.resolve(me);
 					}).error(getErrorFn(deferred));
 				}

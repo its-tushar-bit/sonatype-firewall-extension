@@ -117,6 +117,39 @@ describe('Resource', function () {
 		expect(firstObj.id).toEqual('bar');
 	}));
 
+	it('Clone', inject(function (CLMResource, $httpBackend) {
+		var store = CLMResource.getStore({
+				id : 'id',
+				url : storeUrl,
+				template : { id : null, data : [] }
+			}),
+			successSpy = jasmine.createSpy('successSpy'),
+			result = null,
+			clone = null;
+
+		$httpBackend.whenGET(storeUrl).respond([{ id : 'foo', data : [] }, { id : 'bar', data : [] }]);
+
+		store.get().then(function () {
+			expect(arguments.length).toEqual(1);
+			result = arguments[0];
+		});
+		$httpBackend.flush();
+
+		clone = result[0].$clone();
+		clone.data.push('foo');
+
+		expect(result[0].data).toEqual([]);
+		expect(clone.data).toEqual(['foo']);
+
+		$httpBackend.expectPUT(storeUrl).respond({ id : 'foo', data : ['foo'] });
+		clone.$save().then(successSpy);
+		$httpBackend.flush();
+		expect(successSpy).toHaveBeenCalled();
+
+		expect(result[0].data).toEqual(['foo']);
+		expect(clone.data).toEqual(['foo']);
+	}));
+
     describe('isDirty', function () {
         var scope, store, data;
 

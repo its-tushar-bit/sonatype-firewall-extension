@@ -345,7 +345,7 @@
 
                 	$scope.alerts = [];
                 	$scope.$emit('license.cancelLicenseGroupEdit');
-                }, function(rejection) {
+                }, function(error) {
                 	$scope.alerts.push({
     					type : 'error',
     					msg : 'An error occurred while saving the license threat group. (' + Messages.getHttpErrorMessage(error) + ')'

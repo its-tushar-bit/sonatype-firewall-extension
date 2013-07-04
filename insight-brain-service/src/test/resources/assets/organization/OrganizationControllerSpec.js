@@ -120,33 +120,33 @@ describe('OrganizationEditorController', function() {
     expect(isDirty).toBeTruthy();
   });
 
-  it('cancels edits', inject(function($httpBackend) {
+  it('cancels edits', function() {
     scope.selectedOrganization.name = "newName";
     scope.generateIcon();
 
-    $httpBackend.expectGET('../assets/management.html').respond('<div></div>');
-    $httpBackend.expectGET('../organization-assets/components/organization-navigator.html').respond('<div></div>');
+    httpBackend.expectGET('../assets/management.html').respond('<div></div>');
+    httpBackend.expectGET('../organization-assets/components/organization-navigator.html').respond('<div></div>');
 
     scope.cancelClick();
 
     expect(angular.equals(scope.selectedOrganization, originalMockOrganization)).toBeTruthy();
-  }));
+  });
 
-  it('saves an organization', inject(function($httpBackend, CLMAppLocations) {
+  it('saves an organization', inject(function(CLMAppLocations) {
     scope.organizationEditor = {};
     scope.organizationEditor.$valid = true;
 
     scope.selectedOrganization.name = "newName";
     scope.generateIcon();
 
-    $httpBackend.expectPUT(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(mockOrganization);
+    httpBackend.expectPUT(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(mockOrganization);
 
     var hasFormData = window.FormData;
     window.FormData = false;
 
     scope.saveClick();
 
-    $httpBackend.flush();
+    httpBackend.flush();
 
     window.FormData = hasFormData;
   }));
@@ -192,8 +192,8 @@ describe('OrganizationEditorController', function() {
 
     scope.saveClick();
 
-    window.FormData = hasFormData;
-
     httpBackend.flush();
+
+    window.FormData = hasFormData;
   }));
 });

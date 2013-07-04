@@ -55,6 +55,11 @@ public class PolicyDAO
         {
             final ArrayNode policies = loadPolicies( store );
             Collections.addAll( result, JsonUtils.asPojo( policies, Policy[].class ) );
+            // The policies may have been saved without an ownerId (i.e. before 1.6), so fill in the owner id here.
+            for ( Policy policy : result )
+            {
+                policy.setOwnerId( ownerId );
+            }
         }
         catch ( final IOException e )
         {
@@ -66,6 +71,7 @@ public class PolicyDAO
 
     public Policy insert( final String ownerId, final Policy policy )
     {
+        policy.setOwnerId( ownerId );
         ValidationResult validationResult = policy.validate( ownerId );
         if ( validationResult != null && !validationResult.isValid() )
         {
@@ -115,6 +121,7 @@ public class PolicyDAO
 
     public Policy update( final String ownerId, final Policy policy )
     {
+        policy.setOwnerId( ownerId );
         ValidationResult validationResult = policy.validate( ownerId );
         if ( validationResult != null && !validationResult.isValid() )
         {
@@ -263,11 +270,15 @@ public class PolicyDAO
         try
         {
             final ArrayNode policies = loadPolicies( store );
-            for ( JsonNode policy : policies )
+            for ( JsonNode policyJsonNode : policies )
             {
-                if ( policy.path( "name" ).asText().equals( name ) )
+                if ( policyJsonNode.path( "name" ).asText().equals( name ) )
                 {
-                    return JsonUtils.asPojo( policy, Policy.class );
+                    // The policy may have been saved without an ownerId (i.e. before 1.6), so fill in the owner id
+                    // here.
+                    Policy policy = JsonUtils.asPojo( policyJsonNode, Policy.class );
+                    policy.setOwnerId( ownerId );
+                    return policy;
                 }
             }
         }

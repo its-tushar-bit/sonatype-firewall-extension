@@ -391,6 +391,7 @@ public class PolicyDAOTest
         List<Policy> policies = policyDAO.getByOwnerId( applicationId );
         Assert.assertNotNull( policies );
         Assert.assertEquals( 1, policies.size() );
+        policy1.setOwnerId( applicationId );
         assertPolicy( policy1, policies.get( 0 ) );
 
         // Add another policy
@@ -405,6 +406,7 @@ public class PolicyDAOTest
         Assert.assertNotNull( policies );
         Assert.assertEquals( 2, policies.size() );
         assertPolicy( policy1, policies.get( 0 ) );
+        policy2.setOwnerId( applicationId );
         assertPolicy( policy2, policies.get( 1 ) );
 
         // Update a policy
@@ -521,6 +523,7 @@ public class PolicyDAOTest
     {
         Assert.assertEquals( expected.getId(), actual.getId() );
         Assert.assertEquals( expected.getName(), actual.getName() );
+        Assert.assertEquals( expected.getOwnerId(), actual.getOwnerId() );
         Assert.assertEquals( expected.isEnabled(), actual.isEnabled() );
         Assert.assertEquals( expected.getThreatLevel(), actual.getThreatLevel() );
 

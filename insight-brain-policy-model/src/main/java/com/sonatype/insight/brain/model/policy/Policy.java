@@ -26,6 +26,11 @@ public class Policy
 
     private String name;
 
+    /**
+     * @since 1.6
+     */
+    private String ownerId;
+
     private boolean enabled = true;
 
     private int threatLevel = 5;
@@ -219,5 +224,15 @@ public class Policy
             }
         }
         return null;
+    }
+
+    public String getOwnerId()
+    {
+        return ownerId;
+    }
+
+    public void setOwnerId( String ownerId )
+    {
+        this.ownerId = ownerId;
     }
 }

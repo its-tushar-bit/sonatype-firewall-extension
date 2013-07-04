@@ -115,27 +115,12 @@
 				</div>
 				<div class="modal-body" ng-show='currentConstraint'>
 					<form name='constrainteditor' class='form-horizontal' style='margin-bottom:0px'>
-						<table>
-							<tr>
-								<td>
-									<div class='control-group' style="padding-right:10px;margin-bottom:10px;">
-										<label class='control-label' style="width:40px;" for='constraintName'>Name</label>
-										<div class='controls' style='text-align:left;margin-left:50px;'>
-											<input type="text" id="constraintName" ng-model="currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...' required>
-										</div>
-									</div>
-								</td>
-								<td>
-									<div class='control-group' style="margin-bottom:10px;">
-										<label class='control-label' style="width:40px;" for="constraintOperator">Include</label>
-										<div class='controls' style='text-align:left;margin-left:50px;'>
-											<select id="constraintOperator" ng-model="currentConstraint.operator" ng-change="validateConstraint()" ng-options="operator.value as operator.name for operator in [{'value':'AND', 'name':'All Conditions'},{'value':'OR', 'name':'Any Condition'}]" style="vertical-align:top;" required>
-											</select>
-										</div>
-									</div>
-								</td>
-							</tr>
-						</table>
+                        <div class='control-group' style="padding-right:10px;margin-bottom:10px;">
+                            <label class='control-label' style="width:40px;" for='constraintName'>Name</label>
+                            <div class='controls' style='text-align:left;margin-left:50px;'>
+                                <input type="text" id="constraintName" ng-model="currentConstraint.name" ng-change="validateConstraint()" placeholder='Enter Constraint Name...' required>
+                            </div>
+                        </div>
 						<div class='control-group' style="margin-bottom:0px;">
 							<div class='well' style="width:790px;min-height:120px;max-height:120px;overflow:auto;">
 								<div style="text-align:left;" ng-repeat="condition in currentConstraint.conditions">
@@ -179,9 +164,21 @@
 								</div>
 							</div>
 						</div>
+                        <div class='control-group' style="margin-bottom:10px; line-height: 30px;">
+                          <div class='controls nullable' style='text-align:left;margin-left:0px;'>
+                            Components violate this constraint when
+                            <select id="constraintOperator" ng-model="currentConstraint.operator"
+                                    ng-change="validateConstraint()"
+                                    ng-options="operator.value as operator.name for operator in constraintConditionChoices"
+                                    style="vertical-align:top;" required>
+                              <option value="" ng-selected="currentConstraint.operator == null">any/all</option>
+                            </select>
+                            of the above conditions are true.
+                          </div>
+                        </div>
 					</form>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer">                                                 config-dev
 					<div>
 						<div style="padding-top:5px; float:left;" ng-show="constraintValidationMsg">
 							<span style="color: #b94a48;">{{constraintValidationMsg}}</span>

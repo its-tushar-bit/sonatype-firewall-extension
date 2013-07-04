@@ -217,6 +217,11 @@ describe('PolicyEditor', function() {
 		controller.scope.currentConstraint.conditions[0].v = 1;
 		controller.scope.updateAge(controller.scope.currentConstraint.conditions[0]);
 		controller.scope.validateConstraint();
+                expect(controller.scope.constraintValidationMsg).not.toBeUndefined();
+
+                //Pick any/all(names are mapped to values OR/AND)
+                controller.scope.currentConstraint.operator = 'OR';
+                controller.scope.validateConstraint();
 		expect(controller.scope.constraintValidationMsg).toBeUndefined();
 
 		$rootScope.$on('policy.constraintSaved', function (event, constraint) {

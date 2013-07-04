@@ -126,7 +126,16 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, messages, policyStore, actionStore) {
+        module.service('ConstraintConditionChoices', function () {
+          return{
+            choices: [
+              {'value': 'AND', 'name': 'all'},
+              {'value': 'OR', 'name': 'any'}
+            ]
+          }
+        });
+
+	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', 'ConstraintConditionChoices', function ($scope, $state, $q, $location, messages, policyStore, actionStore, constraintConditionChoices) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirmationHeader = header;
@@ -170,6 +179,7 @@
 			return changed;
 		}
 		$scope.alerts = [];
+                $scope.constraintConditionChoices = constraintConditionChoices.choices;
 
 		$scope.doLoad = function () {
 			var currentPolicyStore = policyStore.get();
@@ -320,6 +330,12 @@
 					return;
 				}
 			}
+
+                        if(!$scope.currentConstraint.operator)
+                        {
+                          $scope.constraintValidationMsg = 'You must select any or all of the conditions';
+                          return
+                        }
 		};
 
 		$scope.conditionTypeChanged = function (condition) {		
@@ -374,7 +390,7 @@
 			var fn = function () {
 				if ($scope.conditionTypes) {
 					$scope.originalConstraint = constraint || null;
-					$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: 'OR' };
+					$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: null };
 
 					if ($scope.currentConstraint.conditions.length === 0) {
 						$scope.addCondition();

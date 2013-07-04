@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
@@ -71,8 +72,6 @@ public class PolicyDAO
             throw new InvalidPolicyException( validationResult );
         }
 
-        validateNameWithinHierarchy( ownerId, policy.getName() );
-
         final JsonStore store = policyStore( ownerId );
         try
         {
@@ -94,7 +93,17 @@ public class PolicyDAO
             }
 
             policiesJson.add( JsonUtils.asTree( policy ) );
-            savePolicies( store, policiesJson );
+
+            List<Lock> readLocks = new ArrayList<Lock>();
+            try
+            {
+                validateNameWithinHierarchy( ownerId, policy.getName(), readLocks );
+                savePolicies( store, policiesJson );
+            }
+            finally
+            {
+                unlock( readLocks );
+            }
         }
         catch ( final IOException e )
         {
@@ -111,8 +120,6 @@ public class PolicyDAO
         {
             throw new InvalidPolicyException( validationResult );
         }
-
-        validateNameWithinHierarchy( ownerId, policy.getName() );
 
         final JsonStore store = policyStore( ownerId );
         try
@@ -154,7 +161,16 @@ public class PolicyDAO
                 throw new InvalidPolicyException( "The policy does not exist" );
             }
 
-            savePolicies( store, policiesJson );
+            List<Lock> readLocks = new ArrayList<Lock>();
+            try
+            {
+                validateNameWithinHierarchy( ownerId, policy.getName(), readLocks );
+                savePolicies( store, policiesJson );
+            }
+            finally
+            {
+                unlock( readLocks );
+            }
         }
         catch ( final IOException e )
         {
@@ -238,19 +254,32 @@ public class PolicyDAO
         return UUID.randomUUID().toString().replace( "-", "" );
     }
 
-    private Policy getByOwnerIdAndName( final String ownerId, final String name )
+    private Policy getByOwnerIdAndName( final String ownerId, final String name, final List<Lock> readLocks )
     {
-        for ( Policy policy : getByOwnerId( ownerId ) )
+        final JsonStore store = policyStore( ownerId );
+        Lock readLock = store.readLock();
+        readLocks.add( readLock );
+        readLock.lock();
+        try
         {
-            if ( policy.getName().equals( name ) )
+            final ArrayNode policies = loadPolicies( store );
+            for ( JsonNode policy : policies )
             {
-                return policy;
+                if ( policy.path( "name" ).asText().equals( name ) )
+                {
+                    return JsonUtils.asPojo( policy, Policy.class );
+                }
             }
+        }
+        catch ( final IOException e )
+        {
+            log.error( "Failed to load policies", e );
+            throw new IllegalStateException( e );
         }
         return null;
     }
 
-    private void validateNameWithinHierarchy( final String ownerId, final String name )
+    private void validateNameWithinHierarchy( final String ownerId, final String name, final List<Lock> readLocks )
         throws InvalidPolicyException
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -260,7 +289,7 @@ public class PolicyDAO
             // The owner is an application
             if ( parentApplication.getOrganizationId() != null )
             {
-                if ( getByOwnerIdAndName( parentApplication.getOrganizationId(), name ) != null )
+                if ( getByOwnerIdAndName( parentApplication.getOrganizationId(), name, readLocks ) != null )
                 {
                     throw new InvalidPolicyException( "A policy with the same name already exists"
                         + " for the parent organization" );
@@ -273,11 +302,26 @@ public class PolicyDAO
             List<Application> applications = applicationDAO.getByOrganizationId( ownerId );
             for ( Application application : applications )
             {
-                if ( getByOwnerIdAndName( application.getId(), name ) != null )
+                if ( getByOwnerIdAndName( application.getId(), name, readLocks ) != null )
                 {
                     throw new InvalidPolicyException( "A policy with the same name already exists"
                         + " for application '" + application.getName() + "'" );
                 }
+            }
+        }
+    }
+
+    private static void unlock( List<Lock> locks )
+    {
+        for ( Lock lock : locks )
+        {
+            try
+            {
+                lock.unlock();
+            }
+            catch ( Exception e )
+            {
+                log.warn( "Failed to release lock {}", lock, e );
             }
         }
     }

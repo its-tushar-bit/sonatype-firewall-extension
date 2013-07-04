@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
 
 import org.codehaus.plexus.util.FileUtils;
 
@@ -174,6 +175,12 @@ public final class JsonFileStore
         {
             lock.sharedUnlock();
         }
+    }
+
+    @Override
+    public Lock readLock()
+    {
+        return lockFor( folder ).readLock();
     }
 
     private static ArrayNode filterLog( final File file, final ObjectNode key )

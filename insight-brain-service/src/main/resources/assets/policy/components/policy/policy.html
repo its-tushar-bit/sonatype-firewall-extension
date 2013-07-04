@@ -1,13 +1,14 @@
-<div id="policy" style='padding-top:20px'>
+<div id="policy">
 	<div load-error='error' reload='doLoad()'></div>
 	<div class='content-container' style='text-align:center;width:370px;margin:auto' ng-show='!state && !error'>
 		<h5><i class='icon-time'></i> Loading...</h5>
 	</div>
-	<div class='fade' ng-class='{in : state}'>
-		<div style='margin:auto;width:460px'>
-			<div class='content-container' style='text-align:center;padding-top: 5px;padding-right: 20px;margin-bottom:10px;'>
-				<p ng-show='!state.policyList.length'>No Policies have been defined.</p>
-				<p><a relative-href="/new">Create</a> a new Policy.</p>
+  <div class='add-section'>
+    <a relative-href="/new" class='btn btn-primary'><i class="icon-white icon-plus-sign"></i> New Policy</a>
+  </div>
+  <div class='fade' ng-class='{in : state}'>
+      <div style='margin:auto;width:460px'>
+          <div class='content-container' style='text-align:center;padding-top: 5px;padding-right: 20px;margin-bottom:10px;'>
 				<table class='table table-striped table-bordered' style='margin:10px'>
 					<thead>
 						<tr>
@@ -42,6 +43,7 @@
 		</div>
 		<div clm-alerts='alerts'></div>
 		<div>
+            <p ng-show='!state.policyList.length' style='padding-left: 25px;'>No Policies have been defined.</p>
 			<div class="policy-item" ng-repeat="policy in state.policyList">
 				<div style="float:right;" class='btn-group'>
 					<a class="btn btn-mini policy-button" title="Edit Policy" relative-href='/{{policy.id}}'"><i

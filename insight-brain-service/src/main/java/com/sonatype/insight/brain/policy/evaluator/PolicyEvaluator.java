@@ -66,7 +66,7 @@ public class PolicyEvaluator
     public List<PolicyAlert> evaluate( String applicationId, Stage stage, PolicyDAO policyDAO,
                                        List<Component> components )
     {
-        List<Policy> policies = policyDAO.getByOwnerId( applicationId );
+        List<Policy> policies = policyDAO.getApplicableByOwnerId( applicationId );
         return evaluate( applicationId, stage, policies, components );
     }
 

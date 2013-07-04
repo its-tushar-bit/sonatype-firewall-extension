@@ -38,6 +38,17 @@ public class Application
     @Column( name = "organization_id" )
     private String organizationId;
 
+    public Application()
+    {
+    }
+
+    public Application( String publicId, String name, String organizationId )
+    {
+        setPublicId( publicId );
+        setName( name );
+        this.organizationId = organizationId;
+    }
+
     @Override
     public String getId()
     {

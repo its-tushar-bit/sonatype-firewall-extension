@@ -21,6 +21,11 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
@@ -513,6 +518,65 @@ public class PolicyEvaluatorTest
 
             Assert.assertEquals( alertsToString( expectedAlerts ), alertsToString( alerts ) );
         }
+    }
+
+    @Test
+    public void testEvaluate_OrgAndAppPolicies()
+        throws Exception
+    {
+        OrganizationDAO orgDAO = new OrganizationDAO();
+        Organization org = new Organization( "testEvaluateOrgAndAppPolicies" );
+        orgDAO.insert( org );
+        ApplicationDAO appDAO = new ApplicationDAO();
+        Application app =
+            new Application( "testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies", org.getId() );
+        appDAO.insert( app );
+        PolicyDAO policyDAO = new PolicyDAO( tempDir.newFolder() );
+
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // Create org policy
+        List<Constraint> constraints = new ArrayList<Constraint>();
+        Constraint constraintOrg = new Constraint( null, "Constraint Name Org", LogicalOperator.AND );
+        constraintOrg.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraints.add( constraintOrg );
+        Policy policyOrg = new Policy( null, "Policy Name Org" );
+        policyOrg.setConstraints( constraints );
+        policyOrg.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+        policyDAO.insert( org.getId(), policyOrg );
+
+        // Create app policy
+        constraints = new ArrayList<Constraint>();
+        Constraint constraintApp = new Constraint( null, "Constraint Name App", LogicalOperator.AND );
+        constraintApp.addCondition( new Condition( LicenseConditionType.ID, "is", "Apache-2.0" ) );
+        constraints.add( constraintApp );
+        Policy policyApp = new Policy( null, "Policy Name App" );
+        policyApp.setConstraints( constraints );
+        policyApp.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+        policyDAO.insert( app.getId(), policyApp );
+
+        List<Component> components = new ArrayList<Component>();
+        // A component with one security vulnerability
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
+        component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
+        components.add( component1 );
+        // A component with Apache-2.0 license
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
+        component2.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component2 );
+
+        // Evaluate the policies
+        List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate( app.getId(), stage, policyDAO, components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 2, policyAlerts.size() );
+        assertContainsPolicyAlert( component1, policyOrg.getId(), "Policy Name Org", FailActionType.ID,
+                                   constraintOrg.getId(), "Constraint Name Org", SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+        assertContainsPolicyAlert( component2, policyApp.getId(), "Policy Name App", FailActionType.ID,
+                                   constraintApp.getId(), "Constraint Name App", LicenseConditionType.ID, policyAlerts );
+        
+        appDAO.delete( app );
+        orgDAO.delete( org );
     }
 
     private static String alertsToString( final List<PolicyAlert> policyAlerts )

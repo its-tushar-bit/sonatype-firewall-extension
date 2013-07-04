@@ -567,4 +567,57 @@ public class PolicyDAOTest
         policy.addConstraint( constraint );
         return policy;
     }
+
+    @Test
+    public void testGetApplicable_Organization()
+    {
+        String policyNameOrg = "testGetApplicableOrganization";
+        Policy policyOrg = newPolicy( policyNameOrg );
+        policyDAO.insert( org.getId(), policyOrg );
+        String policyNameApp = "testGetApplicableApplication";
+        Policy policyApp = newPolicy( policyNameApp );
+        policyDAO.insert( app.getId(), policyApp );
+
+        List<Policy> policies = policyDAO.getApplicableByOwnerId( org.getId() );
+        Assert.assertEquals( 1, policies.size() );
+        Assert.assertEquals( policyNameOrg, policies.get( 0 ).getName() );
+    }
+
+    @Test
+    public void testGetApplicable_Application()
+    {
+        String policyNameOrg = "testGetApplicableOrganization";
+        Policy policyOrg = newPolicy( policyNameOrg );
+        policyDAO.insert( org.getId(), policyOrg );
+        String policyNameApp = "testGetApplicableApplication";
+        Policy policyApp = newPolicy( policyNameApp );
+        policyDAO.insert( app.getId(), policyApp );
+
+        List<Policy> policies = policyDAO.getApplicableByOwnerId( app.getId() );
+        Assert.assertEquals( 2, policies.size() );
+        Assert.assertEquals( policyNameApp, policies.get( 0 ).getName() );
+        Assert.assertEquals( policyNameOrg, policies.get( 1 ).getName() );
+    }
+
+    @Test
+    public void testGetApplicable_Application_NoParentOrganization()
+    {
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        applicationDAO.delete( app );
+        app =
+            new Application( "testGetApplicableApplicationNoParentOrganization",
+                             "testGetApplicableApplicationNoParentOrganization", null /* orgId */);
+        applicationDAO.insert( app );
+
+        String policyNameOrg = "testGetApplicableOrganization";
+        Policy policyOrg = newPolicy( policyNameOrg );
+        policyDAO.insert( org.getId(), policyOrg );
+        String policyNameApp = "testGetApplicableApplication";
+        Policy policyApp = newPolicy( policyNameApp );
+        policyDAO.insert( app.getId(), policyApp );
+
+        List<Policy> policies = policyDAO.getApplicableByOwnerId( app.getId() );
+        Assert.assertEquals( 1, policies.size() );
+        Assert.assertEquals( policyNameApp, policies.get( 0 ).getName() );
+    }
 }

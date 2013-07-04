@@ -279,6 +279,18 @@ public class PolicyDAO
         return null;
     }
 
+    public List<Policy> getApplicableByOwnerId( final String ownerId )
+    {
+        List<Policy> result = new ArrayList<Policy>();
+        result.addAll( getByOwnerId( ownerId ) );
+        Application application = new ApplicationDAO().getById( ownerId );
+        if ( application != null && application.getOrganizationId() != null )
+        {
+            result.addAll( getByOwnerId( application.getOrganizationId() ) );
+        }
+        return result;
+    }
+
     private void validateNameWithinHierarchy( final String ownerId, final String name, final List<Lock> readLocks )
         throws InvalidPolicyException
     {

@@ -40,7 +40,7 @@
 
 			resourceStore.get = function () {
 				if (error || !storeDeferred) {
-					// An error occured previously, or the store hasn't been loaded
+					// An error occurred previously, or the store hasn't been loaded
 					error = false;
 					doLoad();
 				}

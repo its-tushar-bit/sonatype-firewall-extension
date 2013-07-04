@@ -3,9 +3,13 @@ var clmTimestamp = '';
 describe('OrganizationController', function() {
     var scope, httpBackend, rootScope, clmLocations, compile, sniffer, organizationStore;
 
-	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
+    function toRegExp(url) {
+      return new RegExp(url + '\\?timestamp=[0-9]+');
+    }
+
+    angular.module('Hudson', []).factory('hudson', ['$http', function($http){
 		return $http;
-	}]);
+    }]);
 
     beforeEach(module('Organization', 'AngularCommon', 'CLMLocation'));
 
@@ -17,7 +21,7 @@ describe('OrganizationController', function() {
         sniffer = $sniffer;
         organizationStore = OrganizationStore;
 
-        httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(OrganizationMockData.getGETResponse());
+        httpBackend.expectGET(toRegExp(CLMLocations.getOrganizationsUrl())).respond(OrganizationMockData.getGETResponse());
 
         scope = $rootScope.$new();
 
@@ -52,7 +56,7 @@ describe('OrganizationController', function() {
         scope.selectedOrganization.name = 'name';
         scope.organizationEditor = {}
 
-        httpBackend.expectPOST(clmLocations.getOrganizationsUrl(), {
+        httpBackend.expectPOST(toRegExp(clmLocations.getOrganizationsUrl()), {
             id : null,
             name : 'name'
         }).respond(OrganizationMockData.getPOSTResponse('name'));

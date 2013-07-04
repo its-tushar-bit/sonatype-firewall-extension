@@ -47,8 +47,8 @@ describe('PolicyEditor', function() {
 
 	function getConstraintEditorController() {
 		inject(function($httpBackend, CLMLocations, CLMAppLocations) {
-			$httpBackend.expectGET(cacheBust(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
-			$httpBackend.expectGET(cacheBust(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+			$httpBackend.expectGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+			$httpBackend.expectGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 		});
 		
 		return getController('ConstraintEditorController');
@@ -63,13 +63,13 @@ describe('PolicyEditor', function() {
 
 	function expectPolicyRequest(responseData) {
 		inject(function($httpBackend, CLMAppLocations) {
-			$httpBackend.expectGET(cacheBust(CLMAppLocations.getPolicyUrl())).respond(angular.copy(responseData));
+			$httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.copy(responseData));
 		});
 	}
 
 	function expectNewPolicy(response) {
 		inject(function($httpBackend, CLMAppLocations) {
-			$httpBackend.expectPOST(cacheBust(CLMAppLocations.getPolicyUrl())).respond(response);
+			$httpBackend.expectPOST(toRegExp(CLMAppLocations.getPolicyUrl())).respond(response);
 		});
 	}
 
@@ -84,7 +84,7 @@ describe('PolicyEditor', function() {
 		return $http;
 	}]);
 
-        function cacheBust(url) {
+        function toRegExp(url) {
           return new RegExp(url + '\\?timestamp=[0-9]+')
         }
 
@@ -296,7 +296,7 @@ describe('PolicyEditor', function() {
 			operator : 'OR'
 		};
 
-		$httpBackend.expectGET(cacheBust(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+		$httpBackend.expectGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 		
 		$compile(body)(scope);
 		

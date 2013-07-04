@@ -72,7 +72,7 @@ describe('ApplicationEditorController', function () {
 
 		var organizationData = OrganizationMockData.getGETResponse();
 		mockOrganization = organizationData[0];
-        httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
+                httpBackend.expectGET(toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
 
 		scope = $rootScope.$new();
 		state = $state;

@@ -36,8 +36,9 @@
                     <h5>Applied Licenses</h5>
                     <div>
                         <div>
-                            <div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'>
-                                <i class='icon-minus-sign' ng-click='removeLicense(l)'></i>&nbsp;<span
+                            <div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'
+                                 ng-click='removeLicense(l)' style='cursor: pointer;'>
+                                <i class='icon-minus-sign'></i>&nbsp;<span
                                     title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
                             </div>
                         </div>
@@ -48,7 +49,7 @@
                     <div>
                         <div>
                             <div ng-repeat='l in allLicenses | filterLicenses: { groupLicenses: selectedGroupLicenses, searchLicense: licenseSearch } | orderBy: "shortDisplayName"'
-                            		 ng-click='addLicense(l)'>
+                            		 ng-click='addLicense(l)' style='cursor: pointer;'>
                                 <i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
                             </div>
                         </div>

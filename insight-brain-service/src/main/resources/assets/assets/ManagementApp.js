@@ -93,14 +93,8 @@
 		$scope.$state = $state;
 		$scope.availableDashboards = [
 			{
-				name: 'Dashboard',
-				state: 'dashboard'
-			}, {
 				name: 'Management',
 				state: 'management'
-			}, {
-				name: 'Reports',
-				state: 'reports'
 			}];
 		
 		$scope.$watch('$state.current.name', switchDashboard);

@@ -32,6 +32,7 @@
                 return true;
             },
             generateIcon : function(name) {
+            	var hash = 0;
                 if (!name) {
                     hash = Math.floor(Math.random() * 100);
                 } else {

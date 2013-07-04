@@ -27,7 +27,7 @@ describe('PolicyController tests', function() {
 
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-        $httpBackend.expectGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
+        $httpBackend.expectGET(toRegExp(CLMAppLocations.getEntityUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
 
         // inject the controller

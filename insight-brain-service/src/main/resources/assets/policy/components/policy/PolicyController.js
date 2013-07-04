@@ -20,7 +20,7 @@
 		}
 		
 		// Needs to be moved to an application store. This work is already done in the post insight-brain-1.4.x release and therefore not redone here
-		$http.get(clmAppLocations.getEntitiesUrl(), {
+		$http.get(clmAppLocations.getEntityUrl(), {
 			params: { timestamp: new Date().getTime() }
 		}).success(function (data) {
 			$scope.application = data;

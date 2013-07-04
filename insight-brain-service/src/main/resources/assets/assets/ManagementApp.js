@@ -10,10 +10,6 @@
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
-		}).state('error', {
-			url : '/error',
-			controller : angular.noop,
-			template : '<div class="alert alert-error clm-error"><strong>Error</strong>: Invalid URL</div>'
 		});
 		$routeProvider.when('', { redirectTo : '/management/application' });
 

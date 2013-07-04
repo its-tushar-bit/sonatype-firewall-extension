@@ -16,7 +16,14 @@
 			template : '<div class="alert alert-error clm-error"><strong>Error</strong>: Invalid URL</div>'
 		});
 		$routeProvider.when('', { redirectTo : '/management/application' });
-		$urlRouterProvider.otherwise( '/error' );
+
+		var fn = function ($rootScope, messages) {
+			$rootScope.error = 'Unknown Address';
+		};
+		fn.$inject = [ '$rootScope', 'Messages' ];
+		$urlRouterProvider.otherwise( function ($injector, $location) {
+			$injector.invoke(fn);
+		} );
 	}]).run(['$rootScope', '$location', '$dialog', 'Messages', function ($rootScope, $location, $dialog, messages) {
 		// The page contains unsaved changes, continuing will discard them.
 		var state = null;

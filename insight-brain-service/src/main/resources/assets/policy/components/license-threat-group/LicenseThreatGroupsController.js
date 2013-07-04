@@ -365,7 +365,7 @@
         });
 
         $scope.$on('pageChangeStarted', function (event) {
-            if ($scope.selectedGroup.isDirty()) {
+            if ($scope.selectedGroup && $scope.selectedGroup.isDirty()) {
                 event.preventDefault();
             }
         });

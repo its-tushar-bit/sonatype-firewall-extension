@@ -41,7 +41,7 @@ public class OrganizationResource
     private InsightWork work;
 
     /**
-     * @since 1.5
+     * @since 1.6
      */
     @GET
     @Produces( MediaType.APPLICATION_JSON )
@@ -51,7 +51,7 @@ public class OrganizationResource
     }
 
     /**
-     * @since 1.5
+     * @since 1.6
      */
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
@@ -64,7 +64,7 @@ public class OrganizationResource
     }
 
     /**
-     * @since 1.5
+     * @since 1.6
      */
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
@@ -83,7 +83,7 @@ public class OrganizationResource
     }
     
     /**
-     * @since 1.5
+     * @since 1.6
      */
     @Override
     @GET
@@ -96,7 +96,7 @@ public class OrganizationResource
     }
 
     /**
-     * @since 1.5
+     * @since 1.6
      */
     @GET
     @Path( GET_ICON_PATH )
@@ -111,7 +111,7 @@ public class OrganizationResource
      * This is one of two service methods used for editing and adding icons. This method is used for AJAX calls since
      * its return type is a JSON object.
      * 
-     * @since 1.5
+     * @since 1.6
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
@@ -131,7 +131,7 @@ public class OrganizationResource
      * This is one of two service methods used for editing and adding icons. This method is used for synchronous calls
      * since it returns an HTTP Response.
      * 
-     * @since 1.5
+     * @since 1.6
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )

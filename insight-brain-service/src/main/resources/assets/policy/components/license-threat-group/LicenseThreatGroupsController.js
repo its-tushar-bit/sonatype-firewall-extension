@@ -145,7 +145,7 @@
         }
 
 		function deselect() {
-			delete $scope.selectedGroup;
+			$scope.selectedGroup = null;
 		}
 
         $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
@@ -187,34 +187,11 @@
         $scope.editLicenseGroup = function (group) {
         	if (group) {
 				$scope.selectedGroup = group.$clone();
-				$scope.selectedGroup.licenses = group.licenses;
+				$scope.selectedGroup.licenses = angular.copy(group.licenses);
 				$scope.selectedGroup.$saveGroup = group.$saveGroup;
 			} else {
 				$scope.selectedGroup = licenseGroupStore.create();
         	}
-
-            // Reset master license list
-            angular.forEach($scope.allLicenses, function (license, index) {
-                license.isApplied = false;
-            });
-            // Copy master license list
-            var availableLicenses = $.merge([], $scope.allLicenses);
-            $scope.selectedGroup.licenses.sort(sortGroupLicense);
-            var j = 0;
-            var k = availableLicenses.length;
-            for (var i = 0; i < k; i++) {
-                // If all licenses from this group have been processed, we are done
-                if (j == $scope.selectedGroup.licenses.length) {
-                    break;
-                }
-                // If the license exists in the group's licenses, set isApplied to true
-                if (j < $scope.selectedGroup.licenses.length && availableLicenses[i].id == $scope.selectedGroup.licenses[j].licenseId) {
-                    availableLicenses[i].isApplied = true;
-                    j++;
-                }
-            }
-
-            $scope.licenses = availableLicenses;
 
             angular.element('#licenseModal').modal('show');
         };
@@ -285,9 +262,10 @@
         };
 
 		$scope.$on('license.cancelLicenseGroupEdit', function (event, licenseGroup) {
+		    event.stopPropagation();
 			deselect();
 			delete $scope.newGroupName;
-			angular.element('#licenseModal').modal('hide');
+			$('#licenseModal').modal('hide');
 		});
 
 		$scope.$on('pageChangeStarted', function (event) {
@@ -310,12 +288,27 @@
             // If only one license is applicable to the current search filter, set isApplied true when enter is pressed
             if (licenses.length == 1) {
             	$scope.setIsApplied(licenses[0], !licenses[0].isApplied);
-                $scope.licenseSearch = null;
+                $scope.licenseSearch = '';
             }
         };
 
-        $scope.setIsApplied = function (license, value) {
-            license.isApplied = value;
+        $scope.addLicense = function (license) {
+            $scope.selectedGroup.licenses.push({
+                licenseId : license.id
+            });
+            $scope.selectedGroupLicenses[license.id] = true;
+        };
+        $scope.removeLicense = function (license) {
+            var index = -1;
+            angular.forEach($scope.selectedGroup.licenses, function (l, candidateIndex) {
+                if (license.id === l.licenseId) {
+                    index = candidateIndex;
+                }
+            });
+            if (index !== -1) {
+                $scope.selectedGroupLicenses[license.id] = null;
+                $scope.selectedGroup.licenses.splice(index, 1);
+            }
         };
 
         $scope.canSaveEdit = function (valid) {
@@ -330,9 +323,9 @@
             (function (licenseGroup) {
                 $scope.submitActive = true;
 
-                var filter = $filter('filterLicenses');
-                var licenseIds = filter($scope.licenses, { isApplied: true }).map(function (l) {
-                    return l.id;
+                var licenseIds = [];
+                angular.forEach($scope.selectedGroup.licenses, function (license) {
+                    licenseIds.push(license.licenseId);
                 });
 
                 licenseGroup.$saveGroup(licenseIds).then(function(licenseGroup) {
@@ -367,27 +360,62 @@
         $scope.$on('pageChangeStarted', function (event) {
             if ($scope.selectedGroup && $scope.selectedGroup.isDirty()) {
                 event.preventDefault();
+                return;
+            }
+            angular.forEach($scope.licenseGroups, function (group) {
+                if (group.id === $scope.selectedGroup.id && !angular.equals($scope.selectedGroup.licenses, group.licenses)) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        $scope.$watch('selectedGroup', function (newValue) {
+            if (newValue) {
+                $scope.selectedGroupLicenses = {};
+                $scope.licenseSearch = '';
+
+                angular.forEach($scope.selectedGroup.licenses, function (license, index) {
+                    $scope.selectedGroupLicenses[license.licenseId] = true;
+                });
+            } else {
+                $scope.selectedGroupLicenses = null;
             }
         });
     });
 
+    licenseGroupModule.filter('toLicense', ['licenseStore', function (licenseStore) {
+        var licenses = null;
+        // Failure / loading delay isn't relevant here as it will be handled in the controllers
+        licenseStore.get().then(function (data) {
+            licenses = {};
+            angular.forEach(data, function (license) {
+                licenses[license.id] = license;
+            });
+        });
+        return function (items, filter) {
+            var retLicenses = [];
+            angular.forEach(items, function (item) {
+                retLicenses.push(licenses[item.licenseId]);
+            });
+            return retLicenses;
+        };
+    }]);
+
     licenseGroupModule.filter('filterLicenses', function () {
         return function (items, filter) {
-			if (!angular.isArray(items)) {
-				return;
+			if (!angular.isArray(items) || (!filter.searchLicense && !filter.groupLicenses)) {
+				return items;
 			}
-            var isApplied = filter.isApplied;
-            var searchLicense = filter.searchLicense;
+			var filteredLicenses = [],
+			    searchLicense = filter.searchLicense;
 
-            var arrayToReturn = [];
-            for (var i = 0; i < items.length; i++) {
-                if ((typeof(isApplied) === 'undefined' || items[i].isApplied == isApplied)
-                    && (!searchLicense || ~items[i].shortDisplayName.toLowerCase().indexOf(searchLicense.toLowerCase()))) {
-                    arrayToReturn.push(items[i]);
-                }
-            }
+			angular.forEach(items, function (license) {
+			    if (filter.groupLicenses[license.id] !== true && (!searchLicense || ~license.shortDisplayName.toLowerCase().indexOf(searchLicense.toLowerCase()))) {
+			        filteredLicenses.push(license);
+			    }
+			});
 
-            return arrayToReturn;
+            return filteredLicenses;
         };
     });
 

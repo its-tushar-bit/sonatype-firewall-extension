@@ -36,8 +36,8 @@
                     <h5>Applied Licenses</h5>
                     <div>
                         <div>
-                            <div ng-repeat='l in licenses | filterLicenses: { isApplied: true, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-                                <i class='icon-minus-sign' ng-click='setIsApplied(l, false)'></i>&nbsp;<span
+                            <div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'>
+                                <i class='icon-minus-sign' ng-click='removeLicense(l)'></i>&nbsp;<span
                                     title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
                             </div>
                         </div>
@@ -47,10 +47,9 @@
                     <h5>Available Licenses</h5>
                     <div>
                         <div>
-                            <div ng-repeat='l in licenses | filterLicenses: { isApplied: false, searchLicense: licenseSearch } | orderBy: l.shortDisplayName'>
-                                <div ng-click='setIsApplied(l, true)'>
-                                  <i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-                                </div>
+                            <div ng-repeat='l in allLicenses | filterLicenses: { groupLicenses: selectedGroupLicenses, searchLicense: licenseSearch } | orderBy: "shortDisplayName"'
+                            		 ng-click='addLicense(l)'>
+                                <i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
                             </div>
                         </div>
                     </div>

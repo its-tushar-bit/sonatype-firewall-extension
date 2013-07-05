@@ -41,7 +41,9 @@ public class PolicyEvaluationUtils
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyEvaluationUtils.class );
 
-    private static final String PRIMARY_POLICY_ALERTS_FILENAME = "primarypolicyalerts.json";
+    public static final String PRIMARY_POLICY_ALERTS_FILENAME = "primarypolicyalerts.json";
+
+    private static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
     private final InsightWork work;
 
@@ -85,7 +87,7 @@ public class PolicyEvaluationUtils
 
         final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate( appId, stage, policyDAO, components );
 
-        Report.putEntry( reportFile, "policyalerts.json", JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
+        Report.putEntry( reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate( JsonUtils.aaData( alerts ) ) );
         if ( !isReevaluation )
         {
             Report.putEntry( reportFile, PRIMARY_POLICY_ALERTS_FILENAME,
@@ -156,7 +158,15 @@ public class PolicyEvaluationUtils
             try
             {
                 final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, lastScanId, true );
-                final ReportEntry reportEntry = Report.getEntry( reportFile, PRIMARY_POLICY_ALERTS_FILENAME );
+                ReportEntry reportEntry = Report.getEntry( reportFile, PRIMARY_POLICY_ALERTS_FILENAME );
+                if ( reportEntry == null )
+                {
+                    // Prior to 1.6, reports did not have a PRIMARY_POLICY_ALERTS_FILENAME, so fall back to
+                    // POLICY_ALERTS_FILENAME.
+                    log.info( "Could not find {} for app id {}, scan id {}", PRIMARY_POLICY_ALERTS_FILENAME, appId,
+                              lastScanId );
+                    reportEntry = Report.getEntry( reportFile, POLICY_ALERTS_FILENAME );
+                }
                 if ( reportEntry != null )
                 {
                     return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );
@@ -177,7 +187,7 @@ public class PolicyEvaluationUtils
         final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
         if ( reportFile != null )
         {
-            final ReportEntry reportEntry = Report.getEntry( reportFile, "policyalerts.json" );
+            final ReportEntry reportEntry = Report.getEntry( reportFile, POLICY_ALERTS_FILENAME );
             if ( reportEntry != null )
             {
                 return Arrays.asList( JsonUtils.parse( reportEntry.buf, PolicyAlert[].class ) );

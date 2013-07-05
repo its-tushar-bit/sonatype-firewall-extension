@@ -259,4 +259,9 @@ public class TestInsightBrainService
     {
         return new File( getWorkDir(), "data" );
     }
+
+    public File getReportDir( String applicationId, String scanId )
+    {
+        return new File( new File( new File( getWorkDir(), "report" ), applicationId ), scanId );
+    }
 }

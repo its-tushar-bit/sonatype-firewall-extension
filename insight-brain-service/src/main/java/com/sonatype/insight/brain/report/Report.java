@@ -611,7 +611,7 @@ public final class Report
         }
     }
 
-    private static File getCacheDir( final File reportFile )
+    public static File getCacheDir( final File reportFile )
     {
         return new File( reportFile.getParentFile(), "report.cache" );
     }

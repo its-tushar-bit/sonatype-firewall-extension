@@ -53,8 +53,14 @@
 	background-color:#FFDE16;
 }
 
-/* Table columns, sortable */
-.buttonColumn {
+/* Table headers */
+table.clm-table thead tr th.sortable {
+    cursor: pointer;
+}
+table.clm-table thead tr th:first-child {
+	padding-left: 8px;
+}
+table.clm-table thead tr th {
     border-bottom: 1px solid #c9d0e2;
     border-right: 1px solid #cfd0d2;
     border-top: 1px solid #cfd0d2;
@@ -70,17 +76,16 @@
     white-space: nowrap;
     font-size: 12px;
     text-align: left;
-    cursor: pointer;
+	cursor: default;
     font-weight: bold;
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
+	padding: 4px;
 }
-
-.buttonColumnSorted {
+table.clm-table thead tr th.sorted {
     border-bottom: 1px solid #b5c6e0 !important;
     background-color: #e7eefe;
-    background-repeat: no-repeat;
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f9fa), color-stop(25%, #f5f9fa), to(#b5c6e0));
     background-image: -webkit-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     background-image: -moz-linear-gradient(top, #f5f9fa, #f5f9fa 25%, #b5c6e0);
@@ -88,10 +93,6 @@
     background-image: -o-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     background-image: linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#f5f9fa', endColorstr = '#b5c6e0', GradientType = 0);
-    font-size: 12px;
-	-moz-user-select: none;
-	-webkit-user-select: none;
-	-ms-user-select: none;
 }
 
 .no-content {

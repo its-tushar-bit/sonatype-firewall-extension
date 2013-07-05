@@ -7,39 +7,37 @@
     <a relative-href="/new" class='btn btn-primary'><i class="icon-white icon-plus-sign"></i> New Policy</a>
   </div>
   <div class='fade' ng-class='{in : state}'>
-      <div style='margin:auto;width:460px' ng-show='application != null'>
-          <div style='text-align:center;padding-top: 5px;padding-right: 20px;margin-bottom:10px;'>
-				<table class='table table-striped table-bordered' style='margin:10px'>
-					<thead>
-						<tr>
-							<th ng-repeat='stage in state.actionStageList | filterReportColumns' style='padding: 4px' class='buttonColumn'>
-								{{stage.name}} Report
-							</th>
-						</tr>
-					</thead>
+      <div style='margin:auto;width:460px;padding:10px' ng-show='application != null'>
+			<table class='table table-striped table-bordered clm-table'>
+				<thead>
 					<tr>
-						<td ng-repeat='stage in state.actionStageList | filterReportColumns'>
-							<div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
-								<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
-								   ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-								   title='View Report' href='../application-assets/#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-									<img src='../assets/img/glyphicons_263_bank.png' />
-									<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
-									<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
-									<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
-									<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
-								</a>
-								<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
-									ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-									ng-click='reEvaluatePolicy(application, policyEvaluation)'>
-									<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
-									<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
-								</a>
-							</div>
-						</td>
+						<th ng-repeat='stage in state.actionStageList | filterReportColumns'>
+							{{stage.name}} Report
+						</th>
 					</tr>
-				</table>
-			</div>
+				</thead>
+				<tr>
+					<td ng-repeat='stage in state.actionStageList | filterReportColumns'>
+						<div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
+							<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
+							   ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
+							   title='View Report' href='../application-assets/#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+								<img src='../assets/img/glyphicons_263_bank.png' />
+								<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
+								<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
+								<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
+								<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
+							</a>
+							<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
+								ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
+								ng-click='reEvaluatePolicy(application, policyEvaluation)'>
+								<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
+								<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
+							</a>
+						</div>
+					</td>
+				</tr>
+			</table>
 		</div>
 		<div clm-alerts='alerts'></div>
 		<div style="padding-left: 15px;">

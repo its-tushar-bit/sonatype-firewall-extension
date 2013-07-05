@@ -398,7 +398,7 @@ ul.tri-pane {
 }
 .tri-pane a {
 	text-decoration: none;
-	padding: 8px 12px;
+	padding: 0 12px 8px;
 	display: block;
 	margin-right: 2px;
 	font-size: 13px;
@@ -506,5 +506,6 @@ ul.tri-pane {
  * Can we grab something other than id to style? (TH)
  */
 #applicationEditor, #organizationEditor {
-	margin: 0 0 60px 15px;
+	margin: 0 15px;
+	height: 139px;
 }

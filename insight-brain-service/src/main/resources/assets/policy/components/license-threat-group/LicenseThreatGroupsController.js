@@ -128,8 +128,6 @@
         $scope.editLicenseGroup = function (group) {
         	if (group) {
 				$scope.selectedGroup = group.$clone();
-				$scope.selectedGroup.licenses = angular.copy(group.licenses);
-				$scope.selectedGroup.$saveGroup = group.$saveGroup;
 			} else {
 				$scope.selectedGroup = licenseGroupStore.create();
         	}
@@ -237,20 +235,12 @@
             }
         };
 
-        $scope.setIsApplied = function (license, value) {
-			if (value) {
-				var newLicense = angular.extend(licenseGroupStore.create('licenses'), { licenseId: license.id });
-				$scope.selectedGroup.licenses.push(newLicense);
-			} else {
-				for (var i = 0; i < $scope.selectedGroup.licenses.length; i++) {
-					var groupLicense = $scope.selectedGroup.licenses[i];
-					if (groupLicense.licenseId === license.id) {
-						$scope.selectedGroup.licenses.splice(i, 1);
-					}
-				}
-			}
-            license.isApplied = value;
-        };
+		$scope.addLicense = function (license) {
+			var newLicense = angular.extend(licenseGroupStore.create('licenses'), { licenseId: license.id });
+			$scope.selectedGroup.licenses.push(newLicense);
+			$scope.selectedGroupLicenses[license.id] = true;
+		};
+
         $scope.removeLicense = function (license) {
             var index = -1;
             angular.forEach($scope.selectedGroup.licenses, function (l, candidateIndex) {
@@ -277,6 +267,13 @@
                 $scope.submitActive = true;
 
 				licenseGroup.$save().then(function(licenseGroup) {
+					for (var i = 0; i < $scope.licenseGroups.length; i++) {
+						var licenseGroupIter = $scope.licenseGroups[i];
+						if (licenseGroup.id === licenseGroupIter.id) {
+							$scope.licenseGroups[i] = licenseGroup;
+						}
+					}
+
 					$scope.alerts = [];
 					$scope.$emit('license.cancelLicenseGroupEdit');
 				}, function(rejection) {
@@ -305,11 +302,6 @@
                     event.preventDefault();
                     return;
                 }
-                angular.forEach($scope.licenseGroups, function (group) {
-                    if (group.id === $scope.selectedGroup.id && !angular.equals($scope.selectedGroup.licenses, group.licenses)) {
-                        event.preventDefault();
-                    }
-                });
             }
         });
 

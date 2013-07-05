@@ -182,7 +182,19 @@
 				};
 
 				me.$clone = function() {
-					return new Resource(original);
+					var clone = new Resource(original);
+					for (var relationalProperty in config.relationalConfigs) {
+						if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
+							var originalResource = $parse(relationalProperty)(me);
+							var data = [];
+							for (var i = 0; i < originalResource.length; i++) {
+								data.push(angular.copy(originalResource[i]));
+							}
+							var linkedResource = new LinkedResource(data, angular.copy(originalResource.config));
+							$parse(relationalProperty).assign(clone, linkedResource);
+						}
+					}
+					return clone;
 				};
 
 				me.$updateOriginal(originalObject);

@@ -8,7 +8,7 @@
 	'use strict';
 	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'AngularCommon']);
 
-	module.service('PolicyStore', ['ApplicationId', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (appId, clmLocations, clmAppLocations, clmResource) {
+	module.service('PolicyStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
 		var policyStoreTemplate = {
 				id : 'id',
 				template : {
@@ -23,14 +23,15 @@
 
 		return {
 			get : function () {
-				var store = policyStores[appId.encoded()];
+				var ownerId = clmAppLocations.getEntityId(),
+				    store = policyStores[ownerId];
 				if (!store) {
 					// Expire existing stores, prevents user from encountering stale data
 					angular.forEach(policyStores, function (value, key) {
 						policyStores[key] = null;
 					});
 					store = clmResource.getStore(angular.extend({ url : clmAppLocations.getPolicyUrl() }, policyStoreTemplate));
-					policyStores[appId.encoded()] = store;
+					policyStores[ownerId] = store;
 				}
 				return store;
 			},

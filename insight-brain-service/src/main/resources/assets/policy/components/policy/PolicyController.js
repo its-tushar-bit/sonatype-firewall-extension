@@ -19,14 +19,16 @@
 			return text;
 		}
 		
-		// Needs to be moved to an application store. This work is already done in the post insight-brain-1.4.x release and therefore not redone here
-		$http.get(clmAppLocations.getEntityUrl(), {
-			params: { timestamp: new Date().getTime() }
-		}).success(function (data) {
-			$scope.application = data;
-		}).error(function (error) { 
-			handleHttpError('Policy Initialization Error', error.data, error.status);
-		});
+		if (clmAppLocations.isApplication()) {
+			// Needs to be moved to an application store. This work is already done in the post insight-brain-1.4.x release and therefore not redone here
+			$http.get(clmAppLocations.getEntityUrl(), {
+				params: { timestamp: new Date().getTime() }
+			}).success(function (data) {
+				$scope.application = data;
+			}).error(function (error) { 
+				handleHttpError('Policy Initialization Error', error.data, error.status);
+			});
+		}
 		
 		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
 			if (!$scope.reEvaluatingPolicy) {

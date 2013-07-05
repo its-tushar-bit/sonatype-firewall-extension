@@ -19,6 +19,16 @@
 			url : '/{organizationId}',
 			controller : 'OrganizationEditorController',
 			templateUrl : '../organization-assets/components/organization-editor.html'
+		}).state('management.organization.view.policies', {
+			parent : 'management.organization.view',
+			url : '/policies',
+			controller : 'PolicyController',
+			templateUrl : '../policy-assets/components/policy/policy.html'
+		}).state('management.organization.view.policies.edit', {
+			parent : 'management.organization.view',
+			url : '/policies/{policyId}',
+			controller : 'PolicyEditorController',
+			templateUrl : '../assets/components/policy-editor/policy-editor.html'
 		}).state('management.organization.view.licenses', {
 			parent : 'management.organization.view',
 			url : '/licenses',

@@ -65,6 +65,14 @@
 
 			addIconSync: function () {
 				return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
+			},
+
+			getEntityId: function () {
+				return getId();
+			},
+
+			isApplication: function () {
+				return $state.current.name.indexOf('application') !== -1 ;
 			}
 		};
 	}]);

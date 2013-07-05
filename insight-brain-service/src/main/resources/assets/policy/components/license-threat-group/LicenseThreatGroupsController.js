@@ -258,7 +258,10 @@
                 });
                 deselect();
                 $('#deleteLicenseGroupModal').modal('hide');
-            }).error(function () { $scope.$broadcast('showServerError', arguments); });
+            }).error(function () { 
+                $('#deleteLicenseGroupModal').modal('hide');
+                $scope.$broadcast('showServerError', arguments);
+            });
         };
 
 		$scope.$on('license.cancelLicenseGroupEdit', function (event, licenseGroup) {

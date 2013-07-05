@@ -35,8 +35,8 @@
                 <div class='input-prepend fullWidthPrependedTextBox'>
                     <span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}"
                                             ng-click="licenseSearch = ''"></i></span>
-                    <input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-Down
-                           prevent-Submit/>
+                    <input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-down='searchEnter()'
+                           prevent-submit/>
                 </div>
                 <div class='selectList'>
                     <h5>Applied Licenses</h5>

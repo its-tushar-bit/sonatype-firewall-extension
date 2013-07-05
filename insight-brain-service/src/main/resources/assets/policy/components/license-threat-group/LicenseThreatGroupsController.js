@@ -284,13 +284,14 @@
 
     licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
         $scope.alerts = [];
+        $scope.licenseSearch = '';
 
         $scope.searchEnter = function () {
             var filter = $filter('filterLicenses');
-            var licenses = filter($scope.licenses, { searchLicense: $scope.licenseSearch });
+            var licenses = filter($scope.allLicenses, { groupLicenses : $scope.selectedGroupLicenses, searchLicense: $scope.licenseSearch });
             // If only one license is applicable to the current search filter, set isApplied true when enter is pressed
             if (licenses.length == 1) {
-            	$scope.setIsApplied(licenses[0], !licenses[0].isApplied);
+				$scope.addLicense(licenses[0]);
                 $scope.licenseSearch = '';
             }
         };
@@ -413,7 +414,7 @@
 			    searchLicense = filter.searchLicense;
 
 			angular.forEach(items, function (license) {
-			    if (filter.groupLicenses[license.id] !== true && (!searchLicense || ~license.shortDisplayName.toLowerCase().indexOf(searchLicense.toLowerCase()))) {
+			    if (filter.groupLicenses && filter.groupLicenses[license.id] !== true && (!searchLicense || ~license.shortDisplayName.toLowerCase().indexOf(searchLicense.toLowerCase()))) {
 			        filteredLicenses.push(license);
 			    }
 			});

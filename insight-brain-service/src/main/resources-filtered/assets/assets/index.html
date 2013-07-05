@@ -59,16 +59,14 @@
 		<div class="second-row navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="container-fluid">
-					<div class="btn-group">
-						<a class="btn btn-inverse btn-black dropdown-toggle" data-toggle="dropdown" href="#">
-							{{ selectedDashboard.name }} <span class="caret"></span>
-						</a>
-						<ul class="dropdown-menu">
-							<li ng-repeat="dashboard in availableDashboards">
-								<a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>
-							</li>
-						</ul>
-					</div>
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            {{ selectedDashboard.name }} <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li ng-repeat="dashboard in availableDashboards">
+              <a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>
+            </li>
+          </ul>
 				</div>
 			</div>
 		</div>

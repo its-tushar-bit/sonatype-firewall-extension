@@ -21,15 +21,17 @@
       <groupId>org.apache.openjpa</groupId>
       <artifactId>openjpa</artifactId>
       <version>${openjpa.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-error-handling</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-json-store</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
@@ -43,6 +45,12 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

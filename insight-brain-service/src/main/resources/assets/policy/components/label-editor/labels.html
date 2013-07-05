@@ -7,7 +7,7 @@
 		<div class='add-section'>
 			<button type='button' class='btn btn-primary' ng-click='editLabel()'><i class="icon-white icon-plus-sign"></i> New Label</button>
 		</div>
-		<div style='padding-left:10px'>
+		<div style='padding-left:25px'>
 			<h4>{{selectedApplication.name}} Labels</h4>
 			<div>
 				<div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;padding:5px;'  ng-click='editLabel(label)'>

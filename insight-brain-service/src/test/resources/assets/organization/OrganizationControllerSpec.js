@@ -57,6 +57,16 @@ describe('OrganizationController', function() {
     expect(scope.selectedOrganization).not.toBeUndefined();
     expect(scope.selectedOrganization.name).toEqual('org2');
   }));
+
+  it('switch to new organization', inject(function($timeout) {
+    expect(scope.selectedOrganization).toEqual(null);
+    scope.$apply(function() {
+      state.params.organizationId = '_new_';
+    });
+    $timeout.flush();
+    expect(scope.selectedOrganization).not.toBeUndefined();
+    expect(scope.selectedOrganization.name).toEqual(null);
+  }));
 });
 
 describe('OrganizationEditorController', function() {

@@ -50,6 +50,16 @@ describe('ApplicationController', function () {
 		expect(scope.selectedApplication).not.toBeUndefined();
 		expect(scope.selectedApplication.publicId).toEqual('bom1-12345678');
 	}));
+
+  it('switch to new application', inject(function($timeout) {
+    expect(scope.selectedApplication).toEqual(null);
+    scope.$apply(function() {
+      state.params.applicationPublicId = '_new_';
+    });
+    $timeout.flush();
+    expect(scope.selectedApplication).not.toBeUndefined();
+    expect(scope.selectedApplication.publicId).toEqual(null);
+  }));
 });
 
 describe('ApplicationEditorController', function () {

@@ -18,29 +18,6 @@
 			}
 			return text;
 		}
-		
-		if (clmAppLocations.isApplication()) {
-			// Needs to be moved to an application store. This work is already done in the post insight-brain-1.4.x release and therefore not redone here
-			$http.get(clmAppLocations.getEntityUrl(), {
-				params: { timestamp: new Date().getTime() }
-			}).success(function (data) {
-				$scope.application = data;
-			}).error(function (error) { 
-				handleHttpError('Policy Initialization Error', error.data, error.status);
-			});
-		}
-		
-		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
-			if (!$scope.reEvaluatingPolicy) {
-				$scope.reEvaluatingPolicy = true;
-				policyEvaluator.evaluate(application, policyEvaluation).then(function(data) {
-					$scope.reEvaluatingPolicy = false;
-				}, function(error) {
-					$scope.reEvaluatingPolicy = false;
-					handleHttpError('Policy Initialization Error', error.data, error.status);
-				});
-			}
-		};
 
 		function handleHttpError(headerText, bodyText, status) {
 			$scope.httpError = {
@@ -98,6 +75,7 @@
 			});
 			return actionCount;
 		};
+
 		$scope.getActions = function (policy) {
 			var actions = '';
 			angular.forEach(policy.actions, function (value, key) {
@@ -147,13 +125,35 @@
 				}, angular.noop);
 		};
 
+		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
+			if (!$scope.reEvaluatingPolicy) {
+				$scope.reEvaluatingPolicy = true;
+				policyEvaluator.evaluate(application, policyEvaluation).then(function(data) {
+					$scope.reEvaluatingPolicy = false;
+				}, function(error) {
+					$scope.reEvaluatingPolicy = false;
+					handleHttpError('Policy Initialization Error', error.data, error.status);
+				});
+			}
+		};
+
 		$scope.doLoad = function () {
 			$scope.error = null;
-			$q.all([policyStore.get().get(), actionStore.get()]).then(function (results) {
+			var promises = [policyStore.get().get(), actionStore.get()];
+			if (clmAppLocations.isApplication()) {
+				promises.push($http.get(clmAppLocations.getEntityUrl(), {
+					params: { timestamp: new Date().getTime() }
+				}));
+			}
+
+			$q.all(promises).then(function (results) {
 				$scope.state = {
 					policyList : results[0],
 					actionStageList : results[1][1]
 				};
+				if (promises.length === 3) {
+					$scope.application = results[2];
+				}
 				postLoad();
 			}, function (errors) {
 				$scope.error = angular.isArray(errors) ? errors[0] : errors;
@@ -161,7 +161,7 @@
 		};
 
 		$scope.doLoad();
-		
+
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
 }());

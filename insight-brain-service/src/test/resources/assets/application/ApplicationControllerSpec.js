@@ -195,19 +195,28 @@ describe('ApplicationEditorController', function () {
       "organizationId": "organizationId",
     };
 
-    expect(scope.validateApplicationName('applicationName')).toEqual('Name is already in use');
+    expect(scope.validateApplicationName('')).toEqual(scope.messages.required);
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationName('applicationName')).toEqual(scope.messages.duplicate);
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationName('applicationName')).toEqual(scope.messages.duplicate);
+    expect(scope.applicationEditor.$invalid).toBeTruthy();
+
+    expect(scope.validateApplicationName('ApplicatioNname')).toEqual(scope.messages.duplicate);
     expect(scope.applicationEditor.$invalid).toBeTruthy();
 
     expect(scope.validateApplicationName('new name')).toBeUndefined();
     expect(scope.applicationEditor.$invalid).toBeFalsy();
 
-    expect(scope.validateApplicationName('new  name')).toBeDefined();
+    expect(scope.validateApplicationName('new  name')).toEqual(scope.messages.spaces);
     expect(scope.applicationEditor.$invalid).toBeTruthy();
 
-    expect(scope.validateApplicationName(' new name')).toBeDefined();
+    expect(scope.validateApplicationName(' new name')).toEqual(scope.messages.spaces);
     expect(scope.applicationEditor.$invalid).toBeTruthy();
 
-    expect(scope.validateApplicationName('new name ')).toBeDefined();
+    expect(scope.validateApplicationName('new name ')).toEqual(scope.messages.spaces);
     expect(scope.applicationEditor.$invalid).toBeTruthy();
   }));
 

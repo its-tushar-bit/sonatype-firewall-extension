@@ -1,4 +1,5 @@
 /**
+/**
  * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved. Includes the
  *          third-party code listed at
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
@@ -12,20 +13,27 @@
 
     angular.module('EditorTools', []).service('editorTools', [ 'regexFactory', function(regexFactory) {
         return {
+            messages: {
+              required: 'Name is required',
+              alphanumeric: 'Must be alpha numeric',
+              spaces: 'No leading, trailing or double spaces or tabs',
+              duplicate: 'Name is already in use'
+            },
             validateName : function(name, currentItem, existingItems) {
                 // field is required, alphanumeric, and no unnecessary spaces
                 if (!name) {
-                    return 'Name is required';
+                    return this.messages.required;
                 } else if (name.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'))) {
-                    return 'Must be alpha numeric';
+                    return this.messages.alphanumeric;
                 } else if (name.match(/^ | {2,}|\t| $/)) {
-                    return 'No leading, trailing or double spaces or tabs';
+                    return this.messages.spaces;
                 }
 
                 // check for uniqueness
                 for ( var i = 0; i < existingItems.length; i++) {
-                    if (existingItems[i].name === name && existingItems[i].id !== currentItem.id) {
-                        return 'Name is already in use';
+                    if (existingItems[i].name.toLowerCase() === name.toLowerCase()
+                          && existingItems[i].id !== currentItem.id) {
+                        return this.messages.duplicate;
                     }
                 }
 

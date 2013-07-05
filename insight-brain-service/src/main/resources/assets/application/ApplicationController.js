@@ -124,6 +124,7 @@
 		};
 		
 		$scope.alerts = [];
+                $scope.messages = editorTools.messages;
 
 		$scope.generateIcon = function () {
 			var name = $scope.selectedApplication.name,

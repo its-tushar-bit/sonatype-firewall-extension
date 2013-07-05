@@ -9,11 +9,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -49,8 +53,13 @@ public class PolicyDAO
 
     public List<Policy> getByOwnerId( final String ownerId )
     {
-        final List<Policy> result = new ArrayList<Policy>();
         final JsonStore store = policyStore( ownerId );
+        return getByOwnerId( ownerId, store );
+    }
+
+    private List<Policy> getByOwnerId( final String ownerId, final JsonStore store )
+    {
+        final List<Policy> result = new ArrayList<Policy>();
         try
         {
             final ArrayNode policies = loadPolicies( store );
@@ -264,10 +273,7 @@ public class PolicyDAO
 
     private Policy getByOwnerIdAndName( final String ownerId, final String name, final List<Lock> readLocks )
     {
-        final JsonStore store = policyStore( ownerId );
-        Lock readLock = store.readLock();
-        readLocks.add( readLock );
-        readLock.lock();
+        final JsonStore store = policyStore( ownerId, readLocks );
         try
         {
             final ArrayNode policies = loadPolicies( store );
@@ -303,6 +309,39 @@ public class PolicyDAO
         return result;
     }
 
+    public void validateNamesWithinHierarchy( final String orgId, final String appId, final List<Lock> readLocks )
+    {
+        final JsonStore orgStore = policyStore( orgId, readLocks );
+        final Set<String> orgPolicyNames = new LinkedHashSet<String>();
+        for ( final Policy policy : getByOwnerId( orgId, orgStore ) )
+        {
+            orgPolicyNames.add( policy.getName() );
+        }
+
+        final JsonStore appStore = policyStore( appId, readLocks );
+        final Set<String> appPolicyNames = new LinkedHashSet<String>();
+        for ( final Policy policy : getByOwnerId( appId, appStore ) )
+        {
+            appPolicyNames.add( policy.getName() );
+        }
+
+        orgPolicyNames.retainAll( appPolicyNames );
+        if ( !orgPolicyNames.isEmpty() )
+        {
+            throw new BadRequestException( "Some policies of the application collide"
+                + " with policies of the parent organization: " + StringUtils.join( orgPolicyNames.iterator(), ", " ) );
+        }
+    }
+
+    private JsonStore policyStore( final String ownerId, final List<Lock> readLocks )
+    {
+        final JsonStore store = policyStore( ownerId );
+        Lock readLock = store.readLock();
+        readLocks.add( readLock );
+        readLock.lock();
+        return store;
+    }
+
     private void validateNameWithinHierarchy( final String ownerId, final String name, final List<Lock> readLocks )
         throws InvalidPolicyException
     {
@@ -335,17 +374,20 @@ public class PolicyDAO
         }
     }
 
-    private static void unlock( List<Lock> locks )
+    public static void unlock( List<Lock> locks )
     {
-        for ( Lock lock : locks )
+        if ( locks != null )
         {
-            try
+            for ( Lock lock : locks )
             {
-                lock.unlock();
-            }
-            catch ( Exception e )
-            {
-                log.warn( "Failed to release lock {}", lock, e );
+                try
+                {
+                    lock.unlock();
+                }
+                catch ( Exception e )
+                {
+                    log.warn( "Failed to release lock {}", lock, e );
+                }
             }
         }
     }

@@ -544,6 +544,36 @@ public class ApplicationResourceTest
     }
 
     @Test
+    public void testUpdateApplication_AssignToOrganizationWithConflictingPolicy()
+        throws Exception
+    {
+        Organization org = createOrganization( "orgName" );
+        Application app = createApplication( "appPublicId", "appName", false, false );
+
+        PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
+        String policyName = "policyName";
+
+        Policy policy1 = new Policy( null, policyName );
+        Constraint constraint1 = new Constraint( null, "constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy1.addConstraint( constraint1 );
+        policyDAO.insert( org.getId(), policy1 );
+
+        Policy policy2 = new Policy( null, policyName );
+        Constraint constraint2 = new Constraint( null, "constraint 1", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy2.addConstraint( constraint2 );
+        policyDAO.insert( app.getId(), policy2 );
+
+        app.setOrganizationId( org.getId() );
+
+        Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Some policies of the application collide with policies of the parent organization: "
+                                 + policyName, response.getResponseBody() );
+    }
+
+    @Test
     public void testGenerateIcon()
         throws Exception
     {

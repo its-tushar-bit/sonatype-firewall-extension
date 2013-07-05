@@ -85,7 +85,7 @@ describe('ListEditor', function () {
             input = angular.element('input', element);
 
         setInput(input, 'foo');
-        angular.element('button', element).click();
+        input.trigger('submit');
         expect(template.myList).toEqual(['foo']);
 
         setInput(input, 'foo');
@@ -106,7 +106,7 @@ describe('ListEditor', function () {
             input = angular.element('input', element);
     
         setInput(input, 'foo');
-        angular.element('button', element).click();
+        input.trigger('submit');
         expect(template.myList).toEqual(['foo']);
     });
 
@@ -124,7 +124,7 @@ describe('ListEditor', function () {
             input = angular.element('input', element);
 
         setInput(input, 'foo');
-        angular.element('button', element).click();
+        input.trigger('submit');
         expect(template.myList).toEqual(['foo']);
 
         setInput(input, 'foo');

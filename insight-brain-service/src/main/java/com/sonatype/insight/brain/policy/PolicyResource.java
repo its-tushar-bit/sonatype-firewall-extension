@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,11 +35,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -79,11 +82,48 @@ public class PolicyResource
     public List<Policy> getPolicies( @PathParam( "ownerType" ) final String ownerType,
                                      @PathParam( "ownerId" ) final String ownerId )
     {
-        log.debug( "Received request to get all {} policies for ownerId {}", ownerType, ownerId );
+        log.debug( "Received request to get all policies for {} id {}", ownerType, ownerId );
 
         String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         return policyDAO().getByOwnerId( internalOwnerId );
+    }
+
+    /**
+     * @since 1.6
+     */
+    @GET
+    @Path( "applicable" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public ApplicablePolicies getApplicablePolicies( @PathParam( "ownerType" ) final String ownerType,
+                                                     @PathParam( "ownerId" ) final String ownerId )
+    {
+        log.debug( "Received request to get all applicable policies for {} id {}", ownerType, ownerId );
+
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+
+        ApplicablePolicies result = new ApplicablePolicies();
+
+        result.policies = policyDAO().getApplicableByOwnerId( internalOwnerId );
+        result.ownerNamesById = new LinkedHashMap<String, String>();
+        String organizationId;
+        if ( "application".equals( ownerType ) )
+        {
+            Application application = new ApplicationDAO().getByIdNotNull( internalOwnerId );
+            result.ownerNamesById.put( internalOwnerId, application.getName() );
+            organizationId = application.getOrganizationId();
+        }
+        else
+        {
+            organizationId = internalOwnerId;
+        }
+        if ( organizationId != null )
+        {
+            Organization organization = new OrganizationDAO().getByIdNotNull( organizationId );
+            result.ownerNamesById.put( organizationId, organization.getName() );
+        }
+
+        return result;
     }
 
     @POST
@@ -340,5 +380,22 @@ public class PolicyResource
     private PolicyDAO policyDAO()
     {
         return new PolicyDAO( work.getWorkDir() );
+    }
+
+    public static class ApplicablePolicies
+    {
+        private Map<String, String> ownerNamesById;
+
+        private List<Policy> policies;
+
+        public Map<String, String> getOwnerNamesById()
+        {
+            return ownerNamesById;
+        }
+
+        public List<Policy> getPolicies()
+        {
+            return policies;
+        }
     }
 }

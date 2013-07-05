@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -472,6 +473,106 @@ public class PolicyResourceTest
         response = RestAccess.put( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
+    }
+
+    @Test
+    public void testGetApplicablePolicies()
+        throws Exception
+    {
+        // Create an organization and an application
+        String orgName = "testGetApplicablePoliciesOrg";
+        String orgId = createOrganization( orgName ).getId();
+        String appName = "testGetApplicablePoliciesApp";
+        String appPublicId = appName;
+        Application app = new Application( appPublicId, appName, orgId );
+        ApplicationDAO appDAO = new ApplicationDAO();
+        appDAO.insert( app );
+        applicationsToDelete.add( app );
+        String appId = app.getId();
+
+        // Verify the applicable policies for the application
+        Response response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        ApplicablePolicies applicablePolicies =
+            JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
+        Assert.assertNotNull( applicablePolicies );
+        Assert.assertEquals( 2, applicablePolicies.getOwnerNamesById().size() );
+        Assert.assertEquals( appName, applicablePolicies.getOwnerNamesById().get( appId ) );
+        Assert.assertEquals( orgName, applicablePolicies.getOwnerNamesById().get( orgId ) );
+        Assert.assertEquals( 0, applicablePolicies.getPolicies().size() );
+
+        // Verify the applicable policies for the organization
+        response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
+        Assert.assertNotNull( applicablePolicies );
+        Assert.assertEquals( 1, applicablePolicies.getOwnerNamesById().size() );
+        Assert.assertEquals( orgName, applicablePolicies.getOwnerNamesById().get( orgId ) );
+        Assert.assertEquals( 0, applicablePolicies.getPolicies().size() );
+
+        // Create a policy for the application
+        Policy appPolicy = new Policy();
+        appPolicy.setName( "testGetApplicablePolicies App Policy" );
+        Constraint constraint = new Constraint();
+        constraint.setName( "testGetApplicablePolicies App constraint" );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        appPolicy.addConstraint( constraint );
+        response = RestAccess.post( getServiceURL( APP, appPublicId ), JsonHelpers.asJson( appPolicy ) );
+        assertResponseStatus( 200, response );
+        appPolicy = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+
+        // Verify the applicable policies for the application
+        response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
+        Assert.assertNotNull( applicablePolicies );
+        Assert.assertEquals( 2, applicablePolicies.getOwnerNamesById().size() );
+        Assert.assertEquals( appName, applicablePolicies.getOwnerNamesById().get( appId ) );
+        Assert.assertEquals( orgName, applicablePolicies.getOwnerNamesById().get( orgId ) );
+        Assert.assertEquals( 1, applicablePolicies.getPolicies().size() );
+        Assert.assertEquals( appPolicy.getId(), applicablePolicies.getPolicies().get( 0 ).getId() );
+
+        // Verify the applicable policies for the organization
+        response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
+        Assert.assertNotNull( applicablePolicies );
+        Assert.assertEquals( 1, applicablePolicies.getOwnerNamesById().size() );
+        Assert.assertEquals( orgName, applicablePolicies.getOwnerNamesById().get( orgId ) );
+        Assert.assertEquals( 0, applicablePolicies.getPolicies().size() );
+
+        // Create a policy for the organization
+        Policy orgPolicy = new Policy();
+        orgPolicy.setName( "testGetApplicablePolicies Org Policy" );
+        constraint = new Constraint();
+        constraint.setName( "testGetApplicablePolicies Org constraint" );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        orgPolicy.addConstraint( constraint );
+        response = RestAccess.post( getServiceURL( ORG, orgId ), JsonHelpers.asJson( orgPolicy ) );
+        assertResponseStatus( 200, response );
+        orgPolicy = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+
+        // Verify the applicable policies for the application
+        response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
+        Assert.assertNotNull( applicablePolicies );
+        Assert.assertEquals( 2, applicablePolicies.getOwnerNamesById().size() );
+        Assert.assertEquals( appName, applicablePolicies.getOwnerNamesById().get( appId ) );
+        Assert.assertEquals( orgName, applicablePolicies.getOwnerNamesById().get( orgId ) );
+        Assert.assertEquals( 2, applicablePolicies.getPolicies().size() );
+        Assert.assertEquals( appPolicy.getId(), applicablePolicies.getPolicies().get( 0 ).getId() );
+        Assert.assertEquals( orgPolicy.getId(), applicablePolicies.getPolicies().get( 1 ).getId() );
+
+        // Verify the applicable policies for the organization
+        response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
+        Assert.assertNotNull( applicablePolicies );
+        Assert.assertEquals( 1, applicablePolicies.getOwnerNamesById().size() );
+        Assert.assertEquals( orgName, applicablePolicies.getOwnerNamesById().get( orgId ) );
+        Assert.assertEquals( 1, applicablePolicies.getPolicies().size() );
+        Assert.assertEquals( orgPolicy.getId(), applicablePolicies.getPolicies().get( 0 ).getId() );
     }
 
     private String getServiceURL( final String ownerType, final String ownerId )

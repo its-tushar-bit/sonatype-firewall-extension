@@ -362,15 +362,17 @@
         });
 
         $scope.$on('pageChangeStarted', function (event) {
-            if ($scope.selectedGroup && $scope.selectedGroup.isDirty()) {
-                event.preventDefault();
-                return;
-            }
-            angular.forEach($scope.licenseGroups, function (group) {
-                if (group.id === $scope.selectedGroup.id && !angular.equals($scope.selectedGroup.licenses, group.licenses)) {
+            if ($scope.selectedGroup) {
+                if ($scope.selectedGroup.isDirty()) {
                     event.preventDefault();
+                    return;
                 }
-            });
+                angular.forEach($scope.licenseGroups, function (group) {
+                    if (group.id === $scope.selectedGroup.id && !angular.equals($scope.selectedGroup.licenses, group.licenses)) {
+                        event.preventDefault();
+                    }
+                });
+            }
         });
 
         $scope.$watch('selectedGroup', function (newValue) {

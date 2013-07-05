@@ -222,8 +222,8 @@
 								relationalResource.$save().then(function() {
 									relationsToSave--;
 									checkDeferredResolve(deferred, me, relationsToSave);
-								}, function() {
-
+								}, function(rejection) {
+									deferred.reject(rejection);
 								});
 							}
 						}
@@ -241,8 +241,8 @@
 								relationalResource.$save().then(function() {
 									relationsToSave--;
 									checkDeferredResolve(deferred, me, relationsToSave);
-								}, function() {
-
+								}, function(rejection) {
+									deferred.reject(rejection);
 								});
 							}
 						}

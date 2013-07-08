@@ -14,7 +14,7 @@
 
 .policy-item {
     border: 1px solid #e5e5e5;
-    float: left;
+    display: inline-block;
     width: 271px;
     background-color: #ffffff;
     border: 1px solid #999;
@@ -30,6 +30,7 @@
     -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
     -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
     box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    vertical-align: top;
 }
 
 .policy-item > div {

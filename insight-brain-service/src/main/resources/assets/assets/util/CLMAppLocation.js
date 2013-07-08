@@ -71,9 +71,15 @@
 				return getId();
 			},
 
+			getApplicablePolicies : function () {
+			    return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
+			},
+
 			isApplication: function () {
 				return $state.current.name.indexOf('application') !== -1 ;
-			}
+			},
+
+			getId : getId
 		};
 	}]);
 }());

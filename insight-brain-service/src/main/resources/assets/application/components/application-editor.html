@@ -26,26 +26,36 @@
                     <a ng-click='generateIcon()'>Want a robot?</a>
 	            </div>
    			</div>
-			<div class='header-name-editor'>
-                          <a ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Application Name'
-                             validate='validateApplicationName' data-type='text' style='margin-bottom: 5px;'></a>
+			<div class='inline head'>
+                  <h1><span ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
+                     data-placeholder='Enter Application Name' validate='validateApplicationName' data-type='text' style='margin-bottom: 5px;'></span></h1>
 			</div>
-			<span style='padding-left: 9px'>Application</span>
-			<div ng-switch on='selectedApplication.id' style='display: inline-block;'>
-				<div ng-switch-when='null'>
-                          <a ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Application ID'
-                             validate='validateApplicationId' data-type='text'></a>
-				</div>
-				<span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
-			</div>
-			<span>in</span>
-			<div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
-				<div ng-switch-when='null'>
-					<a ng-model='selectedApplication.organizationId' xeditable href='javascript;;' data-emptytext='Assign Org'
-						data-type='select' source='organizations' key-value='id' display-value='name'></a>
-				</div>
-				<span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
-			</div>
+            <div class='inline'>
+			<span>Application</span>
+                <div ng-switch on='selectedApplication.id' style='display: inline-block;'>
+                    <div ng-switch-when='null'>
+                          <span ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Enter ID'
+                             data-placeholder='Enter ID' validate='validateApplicationId' data-type='text'></span>
+                    </div>
+                    <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
+                </div>
+                <span>in</span>
+                <div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
+                    <div ng-switch-when='null'>
+                        <!--<span ng-model='selectedApplication.organizationId' xeditable href='javascript:;' data-emptytext='Select Organization'-->
+                            <!--data-type='select' source='organizations' key-value='id' display-value='name'>-->
+                        <span>
+                            <select>
+                                <option>Select Organization</option>
+                                <option ng-repeat='organization in organizations'>{{organization.name}}</option>
+                            </select>
+                            <span class="caret"></span>
+                        </span>
+                        <!--</span>-->
+                    </div>
+                    <span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
+                </div>
+            </div>
             <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>

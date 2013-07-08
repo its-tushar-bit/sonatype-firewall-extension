@@ -185,16 +185,21 @@ var angularCommon;
 	            var loadXeditable = function() {
 	            	var args = {
 	                	mode: 'inline',
+						showbuttons: false,
+						clear: false,
+						onblur: 'submit',
+						highlight: '#FFFF80',
+						value: 1,
 	                	success: function(response, value) {
 	                        ngModel.$setViewValue(value);
 	                        scope.$apply();
 	                    }
 	                };
 
-                        if (attrs.validate) {
-                          var validateFn = $parse(attrs.validate)(scope);
-                          args.validate = validateFn;
-                        }
+					if (attrs.validate) {
+					  var validateFn = $parse(attrs.validate)(scope);
+					  args.validate = validateFn;
+					}
 	            	
 	            	if (attrs.source) {
 	            		var source = $parse(attrs.source)(scope);
@@ -214,6 +219,36 @@ var angularCommon;
 	            		args.source = parsedSource;
 	            	}
 	                element.editable(args);
+
+					element.click(function(e) {
+						// Enable tabbing through editables
+						element.data('editable').input.$input.on('keydown', function(e) {
+							var keyCode = e.keyCode || e.which;
+
+							if (keyCode == 9) {
+								e.preventDefault();
+								if (args.validate) {
+									if (args.validate()) {
+										return;
+									}
+								}
+
+								var editables = $('.editable');
+								for (var i = 0; i < editables.length; i++) {
+									var editable = editables[i];
+									if (editable === element[0]) {
+										if (i < editables.length - 1) {
+											$(editables[i + 1]).click();
+										} else if (i !== 0) {
+											$(editables[0]).click();
+										}
+										break;
+									}
+								}
+							}
+						});
+					});
+
 	                scope.$watch(attrs.ngModel, function(newValue) {
 	                	if (element.editable('getValue') !== newValue) {
 	                		element.editable('setValue', newValue);

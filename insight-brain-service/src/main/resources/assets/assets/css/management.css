@@ -18,6 +18,9 @@
 /**
  * Basic/Universal Styles Editor
  */
+html {
+    height: 100%;
+}
 
 body {
 	background: #f4f4f4;	
@@ -25,6 +28,7 @@ body {
 	font-size: 14px;
   	line-height: 20px;
   	color: #333333;
+    height: 100%;
 }
 
 a, a:hover, a:active, a:focus {
@@ -36,8 +40,6 @@ h1, h2, h3, h4, h5, h6 {
 	font-family: "ProximaNovaSemibold", "ProximaNovaRegular", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	text-shadow: 0px 1px 0px white;
 }
-
-
 
 .first-row i, .first-row img {
 	vertical-align: middle;
@@ -297,7 +299,7 @@ h1, h2, h3, h4, h5, h6 {
 	margin-bottom: 10px;
 }
 
-.header-name-editor a {
+.header-name-editor span {
 	font-size: 36px;
 	font-weight: bold;	
 }
@@ -305,66 +307,88 @@ h1, h2, h3, h4, h5, h6 {
 /**
  * Inline Editor
  */
-.inlineEditor div {
-	display: inline-block;
-	padding: 4px;
-	/* min-width: 210px; */
-	cursor: text;
-	border : 1px solid transparent;
+.inline.head h1 span, .inline.head h1 input, .inline .editable-container input {
+    background:transparent;
+    font: inherit;
+    color: #444;
+    margin: 0;
+    padding: 0;
+    border: none;
+    line-height: normal;
+    box-shadow: none;
+    height: auto;
+    width: auto;
 }
 
-.inlineEditor div:hover {
-	/* background-color: #ffffff; */
-	border: 1px solid #cccccc;
-	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	border-radius: 4px;
+.inline.head h1 span, .inline.head h1 input {
+    line-height: 48px;
 }
 
-.inlineEditor div:hover:after {
-	/* content: "\f044";
-	font-family: FontAwesome;
-	font-weight: normal;
-	font-style: normal;
-	text-decoration: inherit;
-	-webkit-font-smoothing: antialiased;
-	font-size: 2em;
-	padding-left: 10px;
-	vertical-align: middle;
-	float: right; */
+/* xeditable uses input-medium class for text input. this is too small for header inputs */
+.inline.head .input-medium {
+    width: 500px;
 }
 
-.inlineEditor input {
-	/*
-	height: 26px;
-	line-height: 26px;	
-	*/
+.inline.head .editable-error-block {
+    font-size: 14px;
 }
 
-.inlineEditor.large input,
-.inlineEditor.large span {
-	color: #444;
-	font-family: ProximaNovaSemibold;
-	font-size: 40px;
-	text-shadow: 0px 1px 0px white;
-	height: 42px;
-	line-height: 42px;
-	padding: 4px;
-	min-width: 300px;
+.inline input:focus {
+    outline: none;
+    border: 0;
+    box-shadow: none;
 }
 
-	/* 
-.inlineEditor.large input {
-	font-size: 25px;
-	height: 30px;
-	line-height: 30px;
-	text-shadow: 0px 1px 0px white;	
+.inline.head .editable-empty, .inline .editable-empty, .inline .editable-empty:hover, .inline .editable-empty:focus {
+    font-style: normal;
+    color: #909090;
+    text-decoration: none;
 }
-	*/
-	
+
+.inline .editable {
+    border-bottom: 1px solid transparent;
+}
+
+.inline .editable-container.editable-inline {
+    vertical-align: text-bottom;
+}
+
+.inline .editableform .control-group {
+    line-height: normal;
+}
+
+.inline .editable:hover {
+    border-bottom: 1px dashed #909090;
+}
+
+.inline span, .inline input, .inline select {
+    font-weight: bold;
+}
+
+.inline select {
+    -webkit-appearance: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    line-height: normal;
+    height: auto;
+    width: auto;
+    outline: none;
+    margin: 0;
+    vertical-align: text-bottom;
+    color: #909090;
+    border-radius: 0;
+}
+
+.inline .caret {
+    margin-top: 8px;
+    color: #C6C6C6;
+    border-top-color: #C6C6C6;
+}
+
+.inline span:hover .caret {
+    border-top-color: #444444;
+}
 	
 /**
  * Details in app/org overview

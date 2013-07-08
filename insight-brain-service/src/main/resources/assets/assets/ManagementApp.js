@@ -20,7 +20,7 @@
 		$urlRouterProvider.otherwise( function ($injector, $location) {
 			$injector.invoke(fn);
 		} );
-	}]).run(['$rootScope', '$location', '$dialog', 'Messages', function ($rootScope, $location, $dialog, messages) {
+	}]).run(['$rootScope', '$location', 'Messages', function ($rootScope, $location, messages) {
 		// The page contains unsaved changes, continuing will discard them.
 		var state = null;
 
@@ -30,33 +30,23 @@
 
 		$rootScope.$on('$locationChangeStart', function (event, newUrl, oldUrl) {
 			// initial page load triggers state where new URL == old URL
-			var destination = $location.$$url,
-				e;
-			if (newUrl !== oldUrl && newUrl != state) {
+			var e;
+			$rootScope.tempNewUrl = null;
+			$rootScope.tempState = null;
+			$rootScope.tempDestination = $location.$$url;
+			
+            if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
 			    //give components a chance to negate the page change
-				e = $rootScope.$broadcast('pageChangeStarted', destination);
+				e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
 				if (e.defaultPrevented) {
 					event.preventDefault();
-					$dialog.dialog({
-						backdrop : true,
-						keyboard : true,
-						dialogFade : true,
-						backdropClick : true,
-						controller : 'UnsavedController',
-						template : '<div class="modal-header">Unsaved Changes</div>' +
-						    '<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>' +
-						    '<div class="modal-footer"><button type="button" class="btn" ng-click="close(false)">Cancel</button> <button type="button" class="btn btn-danger" ng-click="close(true)">Continue</button></div>'
-					}).open().then(function (continueChange) {
-						if (continueChange) {
-							$rootScope.$broadcast('pageChangeAccepted', destination);
-							state = newUrl;
-							$location.url(destination);
-						}
-					});
+					$rootScope.tempNewUrl = newUrl;
+					$('#unsavedModal').modal('show');
+					$('.modal-backdrop').addClass('master-modal-backdrop');
 					return;
 				}
 			}
-		    state = null;
+            $rootScope.tempState = null;
 		});
 
 		var fn = function (event) {
@@ -74,9 +64,15 @@
 		$(window).bind('beforeunload', fn);
 	}]);
 
-	dashboardApp.controller('UnsavedController', ['$scope', 'dialog', function ($scope, dialog) {
+	dashboardApp.controller('UnsavedController', ['$rootScope', '$scope', '$location', function ($rootScope, $scope, $location) {
 		$scope.close = function(shouldContinue) {
-			dialog.close(shouldContinue);
+		    if (shouldContinue) {
+                $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+                $rootScope.tempState = $rootScope.tempNewUrl;
+                $location.url($rootScope.tempDestination);
+            }
+		    $('#unsavedModal').modal('hide');
+		    $('.modal-backdrop').removeClass('master-modal-backdrop');
 		};
 	}]);
 

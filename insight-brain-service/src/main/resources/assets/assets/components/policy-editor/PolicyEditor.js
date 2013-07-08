@@ -287,6 +287,11 @@
 			$('#editConstraintModal').modal('hide');
 			$scope.originalConstraint = $scope.currentConstraint = null;
 		};
+		
+		//ditch edits in this case
+        $scope.$on('pageChangeAccepted', function (event) {
+            $scope.cancelConstraint();
+        })
 
 		$scope.saveConstraint = function () {
 			angular.forEach($scope.currentConstraint.conditions, function (condition) {

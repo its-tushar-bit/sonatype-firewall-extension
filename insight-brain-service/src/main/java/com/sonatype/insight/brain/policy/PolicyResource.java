@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -104,13 +103,17 @@ public class PolicyResource
 
         ApplicablePolicies result = new ApplicablePolicies();
 
-        result.policies = policyDAO().getApplicableByOwnerId( internalOwnerId );
-        result.ownerNamesById = new LinkedHashMap<String, String>();
+        result.policiesByOwner = new ArrayList<PoliciesByOwner>();
         String organizationId;
         if ( "application".equals( ownerType ) )
         {
             Application application = new ApplicationDAO().getByIdNotNull( internalOwnerId );
-            result.ownerNamesById.put( internalOwnerId, application.getName() );
+            PoliciesByOwner policiesByOwner = new PoliciesByOwner();
+            policiesByOwner.ownerId = application.getId();
+            policiesByOwner.ownerName = application.getName();
+            policiesByOwner.ownerType = "application";
+            policiesByOwner.policies = policyDAO().getApplicableByOwnerId( application.getId() );
+            result.policiesByOwner.add( policiesByOwner );
             organizationId = application.getOrganizationId();
         }
         else
@@ -120,7 +123,12 @@ public class PolicyResource
         if ( organizationId != null )
         {
             Organization organization = new OrganizationDAO().getByIdNotNull( organizationId );
-            result.ownerNamesById.put( organizationId, organization.getName() );
+            PoliciesByOwner policiesByOwner = new PoliciesByOwner();
+            policiesByOwner.ownerId = organization.getId();
+            policiesByOwner.ownerName = organization.getName();
+            policiesByOwner.ownerType = "organization";
+            policiesByOwner.policies = policyDAO().getApplicableByOwnerId( organization.getId() );
+            result.policiesByOwner.add( policiesByOwner );
         }
 
         return result;
@@ -384,18 +392,17 @@ public class PolicyResource
 
     public static class ApplicablePolicies
     {
-        private Map<String, String> ownerNamesById;
+        public List<PoliciesByOwner> policiesByOwner;
+    }
 
-        private List<Policy> policies;
+    public static class PoliciesByOwner
+    {
+        public String ownerId;
 
-        public Map<String, String> getOwnerNamesById()
-        {
-            return ownerNamesById;
-        }
+        public String ownerName;
 
-        public List<Policy> getPolicies()
-        {
-            return policies;
-        }
+        public String ownerType;
+
+        public List<Policy> policies;
     }
 }

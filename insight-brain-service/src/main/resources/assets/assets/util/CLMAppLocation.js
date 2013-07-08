@@ -67,9 +67,7 @@
 				return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
 			},
 
-			getEntityId: function () {
-				return getId();
-			},
+			getEntityId: getId,
 
 			getApplicablePolicies : function () {
 			    return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';

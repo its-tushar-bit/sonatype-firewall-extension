@@ -152,7 +152,7 @@
 					actionStageList : results[1][1]
 				};
 				if (promises.length === 3) {
-					$scope.application = results[2];
+					$scope.application = results[3].data;
 				}
 				postLoad();
 			}, function (errors) {

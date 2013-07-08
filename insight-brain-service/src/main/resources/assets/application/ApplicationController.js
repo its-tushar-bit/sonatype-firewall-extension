@@ -99,6 +99,7 @@
 		$scope.submitActive = false;
 		$scope.addApplicationSync = CLMAppLocations.addIconSync();
 		$scope.hasRobotSource = false;
+		$scope.hasFormData = typeof(window.FormData) !== 'undefined';
 		
 		OrganizationStore.get().then(function(results) {
             $scope.organizations = results;

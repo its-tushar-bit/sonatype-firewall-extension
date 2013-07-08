@@ -42,7 +42,10 @@
 		<div style="padding-left: 15px;">
 			<div clm-alerts='alerts'></div>
 			<div ng-repeat='applicablePolicy in applicablePolicies'>
-				<h4>{{applicablePolicy.ownerName}}</h4>
+				<div ng-switch='applicablePolicy.editable'>
+					<h4 ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</h4>
+					<h4 ng-switch-default>Policies Inherited from {{applicablePolicy.ownerName}}</h4>
+				</div>
 				<div policy-cards='applicablePolicy.policies' editable='applicablePolicy.editable'></div>
 			</div>
 		</div>

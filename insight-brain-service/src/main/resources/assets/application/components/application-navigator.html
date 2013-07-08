@@ -17,7 +17,7 @@
 					ng-class="{'active': $state.params.applicationPublicId == application.publicId }">
 						<a href='#/management/application/{{application.publicId}}/policies'>{{application.name}}</a>
 				</li>
-				<li ng-hide='applications'><h5><i class='icon icon-time'></i> Loading...</h5></li>
+				<li ng-show='!applications'><h5><i class='icon icon-time'></i> Loading...</h5></li>
 			</ul>
 		</div>
 	</div>

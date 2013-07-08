@@ -77,9 +77,7 @@
 
 			isApplication: function () {
 				return $state.current.name.indexOf('application') !== -1 ;
-			},
-
-			getId : getId
+			}
 		};
 	}]);
 }());

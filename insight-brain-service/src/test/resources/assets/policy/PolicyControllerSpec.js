@@ -20,6 +20,9 @@ describe('PolicyController tests', function() {
 			}
 		);
 	}));
+	afterEach(function () {
+	    scope.$destroy();
+	});
 
     // setup our http backend to return what we want
     beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
@@ -28,6 +31,7 @@ describe('PolicyController tests', function() {
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+        $httpBackend.expectGET(toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicationsData()[0]);
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getEntityUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
 
         // inject the controller
@@ -45,22 +49,25 @@ describe('PolicyController tests', function() {
         expect(scope.state.policyList.length).toEqual(PolicyMockData.getPolicyData().length);
     });
 
-    it('Test Summary', function() {
-        expect(scope.getActionCount(scope.state.policyList[0])).toEqual(1);
-        expect(scope.getActions(scope.state.policyList[0])).toEqual('Build: Fail');
+    it('Test Summary', inject(function($compile, $httpBackend) {
+        $httpBackend.expectGET('../policy-assets/components/policy/policy-cards.html').respond('');
+        var sc = $compile('<div policy-cards></div>')(scope).scope();
+        $httpBackend.flush();
+        expect(sc.getActionCount(scope.state.policyList[0])).toEqual(1);
+        expect(sc.getActions(scope.state.policyList[0])).toEqual('Build: Fail');
 
-        expect(scope.getActionCount(scope.state.policyList[1])).toEqual(1);
-        expect(scope.getActions(scope.state.policyList[1])).toEqual('Build: Fail');
+        expect(sc.getActionCount(scope.state.policyList[1])).toEqual(1);
+        expect(sc.getActions(scope.state.policyList[1])).toEqual('Build: Fail');
 
-        expect(scope.getActionCount(scope.state.policyList[2])).toEqual(0);
-        expect(scope.getActions(scope.state.policyList[2])).toEqual('');
+        expect(sc.getActionCount(scope.state.policyList[2])).toEqual(0);
+        expect(sc.getActions(scope.state.policyList[2])).toEqual('');
 
-        expect(scope.getActionCount(scope.state.policyList[3])).toEqual(0);
-        expect(scope.getActions(scope.state.policyList[3])).toEqual('');
+        expect(sc.getActionCount(scope.state.policyList[3])).toEqual(0);
+        expect(sc.getActions(scope.state.policyList[3])).toEqual('');
 
-        expect(scope.getActionCount(scope.state.policyList[4])).toEqual(0);
-        expect(scope.getActions(scope.state.policyList[4])).toEqual('');
-    });
+        expect(sc.getActionCount(scope.state.policyList[4])).toEqual(0);
+        expect(sc.getActions(scope.state.policyList[4])).toEqual('');
+    }));
 
     it('Test remove policy', inject(function(CLMAppLocations, $httpBackend) {
         expect(scope.state.policyList.length).toEqual(5);

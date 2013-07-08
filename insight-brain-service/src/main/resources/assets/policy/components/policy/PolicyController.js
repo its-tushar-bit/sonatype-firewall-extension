@@ -72,7 +72,9 @@
 
 		$scope.doLoad = function () {
 			$scope.error = null;
-			var promises = [policyStore.get().get(), actionStore.get(), $http.get(clmAppLocations.getApplicablePolicies())];
+			var promises = [policyStore.get().get(), actionStore.get(), $http.get(clmAppLocations.getApplicablePolicies(), {
+                params: { timestamp: new Date().getTime() }
+            })];
 			if (clmAppLocations.isApplication()) {
 				promises.push($http.get(clmAppLocations.getEntityUrl(), {
 					params: { timestamp: new Date().getTime() }

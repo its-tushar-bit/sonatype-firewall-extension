@@ -112,7 +112,7 @@ public class PolicyResource
             policiesByOwner.ownerId = application.getId();
             policiesByOwner.ownerName = application.getName();
             policiesByOwner.ownerType = "application";
-            policiesByOwner.policies = policyDAO().getApplicableByOwnerId( application.getId() );
+            policiesByOwner.policies = policyDAO().getByOwnerId( application.getId() );
             result.policiesByOwner.add( policiesByOwner );
             organizationId = application.getOrganizationId();
         }
@@ -127,7 +127,7 @@ public class PolicyResource
             policiesByOwner.ownerId = organization.getId();
             policiesByOwner.ownerName = organization.getName();
             policiesByOwner.ownerType = "organization";
-            policiesByOwner.policies = policyDAO().getApplicableByOwnerId( organization.getId() );
+            policiesByOwner.policies = policyDAO().getByOwnerId( organization.getId() );
             result.policiesByOwner.add( policiesByOwner );
         }
 

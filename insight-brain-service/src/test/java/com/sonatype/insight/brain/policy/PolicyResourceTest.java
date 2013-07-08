@@ -479,7 +479,10 @@ public class PolicyResourceTest
     private void assertPoliciesByOwner( String ownerId, String ownerName, String ownerType, int policyCount,
                                         PoliciesByOwner actual )
     {
-
+        Assert.assertEquals( ownerId, actual.ownerId );
+        Assert.assertEquals( ownerName, actual.ownerName );
+        Assert.assertEquals( ownerType, actual.ownerType );
+        Assert.assertEquals( policyCount, actual.policies.size() );
     }
 
     @Test
@@ -562,7 +565,7 @@ public class PolicyResourceTest
         Assert.assertNotNull( applicablePolicies );
         Assert.assertEquals( 2, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( appId, appName, "application", 1, applicablePolicies.policiesByOwner.get( 0 ) );
-        assertPoliciesByOwner( orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get( 1 ) );
+        assertPoliciesByOwner( orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get( 1 ) );
         Assert.assertEquals( appPolicy.getId(), applicablePolicies.policiesByOwner.get( 0 ).policies.get( 0 ).getId() );
         Assert.assertEquals( orgPolicy.getId(), applicablePolicies.policiesByOwner.get( 1 ).policies.get( 0 ).getId() );
 
@@ -572,7 +575,7 @@ public class PolicyResourceTest
         applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
         Assert.assertNotNull( applicablePolicies );
         Assert.assertEquals( 1, applicablePolicies.policiesByOwner.size() );
-        assertPoliciesByOwner( orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get( 0 ) );
+        assertPoliciesByOwner( orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get( 0 ) );
         Assert.assertEquals( orgPolicy.getId(), applicablePolicies.policiesByOwner.get( 0 ).policies.get( 0 ).getId() );
     }
 

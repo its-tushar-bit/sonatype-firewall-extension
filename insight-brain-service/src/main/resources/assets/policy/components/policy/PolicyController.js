@@ -84,6 +84,9 @@
 				$scope.applicablePolicies = results[2].data.policiesByOwner;
 				angular.forEach($scope.applicablePolicies, function (applicablePolicy, index) {
 					applicablePolicy.editable = index === 0;
+					if (index === 0) {
+						applicablePolicy.policies = results[0];
+					}
 				});
 				if (results.length === 4) {
 					$scope.application = results[3].data;

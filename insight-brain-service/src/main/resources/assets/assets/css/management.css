@@ -72,12 +72,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .first-row.navbar-fixed-top {
-	border-bottom: 1px solid #C6C6C6;
+	/*border-bottom: 1px solid #C6C6C6;*/
+}
+
+.second-row.navbar-fixed-top hr {
+	margin: 0;
+	border: 0;
+	border-top: 1px solid #c6c6c6;
+	border-bottom: 1px solid #e8e8e8;
 }
 
 .second-row.navbar-fixed-top {
-	border-top: 1px solid #C6C6C6;
-	top: 45px;
+	/*border-top: 1px solid #C6C6C6;*/
+	top: 51px;
 }
 
 .second-row a.dropdown-toggle {
@@ -122,7 +129,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .third-row { 
-    margin: 76px 0 auto auto;
+    margin: 84px 0 auto auto;
 }
 
 .marginless-alert .alert {

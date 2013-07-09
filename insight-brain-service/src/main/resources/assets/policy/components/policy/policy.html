@@ -46,7 +46,7 @@
 					<h4 ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</h4>
 					<h4 ng-switch-default>Policies Inherited from {{applicablePolicy.ownerName}}</h4>
 				</div>
-				<div policy-cards='applicablePolicy.policies' editable='applicablePolicy.editable'></div>
+				<div policy-cards='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy(policy)'></div>
 			</div>
 		</div>
 	</div>

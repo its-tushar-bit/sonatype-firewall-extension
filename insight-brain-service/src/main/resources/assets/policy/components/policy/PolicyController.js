@@ -119,7 +119,8 @@
 			templateUrl : '../policy-assets/components/policy/policy-cards.html',
 			scope : {
 				policies : '=policyCards',
-				editable : '=editable'
+				editable : '=editable',
+				remove : '&'
 			},
 			transclude : true,
 			priority: 99,

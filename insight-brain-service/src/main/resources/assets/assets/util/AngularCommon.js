@@ -254,7 +254,7 @@ var angularCommon;
 	                		element.editable('setValue', newValue);
 	                	}
 	                });
-	            }
+	            };
 	            $timeout(function() {
 	                loadXeditable();
 	            }, 10);

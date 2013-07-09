@@ -50,7 +50,7 @@
 			create: function() {
 				return licenseGroupStore.create();
 			}
-		}
+		};
 	});
 
     licenseGroupModule.service('licenseStore', function (CLMLocations, CLMResource) {
@@ -172,7 +172,7 @@
 		$scope.inlineRevertLicenseGroup = function(licenseThreatGroup) {
 			var original = licenseThreatGroup.$getOriginal();
 			angular.extend(licenseThreatGroup, original);
-		}
+		};
 
         $scope.toggleAll = function() {
         	var action = $scope.allExpanded ? 'hide' : 'show';

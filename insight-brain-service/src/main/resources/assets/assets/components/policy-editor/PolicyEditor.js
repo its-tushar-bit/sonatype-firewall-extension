@@ -133,7 +133,7 @@
               {'value': 'AND', 'name': 'all'},
               {'value': 'OR', 'name': 'any'}
             ]
-          }
+          };
         });
 
 	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', 'ConstraintConditionChoices', function ($scope, $state, $q, $location, messages, policyStore, actionStore, constraintConditionChoices) {
@@ -290,8 +290,8 @@
 		
 		//ditch edits in this case
         $scope.$on('pageChangeAccepted', function (event) {
-            $scope.cancelConstraint();
-        })
+            $scope.cancelCconstraint();
+        });
 
 		$scope.saveConstraint = function () {
 			angular.forEach($scope.currentConstraint.conditions, function (condition) {
@@ -340,7 +340,7 @@
                         if(!$scope.currentConstraint.operator)
                         {
                           $scope.constraintValidationMsg = 'You must select any or all of the conditions';
-                          return
+                          return;
                         }
 		};
 

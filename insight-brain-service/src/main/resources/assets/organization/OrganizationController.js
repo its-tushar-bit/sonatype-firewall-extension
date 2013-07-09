@@ -190,7 +190,7 @@
                 $scope.alerts.push({
                     type : 'error',
                     msg : data
-                })
+                });
             });
 
             return false;

@@ -94,7 +94,7 @@
 			resourceStore.create = function (relationalConfigName) {
 				var relationalConfig = config.relationalConfigs[relationalConfigName];
 				if (relationalConfig) {
-					return angular.copy(relationalConfig.template)
+					return angular.copy(relationalConfig.template);
 				}
 
 				var resource = new Resource(angular.copy(config.template));

@@ -22,20 +22,22 @@
 		} );
 	}]).run(['$rootScope', '$location', 'Messages', function ($rootScope, $location, messages) {
 		// The page contains unsaved changes, continuing will discard them.
-		var state = null;
+	    $rootScope.tempState = null;
 
 		$rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
 		    $rootScope.error = messages.getHttpErrorMessage(error);
 		});
 
 		$rootScope.$on('$locationChangeStart', function (event, newUrl, oldUrl) {
-			// initial page load triggers state where new URL == old URL
 			var e;
 			$rootScope.tempNewUrl = null;
-			$rootScope.tempState = null;
-			$rootScope.tempDestination = $location.$$url;
+			$rootScope.tempDestination = $location.url();
 			
             if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
+                //special case where back button is hit, locationUrl will be the same as the oldUrl!!
+                if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
+                    $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
+                }
 			    //give components a chance to negate the page change
 				e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
 				if (e.defaultPrevented) {
@@ -63,16 +65,28 @@
 		//this causes the browser to notify the user that the page contains unsaved data
 		$(window).bind('beforeunload', fn);
 	}]);
+	
+	//this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
+	$.fn.modal.Constructor.prototype.enforceFocus = function() {
+        var that = this;
+        var done = false;
+        $(document).on('focusin.modal', function(e) {
+            if (!done && that.$element[0] !== e.target && !that.$element.has(e.target).length) {
+                done = true;
+                that.$element.focus()
+            }
+        });
+    };
 
 	dashboardApp.controller('UnsavedController', ['$rootScope', '$scope', '$location', function ($rootScope, $scope, $location) {
 		$scope.close = function(shouldContinue) {
+		    $('#unsavedModal').modal('hide');
+            $('.modal-backdrop').removeClass('master-modal-backdrop');
 		    if (shouldContinue) {
                 $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
                 $rootScope.tempState = $rootScope.tempNewUrl;
                 $location.url($rootScope.tempDestination);
             }
-		    $('#unsavedModal').modal('hide');
-		    $('.modal-backdrop').removeClass('master-modal-backdrop');
 		};
 	}]);
 

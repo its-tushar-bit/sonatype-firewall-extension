@@ -90,3 +90,5 @@ logging:
 
     # The number of archived files to keep.
     archivedFileCount: 5
+
+    logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"

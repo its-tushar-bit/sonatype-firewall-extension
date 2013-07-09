@@ -199,7 +199,6 @@ var angularCommon;
 
 					if (attrs.validate) {
 					  validateFn = $parse(attrs.validate)(scope);
-					  //args.validate = validateFn;
 					}
 	            	
 	            	if (attrs.source) {
@@ -260,9 +259,12 @@ var angularCommon;
 						if (!value) {
 							return undefined;
 						}
-						var validationResult = validateFn(value);
-						var validation = typeof validationResult === 'undefined' || !validationResult;
-						ctrl.$setValidity('inlineValidation', validation);
+						var validation = true;
+						if (validateFn) {
+							var validationResult = validateFn(value);
+							validation = typeof validationResult === 'undefined' || !validationResult;
+							ctrl.$setValidity('inlineValidation', validation);
+						}
 						return validation ? value : undefined;
 					};
 					ctrl.$parsers.push(validator);

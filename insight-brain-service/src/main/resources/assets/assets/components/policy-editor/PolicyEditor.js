@@ -127,16 +127,7 @@
 		};
 	}]);
 
-        module.service('ConstraintConditionChoices', function () {
-          return{
-            choices: [
-              {'value': 'AND', 'name': 'all'},
-              {'value': 'OR', 'name': 'any'}
-            ]
-          };
-        });
-
-	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', 'ConstraintConditionChoices', function ($scope, $state, $q, $location, messages, policyStore, actionStore, constraintConditionChoices) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, messages, policyStore, actionStore) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirmationHeader = header;
@@ -180,7 +171,10 @@
 			return changed;
 		}
 		$scope.alerts = [];
-                $scope.constraintConditionChoices = constraintConditionChoices.choices;
+                $scope.constraintConditionChoices = [
+                  {'value': 'AND', 'name': 'all'},
+                  {'value': 'OR', 'name': 'any'}
+                ]
 
 		$scope.doLoad = function () {
 			var currentPolicyStore = policyStore.get();

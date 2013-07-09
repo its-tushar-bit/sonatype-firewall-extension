@@ -11,8 +11,11 @@
             </div>
         </div>
 		<div class="editorHeader">
-            <span ng-show="applicationEditor.applicationName.$error.inlineValidation" class="help-inline">Name is required</span>
-			<div class='editorImage'>
+            <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">Name is already in use</span>
+            <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Name must be alpha numeric</span>
+            <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+            <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline">Id is already in use</span>
+			<div class='editorImage' style="padding-bottom: 50px;">
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
 	                       <img ng-switch-when='false' id='userIcon' ng-src='{{userIconSource}}' />
@@ -29,14 +32,17 @@
    			</div>
 			<div class='inline head'>
                   <h1><span id='applicationName' name='applicationName' ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
-                     data-placeholder='Enter Application Name' validate='validateApplicationName' data-type='text' style='margin-bottom: 5px;'></span></h1>
+                     data-placeholder='Enter Application Name' data-type='text'  style='margin-bottom: 5px;'
+                     alpha-numeric has-whitespace='suggestedName'
+                     is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
 			</div>
             <div class='inline'>
 			<span>Application</span>
                 <div ng-switch on='selectedApplication.id' style='display: inline-block;'>
                     <div ng-switch-when='null'>
-                          <span ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Enter ID'
-                             data-placeholder='Enter ID' validate='validateApplicationId' data-type='text'></span>
+                          <span id='applicationPublicId' name='applicationPublicId  ' ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Enter ID'
+                             data-placeholder='Enter ID' data-type='text' alpha-numeric has-whitespace='suggestedName'
+                             is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='publicId' is-Duplicate-Case-Sensitive='false'></span>
                     </div>
                     <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
                 </div>

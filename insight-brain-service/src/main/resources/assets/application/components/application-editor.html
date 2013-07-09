@@ -43,16 +43,13 @@
                 <span>in</span>
                 <div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
                     <div ng-switch-when='null'>
-                        <!--<span ng-model='selectedApplication.organizationId' xeditable href='javascript:;' data-emptytext='Select Organization'-->
-                            <!--data-type='select' source='organizations' key-value='id' display-value='name'>-->
                         <span>
-                            <select>
-                                <option>Select Organization</option>
-                                <option ng-repeat='organization in organizations'>{{organization.name}}</option>
+                            <select ng-model='selectedApplication.organizationId'>
+                                <option value='null'>Select Organization</option>
+                                <option ng-repeat='organization in organizations' value='{{organization.id}}'>{{organization.name}}</option>
                             </select>
                             <span class="caret"></span>
                         </span>
-                        <!--</span>-->
                     </div>
                     <span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
                 </div>

@@ -6,7 +6,8 @@
 	<div class='content-container' style='text-align:center;width:370px;margin:auto' ng-show='!state && !error'>
 		<h5><i class='icon-time'></i> Loading...</h5>
 	</div>
-	<div class='fade' ng-class='{in : state}'>
+	<div class='fade' ng-class='{in : state}' style="padding: 15px 25px 0 25px">
+		<div clm-alerts='alerts'></div>
 		<div style='margin:auto;width:460px;padding:10px' ng-show='application != null'>
 			<table class='table table-striped table-bordered clm-table'>
 				<thead>
@@ -39,15 +40,12 @@
 				</tr>
 			</table>
 		</div>
-		<div style="padding-left: 15px;">
-			<div clm-alerts='alerts'></div>
-			<div ng-repeat='applicablePolicy in applicablePolicies'>
-				<div ng-switch='applicablePolicy.editable'>
-					<h4 ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</h4>
-					<h4 ng-switch-default>Policies Inherited from {{applicablePolicy.ownerName}}</h4>
-				</div>
-				<div policy-cards='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>
+		<div ng-repeat='applicablePolicy in applicablePolicies'>
+			<div ng-switch='applicablePolicy.editable'>
+				<h4 ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</h4>
+				<h4 ng-switch-default>Policies Inherited from {{applicablePolicy.ownerName}}</h4>
 			</div>
+			<div policy-cards='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>
 		</div>
 	</div>
 	<div id="confirmationModal" data-backdrop="static" class="modal fade">

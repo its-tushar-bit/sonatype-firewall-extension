@@ -491,8 +491,8 @@ var angularCommon;
 		                }
 		            }
 					deferred.resolve(data);
-				}).error(function (error) {
-					deferred.reject({ data: error.data, status : error.status, headers : error.headers, config : error.config });
+				}).error(function (data, status, headers, config) {
+					deferred.reject({ data: data, status : status, headers : headers, config : config });
 				});
 				return deferred.promise;
 			}

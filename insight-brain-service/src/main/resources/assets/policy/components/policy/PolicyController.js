@@ -10,15 +10,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMAppLocation', 'AngularCommon']);
 
-	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'policyEvaluator', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, policyEvaluator) {
-
-		function handleHttpError(headerText, bodyText, status) {
-			$scope.httpError = {
-				body : status === 0 ? 'Unable to connect to server.' : bodyText,
-				header : headerText
-			};
-			$('#httpErrorModal').modal('show');
-		}
+	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'Messages', 'policyEvaluator', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, messages, policyEvaluator) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirm = {
@@ -65,7 +57,10 @@
 					$scope.reEvaluatingPolicy = false;
 				}, function(error) {
 					$scope.reEvaluatingPolicy = false;
-					handleHttpError('Policy Initialization Error', error.data, error.status);
+                    $scope.alerts.push({
+                        type : 'error',
+                        msg : 'An error occurred attempting to re-evaluate policy. (' + messages.getHttpErrorMessage(error) + ')'
+                    });
 				});
 			}
 		};

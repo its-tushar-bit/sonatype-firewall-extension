@@ -174,7 +174,7 @@
                 $scope.constraintConditionChoices = [
                   {'value': 'AND', 'name': 'all'},
                   {'value': 'OR', 'name': 'any'}
-                ]
+                ];
 
 		$scope.doLoad = function () {
 			var currentPolicyStore = policyStore.get();

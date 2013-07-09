@@ -5,6 +5,21 @@
  */
 (function(){
 	"use strict";
+	var masterModalShown = false;
+	
+	var showMasterModal = function() {
+	    if (!masterModalShown) {
+    	    masterModalShown = true;
+            $('#unsavedModal').modal('show');
+            $('.modal-backdrop').addClass('master-modal-backdrop');
+	    }
+    };
+    
+    var hideMasterModal = function() {
+        $('#unsavedModal').modal('hide');
+        $('.modal-backdrop').removeClass('master-modal-backdrop');
+        masterModalShown = false;
+    }
 
 	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
@@ -21,6 +36,7 @@
 			$injector.invoke(fn);
 		} );
 	}]).run(['$rootScope', '$location', 'Messages', function ($rootScope, $location, messages) {
+	    
 		// The page contains unsaved changes, continuing will discard them.
 	    $rootScope.tempState = null;
 
@@ -43,8 +59,7 @@
 				if (e.defaultPrevented) {
 					event.preventDefault();
 					$rootScope.tempNewUrl = newUrl;
-					$('#unsavedModal').modal('show');
-					$('.modal-backdrop').addClass('master-modal-backdrop');
+					showMasterModal();
 					return;
 				}
 			}
@@ -52,8 +67,10 @@
 		});
 
 		var fn = function (event) {
-			var e = $rootScope.$broadcast('pageChangeStarted');
-			return e.defaultPrevented  ? e.message || 'The page may contain unsaved changes, continuing will discard them.' : undefined;
+		    if (!masterModalShown) {
+    			var e = $rootScope.$broadcast('pageChangeStarted');
+    			return e.defaultPrevented  ? e.message || 'The page may contain unsaved changes, continuing will discard them.' : undefined;
+		    }
 		};
 
 		//make sure to cleanup event listeners
@@ -80,8 +97,7 @@
 
 	dashboardApp.controller('UnsavedController', ['$rootScope', '$scope', '$location', function ($rootScope, $scope, $location) {
 		$scope.close = function(shouldContinue) {
-		    $('#unsavedModal').modal('hide');
-            $('.modal-backdrop').removeClass('master-modal-backdrop');
+		    hideMasterModal();
 		    if (shouldContinue) {
                 $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
                 $rootScope.tempState = $rootScope.tempNewUrl;

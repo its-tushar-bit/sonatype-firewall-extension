@@ -558,3 +558,10 @@ ul.tri-pane {
 .master-modal {
 	z-index: 2050;
 }
+
+.licenseSelectListItem{
+  cursor: pointer;
+}
+.licenseSelectListItem:hover{
+  background-color: #F4F4F4;
+}

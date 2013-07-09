@@ -31,7 +31,7 @@ describe('PolicyController tests', function() {
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
-        $httpBackend.expectGET(toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicationsData()[0]);
+        $httpBackend.expectGET(toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
         $httpBackend.expectGET(toRegExp(CLMAppLocations.getEntityUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
 
         // inject the controller
@@ -46,34 +46,34 @@ describe('PolicyController tests', function() {
 
     it('Test initial data state', function() {
         expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
-        expect(scope.state.policyList.length).toEqual(PolicyMockData.getPolicyData().length);
+        expect(scope.applicablePolicies[0].policies.length).toEqual(PolicyMockData.getPolicyData().length);
     });
 
     it('Test Summary', inject(function($compile, $httpBackend) {
         $httpBackend.expectGET('../policy-assets/components/policy/policy-cards.html').respond('');
         var sc = $compile('<div policy-cards></div>')(scope).scope();
         $httpBackend.flush();
-        expect(sc.getActionCount(scope.state.policyList[0])).toEqual(1);
-        expect(sc.getActions(scope.state.policyList[0])).toEqual('Build: Fail');
+        expect(sc.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(1);
+        expect(sc.getActions(scope.applicablePolicies[0].policies[0])).toEqual('Build: Fail');
 
-        expect(sc.getActionCount(scope.state.policyList[1])).toEqual(1);
-        expect(sc.getActions(scope.state.policyList[1])).toEqual('Build: Fail');
+        expect(sc.getActionCount(scope.applicablePolicies[0].policies[1])).toEqual(1);
+        expect(sc.getActions(scope.applicablePolicies[0].policies[1])).toEqual('Build: Fail');
 
-        expect(sc.getActionCount(scope.state.policyList[2])).toEqual(0);
-        expect(sc.getActions(scope.state.policyList[2])).toEqual('');
+        expect(sc.getActionCount(scope.applicablePolicies[0].policies[2])).toEqual(0);
+        expect(sc.getActions(scope.applicablePolicies[0].policies[2])).toEqual('');
 
-        expect(sc.getActionCount(scope.state.policyList[3])).toEqual(0);
-        expect(sc.getActions(scope.state.policyList[3])).toEqual('');
+        expect(sc.getActionCount(scope.applicablePolicies[0].policies[3])).toEqual(0);
+        expect(sc.getActions(scope.applicablePolicies[0].policies[3])).toEqual('');
 
-        expect(sc.getActionCount(scope.state.policyList[4])).toEqual(0);
-        expect(sc.getActions(scope.state.policyList[4])).toEqual('');
+        expect(sc.getActionCount(scope.applicablePolicies[0].policies[4])).toEqual(0);
+        expect(sc.getActions(scope.applicablePolicies[0].policies[4])).toEqual('');
     }));
 
     it('Test remove policy', inject(function(CLMAppLocations, $httpBackend) {
-        expect(scope.state.policyList.length).toEqual(5);
-        scope.viewRemovePolicy(scope.state.policyList[0]);
+        expect(scope.applicablePolicies[0].policies.length).toEqual(5);
+        scope.viewRemovePolicy(scope.applicablePolicies[0].policies[0]);
 
-        expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
+        expect(scope.applicablePolicies[0].policies[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
         expect(scope.state.confirm.header).toEqual('Delete Policy?');
         expect(scope.state.confirm.body).toEqual('Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.');
         expect(scope.state.confirm.declineText).toEqual('Cancel');
@@ -82,11 +82,11 @@ describe('PolicyController tests', function() {
         expect(scope.state.confirm.declineFn).not.toBeNull();
 
         scope.state.confirm.declineFn(); // Cancel delete dialog
-        expect(scope.state.policyList.length).toEqual(5);
+        expect(scope.applicablePolicies[0].policies.length).toEqual(5);
 
-        scope.viewRemovePolicy(scope.state.policyList[0]);
+        scope.viewRemovePolicy(scope.applicablePolicies[0].policies[0]);
 
-        expect(scope.state.policyList[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
+        expect(scope.applicablePolicies[0].policies[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
         expect(scope.state.confirm.header).toEqual('Delete Policy?');
         expect(scope.state.confirm.body).toEqual('Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.');
         expect(scope.state.confirm.declineText).toEqual('Cancel');
@@ -94,17 +94,21 @@ describe('PolicyController tests', function() {
         expect(scope.state.confirm.accept).not.toBeNull();
         expect(scope.state.confirm.declineFn).not.toBeNull();
 
-        $httpBackend.expectDELETE(CLMAppLocations.getPolicyUrl() + '/' + scope.state.policyList[0].id).respond(200);
+        $httpBackend.expectDELETE(CLMAppLocations.getPolicyUrl() + '/' + scope.applicablePolicies[0].policies[0].id).respond(200);
 
         scope.state.confirm.acceptFn();
 
         $httpBackend.flush();
 
-        expect(scope.state.policyList.length).toEqual(4);
-        expect(scope.state.policyList[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
+        expect(scope.applicablePolicies[0].policies.length).toEqual(4);
+        expect(scope.applicablePolicies[0].policies[0].id).toEqual('ec21b3ee9f31447c9e40913d91776593');
     }));
     
-	
+	it ('Editability', function () {
+        expect(scope.applicablePolicies[0].editable).toEqual(true);
+        expect(scope.applicablePolicies[1].editable).toEqual(false);
+	});
+
 	it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
 		var policyResponse = PolicyMockData.getPolicyEvaluationData();
 		var mockApplication = {

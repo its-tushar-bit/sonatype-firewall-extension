@@ -27,5 +27,92 @@ ApplicationMockData = {
             	}
             }
         ];
+    },
+    getApplicablePolicies : function () {
+        return {
+            policiesByOwner : [{
+                ownerId : "78c1d44c07584e57945f04890c672e82",
+                name: "applicationName",
+                type : "application",
+                policies : undefined /* Irrelevant currently, set to undefined to cause errors if we attempt to use in the future */
+            },{
+                ownerId : "9999999c07584e57945f04890c672e99",
+                name: "orgName",
+                type : "organization",
+                policies : [{
+                    "id" : "053e89a476b34d7dac5d97665d2d241e",
+                    "name" : "asdffffrfff",
+                    "enabled" : true,
+                    "threatLevel" : 10,
+                    "constraints" : [{
+                          "id" : "076688f8f45a43b3a6061ef7aad6de4e",
+                          "name" : "asf",
+                          "enabled" : true,
+                          "operator" : "OR",
+                          "conditions" : [{
+                                "conditionTypeId" : "License",
+                                "operator" : "is",
+                                "value" : "AAL"
+                              }, {
+                                "conditionTypeId" : "AgeInDays",
+                                "operator" : "older than",
+                                "value" : "360"
+                              }, {
+                                "conditionTypeId" : "SecurityVulnerability",
+                                "operator" : "present",
+                                "value" : null
+                              }, {
+                                "conditionTypeId" : "SecurityVulnerabilitySeverity",
+                                "operator" : "=",
+                                "value" : "44"
+                              }, {
+                                  "conditionTypeId" : "DependencyDepth",
+                                  "operator" : "is direct dependency",
+                                  "value" : null
+                              }]
+                        }, {
+                          "id" : "6c2755ee5ef6400e935e913fdeda4e6b",
+                          "name" : "jjj",
+                          "enabled" : true,
+                          "operator" : "OR",
+                          "conditions" : [{
+                                "conditionTypeId" : "License",
+                                "operator" : "is",
+                                "value" : "AAL"
+                              }]
+                        }, {
+                          "id" : "ed721f80645042e0b4505c072f7b657d",
+                          "name" : "ffff",
+                          "enabled" : true,
+                          "operator" : "OR",
+                          "conditions" : [{
+                                "conditionTypeId" : "License",
+                                "operator" : "is",
+                                "value" : "AAL"
+                              }]
+                        }, {
+                          "id" : "7f7c035288004b60a580df3f3e14326a",
+                          "name" : "test",
+                          "enabled" : true,
+                          "operator" : "OR",
+                          "conditions" : [{
+                                "conditionTypeId" : "LicenseStatus",
+                                "operator" : "is",
+                                "value" : "OPEN"
+                              }]
+                        }],
+                    "actions" : {
+                      "procure" : [],
+                      "develop" : [],
+                      "build" : [{
+                            "actionTypeId" : "fail",
+                            "target" : null
+                          }],
+                      "release" : [],
+                      "operate" : []
+                    }
+                  }]
+            }]
+        };
     }
 };

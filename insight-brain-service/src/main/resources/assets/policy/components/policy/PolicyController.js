@@ -78,7 +78,6 @@
 
 			$q.all(promises).then(function (results) {
 				$scope.state = {
-					policyList : results[0],
 					actionStageList : results[1][1]
 				};
 				$scope.applicablePolicies = results[2].data.policiesByOwner;

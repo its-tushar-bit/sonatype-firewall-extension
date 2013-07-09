@@ -120,7 +120,7 @@
 			scope : {
 				policies : '=policyCards',
 				editable : '=editable',
-				remove : '&'
+				remove : '='
 			},
 			transclude : true,
 			priority: 99,

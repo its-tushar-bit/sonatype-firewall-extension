@@ -42,14 +42,16 @@
                 </div>
                 <span>in</span>
                 <div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
-                    <div ng-switch-when='null'>
-                        <span>
-                            <select ng-model='selectedApplication.organizationId'>
-                                <option value='null'>Select Organization</option>
-                                <option ng-repeat='organization in organizations' value='{{organization.id}}'>{{organization.name}}</option>
-                            </select>
+                    <div ng-switch-when='null' class="btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#" ng-class='{ selected: selectedApplication.organizationId }'>
+                            {{getOrganizationName(selectedApplication.organizationId)}}
                             <span class="caret"></span>
-                        </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li ng-repeat='organization in organizations'>
+                                <a ng-click='changeOrganization(organization)'>{{organization.name}}</a>
+                            </li>
+                        </ul>
                     </div>
                     <span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
                 </div>

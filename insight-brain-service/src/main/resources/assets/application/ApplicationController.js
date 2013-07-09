@@ -100,7 +100,7 @@
 		
 		$scope.getOrganizationName = function(organizationId) {
 			if (!organizationId) {
-				return "Assign Org...";
+				return "Select Organization";
 			}
 			
 			if ($scope.organizations) {

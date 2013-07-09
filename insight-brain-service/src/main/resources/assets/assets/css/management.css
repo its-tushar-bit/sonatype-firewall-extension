@@ -28,9 +28,9 @@ body {
 	background: #f4f4f4;	
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 14px;
-  	line-height: 20px;
-  	color: #333333;
-    height: 100%;
+  line-height: 20px;
+  color: #333333;
+  height: 100%;
 }
 
 a, a:hover, a:active, a:focus {
@@ -92,13 +92,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .second-row a.dropdown-toggle {
-	margin-left:15px !important;
+	/*margin-left:15px !important;*/
 }
 
 /* These header styles to override Twitter Bootstrap styles */
-.navbar-inner a.dropdown-toggle { color: #444; font-weight: bold; margin: 5px 0px; display: inline-block;}
-.navbar-inner a.dropdown-toggle:hover {text-decoration: none;}
-.dropdown-toggle .caret {margin: 8px; border-top-color: #444;}
+.navbar-inner a.dropdown-toggle {color: #36424e; font-weight: 500; padding: 5px 5px 5px 15px; display: inline-block;}
+.navbar-inner a.dropdown-toggle:hover {text-decoration: none; background-color: #e8e8e8;border-right: 1px solid #e4e4e4;}
+.dropdown-toggle .caret {margin: 8px 2px; border-top-color: #C1C1C1;}
+.dropdown-toggle:hover .caret {border-top-color: #36424e;}
 .navbar-inverse .navbar-inner, .navbar-inner{background-color:#E0E0E0;background-image:none;border-bottom: 1px solid #C6C6C6;min-height:inherit;-webkit-box-shadow: none;-moz-box-shadow: none;box-shadow: none;}
 .navbar .brand {padding: 10px 25px 10px 0;}
 .container-fluid {padding: 0px;}
@@ -196,20 +197,16 @@ h1, h2, h3, h4, h5, h6 {
 .subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus,
 .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
 	background-color: #f4f4f4;
-	color: #444;
+	color: #36424e;
 	text-shadow: 0px 1px 0px rgba(255,255,255,0.5);
-	border-top: 1px solid #F8F8F8;
-	border-bottom: 1px solid #E4E4E4;
 }
 
 .navigation .nav-list>.active>a, .subnavigation .nav-list>.active>a {
-	color: #333;
-	font-weight: bold;
+	font-weight: 500;
 }
 
 .nav-list a {
-	border-top: 1px solid transparent;
-	border-bottom: 1px solid transparent;
+
 }
 
 .subnavigation-expanded {

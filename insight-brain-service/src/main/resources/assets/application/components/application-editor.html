@@ -11,6 +11,7 @@
             </div>
         </div>
 		<div class="editorHeader">
+            <span ng-show="applicationEditor.applicationName.$error.inlineValidation" class="help-inline">Name is required</span>
 			<div class='editorImage'>
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
@@ -27,7 +28,7 @@
 	            </div>
    			</div>
 			<div class='inline head'>
-                  <h1><span ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
+                  <h1><span id='applicationName' name='applicationName' ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
                      data-placeholder='Enter Application Name' validate='validateApplicationName' data-type='text' style='margin-bottom: 5px;'></span></h1>
 			</div>
             <div class='inline'>

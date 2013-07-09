@@ -181,7 +181,7 @@ var angularCommon;
 	    return {
 	        restrict: 'A',
 	        require: "ngModel",
-	        link: function(scope, element, attrs, ngModel) {
+	        link: function(scope, element, attrs, ctrl) {
 	            var loadXeditable = function() {
 	            	var args = {
 	                	mode: 'inline',
@@ -191,14 +191,15 @@ var angularCommon;
 						highlight: '#FFFF80',
 						value: 1,
 	                	success: function(response, value) {
-	                        ngModel.$setViewValue(value);
+							ctrl.$setViewValue(value);
 	                        scope.$apply();
 	                    }
 	                };
+					var validateFn = null;
 
 					if (attrs.validate) {
-					  var validateFn = $parse(attrs.validate)(scope);
-					  args.validate = validateFn;
+					  validateFn = $parse(attrs.validate)(scope);
+					  //args.validate = validateFn;
 					}
 	            	
 	            	if (attrs.source) {
@@ -254,6 +255,17 @@ var angularCommon;
 	                		element.editable('setValue', newValue);
 	                	}
 	                });
+
+					var validator = function (value) {
+						if (!value) {
+							return undefined;
+						}
+						var validationResult = validateFn(value);
+						var validation = typeof validationResult === 'undefined' || !validationResult;
+						ctrl.$setValidity('inlineValidation', validation);
+						return validation ? value : undefined;
+					};
+					ctrl.$parsers.push(validator);
 	            };
 	            $timeout(function() {
 	                loadXeditable();

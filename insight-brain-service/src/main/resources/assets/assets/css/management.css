@@ -142,12 +142,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .navigation {
 	background: #E0E0E0;
-	-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+	/*-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
+	/*box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);*/
 	z-index: 1;
 	width: 120px;
   position: fixed;
   height: 100%;  
+	border-right: 1px solid #c6c6c6;
 }
 
 .navigation .nav-list {
@@ -183,9 +184,10 @@ h1, h2, h3, h4, h5, h6 {
 	background-color: #E8E8E8;
 	width: 150px;
 	margin-left: 119px;
-	-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-	border-left: 1px solid #cbcbcb;
+	/*-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
+	/*box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);*/
+	border-left: 1px solid #efefef;
+	border-right: 1px solid #c6c6c6;
 	position: fixed;
 	height: 100%;
 	overflow: auto;

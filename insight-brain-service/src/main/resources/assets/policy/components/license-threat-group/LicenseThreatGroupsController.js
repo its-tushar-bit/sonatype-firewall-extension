@@ -64,7 +64,7 @@
 		return licenseStore;
     });
 
-    licenseGroupModule.controller('LicenseThreatGroupController', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore) {
+    licenseGroupModule.controller('LicenseThreatGroupController', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, Messages) {
         function sortLicense(a, b) {
             if (a.id < b.id) {
                 return -1;
@@ -113,8 +113,11 @@
 
         	$scope.allLicenses = licenses.sort(sortLicense);
         	$scope.licenseGroups = licenseGroups;
-        }, function(error, a) {
-        	alert(error);
+        }, function(rejection) {
+        	$scope.alerts.push({
+        		type : 'error',
+        		msg : 'An error occurred while loading the license threat groups. (' + Messages.getHttpErrorMessage(rejection) + ')'
+        	});
         });
 
         $scope.getDisplayName = function(licenseId) {
@@ -155,7 +158,10 @@
 				var licenseThreatGroup = $scope.licenseGroups[i];
 				if (licenseThreatGroup.isDirty()) {
 					licenseThreatGroup.$save().then(angular.noop, function(rejection) {
-						$scope.alerts.push({ type: 'error', msg: rejection.data });
+						$scope.alerts.push({
+							type : 'error',
+							msg : 'An error occurred while saving the license threat group. (' + Messages.getHttpErrorMessage(rejection) + ')'
+						});
 						$scope.inlineRevertLicenseGroup(licenseThreatGroup);
 					});
 				}

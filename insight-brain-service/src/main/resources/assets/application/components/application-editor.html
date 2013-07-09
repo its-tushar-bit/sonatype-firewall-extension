@@ -11,10 +11,6 @@
             </div>
         </div>
 		<div class="editorHeader">
-            <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline">Name is already in use</span>
-            <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline">Name must be alpha numeric</span>
-            <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline">No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
-            <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline">Id is already in use</span>
 			<div class='editorImage' style="padding-bottom: 50px;">
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
@@ -35,7 +31,13 @@
                      data-placeholder='Enter Application Name' data-type='text'  style='margin-bottom: 5px;'
                      alpha-numeric has-whitespace='suggestedName' ng-class="{error: applicationEditor.applicationName.$error.duplicate || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces}"
                      is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
+              <div>
+                <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline" style='color: #b94a48;'>Name is already in use</span>
+                <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline" style='color: #b94a48;'>Name must be alpha numeric</span>
+                <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+              </div>
 			</div>
+          <div>
             <div class='inline'>
 			<span>Application</span>
                 <div ng-switch on='selectedApplication.id' style='display: inline-block;'>
@@ -62,6 +64,8 @@
                     <span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
                 </div>
             </div>
+            <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>
+          </div>
             <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>

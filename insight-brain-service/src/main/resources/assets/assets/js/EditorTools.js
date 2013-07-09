@@ -11,7 +11,114 @@
     function wrap($http, method, args, clmLocations) {
     }
 
-    angular.module('EditorTools', []).service('editorTools', [ 'regexFactory', function(regexFactory) {
+    angular.module('EditorTools', []).service('editorTools', function($parse, regexFactory, hudson, CLMAppLocations) {
+		function EditorController($scope, $state, stateName, idSelector, resetEvent, hiddenId, form) {
+			var me = this;
+			me.isPostingIcon = false;
+
+			$scope.alerts = [];
+			$scope.hasRobotSource = false;
+			$scope.hasFormData = typeof(window.FormData) !== 'undefined';
+
+			$scope.pushAlert = function (obj) {
+				$scope.alerts.length = 0;
+				$scope.alerts.push(obj);
+			};
+
+			me.generateIcon = function(name) {
+				var hash = 0;
+				if (!name) {
+					hash = Math.floor(Math.random() * 100);
+				} else {
+					for (var i = 0; i < name.length; i++) {
+						var charAtI = name.charCodeAt(i);
+						hash = ((hash << 5) - hash) + charAtI;
+						hash = hash & hash;
+					}
+				}
+				$scope.robotHash = hash;
+				$scope.hasRobotSource = true;
+				$scope.iconChanged = true;
+			};
+
+			me.formReset = function() {
+				var params = angular.copy($state.params);
+				$state.transitionTo(stateName).then(function() {
+					$state.transitionTo(stateName + '.view.policies', params);
+				});
+			};
+
+			me.getIconSource = function(element, defaultSource) {
+				if (element.files && element.files.length > 0) {
+					var file = element.files[0], src;
+					if (window.URL) {
+						src = window.URL.createObjectURL(file);
+					} else if (window.webkitURL) {
+						src = window.webkitURL.createObjectURL(file);
+					}
+					if (src) {
+						return src;
+					}
+				}
+
+				return defaultSource;
+			};
+
+			me.saveIcon = function() {
+				if (!$scope.iconChanged) {
+					$scope.submitActive = false;
+					me.formReset();
+					$scope.$emit(resetEvent);
+					return;
+				}
+
+				// Angular modal does not adjust value of form element so when posting these values need to be set
+				hiddenId.val($parse(idSelector)($scope));
+				angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
+				angular.element('[name=robotHash]').val($scope.robotHash);
+
+				if (window.FormData) {
+					$scope.isUploadingIcon = true;
+
+					var formData = new FormData(form[0]);
+					var icon = angular.element('#file')[0];
+					if (icon.files.length > 0) {
+						formData.append('file', icon.files[0]);
+					}
+
+					hudson.ajaxPost({
+						url: CLMAppLocations.addIcon(),
+						data: formData,
+						success: function (data, status, jqXHR) {
+							$scope.$apply(function () {
+								$scope.submitActive = false;
+								$scope.isUploadingIcon = false;
+								me.formReset();
+								$scope.$emit(resetEvent);
+							});
+						},
+						error: function (jqXHR) {
+							$scope.$apply(function () {
+								$scope.isUploadingIcon = false;
+								$scope.submitActive = false;
+								var errorText;
+								var contentType = jqXHR.getResponseHeader('Content-Type');
+								if (contentType.indexOf('text/html') === 0) {
+									errorText = 'Server Error';
+								} else {
+									errorText = jqXHR.responseText;
+								}
+								$scope.pushAlert({ type: 'error', msg: errorText });
+							});
+						}
+					});
+				} else {
+					me.isPostingIcon = true;
+					form.submit();
+				}
+			}
+		}
+
         return {
             messages: {
               required: 'Name is required',
@@ -39,35 +146,10 @@
 
                 return true;
             },
-            generateIcon : function(name) {
-            	var hash = 0;
-                if (!name) {
-                    hash = Math.floor(Math.random() * 100);
-                } else {
-                    for ( var i = 0; i < name.length; i++) {
-                        var charAtI = name.charCodeAt(i);
-                        hash = ((hash << 5) - hash) + charAtI;
-                        hash = hash & hash;
-                    }
-                }
 
-                return hash;
-            },
-            getIconSource : function(element, defaultSource) {
-                if (element.files && element.files.length > 0) {
-                    var file = element.files[0], src;
-                    if (window.URL) {
-                        src = window.URL.createObjectURL(file);
-                    } else if (window.webkitURL) {
-                        src = window.webkitURL.createObjectURL(file);
-                    }
-                    if (src) {
-                        return src;
-                    }
-                }
-
-                return defaultSource;
-            }
+			getEditorController : function($scope, $state, stateName, idSelector, resetEvent, hiddenId, form) {
+				return new EditorController($scope, $state, stateName, idSelector, resetEvent, hiddenId, form);
+			}
         };
-    } ]);
+    });
 }());

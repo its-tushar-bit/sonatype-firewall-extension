@@ -79,6 +79,7 @@
             OrganizationStore.get().then(function(results) {
                 $scope.organizations = results;
                 $scope.$watch('$state.params.organizationId', switchOrganization);
+				$scope.$on('resetOrganization', switchOrganization);
                 switchOrganization();
             }, function(error) {
                 $scope.error = error;
@@ -89,11 +90,13 @@
     } ]);
 
     organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations) {
+		var me = this;
+		angular.extend(me, editorTools.getEditorController($scope, $state, 'management.organization', 'selectedOrganization.id',
+			'resetOrganization', angular.element('[name=organizationId]'), angular.element('#organizationEditor')));
+
         $scope.$state = $state;
         $scope.submitActive = false;
         $scope.addOrganizationSync = clmAppLocations.addIconSync();
-        $scope.hasRobotSource = false;
-        $scope.alerts = [];
 
         $scope.validateName = function(value) {
             $scope.organizationEditor.$invalid = false;
@@ -111,14 +114,12 @@
         };
 
         $scope.generateIcon = function() {
-            $scope.robotHash = editorTools.generateIcon($scope.selectedOrganization.name);
-            $scope.hasRobotSource = true;
-            $scope.iconChanged = true;
+            me.generateIcon($scope.selectedOrganization.name);
         };
 
         $scope.fileChanged = function(element) {
             $scope.$apply(function() {
-                $scope.userIconSource = editorTools.getIconSource(element, '../assets/img/defaulticon_organization.png');
+                $scope.userIconSource = me.getIconSource(element, '../assets/img/defaulticon_organization.png');
                 $scope.hasRobotSource = false;
                 $scope.iconChanged = true;
             });
@@ -177,7 +178,7 @@
 
             $scope.selectedOrganization.$save().then(function(data) {
                 if ($scope.iconChanged) {
-                    saveIcon();
+                    me.saveIcon();
                 } else {
                     $scope.submitActive = false;
                 }
@@ -195,51 +196,6 @@
 
             return false;
         };
-
-        function saveIcon() {
-            // Angular modal does not adjust value of form element so when
-            // posting these values need to be set
-            angular.element('[name=organizationId]').val($scope.selectedOrganization.id);
-            angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
-            angular.element('[name=robotHash]').val($scope.robotHash);
-
-            var form = angular.element('#organizationEditor');
-
-            if (window.FormData) {
-                $scope.isUploadingIcon = true;
-
-                var formData = new FormData(form[0]);
-                var icon = angular.element('#file')[0];
-                if (icon.files.length > 0) {
-                    formData.append('file', icon.files[0]);
-                }
-
-                hudson.ajaxPost({
-                    url : clmAppLocations.addIcon(),
-                    data : formData,
-                    success : function(data, status, jqXHR) {
-                        $scope.$apply(function() {
-                            // We need to regrab the icon here because it
-                            // doesn't exist when the browser first requests
-                            var iconSource = "../rest/organization/icon/" + encodeURIComponent($scope.selectedOrganization.id);
-                            angular.element("img[ng-src='" + iconSource + "']").attr('src', iconSource + '?' + new Date().getTime());
-                            $scope.submitActive = false;
-                            $scope.isUploadingIcon = false;
-                            $scope.origUserIconSource = $scope.userIconSource;
-                        });
-                    },
-                    error : function(jqXHR) {
-                        $scope.$apply(function() {
-                            $scope.isUploadingIcon = false;
-                            $scope.submitActive = false;
-                            $scope.$broadcast('postAlert', jqXHR);
-                        });
-                    }
-                });
-            } else {
-                form.submit();
-            }
-        }
     } ]);
 
     organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function(CLMLocations, clmResource, $q) {

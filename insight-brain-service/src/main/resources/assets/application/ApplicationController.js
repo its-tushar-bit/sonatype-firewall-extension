@@ -85,21 +85,14 @@
 	}]);
 
 	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, $http, hudson, editorTools) {
-		function formReset() {
-			var applicationPublicId = $scope.selectedApplication.publicId;
-			$state.transitionTo('management.application').then(function() {
-				$state.transitionTo('management.application.view.policies', { applicationPublicId: applicationPublicId });
-			});
-		}
-		
-		var isPostingIcon = false;
+		var me = this;
+		angular.extend(me, editorTools.getEditorController($scope, $state, 'management.application', 'selectedApplication.id',
+			'resetApplication', angular.element('[name=applicationId]'), angular.element('#applicationEditor')));
 		
 		$scope.$state = $state;
 
 		$scope.submitActive = false;
 		$scope.addApplicationSync = CLMAppLocations.addIconSync();
-		$scope.hasRobotSource = false;
-		$scope.hasFormData = typeof(window.FormData) !== 'undefined';
 		
 		OrganizationStore.get().then(function(results) {
             $scope.organizations = results;
@@ -125,23 +118,10 @@
 		};
 		
 		$scope.alerts = [];
-                $scope.messages = editorTools.messages;
+		$scope.messages = editorTools.messages;
 
-		$scope.generateIcon = function () {
-			var name = $scope.selectedApplication.name,
-				hash = 0;
-			if (!name) {
-				hash = Math.floor(Math.random() * 100);
-			} else {
-				for (var i = 0; i < name.length; i++) {
-					var charAtI = name.charCodeAt(i);
-					hash = ((hash << 5) - hash) + charAtI;
-					hash = hash & hash;
-				}
-			}
-			$scope.robotHash = hash;
-			$scope.hasRobotSource = true;
-			$scope.iconChanged = true;
+		$scope.generateIcon = function() {
+			me.generateIcon($scope.selectedApplication.name);
 		};
 
 		$scope.fileChanged = function (element) {
@@ -192,7 +172,7 @@
 		$scope.$on('pageChangeStarted', function(event, destination) {
 			var application = $scope.selectedApplication;
 			if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
-				if ($scope.isFormDirty() && !isPostingIcon) {
+				if ($scope.isFormDirty() && !me.isPostingIcon) {
 					event.preventDefault();
 				}
 			}
@@ -213,7 +193,7 @@
 			} else {
 				var originalApplication = $scope.selectedApplication.$getOriginal();
 				angular.extend($scope.selectedApplication, originalApplication);
-				formReset();
+				me.formReset();
 			}
 		};
 		
@@ -275,7 +255,7 @@
 				hudson.post(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
                         $scope.selectedApplication.id = data.id;
-						saveIcon();
+						me.saveIcon();
 					});
 				}).error(function (data) { 
 					$scope.submitActive = false;
@@ -284,7 +264,7 @@
 			} else {
 				$http.put(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
-						saveIcon();
+						me.saveIcon();
 					});
 				}).error(function (data) {
 					$scope.submitActive = false;
@@ -294,13 +274,6 @@
 
 			return false;
 		};
-
-          //clear existing alerts and add the specified ones
-          $scope.pushAlert = function (obj) {
-            $scope.alerts.length = 0;
-            $scope.alerts.push(obj);
-
-          };
 
           //defer to common name validations(unique, whitespace enforcement, etc)
           $scope.validateApplicationName = function (value) {
@@ -335,62 +308,6 @@
               return 'Id is already in use';
             }
           };
-
-		function saveIcon() {
-			if (!$scope.iconChanged) {
-				$scope.submitActive = false;
-				formReset();
-				$scope.$emit('resetApplication');
-				return;
-			}
-
-			// Angular modal does not adjust value of form element so when posting these values need to be set
-			angular.element('[name=applicationId]').val($scope.selectedApplication.id);
-			angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
-			angular.element('[name=robotHash]').val($scope.robotHash);
-
-			var form = angular.element('#applicationEditor');
-
-			if (window.FormData) {
-				$scope.isUploadingIcon = true;
-
-				var formData = new FormData(form[0]);
-				var icon = angular.element('#file')[0];
-				if (icon.files.length > 0) {
-					formData.append('file', icon.files[0]);
-				}
-
-				hudson.ajaxPost({
-					url: CLMAppLocations.addIcon(),
-					data: formData,
-					success: function (data, status, jqXHR) {
-						$scope.$apply(function () {
-							$scope.submitActive = false;
-							$scope.isUploadingIcon = false;
-							formReset();
-							$scope.$emit('resetApplication');
-						});
-					},
-					error: function (jqXHR) {
-						$scope.$apply(function () {
-							$scope.isUploadingIcon = false;
-							$scope.submitActive = false;
-							var errorText;
-							var contentType = jqXHR.getResponseHeader('Content-Type');
-							if (contentType.indexOf('text/html') === 0) {
-								errorText = 'Server Error';
-							} else {
-								errorText = jqXHR.responseText;
-							}
-							$scope.pushAlert({ type: 'error', msg: errorText });
-						});
-					}
-				});
-			} else {
-				isPostingIcon = true;
-				form.submit();
-			}
-		}
 	});
 
 	applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {

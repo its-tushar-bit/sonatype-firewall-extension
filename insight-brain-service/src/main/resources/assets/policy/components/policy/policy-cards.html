@@ -1,5 +1,5 @@
 <div>
-	<p ng-show='!policies.length' style='text-align: center;'>No Policies have been defined.</p>
+	<p ng-show='!policies.length'>No Policies have been defined.</p>
 	<div ng-repeat="policy in policies" class="policy-item">
 		<div ng-show='editable' style="float:right;" class='btn-group'>
 			<a class="btn btn-mini policy-button" title="Edit Policy" relative-href='/{{policy.id}}'"><i

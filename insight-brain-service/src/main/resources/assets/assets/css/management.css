@@ -71,8 +71,17 @@ h1, h2, h3, h4, h5, h6 {
 	color: black;
 }
 
+.first-row.navbar-fixed-top {
+	border-bottom: 1px solid #C6C6C6;
+}
+
 .second-row.navbar-fixed-top {
+	border-top: 1px solid #C6C6C6;
 	top: 45px;
+}
+
+.second-row a.dropdown-toggle {
+	margin-left:15px !important;
 }
 
 /* These header styles to override Twitter Bootstrap styles */
@@ -81,12 +90,13 @@ h1, h2, h3, h4, h5, h6 {
 .dropdown-toggle .caret {margin: 8px; border-top-color: #444;}
 .navbar-inverse .navbar-inner, .navbar-inner{background-color:#E0E0E0;background-image:none;border-bottom: 1px solid #C6C6C6;min-height:inherit;-webkit-box-shadow: none;-moz-box-shadow: none;box-shadow: none;}
 .navbar .brand {padding: 10px 25px 10px 0;}
-.container-fluid {padding: 0 15px;}
+.container-fluid {padding: 0px;}
 
 .first-row a.brand {
 	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
+	margin-left:15px;
 }
 
 .first-row a.brand:hover {
@@ -197,6 +207,13 @@ h1, h2, h3, h4, h5, h6 {
 	margin: 5px 5px auto;
 	font-size: 12px;
 	width: 115px;
+	text-align: left;
+	padding:4px 5px;
+}
+
+.new-entity-button i {
+	margin-bottom:4px;
+	vertical-align:middle;
 }
 
 .content {

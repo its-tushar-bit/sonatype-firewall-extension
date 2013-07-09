@@ -2,6 +2,8 @@
  * Basic/Universal Styles Editor
  */
  
+ 	/* Removing custom fonts until we acquire the OEM license */
+ /*
 @font-face {
 	font-family: ProximaNovaRegular;
 	src: url(../fonts/proximanova-reg-webfont.ttf);
@@ -14,7 +16,7 @@
 	font-family: ProximaNovaSemibold;
 	src: url(../fonts/ProximaNova-Sbold-webfont.ttf);
 }
-
+*/
 /**
  * Basic/Universal Styles Editor
  */
@@ -37,7 +39,9 @@ a, a:hover, a:active, a:focus {
 }
 
 h1, h2, h3, h4, h5, h6 {
-	font-family: "ProximaNovaSemibold", "ProximaNovaRegular", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	/* Removing custom fonts until we acquire the OEM license */
+	/* font-family: "ProximaNovaSemibold", "ProximaNovaRegular", "Helvetica Neue", Helvetica, Arial, sans-serif; */
+	font-family: Helvetica, Arial, sans-serif;
 	text-shadow: 0px 1px 0px white;
 }
 
@@ -129,7 +133,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .third-row { 
-    margin: 84px 0 auto auto;
+    margin: 82px 0 auto auto;
 }
 
 .marginless-alert .alert {
@@ -142,8 +146,16 @@ h1, h2, h3, h4, h5, h6 {
 	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 	z-index: 1;
 	width: 120px;
-  	position: fixed;
-  	height: 100%;  
+  position: fixed;
+  height: 100%;  
+}
+
+.navigation .nav-list {
+	margin-top: 5px;
+}
+
+.navigation .nav-list li {
+	/*line-height: 25px;*/
 }
 
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
@@ -213,9 +225,10 @@ h1, h2, h3, h4, h5, h6 {
 .new-entity-button a {
 	margin: 5px 5px auto;
 	font-size: 12px;
-	width: 115px;
+	width: 127px;
 	text-align: left;
 	padding:4px 5px;
+	font-weight: bold;
 }
 
 .new-entity-button i {

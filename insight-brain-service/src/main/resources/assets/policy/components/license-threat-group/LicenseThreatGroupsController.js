@@ -228,6 +228,10 @@
 				event.preventDefault();
 			}
 		});
+
+		$scope.$on('pageChangeAccepted', function() {
+			$scope.inlineRevertLicenseGroups();
+		});
     });
 
     licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {

@@ -31,16 +31,22 @@ describe('dashboardApp', function () {
 		state.transitionTo('management.organization', {});
 	}));
 	
-	it('Validate location change event is broadcast', inject(function($rootScope) {
-        var success = false;
+	it('Validate location change event is broadcast properly', inject(function($rootScope) {
+        var successStart = false, successAccept = false;
         $rootScope.$on('pageChangeStarted', function(event, destination){
-            success = true;
+            successStart = true;
+        });
+        $rootScope.$on('pageChangeAccepted', function(event, destination){
+            successAccept = true;
         });
         
         $rootScope.$broadcast('$locationChangeStart', 'http://www.cnn.com', 'http://www.google.com');
         
         waitsFor(function() {
-            return success;
+            return successStart;
         }, "pageChangeStarted event not properly retrieved", 1000);
+        waitsFor(function() {
+            return successAccept;
+        }, "pageChangeAccepted event not properly retrieved", 1000);
     }));
 });

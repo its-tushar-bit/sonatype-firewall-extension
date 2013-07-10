@@ -257,18 +257,18 @@
                         $scope.selectedApplication.id = data.id;
 						me.saveIcon();
 					});
-				}).error(function (data) { 
+				}).error(function (data, status) { 
 					$scope.submitActive = false;
-                                        $scope.pushAlert({ type: 'error', msg: 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage(data) + ')' });
+                                        $scope.pushAlert({ type: 'error', msg: 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage({ status: status, data: data }) + ')' });
 				});
 			} else {
 				$http.put(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
 					applicationStore.refresh().then(function() {
 						me.saveIcon();
 					});
-				}).error(function (data) {
+				}).error(function (data, status) {
 					$scope.submitActive = false;
-                                        $scope.pushAlert({ type: 'error', msg: 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage(data) + ')' });
+                                        $scope.pushAlert({ type: 'error', msg: 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage({ status: status, data: data }) + ')' });
 				});
 			}
 

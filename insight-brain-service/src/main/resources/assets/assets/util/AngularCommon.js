@@ -389,7 +389,7 @@ var angularCommon;
         function checkWhitespace() {
           var value;
 		  if (elem.data('editable')) {
-			  value = elem.data('editable').input.$input;
+			  value = elem.data('editable').input.$input.val();
 		  } else {
 			  value = elem.val();
 		  }

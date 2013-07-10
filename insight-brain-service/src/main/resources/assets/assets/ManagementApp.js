@@ -146,13 +146,13 @@
 
 		$scope.managementPanes = [
 			{
-				name: 'Applications',
-				state: 'management/application',
+				name: 'Organizations',
+				state: 'management/organization',
 				isEnabled: true
 			},
 			{
-				name: 'Organizations',
-				state: 'management/organization',
+				name: 'Applications',
+				state: 'management/application',
 				isEnabled: true
 			}
 		];

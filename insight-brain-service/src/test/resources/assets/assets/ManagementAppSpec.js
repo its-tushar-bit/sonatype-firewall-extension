@@ -50,3 +50,21 @@ describe('dashboardApp', function () {
         }, "pageChangeAccepted event not properly retrieved", 1000);
     }));
 });
+
+describe('ManagementModule', function () {
+	var scope;
+
+	beforeEach(module('ManagementModule', 'AngularCommon'));
+	beforeEach(inject(function ($rootScope, $state, $controller, commonCodeFactory) {
+		scope = $rootScope.$new();
+		
+		$controller('ManagementController', { $scope: scope, $state: $state, commonCodeFactory: commonCodeFactory });
+	}));
+
+	it('Lists Org before App', function() {	
+		expect(scope.managementPanes).not.toBeUndefined();
+		expect(scope.managementPanes.length).toEqual(2);
+		expect(scope.managementPanes[0].name).toEqual('Organizations');
+		expect(scope.managementPanes[1].name).toEqual('Applications');
+	});
+});

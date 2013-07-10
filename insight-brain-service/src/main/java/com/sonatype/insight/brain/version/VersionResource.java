@@ -17,8 +17,11 @@ import javax.ws.rs.core.MediaType;
 
 import org.codehaus.plexus.util.IOUtil;
 
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
+
 @Named
 @Path( VersionResource.SERVICE_PATH )
+@UnlicensedPath
 public class VersionResource
 {
     public static final String SERVICE_PATH = "rest/version";

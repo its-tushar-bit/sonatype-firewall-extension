@@ -26,7 +26,7 @@ public class VersionResourceTest
     }
 
     @Test
-    public void testGetVersionInfo()
+    public void testGetVersionInfo_Licensed()
         throws Exception
     {
         Response response = RestAccess.get( getServiceURL() );
@@ -37,6 +37,14 @@ public class VersionResourceTest
         {
             assertTrue( key, versionInfo.get( key ).toString().length() > 0 );
         }
+    }
+
+    @Test
+    public void testGetVersionInfo_Unlicensed()
+        throws Exception
+    {
+        uninstallLicense();
+        testGetVersionInfo_Licensed();
     }
 
 }

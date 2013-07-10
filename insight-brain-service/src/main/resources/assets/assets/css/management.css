@@ -326,7 +326,7 @@ body {
     border: none;
 }
 .inline.head h1 span, .inline.head h1 input {
-	line-height: 48px;
+	line-height: 55px;
 }
 /* xeditable uses input-medium class for text input. this is too small for header inputs */
 .inline.head .input-medium {

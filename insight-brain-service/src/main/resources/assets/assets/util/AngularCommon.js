@@ -381,13 +381,13 @@ var angularCommon;
    * - have trailing whitespace
    * - contain double spaces or tabs
    */
-  angularCommon.directive('hasWhitespace', ['$parse', function($parse) {
+  angularCommon.directive('hasWhitespace', ['$parse', '$timeout', function($parse, $timeout) {
     return {
       require: 'ngModel',
       restrict: 'A',
       link: function(scope, elem, attr, ctrl) {
         function checkWhitespace() {
-          var value = elem.val();
+          var value = elem.data('editable').input.$input.val();
           var whitespacePass = value.match(/^ | {2,}|\t| $/);
           scope.$apply(function () {
             suggestionModel.assign(scope, (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
@@ -398,14 +398,19 @@ var angularCommon;
 
         var failed = null;
         var suggestionModel = $parse(attr.hasWhitespace);
-        elem.on('blur', function() {
-          failed = checkWhitespace();
-        });
-        elem.on('keyup', function() {
-          if (failed) {
-            failed = checkWhitespace();
-          }
-        });
+		elem.on('click.editable', function() {
+			$timeout(function() {
+				elem.data('editable').input.$input.on('keyup', function () {
+					if (failed) {
+						failed = checkWhitespace();
+					}
+				});
+				elem.data('editable').input.$input.on('blur', function () {
+					failed = checkWhitespace();
+				});
+			}, 100);
+			return true;
+		});
       }
     };
   }]);

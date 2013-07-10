@@ -65,9 +65,7 @@ h1, h2, h3, h4, h5, h6 {
 	text-decoration: none;
 	color: black;
 }
-.first-row.navbar-fixed-top {
-/*border-bottom: 1px solid #C6C6C6;*/
-}
+
 .second-row.navbar-fixed-top hr {
 	margin: 0;
 	border: 0;
@@ -75,12 +73,9 @@ h1, h2, h3, h4, h5, h6 {
 	border-bottom: 1px solid #e8e8e8;
 }
 .second-row.navbar-fixed-top {
-	/*border-top: 1px solid #C6C6C6;*/
 	top: 51px;
 }
-.second-row a.dropdown-toggle {
-/*margin-left:15px !important;*/
-}
+
 /* These header styles to override Twitter Bootstrap styles */
 .navbar-inner a.dropdown-toggle {
 	color: #777777;
@@ -153,8 +148,6 @@ body {
 }
 .navigation {
 	background: #E0E0E0;
-	/*-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
-	/*box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);*/
 	z-index: 1;
 	width: 120px;
 	position: fixed;
@@ -163,9 +156,6 @@ body {
 }
 .navigation .nav-list {
 	margin-top: 5px;
-}
-.navigation .nav-list li {
-/*line-height: 25px;*/
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	color: #36424e;
@@ -184,8 +174,6 @@ body {
 	background-color: #E8E8E8;
 	width: 150px;
 	margin-left: 119px;
-	/*-moz-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
-	/*box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);*/
 	border-left: 1px solid #efefef;
 	border-right: 1px solid #c6c6c6;
 	position: fixed;

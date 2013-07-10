@@ -158,7 +158,7 @@ var angularCommon;
 						array = arrayNameParser(scope);
 
 					var passed = !(jQuery.grep(array, function (item) {
-						if (caseSensitive === 'false') {
+						if (!caseSensitive || caseSensitive === 'false') {
 							return idFieldParser(item) !== modelIdValue && modelFieldParser(item).toLowerCase() === value.toLowerCase();
 						} else {
 							return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;

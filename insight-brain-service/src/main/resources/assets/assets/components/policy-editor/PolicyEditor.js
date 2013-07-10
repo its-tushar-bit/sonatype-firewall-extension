@@ -203,8 +203,8 @@
 					// TODO If currentPolicy === null, show error
 				}
 				$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
-			}, function (error) {
-				$scope.error = error;
+			}, function (errors) {
+				$scope.error = angular.isArray(errors) ? errors[0] : errors;
 			});
 		};
 

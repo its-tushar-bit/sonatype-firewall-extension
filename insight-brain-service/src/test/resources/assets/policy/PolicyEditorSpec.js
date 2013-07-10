@@ -412,4 +412,91 @@ describe('PolicyEditor', function() {
 			expect(PolicyStore.isActionDirty(policy, deserializedActions)).toEqual(true);
 		}));
 	});
+
+	describe('ConstraintEditor', function () {
+		it('figures dirty state of new constraint', inject(function () {
+			var controller = getConstraintEditorController(), 
+				e;
+
+			// pristine constraint
+			controller.scope.$broadcast('policy.editConstraint', null);
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(false);
+
+			// changed name
+			controller.scope.$broadcast('policy.editConstraint', null);
+			controller.scope.currentConstraint.name = 'A Constraint Name';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// changed operator
+			controller.scope.$broadcast('policy.editConstraint', null);
+			controller.scope.currentConstraint.operator = 'ALL';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// changed condition value
+			controller.scope.$broadcast('policy.editConstraint', null);
+			controller.scope.currentConstraint.conditions[0].value = 1;
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// new condition
+			controller.scope.$broadcast('policy.editConstraint', null);
+			controller.scope.currentConstraint.conditions.push({});
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+		}));
+
+		it('figures dirty state of existing constraint', inject(function () {
+			var controller = getConstraintEditorController(),
+				constraint = {
+					name : 'Name',
+					conditions : [{ conditionTypeId : 'Label', operator : 'is', value : 'red' }],
+					operator : 'OR'
+				}, 
+				e;
+
+			// pristine constraint
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(false);
+
+			// changed name
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			controller.scope.currentConstraint.name = 'A Constraint Name';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// changed operator
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			controller.scope.currentConstraint.operator = 'ALL';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// changed condition value
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			controller.scope.currentConstraint.conditions[0].value = 'black';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// changed condition operator
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			controller.scope.currentConstraint.conditions[0].operator = 'is not';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// changed condition type
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			controller.scope.currentConstraint.conditions[0].conditionTypeId = 'License';
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+
+			// new condition
+			controller.scope.$broadcast('policy.editConstraint', constraint);
+			controller.scope.currentConstraint.conditions.push({});
+			e = controller.scope.$broadcast('pageChangeStarted', null);
+			expect(e.defaultPrevented).toEqual(true);
+		}));
+	});
 });

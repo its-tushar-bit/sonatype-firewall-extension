@@ -431,9 +431,26 @@
 			$('#editConstraintModal').modal('show');
 		});
 
+		function isDirty() {
+			var changed = false;
+			if ($scope.originalConstraint != null) {
+				changed = $scope.originalConstraint.name != $scope.currentConstraint.name || $scope.originalConstraint.operator != $scope.currentConstraint.operator ||
+				          $scope.originalConstraint.conditions.length != $scope.currentConstraint.conditions.length;
+				for (var i = 0; i < $scope.originalConstraint.conditions.length && !changed; i++) {
+					changed = changed || $scope.originalConstraint.conditions[i].value != $scope.currentConstraint.conditions[i].value ||
+					          $scope.originalConstraint.conditions[i].operator != $scope.currentConstraint.conditions[i].operator ||
+					          $scope.originalConstraint.conditions[i].conditionTypeId != $scope.currentConstraint.conditions[i].conditionTypeId; 
+				}
+			} else {
+				changed = $scope.currentConstraint.name != null || $scope.currentConstraint.operator != null || 
+				          $scope.currentConstraint.conditions.length != 1 || $scope.currentConstraint.conditions[0].value != null;
+			}
+			return changed;
+		}
+
 		//make sure user is aware they are about to lose changes
 		$scope.$on('pageChangeStarted', function (event) {
-			if ($scope.originalConstraint != null || $scope.currentConstraint != null) {
+			if (isDirty()) {
 				event.preventDefault();
 			}
 		});

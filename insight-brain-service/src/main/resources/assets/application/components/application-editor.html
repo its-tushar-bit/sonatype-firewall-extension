@@ -11,7 +11,7 @@
             </div>
         </div>
 		<div class="editorHeader">
-			<div class='editorImage' style="padding-bottom: 50px;">
+			<div class='editorImage'>
 				<div class='displayImage'>
 					<div ng-switch on='hasRobotSource'>
 	                       <img ng-switch-when='false' id='userIcon' ng-src='{{userIconSource}}' />
@@ -29,6 +29,7 @@
 			<div class='inline head'>
                   <h1><span id='applicationName' name='applicationName' ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
                      data-placeholder='Enter Application Name' data-type='text'
+                     ng-class="{ error: applicationEditor.applicationName.$error.duplicate || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces}"
                      alpha-numeric has-whitespace='suggestedName'
                      is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
                 <span ng-show="applicationEditor.applicationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>

@@ -10,7 +10,7 @@
                     <input id='licenseGroupEditorName' name='name' type='text'
                            class='input' maxlength='50' ng-model='selectedGroup.name'
                            required alpha-numeric is-Duplicate is-Duplicate-Array='licenseGroups' is-Duplicate-Id-Field='name'
-                           has-Whitespace='suggestedName' placeholder="Enter name">
+                           placeholder="Enter name">
                   <div>
                     <span ng-show="licenseGroupEditor.name.$error.required" class="help-inline">Name is required</span>
                     <span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>

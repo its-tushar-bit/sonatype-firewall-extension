@@ -89,7 +89,7 @@
         $scope.doLoad();
     } ]);
 
-    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations) {
+    organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages) {
 		var me = this;
 		angular.extend(me, editorTools.getEditorController($scope, $state, 'management.organization', 'selectedOrganization.id',
 			'resetOrganization', angular.element('[name=organizationId]'), angular.element('#organizationEditor')));
@@ -187,10 +187,10 @@
 
                 var path = $location.path();
                 $location.path(path.substring(0, path.lastIndexOf('/')) + '/' + $state.params.organizationId);
-            }, function(data) {
+            }, function(error) {
                 $scope.alerts.push({
                     type : 'error',
-                    msg : data
+                    msg : 'An error occurred while saving the organization. (' + messages.getHttpErrorMessage(error) + ')'
                 });
             });
 

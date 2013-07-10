@@ -107,18 +107,21 @@
                                {'value': 0, 'name': 'No Threat'}
                            ];
 
-        $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
-        	var licenses = results[0];
-        	var licenseGroups = results[1];
+        $scope.doLoad = function () {
+        	$scope.error = null;
 
-        	$scope.allLicenses = licenses.sort(sortLicense);
-        	$scope.licenseGroups = licenseGroups;
-        }, function(rejection) {
-        	$scope.alerts.push({
-        		type : 'error',
-        		msg : 'An error occurred while loading the license threat groups. (' + Messages.getHttpErrorMessage(rejection) + ')'
+        	$q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
+        		var licenses = results[0];
+        		var licenseGroups = results[1];
+
+        		$scope.allLicenses = licenses.sort(sortLicense);
+        		$scope.licenseGroups = licenseGroups;
+        	}, function(errors) {
+        		$scope.error = angular.isArray(errors) ? errors[0] : errors;
         	});
-        });
+        };
+
+        $scope.doLoad();
 
         $scope.getDisplayName = function(licenseId) {
         	for (var i = 0; i < $scope.allLicenses.length; i++) {

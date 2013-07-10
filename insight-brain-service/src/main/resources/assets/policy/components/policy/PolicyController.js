@@ -44,7 +44,7 @@
 					policy.$delete().then(angular.noop, function (error) {
 						$scope.alerts.push({
 							type : 'error',
-							msg : 'An error occurred while deleting policy. (' + messages.getHttpErrorMessage(error) + ')'
+							msg : 'An error occurred while deleting the policy. (' + messages.getHttpErrorMessage(error) + ')'
 						});
 					});
 				}, angular.noop);
@@ -59,7 +59,7 @@
 					$scope.reEvaluatingPolicy = false;
                     $scope.alerts.push({
                         type : 'error',
-                        msg : 'An error occurred attempting to re-evaluate policy. (' + messages.getHttpErrorMessage(error) + ')'
+                        msg : 'An error occurred attempting to re-evaluate the policy. (' + messages.getHttpErrorMessage(error) + ')'
                     });
 				});
 			}

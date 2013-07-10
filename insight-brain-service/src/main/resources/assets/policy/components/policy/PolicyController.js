@@ -42,10 +42,7 @@
 				'Delete',
 				function () {
 					policy.$delete().then(angular.noop, function (error) {
-						$scope.alerts.push({
-							type : 'error',
-							msg : 'An error occurred while deleting the policy. (' + messages.getHttpErrorMessage(error) + ')'
-						});
+						$scope.$broadcast('showServerError', arguments);
 					});
 				}, angular.noop);
 		};

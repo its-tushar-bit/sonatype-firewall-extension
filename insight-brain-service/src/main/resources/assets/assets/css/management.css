@@ -20,16 +20,19 @@
 /**
  * Basic/Universal Styles Editor
  */
-html {
-	height: 100%;
-}
 body {
 	background: #f4f4f4;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 14px;
 	line-height: 20px;
 	color: #333333;
-	height: 100%;
+    display: block;
+    position: absolute;
+    height: auto;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
 }
 a, a:hover, a:active, a:focus {
 	color: #2476C3;

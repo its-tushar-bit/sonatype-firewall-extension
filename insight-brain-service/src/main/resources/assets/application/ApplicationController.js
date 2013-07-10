@@ -184,7 +184,7 @@
 		});
 
 		$scope.canSaveEdit = function () {
-			return $scope.isFormDirty() && !$scope.applicationEditor.$invalid && !$scope.submitActive;
+			return $scope.isFormDirty() && !$scope.applicationEditor.$invalid && !$scope.submitActive && $scope.selectedApplication.organizationId;
 		};
 		
 		$scope.cancel = function() {

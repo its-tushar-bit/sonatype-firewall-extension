@@ -40,7 +40,7 @@
         <div ng-switch-when='null'></div>
         <div ng-switch-default>
             <ul class='tri-pane'>
-				<li ng-class='{ active : isCurrentTab("policies")}'>
+				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit")}'>
 					<a ng-href='#/management/organization/{{$state.params.organizationId}}/policies'>POLICIES</a>
 				</li>
                 <li ng-class='{ active : isCurrentTab("licenses")}'>

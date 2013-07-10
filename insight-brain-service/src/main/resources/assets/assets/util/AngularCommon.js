@@ -228,7 +228,7 @@ var angularCommon;
 									}
 								}
 
-								var editables = $('.editable');
+								var editables = angular.element('.inline .editable');
 								for (var i = 0; i < editables.length; i++) {
 									var editable = editables[i];
 									if (editable === element[0]) {

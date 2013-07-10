@@ -96,11 +96,38 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* These header styles to override Twitter Bootstrap styles */
-.navbar-inner a.dropdown-toggle {color: #36424e; font-weight: 500; padding: 5px 5px 5px 15px; display: inline-block;}
-.navbar-inner a.dropdown-toggle:hover {text-decoration: none; background-color: #e8e8e8;border-right: 1px solid #e4e4e4;}
-.dropdown-toggle .caret {margin: 8px 2px; border-top-color: #C1C1C1;}
-.dropdown-toggle:hover .caret {border-top-color: #36424e;}
-.navbar-inverse .navbar-inner, .navbar-inner{background-color:#E0E0E0;background-image:none;border-bottom: 1px solid #C6C6C6;min-height:inherit;-webkit-box-shadow: none;-moz-box-shadow: none;box-shadow: none;}
+.navbar-inner a.dropdown-toggle {
+  color: #36424e;
+  font-weight: 500;
+  padding: 5px 5px 5px 15px;
+  display: inline-block;
+}
+
+.navbar-inner a.dropdown-toggle:hover {
+  text-decoration: none;
+  background-color: #e8e8e8;
+  border-right: 1px solid #e4e4e4;
+}
+
+.dropdown-toggle .caret {
+  margin: 8px 2px;
+  border-top-color: #C1C1C1;
+}
+
+.dropdown-toggle:hover .caret {
+  border-top-color: #36424e;
+}
+
+.navbar-inverse .navbar-inner, .navbar-inner {
+  background-color: #E0E0E0;
+  background-image: none;
+  border-bottom: 1px solid #C6C6C6;
+  min-height: inherit;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E4E4E4  ',endColorstr='#E0E0E0  ');
+}
 .navbar .brand {padding: 10px 25px 10px 0;}
 .container-fluid {padding: 0px;}
 

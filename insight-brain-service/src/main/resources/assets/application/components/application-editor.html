@@ -28,14 +28,12 @@
    			</div>
 			<div class='inline head'>
                   <h1><span id='applicationName' name='applicationName' ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
-                     data-placeholder='Enter Application Name' data-type='text'  style='margin-bottom: 5px;'
-                     alpha-numeric has-whitespace='suggestedName' ng-class="{error: applicationEditor.applicationName.$error.duplicate || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces}"
+                     data-placeholder='Enter Application Name' data-type='text'
+                     alpha-numeric has-whitespace='suggestedName'
                      is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
-              <div>
-                <span ng-show="applicationEditor.applicationName.$error.duplicate" class="help-inline" style='color: #b94a48;'>Name is already in use</span>
-                <span ng-show="applicationEditor.applicationName.$error.alphaNumeric" class="help-inline" style='color: #b94a48;'>Name must be alpha numeric</span>
-                <span ng-show="applicationEditor.applicationName.$error.spaces" class="help-inline" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
-              </div>
+                <span ng-show="applicationEditor.applicationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>
+                <span ng-show="applicationEditor.applicationName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+                <span ng-show="applicationEditor.applicationName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
 			</div>
           <div>
             <div class='inline'>
@@ -43,7 +41,7 @@
                 <div ng-switch on='selectedApplication.id' style='display: inline-block;'>
                     <div ng-switch-when='null'>
                           <span id='applicationPublicId' name='applicationPublicId  ' ng-model='selectedApplication.publicId' xeditable href='javascript:;' data-emptytext='Enter ID'
-                             data-placeholder='Enter ID' data-type='text' ng-class='{error: applicationEditor.applicationPublicId.$error.duplicate }'
+                             data-placeholder='Enter ID' data-type='text'
                              is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='publicId' is-Duplicate-Case-Sensitive='false'></span>
                     </div>
                     <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
@@ -64,7 +62,7 @@
                     <span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
                 </div>
             </div>
-            <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" class="help-inline" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>
+            <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>
           </div>
             <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>

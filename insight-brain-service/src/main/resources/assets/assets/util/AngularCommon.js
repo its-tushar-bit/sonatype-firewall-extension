@@ -158,7 +158,7 @@ var angularCommon;
 						array = arrayNameParser(scope);
 
 					var passed = !(jQuery.grep(array, function (item) {
-						if (!caseSensitive) {
+						if (caseSensitive === 'false') {
 							return idFieldParser(item) !== modelIdValue && modelFieldParser(item).toLowerCase() === value.toLowerCase();
 						} else {
 							return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;
@@ -195,12 +195,7 @@ var angularCommon;
 	                        scope.$apply();
 	                    }
 	                };
-					var validateFn = null;
 
-					if (attrs.validate) {
-					  validateFn = $parse(attrs.validate)(scope);
-					}
-	            	
 	            	if (attrs.source) {
 	            		var source = $parse(attrs.source)(scope);
 	            		var parsedSource = [];
@@ -255,19 +250,6 @@ var angularCommon;
 	                	}
 	                });
 
-					var validator = function (value) {
-						if (!value) {
-							return undefined;
-						}
-						var validation = true;
-						if (validateFn) {
-							var validationResult = validateFn(value);
-							validation = typeof validationResult === 'undefined' || !validationResult;
-							ctrl.$setValidity('inlineValidation', validation);
-						}
-						return validation ? value : undefined;
-					};
-					ctrl.$parsers.push(validator);
 	            };
 	            $timeout(function() {
 	                loadXeditable();

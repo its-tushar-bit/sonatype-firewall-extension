@@ -84,7 +84,7 @@
 		$scope.doLoad();
 	}]);
 
-	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, $http, hudson, editorTools) {
+	applicationModule.controller('applicationEditorController', function($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, Messages, $http, hudson, editorTools) {
 		var me = this;
 		angular.extend(me, editorTools.getEditorController($scope, $state, 'management.application', 'selectedApplication.id',
 			'resetApplication', angular.element('[name=applicationId]'), angular.element('#applicationEditor')));
@@ -216,7 +216,7 @@
 				$state.transitionTo('management.application');
 			}).error(function () { 
 				$('#deleteApplicationModal').modal('hide');
-				$scope.pushAlert({ type: 'error', msg: rejection.data });
+				$scope.$broadcast('showServerError', arguments);
 			});
 		};
 		
@@ -259,7 +259,7 @@
 					});
 				}).error(function (data) { 
 					$scope.submitActive = false;
-                                        $scope.pushAlert({ type: 'error', msg: data });
+                                        $scope.pushAlert({ type: 'error', msg: 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage(data) + ')' });
 				});
 			} else {
 				$http.put(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
@@ -268,7 +268,7 @@
 					});
 				}).error(function (data) {
 					$scope.submitActive = false;
-                                        $scope.pushAlert({ type: 'error', msg: data });
+                                        $scope.pushAlert({ type: 'error', msg: 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage(data) + ')' });
 				});
 			}
 

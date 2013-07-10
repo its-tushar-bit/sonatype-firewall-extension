@@ -62,6 +62,8 @@
 					showMasterModal();
 					return;
 				}
+				
+				$rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
 			}
             $rootScope.tempState = null;
 		});
@@ -75,7 +77,7 @@
 
 		//make sure to cleanup event listeners
 		$rootScope.$on('$destroy', function () {
-			$rootScope.$broadcast('pageChangeAccepted', destination);
+			$rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
 			$(window).unbind('beforeunload', fn);
 		});
 		

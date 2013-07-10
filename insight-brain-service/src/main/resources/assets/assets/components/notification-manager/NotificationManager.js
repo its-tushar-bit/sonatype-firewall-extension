@@ -56,6 +56,11 @@
         $scope.removeNotificationEmail = function(index) {
             $scope.notificationEmailList.splice(index, 1);
         };
+        
+        //ditch edits in this case
+        $scope.$on('pageChangeAccepted', function (event) {
+            $scope.cancelNotificationEmail();
+        });
     }]);
 
     module.directive('entersubmit', function () {

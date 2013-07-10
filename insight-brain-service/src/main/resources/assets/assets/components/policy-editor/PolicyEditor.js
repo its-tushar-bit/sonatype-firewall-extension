@@ -284,7 +284,7 @@
 		
 		//ditch edits in this case
         $scope.$on('pageChangeAccepted', function (event) {
-            $scope.cancelCconstraint();
+            $scope.cancelConstraint();
         });
 
 		$scope.saveConstraint = function () {

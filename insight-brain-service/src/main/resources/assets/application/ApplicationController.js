@@ -274,40 +274,6 @@
 
 			return false;
 		};
-
-          //defer to common name validations(unique, whitespace enforcement, etc)
-          $scope.validateApplicationName = function (value) {
-            $scope.applicationEditor.$invalid = false;
-
-            var result = editorTools.validateName(value, $scope.selectedApplication, $scope.applications);
-
-            if (result !== true) {
-              $scope.applicationEditor.$invalid = true;
-              return result;
-            }
-          };
-
-          //unique IDs are required
-          $scope.validateApplicationId = function (publicId) {
-            $scope.applicationEditor.$invalid = false;
-
-            if($.trim(publicId) === '_new_') {
-              $scope.applicationEditor.$invalid = true;
-              return 'This is a reserved value';
-            }
-
-            var result = true;
-            for (var i = 0; i < $scope.applications.length; i++) {
-              if (publicId === $scope.applications[i].publicId) {
-                result = false;
-              }
-            }
-
-            if (result !== true) {
-              $scope.applicationEditor.$invalid = true;
-              return 'Id is already in use';
-            }
-          };
 	});
 
 	applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {

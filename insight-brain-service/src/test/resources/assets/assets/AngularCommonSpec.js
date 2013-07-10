@@ -1,5 +1,5 @@
 describe('AngularCommon', function () {
-  var scope, compile, httpBackend, regex, mockModel;
+  var scope, compile, httpBackend, regex, mockModel, form;
 
   beforeEach(module('AngularCommon'));
   beforeEach(inject(function ($httpBackend, $rootScope, $compile, regexFactory, $timeout) {
@@ -72,5 +72,30 @@ describe('AngularCommon', function () {
     }
 
     expect(elm.hasClass('editable')).toBeFalsy();
+  });
+
+  it('isDuplicate should respect casesensitive param', function () {
+    var elm = angular.element(
+        "<form name='form'>" +
+            "<input ng-model='app.name' name='name' " +
+            " is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'>" +
+            "</input>" +
+        "</form>"
+
+    );
+    scope.app = {name: null}
+    scope.applications = [
+      {name: 'a'}
+    ];
+    compile(elm)(scope);
+    scope.$digest();
+    scope.form.name.$setViewValue('A');
+    expect(scope.form.name.$valid).toBe(false);
+
+    scope.form.name.$setViewValue('a');
+    expect(scope.form.name.$valid).toBe(false);
+
+    scope.form.name.$setViewValue('b');
+    expect(scope.form.name.$valid).toBe(true);
   });
 });

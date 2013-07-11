@@ -64,14 +64,9 @@ public class PolicyEvaluationUtils
         Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
         String appId = application.getId();
 
-        // add new entry in the rolling log (TODO: populate invoker's details)
-        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
-        boolean isReevaluation = ( evalLog.lastByScan( scanId ) != null );
-        evalLog.add( stage, scanId, isReevaluation, "anonymous", "127.0.0.1" );
+        final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
 
         final PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-
-        final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
 
         final ReportEntry licenseReportEntry = Report.getEntry( reportFile, "licenses.json" );
         final ReportEntry securityReportEntry = Report.getEntry( reportFile, "security.json" );
@@ -81,6 +76,11 @@ public class PolicyEvaluationUtils
         {
             throw new BadRequestException( "Unable to evaluate policy, the scan " + scanId + " could not be processed" );
         }
+
+        // add new entry in the rolling log (TODO: populate invoker's details)
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( work.getAuditDir( appId ) );
+        boolean isReevaluation = ( evalLog.lastByScan( scanId ) != null );
+        evalLog.add( stage, scanId, isReevaluation, "anonymous", "127.0.0.1" );
 
         final List<Component> components =
             new ComponentDAO().getAll( appId, licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf );

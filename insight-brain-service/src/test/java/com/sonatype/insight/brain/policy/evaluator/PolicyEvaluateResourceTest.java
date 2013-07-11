@@ -576,7 +576,7 @@ public class PolicyEvaluateResourceTest
         throws Exception
     {
         final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-        createApplication( applicationPublicId );
+        final String appId = createApplication( applicationPublicId ).getId();
         final String scanId = "PolicyEvaluateResourceTest_ScanId";
         String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
         setLicenseFingerprint( licenseFingerprint );
@@ -590,6 +590,10 @@ public class PolicyEvaluateResourceTest
         Response response =
             RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( Stage.ID_BUILD ) );
         assertResponseStatus( 400, response );
+
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( appId ) );
+        PolicyEvaluation eval = evalLog.lastByStage( Stage.ID_BUILD );
+        Assert.assertNull( eval );
     }
 
     @Test
@@ -660,6 +664,27 @@ public class PolicyEvaluateResourceTest
 
         // Notification message should not have been sent since the results are the same
         Assert.assertTrue( notifications.isEmpty() );
+    }
+
+    @Test
+    public void testEvaluate_NoPolicyEvalAuditEntryCreatedIfReportMissing()
+        throws Exception
+    {
+        final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
+        final String appId = createApplication( applicationPublicId ).getId();
+        final String scanId = "PolicyEvaluateResourceTest_ScanId";
+        String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
+        setLicenseFingerprint( licenseFingerprint );
+
+        setSaasResponseForURI( "/rest/ci/report?scanId=" + scanId, "Internal Error", 500 );
+        Response response =
+            RestAccess.post( getServiceURL( applicationPublicId, scanId ),
+                             JsonHelpers.asJson( new Stage( Stage.ID_BUILD ) ) );
+        assertResponseStatus( 404, response );
+
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( appId ) );
+        PolicyEvaluation eval = evalLog.lastByStage( Stage.ID_BUILD );
+        Assert.assertNull( eval );
     }
 
     private String getServiceURL( final String appId, final String scanId )

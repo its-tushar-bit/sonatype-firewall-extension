@@ -184,7 +184,7 @@ public class PolicyEvaluationUtils
     public List<PolicyAlert> findPolicyAlerts( final String applicationPublicId, String appId, final String scanId )
         throws IOException
     {
-        final File reportFile = ReportResource.fetchReport( reportDownloader, work, appId, scanId, true );
+        final File reportFile = ReportResource.getReport( work, appId, scanId );
         if ( reportFile != null )
         {
             final ReportEntry reportEntry = Report.getEntry( reportFile, POLICY_ALERTS_FILENAME );

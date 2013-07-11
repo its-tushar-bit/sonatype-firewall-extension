@@ -341,8 +341,12 @@ public class ReportResource
     public static File fetchReport( final ReportDownloader reportDownloader, final InsightWork work, final String appId, final String scanId, final boolean waitForReport )
         throws IOException
     {
-        final Lock lock = lockFor( appId, scanId );
         final File reportFile = work.getReportFile( appId, scanId );
+        if ( reportDownloader == null && !reportFile.exists() )
+        {
+            return null;
+        }
+        final Lock lock = lockFor( appId, scanId );
         if ( waitForReport || reportFile.exists() )
         {
             lock.lock(); // protect against concurrent download as well as concurrent editing of the report
@@ -390,6 +394,12 @@ public class ReportResource
         {
             lock.unlock();
         }
+    }
+
+    public static File getReport( final InsightWork work, final String appId, final String scanId )
+        throws IOException
+    {
+        return fetchReport( null, work, appId, scanId, false );
     }
 
     public static void flushReportChanges( final String appId, final String scanId )

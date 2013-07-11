@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -479,6 +480,29 @@ public class ApplicationResourceTest
         Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getCriticalComponentCount() );
         Assert.assertEquals( 0, policyEvaluationsResults.get( stageTypeIds[1] ).getModerateComponentCount() );
         Assert.assertEquals( 7, policyEvaluationsResults.get( stageTypeIds[1] ).getSevereComponentCount() );
+    }
+
+    @Test( timeout = 10000 )
+    public void testGetApplications_DoesNotContactSaasAndPotentiallyBlockToGetLastPolicyAlerts()
+        throws Exception
+    {
+        final String applicationPublicId = "ApplicationResourceTest-AppId";
+        final String applicationName = "ApplicationResourceTest-Name";
+        final String appId = createApplication( applicationPublicId, applicationName ).getId();
+        final String scanId = "ApplicationResourceTest-ScanId";
+
+        // create eval log entry pointing at missing report
+        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( brain.getAuditDir( appId ) );
+        evalLog.add( new Stage( Stage.ID_BUILD ), scanId, false, "anonymous", "127.0.0.1" );
+        setSaasResponseForURI( "/rest/ci/report?scanId=" + scanId, "Not Found", 404 );
+
+        Response response = RestAccess.get( getServiceURL() );
+        assertResponseStatus( 200, response );
+
+        ApplicationManagementSummary[] applications =
+            JsonHelpers.fromJson( response.getResponseBody(), ApplicationManagementSummary[].class );
+        Assert.assertNotNull( applications );
+        Assert.assertEquals( 1, applications.length );
     }
 
     @Test

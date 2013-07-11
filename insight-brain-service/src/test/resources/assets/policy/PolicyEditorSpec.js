@@ -302,6 +302,7 @@ describe('PolicyEditor', function() {
 		};
 
 		$httpBackend.expectGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+		$httpBackend.expectGET('../assets/components/policy-editor/condition-editor.html').respond('<div></div>');
 		
 		$compile(body)(scope);
 		

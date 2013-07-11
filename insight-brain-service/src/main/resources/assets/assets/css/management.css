@@ -44,6 +44,16 @@ h1, h2, h3, h4, h5, h6 {
 	font-family: Helvetica, Arial, sans-serif;
 	text-shadow: 0px 1px 0px white;
 }
+h4 {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 13px;
+	margin-bottom: 0;
+	color: #36424e;
+	text-transform: uppercase;
+}
+.glyphicons-sonatype:before {
+font: 14px/28px 'Glyphicons';
+}
 .first-row i, .first-row img {
 	vertical-align: middle;
 }
@@ -268,11 +278,11 @@ body {
 	float: left;
 	margin-right: 15px;
 	text-align: center;
-    height: 140px;
+  height: 120px;
 }
 .editorImage img {
-	height: 107px;
-	width: 107px;
+	height: 80px;
+	width: 80px;
 	margin: 0;
 	border: 0;
 }
@@ -287,10 +297,12 @@ body {
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
 	margin: -28px 0 0;
+	font-size: 10px;
 }
 .editImage input {
 	display: block;
-	width: 107px;
+	width: 80px;
+	font-size: 10px;
 }
 .editorImage:hover .displayImage {
 	opacity: 0.2;
@@ -311,6 +323,10 @@ body {
 /**
  * Inline Editor
  */
+.head h1 {
+	margin: 0;
+	white-space:nowrap;
+}
 .inline.head h1 span, .inline.head h1 input, .inline .editable-container input {
 	background: transparent;
 	font: inherit;
@@ -324,6 +340,7 @@ body {
 .inline .editable-container input {
     padding: 0;
     border: none;
+		width: 90px;
 }
 .inline.head h1 span, .inline.head h1 input {
 	line-height: 55px;
@@ -419,6 +436,7 @@ ul.tri-pane {
 	margin: 0px;
 	list-style-type: none;
 	border-bottom: 1px solid #C6C6C6;
+	min-width:500px;
 }
 .tri-pane a {
 	text-decoration: none;
@@ -438,7 +456,7 @@ ul.tri-pane {
 	list-style-image: none;
 	float : left;
 	line-height: 3px;
-	margin: 0 15px -1px 35px
+	margin: 0 15px -1px 20px
 }
 .tri-pane .active {
 }
@@ -452,6 +470,12 @@ ul.tri-pane {
 	border-right: 8px solid transparent;
 	width: 0;
 	margin: -5px auto 0;
+}
+/**
+ * Policy Management
+ */
+.policy-parent {
+	border-bottom: 1px solid #E8E8E8;
 }
 /**
  * License Accordion
@@ -519,7 +543,7 @@ ul.tri-pane {
  */
 #applicationEditor, #organizationEditor {
 	margin: 0 15px;
-    height: 165px;
+  height: 130px;
 }
 .master-modal-backdrop {
 	z-index: 2040;

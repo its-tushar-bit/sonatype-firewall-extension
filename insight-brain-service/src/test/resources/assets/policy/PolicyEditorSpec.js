@@ -3,7 +3,38 @@ var clmBuildTimestamp = '';
 describe('PolicyEditor', function() {
 	var sampleData = [{"id":"c2e1bf404e6d4f5d9458069a04a5cf11","name":"Policy1","enabled":true,"threatLevel":8,"constraints":[{"id":"f52c8ce2958743d5b5e10b176bfce67b","name":"Constraint1","enabled":true,"operator":"OR","conditions":[{"conditionTypeId":"AgeInDays","operator":"older than","value":"365"}]}],"actions":{"procure":[{"actionTypeId":"fail","target":null}],"develop":[{"actionTypeId":"warn","target":null}],"build":[],"stage-release":[{"actionTypeId":"fail","target":null}],"release":[],"operate":[]}}],
 		sampleActions = { build : [ { actionTypeId : 'notify', target : 'test@example.org' } ], develop : [], operate : [], procure : [{ actionTypeId : 'fail' }], release : [], 'stage-release' : []};
-	
+
+	function getTemplate(url) {
+		url = url.split('/');
+		if (url[0] === '..') {
+			url.splice(0, 1);
+		}
+		if (url[0] === 'policy-assets') {
+			url[0] = 'policy';
+		} else if (url[0] === 'organization-assets') {
+			url[0] = 'organization';
+		} else if (url[0] === 'application-assets') {
+			url[0] = 'application';
+		}
+
+		if (location.hostname) {
+			url = 'src/main/resources/assets/' + url.join('/');
+		} else {
+			url = 'src/' + url.join('/');
+		}
+
+		var data = null;
+		$.ajax({
+			async: false,
+			dataType: 'html',
+			url: url,
+			success: function(responseData) {
+				data = responseData;
+			}
+		});
+		return data;
+	}
+
 	function getController(controllerName) {
 		var controller = null,
 			scope = null,
@@ -272,29 +303,12 @@ describe('PolicyEditor', function() {
 	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile, CLMAppLocations) {	
 		var modulePackage = getConstraintEditorController();
 		var scope = modulePackage.scope;
-		var policyEditorHTML;
-		
+
 		$httpBackend.expectGET('../assets/components/notification-manager/notification-manager.html?').respond('<div></div>');
-		
-		var policyEditorUrl;
-		if (location.hostname) {
-			policyEditorUrl = 'src/main/resources/assets/assets/components/policy-editor/policy-editor.html';
-		} else {
-			policyEditorUrl = 'src/assets/components/policy-editor/policy-editor.html'; 
-		}
-		
-		$.ajax({
-			async: false,
-			dataType: 'html',
-			url: policyEditorUrl,
-			success: function(data) {
-				policyEditorHTML = data;
-			}
-		});
-		
-		var editor = angular.element(policyEditorHTML);
+
+		var editor = angular.element(getTemplate('../assets/components/policy-editor/policy-editor.html'));
 		var body = angular.element('body').append("<div id='policyEditor'></div>").find('#policyEditor').append(editor);
-			
+
 		var constraint = {
 			name : 'ConstraintName',
 			conditions : [{ name : "Age", id: 'AgeInDays', conditionTypeId : 'AgeInDays', valueTypeId : 'AgeInDaysValueType', operator : 'older than', value : 365, supportedOperators : [ 'older than' ] }],
@@ -302,14 +316,14 @@ describe('PolicyEditor', function() {
 		};
 
 		$httpBackend.expectGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
-		$httpBackend.expectGET('../assets/components/policy-editor/condition-editor.html').respond('<div></div>');
-		
+		$httpBackend.expectGET('../assets/components/policy-editor/condition-editor.html').respond(getTemplate('../assets/components/policy-editor/condition-editor.html'));
+
 		$compile(body)(scope);
-		
 		scope.$broadcast('policy.editConstraint', constraint);
 
 		scope.$digest();
-		
+		$httpBackend.flush();
+
 		var ageInDaysInput = angular.element('[ng-switch-when="AgeInDaysValueType"]');
 		expect(ageInDaysInput.length).toEqual(1);
 		expect(ageInDaysInput.attr('class')).toEqual('ng-scope');

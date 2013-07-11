@@ -48,18 +48,18 @@ describe('PolicyEditor', function() {
 			sniffer = $sniffer;
 			$httpBackend.flush();
 		});
-		
+
 		return { controller : controller, scope : scope, compile : compile, sniffer: sniffer };
 	}
 
 	function getPolicyEditorController(policyResponseData) {
 		expectActionRequests();
 		expectPolicyRequest(policyResponseData || sampleData);
-		
+
 		var modulePackage = getController('PolicyEditorController');
-		
+
 		modulePackage.isSaveDisabled = function () { return modulePackage.scope.policyEditor.$invalid || !(modulePackage.scope.state.currentPolicy && modulePackage.scope.state.currentPolicy.constraints.length > 0); };
-		
+
 		var nameInput = angular.element("<input type='text' id='policyName' name='policyName' placeholder='Enter Policy Name...' ng-model='state.currentPolicy.name' required is-Duplicate is-Duplicate-Array='policies' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'>");
 		var body = angular.element('body').append("<form id='policyEditor' name='policyEditor'></form>").find('#policyEditor').append(nameInput);
 
@@ -70,9 +70,9 @@ describe('PolicyEditor', function() {
 			inputEvent.initEvent((modulePackage.sniffer.hasEvent('input')) ? 'input' : 'change', false, false);
 			nameInput[0].dispatchEvent(inputEvent);
 		};
-		
+
 		modulePackage.compile(body)(modulePackage.scope);
-		
+
 		return modulePackage;
 	}
 
@@ -81,7 +81,7 @@ describe('PolicyEditor', function() {
 			$httpBackend.expectGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
 			$httpBackend.expectGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 		});
-		
+
 		return getController('ConstraintEditorController');
 	}
 
@@ -134,7 +134,7 @@ describe('PolicyEditor', function() {
 			}]
 		);
 	}));
-	
+
 	afterEach(function() {
 		angular.element('#policyEditor').remove();
 	});
@@ -154,7 +154,7 @@ describe('PolicyEditor', function() {
 		// Validation Test
 		controller.setNameInput('Sample Policy');
 		expect(policy.name).toEqual('Sample Policy');
-		
+
 		expect(controller.isSaveDisabled()).toEqual(true);
 		policy.constraints.push({}); // Invalid constraint but PolicyEditor doesn't handle that validation
 		expect(controller.isSaveDisabled()).toEqual(false);
@@ -298,7 +298,7 @@ describe('PolicyEditor', function() {
 		expect(controller.scope.constraintValidationMsg).toEqual('Please enter a value for condition #1');
 		controller.scope.cancelConstraint();
 	}));
-	
+
 	// Test the manipulation of the DOM due to changing models. This test should be moved to a browser based tester such as Selenium at one point
 	it('Updates Contraint DOM appropriately', inject(function($httpBackend, $compile, CLMAppLocations) {	
 		var modulePackage = getConstraintEditorController();
@@ -328,11 +328,11 @@ describe('PolicyEditor', function() {
 		expect(ageInDaysInput.length).toEqual(1);
 		expect(ageInDaysInput.attr('class')).toEqual('ng-scope');
 		expect(angular.element('[ng-model="condition.v"]').val()).toEqual('1');
-		
+
 		var conditionTypeSelector = angular.element('[ng-model="condition.conditionTypeId"]');
 		conditionTypeSelector.val('Coordinates');
 		expect(conditionTypeSelector.find('option:selected').val()).toEqual('Coordinates');
-			
+
 		var changeEvent = document.createEvent('HTMLEvents');
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);
@@ -343,28 +343,28 @@ describe('PolicyEditor', function() {
 		expect(coordinateOptions.length).toEqual(2);
 		expect(coordinateOptions[0].text).toEqual('match');
 		expect(coordinateOptions[1].text).toEqual('do not match');
-		
+
 		conditionTypeSelector.val('SecurityVulnerabilityStatus');
 		expect(conditionTypeSelector.find('option:selected').val()).toEqual('SecurityVulnerabilityStatus');
-		
+
 		changeEvent = document.createEvent('HTMLEvents');
 		changeEvent.initEvent('change', false, false);
 		conditionTypeSelector[0].dispatchEvent(changeEvent);
-		
+
 		coordinatesOperator = angular.element('[ng-model="condition.operator"]').filter(function() { return $(this).css("display") !== "none"; });
 		expect(coordinatesOperator.length).toEqual(1);
 		coordinateOptions = coordinatesOperator.find('option');
 		expect(coordinateOptions.length).toEqual(2);
 		expect(coordinateOptions[0].text).toEqual('is');
 		expect(coordinateOptions[1].text).toEqual('is not');
-		
+
 		var conditionValue = angular.element('[ng-model="condition.value"]');
 		expect(conditionValue.length).toEqual(1);
 		var conditionOptions = conditionValue.find('option');
 		expect(conditionOptions.length).toEqual(4);
 		expect(conditionOptions[0].text).toEqual('Open');
 		expect(conditionOptions[0].value).toEqual('0');
-		
+
 		angular.element('#policyEditor').remove();
 	}));
 

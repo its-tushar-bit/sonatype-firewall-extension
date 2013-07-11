@@ -50,8 +50,8 @@ describe('PolicyController tests', function() {
     });
 
     it('Test Summary', inject(function($compile, $httpBackend) {
-        $httpBackend.expectGET('../policy-assets/components/policy/policy-cards.html').respond('');
-        var sc = $compile('<div policy-cards></div>')(scope).scope();
+        $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html').respond('');
+        var sc = $compile('<div policy-items></div>')(scope).scope();
         $httpBackend.flush();
         expect(sc.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(1);
         expect(sc.getActions(scope.applicablePolicies[0].policies[0])).toEqual('Build: Fail');

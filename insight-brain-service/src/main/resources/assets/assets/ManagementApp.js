@@ -21,7 +21,7 @@
         masterModalShown = false;
     }
 
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
+	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule', 'Configuration'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -154,7 +154,12 @@
 				name: 'Applications',
 				state: 'management/application',
 				isEnabled: true
-			}
+			},
+                        {
+                          name: 'Configuration',
+                          state: 'management/configuration',
+                          isEnabled: true
+                        }
 		];
 		
 		for (var i = 0; i < $scope.managementPanes.length; i++) {

@@ -1,0 +1,17 @@
+<div>
+  <!-- how to check if this should be expanded or not? do we even need that check?-->
+  <div class="subnavigation">
+    <div load-error='error' reload='doLoad()'></div>
+    <div ng-hide='error'>
+      <ul class="nav nav-list">
+        <li>
+        <li ng-repeat='configurationPane in configurationPanes'>
+            <!--ng-class="{'active': $state.params.applicationPublicId == application.publicId }">-->
+          <a href='#/{{ configurationPane.state }}'>{{configurationPane.name}}</a>
+        </li>
+        <!--<li ng-show='!applications'><h5><i class='icon icon-time'></i> Loading...</h5></li>-->
+      </ul>
+    </div>
+  </div>
+  <div class="content" ui-view></div>
+</div>

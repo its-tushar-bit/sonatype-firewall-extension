@@ -1,0 +1,9 @@
+<div class='marginless-alert' clm-alerts='syncAlerts'></div>
+<div class="navigation">
+  <ul class="nav nav-list">
+    <li ng-repeat='configurationPane in configurationPanes' ng-class="{'active': $state.current.name.indexOf(configurationPane.state.replace('/', '.')) !== -1, 'disabled': !configurationPane.isEnabled}">
+      <a href='#/{{configurationPane.state}}' ng-click='$state.selectedPane = configurationPane'>{{configurationPane.name}}</a>
+    </li>
+  </ul>
+</div>
+<div ui-view></div>

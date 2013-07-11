@@ -1,18 +1,15 @@
 <div class='container'>
 	<div ng-controller='ProductLicenseController' ng-include='"../application-assets/components/license.html"' style='padding-bottom:15px'></div>
 	<div class='row'>
-		<div ng-controller='ProprietaryConfigurationController' class='offset3 span6 content-container'>
-			<div class="modal-header">
-				<h3>Proprietary Packages</h3>
-			</div>
-			<div class="modal-body">
+		<div ng-controller='ProprietaryConfigurationController'>
+			<div>
 				<div ng-show='loadError'>An Error Occurred</div>
 				<div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
 				<div ng-show='!loadError && proprietary'>
 					<div list-editor place-holder='Proprietary Package' max-length='50' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
 				</div>
 			</div>
-			<div class="modal-footer">
+			<div>
 				<div>
 					<div style="padding-top: 5px; float: left; color: #b94a48;">
 						<span ng-show='error'>{{error}}</span>

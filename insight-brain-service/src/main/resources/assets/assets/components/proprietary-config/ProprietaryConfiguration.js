@@ -5,6 +5,7 @@
  *          trademark of Sonatype, Inc.
  */
 /*global angular */
+
 (function () {
     'use strict';
 
@@ -16,7 +17,51 @@
         }
     }
 
-    var module = angular.module('ProprietaryConfiguration', ['ListEditor']);
+    var module = angular.module('Configuration', ['ListEditor','ui.compat', 'ManagementModule'], ['$stateProvider', function ($stateProvider) {
+      $stateProvider.state('management.configuration', {
+        parent : 'management',
+        url : '/configuration',
+        controller : 'ConfigurationController',
+        templateUrl : '../application-assets/components/configuration-navigator.html'
+      }).state('management.configuration.proprietarypackages',{
+            parent : 'management.configuration',
+            url: '/proprietarypackages',
+            controller: 'ProprietaryConfigurationController',
+            templateUrl: '../application-assets/components/admin.html'
+          })
+    }]);
+
+    module.controller('ConfigurationController',['$scope', '$state', 'commonCodeFactory', function ($scope, $state, commonCodeFactory) {
+      $scope.$state = $state;
+
+      $scope.configurationPanes = [
+        {
+          name: 'Proprietary',
+          state: 'management/configuration/proprietarypackages',
+          isEnabled: true
+        }
+      ];
+
+      for (var i = 0; i < $scope.configurationPanes.length; i++) {
+        var normalizedState = $scope.configurationPanes[i].state.replace('/', '.');
+        if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
+          $scope.$state.selectedPane = $scope.configurationPanes[i];
+          break;
+        }
+      }
+
+      $scope.$watch('$state.current.name', function() {
+        if ($state.current.name === 'configuration') {
+          $state.transitionTo('management.configuration.proprietarypackages');
+        }
+      });
+
+      $scope.syncAlerts = [];
+      var error = commonCodeFactory.getEncodedQueryString('errorMessage');
+      if (error) {
+        $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
+      }
+    }]);
 
     module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
         var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$'); 

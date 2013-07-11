@@ -1,4 +1,4 @@
-describe('ProprietaryConfiguration', function () {
+describe('Configuration', function () {
     'use strict';
     
     var scope,
@@ -8,7 +8,7 @@ describe('ProprietaryConfiguration', function () {
         return new RegExp(getUrl + '\\?ts=[0-9]+');
     }
 
-    beforeEach(module('ProprietaryConfiguration', 'CLMLocation'));
+    beforeEach(module('Configuration', 'CLMLocation'));
     afterEach(function () {
         scope.$destroy();
         scope = null;

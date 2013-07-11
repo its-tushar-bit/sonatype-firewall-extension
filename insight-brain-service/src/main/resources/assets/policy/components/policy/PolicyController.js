@@ -97,7 +97,7 @@
 		$scope.encodeURIComponent = window.encodeURIComponent;
 	}]);
 
-	policyModule.directive('policyCards', ['ActionStore', function (actionStore) {
+	policyModule.directive('policyItems', ['ActionStore', function (actionStore) {
 		function capitalize(text) {
 			if (text && text.length > 1) {
 				return text.substring(0, 1).toUpperCase() + text.substring(1);
@@ -110,9 +110,9 @@
 		});
 		return {
 			restrict : 'A',
-			templateUrl : '../policy-assets/components/policy/policy-cards.html',
+			templateUrl : '../policy-assets/components/policy/policy-items.html',
 			scope : {
-				policies : '=policyCards',
+				policies : '=policyItems',
 				editable : '=editable',
 				remove : '='
 			},
@@ -161,6 +161,20 @@
 					});
 					return actions;
 				};
+				scope.getActionStages = function() {
+				    return actionStageList;
+				};
+				scope.getStageIconClass = function(stage, policy) {
+				    if (policy.actions[stage.id]) {
+				        for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
+			                if (policy.actions[stage.id][i].actionTypeId == 'warn') {
+	                            return 'icon-warning-sign';
+	                        } else if (policy.actions[stage.id][i].actionTypeId == 'fail') {
+	                            return 'icon-exclamation-sign';
+	                        }
+				        }
+				    }
+				}
 			}
 		};
 	}]);

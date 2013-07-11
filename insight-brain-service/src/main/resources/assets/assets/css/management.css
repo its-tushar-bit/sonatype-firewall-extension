@@ -484,12 +484,7 @@ ul.tri-pane {
 	width: 0;
 	margin: -5px auto 0;
 }
-/**
- * Policy Management
- */
-.policy-parent {
-	border-bottom: 1px solid #E8E8E8;
-}
+
 /**
  * License Accordion
  */

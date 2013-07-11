@@ -12,29 +12,41 @@
     vertical-align: middle;
 }
 
-.policy-item {
-    border: 1px solid #e5e5e5;
-    display: inline-block;
-    width: 271px;
-    background-color: #ffffff;
-    border: 1px solid #999;
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    margin: 10px;
-    padding: 10px;
-    height: 140px;
-    *border: 1px solid #999;
-    -webkit-border-radius: 6px;
-    -moz-border-radius: 6px;
-    border-radius: 6px;
-    outline: none;
-    -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-    -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-    vertical-align: top;
+.policy-parent {
+	border-bottom: 1px solid #E8E8E8;
 }
 
-.policy-item > div {
-    margin-bottom: 5px;
+.policy-item .hover-buttons {
+   visibility: hidden;
+}
+
+.policy-item {
+	cursor: hand; 
+	cursor: pointer;
+}
+
+.policy-item:hover .hover-buttons {
+   visibility: visible;
+}
+
+.policy-item .constraint-name::after { 
+	content: ", " 
+}
+.policy-item .constraint-name:last-child::after { 
+	content: "" 
+}
+
+.policy-item .actions .action-item { 
+	border-right: 1px solid black; 
+	text-align:center;
+	padding: 5px; 
+}
+.policy-item .actions .action-item:last-child { 
+	border-right: none; 
+}
+
+.policy-item .header {
+	font-weight: bold;
 }
 
 .clmLabel {

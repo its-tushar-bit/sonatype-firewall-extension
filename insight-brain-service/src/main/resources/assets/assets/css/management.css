@@ -91,7 +91,7 @@ font: 14px/28px 'Glyphicons';
 
 /* These header styles to override Twitter Bootstrap styles */
 .navbar-inner a.dropdown-toggle {
-	color: #777777;
+	color: #36424e;
 	font-weight: 500;
 	padding: 5px 6px 5px 15px;
 	display: inline-block;
@@ -101,7 +101,7 @@ font: 14px/28px 'Glyphicons';
 	-moz-transition: all .1s linear;
 	transition: all .1s linear;
 	text-decoration: none;
-	color: #36424e;
+	color: #2476C3;
 }
 .dropdown-toggle {
 	text-shadow: none;
@@ -114,7 +114,7 @@ font: 14px/28px 'Glyphicons';
 	-webkit-transition: all .1s linear;
 	-moz-transition: all .1s linear;
 	transition: all .1s linear;
-	border-top-color: #36424e;
+	border-top-color: #17558E;
 }
 .navbar-inverse .navbar-inner, .navbar-inner {
 	background-color: #E0E0E0;
@@ -337,7 +337,7 @@ body {
  * Inline Editor
  */
 .head h1 {
-	margin: 0;
+	margin: -10px 0 0 0;
 	white-space:nowrap;
 }
 .inline.head h1 span, .inline.head h1 input, .inline .editable-container input {

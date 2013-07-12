@@ -22,7 +22,7 @@
         parent : 'management',
         url : '/configuration',
         controller : 'ConfigurationController',
-        templateUrl : '../application-assets/components/configuration-navigator.html'
+        templateUrl : '../configuration-assets/components/configuration-navigator.html'
       }).state('management.configuration.proprietarypackages',{
             parent : 'management.configuration',
             url: '/proprietarypackages',

@@ -36,7 +36,7 @@
 
       $scope.configurationPanes = [
         {
-          name: 'Proprietary',
+          name: 'Proprietary Packages',
           state: 'management/configuration/proprietarypackages',
           isEnabled: true
         }
@@ -51,7 +51,7 @@
       }
 
       $scope.$watch('$state.current.name', function() {
-        if ($state.current.name === 'configuration') {
+        if ($state.current.name === 'management.configuration') {
           $state.transitionTo('management.configuration.proprietarypackages');
         }
       });

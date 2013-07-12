@@ -25,8 +25,8 @@ describe('CIP Claim Component tests', function() {
         $controller('ClaimComponentController', {
             $scope : scope,
             global : {},
-            CurrentHash : function() {
-                return 1;
+            CurrentData : function() {
+                return 1, 0;
             }
         });
     }));

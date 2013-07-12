@@ -78,6 +78,7 @@ h4 {
 }
 .second-row.navbar-fixed-top {
 	top: 51px;
+	border-bottom: 1px solid rgba(0,0,0,.15);
 }
 .navbar-inner a.dropdown-toggle {
 	color: #36424e;
@@ -108,12 +109,12 @@ h4 {
 .navbar-inverse .navbar-inner, .navbar-inner {
 	background-color: #E0E0E0;
 	background-image: none;
-	border-bottom: 1px solid rgba(0,0,0,.1);
 	min-height: inherit;
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;
 	box-shadow: none;
  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E4E4E4', endColorstr='#E0E0E0');
+	border: 0;
 }
 .navbar .brand {
 	padding: 10px 25px 10px 0;
@@ -146,13 +147,12 @@ body {
 }
 }
 .third-row {
-	margin: 83px 0 auto auto;
-	border-top: 1px solid rgba(255, 255, 255, .3);
+	margin: 84px 0 auto auto;
 }
 .marginless-alert .alert {
 	margin-bottom: 0px;
 }
-.navigation, .subnavigation, .content, .add-section, .content-section, .navbar-inverse .navbar-inner, .navbar-inner, .third-row {
+.navigation, .subnavigation, .content, .add-section, .content-section, .second-row.navbar-fixed-top, .second-row.navbar-fixed-top hr {
 	-moz-background-clip: padding; /* for Firefox */
 	-webkit-background-clip: padding-box; /* for Safari */
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */

@@ -7,7 +7,7 @@
 					<div list-editor place-holder='Proprietary Package' max-length='50' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
 				</div>
 				<div>
-				    <span ng-show='error' class="alert alert-error" style>{{error}}</span>
+				    <span ng-show='error' class="alert alert-error" style="float: left; padding-top: 4px; padding-bottom: 4px;">{{ error }}</span>
 					<span ng-show='!saving && proprietary' style="float: right;">
 						<button class="btn" ng-click="reset()">Reset</button>
 						<button class="btn btn-primary" ng-click="save()">Save</button>

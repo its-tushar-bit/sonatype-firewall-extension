@@ -14,44 +14,24 @@
 .policy-parent {
 	border-bottom: 1px solid #E8E8E8;
 }
-.policy-item .hover-buttons {
-	visibility: hidden;
-}
-.policy-item:hover {
-	border: 1px solid #e3e3e3;
-}
-.policy-item {
-	cursor: hand;
-	cursor: pointer;
-	margin: 10px 0;
-	padding: 5px;
-	border: 1px solid transparent;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
-	border-radius: 5px;
-}
-.policy-item:hover .hover-buttons {
-	visibility: visible;
-}
-.policy-item .constraint-name::after {
+#policies .constraint-name::after {
 	content: ", "
 }
-.policy-item .constraint-name:last-child::after {
+#policies .constraint-name:last-child::after {
 	content: ""
 }
-.policy-item .actions .action-item {
-	border-right: 1px solid black;
+#policies .actions .action-item {
+	border-left: 1px solid #ffffff;
+	border-right: 1px solid #e8e8e8;
 	text-align: center;
-	padding: 5px;
+	padding: 0 10px;
+	vertical-align: text-top;
 }
-.policy-item .actions .action-item:last-child {
+#policies .actions .action-item:first-child {
+	border-left: none;
+}
+#policies .actions .action-item:last-child {
 	border-right: none;
-}
-.policy-item .header {
-	font-weight: bold;
-}
-.policy-item>table:first-of-type {
-	border-collapse: inherit;
 }
 .clmLabel {
 	-moz-border-radius: 3px;

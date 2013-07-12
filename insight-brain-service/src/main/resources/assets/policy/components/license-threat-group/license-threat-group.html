@@ -2,18 +2,18 @@
 	<div class='add-section'>
 		<button type='button' class='btn btn-primary' ng-click='editLicenseGroup()'><i class="icon-white icon-plus-sign"></i> New License Threat Group</button>
 	</div>
-	<div style='padding:25px'>
+	<div class='content-section'>
 		<div load-error='error' reload='doLoad()'></div>
 		<div class='content-container' style='text-align:center;width:370px;margin:auto' ng-show='!licenseGroups && !error'>
 			<h5><i class='icon-time'></i> Loading...</h5>
 		</div>
-		<div class='license-expand-toggle' ng-switch on='allExpanded'>
+		<div class='common-expand-toggle' ng-switch on='allExpanded'>
 			<a ng-switch-when="false" ng-click='toggleAll()'><i class="glyphicons-halflings-sonatype expand"></i> Expand All</a>
 			<a ng-switch-when="true" ng-click='toggleAll()'><i class="glyphicons-halflings-sonatype collapse"></i> Collapse All</a>
 		</div>
 		<div class="accordion" id="licenseGroups">
 			<div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
-				<div class="license-accordion-header">
+				<div class="common-accordion-header">
 					<div class="btn-group threat-level-dropdown">
 						<a class="btn dropdown-toggle threat-level-{{licenseGroup.threatLevel}}" data-toggle="dropdown" href="#">
 							{{licenseGroup.threatLevel}} <span class="caret"></span>
@@ -35,10 +35,10 @@
 						</div>
 					</div>
 				</div>
-				<a class="license-accordion-toggle" data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
+				<a class="common-accordion-toggle" data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
 					<i class="icon-list"></i>
 				</a>
-				<div id="collapse{{licenseGroup.id}}" class="license-accordion-body accordion-body collapse">
+				<div id="collapse{{licenseGroup.id}}" class="common-accordion-body accordion-body collapse">
 					<div class="accordion-inner">
 						<b>Licenses</b>
 						<ul class="unstyled">

@@ -152,7 +152,7 @@ body {
 .marginless-alert .alert {
 	margin-bottom: 0px;
 }
-.navigation, .subnavigation, .content, .add-section, .content-section {
+.navigation, .subnavigation, .content, .add-section, .content-section, .navbar-inverse .navbar-inner, .navbar-inner, .third-row {
 	-moz-background-clip: padding; /* for Firefox */
 	-webkit-background-clip: padding-box; /* for Safari */
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */

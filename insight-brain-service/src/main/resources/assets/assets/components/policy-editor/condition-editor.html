@@ -1,4 +1,4 @@
-<span>
+<span style='display:inline-block;width:690px'>
 	<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged(condition)" ng-options="conditionType.id as conditionType.name for (key,conditionType) in conditionTypes" style="vertical-align:top;">
 	</select>
 	<select ng-model="condition.operator" ng-change="validateConstraint()" ng-show="conditionType.id == condition.conditionTypeId" ng-repeat="conditionType in conditionTypes" ng-options="operator for operator in conditionTypes[conditionType.id].supportedOperators" style="vertical-align:top;">

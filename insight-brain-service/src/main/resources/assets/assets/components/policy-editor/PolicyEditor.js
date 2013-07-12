@@ -13,7 +13,7 @@
 				id : 'id',
 				template : {
 					threatLevel : 5,
-					constraints : []
+					constraints : [{ conditions: [], operator: null }]
 				},
 				params : {
 					timestamp : new Date().getTime()
@@ -154,64 +154,49 @@
 
 		function isDirty() {
 			var changed = false;
-			if (angular.isUndefined($scope.state.currentPolicy.id)) {
-				changed = $scope.state.currentPolicy.constraints.length > 0 || $scope.state.currentPolicy.name;
-				if (!changed) {
-					angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
-						changed = changed || actions.length > 0;
+			if ($scope.policy) {
+				if (angular.isUndefined($scope.policy.id)) {
+					changed = $scope.policy.constraints.length > 0 || $scope.policy.name;
+					if (!changed) {
+						angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
+							changed = changed || actions.length > 0;
+						});
+					}
+				} else {
+					angular.forEach($scope.policies, function (policy, index) {
+						if (policy.id === $scope.policy.id) {
+							changed = $scope.policy.isDirty() || policyStore.isActionDirty($scope.policy, $scope.state.actions);
+						}
 					});
 				}
-			} else {
-				angular.forEach($scope.policies, function (policy, index) {
-					if (policy.id === $scope.state.currentPolicy.id) {
-						changed = $scope.state.currentPolicy.isDirty() || policyStore.isActionDirty($scope.state.currentPolicy, $scope.state.actions);
-					}
-				});
 			}
 			return changed;
 		}
 		$scope.alerts = [];
-                $scope.constraintConditionChoices = [
-                  {'value': 'AND', 'name': 'all'},
-                  {'value': 'OR', 'name': 'any'}
-                ];
 
 		$scope.doLoad = function () {
-			var currentPolicyStore = policyStore.get();
 			$scope.error = null;
-			$q.all([currentPolicyStore.get(), actionStore.get()]).then(function (results) {
-				var policies = results[0],
-					actionStages = results[1][1],
-					state = {
-						currentPolicy : null,
-						actions : {}
-					};
+			$q.all([actionStore.get()]).then(function (results) {
+				var actionStages = results[0][1];
 
-				$scope.state = state;
-				$scope.policies = policies;
 				$scope.actionStages = actionStages;
-
-				if ($state.params.policyId === 'new' || angular.isUndefined($state.params.policyId)) {
-					state.currentPolicy = currentPolicyStore.create();
-				} else {
-					angular.forEach(policies, function (policy, index) {
-						if (policy.id === $state.params.policyId) {
-							state.currentPolicy = policy.$clone();
-							return false;
-						}
-					});
-					// TODO If currentPolicy === null, show error
-				}
-				$scope.state.actions = angular.extend(getActions(actionStages), policyStore.deserializeActions($scope.state.currentPolicy.actions));
 			}, function (errors) {
 				$scope.error = angular.isArray(errors) ? errors[0] : errors;
 			});
 		};
 
+		$scope.$watch('policy', function () {
+			if ($scope.policy) {
+				$scope.actions = angular.extend(getActions($scope.actionStages), policyStore.deserializeActions($scope.policy.actions));
+			} else {
+				$scope.actions = null;
+			}
+		});
+
 		$scope.savePolicy = function () {
-			$scope.state.currentPolicy.actions = policyStore.serializeActions($scope.state.actions);
-			$scope.state.currentPolicy.$save().then(function (policy) {
-                $scope.state.currentPolicy = policy.$clone();
+			$scope.policy.actions = policyStore.serializeActions($scope.actions);
+			$scope.policy.$save().then(function (policy) {
+                $scope.policy = policy.$clone();
                 returnFn();
             }, function (error) {
 				$scope.alerts.push({
@@ -237,11 +222,11 @@
 
 		$scope.viewRemoveConstraint = function (constraintIndex) {
 			viewConfirmation("Delete Constraint?",
-				"Are you sure you want to delete the Constraint named '" + $scope.state.currentPolicy.constraints[constraintIndex].name + "'?",
+				"Are you sure you want to delete the Constraint named '" + $scope.policy.constraints[constraintIndex].name + "'?",
 				'Cancel',
 				'Delete',
 				function () {
-					$scope.state.currentPolicy.constraints.splice(constraintIndex, 1);
+					$scope.policy.constraints.splice(constraintIndex, 1);
 				});
 		};
 
@@ -257,12 +242,12 @@
 		$scope.$on('policy.constraintSaved', function (event, constraint) {
 			event.stopPropagation();
 			var present = false;
-			angular.forEach($scope.state.currentPolicy.constraints, function (candidate) {
+			angular.forEach($scope.policy.constraints, function (candidate) {
 				present = present || candidate === constraint;
 			});
 			if (!present) {
 				// New constraint
-				$scope.state.currentPolicy.constraints.push(constraint);
+				$scope.policy.constraints.push(constraint);
 			}
 		});
 
@@ -276,16 +261,16 @@
 		$scope.doLoad();
 	}]);
 
-	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
+	module.directive('ModalConstraintController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
 		$scope.cancelConstraint = function () {
 			$('#editConstraintModal').modal('hide');
 			$scope.originalConstraint = $scope.currentConstraint = null;
 		};
-		
+
 		//ditch edits in this case
-        $scope.$on('pageChangeAccepted', function (event) {
-            $scope.cancelConstraint();
-        });
+		$scope.$on('pageChangeAccepted', function (event) {
+			$scope.cancelConstraint();
+		});
 
 		$scope.saveConstraint = function () {
 			angular.forEach($scope.currentConstraint.conditions, function (condition) {
@@ -303,6 +288,45 @@
 			$scope.originalConstraint = $scope.currentConstraint = null;
 		};
 
+		$scope.$on('policy.editConstraint', function (event, constraint) {
+			$('#editConstraintModal').modal('show');
+			$scope.originalConstraint = constraint || null;
+			$scope.constraint = constraint ? angular.copy(constraint) : { conditions: [], operator: null };
+		});
+	}]);
+
+	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
+		function isDirty() {
+			var changed = false;
+			if ($scope.originalConstraint) {
+				changed = $scope.originalConstraint.name != $scope.constraint.name || $scope.originalConstraint.operator != $scope.constraint.operator ||
+				$scope.originalConstraint.conditions.length != $scope.constraint.conditions.length;
+				for (var i = 0; i < $scope.originalConstraint.conditions.length && !changed; i++) {
+					changed = changed || $scope.originalConstraint.conditions[i].value != $scope.constraint.conditions[i].value ||
+					$scope.originalConstraint.conditions[i].operator != $scope.constraint.conditions[i].operator ||
+					$scope.originalConstraint.conditions[i].conditionTypeId != $scope.constraint.conditions[i].conditionTypeId; 
+				}
+			} else {
+//				changed = $scope.constraint.name != null || $scope.constraint.operator != null || 
+//							$scope.constraint.conditions.length != 1 || $scope.constraint.conditions[0].value != null;
+			}
+			return changed;
+		}
+		$scope.constraintConditionChoices = [{
+			'value' : 'AND',
+			'name' : 'all'
+		},{
+			'value' : 'OR',
+			'name' : 'any'
+		}];
+
+		//make sure user is aware they are about to lose changes
+		$scope.$on('pageChangeStarted', function (event) {
+			if (isDirty()) {
+				event.preventDefault();
+			}
+		});
+
 		$scope.updateAge = function (condition) {
 			// Kludge to allow the UI to show two fields but combine them behind the scenes.  The value should only be set when both fields are valid
 			condition.value = (condition.v !== '' && condition.v != null && condition.valueModifier) ? condition.v * condition.valueModifier : null;
@@ -310,12 +334,12 @@
 
 		$scope.validateConstraint = function () {
 			var i,
-				conditions = $scope.currentConstraint.conditions,
+				conditions = $scope.constraint.conditions,
 				conditionType;
 
 			delete $scope.constraintValidationMsg;
 
-			if (!$scope.currentConstraint.name) {
+			if (!$scope.constraint.name) {
 				$scope.constraintValidationMsg = 'Please enter a name for this constraint';
 				return;
 			}
@@ -331,11 +355,11 @@
 				}
 			}
 
-                        if(!$scope.currentConstraint.operator)
-                        {
-                          $scope.constraintValidationMsg = 'You must select any or all of the conditions';
-                          return;
-                        }
+			if(!$scope.constraint.operator)
+			{
+				$scope.constraintValidationMsg = 'You must select any or all of the conditions';
+				return;
+			}
 		};
 
 		$scope.conditionTypeChanged = function (condition) {		
@@ -366,11 +390,53 @@
 
 			$scope.validateConstraint();
 		};
+		$scope.$watch('constraint', function (constraint) {
+			if (constraint) {
+				var fn = function () {
+					if ($scope.conditionTypes) {
+						if ($scope.constraint.conditions.length === 0) {
+							$scope.addCondition();
+						} else {
+							angular.forEach($scope.constraint.conditions, function (condition) {
+								if ($scope.conditionTypes[condition.conditionTypeId]) {
+									switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
+										case "PercentageValueType":
+										case "IntegerValueType":
+											var value = parseInt(condition.value, 10);
+											if (!isNaN(value)) {
+												condition.value = value;
+											}
+											break;
+									}
+								}
+
+								if (condition.conditionTypeId === "AgeInDays") {
+									if (condition.value >= 365 && condition.value % 365 === 0) {
+										condition.valueModifier = 365;
+									} else if (condition.value >= 30 && condition.value % 30 === 0) {
+										condition.valueModifier = 30;
+									} else {
+										condition.valueModifier = 1;
+									}
+									condition.v = condition.value / condition.valueModifier;
+								}
+							});
+						}
+						$scope.validateConstraint();
+						$('#constraintName').focus();
+					} else {
+						$timeout(fn, 100);
+					}
+				};
+
+				fn();
+			}
+		});
 
 		$scope.addCondition = function () {
 			var conditionType = $scope.conditionTypes['AgeInDays'];
 
-			$scope.currentConstraint.conditions.push({
+			$scope.constraint.conditions.push({
 				conditionTypeId: conditionType.id,
 				operator: conditionType.supportedOperators[0],
 				valueModifier: 365
@@ -380,81 +446,9 @@
 		};
 
 		$scope.removeCondition = function (conditionIndex) {
-			$scope.currentConstraint.conditions.splice(conditionIndex, 1);
+			$scope.constraint.conditions.splice(conditionIndex, 1);
 			$scope.validateConstraint();
 		};
-
-		$scope.$on('policy.editConstraint', function (event, constraint) {
-			event.preventDefault();
-			// Possibility that the conditions bits haven't been loaded yet.
-			var fn = function () {
-				if ($scope.conditionTypes) {
-					$scope.originalConstraint = constraint || null;
-					$scope.currentConstraint = constraint ? angular.copy(constraint) : { conditions: [], operator: null };
-
-					if ($scope.currentConstraint.conditions.length === 0) {
-						$scope.addCondition();
-					} else {
-						angular.forEach($scope.currentConstraint.conditions, function (condition) {
-							if ($scope.conditionTypes[condition.conditionTypeId]) {
-								switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
-									case "PercentageValueType":
-									case "IntegerValueType":
-										var value = parseInt(condition.value, 10);
-										if (!isNaN(value)) {
-											condition.value = value;
-										}
-										break;
-								}
-							}
-
-							if (condition.conditionTypeId === "AgeInDays") {
-								if (condition.value >= 365 && condition.value % 365 === 0) {
-									condition.valueModifier = 365;
-								} else if (condition.value >= 30 && condition.value % 30 === 0) {
-									condition.valueModifier = 30;
-								} else {
-									condition.valueModifier = 1;
-								}
-								condition.v = condition.value / condition.valueModifier;
-							}
-						});
-					}
-					$scope.validateConstraint();
-					$('#constraintName').focus();
-				} else {
-					$timeout(fn, 100);
-				}
-			};
-
-			fn();
-			$('#editConstraintModal').modal('show');
-		});
-
-		function isDirty() {
-			var changed = false;
-			if ($scope.originalConstraint != null) {
-				changed = $scope.originalConstraint.name != $scope.currentConstraint.name || $scope.originalConstraint.operator != $scope.currentConstraint.operator ||
-				          $scope.originalConstraint.conditions.length != $scope.currentConstraint.conditions.length;
-				for (var i = 0; i < $scope.originalConstraint.conditions.length && !changed; i++) {
-					changed = changed || $scope.originalConstraint.conditions[i].value != $scope.currentConstraint.conditions[i].value ||
-					          $scope.originalConstraint.conditions[i].operator != $scope.currentConstraint.conditions[i].operator ||
-					          $scope.originalConstraint.conditions[i].conditionTypeId != $scope.currentConstraint.conditions[i].conditionTypeId; 
-				}
-			} else {
-				changed = $scope.currentConstraint.name != null || $scope.currentConstraint.operator != null || 
-				          $scope.currentConstraint.conditions.length != 1 || $scope.currentConstraint.conditions[0].value != null;
-			}
-			return changed;
-		}
-
-		//make sure user is aware they are about to lose changes
-		$scope.$on('pageChangeStarted', function (event) {
-			if (isDirty()) {
-				event.preventDefault();
-			}
-		});
-
 		constraints.get().then(function (results) {
 			var typeValues = {};
 			$scope.conditionTypes = {};
@@ -462,13 +456,12 @@
 				typeValues[typeValue.id] = typeValue;
 			});
 			angular.forEach(results[0], function (type) {
-				var typeValue = type.valueTypeId == null ? null : typeValues[type.valueTypeId];
+				var typeValue = type.valueTypeId ? null : typeValues[type.valueTypeId];
 				type.valueType = typeValue;
 				$scope.conditionTypes[type.id] = type;
 			});
 		}, function (error) {
-
-//			handleHttpError('Policy Initialization Error', error.data, error.status);
+			// TODO handle this error
 		});
 	}]);
 
@@ -485,9 +478,62 @@
 						var option = new Option(collection[index], collection[index]);
 						elem[0].options[elem[0].options.length] = option;
 					});
-//					ctrl.$setViewValue(elem.val());
 				});
 			}
 		};
 	}]);
+
+	module.directive('inlinePolicyEditor', ['$dialog', function ($dialog) {
+		return {
+			restrict : 'A',
+			templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
+			scope : {
+				createPolicy : '&inlinePolicyEditor'
+			},
+			link : function (scope, element, attrs) {
+				scope.click = function () {
+					if (!scope.policy) {
+						scope.policy = scope.createPolicy();
+					}
+				};
+				scope.cancel = function () {
+					if (scope.policy) {
+						if (scope.policy.isDirty()) {
+							// show dialog
+/*							$dialog.dialog({
+								backdrop : true,
+								backdropClick : false,
+								template : '<div class="modal-body">May contain unsaved changes.</div>' +
+											'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+											'<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
+								controller : ['$scope', 'dialog', function ($scope, dialog) {
+									scope.discard = function () {
+										dialog.close(true);
+										scope.policy = null;
+									};
+									scope.cancel = function () {
+										dialog.close(true);
+									};
+								}]
+							}).open();
+*/
+							scope.policy = null;
+						} else {
+							scope.policy = null;
+						}
+					}
+				};
+			}
+		};
+	}]);
+
+	module.directive('inlineConstraintEditor', function () {
+		return {
+			restrict : 'A',
+			scope : {
+				constraint : '=inlineConstraintEditor'
+			},
+			controller : 'ConstraintEditorController'
+		};
+	});
 }());

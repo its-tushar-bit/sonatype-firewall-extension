@@ -516,6 +516,7 @@ ul.tri-pane {
  */
 .threat-level-dropdown a {
 	background-image: none;
+	vertical-align:top;
 }
 .threat-level-dropdown ul {
 	padding: 0px;

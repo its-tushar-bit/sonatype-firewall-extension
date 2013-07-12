@@ -92,6 +92,10 @@
 			});
 		};
 
+		$scope.createPolicy = function () {
+			return policyStore.get().create();
+		};
+
 		$scope.doLoad();
 
 		$scope.encodeURIComponent = window.encodeURIComponent;

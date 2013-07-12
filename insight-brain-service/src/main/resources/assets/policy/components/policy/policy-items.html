@@ -33,7 +33,7 @@
 										<td class="action-item" ng-repeat="stage in getActionStages()">
 											<span>{{stage.name}}</span>
 											<br>
-											<i ng-class='getStageIconClass(stage, policy)'></i>
+											<img ng-src='{{getStageIconPath(stage, policy)}}' style="height:40px;width:40px;"/>
 										</td>
 									</tr>
 								</table>

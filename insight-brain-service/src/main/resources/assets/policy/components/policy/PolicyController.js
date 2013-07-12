@@ -164,13 +164,13 @@
 				scope.getActionStages = function() {
 				    return actionStageList;
 				};
-				scope.getStageIconClass = function(stage, policy) {
+				scope.getStageIconPath = function(stage, policy) {
 				    if (policy.actions[stage.id]) {
 				        for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
 			                if (policy.actions[stage.id][i].actionTypeId == 'warn') {
-	                            return 'icon-warning-sign';
+			                    return "../assets/img/policyalert.png";
 	                        } else if (policy.actions[stage.id][i].actionTypeId == 'fail') {
-	                            return 'icon-exclamation-sign';
+	                            return "../assets/img/policyerror.png";
 	                        }
 				        }
 				    }

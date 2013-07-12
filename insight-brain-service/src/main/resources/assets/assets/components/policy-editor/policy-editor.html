@@ -21,14 +21,14 @@
 								ng-options="threatLevel.value as threatLevel.name for threatLevel in [{'value':10, 'name':'10'},{'value':9, 'name':'9'},{'value':8, 'name':'8'},{'value':7, 'name':'7'},{'value':6, 'name':'6'},{'value':5, 'name':'5'},{'value':4, 'name':'4'},{'value':3, 'name':'3'},{'value':2, 'name':'2'},{'value':1, 'name':'1'},{'value':0, 'name':'0 (None)'}]">
 							</select>
 						</div>
-						<div class="control-group" ng-class='{ error : policyEditor.policyName.$error.required || policyEditor.policyName.$error.duplicate }'>
+						<div class="control-group" ng-class='{ error : policyEditor.policyName.$error.required || policyEditor.policyName.$error.alphaNumeric || policyEditor.policyName.$error.spaces }'>
 							<label class="control-label" style="width: 100px;" for='policyName'>Name</label>
 							<div class='controls' style="margin-left: 120px;">
-								<input type="text" id="policyName" name="policyName" placeholder="Enter Policy Name..." ng-model="state.currentPolicy.name" required
-									is-Duplicate is-Duplicate-Array='policies' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'>
+								<input type="text" id="policyName" name="policyName" placeholder="Enter Policy Name..." ng-model="state.currentPolicy.name" required alpha-numeric has-whitespace='suggestedName'>
 								<div>
 									<span ng-show="policyEditor.policyName.$error.required" class="help-inline">Name is required</span>
-									<span ng-show="policyEditor.policyName.$error.duplicate" class="help-inline">Name is already is use</span>
+									<span ng-show="policyEditor.policyName.$error.alphaNumeric" class="help-inline">Name must be alpha numeric</span>
+									<span ng-show="policyEditor.policyName.$error.spaces" class="help-inline">No leading, trailing or double spaces or tabs<br/>Suggested name: {{suggestedName}}</span>
 								</div>
 							</div>
 						</div>

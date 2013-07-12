@@ -26,7 +26,7 @@ public class PolicyTest
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
         policy.addConstraint( constraint );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( result, "The policy name must not be null or empty" );
+        assertValidationResult( result, "The policy name is required." );
     }
 
     @Test
@@ -38,7 +38,44 @@ public class PolicyTest
         policy.addConstraint( constraint );
         policy.setName( " " );
         ValidationResult result = policy.validate( applicationId );
-        assertValidationResult( result, "The policy name must not be null or empty" );
+        assertValidationResult( result, "The policy name is required." );
+    }
+
+    @Test
+    public void testValidate_NameWhitespace()
+    {
+        Policy policy = new Policy();
+        Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        policy.setName( " Leading Space" );
+        ValidationResult result = policy.validate( applicationId );
+        assertValidationResult( result,
+                                "The policy name must not have leading or trailing spaces, or have two spaces in a row." );
+        policy.setName( "Trailing Space " );
+        result = policy.validate( applicationId );
+        assertValidationResult( result,
+                                "The policy name must not have leading or trailing spaces, or have two spaces in a row." );
+        policy.setName( "Multiple  Spaces" );
+        result = policy.validate( applicationId );
+        assertValidationResult( result,
+                                "The policy name must not have leading or trailing spaces, or have two spaces in a row." );
+    }
+
+    @Test
+    public void testValidate_NameInvalidChar()
+    {
+        Policy policy = new Policy();
+        Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint );
+        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+        for ( String name : invalidAlphaNumericNames )
+        {
+            policy.setName( name );
+            ValidationResult result = policy.validate( applicationId );
+            assertValidationResult( result, "The policy name must be alpha numeric." );
+        }
     }
 
     @Test

@@ -1,0 +1,34 @@
+[ {
+  "time" : 1373629973037,
+  "user" : null,
+  "ip" : "127.0.0.1",
+  "where" : null,
+  "data" : [ {
+    "id" : "1c25d5182bd24d46b6e83db428171554",
+    "name" : "Legacy Policy  with invalid name !?",
+    "enabled" : true,
+    "threatLevel" : 4,
+    "constraints" : [ {
+      "id" : "3004fda915214e99a9cd004a046574e9",
+      "name" : "No Unknown",
+      "enabled" : true,
+      "operator" : "OR",
+      "conditions" : [ {
+        "conditionTypeId" : "MatchState",
+        "operator" : "is",
+        "value" : "unknown"
+      } ]
+    } ],
+    "actions" : {
+      "procure" : [ ],
+      "develop" : [ ],
+      "build" : [ {
+        "actionTypeId" : "warn",
+        "target" : null
+      } ],
+      "stage-release" : [ ],
+      "release" : [ ],
+      "operate" : [ ]
+    }
+  } ]
+} ]

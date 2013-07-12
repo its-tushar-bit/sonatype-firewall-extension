@@ -9,8 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -24,6 +26,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -94,9 +98,9 @@ public class PolicyDAO
             Policy[] existingPolicies = JsonUtils.asPojo( policiesJson, Policy[].class );
             for ( Policy existingPolicy : existingPolicies )
             {
-                if ( policy.getName().equals( existingPolicy.getName() ) )
+                if ( NameHelper.equals( policy.getName(), existingPolicy.getName() ) )
                 {
-                    throw new InvalidPolicyException( "A policy with name '" + policy.getName() + "' exists already" );
+                    throw new InvalidPolicyException( "A policy with name '" + existingPolicy.getName() + "' exists already" );
                 }
             }
 
@@ -164,9 +168,9 @@ public class PolicyDAO
                 }
                 else
                 {
-                    if ( policy.getName().equals( existingPolicy.getName() ) )
+                    if ( NameHelper.equals( policy.getName(), existingPolicy.getName() ) )
                     {
-                        throw new InvalidPolicyException( "A policy with name '" + policy.getName()
+                        throw new InvalidPolicyException( "A policy with name '" + existingPolicy.getName()
                             + "' exists already" );
                     }
                 }
@@ -280,7 +284,7 @@ public class PolicyDAO
             for ( JsonNode policyJsonNode : policies )
             {
                 Policy policy = JsonUtils.asPojo( policyJsonNode, Policy.class );
-                if ( policy.getName().equals( name ) )
+                if ( NameHelper.equals( policy.getName(), name ) )
                 {
                     // The policy may have been saved without an ownerId (i.e. before 1.6), so fill in the owner id
                     // here.
@@ -315,21 +319,36 @@ public class PolicyDAO
         final Set<String> orgPolicyNames = new LinkedHashSet<String>();
         for ( final Policy policy : getByOwnerId( orgId, orgStore ) )
         {
-            orgPolicyNames.add( policy.getName() );
+            orgPolicyNames.add( NameHelper.normalize( policy.getName() ) );
         }
 
         final JsonStore appStore = policyStore( appId, readLocks );
-        final Set<String> appPolicyNames = new LinkedHashSet<String>();
+        final Map<String, String> appPolicyNames = new LinkedHashMap<String, String>();
+        final Set<String> invalidPolicyNames = new LinkedHashSet<String>();
         for ( final Policy policy : getByOwnerId( appId, appStore ) )
         {
-            appPolicyNames.add( policy.getName() );
+            appPolicyNames.put( NameHelper.normalize( policy.getName() ), policy.getName() );
+            try
+            {
+                NameHelper.validate( policy.getName() );
+            }
+            catch ( InvalidNameException e )
+            {
+                invalidPolicyNames.add( policy.getName() );
+            }
         }
 
-        orgPolicyNames.retainAll( appPolicyNames );
-        if ( !orgPolicyNames.isEmpty() )
+        if ( !invalidPolicyNames.isEmpty() )
         {
-            throw new BadRequestException( "Some policies of the application collide"
-                + " with policies of the parent organization: " + StringUtils.join( orgPolicyNames.iterator(), ", " ) );
+            throw new BadRequestException( "The following policies have invalid names: "
+                + StringUtils.join( invalidPolicyNames.iterator(), ", " ) );
+        }
+
+        appPolicyNames.keySet().retainAll( orgPolicyNames );
+        if ( !appPolicyNames.isEmpty() )
+        {
+            throw new BadRequestException( "The following policies collide with policies of the parent organization: "
+                + StringUtils.join( appPolicyNames.values().iterator(), ", " ) );
         }
     }
 

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -137,6 +138,18 @@ public class PolicyDAOTest
                 throw expected;
             }
         }
+
+        // Add another policy with a case-/whitespace-equivalent name
+        policy.setName( policyName.replace( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
+        try
+        {
+            policyDAO.insert( applicationId, policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with name 'PolicyDAOTest new policy' exists already", expected.getMessage() );
+        }
     }
 
     @Test
@@ -157,7 +170,21 @@ public class PolicyDAOTest
         }
         catch ( InvalidPolicyException expected )
         {
-            Assert.assertEquals( "A policy with the same name already exists for application 'appName'", expected.getMessage() );
+            Assert.assertEquals( "A policy with the same name already exists for application 'appName'",
+                                 expected.getMessage() );
+        }
+
+        // Add another policy with a case-/whitespace-equivalent name at org level
+        policy = newPolicy( policyName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
+        try
+        {
+            policyDAO.insert( org.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for application 'appName'",
+                                 expected.getMessage() );
         }
     }
 
@@ -172,6 +199,19 @@ public class PolicyDAOTest
 
         // Add another policy with the same name at app level
         policy = newPolicy( policyName );
+        try
+        {
+            policyDAO.insert( app.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for the parent organization",
+                                 expected.getMessage() );
+        }
+
+        // Add another policy with a case-/whitespace-equivalent name at app level
+        policy = newPolicy( policyName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
         try
         {
             policyDAO.insert( app.getId(), policy );
@@ -225,6 +265,19 @@ public class PolicyDAOTest
                 throw expected;
             }
         }
+
+        // Update a policy with a case-/whitespace-equivalent name
+        policy1.setName( policyName2.replace( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
+        try
+        {
+            policyDAO.update( applicationId, policy1 );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with name 'PolicyDAOTest new policy 2' exists already",
+                                 expected.getMessage() );
+        }
     }
 
     @Test
@@ -242,6 +295,19 @@ public class PolicyDAOTest
 
         // Rename policy at app level
         policy.setName( policyName );
+        try
+        {
+            policyDAO.update( app.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for the parent organization",
+                                 expected.getMessage() );
+        }
+
+        // Rename policy at app level with a case-/whitespace-equivalent name
+        policy.setName( policyName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
         try
         {
             policyDAO.update( app.getId(), policy );
@@ -276,7 +342,21 @@ public class PolicyDAOTest
         }
         catch ( InvalidPolicyException expected )
         {
-            Assert.assertEquals( "A policy with the same name already exists for application 'appName'", expected.getMessage() );
+            Assert.assertEquals( "A policy with the same name already exists for application 'appName'",
+                                 expected.getMessage() );
+        }
+
+        // Rename policy at org level with a case-/whitespace-equivalent name
+        policy.setName( policyName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
+        try
+        {
+            policyDAO.update( org.getId(), policy );
+            Assert.fail( "Expected InvalidPolicyException" );
+        }
+        catch ( InvalidPolicyException expected )
+        {
+            Assert.assertEquals( "A policy with the same name already exists for application 'appName'",
+                                 expected.getMessage() );
         }
     }
 

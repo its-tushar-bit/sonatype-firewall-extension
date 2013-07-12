@@ -36,7 +36,7 @@
 
     $.extend(true, window, {
         'Insight' : {
-            'ClaimComponent' : function(node, applicationId, hash) {
+            'ClaimComponent' : function(node, applicationId, component) {
                 function applyFocus() {
                     if (node.find('input').length > 0) {
                         node.find('input')[0].focus();
@@ -49,9 +49,10 @@
                 node.empty();
                 container.appendTo(node);
 
-                angular.module('claimComponent' + timestamp, []).service('CurrentHash', function() {
+                angular.module('claimComponent' + timestamp, []).service('CurrentData', function() {
                     return {
-                        hash : hash
+                        hash : component.hash,
+                        createTime : component.lastModifiedEntryTime ? component.lastModifiedEntryTime : component.lastModifiedTime
                     };
                 });
                 angular.bootstrap(container[0], [ 'ClaimComponent', 'claimComponent' + timestamp ]);
@@ -63,9 +64,10 @@
 
     var claimApp = angular.module('ClaimComponent', [ 'Hudson' ]);
 
-    claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentHash', function(hudson, $scope, CurrentHash) {
+    claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentData', function(hudson, $scope, CurrentData) {
         $scope.resetClaimData = function() {
             $scope.claimData = {};
+            $scope.claimData.createTimeText = dateToString(new Date(CurrentData.createTime));
             $scope.submitted = false;
             $scope.disableSubmit = false;
         };
@@ -76,7 +78,7 @@
             $scope.submitted = true;
             if ($scope.claimForm.$valid) {
                 $scope.disableSubmit = true;
-                $scope.claimData.hash = CurrentHash.hash;
+                $scope.claimData.hash = CurrentData.hash;
                 if ($scope.claimData.createTimeText) {
                     $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
                 }
@@ -84,7 +86,7 @@
                     var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
 
                     $.each(dataView.getItems(), function(index, item) {
-                        if (item.hash === CurrentHash.hash) {
+                        if (item.hash === CurrentData.hash) {
                             dataView.beginUpdate();
                             dataView.updateItem(item.id, $.extend({}, item, {
                                 identificationSource : 'Manual',
@@ -191,7 +193,7 @@
         ClaimComponentTab.prototype.create = function() {
             var timestamp = (new Date()).getTime(), container = $('<div id="claim-component-' + timestamp + '"></div>'), me = this, retry = function() {
                 if (Insight.ClaimComponent) {
-                    Insight.ClaimComponent(container, applicationId, me.gav.hash);
+                    Insight.ClaimComponent(container, applicationId, me.gav);
                 } else {
                     setTimeout(retry, 1000);
                 }

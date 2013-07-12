@@ -594,16 +594,16 @@ public class ApplicationResourceTest
 
         Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Some policies of the application collide with policies of the parent organization"
-            + ", please change their names first: " + policy2.getName(), response.getResponseBody() );
+        Assert.assertEquals( "The following policies collide with policies of the parent organization: "
+                                 + policy2.getName(), response.getResponseBody() );
 
         policy2.setName( policyName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
         policyDAO.update( app.getId(), policy2 );
 
         response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Some policies of the application collide with policies of the parent organization"
-            + ", please change their names first: " + policy2.getName(), response.getResponseBody() );
+        Assert.assertEquals( "The following policies collide with policies of the parent organization: "
+                                 + policy2.getName(), response.getResponseBody() );
     }
 
     @Test
@@ -621,8 +621,8 @@ public class ApplicationResourceTest
 
         Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Some policies of the application have invalid names"
-            + ", please fix their names first: Legacy Policy  with invalid name !?", response.getResponseBody() );
+        Assert.assertEquals( "The following policies have invalid names: Legacy Policy  with invalid name !?",
+                             response.getResponseBody() );
     }
 
     @Test

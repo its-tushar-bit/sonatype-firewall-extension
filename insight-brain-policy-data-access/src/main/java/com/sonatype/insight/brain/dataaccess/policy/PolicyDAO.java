@@ -340,15 +340,14 @@ public class PolicyDAO
 
         if ( !invalidPolicyNames.isEmpty() )
         {
-            throw new BadRequestException( "Some policies of the application have invalid names"
-                + ", please fix their names first: " + StringUtils.join( invalidPolicyNames.iterator(), ", " ) );
+            throw new BadRequestException( "The following policies have invalid names: "
+                + StringUtils.join( invalidPolicyNames.iterator(), ", " ) );
         }
 
         appPolicyNames.keySet().retainAll( orgPolicyNames );
         if ( !appPolicyNames.isEmpty() )
         {
-            throw new BadRequestException( "Some policies of the application collide"
-                + " with policies of the parent organization, please change their names first: "
+            throw new BadRequestException( "The following policies collide with policies of the parent organization: "
                 + StringUtils.join( appPolicyNames.values().iterator(), ", " ) );
         }
     }

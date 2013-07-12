@@ -26,6 +26,11 @@ public class NameHelper
         }
     }
 
+    public static boolean equals( String name1, String name2 )
+    {
+        return ( name1 != null ) ? normalize( name1 ).equals( normalize( name2 ) ) : name2 == null;
+    }
+
     public static void validate( String name )
     {
         if ( name == null || name.trim().isEmpty() )

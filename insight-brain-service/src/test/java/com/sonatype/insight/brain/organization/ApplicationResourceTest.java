@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -575,7 +576,7 @@ public class ApplicationResourceTest
         Application app = createApplication( "appPublicId", "appName", false, false );
 
         PolicyDAO policyDAO = new PolicyDAO( brain.getWorkDir() );
-        String policyName = "policyName";
+        String policyName = "A policy Name";
 
         Policy policy1 = new Policy( null, policyName );
         Constraint constraint1 = new Constraint( null, "constraint 1", LogicalOperator.AND );
@@ -593,8 +594,16 @@ public class ApplicationResourceTest
 
         Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Some policies of the application collide with policies of the parent organization: "
-                                 + policyName, response.getResponseBody() );
+        Assert.assertEquals( "Some policies of the application collide with policies of the parent organization"
+            + ", please change their names first: " + policy2.getName(), response.getResponseBody() );
+
+        policy2.setName( policyName.replaceAll( "\\s", "" ).toLowerCase( Locale.ENGLISH ) );
+        policyDAO.update( app.getId(), policy2 );
+
+        response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Some policies of the application collide with policies of the parent organization"
+            + ", please change their names first: " + policy2.getName(), response.getResponseBody() );
     }
 
     @Test

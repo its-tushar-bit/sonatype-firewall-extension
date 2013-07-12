@@ -362,10 +362,6 @@ var angularCommon;
       restrict: 'A',
       link: function(scope, elem, attr, ctrl) {
         var validator = function (value) {
-          if (!value) {
-            return undefined;
-          }
-
           var passed = !value || !value.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'));
           ctrl.$setValidity('alphaNumeric', passed);
           return passed ? value : undefined;

@@ -169,6 +169,9 @@ body {
 .navigation .nav-list {
 	margin-top: 5px;
 }
+.navigation a, .subnavigation a {
+	font-size: 85%;
+}
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	color: #36424e;
 	text-shadow: none;
@@ -566,11 +569,6 @@ ul.tri-pane {
 .licenseSelectListItem:hover {
 	background-color: #E8E8E8;
 }
-
-.fontSmaller{
-  font-size: 85%;
-}
-
 .content-section {
 	padding: 25px;
 	border-top: 1px solid rgba(255, 255, 255, .6);

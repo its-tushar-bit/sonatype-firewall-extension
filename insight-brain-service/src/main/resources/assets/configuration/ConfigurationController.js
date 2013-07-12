@@ -31,8 +31,9 @@
           })
     }]);
 
-    module.controller('ConfigurationController',['$scope', '$state', 'commonCodeFactory', function ($scope, $state, commonCodeFactory) {
+    module.controller('ConfigurationController',['$scope', '$state', 'commonCodeFactory', '$location', function ($scope, $state, commonCodeFactory, $location) {
       $scope.$state = $state;
+      $scope.$location = $location;
 
       $scope.configurationPanes = [
         {

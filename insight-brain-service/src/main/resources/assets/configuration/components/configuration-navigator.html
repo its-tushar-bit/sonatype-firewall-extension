@@ -4,7 +4,8 @@
     <div ng-hide='error'>
       <ul class="nav nav-list">
         <li>
-        <li ng-repeat='configurationPane in configurationPanes'>
+        <li ng-repeat='configurationPane in configurationPanes'
+            ng-class="{'active': $location.path().substring(1) == configurationPane.state }">
           <a href='#/{{ configurationPane.state }}' ng-class="{fontSmaller: configurationPane.name.length > 10}">{{configurationPane.name}}</a>
         </li>
       </ul>

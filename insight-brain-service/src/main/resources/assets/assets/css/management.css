@@ -572,6 +572,11 @@ ul.tri-pane {
 .licenseSelectListItem:hover{
   background-color: #E8E8E8;
 }
+
+.fontSmaller{
+  font-size: 85%;
+}
+
 .content-section {
   padding:25px;
 }

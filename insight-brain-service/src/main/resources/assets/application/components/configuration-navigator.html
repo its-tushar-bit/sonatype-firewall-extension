@@ -1,0 +1,14 @@
+<div>
+  <div class="subnavigation">
+    <div load-error='error' reload='doLoad()'></div>
+    <div ng-hide='error'>
+      <ul class="nav nav-list">
+        <li>
+        <li ng-repeat='configurationPane in configurationPanes'>
+          <a href='#/{{ configurationPane.state }}' ng-class="{fontSmaller: configurationPane.name.length > 10}">{{configurationPane.name}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="content" ui-view></div>
+</div>

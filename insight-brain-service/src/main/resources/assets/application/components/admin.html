@@ -1,23 +1,14 @@
-<div class='container'>
-	<div ng-controller='ProductLicenseController' ng-include='"../application-assets/components/license.html"' style='padding-bottom:15px'></div>
-	<div class='row'>
-		<div ng-controller='ProprietaryConfigurationController' class='offset3 span6 content-container'>
-			<div class="modal-header">
-				<h3>Proprietary Packages</h3>
-			</div>
-			<div class="modal-body">
+<div class='face' style="padding-left: 10px;">
+		<div ng-controller='ProprietaryConfigurationController' style="max-width: 430px;">
+			<div style="padding-top: 10px;">
 				<div ng-show='loadError'>An Error Occurred</div>
 				<div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
 				<div ng-show='!loadError && proprietary'>
 					<div list-editor place-holder='Proprietary Package' max-length='50' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
 				</div>
-			</div>
-			<div class="modal-footer">
 				<div>
-					<div style="padding-top: 5px; float: left; color: #b94a48;">
-						<span ng-show='error'>{{error}}</span>
-					</div>
-					<span ng-show='!saving && proprietary'>
+				    <span ng-show='error' class="alert alert-error" style="float: left; padding-top: 4px; padding-bottom: 4px;">{{ error }}</span>
+					<span ng-show='!saving && proprietary' style="float: right;">
 						<button class="btn" ng-click="reset()">Reset</button>
 						<button class="btn btn-primary" ng-click="save()">Save</button>
 					</span>
@@ -25,5 +16,4 @@
 				</div>
 			</div>
 		</div>
-	</div>
 </div>

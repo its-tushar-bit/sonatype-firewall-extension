@@ -10,15 +10,37 @@
 	font-style: normal;
 	line-height: 18px;
 	vertical-align: middle;
+	margin-right: 2px;
+}
+#policies .accordion-group:hover, .policy-parent, .policy-parent h4 {
+	-moz-background-clip: padding; /* for Firefox */
+	-webkit-background-clip: padding-box; /* for Safari */
+	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .policy-parent {
-	border-bottom: 1px solid #E8E8E8;
+	border-bottom: 1px solid rgba(255, 255, 255, .6);
+	margin-bottom: 10px;
+}
+.policy-parent h4 {
+	color: #909090;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
 #policies .constraint-name::after {
 	content: ", "
 }
 #policies .constraint-name:last-child::after {
 	content: ""
+}
+#policies .accordion-inner {border: none; padding-bottom: 30px;}
+#policies .accordion-group {border:1px solid transparent;}
+#policies .accordion-group:hover {border: 1px solid rgba(0, 0, 0, .1);}
+#policies tr.constraints, #policies tr.actions {
+	vertical-align: text-top;
+}
+#policies .constraints td.header, #policies .actions td.header {
+	min-width: 100px;
+	font-weight: bold;
+	padding-left: 20px;
 }
 #policies .actions .action-item {
 	border-left: 1px solid #ffffff;
@@ -29,6 +51,7 @@
 }
 #policies .actions .action-item:first-child {
 	border-left: none;
+	padding-left: 0;
 }
 #policies .actions .action-item:last-child {
 	border-right: none;

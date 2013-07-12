@@ -607,6 +607,25 @@ public class ApplicationResourceTest
     }
 
     @Test
+    public void testUpdateApplication_AssignToOrganizationWhenHavingInvalidPolicyNames()
+        throws Exception
+    {
+        Organization org = createOrganization( "orgName" );
+        Application app = createApplication( "appPublicId", "appName", false, false );
+
+        FileUtils.copyURLToFile( getClass().getResource( "/ApplicationResourceTest/invalid-policy-name.json" ),
+                                 new File( new File( new File( brain.getWorkDir(), "policy" ), app.getId() ),
+                                           "policy.json" ) );
+
+        app.setOrganizationId( org.getId() );
+
+        Response response = RestAccess.put( getServiceURL(), JsonHelpers.asJson( app ) );
+        assertResponseStatus( 400, response );
+        Assert.assertEquals( "Some policies of the application have invalid names"
+            + ", please fix their names first: Legacy Policy  with invalid name !?", response.getResponseBody() );
+    }
+
+    @Test
     public void testGenerateIcon()
         throws Exception
     {

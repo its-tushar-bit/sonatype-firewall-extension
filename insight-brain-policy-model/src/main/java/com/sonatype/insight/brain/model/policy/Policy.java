@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
 public class Policy
@@ -144,12 +146,33 @@ public class Policy
 
     public ValidationResult validate( String ownerId )
     {
+        return validate( ownerId, false );
+    }
+
+    public ValidationResult validate( String ownerId, boolean forEvaluation )
+    {
         log.debug( "Validating " + this.toString() );
 
         ValidationResult result = new ValidationResult();
-        if ( name == null || name.trim().isEmpty() )
+        if ( forEvaluation )
         {
-            result.addError( "The policy name must not be null or empty" );
+            // if only doing evaluation, go with lenient name validation to support legacy policies
+            if ( name == null || name.trim().isEmpty() )
+            {
+                result.addError( "The policy name must not be null or empty" );
+            }
+        }
+        else
+        {
+            // if inserting/updating a policy, go with strict name validation to enforce migration
+            try
+            {
+                NameHelper.validate( name );
+            }
+            catch ( InvalidNameException e )
+            {
+                result.addError( e.getMessage().replace( "Name", "The policy name" ) );
+            }
         }
         if ( constraints == null || constraints.isEmpty() )
         {

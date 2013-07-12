@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -323,9 +324,24 @@ public class PolicyDAO
 
         final JsonStore appStore = policyStore( appId, readLocks );
         final Map<String, String> appPolicyNames = new LinkedHashMap<String, String>();
+        final Set<String> invalidPolicyNames = new LinkedHashSet<String>();
         for ( final Policy policy : getByOwnerId( appId, appStore ) )
         {
             appPolicyNames.put( NameHelper.normalize( policy.getName() ), policy.getName() );
+            try
+            {
+                NameHelper.validate( policy.getName() );
+            }
+            catch ( InvalidNameException e )
+            {
+                invalidPolicyNames.add( policy.getName() );
+            }
+        }
+
+        if ( !invalidPolicyNames.isEmpty() )
+        {
+            throw new BadRequestException( "Some policies of the application have invalid names"
+                + ", please fix their names first: " + StringUtils.join( invalidPolicyNames.iterator(), ", " ) );
         }
 
         appPolicyNames.keySet().retainAll( orgPolicyNames );

@@ -204,6 +204,22 @@ public class DroolsGeneratorTest
         }
     }
 
+    @Test
+    public void testLegacyPolicyWithInvalidNameCanStillBeEvaluated()
+    {
+        final Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilitySeverityConditionType.ID, ">", "0" ) );
+
+        final Policy policy = new Policy();
+        policy.setId( "PolicyId1" );
+        policy.setName( " Invalid  Policy Name ! " );
+        policy.addConstraint( constraint1 );
+        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        final DroolsGenerator generator = new DroolsGenerator();
+        Assert.assertNotNull( generator.generate( null /* applicationId */, Arrays.asList( policy ) ) );
+    }
+
     // @Test
     // public void test()
     // {

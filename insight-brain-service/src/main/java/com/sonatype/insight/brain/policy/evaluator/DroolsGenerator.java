@@ -42,7 +42,7 @@ public class DroolsGenerator
                 continue;
             }
 
-            ValidationResult validationResult = policy.validate( applicationId );
+            ValidationResult validationResult = policy.validate( applicationId, true );
             if ( validationResult != null && !validationResult.isValid() )
             {
                 throw new InvalidPolicyException( validationResult );

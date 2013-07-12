@@ -430,7 +430,7 @@ public class PolicyResourceTest
         policy.addConstraint( constraint );
         Response response = RestAccess.post( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
+        Assert.assertEquals( "The policy name is required.", response.getResponseBody() );
     }
 
     @Test
@@ -460,7 +460,7 @@ public class PolicyResourceTest
 
         // Create a valid policy
         Policy policy = new Policy();
-        policy.setName( "PolicyResourceTest_testUpdateInvalidPolicy" );
+        policy.setName( "PolicyResourceTest-testUpdateInvalidPolicy" );
         Constraint constraint = new Constraint();
         constraint.setName( "PolicyResourceTest new constraint" );
         constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
@@ -473,7 +473,7 @@ public class PolicyResourceTest
         policy.setName( null );
         response = RestAccess.put( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "The policy name must not be null or empty", response.getResponseBody() );
+        Assert.assertEquals( "The policy name is required.", response.getResponseBody() );
     }
 
     private void assertPoliciesByOwner( String ownerId, String ownerName, String ownerType, int policyCount,

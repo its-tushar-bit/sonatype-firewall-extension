@@ -157,6 +157,10 @@
       }
     };
 
+    $scope.canSaveInlineEdit = function () {
+      return $scope.hasInlineChanges() && !$scope.inlineLicenseGroupForm.$invalid;
+    };
+
     $scope.inlineSaveLicenseGroup = function () {
       for (var i = 0; i < $scope.licenseGroups.length; i++) {
         var licenseThreatGroup = $scope.licenseGroups[i];

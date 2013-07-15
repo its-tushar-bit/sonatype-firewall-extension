@@ -389,6 +389,12 @@ var angularCommon;
           return passed ? value : undefined;
         };
         ctrl.$parsers.push(validator);
+        // Allows validation to be invoked by code or user input
+        scope.$watch(attr.ngModel, function(newValue) {
+          if (newValue) {
+            validator(newValue);
+          }
+        });
       }
     };
   }]);

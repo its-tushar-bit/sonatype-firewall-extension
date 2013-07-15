@@ -29,6 +29,20 @@ describe('AngularCommon', function () {
     expect('$'.match(allLettersRegex)).not.toBeTruthy();
   });
 
+  it('validates alpha numeric controls', function() {
+    var element = compile("<ng-form id='form' name='form'><input id='control' name='control' type='text' ng-model='alpha' alpha-numeric /></ng-form>")(scope);
+    scope.$digest();
+    scope.$apply(function() {
+      scope.alpha = '!!!!';
+    });
+    expect(element.find('input').val()).toEqual('!!!!');
+    expect(scope.form.control.$error.alphaNumeric).toBeTruthy();
+    scope.$apply(function() {
+      scope.alpha = 'foo';
+    });
+    expect(scope.form.control.$error.alphaNumeric).not.toBeTruthy();
+  });
+
   it('Messages', inject(function (Messages) {
     expect(Messages.getHttpErrorMessage(['Internal Error', 500, null, null])).toEqual('500 - Internal Error');
     expect(Messages.getHttpErrorMessage(

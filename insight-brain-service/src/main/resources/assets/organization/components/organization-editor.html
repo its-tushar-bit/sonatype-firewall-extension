@@ -23,10 +23,18 @@
                     <a ng-click='generateIcon()'>Want a robot?</a>
                 </div>
    			</div>
- 			<div class='header-name-editor'>
-				<a ng-model='selectedOrganization.name' xeditable href='javascript:;' data-emptytext='Organization Name' validate='validateName'
-					data-type='text' style='margin-bottom: 5px;'></a>
-			</div>
+            <div class='inline head'>
+                <h1><span id='organizationName' name='organizationName' ng-model='selectedOrganization.name' xeditable href='javascript:;' data-emptytext='Enter Organization Name'
+                          data-placeholder='Enter Organization Name' data-type='text'
+                          ng-class="{ error: organizationEditor.organizationName.$error.duplicate || organizationEditor.organizationName.$error.alphaNumeric || organizationEditor.organizationName.$error.spaces}"
+                          alpha-numeric has-whitespace='suggestedName'
+                          is-Duplicate is-Duplicate-Array='organizations' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
+                <div>
+                    <span ng-show="organizationEditor.organizationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>
+                    <span ng-show="organizationEditor.organizationName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+                    <span ng-show="organizationEditor.organizationName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+                </div>
+            </div>
 			<input name='organizationId' ng-model='organizationId' type='hidden'/>
 			<input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>

@@ -46,6 +46,9 @@ h4 {
 .glyphicons-sonatype:before {
 	font: 14px/28px 'Glyphicons';
 }
+.first-row {
+	border-bottom: 1px solid #d8d8d8;
+}
 .first-row i, .first-row img {
 	vertical-align: middle;
 }
@@ -70,15 +73,18 @@ h4 {
 	text-decoration: none;
 	color: black;
 }
+/*
 .second-row.navbar-fixed-top hr {
 	margin: 0;
 	border: 0;
-	border-top: 1px solid rgba(0,0,0,.1);
-	border-bottom: 1px solid rgba(255,255,255,.6);
+	border-top: 1px solid #c6c6c6;
+	border-bottom: 1px solid #e8e8e8;
 }
+*/
 .second-row.navbar-fixed-top {
-	top: 51px;
+	top: 53px;
 	border-bottom: 1px solid rgba(0,0,0,.15);
+	border-top: 1px solid #e8e8e8;
 }
 .navbar-inner a.dropdown-toggle {
 	color: #36424e;
@@ -113,7 +119,7 @@ h4 {
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;
 	box-shadow: none;
- filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E4E4E4', endColorstr='#E0E0E0');
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E4E4E4', endColorstr='#E0E0E0');
 	border: 0;
 }
 .navbar .brand {
@@ -147,7 +153,7 @@ body {
 }
 }
 .third-row {
-	margin: 84px 0 auto auto;
+	margin: 85px 0 auto auto;
 }
 .marginless-alert .alert {
 	margin-bottom: 0px;
@@ -171,6 +177,7 @@ body {
 }
 .navigation a, .subnavigation a {
 	font-size: 85%;
+	color: #444444;	
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	color: #36424e;
@@ -191,7 +198,7 @@ body {
 	overflow: auto;
 	border-right: 1px solid rgba(0, 0, 0, .1);
 	border-left: 1px solid rgba(255, 255, 255, .2);
-	border-top: 1px solid rgba(240, 240, 240, .4);
+	border-top: 1px solid rgba(255, 255, 255, .2);
 }
 .subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus, .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
 	color: #36424e;
@@ -203,11 +210,6 @@ body {
 }
 .subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .nav-list>.active>a:hover {
 	background-color: #f4f4f4;
-}
-.navigation a, .subnavigation a {
-	color: #444444;
-}
-.nav-list a {
 }
 .subnavigation-expanded {
 	width: 100%;

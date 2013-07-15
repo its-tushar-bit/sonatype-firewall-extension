@@ -133,7 +133,7 @@ public class PolicyDAOTest
         }
         catch ( InvalidPolicyException expected )
         {
-            if ( !"A policy with name 'PolicyDAOTest new policy' exists already".equals( expected.getMessage() ) )
+            if ( !"A policy with name 'PolicyDAOTest new policy' already exists".equals( expected.getMessage() ) )
             {
                 throw expected;
             }
@@ -148,7 +148,7 @@ public class PolicyDAOTest
         }
         catch ( InvalidPolicyException expected )
         {
-            Assert.assertEquals( "A policy with name 'PolicyDAOTest new policy' exists already", expected.getMessage() );
+            Assert.assertEquals( "A policy with name 'PolicyDAOTest new policy' already exists", expected.getMessage() );
         }
     }
 
@@ -260,7 +260,7 @@ public class PolicyDAOTest
         }
         catch ( InvalidPolicyException expected )
         {
-            if ( !"A policy with name 'PolicyDAOTest new policy 2' exists already".equals( expected.getMessage() ) )
+            if ( !"A policy with name 'PolicyDAOTest new policy 2' already exists".equals( expected.getMessage() ) )
             {
                 throw expected;
             }
@@ -275,7 +275,7 @@ public class PolicyDAOTest
         }
         catch ( InvalidPolicyException expected )
         {
-            Assert.assertEquals( "A policy with name 'PolicyDAOTest new policy 2' exists already",
+            Assert.assertEquals( "A policy with name 'PolicyDAOTest new policy 2' already exists",
                                  expected.getMessage() );
         }
     }

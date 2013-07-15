@@ -100,7 +100,7 @@ public class PolicyDAO
             {
                 if ( NameHelper.equals( policy.getName(), existingPolicy.getName() ) )
                 {
-                    throw new InvalidPolicyException( "A policy with name '" + existingPolicy.getName() + "' exists already" );
+                    throw new InvalidPolicyException( "A policy with name '" + existingPolicy.getName() + "' already exists" );
                 }
             }
 
@@ -171,7 +171,7 @@ public class PolicyDAO
                     if ( NameHelper.equals( policy.getName(), existingPolicy.getName() ) )
                     {
                         throw new InvalidPolicyException( "A policy with name '" + existingPolicy.getName()
-                            + "' exists already" );
+                            + "' already exists" );
                     }
                 }
             }

@@ -74,6 +74,21 @@ describe('AngularCommon', function () {
     expect(elm.hasClass('editable')).toBeFalsy();
   });
 
+  it('X-editable allows for adjustable width', function () {
+    var element = angular.element("<a ng-model='mockModel.name' xeditable adjustable='true' href='javascript:;' />");
+    compile(element)(scope);
+    scope.$digest();
+
+    timeout.flush();
+
+    element.click();
+    expect(element.data('editable').input.$input).not.toBeUndefined();
+    var initialWidth = element.data('editable').input.$input.width();
+    element.data('editable').input.$input.val('very very long string to go into the width of the control');
+    element.data('editable').input.$input.keyup();
+    expect(element.data('editable').input.$input.width()).toBeGreaterThan(initialWidth);
+  });
+
   it('isDuplicate should respect casesensitive param', function () {
     var elm = angular.element(
         "<form name='form'>" +

@@ -216,8 +216,30 @@ var angularCommon;
 	                element.editable(args);
 
 					element.click(function(e) {
+						var inputElement = element.data('editable').input.$input;
+
+						// Enable adjustable length
+						if (attrs.adjustable) {
+							var oneLetterWidth = 8;
+							var initialWidth = inputElement.width();
+
+							var resizeInput = function () {
+								var len = inputElement.val().length;
+								if (len * oneLetterWidth > initialWidth) {
+									inputElement.width(len * oneLetterWidth);
+								} else {
+									inputElement.width(initialWidth);
+								}
+							};
+
+							resizeInput();
+							inputElement.keyup(function() {
+								resizeInput();
+							});
+						}
+
 						// Enable tabbing through editables
-						element.data('editable').input.$input.on('keydown', function(e) {
+						inputElement.on('keydown', function(e) {
 							var keyCode = e.keyCode || e.which;
 
 							if (keyCode == 9) {

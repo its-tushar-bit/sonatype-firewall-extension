@@ -9,22 +9,21 @@
 		</div>
 		<div class='fade' ng-class='{in : state}'>
 			<div clm-alerts='alerts'></div>
-			<div style='margin:auto;width:460px;padding:10px' ng-show='application != null'>
-				<table class='table table-striped table-bordered clm-table'>
+			<div style='width:600px;' ng-show='application != null'>
+				<table class='table clm-table'>
 					<thead>
 						<tr>
-							<th ng-repeat='stage in state.actionStageList | filterReportColumns'>
-								{{stage.name}} Report
+							<th ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
+								{{stage.name}} Report Violations
 							</th>
 						</tr>
 					</thead>
 					<tr>
-						<td ng-repeat='stage in state.actionStageList | filterReportColumns'>
+						<td ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
 							<div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
 								<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
 								   ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-								   title='View Report' href='../application-assets/#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-									<img src='../assets/img/glyphicons_263_bank.png' />
+								   title='View Report' target='_new' href='{{policyEvaluation.reportUrl}}'>
 									<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
 									<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
 									<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>

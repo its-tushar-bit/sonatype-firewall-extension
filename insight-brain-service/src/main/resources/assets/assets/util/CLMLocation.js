@@ -52,6 +52,10 @@
 
 			getProprietaryConfig : function () {
 				return baseUrl.get() + '/rest/config/proprietary';
+			},
+			
+			getReportUrl: function(applicationId, scanId) {
+			    return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationId) + '/' + encodeURIComponent(scanId) + '/embedReport/index.html';
 			}
 		};
 	}]);

@@ -10,7 +10,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMAppLocation', 'AngularCommon']);
 
-	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'Messages', 'policyEvaluator', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, messages, policyEvaluator) {
+	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'CLMLocations', 'Messages', 'policyEvaluator', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, clmLocations, messages, policyEvaluator) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirm = {
@@ -86,6 +86,9 @@
 				});
 				if (results.length === 4) {
 					$scope.application = results[3].data;
+				    angular.forEach($scope.application.policyEvaluations,function(policyEvaluation,stage){
+                        policyEvaluation.reportUrl = clmLocations.getReportUrl($scope.application.publicId, policyEvaluation.scanId);
+                    });
 				}
 			}, function (errors) {
 				$scope.error = angular.isArray(errors) ? errors[0] : errors;

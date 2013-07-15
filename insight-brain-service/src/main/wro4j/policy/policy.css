@@ -118,6 +118,10 @@
 .labelContainer.active {
 	border: 1px dashed black;
 }
+.clmLabel.active {
+	border: 1px dashed black;
+}
+
 .licenseContainer {
 	overflow: auto;
 	height: 200px;

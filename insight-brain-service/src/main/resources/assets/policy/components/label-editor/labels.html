@@ -11,7 +11,7 @@
 			<h4>{{selectedApplication.name}} Labels</h4>
 			<div>
 				<div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;padding:5px;'  ng-click='editLabel(label)'>
-					<span class="clmLabel {{label.color}}Label">{{label.label}}</span>
+					<span class="clmLabel {{label.color}}Label" ng-class="{active: selectedLabel.id == label.id}">{{label.label}}</span>
 				</div>
 				<em ng-show='labels.length == 0'>No labels available</em>
 			</div>

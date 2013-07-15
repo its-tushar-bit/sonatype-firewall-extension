@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -215,6 +218,9 @@ public class DroolsGeneratorTest
         policy.setName( " Invalid  Policy Name ! " );
         policy.addConstraint( constraint1 );
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+
+        ValidationResult validationResult = policy.validate( null /* ownerId */);
+        assertTrue( validationResult.getErrors().contains( "The policy name must be alpha numeric." ) );
 
         final DroolsGenerator generator = new DroolsGenerator();
         Assert.assertNotNull( generator.generate( null /* applicationId */, Arrays.asList( policy ) ) );

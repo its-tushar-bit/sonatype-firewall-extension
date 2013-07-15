@@ -13,7 +13,8 @@
 				id : 'id',
 				template : {
 					threatLevel : 5,
-					constraints : [{ conditions: [], operator: null }]
+					constraints : [{ conditions: [], operator: null }],
+					actions : {}
 				},
 				params : {
 					timestamp : new Date().getTime()
@@ -24,7 +25,7 @@
 		return {
 			get : function () {
 				var ownerId = clmAppLocations.getEntityId(),
-				    store = policyStores[ownerId];
+					store = policyStores[ownerId];
 				if (!store) {
 					// Expire existing stores, prevents user from encountering stale data
 					angular.forEach(policyStores, function (value, key) {
@@ -172,7 +173,6 @@
 			}
 			return changed;
 		}
-		$scope.alerts = [];
 
 		$scope.doLoad = function () {
 			$scope.error = null;
@@ -193,18 +193,6 @@
 			}
 		});
 
-		$scope.savePolicy = function () {
-			$scope.policy.actions = policyStore.serializeActions($scope.actions);
-			$scope.policy.$save().then(function (policy) {
-                $scope.policy = policy.$clone();
-                returnFn();
-            }, function (error) {
-				$scope.alerts.push({
-					type : 'error',
-					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
-				});
-			});
-		};
 
 		$scope.confirmationAccept = function () {
 			$('#confirmationModal').modal('hide');
@@ -327,11 +315,6 @@
 			}
 		});
 
-		$scope.updateAge = function (condition) {
-			// Kludge to allow the UI to show two fields but combine them behind the scenes.  The value should only be set when both fields are valid
-			condition.value = (condition.v !== '' && condition.v != null && condition.valueModifier) ? condition.v * condition.valueModifier : null;
-		};
-
 		$scope.validateConstraint = function () {
 			var i,
 				conditions = $scope.constraint.conditions,
@@ -383,9 +366,6 @@
 						condition.value = $scope.conditionTypes[condition.conditionTypeId].valueType.availableValues[0].id;
 					}
 					break;
-				case 'AgeInDaysValueType':
-					condition.valueModifier = 1;
-					break;
 			}
 
 			$scope.validateConstraint();
@@ -409,17 +389,6 @@
 											break;
 									}
 								}
-
-								if (condition.conditionTypeId === "AgeInDays") {
-									if (condition.value >= 365 && condition.value % 365 === 0) {
-										condition.valueModifier = 365;
-									} else if (condition.value >= 30 && condition.value % 30 === 0) {
-										condition.valueModifier = 30;
-									} else {
-										condition.valueModifier = 1;
-									}
-									condition.v = condition.value / condition.valueModifier;
-								}
 							});
 						}
 						$scope.validateConstraint();
@@ -438,8 +407,7 @@
 
 			$scope.constraint.conditions.push({
 				conditionTypeId: conditionType.id,
-				operator: conditionType.supportedOperators[0],
-				valueModifier: 365
+				operator: conditionType.supportedOperators[0]
 			});
 
 			$scope.validateConstraint();
@@ -483,7 +451,7 @@
 		};
 	}]);
 
-	module.directive('inlinePolicyEditor', ['$dialog', function ($dialog) {
+	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
 		return {
 			restrict : 'A',
 			templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
@@ -523,6 +491,17 @@
 						}
 					}
 				};
+				scope.savePolicy = function () {
+					scope.policy.$save().then(function (policy) {
+						scope.policy = null;
+					}, function (error) {
+						scope.alerts.push({
+							type : 'error',
+							msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
+						});
+					});
+				};
+				scope.alerts = [];
 			}
 		};
 	}]);
@@ -534,6 +513,41 @@
 				constraint : '=inlineConstraintEditor'
 			},
 			controller : 'ConstraintEditorController'
+		};
+	});
+
+	module.directive('ageInDays', function () {
+		return {
+			restrict : 'A',
+			scope : {
+				model : '=ngModel'
+			},
+			template : "<input type='number' style='width:100px;vertical-align:top' ng-model='value' placeholder='{{placeholder}}' required> <select style='width:100px;vertical-align:top' ng-model='modifier' ng-options='timeSpan.value as timeSpan.name for timeSpan in timeSpans' required></select>",
+			link : function (scope, element, attrs) {
+				function updateModel() {
+					scope.model = (scope.value !== '' && scope.value !== null && scope.modifier) ? scope.value * scope.modifier : null;
+				}
+				function updateValue() {
+					if (!scope.model) {
+						scope.value = null;
+						scope.modifier = 365;
+					} else {
+						if (scope.model >= 365 && scope.model % 365 === 0) {
+							scope.modifier = 365;
+						} else if (scope.model >= 30 && scope.model % 30 === 0) {
+							scope.modifier = 30;
+						} else {
+							scope.modifier = 1;
+						}
+						scope.value = scope.model / scope.modifier;
+					}
+				}
+				scope.timeSpans = [{'value':1, 'name':'Days'},{'value':30, 'name':'Months'},{'value':365, 'name':'Years'}];
+				// TODO Some work here when editing an existing condition to ensure we don't touch the initial state
+				scope.$watch('model', updateValue);
+				scope.$watch('value', updateModel);
+				scope.$watch('modifier', updateModel);
+			}
 		};
 	});
 }());

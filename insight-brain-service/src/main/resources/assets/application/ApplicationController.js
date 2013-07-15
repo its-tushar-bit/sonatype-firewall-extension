@@ -173,7 +173,7 @@
     $scope.$on('pageChangeStarted', function (event, destination) {
       var application = $scope.selectedApplication;
       if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
-        if ($scope.isFormDirty() && !me.isPostingIcon) {
+        if ($scope.isFormDirty() && !$scope.isPostingIcon) {
           event.preventDefault();
         }
       }

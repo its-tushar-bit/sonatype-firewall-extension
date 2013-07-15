@@ -335,6 +335,10 @@ body {
 /**
  * Inline Editor
  */
+.head {
+    height: 55px;
+}
+
 .head h1 {
 	margin: -10px 0 0 0;
 	white-space: nowrap;
@@ -393,6 +397,7 @@ body {
 .inline a {
 	-webkit-appearance: none;
 	-webkit-box-shadow: none;
+    box-shadow: none;
 	border-top: none;
 	border-right: none;
 	border-left: none;

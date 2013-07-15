@@ -14,7 +14,7 @@
     angular.module('EditorTools', []).service('editorTools', function($parse, regexFactory, hudson, CLMAppLocations) {
 		function EditorController($scope, $state, stateName, idSelector, resetEvent, hiddenId, form) {
 			var me = this;
-			me.isPostingIcon = false;
+      $scope.isPostingIcon = false;
 
 			$scope.alerts = [];
 			$scope.hasRobotSource = false;
@@ -113,7 +113,7 @@
 						}
 					});
 				} else {
-					me.isPostingIcon = true;
+          $scope.isPostingIcon = true;
 					form.submit();
 				}
 			}

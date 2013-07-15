@@ -83,10 +83,10 @@ describe('AngularCommon', function () {
 
     element.click();
     expect(element.data('editable').input.$input).not.toBeUndefined();
-    var initialWidth = element.data('editable').input.$input.width();
+    element.data('editable').input.$input.width(90);
     element.data('editable').input.$input.val('very very long string to go into the width of the control');
     element.data('editable').input.$input.keyup();
-    expect(element.data('editable').input.$input.width()).toBeGreaterThan(initialWidth);
+    expect(element.data('editable').input.$input.width()).toBeGreaterThan(90);
   });
 
   it('isDuplicate should respect casesensitive param', function () {

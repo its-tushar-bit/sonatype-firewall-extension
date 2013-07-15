@@ -164,7 +164,7 @@ public class Policy
         }
         else
         {
-            // if inserting/updating a policy, go with strict name validation to enforce migration
+            // if inserting/updating a policy, go with strict name validation
             try
             {
                 NameHelper.validate( name );

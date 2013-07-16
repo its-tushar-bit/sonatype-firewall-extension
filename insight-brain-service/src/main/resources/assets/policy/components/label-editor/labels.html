@@ -5,7 +5,7 @@
 	</div>
 	<div ng-show='!error && labels != null'>
 		<div class='add-section'>
-			<button type='button' class='btn btn-primary' ng-click='editLabel()'><i class="icon-white icon-plus-sign"></i> New Label</button>
+          <button type='button' class='btn btn-primary' ng-click='editLabel()'><i class="icon-white icon-plus-sign"></i> New Label</button>
 		</div>
 		<div style='padding-left:25px'>
 			<h4>{{selectedApplication.name}} Labels</h4>
@@ -15,15 +15,13 @@
 					<span class="clmLabel {{label.color}}Label" style="padding-right: 15px;">
                       {{label.label}}
                     </span>
-                      <span class="icon-minus-sign deleteHoverTransparent"
-                            style="vertical-align: top; padding:0px;margin: 0; background-color: #e8e8e8;" ng-click="deleteLabel(label)"
-                            delete-Hover></span>
+                    <span class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span>
                   </div>
 				</div>
 				<em ng-show='labels.length == 0'>No labels available</em>
 			</div>
 			<div ng-include='editorUrl'></div>
-		</div>
+	    </div>
     </div>
     <div error-Modal></div>
 </div>

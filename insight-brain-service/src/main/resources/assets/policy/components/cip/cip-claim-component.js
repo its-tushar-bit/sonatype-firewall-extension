@@ -67,7 +67,7 @@
     claimApp.controller('ClaimComponentController', [ 'hudson', '$scope', 'CurrentData', function(hudson, $scope, CurrentData) {
         $scope.resetClaimData = function() {
             $scope.claimData = {};
-            $scope.claimData.createTimeText = dateToString(new Date(CurrentData.createTime));
+            $scope.claimData.createTimeText = CurrentData.createTime ? dateToString(new Date(CurrentData.createTime)) : null;
             $scope.submitted = false;
             $scope.disableSubmit = false;
         };
@@ -170,6 +170,7 @@
                     scope.claimData.createTimeText = dateToString(event.date);
                 });
             });
+            element.datepicker('update', scope.claimData.createTimeText);
         };
     });
 }());

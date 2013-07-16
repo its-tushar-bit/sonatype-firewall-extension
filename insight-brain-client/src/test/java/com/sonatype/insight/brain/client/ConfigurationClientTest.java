@@ -135,7 +135,7 @@ public class ConfigurationClientTest
         }
         catch ( IOException e )
         {
-            assertEquals( "Unknown host: 1234.bad.host.1234.com", e.getMessage() );
+          assertThat( e.getMessage(), startsWith( "Unknown host: 1234.bad.host.1234.com" ) );
         }
     }
 

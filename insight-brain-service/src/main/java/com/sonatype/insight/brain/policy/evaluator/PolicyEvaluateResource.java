@@ -93,22 +93,27 @@ public class PolicyEvaluateResource
         final List<PolicyAlert> oldAlerts =
             policyEvaluationUtils.findLastPolicyAlerts( applicationPublicId, appId, stage );
 
-        PolicyEvaluationResult policyEvaluation = policyEvaluationUtils.evaluate( applicationPublicId, scanId, stage );
-        final List<PolicyAlert> alerts = policyEvaluation.getAlerts();
+        PolicyEvaluationResult policyEvaluationResult =
+            policyEvaluationUtils.evaluate( applicationPublicId, scanId, stage );
 
-        @SuppressWarnings( "unchecked" )
-        List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
-        if ( !oldAlerts.isEmpty() )
+        if ( !policyEvaluationResult.isReevaluation() )
         {
-            digest = PolicyAlertDigester.digestPolicyAlerts( alerts, oldAlerts );
+            final List<PolicyAlert> alerts = policyEvaluationResult.getAlerts();
+
+            @SuppressWarnings( "unchecked" )
+            List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
+            if ( !oldAlerts.isEmpty() )
+            {
+                digest = PolicyAlertDigester.digestPolicyAlerts( alerts, oldAlerts );
+            }
+
+            if ( digest != null )
+            {
+                sendNotifications( applicationPublicId, appId, scanId, stage, digest );
+            }
         }
 
-        if ( digest != null )
-        {
-            sendNotifications( applicationPublicId, appId, scanId, stage, digest );
-        }
-
-        return policyEvaluation;
+        return policyEvaluationResult;
     }
 
     static Map<String, Object> createPolicyMailModel( final String serverUrl, final String cdnUrl,

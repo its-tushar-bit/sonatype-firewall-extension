@@ -667,6 +667,73 @@ public class PolicyEvaluateResourceTest
     }
 
     @Test
+    public void testReEvaluate()
+        throws Exception
+    {
+        String applicationPublicId = "testReEvaluation";
+        Application application = createApplication( applicationPublicId );
+        String scanId = "testReEvaluation";
+        String licenseFingerprint = "testReEvaluation";
+        setLicenseFingerprint( licenseFingerprint );
+
+        File saasReportFile = getReportResponseFile( licenseFingerprint, scanId );
+        saasReportFile.delete();
+
+        Constraint constraint1 = new Constraint( "C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND );
+        Condition condition1 = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
+        constraint1.addCondition( condition1 );
+        Policy policy1 = new Policy( "P1", "PolicyEvaluateResourceTest policy1" );
+        policy1.setThreatLevel( 8 );
+        policy1.addConstraint( constraint1 );
+        Action notifyAction = new Action( NotifyActionType.ID );
+        notifyAction.setTarget( "manager@test.corp" );
+        policy1.addAction( BuildStageType.ID, notifyAction );
+        Response response = addPolicy( applicationPublicId, policy1 );
+        policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
+
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // Simulate that the report is available
+        URL testReportFileUrl = getClass().getResource( "/PolicyEvaluateResourceTest/report.zip" );
+        FileUtils.copyFile( new File( testReportFileUrl.getFile() ), saasReportFile );
+
+        List<Message> notifications = Mailbox.get( "manager@test.corp" );
+        notifications.clear();
+
+        // Evaluate policy
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        PolicyEvaluationResult policyEvaluationResult =
+            JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
+        Assert.assertNotNull( policyEvaluationResult );
+        List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertFalse( policyEvaluationResult.isReevaluation() );
+        assertPolicyEvaluation( application.getId(), scanId, false /* isReevaluation */);
+
+        // Notification message should have been sent
+        Assert.assertEquals( 1, notifications.size() );
+        notifications.clear();
+
+        // Change the policy name
+        policy1.setName( policy1.getName() + "Updated" );
+        updatePolicy( applicationPublicId, policy1 );
+
+        // Evaluate policy again for the same scan
+        response = RestAccess.post( getServiceURL( applicationPublicId, scanId ), JsonHelpers.asJson( stage ) );
+        assertResponseStatus( 200, response );
+        policyEvaluationResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyEvaluationResult.class );
+        Assert.assertNotNull( policyEvaluationResult );
+        Assert.assertEquals( 1, policyAlerts.size() );
+        Assert.assertTrue( policyEvaluationResult.isReevaluation() );
+        assertPolicyEvaluation( application.getId(), scanId, true /* isReevaluation */);
+
+        // Notification message should not have been sent since this is a re-evaluation
+        Assert.assertTrue( notifications.isEmpty() );
+    }
+
+    @Test
     public void testEvaluate_NoPolicyEvalAuditEntryCreatedIfReportMissing()
         throws Exception
     {

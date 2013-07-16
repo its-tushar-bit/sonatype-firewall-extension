@@ -100,6 +100,7 @@ public class PolicyEvaluationUtils
         final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
         policyEvaluationResult.setAlerts( alerts );
         calculateCounters( policyEvaluationResult );
+        policyEvaluationResult.setReevaluation( isReevaluation );
 
         return policyEvaluationResult;
     }

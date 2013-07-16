@@ -355,11 +355,11 @@ body {
 	padding: 0;
 	border: none;
 }
-.editorHeader .inline .editable-container input {
+.setappid .inline .editable-container input {
 	-webkit-transition: width .2s linear;
 	-moz-transition: width .2s linear;
 	transition: width .2s linear;
-	/* width: 57px; Need a way to target App ID input and not affect App Name */ 
+	width: 55px;
 }
 .inline.head h1 span, .inline.head h1 input {
 	line-height: 55px;

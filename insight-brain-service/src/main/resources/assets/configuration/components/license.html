@@ -1,53 +1,56 @@
 <div class='container'>
-	<div class='row' ng-show='!isLoaded()'>
-		<div class='span4 offset4'>
-			<div class='content-container' style='padding: 5px'>
-				<h5><i class='icon icon-time'></i> Loading...</h5>
+	<div load-error='error' reload='doLoad()'></div>
+	<div ng-hide='error'>
+		<div class='row' ng-show='!isLoaded()'>
+			<div class='span4 offset4'>
+				<div class='content-container' style='padding: 5px'>
+					<h5><i class='icon icon-time'></i> Loading...</h5>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class='row' ng-show='isLoaded() && !license'>
-		<div class='span6 offset3'>
-			<div class='content-container'>
-				<div class='modal-header'>
-					<h4>
-						<span>Install License</span>
-					</h4>
+		<div class='row' ng-show='isLoaded() && !license'>
+			<div class='span6 offset3'>
+				<div class='content-container'>
+					<div class='modal-header'>
+						<h4>
+							<span>Install License</span>
+						</h4>
+					</div>
+					<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
+						<div class='modal-body'>
+							<div class='control-group'>
+								<label class='control-label' for='file'>Select a license file to upload:</label>
+								<div class='controls'>
+									<input type="file" name="file" on-file-change="onFileChanged()"/>
+									<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
+								</div>
+							</div>
+						</div>
+					</form>
 				</div>
-				<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
-					<div class='modal-body'>
+			</div>
+		</div>
+		<div class='row' ng-show='isLoaded() && license'>
+			<div class='span6 offset3'>
+				<div class='content-container'>
+					<div class='modal-header'>
+						<h4>
+							<span>CLM License</span>
+						</h4>
+					</div>
+					<div class='modal-body form-horizontal'>
 						<div class='control-group'>
-							<label class='control-label' for='file'>Select a license file to upload:</label>
-							<div class='controls'>
-								<input type="file" name="file" on-file-change="onFileChanged()"/>
-								<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
+							<label class='control-label'><strong>Expiration</strong></label>
+							<div class='controls' style='padding-top:5px'>
+								{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}
 							</div>
 						</div>
 					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-	<div class='row' ng-show='isLoaded() && license'>
-		<div class='span6 offset3'>
-			<div class='content-container'>
-				<div class='modal-header'>
-					<h4>
-						<span>CLM License</span>
-					</h4>
-				</div>
-				<div class='modal-body form-horizontal'>
-					<div class='control-group'>
-						<label class='control-label'><strong>Expiration</strong></label>
-						<div class='controls' style='padding-top:5px'>
-							{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}
-						</div>
+					<div class='modal-footer'>
+						<button class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
+							<i class='icon-white icon-minus-sign'></i> Uninstall License
+						</button>
 					</div>
-				</div>
-				<div class='modal-footer'>
-					<button class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
-						<i class='icon-white icon-minus-sign'></i> Uninstall License
-					</button>
 				</div>
 			</div>
 		</div>

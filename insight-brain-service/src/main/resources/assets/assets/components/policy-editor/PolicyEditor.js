@@ -456,7 +456,7 @@
 			restrict : 'A',
 			templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
 			scope : {
-				createPolicy : '&inlinePolicyEditor'
+				createPolicy : '&inlinePolicyCreator'
 			},
 			link : function (scope, element, attrs) {
 				scope.click = function () {

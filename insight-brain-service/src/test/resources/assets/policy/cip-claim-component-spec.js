@@ -26,7 +26,10 @@ describe('CIP Claim Component tests', function() {
             $scope : scope,
             global : {},
             CurrentData : function() {
-                return 1, 0;
+                return {
+                    hash : "1",
+                    createTime : 1
+                };
             }
         });
     }));

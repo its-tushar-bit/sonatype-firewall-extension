@@ -591,4 +591,22 @@ var angularCommon;
 			}
 		};
 	});
+
+  /**
+   * Highlight an element with a border when the mouse is focused. Replace with a transparent border when the mouse leaves
+   */
+  angularCommon.directive('deleteHover', function () {
+    return {
+      link: function (scope, element) {
+        element.bind('mouseenter', function () {
+          angular.element(element).removeClass('deleteHoverTransparent');
+          angular.element(element).addClass('deleteHover');
+        });
+        element.bind('mouseleave', function () {
+          angular.element(element).removeClass('deleteHover');
+          angular.element(element).addClass('deleteHoverTransparent');
+        });
+      }
+    }
+  });
 }());

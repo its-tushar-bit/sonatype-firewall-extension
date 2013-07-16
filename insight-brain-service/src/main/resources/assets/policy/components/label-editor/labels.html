@@ -11,26 +11,19 @@
 			<h4>{{selectedApplication.name}} Labels</h4>
 			<div>
 				<div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;padding:5px;'  ng-click='editLabel(label)'>
-					<span class="clmLabel {{label.color}}Label" ng-class="{active: selectedLabel.id == label.id}">{{label.label}}</span>
+                  <div class="labelContainer"  ng-class="{active: selectedLabel.id == label.id}">
+					<span class="clmLabel {{label.color}}Label" style="padding-right: 15px;">
+                      {{label.label}}
+                    </span>
+                      <span class="icon-minus-sign deleteHoverTransparent"
+                            style="vertical-align: top; padding:0px;margin: 0; background-color: #e8e8e8;" ng-click="deleteLabel(label)"
+                            delete-Hover></span>
+                  </div>
 				</div>
 				<em ng-show='labels.length == 0'>No labels available</em>
 			</div>
 			<div ng-include='editorUrl'></div>
 		</div>
-		<div id="deleteLabelModal" data-backdrop="static" class="modal fade">
-	        <div class="modal-header">
-	            <button type="button" class="close" data-dismiss="modal">&times;</button>
-	            <h3>Delete Label?</h3>
-	        </div>
-	        <div class="modal-body">
-	            <p>Are you sure you want to delete the label <span class="clmLabel {{selectedLabel.color}}Label">{{selectedLabel.label}}</span>?
-	            </p>
-	        </div>
-	        <div class="modal-footer">
-	            <button class="btn" data-dismiss="modal">Cancel</button>
-	            <button class="btn btn-danger" ng-disabled='!deletedEnabled' ng-click="deleteLabel()">Delete</button>
-	        </div>
-	    </div>
     </div>
     <div error-Modal></div>
 </div>

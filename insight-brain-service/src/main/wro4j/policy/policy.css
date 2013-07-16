@@ -122,6 +122,13 @@
 	border: 1px dashed black;
 }
 
+.deleteHoverTransparent{
+  border: 1px solid transparent;
+}
+.deleteHover{
+  border: 1px dashed black;
+}
+
 .licenseContainer {
 	overflow: auto;
 	height: 200px;

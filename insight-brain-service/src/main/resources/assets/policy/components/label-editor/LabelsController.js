@@ -47,17 +47,12 @@
 			$scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
         };
 
-        $scope.confirmDeleteLabel = function () {
-            $scope.deletedEnabled = true;
-            $('#deleteLabelModal').modal('show');
-        };
-
-        $scope.deleteLabel = function () {
+        $scope.deleteLabel = function (label) {
             $scope.deletedEnabled = false;
-            $http['delete'](clmAppLocations.getDeleteLabelsUrl($scope.selectedLabel)).success(function () {
+            $http['delete'](clmAppLocations.getDeleteLabelsUrl(label)).success(function () {
                 var index = null;
                 angular.forEach($scope.labels, function (candidate, key) {
-                    if (candidate.id === $scope.selectedLabel.id) {
+                    if (candidate.id === label.id) {
                         index = key;
                         return false;
                     }
@@ -148,27 +143,27 @@
 		});
     }]);
 
-    labelModule.directive('itemLabel', function () {
-        return {
-            require: 'ngModel',
-            link: function (scope, element, attrs, ctrl) {
-                ctrl.$parsers.unshift(function (newValue) {
-                    var unique = true,
-                        notEmpty = newValue.length !== 0,
-                        notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
-                    ctrl.$setValidity('empty', notEmpty);
+  labelModule.directive('itemLabel', function () {
+    return {
+      require: 'ngModel',
+      link: function (scope, element, attrs, ctrl) {
+        ctrl.$parsers.unshift(function (newValue) {
+          var unique = true,
+              notEmpty = newValue.length !== 0,
+              notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
+          ctrl.$setValidity('empty', notEmpty);
 
-                    angular.forEach(scope.labels, function (item, key) {
-                        if (item.id !== scope.selectedLabel.id) {
-                            unique = unique && (item.label.toLowerCase() !== newValue.toLowerCase());
-                        }
-                    });
-                    ctrl.$setValidity('duplicate', unique);
-                    ctrl.$setValidity('invalid', notInvalid);
-
-                    return (notEmpty && unique && notInvalid) ? newValue : undefined;
-                });
+          angular.forEach(scope.labels, function (item, key) {
+            if (item.id !== scope.selectedLabel.id) {
+              unique = unique && (item.label.toLowerCase() !== newValue.toLowerCase());
             }
-        };
-    });
+          });
+          ctrl.$setValidity('duplicate', unique);
+          ctrl.$setValidity('invalid', notInvalid);
+
+          return (notEmpty && unique && notInvalid) ? newValue : undefined;
+        });
+      }
+    };
+  });
 }());

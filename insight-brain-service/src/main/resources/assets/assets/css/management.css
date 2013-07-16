@@ -354,7 +354,12 @@ body {
 .inline .editable-container input {
 	padding: 0;
 	border: none;
-	width: 90px;
+}
+.editorHeader .inline .editable-container input {
+	-webkit-transition: width .2s linear;
+	-moz-transition: width .2s linear;
+	transition: width .2s linear;
+	width: 57px; 
 }
 .inline.head h1 span, .inline.head h1 input {
 	line-height: 55px;

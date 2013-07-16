@@ -479,7 +479,7 @@ var angularCommon;
 	angularCommon.service('BaseUrl', [function() {
 	   return {
 	       get : function() {
-               var baseSegments = ['/policy-assets/', '/application-assets/', '/unlicensed-assets/', '/assets/'],
+               var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/'],
                    idx = -1;
 
                for (var i = 0; i < baseSegments.length; i++) {

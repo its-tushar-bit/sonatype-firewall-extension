@@ -45,11 +45,13 @@
         }
 
         $scope.reload = function () {
-            if (window.location.href.indexOf('unlicensed-assets') > -1) {
-                window.location.href = window.location.href.replace('unlicensed-assets', 'assets');
-            } else {
-                window.location.reload();
-            }
+            window.location.reload();
+        };
+
+        $scope.openFileBrowser = function () {
+            var file = angular.element('input[type=file]');
+            file.replaceWith(file = file.clone(true));
+            file[0].click();
         };
 
         $scope.viewUninstallLicense = function () {

@@ -7,12 +7,12 @@
 			</div>
 			<div ng-show='!error && isLoaded()'>
 				<div ng-show='!license'>
-					<button class='btn btn-primary' onclick="document.getElementById('license-file').click()">
+					<button class='btn btn-primary' ng-click="openFileBrowser()">
 						<i class='icon-white icon-plus-sign'></i>&nbsp;Install License
 					</button>
 					<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
 						<div style='height: 0px;width:0px; overflow:hidden;'>
-							<input id="license-file" type="file" name="file" on-file-change="onFileChanged()"/>
+							<input type="file" name="file" on-file-change="onFileChanged()"/>
 						</div>
 						<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
 					</form>

@@ -17,17 +17,22 @@
         }
     }
 
-    var module = angular.module('Configuration', ['ListEditor','ui.compat', 'ManagementModule'], ['$stateProvider', function ($stateProvider) {
+    var module = angular.module('Configuration', ['ListEditor','ui.compat', 'ManagementModule', 'ProductLicense'], ['$stateProvider', function ($stateProvider) {
       $stateProvider.state('management.configuration', {
         parent : 'management',
         url : '/configuration',
         controller : 'ConfigurationController',
         templateUrl : '../configuration-assets/components/configuration-navigator.html'
+      }).state('management.configuration.productlicense',{
+        parent : 'management.configuration',
+        url: '/productlicense',
+        controller: 'ProductLicenseController',
+        templateUrl: '../configuration-assets/components/license.html'
       }).state('management.configuration.proprietarypackages',{
             parent : 'management.configuration',
             url: '/proprietarypackages',
             controller: 'ProprietaryConfigurationController',
-            templateUrl: '../application-assets/components/admin.html'
+            templateUrl: '../configuration-assets/components/proprietary.html'
           })
     }]);
 
@@ -37,6 +42,10 @@
 
       $scope.configurationPanes = [
         {
+          name: 'Product License',
+          state: 'management/configuration/productlicense',
+          isEnabled: true
+        },{
           name: 'Proprietary Packages',
           state: 'management/configuration/proprietarypackages',
           isEnabled: true
@@ -44,7 +53,7 @@
       ];
 
       for (var i = 0; i < $scope.configurationPanes.length; i++) {
-        var normalizedState = $scope.configurationPanes[i].state.replace('/', '.');
+        var normalizedState = $scope.configurationPanes[i].state.replace(/\//g, '.');
         if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
           $scope.$state.selectedPane = $scope.configurationPanes[i];
           break;
@@ -53,7 +62,7 @@
 
       $scope.$watch('$state.current.name', function() {
         if ($state.current.name === 'management.configuration') {
-          $state.transitionTo('management.configuration.proprietarypackages');
+          $state.transitionTo('management.configuration.productlicense');
         }
       });
 

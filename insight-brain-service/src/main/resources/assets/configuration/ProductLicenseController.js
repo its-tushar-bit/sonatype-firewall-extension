@@ -8,9 +8,9 @@
 (function () {
     'use strict';
 
-    var adminModule = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
+    var module = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
 
-    adminModule.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
+    module.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
 		function showLicense() {
 			$scope.showInstall = false;
 			$('#eulaModal').modal('hide');
@@ -107,7 +107,7 @@
 		});
     } ]);
 
-    adminModule.directive('onFileChange', [function () {
+    module.directive('onFileChange', [function () {
         return {
 			restrict: 'A',
 			scope : false,

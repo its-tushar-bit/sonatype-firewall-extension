@@ -567,7 +567,7 @@ var angularCommon;
 	/**
 	 * Conditionally show the element based on the expression
 	 */
-	module.directive('showIf', function () {
+	angularCommon.directive('showIf', function () {
 		return {
 			transclude : 'element',
 			compile : function ($element, $attrs, $transclude) {

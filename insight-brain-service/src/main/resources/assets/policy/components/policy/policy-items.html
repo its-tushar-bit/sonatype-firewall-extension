@@ -1,9 +1,7 @@
 <div class="accordion" id="policies">
 	<div class="accordion-group" ng-repeat='policy in policies'>
-		<div class="common-accordion-header">
-			<div style="display:inline;">
-				<span class="threat-box threat-level-{{policy.threatLevel}}"></span>&nbsp;<b style='vertical-align: middle'>{{policy.name}}</b>
-			</div>
+		<div class="common-accordion-header policy">
+			<span class="threat-box threat-level-{{policy.threatLevel}}"></span>&nbsp;<b style='vertical-align: middle'>{{policy.name}}</b>
 			<div class="floatRight" style="float:right;" ng-show='editable'>
 				<div class='btn-group hover-buttons'>
 					<a class="btn btn-mini policy-button" title="Edit Policy" relative-href='/{{policy.id}}'"><i class="icon-pencil" style="margin-top: 0px;"></i></a>

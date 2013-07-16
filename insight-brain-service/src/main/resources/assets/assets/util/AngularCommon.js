@@ -563,4 +563,32 @@ var angularCommon;
 			}
 		};
 	});
+
+	/**
+	 * Conditionally show the element based on the expression
+	 */
+	module.directive('showIf', function () {
+		return {
+			transclude : 'element',
+			compile : function ($element, $attrs, $transclude) {
+				return function (scope, element, attr, ctrl) {
+				var visScope,
+					visElement;
+				scope.$watch(attr.showIf, function (val) {
+					if (val) {
+						visScope = scope.$new();
+						$transclude(visScope, function (clone) {
+							element.after(clone);
+							visElement = clone;
+						});
+					} else if (visScope) {
+						visScope.$destroy();
+						visElement.remove();
+						visElement = visScope = null;
+					}
+				});
+				};
+			}
+		};
+	});
 }());

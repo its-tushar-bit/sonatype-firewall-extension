@@ -7,45 +7,23 @@
 			</div>
 			<div ng-show='!error && isLoaded()'>
 				<div ng-show='!license'>
-					<div class='content-container' style="max-width: 430px;">
-						<div class='modal-header'>
-							<h4>
-								<span>Install License</span>
-							</h4>
+					<button class='btn btn-primary' onclick="document.getElementById('license-file').click()">
+						<i class='icon-white icon-plus-sign'></i>&nbsp;Install License
+					</button>
+					<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
+						<div style='height: 0px;width:0px; overflow:hidden;'>
+							<input id="license-file" type="file" name="file" on-file-change="onFileChanged()"/>
 						</div>
-						<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
-							<div class='modal-body'>
-								<div class='control-group'>
-									<label class='control-label' for='file'>Select a license file to upload:</label>
-									<div class='controls'>
-										<input type="file" name="file" on-file-change="onFileChanged()"/>
-										<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
-									</div>
-								</div>
-							</div>
-						</form>
-					</div>
+						<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
+					</form>
 				</div>
 				<div ng-show='license'>
-					<div class='content-container' style="max-width: 430px;">
-						<div class='modal-header'>
-							<h4>
-								<span>CLM License</span>
-							</h4>
-						</div>
-						<div class='modal-body form-horizontal'>
-							<div class='control-group'>
-								<label class='control-label'><strong>Expiration</strong></label>
-								<div class='controls' style='padding-top:5px'>
-									{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}
-								</div>
-							</div>
-						</div>
-						<div class='modal-footer'>
-							<button class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
-								<i class='icon-white icon-minus-sign'></i> Uninstall License
-							</button>
-						</div>
+					<button class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
+						<i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
+					</button>
+					<div class='add-section form-horizontal' style='margin-top:10px'>
+						<label class='control-label'><strong>Expires</strong></label>
+						<div class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
 					</div>
 				</div>
 			</div>

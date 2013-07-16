@@ -243,7 +243,7 @@
       $scope.selectedApplication.$save().then(function() {
         var saveDeferred = me.saveIcon();
         if (saveDeferred) {
-         saveDeferred.then(function() {
+          saveDeferred.then(function () {
             if ($state.params.applicationPublicId === '_new_') {
               $state.transitionTo('management.application.view.policies', { applicationPublicId: $scope.selectedApplication.publicId });
             }

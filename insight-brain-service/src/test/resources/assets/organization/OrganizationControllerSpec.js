@@ -1,6 +1,6 @@
 var clmTimestamp = '';
 
-describe('OrganizationController', function() {
+describe('OrganizationController', function () {
   var scope, httpBackend, rootScope, state, mockOrganization;
 
   function toRegExp(url) {
@@ -8,15 +8,15 @@ describe('OrganizationController', function() {
   }
 
   beforeEach(module('OrganizationModule'));
-  beforeEach(module(function($provide) {
+  beforeEach(module(function ($provide) {
     $provide.value('OrganizationId', {
-      encoded: function() {
+      encoded: function () {
         return '1';
       }
     });
   }));
 
-  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
+  beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;
 
@@ -37,7 +37,7 @@ describe('OrganizationController', function() {
     httpBackend.flush();
   }));
 
-  it('loads organizations.', function() {
+  it('loads organizations.', function () {
     expect(scope.organizations).not.toBeUndefined();
     expect(scope.organizations.length).toEqual(3);
     expect(scope.organizations[0].id).toEqual('1');
@@ -48,9 +48,9 @@ describe('OrganizationController', function() {
     expect(scope.organizations[2].name).toEqual('org3');
   });
 
-  it('switches organizations.', inject(function($timeout) {
+  it('switches organizations.', inject(function ($timeout) {
     expect(scope.selectedOrganization).toEqual(null);
-    scope.$apply(function() {
+    scope.$apply(function () {
       state.params.organizationId = '2';
     });
     $timeout.flush();
@@ -58,9 +58,9 @@ describe('OrganizationController', function() {
     expect(scope.selectedOrganization.name).toEqual('org2');
   }));
 
-  it('switch to new organization', inject(function($timeout) {
+  it('switch to new organization', inject(function ($timeout) {
     expect(scope.selectedOrganization).toEqual(null);
-    scope.$apply(function() {
+    scope.$apply(function () {
       state.params.organizationId = '_new_';
     });
     $timeout.flush();
@@ -69,7 +69,7 @@ describe('OrganizationController', function() {
   }));
 });
 
-describe('OrganizationEditorController', function() {
+describe('OrganizationEditorController', function () {
   var scope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization, mockOrganization;
 
   function toRegExp(getUrl) {
@@ -77,7 +77,7 @@ describe('OrganizationEditorController', function() {
   }
 
   beforeEach(module('OrganizationModule'));
-  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, OrganizationStore) {
+  beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, OrganizationStore) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;
 
@@ -104,7 +104,7 @@ describe('OrganizationEditorController', function() {
     });
   }));
 
-  it('generates an icon', function() {
+  it('generates an icon', function () {
     scope.generateIcon();
 
     expect(scope.robotHash).not.toBeUndefined();
@@ -112,7 +112,7 @@ describe('OrganizationEditorController', function() {
     expect(scope.hasRobotSource).toBeTruthy();
   });
 
-  it('checks if the form is dirty', function() {
+  it('checks if the form is dirty', function () {
     var isDirty = scope.isFormDirty();
     expect(isDirty).not.toBeTruthy();
 
@@ -130,7 +130,7 @@ describe('OrganizationEditorController', function() {
     expect(isDirty).toBeTruthy();
   });
 
-  it('cancels edits', function() {
+  it('cancels edits', function () {
     scope.selectedOrganization.name = "newName";
     scope.generateIcon();
 
@@ -142,7 +142,7 @@ describe('OrganizationEditorController', function() {
     expect(angular.equals(scope.selectedOrganization, originalMockOrganization)).toBeTruthy();
   });
 
-  it('saves an organization', inject(function(CLMAppLocations) {
+  it('saves an organization', inject(function (CLMAppLocations) {
     scope.organizationEditor = {};
     scope.organizationEditor.$valid = true;
 
@@ -161,7 +161,7 @@ describe('OrganizationEditorController', function() {
     window.FormData = hasFormData;
   }));
 
-  it('validates organization name', inject(function() {
+  it('validates organization name', inject(function () {
     scope.organizationEditor = {
       $valid: true
     };
@@ -186,7 +186,7 @@ describe('OrganizationEditorController', function() {
     expect(scope.organizationEditor.$invalid).toBeTruthy();
   }));
 
-  it('adds an organization', inject(function(CLMLocations, OrganizationStore) {
+  it('adds an organization', inject(function (CLMLocations, OrganizationStore) {
     scope.$state.params.organizationId = '_new_';
     scope.selectedOrganization = OrganizationStore.create();
     scope.selectedOrganization.name = 'name';

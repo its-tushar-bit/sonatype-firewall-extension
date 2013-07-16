@@ -56,71 +56,7 @@
 #policies .actions .action-item:last-child {
 	border-right: none;
 }
-.clmLabel {
-	-moz-border-radius: 3px;
-	-webkit-border-radius: 3px;
-	border-radius: 3px;
-	border-style: solid;
-	border-width: 1px;
-	font-size: 12px;
-	overflow: hidden;
-	margin: 0;
-	padding: 1px 3px;
-	vertical-align: middle;
-	border-color: #AFBFCF;
-	line-height: 13px;
-	max-width: 200px;
-	display: inline-block;
-	word-break: break-all;
-	padding: 5px 10px;
-	cursor: pointer;
-}
-.whiteLabel {
-	background-color: #EEEEEE;
-	color: black;
-}
-.greyLabel {
-	background-color: #BFBFBF;
-	color: black;
-}
-.blackLabel {
-	background-color: #444444;
-	color: white;
-}
-.greenLabel {
-	background-color: #46A546;
-	color: white;
-}
-.yellowLabel {
-	background-color: #FAF20F;
-	color: black;
-}
-.orangeLabel {
-	background-color: #F89406;
-	color: white;
-}
-.redLabel {
-	background-color: #C43C35;
-	color: white;
-}
-.blueLabel {
-	background-color: #0080FF;
-	color: white;
-}
-.labelContainer {
-	padding: 2px;
-	margin: 2px;
-	display: inline-block;
-	cursor: pointer;
-	border-radius: 3px;
-	border: 1px solid lightgrey;
-}
-.labelContainer.active {
-	border: 1px dashed black;
-}
-.clmLabel.active {
-	border: 1px dashed black;
-}
+
 
 .deleteHoverTransparent{
   border: 1px solid transparent;

@@ -9,6 +9,7 @@
 	</group>
 
 	<group name='policy'>
+		<css>/labels.css</css>
 		<css>/policy.css</css>
 	</group>
 

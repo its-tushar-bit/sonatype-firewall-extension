@@ -79,7 +79,6 @@
             OrganizationStore.get().then(function(results) {
                 $scope.organizations = results;
                 $scope.$watch('$state.params.organizationId', switchOrganization);
-				$scope.$on('resetOrganization', switchOrganization);
                 switchOrganization();
             }, function(error) {
                 $scope.error = error;
@@ -91,8 +90,7 @@
 
     organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', function($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages) {
 		var me = this;
-		angular.extend(me, editorTools.getEditorController($scope, $state, 'management.organization', 'selectedOrganization.id',
-			'resetOrganization', angular.element('[name=organizationId]'), angular.element('#organizationEditor')));
+		angular.extend(me, editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'), angular.element('#organizationEditor')));
 
         $scope.$state = $state;
         $scope.submitActive = false;
@@ -177,16 +175,14 @@
             $scope.submitActive = true;
 
             $scope.selectedOrganization.$save().then(function(data) {
-                if ($scope.iconChanged) {
-                    me.saveIcon();
-                } else {
-                    $scope.submitActive = false;
-                }
-
-                $state.params.organizationId = data.id;
-
-                var path = $location.path();
-                $location.path(path.substring(0, path.lastIndexOf('/')) + '/' + $state.params.organizationId);
+              var saveDeferred = me.saveIcon();
+              if (saveDeferred) {
+                saveDeferred.then(function() {
+                  if ($state.params.organizationId === '_new_') {
+                    $state.transitionTo('management.organization.view.policies', { organizationId: $scope.selectedOrganization.id });
+                  }
+                });
+              }
             }, function(error) {
                 $scope.alerts.push({
                     type : 'error',

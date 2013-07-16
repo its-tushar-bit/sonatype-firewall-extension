@@ -48,14 +48,14 @@
       if ('_new_' === $scope.$state.params.applicationPublicId) {
         $timeout(function () {
           $scope.selectedApplication = applicationStore.create();
-          $scope.userIconSource = '../assets/img/defaulticon_application.png';
+          $scope.origUserIconSource = $scope.userIconSource = '../assets/img/defaulticon_application.png';
         }, 100);
       } else if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
         for (var i = 0; i < $scope.applications.length; i++) {
           if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
             $timeout(function () {
               $scope.selectedApplication = $scope.applications[i];
-              $scope.userIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
+              $scope.origUserIconSource = $scope.userIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
             }, 100);
             return;
           }
@@ -77,7 +77,6 @@
         $scope.applications = applications;
         switchApplication();
         $scope.$watch('$state.params.applicationPublicId', switchApplication);
-        $scope.$on('resetApplication', switchApplication);
       }, function (error) {
         $scope.error = error;
       });
@@ -87,8 +86,7 @@
 
   applicationModule.controller('applicationEditorController', function ($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, Messages, $http, hudson, editorTools) {
     var me = this;
-    angular.extend(me, editorTools.getEditorController($scope, $state, 'management.application', 'selectedApplication.id',
-    'resetApplication', angular.element('[name=applicationId]'), angular.element('#applicationEditor')));
+    angular.extend(me, editorTools.getEditorController($scope, 'selectedApplication.id', angular.element('[name=applicationId]'), angular.element('#applicationEditor')));
 
     $scope.$state = $state;
 
@@ -180,8 +178,7 @@
     });
 
     $scope.$on('pageChangeAccepted', function () {
-      var originalApplication = $scope.selectedApplication.$getOriginal();
-      angular.extend($scope.selectedApplication, originalApplication);
+      $scope.cancel();
     });
 
     $scope.canSaveEdit = function () {
@@ -189,12 +186,10 @@
     };
 
     $scope.cancel = function () {
-      if (!$scope.selectedApplication.id) {
-        $state.transitionTo('management.application');
-      } else {
-        var originalApplication = $scope.selectedApplication.$getOriginal();
-        angular.extend($scope.selectedApplication, originalApplication);
-        me.formReset();
+      $scope.selectedApplication.$revert();
+      if ($scope.iconChanged) {
+        $scope.userIconSource = $scope.origUserIconSource;
+        $scope.iconChanged = false;
       }
     };
 
@@ -245,41 +240,21 @@
 
       $scope.submitActive = true;
 
-      var application = {
-        id: $scope.selectedApplication.id,
-        publicId: $scope.selectedApplication.publicId,
-        name: $scope.selectedApplication.name,
-        organizationId: $scope.selectedApplication.organizationId
-      };
-
-      if (!application.id) {
-        hudson.post(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
-          applicationStore.refresh().then(function () {
-            $scope.selectedApplication.id = data.id;
-            me.saveIcon();
+      $scope.selectedApplication.$save().then(function() {
+        var saveDeferred = me.saveIcon();
+        if (saveDeferred) {
+         saveDeferred.then(function() {
+            if ($state.params.applicationPublicId === '_new_') {
+              $state.transitionTo('management.application.view.policies', { applicationPublicId: $scope.selectedApplication.publicId });
+            }
           });
-        }).error(function (data, status) {
-          $scope.submitActive = false;
-          $scope.pushAlert({
-            type: 'error',
-            msg: 'An error occurred while saving the application. (' +
-            Messages.getHttpErrorMessage({ status: status, data: data }) + ')'
-          });
+        }
+      }, function(error) {
+        $scope.alerts.push({
+          type : 'error',
+          msg : 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage(error) + ')'
         });
-      } else {
-        $http.put(CLMAppLocations.getEntitiesUrl(), application).success(function (data) {
-          applicationStore.refresh().then(function () {
-            me.saveIcon();
-          });
-        }).error(function (data, status) {
-          $scope.submitActive = false;
-          $scope.pushAlert({
-            type: 'error',
-            msg: 'An error occurred while saving the application. (' +
-            Messages.getHttpErrorMessage({ status: status, data: data }) + ')'
-          });
-        });
-      }
+      });
 
       return false;
     };

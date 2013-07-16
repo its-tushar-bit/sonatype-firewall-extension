@@ -202,6 +202,11 @@ describe('OrganizationEditorController', function() {
 
     scope.saveClick();
 
+    httpBackend.expectGET('../assets/management.html').respond('<div></div>');
+    httpBackend.expectGET('../organization-assets/components/organization-navigator.html').respond('<div></div>');
+    httpBackend.expectGET('../organization-assets/components/organization-editor.html').respond('<div></div>');
+    httpBackend.expectGET('../policy-assets/components/policy/policy.html').respond('<div></div>');
+
     httpBackend.flush();
 
     window.FormData = hasFormData;

@@ -124,7 +124,7 @@ var angularCommon;
 					idFieldParser = $parse(attr.isDuplicateIdField),
 					caseSensitive = attr.isDuplicateCaseSensitive;
 
-				function validator(value) {
+				var validator = function(value) {
 					if (!value) {
 						ctrl.$setValidity('duplicate', true);
 						return undefined;
@@ -145,6 +145,13 @@ var angularCommon;
 				}
 
 				ctrl.$parsers.push(validator);
+
+        // Allows validation to be invoked by code or user input
+        scope.$watch(attr.ngModel, function(newValue) {
+          if (typeof newValue !== 'undefined') {
+            validator(newValue);
+          }
+        });
 			}
 		};
 	}]);
@@ -367,7 +374,7 @@ var angularCommon;
         ctrl.$parsers.push(validator);
         // Allows validation to be invoked by code or user input
         scope.$watch(attr.ngModel, function(newValue) {
-          if (newValue) {
+          if (typeof newValue !== 'undefined') {
             validator(newValue);
           }
         });
@@ -386,18 +393,17 @@ var angularCommon;
       require: 'ngModel',
       restrict: 'A',
       link: function(scope, elem, attr, ctrl) {
-        function checkWhitespace() {
-          var value;
-		  if (elem.data('editable')) {
-			  value = elem.data('editable').input.$input.val();
-		  } else {
-			  value = elem.val();
-		  }
+        function checkWhitespace(value) {
+          if (typeof value === 'undefined') {
+            if (elem.data('editable')) {
+              value = elem.data('editable').input.$input.val();
+            } else {
+              value = elem.val();
+            }
+          }
           var whitespacePass = value.match(/^ | {2,}|\t| $/);
-          scope.$apply(function () {
             suggestionModel.assign(scope, (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
             ctrl.$setValidity('spaces', !whitespacePass);
-          });
           return whitespacePass;
         }
 
@@ -405,25 +411,41 @@ var angularCommon;
         var suggestionModel = $parse(attr.hasWhitespace);
 		elem.on('keyup', function () {
 			if (failed) {
-				failed = checkWhitespace();
+        scope.$apply(function () {
+				  failed = checkWhitespace();
+        });
 			}
 		});
 		elem.on('blur', function () {
-			failed = checkWhitespace();
+      scope.$apply(function () {
+        failed = checkWhitespace();
+      });
 		});
 		elem.on('click.editable', function() {
 			$timeout(function() {
 				elem.data('editable').input.$input.on('keyup', function () {
 					if (failed) {
-						failed = checkWhitespace();
+            scope.$apply(function () {
+              failed = checkWhitespace();
+            });
 					}
 				});
 				elem.data('editable').input.$input.on('blur', function () {
-					failed = checkWhitespace();
+          scope.$apply(function () {
+            failed = checkWhitespace();
+          });
 				});
 			}, 100);
 			return true;
 		});
+
+        // Allows validation to be invoked by code or user input
+        scope.$watch(attr.ngModel, function(newValue) {
+          if (typeof newValue !== 'undefined') {
+            newValue = newValue || '';
+            checkWhitespace(newValue);
+          }
+        });
       }
     };
   }]);

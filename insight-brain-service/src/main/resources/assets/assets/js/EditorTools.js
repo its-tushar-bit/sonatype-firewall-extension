@@ -11,8 +11,8 @@
     function wrap($http, method, args, clmLocations) {
     }
 
-    angular.module('EditorTools', []).service('editorTools', function($parse, regexFactory, hudson, CLMAppLocations) {
-		function EditorController($scope, $state, stateName, idSelector, resetEvent, hiddenId, form) {
+    angular.module('EditorTools', []).service('editorTools', function($parse, $q, regexFactory, hudson, CLMAppLocations) {
+		function EditorController($scope, idSelector, hiddenId, form) {
 			var me = this;
       $scope.isPostingIcon = false;
 
@@ -41,13 +41,6 @@
 				$scope.iconChanged = true;
 			};
 
-			me.formReset = function() {
-				var params = angular.copy($state.params);
-				$state.transitionTo(stateName).then(function() {
-					$state.transitionTo(stateName + '.view.policies', params);
-				});
-			};
-
 			me.getIconSource = function(element, defaultSource) {
 				if (element.files && element.files.length > 0) {
 					var file = element.files[0], src;
@@ -65,11 +58,12 @@
 			};
 
 			me.saveIcon = function() {
+        var defer = $q.defer();
+
 				if (!$scope.iconChanged) {
 					$scope.submitActive = false;
-					me.formReset();
-					$scope.$emit(resetEvent);
-					return;
+          defer.resolve(null);
+					return defer.promise;
 				}
 
 				// Angular modal does not adjust value of form element so when posting these values need to be set
@@ -93,27 +87,31 @@
 							$scope.$apply(function () {
 								$scope.submitActive = false;
 								$scope.isUploadingIcon = false;
-								me.formReset();
-								$scope.$emit(resetEvent);
+                $scope.iconChanged = false;
+                defer.resolve(data);
 							});
 						},
 						error: function (jqXHR) {
+              var errorText;
+              var contentType = jqXHR.getResponseHeader('Content-Type');
+              if (contentType.indexOf('text/html') === 0) {
+                errorText = 'Server Error';
+              } else {
+                errorText = jqXHR.responseText;
+              }
 							$scope.$apply(function () {
 								$scope.isUploadingIcon = false;
 								$scope.submitActive = false;
-								var errorText;
-								var contentType = jqXHR.getResponseHeader('Content-Type');
-								if (contentType.indexOf('text/html') === 0) {
-									errorText = 'Server Error';
-								} else {
-									errorText = jqXHR.responseText;
-								}
 								$scope.pushAlert({ type: 'error', msg: errorText });
+                defer.reject(errorText);
 							});
 						}
 					});
+
+          return defer.promise;
 				} else {
           $scope.isPostingIcon = true;
+          $scope.isUploadingIcon = true;
 					form.submit();
 				}
 			}
@@ -147,8 +145,8 @@
                 return true;
             },
 
-			getEditorController : function($scope, $state, stateName, idSelector, resetEvent, hiddenId, form) {
-				return new EditorController($scope, $state, stateName, idSelector, resetEvent, hiddenId, form);
+			getEditorController : function($scope, idSelector, hiddenId, form) {
+				return new EditorController($scope, idSelector, hiddenId, form);
 			}
         };
     });

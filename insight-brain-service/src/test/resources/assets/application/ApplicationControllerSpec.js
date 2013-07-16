@@ -63,7 +63,7 @@ describe('ApplicationController', function () {
 });
 
 describe('ApplicationEditorController', function () {
-	var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization;
+	var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
 
 	function toRegExp(getUrl) {
 		return new RegExp(getUrl + '\\?timestamp=[0-9]+');
@@ -86,13 +86,18 @@ describe('ApplicationEditorController', function () {
 
 		scope = $rootScope.$new();
 		state = $state;
-		
-		originalMockApplication = angular.copy(mockApplication);
-		scope.selectedApplication = mockApplication;
-		scope.selectedApplication.$getOriginal = function() {
-			return originalMockApplication;
-		};
+
+    mockApplication.$getOriginal = function() { return originalMockApplication };
+    mockApplication.$revert = function() { return angular.extend(mockApplication, originalMockApplication) };
+    mockApplication.$save = function() { return { then : angular.noop } };
+    getOriginalSpy = spyOn(mockApplication, '$getOriginal').andCallThrough();
+    revertSpy = spyOn(mockApplication, '$revert').andCallThrough();
+    saveSpy = spyOn(mockApplication, '$save').andCallThrough();
+
+    originalMockApplication = angular.copy(mockApplication);
+
                 scope.applications = [mockApplication];
+    scope.selectedApplication = mockApplication;
 
 		$controller('applicationEditorController', { $scope: scope, $state: state });
 
@@ -119,28 +124,40 @@ describe('ApplicationEditorController', function () {
 	
 	it('checks if the form is dirty', function() {
 		var isDirty = scope.isFormDirty();
+
+    expect(getOriginalSpy).toHaveBeenCalled();
 		expect(isDirty).not.toBeTruthy();
 		
 		var originalOrgId = scope.selectedApplication.organizationId;
 		scope.changeOrganization(mockOrganization);
 		isDirty = scope.isFormDirty();
+
+    expect(getOriginalSpy).toHaveBeenCalled();
 		expect(isDirty).toBeTruthy();
 		
 		scope.selectedApplication.organizationId = originalOrgId;
 		isDirty = scope.isFormDirty();
+
+    expect(getOriginalSpy).toHaveBeenCalled();
 		expect(isDirty).not.toBeTruthy();
 		
 		var originalName = scope.selectedApplication.name;
 		scope.selectedApplication.name = "newName";
 		isDirty = scope.isFormDirty();
+
+    expect(getOriginalSpy).toHaveBeenCalled();
 		expect(isDirty).toBeTruthy();
 		
 		scope.selectedApplication.name = originalName;
 		isDirty = scope.isFormDirty();
+
+    expect(getOriginalSpy).toHaveBeenCalled();
 		expect(isDirty).not.toBeTruthy();
 		
 		scope.generateIcon();
 		isDirty = scope.isFormDirty();
+
+    expect(getOriginalSpy).toHaveBeenCalled();
 		expect(isDirty).toBeTruthy();
 	});
 	
@@ -151,8 +168,10 @@ describe('ApplicationEditorController', function () {
 		
 		$httpBackend.expectGET('../assets/management.html').respond('<div></div>');
 		$httpBackend.expectGET('../application-assets/components/application-navigator.html').respond('<div></div>');
-		
+
 		scope.cancel();
+
+    expect(revertSpy).toHaveBeenCalled();
 		
 		expect(angular.equals(scope.selectedApplication, originalMockApplication)).toBeTruthy();
 	}));
@@ -171,8 +190,8 @@ describe('ApplicationEditorController', function () {
 		window.FormData = false;
 		
 		scope.save();
-		
-		$httpBackend.flush();
+
+    expect(saveSpy).toHaveBeenCalled();
 		
 		window.FormData = hasFormData;
 	}));

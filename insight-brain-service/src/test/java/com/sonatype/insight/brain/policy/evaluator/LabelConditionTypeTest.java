@@ -51,7 +51,7 @@ public class LabelConditionTypeTest
     @After
     public void cleanup()
     {
-        for ( Label label : labelDAO.getByApplicationId( applicationId ) )
+        for ( Label label : labelDAO.getByOwnerId( applicationId ) )
         {
             labelDAO.delete( label );
         }

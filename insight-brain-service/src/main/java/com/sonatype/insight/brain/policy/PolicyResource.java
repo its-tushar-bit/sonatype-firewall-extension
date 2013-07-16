@@ -193,7 +193,7 @@ public class PolicyResource
 
         PolicyExportResult exportDTO = new PolicyExportResult();
         exportDTO.policies = policyDAO().getByOwnerId( internalOwnerId );
-        exportDTO.labels = new LabelDAO().getByApplicationId( internalOwnerId );
+        exportDTO.labels = new LabelDAO().getByOwnerId( internalOwnerId );
         exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( internalOwnerId );
         exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId( internalOwnerId );
 
@@ -281,7 +281,7 @@ public class PolicyResource
 
                 policyDAO().deleteByOwnerId( application.getId() );
 
-                oldLabels.addAll( labelDAO.getByApplicationId( em, application.getId() ) );
+                oldLabels.addAll( labelDAO.getByOwnerId( em, application.getId() ) );
             }
             String applicationId = application.getId();
 
@@ -303,7 +303,7 @@ public class PolicyResource
                     else
                     {
                         label.setId( null );
-                        label.setApplicationId( applicationId );
+                        label.setOwnerId( applicationId );
                         labelDAO.insert( em, label );
                         idMap.put( oldId, label.getId() );
                     }

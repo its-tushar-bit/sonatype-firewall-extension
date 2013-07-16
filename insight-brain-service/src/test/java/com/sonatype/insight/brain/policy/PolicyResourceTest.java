@@ -108,7 +108,7 @@ public class PolicyResourceTest
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         Assert.assertNotNull( application );
-        List<Label> labels = labelDAO.getByApplicationId( application.getId() );
+        List<Label> labels = labelDAO.getByOwnerId( application.getId() );
         Assert.assertEquals( 1, labels.size() );
         Assert.assertEquals( label.getLabel(), labels.get( 0 ).getLabel() );
         Assert.assertEquals( label.getColor(), labels.get( 0 ).getColor() );
@@ -141,7 +141,7 @@ public class PolicyResourceTest
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         Assert.assertNotNull( application );
-        labels = labelDAO.getByApplicationId( application.getId() );
+        labels = labelDAO.getByOwnerId( application.getId() );
         Assert.assertEquals( 1, labels.size() );
         Assert.assertEquals( label.getLabel(), labels.get( 0 ).getLabel() );
         Assert.assertEquals( label.getColor(), labels.get( 0 ).getColor() );
@@ -232,7 +232,7 @@ public class PolicyResourceTest
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         Assert.assertNotNull( application );
-        List<Label> labels = labelDAO.getByApplicationId( application.getId() );
+        List<Label> labels = labelDAO.getByOwnerId( application.getId() );
         Assert.assertEquals( 2, labels.size() );
         Assert.assertEquals( label1.getId(), labels.get( 0 ).getId() );
         Assert.assertEquals( "label1", labels.get( 0 ).getLabel() );

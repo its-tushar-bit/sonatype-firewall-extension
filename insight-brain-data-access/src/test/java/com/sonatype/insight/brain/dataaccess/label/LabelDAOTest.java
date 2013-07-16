@@ -24,7 +24,7 @@ public class LabelDAOTest
     public void cleanUp()
     {
         LabelDAO dao = new LabelDAO();
-        List<Label> labels = dao.getByApplicationId( applicationId );
+        List<Label> labels = dao.getByOwnerId( applicationId );
         for ( Label label : labels )
         {
             dao.delete( label );
@@ -37,7 +37,7 @@ public class LabelDAOTest
     {
         LabelDAO dao = new LabelDAO();
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( "My label" );
 
         // Insert
@@ -78,7 +78,7 @@ public class LabelDAOTest
     {
         LabelDAO dao = new LabelDAO();
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( "My\tlabel" );
 
         // Insert
@@ -119,7 +119,7 @@ public class LabelDAOTest
     {
         LabelDAO dao = new LabelDAO();
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( null );
 
         // Insert
@@ -160,7 +160,7 @@ public class LabelDAOTest
     {
         LabelDAO dao = new LabelDAO();
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( " " );
 
         // Insert
@@ -201,7 +201,7 @@ public class LabelDAOTest
     {
         LabelDAO dao = new LabelDAO();
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         dao.insert( label );
@@ -214,7 +214,7 @@ public class LabelDAOTest
         // from the db was never marked as attached/detached by openjpa.
         Label updatedLabel = new Label();
         updatedLabel.setId( label.getId() );
-        updatedLabel.setApplicationId( label.getApplicationId() );
+        updatedLabel.setOwnerId( label.getOwnerId() );
         updatedLabel.setLabel( label.getLabel() );
         updatedLabel.setColor( null );
         dao.update( updatedLabel );
@@ -232,7 +232,7 @@ public class LabelDAOTest
 
         // Create
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         dao.insert( label );
@@ -265,14 +265,14 @@ public class LabelDAOTest
 
         // Create
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         labelDAO.insert( label );
         Assert.assertNotNull( label.getId() );
 
         ComponentLabel componentLabel = new ComponentLabel();
-        componentLabel.setApplicationId( applicationId );
+        componentLabel.setOwnerId( applicationId );
         componentLabel.setLabelId( label.getId() );
         componentLabel.setHash( "ababababab" );
         componentLabelDAO.insert( componentLabel );
@@ -292,14 +292,14 @@ public class LabelDAOTest
 
         // Add a label
         Label label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setLabel( "MyLabel" );
         label.setColor( Color.blue );
         labelDAO.insert( label );
 
         // Add another label with the same name
         label = new Label();
-        label.setApplicationId( applicationId );
+        label.setOwnerId( applicationId );
         label.setColor( Color.blue );
         label.setLabel( "MyLabel" );
         try
@@ -324,14 +324,14 @@ public class LabelDAOTest
 
         // Add a label
         Label label1 = new Label();
-        label1.setApplicationId( applicationId );
+        label1.setOwnerId( applicationId );
         label1.setLabel( "MyLabel1" );
         label1.setColor( Color.blue );
         labelDAO.insert( label1 );
 
         // Add another label
         Label label2 = new Label();
-        label2.setApplicationId( applicationId );
+        label2.setOwnerId( applicationId );
         label2.setColor( Color.blue );
         label2.setLabel( "MyLabel2" );
         labelDAO.insert( label2 );
@@ -359,7 +359,7 @@ public class LabelDAOTest
 
     private void assertLabel( String applicationId, String label, Color color, Label actual )
     {
-        Assert.assertEquals( applicationId, actual.getApplicationId() );
+        Assert.assertEquals( applicationId, actual.getOwnerId() );
         Assert.assertEquals( label, actual.getLabel() );
         Assert.assertEquals( label.toLowerCase( Locale.ENGLISH ), actual.getLabelLowercase() );
         Assert.assertEquals( color, actual.getColor() );

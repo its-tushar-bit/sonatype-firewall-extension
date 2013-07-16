@@ -16,43 +16,50 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.utils.IdUtils;
 
 @Named
 @Path( ComponentLabelResource.SERVICE_PATH )
 public class ComponentLabelResource
 {
-    public static final String SERVICE_PATH = "rest/label/component/{applicationPublicId}/{hash}";
+    public static final String SERVICE_BASEPATH = "rest/label/component/";
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    public static final String SERVICE_PATH = SERVICE_BASEPATH
+        + "{ownerType: application|organization}/{ownerId}/{hash}";
 
     private LabelDAO labelDAO = new LabelDAO();
 
     private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
+    /**
+     * @since 1.6
+     */
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public List<Label> setComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                           @PathParam( "hash" ) String hash, ComponentLabelState data )
+    public List<Label> setComponentLabels( @PathParam( "ownerType" ) String ownerType,
+                                           @PathParam( "ownerId" ) String ownerId, @PathParam( "hash" ) String hash,
+                                           ComponentLabelState data )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        componentLabelDAO.setComponentLabels( application.getId(), hash, data.getLabels(), data.getColor() );
+        componentLabelDAO.setComponentLabels( ownerId, hash, data.getLabels(), data.getColor() );
 
-        return labelDAO.getByApplicationIdAndHash( application.getId(), hash );
+        return labelDAO.getByOwnerIdAndHash( ownerId, hash );
     }
 
+    /**
+     * @since 1.6
+     */
     @GET
     @Produces( MediaType.APPLICATION_JSON )
-    public List<Label> getComponentLabels( @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                           @PathParam( "hash" ) String hash )
+    public List<Label> getComponentLabels( @PathParam( "ownerType" ) String ownerType,
+                                           @PathParam( "ownerId" ) String ownerId, @PathParam( "hash" ) String hash )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        return labelDAO.getByApplicationIdAndHash( application.getId(), hash );
+        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+        return labelDAO.getByOwnerIdAndHash( ownerId, hash );
     }
 }

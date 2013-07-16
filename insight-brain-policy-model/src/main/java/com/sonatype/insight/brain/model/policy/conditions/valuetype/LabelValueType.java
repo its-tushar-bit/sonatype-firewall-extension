@@ -16,11 +16,11 @@ public class LabelValueType
 {
     public static final String ID = "LabelValueType";
 
-    private final String applicationId;
+    private final String ownerId;
 
-    public LabelValueType( String applicationId )
+    public LabelValueType( String ownerId )
     {
-        this.applicationId = applicationId;
+        this.ownerId = ownerId;
     }
 
     @Override
@@ -44,6 +44,6 @@ public class LabelValueType
     @Override
     public List<Label> getAvailableValues()
     {
-        return new LabelDAO().getByApplicationId( applicationId );
+        return new LabelDAO().getByOwnerId( ownerId );
     }
 }

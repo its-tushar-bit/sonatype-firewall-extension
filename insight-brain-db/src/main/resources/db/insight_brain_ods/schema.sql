@@ -28,24 +28,22 @@ CREATE TABLE application (
 
 CREATE TABLE label (
   label_id varchar(50) NOT NULL,
-  application_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
   label varchar(50) NOT NULL,
   label_lowercase varchar(50) NOT NULL,
   color varchar(20) NULL,
   CONSTRAINT label_pk PRIMARY KEY (label_id),
-  CONSTRAINT label_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
-  CONSTRAINT label_uk UNIQUE KEY (application_id, label_lowercase)
+  CONSTRAINT label_uk UNIQUE KEY (owner_id, label_lowercase)
 );
 
 CREATE TABLE component_label (
   component_label_id  varchar(50) NOT NULL,
-  application_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
   label_id varchar(50) NOT NULL,
   hash varchar(20) NOT NULL,
   CONSTRAINT component_label_pk PRIMARY KEY (component_label_id),
-  CONSTRAINT component_label_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
   CONSTRAINT component_label_label_fk FOREIGN KEY (label_id) REFERENCES label(label_id),
-  CONSTRAINT component_label_uk UNIQUE KEY (application_id, hash, label_id)
+  CONSTRAINT component_label_uk UNIQUE KEY (owner_id, hash, label_id)
 );
 
 -- owner_id can be an application or an organization id

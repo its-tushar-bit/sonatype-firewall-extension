@@ -40,7 +40,7 @@
 	var labelsApp = angular.module('ComponentLabelEditor', []);
 
 	labelsApp.controller('LabelsController', ['$http', '$scope', 'ComponentLabelEditorGAV', function ($http, $scope, componentLabelEditorGAV) {
-		var componentLabelsUrl = CLM.path + 'rest/label/component/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash;
+		var componentLabelsUrl = CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash;
 
 		function errorFn(data, status, headersFn, config) {
 			$scope.alerts.push({

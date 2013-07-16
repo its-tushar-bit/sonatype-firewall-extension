@@ -29,12 +29,12 @@ public class ComponentLabelDAO
         return getList( em, sQuery, labelId );
     }
 
-    public List<ComponentLabel> getByApplicationIdAndHash( String applicationId, String hash )
+    public List<ComponentLabel> getByOwnerIdAndHash( String ownerId, String hash )
     {
         EntityManager em = createEntityManager();
         try
         {
-            return getByApplicationIdAndHash( em, applicationId, hash );
+            return getByOwnerIdAndHash( em, ownerId, hash );
         }
         finally
         {
@@ -42,11 +42,11 @@ public class ComponentLabelDAO
         }
     }
 
-    public List<ComponentLabel> getByApplicationIdAndHash( EntityManager em, String applicationId, String hash )
+    public List<ComponentLabel> getByOwnerIdAndHash( EntityManager em, String ownerId, String hash )
     {
         String sQuery = "SELECT label FROM ComponentLabel label" + //
-            " WHERE label.applicationId=?1 AND label.hash=?2";
-        return getList( em, sQuery, applicationId, hash );
+            " WHERE label.ownerId=?1 AND label.hash=?2";
+        return getList( em, sQuery, ownerId, hash );
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ComponentLabelDAO
         throw new UnsupportedOperationException();
     }
 
-    public void setComponentLabels( String applicationId, String hash, Set<String> stringLabels, Color defaultColor )
+    public void setComponentLabels( String ownerId, String hash, Set<String> stringLabels, Color defaultColor )
     {
         if ( stringLabels == null )
         {
@@ -95,7 +95,7 @@ public class ComponentLabelDAO
 
             // Remove obsolete labels
             List<ComponentLabel> oldComponentLabels = new ArrayList<ComponentLabel>();
-            oldComponentLabels.addAll( getByApplicationIdAndHash( em, applicationId, hash ) );
+            oldComponentLabels.addAll( getByOwnerIdAndHash( em, ownerId, hash ) );
             Iterator<ComponentLabel> iterOldComponentLabel = oldComponentLabels.iterator();
             while ( iterOldComponentLabel.hasNext() )
             {
@@ -127,17 +127,17 @@ public class ComponentLabelDAO
             for ( String stringLabel : stringLabels )
             {
                 String labelLowercase = stringLabel.toLowerCase( Locale.ENGLISH );
-                Label label = labelDAO.getByApplicationIdAndLowercaseLabel( em, applicationId, labelLowercase );
+                Label label = labelDAO.getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase );
                 if ( label == null )
                 {
                     label = new Label();
-                    label.setApplicationId( applicationId );
+                    label.setOwnerId( ownerId );
                     label.setLabel( stringLabel );
                     label.setColor( defaultColor );
                     labelDAO.insert( em, label );
                 }
                 ComponentLabel componentLabel = new ComponentLabel();
-                componentLabel.setApplicationId( applicationId );
+                componentLabel.setOwnerId( ownerId );
                 componentLabel.setHash( hash );
                 componentLabel.setLabelId( label.getId() );
                 insert( em, componentLabel );

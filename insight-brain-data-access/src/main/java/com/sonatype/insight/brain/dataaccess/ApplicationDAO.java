@@ -254,7 +254,7 @@ public class ApplicationDAO
 
         // Cascade to labels
         LabelDAO labelDAO = new LabelDAO();
-        List<Label> labels = labelDAO.getByApplicationId( em, application.getId() );
+        List<Label> labels = labelDAO.getByOwnerId( em, application.getId() );
         for ( Label label : labels )
         {
             labelDAO.delete( em, label );

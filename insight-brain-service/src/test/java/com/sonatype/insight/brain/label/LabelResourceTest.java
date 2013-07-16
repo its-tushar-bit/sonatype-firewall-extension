@@ -15,6 +15,7 @@ import org.junit.Test;
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -43,7 +44,7 @@ public class LabelResourceTest
         Label label = new Label();
         label.setColor( Color.blue );
         label.setLabel( "MyLabel" );
-        Response response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( label ) );
+        Response response = RestAccess.post( getServiceURLForApplication( appPublicId ), JsonHelpers.asJson( label ) );
         assertResponseStatus( 200, response );
         label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
 
@@ -57,18 +58,17 @@ public class LabelResourceTest
         policy.setConstraints( constraints );
         policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
         response =
-            RestAccess.post( getRestBaseUrl()
-                                 + expandRestUrl( PolicyResource.SERVICE_PATH, "application", appPublicId ),
+            RestAccess.post( getRestBaseUrl() + expandRestUrl( PolicyResource.SERVICE_PATH, "application", appPublicId ),
                              JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
 
         // Try to delete the label
-        response = RestAccess.delete( getServiceURL( appPublicId ) + "/" + label.getId() );
+        response = RestAccess.delete( getServiceURLForApplication( appPublicId ) + "/" + label.getId() );
         assertResponseStatus( 400, response );
         Assert.assertEquals( "Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy",
                              response.getResponseBody() );
         // Verify that the label was not deleted
-        response = RestAccess.get( getServiceURL( appPublicId ) );
+        response = RestAccess.get( getServiceURLForApplication( appPublicId ) );
         assertResponseStatus( 200, response );
         Label[] labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -83,7 +83,7 @@ public class LabelResourceTest
         String appPublicId = "LabelResourceTest_AppId";
         createApplication( appPublicId );
 
-        Response response = RestAccess.delete( getServiceURL( appPublicId ) + "/YettiId" );
+        Response response = RestAccess.delete( getServiceURLForApplication( appPublicId ) + "/YettiId" );
         assertResponseStatus( 404, response );
         Assert.assertEquals( "Cannot find a label with id YettiId", response.getResponseBody() );
     }
@@ -100,16 +100,16 @@ public class LabelResourceTest
         Label label = new Label();
         label.setColor( Color.blue );
         label.setLabel( "MyLabel" );
-        Response response = RestAccess.post( getServiceURL( appPublicId1 ), JsonHelpers.asJson( label ) );
+        Response response = RestAccess.post( getServiceURLForApplication( appPublicId1 ), JsonHelpers.asJson( label ) );
         assertResponseStatus( 200, response );
         label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
 
-        response = RestAccess.delete( getServiceURL( appPublicId2 ) + "/" + label.getId() );
+        response = RestAccess.delete( getServiceURLForApplication( appPublicId2 ) + "/" + label.getId() );
         assertResponseStatus( 404, response );
         Assert.assertEquals( "Cannot find a label with id " + label.getId() + " for application id " + appPublicId2,
                              response.getResponseBody() );
         // Verify that the label was not deleted
-        response = RestAccess.get( getServiceURL( appPublicId1 ) );
+        response = RestAccess.get( getServiceURLForApplication( appPublicId1 ) );
         assertResponseStatus( 200, response );
         Label[] labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -118,7 +118,7 @@ public class LabelResourceTest
     }
 
     @Test
-    public void testCRUD()
+    public void testApplicationCRUD()
         throws Exception
     {
         // Create an application
@@ -126,7 +126,7 @@ public class LabelResourceTest
         Application application = createApplication( appPublicId );
 
         // Get all labels
-        Response response = RestAccess.get( getServiceURL( appPublicId ) );
+        Response response = RestAccess.get( getServiceURLForApplication( appPublicId ) );
         assertResponseStatus( 200, response );
         Label[] labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -135,13 +135,13 @@ public class LabelResourceTest
         // Add a label
         Label label = new Label();
         label.setLabel( "MyLabel" );
-        response = RestAccess.post( getServiceURL( appPublicId ), JsonHelpers.asJson( label ) );
+        response = RestAccess.post( getServiceURLForApplication( appPublicId ), JsonHelpers.asJson( label ) );
         assertResponseStatus( 200, response );
         label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
         assertLabel( application.getId(), "MyLabel", null /* color */, label );
 
         // Get all labels
-        response = RestAccess.get( getServiceURL( appPublicId ) );
+        response = RestAccess.get( getServiceURLForApplication( appPublicId ) );
         assertResponseStatus( 200, response );
         labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -150,13 +150,13 @@ public class LabelResourceTest
 
         // Update a label
         label.setLabel( "MyUpdatedLabel" );
-        response = RestAccess.put( getServiceURL( appPublicId ), JsonHelpers.asJson( label ) );
+        response = RestAccess.put( getServiceURLForApplication( appPublicId ), JsonHelpers.asJson( label ) );
         assertResponseStatus( 200, response );
         label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
         assertLabel( application.getId(), "MyUpdatedLabel", null /* color */, label );
 
         // Get all labels
-        response = RestAccess.get( getServiceURL( appPublicId ) );
+        response = RestAccess.get( getServiceURLForApplication( appPublicId ) );
         assertResponseStatus( 200, response );
         labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -164,27 +164,90 @@ public class LabelResourceTest
         assertLabel( application.getId(), "MyUpdatedLabel", null /* color */, labels[0] );
 
         // Delete a label
-        response = RestAccess.delete( getServiceURL( appPublicId ) + "/" + label.getId() );
+        response = RestAccess.delete( getServiceURLForApplication( appPublicId ) + "/" + label.getId() );
         assertResponseStatus( 204, response );
 
         // Get all labels
-        response = RestAccess.get( getServiceURL( appPublicId ) );
+        response = RestAccess.get( getServiceURLForApplication( appPublicId ) );
         assertResponseStatus( 200, response );
         labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
         Assert.assertEquals( 0, labels.length );
     }
 
-    private void assertLabel( String applicationId, String label, Color color, Label actual )
+    @Test
+    public void testOrganizationCRUD()
+        throws Exception
     {
-        Assert.assertEquals( applicationId, actual.getApplicationId() );
+        // Create an organization
+        String orgName = "LabelResourceTestOrgName";
+        Organization organization = createOrganization( orgName );
+
+        // Get all labels
+        Response response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        assertResponseStatus( 200, response );
+        Label[] labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
+        Assert.assertNotNull( labels );
+        Assert.assertEquals( 0, labels.length );
+
+        // Add a label
+        Label label = new Label();
+        label.setLabel( "MyLabel" );
+        response = RestAccess.post( getServiceURL( "organization", organization.getId() ), JsonHelpers.asJson( label ) );
+        assertResponseStatus( 200, response );
+        label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
+        assertLabel( organization.getId(), "MyLabel", null /* color */, label );
+
+        // Get all labels
+        response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        assertResponseStatus( 200, response );
+        labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
+        Assert.assertNotNull( labels );
+        Assert.assertEquals( 1, labels.length );
+        assertLabel( organization.getId(), "MyLabel", null /* color */, labels[0] );
+
+        // Update a label
+        label.setLabel( "MyUpdatedLabel" );
+        response = RestAccess.put( getServiceURL( "organization", organization.getId() ), JsonHelpers.asJson( label ) );
+        assertResponseStatus( 200, response );
+        label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
+        assertLabel( organization.getId(), "MyUpdatedLabel", null /* color */, label );
+
+        // Get all labels
+        response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        assertResponseStatus( 200, response );
+        labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
+        Assert.assertNotNull( labels );
+        Assert.assertEquals( 1, labels.length );
+        assertLabel( organization.getId(), "MyUpdatedLabel", null /* color */, labels[0] );
+
+        // Delete a label
+        response = RestAccess.delete( getServiceURL( "organization", organization.getId() ) + "/" + label.getId() );
+        assertResponseStatus( 204, response );
+
+        // Get all labels
+        response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        assertResponseStatus( 200, response );
+        labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
+        Assert.assertNotNull( labels );
+        Assert.assertEquals( 0, labels.length );
+    }
+
+    private void assertLabel( String ownerId, String label, Color color, Label actual )
+    {
+        Assert.assertEquals( ownerId, actual.getOwnerId() );
         Assert.assertEquals( label, actual.getLabel() );
         Assert.assertEquals( label.toLowerCase( Locale.ENGLISH ), actual.getLabelLowercase() );
         Assert.assertEquals( color, actual.getColor() );
     }
 
-    private String getServiceURL( final String appId )
+    private String getServiceURLForApplication( final String appId )
     {
-        return getRestBaseUrl() + LabelResource.SERVICE_PATH.replace( "{applicationPublicId}", appId );
+        return getServiceURL( "application", appId );
+    }
+
+    private String getServiceURL( final String ownerType, final String ownerId )
+    {
+        return getRestBaseUrl() + LabelResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
     }
 }

@@ -16,12 +16,12 @@ import com.sonatype.insight.brain.model.label.Label;
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
 {
-    public List<Label> getByApplicationId( String applicationId )
+    public List<Label> getByOwnerId( String ownerId )
     {
         EntityManager em = createEntityManager();
         try
         {
-            return getByApplicationId( em, applicationId );
+            return getByOwnerId( em, ownerId );
         }
         finally
         {
@@ -29,29 +29,29 @@ public class LabelDAO
         }
     }
 
-    public List<Label> getByApplicationId( EntityManager em, String applicationId )
+    public List<Label> getByOwnerId( EntityManager em, String ownerId )
     {
         String sQuery = "SELECT label FROM Label label" + //
-            " WHERE label.applicationId=?1" + //
+            " WHERE label.ownerId=?1" + //
             " ORDER BY label.labelLowercase";
-        return getList( em, sQuery, applicationId );
+        return getList( em, sQuery, ownerId );
     }
 
-    public List<Label> getByApplicationIdAndHash( String applicationId, String hash )
+    public List<Label> getByOwnerIdAndHash( String ownerId, String hash )
     {
         String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
-            " WHERE label.id=componentLabel.labelId AND label.applicationId=componentLabel.applicationId" + //
-            " AND label.applicationId=?1 AND componentLabel.hash=?2" + //
+            " WHERE label.id=componentLabel.labelId AND label.ownerId=componentLabel.ownerId" + //
+            " AND label.ownerId=?1 AND componentLabel.hash=?2" + //
             " ORDER BY label.labelLowercase";
-        return getList( sQuery, applicationId, hash );
+        return getList( sQuery, ownerId, hash );
     }
 
-    public Label getByApplicationIdAndLowercaseLabel( String applicationId, String labelLowercase )
+    public Label getByOwnerIdAndLowercaseLabel( String ownerId, String labelLowercase )
     {
         EntityManager em = createEntityManager();
         try
         {
-            return getByApplicationIdAndLowercaseLabel( em, applicationId, labelLowercase );
+            return getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase );
         }
         finally
         {
@@ -59,11 +59,11 @@ public class LabelDAO
         }
     }
 
-    public Label getByApplicationIdAndLowercaseLabel( EntityManager em, String applicationId, String labelLowercase )
+    public Label getByOwnerIdAndLowercaseLabel( EntityManager em, String ownerId, String labelLowercase )
     {
         String sQuery = "SELECT label FROM Label label" + //
-            " WHERE  label.applicationId=?1 AND label.labelLowercase=?2";
-        return get( em, sQuery, applicationId, labelLowercase );
+            " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
+        return get( em, sQuery, ownerId, labelLowercase );
     }
 
     @Override
@@ -106,7 +106,7 @@ public class LabelDAO
     public void insert( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
-        if ( getByApplicationIdAndLowercaseLabel( em, label.getApplicationId(), label.getLabelLowercase() ) != null )
+        if ( getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() ) != null )
         {
             throw new InvalidLabelException( "A label with the same name already exists" );
         }
@@ -118,7 +118,7 @@ public class LabelDAO
     {
         validateLabelText( label.getLabel() );
         Label otherLabel =
-            getByApplicationIdAndLowercaseLabel( em, label.getApplicationId(), label.getLabelLowercase() );
+            getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
         if ( otherLabel != null && !otherLabel.getId().equals( label.getId() ) )
         {
             throw new InvalidLabelException( "A label with the same name already exists" );

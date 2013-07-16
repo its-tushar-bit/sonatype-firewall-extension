@@ -27,6 +27,11 @@
     font-weight: bold;
     color: #DDD;
 }
+.policy .threat-level-1 {
+	background-color: #0047B2;
+	border: 1px solid #002966;
+	color : #DDD;
+}
 
 /* Threat Chiclets */
 .threat-chiclet {

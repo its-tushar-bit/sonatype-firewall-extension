@@ -538,6 +538,9 @@ var angularCommon;
 	});
 
 
+	/**
+	 * Common component for threat drop downs
+	 */
 	angularCommon.directive('threatBox', function () {
 		return {
 			restrict : 'A',

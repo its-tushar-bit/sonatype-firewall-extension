@@ -1,7 +1,7 @@
 <div ng-controller='PolicyEditorController' style='width:830px'>
 	<form style='margin-bottom:0px' name='inlinePolicyEditor'>
 		<input ng-click='click()' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required>
-		<span show-if='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
+		<span show-if='policy' class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
 		<div show-if='policy' style='padding-top:10px'>
 			<div inline-constraint-editor='policy.constraints[0]'>
 				<input type="text"  ng-model="constraint.name" ng-change="validateConstraint()" placeholder='Constraint Name...' required>

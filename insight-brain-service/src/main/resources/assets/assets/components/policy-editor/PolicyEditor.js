@@ -468,24 +468,24 @@
 					if (scope.policy) {
 						if (scope.policy.isDirty()) {
 							// show dialog
-/*							$dialog.dialog({
+						$dialog.dialog({
 								backdrop : true,
 								backdropClick : false,
+								backdropFade : true,
+								dialogFade : true,
 								template : '<div class="modal-body">May contain unsaved changes.</div>' +
 											'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
 											'<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
 								controller : ['$scope', 'dialog', function ($scope, dialog) {
-									scope.discard = function () {
+									$scope.discard = function () {
 										dialog.close(true);
 										scope.policy = null;
 									};
-									scope.cancel = function () {
+									$scope.cancel = function () {
 										dialog.close(true);
 									};
 								}]
 							}).open();
-*/
-							scope.policy = null;
 						} else {
 							scope.policy = null;
 						}

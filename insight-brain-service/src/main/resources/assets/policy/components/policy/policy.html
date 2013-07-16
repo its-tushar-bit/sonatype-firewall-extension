@@ -10,7 +10,7 @@
 		<div class='fade' ng-class='{in : state}'>
 			<div clm-alerts='alerts'></div>
 			<div style='width:600px;' ng-show='application != null'>
-				<table class='table clm-table'>
+				<table class='table clm-table' ng-show='application.stageCount'>
 					<thead>
 						<tr>
 							<th ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
@@ -40,7 +40,7 @@
 					</tr>
 				</table>
 			</div>
-			<div ng-repeat='applicablePolicy in applicablePolicies'>
+			<div ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.policies.length > 0'>
 				<div class="policy-parent" ng-switch='applicablePolicy.editable'>
 					<h4 ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</h4>
 					<h4 ng-switch-default>Policies Inherited from {{applicablePolicy.ownerName}}</h4>

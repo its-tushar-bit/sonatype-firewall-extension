@@ -86,8 +86,10 @@
 				});
 				if (results.length === 4) {
 					$scope.application = results[3].data;
+					$scope.application.stageCount = 0;
 				    angular.forEach($scope.application.policyEvaluations,function(policyEvaluation,stage){
                         policyEvaluation.reportUrl = clmLocations.getReportUrl($scope.application.publicId, policyEvaluation.scanId);
+                        $scope.application.stageCount++;
                     });
 				}
 			}, function (errors) {

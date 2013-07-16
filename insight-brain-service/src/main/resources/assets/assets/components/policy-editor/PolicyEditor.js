@@ -424,7 +424,7 @@
 				typeValues[typeValue.id] = typeValue;
 			});
 			angular.forEach(results[0], function (type) {
-				var typeValue = type.valueTypeId ? null : typeValues[type.valueTypeId];
+				var typeValue = type.valueTypeId ? typeValues[type.valueTypeId] : null;
 				type.valueType = typeValue;
 				$scope.conditionTypes[type.id] = type;
 			});

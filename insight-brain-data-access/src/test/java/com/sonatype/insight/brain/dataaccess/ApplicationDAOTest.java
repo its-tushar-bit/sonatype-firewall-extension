@@ -465,4 +465,40 @@ public class ApplicationDAOTest
                           expected.getMessage() );
         }
     }
+
+    @Test
+    public void testConflictingLabels()
+    {
+        final LabelDAO labelDAO = new LabelDAO();
+
+        // org and org label
+        organization = new Organization( "testConflictingLabels" );
+        new OrganizationDAO().insert( organization );
+        Label orgLabel = new Label();
+        orgLabel.setColor( Color.black );
+        orgLabel.setLabel( "testLabel" );
+        orgLabel.setOwnerId( organization.getId() );
+        labelDAO.insert( orgLabel );
+
+        // app and app label
+        application.setName( "testConflictingLabels" );
+        applicationDAO.insert( application );
+        Label appLabel = new Label();
+        appLabel.setColor( Color.black );
+        appLabel.setLabel( "testLabel" );
+        appLabel.setOwnerId( application.getId() );
+        labelDAO.insert( appLabel );
+
+        application.setOrganizationId( organization.getId() );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidApplicationException" );
+        }
+        catch ( InvalidApplicationException expected )
+        {
+            assertEquals( "Both the application and the organization have labels with the same names."
+                + " Conflicting label names :" + " 'testlabel'", expected.getMessage() );
+        }
+    }
 }

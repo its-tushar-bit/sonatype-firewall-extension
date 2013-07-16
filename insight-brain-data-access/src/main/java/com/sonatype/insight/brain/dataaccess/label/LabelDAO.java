@@ -106,23 +106,48 @@ public class LabelDAO
     public void insert( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
-        if ( getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() ) != null )
+        validateLabelUnique( em, label, false );
+        super.insert( em, label );
+    }
+
+    private void validateLabelUnique( EntityManager em, Label label, boolean update )
+        throws InvalidLabelException
+    {
+        // first, check the same label does not exist in for the same owner
+        // this is enforced by db unique key, but checking in java gives nicer error message
+        Label otherLabel = getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
+        if ( otherLabel != null && ( !update || !otherLabel.getId().equals( label.getId() ) ) )
         {
             throw new InvalidLabelException( "A label with the same name already exists" );
         }
-        super.insert( em, label );
+
+        // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
+        // label uniqueness constraints
+
+        // owner can be an app, make sure organization does not have this label already
+        String aQuery = "SELECT label FROM Label label, Application app" + //
+            " WHERE label.ownerId=app.organizationId AND app.id=?1" + //
+            "    AND label.labelLowercase=?2";
+        if ( get( em, aQuery, label.getOwnerId(), label.getLabelLowercase() ) != null )
+        {
+            throw new InvalidLabelException( "A label with the same name already exists" );
+        }
+
+        // owner can be an org, make sure none of org's apps have this label already
+        String oQuery = "SELECT label FROM Label label, Application app" + //
+            " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
+            "    AND label.labelLowercase=?2";
+        if ( get( em, oQuery, label.getOwnerId(), label.getLabelLowercase() ) != null )
+        {
+            throw new InvalidLabelException( "A label with the same name already exists" );
+        }
     }
 
     @Override
     public void update( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
-        Label otherLabel =
-            getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
-        if ( otherLabel != null && !otherLabel.getId().equals( label.getId() ) )
-        {
-            throw new InvalidLabelException( "A label with the same name already exists" );
-        }
+        validateLabelUnique( em, label, true );
         super.update( em, label );
     }
 }

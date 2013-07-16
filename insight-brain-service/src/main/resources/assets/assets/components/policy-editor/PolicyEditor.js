@@ -159,14 +159,14 @@
 				if (angular.isUndefined($scope.policy.id)) {
 					changed = $scope.policy.constraints.length > 0 || $scope.policy.name;
 					if (!changed) {
-						angular.forEach(policyStore.serializeActions($scope.state.actions), function (actions, stage) {
+						angular.forEach(policyStore.serializeActions($scope.actions), function (actions, stage) {
 							changed = changed || actions.length > 0;
 						});
 					}
 				} else {
 					angular.forEach($scope.policies, function (policy, index) {
 						if (policy.id === $scope.policy.id) {
-							changed = $scope.policy.isDirty() || policyStore.isActionDirty($scope.policy, $scope.state.actions);
+							changed = $scope.policy.isDirty() || policyStore.isActionDirty($scope.policy, $scope.actions);
 						}
 					});
 				}
@@ -451,7 +451,7 @@
 		};
 	}]);
 
-	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
+	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', function ($dialog, messages) {
 		return {
 			restrict : 'A',
 			templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",

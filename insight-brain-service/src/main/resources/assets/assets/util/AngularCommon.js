@@ -354,12 +354,13 @@ var angularCommon;
    * Ensure that a given value is all alphanumeric characters.
    */
   angularCommon.directive('alphaNumeric', ['regexFactory', function(regexFactory) {
+    var alphaNumericRegex = new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i');
     return {
       require: 'ngModel',
       restrict: 'A',
       link: function(scope, elem, attr, ctrl) {
         var validator = function (value) {
-          var passed = !value || !value.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'));
+          var passed = !value || !value.match(alphaNumericRegex);
           ctrl.$setValidity('alphaNumeric', passed);
           return passed ? value : undefined;
         };

@@ -96,7 +96,6 @@ describe('PolicyEditor.js', function() {
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
 			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html").respond(template);
-			expectActionRequests();
 			$compile(node)(scope);
 			$httpBackend.flush();
 		}));
@@ -108,6 +107,7 @@ describe('PolicyEditor.js', function() {
 		it('Create', inject(function (PolicyStore) {
 			var createScope = angular.element('#testInlinePolicyCreator').scope(),
 				spy = jasmine.createSpy('createPolicy');
+
 			spy.andReturn(PolicyStore.get().create());
 			scope.createPolicy = spy;
 			createScope.click();
@@ -118,6 +118,7 @@ describe('PolicyEditor.js', function() {
 
 		it('Saving', inject(function ($httpBackend, PolicyStore, CLMAppLocations) {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
+
 			scope.createPolicy = function () {
 				return PolicyStore.get().create();
 			};

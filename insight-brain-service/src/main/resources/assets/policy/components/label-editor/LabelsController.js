@@ -7,40 +7,37 @@
 (function () {
     'use strict';
 
-    var labelModule = angular.module('Labels', ['AngularCommon', 'Hudson', 'CLMAppLocation']);
+  var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
 
-    labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', function ($scope, $http, $dialog, clmAppLocations) {
-        function errorFn(data, status, headersFn, config) {
-            var header = headersFn();
-            if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-                $scope.errorResponse = 'Server Error';
-            } else {
-                $scope.errorResponse = data;
-            }
-            $('#labelErrorModal').modal('show');
-        }
+  var labelModule = angular.module('Labels', ['AngularCommon', 'Hudson', 'CLMAppLocation']);
 
+  labelModule.service('LabelStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
+    var labelStore = clmResource.getStore({
+      url: clmAppLocations.getLabelsUrl(),
+      template: labelTemplate,
+      params: {
+        timestamp: new Date().getTime()
+      }
+    });
+    return labelStore;
+  }]);
+
+    labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'LabelStore', function ($scope, $http, $dialog, clmAppLocations, labelStore) {
 		function deselect() {
 			delete $scope.selectedLabel;
 			$scope.editorUrl = '';
 		}
-		var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
+      $scope.labelStore = labelStore;
+      $scope.doLoad = function () {
+        $scope.error = null;
+        labelStore.get().then(function(labels){
+          $scope.labels = labels;
+        }, function(error){
+          $scope.error = error;
+        });
+      };
 
-		$scope.doLoad = function () {
-			$scope.error = null;
-            $http.get(clmAppLocations.getLabelsUrl(), {
-                params: { timestamp: new Date().getTime() }
-            }).success(function (data) {
-                $scope.labels = data;
-            }).error(function (data, status, headers, config) {
-                $scope.error = {
-					data: data,
-					status : status,
-					headers : headers,
-					config : config
-                };
-            });
-        };
+      $scope.doLoad();
 
         $scope.editLabel = function (label) {
 			$scope.selectedLabel = angular.copy(label || labelTemplate);
@@ -76,7 +73,7 @@
 		$scope.doLoad();
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', 'Messages', function ($scope, $http, hudson, clmAppLocations, messages) {
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'hudson', 'CLMAppLocations', 'Messages', 'LabelStore', function ($scope, $http, hudson, clmAppLocations, messages, labelStore) {
         $scope.alerts = [];
 
         function errorFn(data, status, headersFn, config) {
@@ -92,20 +89,19 @@
             $scope.selectedLabel.color = color;
         };
 
-		$scope.cancelEditLabel = function () {
-			$scope.$emit('labels.cancelEditLabel');
-		};
-
-        $scope.canSaveEdit = function (valid) {
-            return valid && !$scope.submitActive && $scope.selectedLabel != null && $scope.selectedLabel.label;
+        $scope.cancelEditLabel = function () {
+                $scope.$emit('labels.cancelEditLabel');
         };
 
-        $scope.saveLabelClick = function () {
-            if (!$scope.canSaveEdit($scope.labelEditor.$valid)) {
+        $scope.canSaveEdit = function (valid, label) {
+            return valid && !$scope.submitActive && label != null && label.label;
+        };
+
+        $scope.saveLabelClick = function (valid, label) {
+            if (!$scope.canSaveEdit(valid, label)) {
                 return;
             }
 
-            var label = $scope.selectedLabel;
             $scope.submitActive = true;
             if (label.id == null) {
                 hudson.post(clmAppLocations.getLabelsUrl(), label).success(function (data) {
@@ -120,7 +116,7 @@
                             return false;
                         }
                     });
-					$scope.$emit('labels.cancelEditLabel', label);
+                    $scope.$emit('labels.cancelEditLabel', label);
                 }).error(errorFn);
             }
         };
@@ -163,7 +159,46 @@
 
           return (notEmpty && unique && notInvalid) ? newValue : undefined;
         });
+            }
+        };
+    });
+
+  labelModule.directive('inlineLabelCreator', ['Messages', 'LabelStore', function (messages, labelStore) {
+    return {
+      restrict : 'A',
+      templateUrl : "../policy-assets/components/label-editor/label-inline-editor.html",
+      scope : {  },
+      link : function (scope, element, attrs, ctrl) {
+        scope.click = function () {
+          if (!scope.label) {
+            scope.label = labelStore.create();
+          }
+        };
+        scope.cancel = function () {
+          if (scope.label) {
+              scope.label = null;
+          }
+        };
+        scope.setInlineColor = function(color, $event){
+          //scope.$apply(function(){
+            scope.label.color = color;
+            //angular.element($event.target).addClass('active');
+          //});
+        }
+        scope.saveLabel = function () {
+          scope.label.$save().then(function (label) {
+            scope.label = null;
+          }, function (error) {
+            scope.alerts.push({
+              type : 'error',
+              msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage(error) + ')'
+            });
+          });
+        };
+        scope.$on('labels.cancelEditLabel', function(){
+          scope.label = null;
+        });
       }
     };
-  });
+  }])
 }());

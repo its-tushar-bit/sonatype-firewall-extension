@@ -5,7 +5,7 @@
   </div>
   <div ng-show='!error && labels != null'>
     <div class='add-section'>
-      <button type='button' class='btn btn-primary' ng-click='editLabel()'><i class="icon-white icon-plus-sign"></i> New Label</button>
+      <div inline-label-creator></div>
     </div>
     <div class="content-section">
       <div class="content-header">
@@ -13,7 +13,9 @@
       </div>
       <div>
         <div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(label)'>
-          <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}"> <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span> <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
+          <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
+            <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span>
+            <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
         </div>
         <em ng-show='labels.length == 0'>No labels available</em></div>
       <div ng-include='editorUrl'></div>

@@ -321,10 +321,12 @@ body {
 /**
  * Inline Editor
  */
+.inline {
+	margin-top: -10px;
+}
 .head h1 {
-	margin: -10px 0 0 0;
 	white-space: nowrap;
-    height: 55px;
+  height: 55px;
 }
 .inline.head h1 span, .inline.head h1 input, .inline .editable-container input {
 	background: transparent;

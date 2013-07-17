@@ -1,0 +1,39 @@
+<div>
+  <div show-if="!label">
+    <button type='button' class='btn btn-primary' ng-click='click()' style='width:206px'>
+      <i class='icon-white icon-plus-sign'></i> New Label
+    </button>
+  </div>
+  <div show-if="label">
+    <div style='width:830px' ng-controller='LabelEditorController'>
+      <form name='inlineLabelEditor' class='form-horizontal' style='margin-bottom:0'>
+        <input ng-click='click()' id="labelName" name='labelName' type='text' placeholder='New Label'
+               ng-model='label.label' style='margin-bottom:0px' item-label>
+
+        <div ng-show='label' class="modal-body">
+          <div class="control-group"
+               ng-class='{ error : inlineLabelEditor.label.$error.duplicate || inlineLabelEditor.label.$error.empty || inlineLabelEditor.label.$error.invalid }'>
+            <div class="controls">
+              <span ng-show='inlineLabelEditor.labelName.$error.empty' class="help-inline">Required</span>
+              <span ng-show='inlineLabelEditor.labelName.$error.duplicate' class="help-inline">Duplicate Label</span>
+              <span ng-show='inlineLabelEditor.labelName.$error.invalid' class="help-inline">Invalid Character</span>
+            </div>
+          </div>
+          <div>
+            <div class='labelContainer' ng-repeat="color in colors" ng-class="{active: label.color == color}"
+                 ng-click='setInlineColor(color);'>
+              <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{label.label}}</span>
+            </div>
+          </div>
+          <div clm-alerts='alerts'></div>
+          <div class="pull-right">
+            <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
+            <button class="btn btn-primary" ng-disabled='!canSaveEdit(inlineLabelEditor.$valid, label)'
+                    ng-click="saveLabel()">Save
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

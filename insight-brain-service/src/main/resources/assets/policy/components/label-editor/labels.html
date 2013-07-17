@@ -3,9 +3,39 @@
   <div class='content-container' style='text-align:center;width:370px;margin:25px auto' ng-show='labels == null && !error'>
     <h5><i class='icon-time'></i> Loading...</h5>
   </div>
+
+  <!--<div inline-label-creator='createLabel()'></div>-->
+
+  <!--&lt;!&ndash;<button type='button' class='btn btn-primary' ng-click='editLabel()'><i class="icon-white icon-plus-sign"></i> New Label</button>&ndash;&gt;-->
+<!--</div>-->
+<!--<div class="control-group" style='padding-left:25px'>-->
+  <!--<h4>{{selectedApplication.name}} Labels</h4>-->
+  <!--<div>-->
+    <!--<form name='inlineLabelsForm' form-Submit="inlineSaveLabels()">-->
+      <!--<div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;padding:5px;'  ng-click='editLabel(label)'>-->
+
+        <!--<div class="labelContainer"  ng-class="{active: selectedLabel.id == label.id}">-->
+                    <!--<span id="labelName" name="labelName" ng-model="label.label" class="clmLabel {{label.color}}Label"-->
+                          <!--ng-class="{active: selectedLabel.id == label.id}" xeditable href='javascript:;' data-emptytext='Label Name'-->
+                          <!--data-type='text' alpha-numeric required adjustable='true'>{{label.label}}</span>-->
+          <!--&lt;!&ndash;<span class="clmLabel {{label.color}}Label" style="padding-right: 15px;">&ndash;&gt;-->
+          <!--&lt;!&ndash;{{label.label}}&ndash;&gt;-->
+          <!--&lt;!&ndash;</span>&ndash;&gt;-->
+          <!--<span class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</form>-->
+    <!--<em ng-show='labels.length == 0'>No labels available</em>-->
+  <!--</div>-->
+  <!--<div ng-include='editorUrl'></div>-->
+<!--</div>-->
+  
+  
+  
+  
   <div ng-show='!error && labels != null'>
     <div class='add-section'>
-      <button type='button' class='btn btn-primary' ng-click='editLabel()'><i class="icon-white icon-plus-sign"></i> New Label</button>
+      <div inline-label-creator></div>
     </div>
     <div class="content-section">
       <div class="content-header">
@@ -13,7 +43,9 @@
       </div>
       <div>
         <div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(label)'>
-          <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}"> <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span> <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
+          <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
+            <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span>
+            <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
         </div>
         <em ng-show='labels.length == 0'>No labels available</em></div>
       <div ng-include='editorUrl'></div>

@@ -8,13 +8,25 @@
 	'use strict';
 	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'ui.bootstrap', 'AngularCommon']);
 
-	module.service('PolicyStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
-		var policyStoreTemplate = {
+	module.service('PolicyStore', ['ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (constraintStore, clmLocations, clmAppLocations, clmResource) {
+		var conditionTypes = null,
+			policyStoreTemplate = {
 				id : 'id',
-				template : {
-					threatLevel : 5,
-					constraints : [{ conditions: [], operator: null }],
-					actions : {}
+				template : function () {
+					var o = {
+						threatLevel : 5,
+						constraints : [{ conditions: [], operator: null }],
+						actions : {}
+					};
+					if (conditionTypes) {
+						var conditionType = conditionTypes.AgeInDays;
+						o.constraints[0].conditions.push({
+							conditionTypeId: conditionType.id,
+							operator: conditionType.supportedOperators[0],
+							value : null
+						});
+					}
+					return o;
 				},
 				params : {
 					timestamp : new Date().getTime()
@@ -27,6 +39,12 @@
 				var ownerId = clmAppLocations.getEntityId(),
 					store = policyStores[ownerId];
 				if (!store) {
+					constraintStore.get().then(function (results) {
+						conditionTypes = {};
+						angular.forEach(results[0], function (type) {
+							conditionTypes[type.id] = type;
+						});
+					});
 					// Expire existing stores, prevents user from encountering stale data
 					angular.forEach(policyStores, function (value, key) {
 						policyStores[key] = null;

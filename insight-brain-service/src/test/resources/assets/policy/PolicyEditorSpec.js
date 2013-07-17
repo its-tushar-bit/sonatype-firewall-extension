@@ -60,6 +60,17 @@ describe('PolicyEditor.js', function() {
 		});
 	}
 
+	function createNewPolicy() {
+		var policy = null;
+		inject(function (PolicyStore, $httpBackend, CLMLocations, CLMAppLocations) {
+			$httpBackend.whenGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+			$httpBackend.whenGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+			policy = PolicyStore.get().create();
+			$httpBackend.flush();
+		});
+		return policy;
+	}
+
 	function toRegExp(url) {
 		return new RegExp(url + '\\?timestamp=[0-9]+')
 	}
@@ -104,23 +115,23 @@ describe('PolicyEditor.js', function() {
 			$('#testInlinePolicyCreator').remove();
 		});
 
-		it('Create', inject(function (PolicyStore) {
+		it('Create', function () {
 			var createScope = angular.element('#testInlinePolicyCreator').scope(),
 				spy = jasmine.createSpy('createPolicy');
 
-			spy.andReturn(PolicyStore.get().create());
+			spy.andReturn(createNewPolicy());
 			scope.createPolicy = spy;
 			createScope.click();
 			expect(spy).toHaveBeenCalled();
 
 			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toBeDefined();
-		}));
+		});
 
-		it('Saving', inject(function ($httpBackend, PolicyStore, CLMAppLocations) {
+		it('Saving', inject(function ($httpBackend, CLMAppLocations) {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
 
 			scope.createPolicy = function () {
-				return PolicyStore.get().create();
+				return createNewPolicy();
 			};
 			createScope.click();
 
@@ -133,16 +144,16 @@ describe('PolicyEditor.js', function() {
 			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
 		}));
 
-		it('Cancel', inject(function (PolicyStore) {
+		it('Cancel', function () {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
 			scope.createPolicy = function () {
-				return PolicyStore.get().create();
+				return createNewPolicy();
 			};
 			createScope.click();
 			createScope.cancel();
 
 			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
-		}));
+		});
 	});
 
 	describe('PolicyEditorController', function () {
@@ -160,7 +171,7 @@ describe('PolicyEditor.js', function() {
 
 		it('Test Create New Policy', inject(function ($httpBackend, CLMAppLocations, PolicyStore) {
 			var controller = getPolicyEditorController(),
-				policy = PolicyStore.get().create(),
+				policy = createNewPolicy(),
 				asyncRan = false;
 
 			testScope.policy = policy;
@@ -231,7 +242,7 @@ describe('PolicyEditor.js', function() {
 		describe('ConstraintEditor', function () {
 			it('New Constraint - Dirty Checks', inject(function (PolicyStore) {
 				var controller = getConstraintEditorController(),
-					policy = PolicyStore.get().create(),
+					policy = createNewPolicy(),
 					e;
 
 				// pristine constraint
@@ -323,7 +334,7 @@ describe('PolicyEditor.js', function() {
 
 			it('Test Create New Constraint', inject(function (PolicyStore) {
 				var controller = getConstraintEditorController(),
-					policy = PolicyStore.get().create();
+					policy = createNewPolicy();
 
 				// pristine constraint
 				testScope.constraint = angular.copy(policy.constraints[0]);
@@ -455,7 +466,7 @@ describe('PolicyEditor.js', function() {
 	// TODO Test Response of PolicyEditorController to events from Constraint Controller
 	describe('PolicyStore', function () {
 		it('Default Values', inject(function (PolicyStore) {
-			var newPolicy = PolicyStore.get().create();
+			var newPolicy = createNewPolicy();
 			expect(newPolicy.threatLevel).toEqual(5);
 			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : null }]);
 		}));

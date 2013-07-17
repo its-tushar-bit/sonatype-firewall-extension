@@ -13,7 +13,7 @@
       </div>
       <div>
         <div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(label)'>
-          <div class="labelContainer"  ng-class="{active: selectedLabel.id == label.id}"> <span title="Edit Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span> <span title="Delete Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
+          <div class="labelContainer" style="margin:0;" ng-class="{active: selectedLabel.id == label.id}"> <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span> <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
         </div>
         <em ng-show='labels.length == 0'>No labels available</em></div>
       <div ng-include='editorUrl'></div>

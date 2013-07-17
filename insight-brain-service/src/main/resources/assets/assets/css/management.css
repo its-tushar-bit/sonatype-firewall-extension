@@ -300,21 +300,13 @@ body {
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
 	margin: -28px 0 0;
-	/*
-	margin: -20px 0 0;
-	*/
 	font-size: 10px;
 }
-.editImage input {
-	display: block;
-	width: 80px;
-	font-size: 10px;/*
-	height: 20px;
-	padding: 0;
-	border-radius: 0;
-	opacity: .9;
-	outline: none;
-	*/
+.editImage a {
+    display: block;
+    width: 65px;
+    font-size: 10px;
+    padding: 5px;
 }
 .editorImage:hover .displayImage {
 	opacity: 0.2;
@@ -335,11 +327,15 @@ body {
 /**
  * Inline Editor
  */
+.inline {
+    margin-top: -10px;
+}
+
 .head h1 {
-	margin: -10px 0 0 0;
 	white-space: nowrap;
     height: 55px;
 }
+
 .inline.head h1 span, .inline.head h1 input, .inline .editable-container input {
 	background: transparent;
 	font: inherit;

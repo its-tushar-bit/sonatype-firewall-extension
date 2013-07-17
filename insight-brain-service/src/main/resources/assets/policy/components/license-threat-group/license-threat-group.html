@@ -15,7 +15,7 @@
             <div class="accordion" id="licenseGroups">
                 <div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
                     <div class="common-accordion-header">
-                        <span threat-box selected='licenseGroup.threatLevel' one='1' zero='0 (None)'></span>
+                        <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>
                         <span class='inline'>
                             <ng-form name="innerInlineLicenseGroupForm">
                                 <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
@@ -24,7 +24,7 @@
                             </ng-form>
                         </span>
                         <div class='floatRight'>
-                            <a data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
+                            <a data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}" style='text-decoration:none'>
                                 <i class="icon-list"></i>
                             </a>
                             <div class='btn-group'>
@@ -33,6 +33,7 @@
                             </div>
                         </div>
                     </div>
+                    <a class="common-accordion-toggle" data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}"></a>
                     <div id="collapse{{licenseGroup.id}}" class="common-accordion-body accordion-body collapse">
                         <div class="accordion-inner">
                             <b>Licenses</b>

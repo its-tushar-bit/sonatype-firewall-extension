@@ -19,8 +19,8 @@
 					</div>
 				</div>
 				<div class='editImage'>
-                    <input type="button" class='btn' value="Choose Icon" onclick="javascript:document.getElementById('file').click();"
-                           ng-show='hasFormData' />
+                    <a class='btn' onclick="javascript:document.getElementById('file').click();"
+                           ng-show='hasFormData'>Choose Icon</a>
                     <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'
                             ng-show='!hasFormData' />
                     <a ng-click='generateIcon()'>Want a robot?</a>

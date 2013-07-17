@@ -16,7 +16,7 @@
 	cursor: pointer;
 	white-space: nowrap;
 }
-.whiteLabel .Label {
+.whiteLabel, .Label {
 	border-color: #c6c6c6;
 }
 form[name="labelEditor"] .clmLabel {

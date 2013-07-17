@@ -453,7 +453,7 @@
 	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', function ($dialog, messages) {
 		return {
 			restrict : 'A',
-			templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
+			templateUrl : "../assets/components/policy-editor/policy-quick-add.html",
 			scope : {
 				createPolicy : '&inlinePolicyCreator'
 			},

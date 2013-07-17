@@ -88,14 +88,14 @@ describe('PolicyEditor.js', function() {
 			return getController('PolicyEditorController');
 		}
 
-		var template = getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
+		var template = getTemplate("../assets/components/policy-editor/policy-quick-add.html"),
 			scope = null;
 
 		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
 			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
-			$httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
+			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html").respond(template);
 			expectActionRequests();
 			$compile(node)(scope);
 			$httpBackend.flush();

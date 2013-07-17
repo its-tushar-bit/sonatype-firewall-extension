@@ -1,5 +1,5 @@
 <div ng-controller='PolicyEditorController' style='width:830px'>
-	<form style='margin-bottom:0px' name='inlinePolicyEditor'>
+	<form style='margin-bottom:0px' name='quickAddPolicyEditor'>
 		<input ng-click='click()' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required>
 		<span show-if='policy' class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
 		<div show-if='policy' style='padding-top:10px'>
@@ -30,7 +30,7 @@
 			<div clm-alerts='alerts'></div>
 			<div style='text-align:right'>
 				<button class='btn' type='button' ng-click='cancel()'>Cancel</button>
-				<button class='btn btn-primary' type='button' ng-disabled='inlinePolicyEditor.$invalid' ng-click='savePolicy()'>Save</button>
+				<button class='btn btn-primary' type='button' ng-disabled='quickAddPolicyEditor.$invalid' ng-click='savePolicy()'>Save</button>
 			</div>
 		</div>
 	</form>

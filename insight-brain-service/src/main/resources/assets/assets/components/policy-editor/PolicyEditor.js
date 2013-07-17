@@ -533,6 +533,52 @@
 		};
 	}]);
 
+	module.controller('InlinePolicyEditorController', ['$scope', '$dialog', 'Messages', function (scope, $dialog, messages) {
+		scope.click = function () {
+			if (!scope.policy) {
+				scope.policy = scope.createPolicy();
+			}
+		};
+		scope.cancel = function () {
+			if (scope.policy) {
+				if (scope.policy.isDirty()) {
+					// show dialog
+				    $dialog.dialog({
+						backdrop : true,
+						backdropClick : false,
+						backdropFade : true,
+						dialogFade : true,
+						template : '<div class="modal-body">May contain unsaved changes.</div>' +
+									'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+									'<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
+						controller : ['$scope', 'dialog', function ($scope, dialog) {
+							$scope.discard = function () {
+								dialog.close(true);
+								scope.policy = null;
+							};
+							$scope.cancel = function () {
+								dialog.close(true);
+							};
+						}]
+					}).open();
+				} else {
+					scope.policy = null;
+				}
+			}
+		};
+		scope.savePolicy = function () {
+			scope.policy.$save().then(function (policy) {
+				scope.policy = null;
+			}, function (error) {
+				scope.alerts.push({
+					type : 'error',
+					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
+				});
+			});
+		};
+		scope.alerts = [];
+	}]);
+
 	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', function ($dialog, messages) {
 		return {
 			restrict : 'A',
@@ -540,51 +586,7 @@
 			scope : {
 				createPolicy : '&inlinePolicyCreator'
 			},
-			link : function (scope, element, attrs) {
-				scope.click = function () {
-					if (!scope.policy) {
-						scope.policy = scope.createPolicy();
-					}
-				};
-				scope.cancel = function () {
-					if (scope.policy) {
-						if (scope.policy.isDirty()) {
-							// show dialog
-						    $dialog.dialog({
-								backdrop : true,
-								backdropClick : false,
-								backdropFade : true,
-								dialogFade : true,
-								template : '<div class="modal-body">May contain unsaved changes.</div>' +
-											'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-											'<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
-								controller : ['$scope', 'dialog', function ($scope, dialog) {
-									$scope.discard = function () {
-										dialog.close(true);
-										scope.policy = null;
-									};
-									$scope.cancel = function () {
-										dialog.close(true);
-									};
-								}]
-							}).open();
-						} else {
-							scope.policy = null;
-						}
-					}
-				};
-				scope.savePolicy = function () {
-					scope.policy.$save().then(function (policy) {
-						scope.policy = null;
-					}, function (error) {
-						scope.alerts.push({
-							type : 'error',
-							msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
-						});
-					});
-				};
-				scope.alerts = [];
-			}
+			controller : 'InlinePolicyEditorController'
 		};
 	}]);
 	
@@ -593,47 +595,7 @@
         return {
             restrict : 'A',
             templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
-            link : function (scope, element, attrs) {
-                scope.cancel = function () {
-                    if (scope.policy.isDirty()) {
-                        // show dialog
-                        $dialog.dialog({
-                            backdrop : true,
-                            backdropClick : false,
-                            backdropFade : true,
-                            dialogFade : true,
-                            template : '<div class="modal-body">May contain unsaved changes.</div>' +
-                                        '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-                                        '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
-                            controller : ['$scope', 'dialog', function ($scope, dialog) {
-                                $scope.discard = function () {
-                                    dialog.close(true);
-                                    scope.policy.edit = false;
-                                };
-                                $scope.cancel = function () {
-                                    dialog.close(true);
-                                };
-                            }]
-                        }).open();
-                    } else {
-                        scope.policy.edit = false;
-                    }
-                };
-                scope.savePolicy = function () {
-                    scope.policy.$save().then(function (policy) {
-                        scope.policy.edit = false;
-                    }, function (error) {
-                        scope.alerts.push({
-                            type : 'error',
-                            msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
-                        });
-                    });
-                };
-                scope.isFormValid = function() {
-                    scope[$('.inline-policy-editor').closest('form').attr('name')].$invalid;
-                };
-                scope.alerts = [];
-            }
+			controller : 'InlinePolicyEditorController'
         };
     }]);
 

@@ -64,6 +64,10 @@
             $('#eulaModal').modal('show');
         };
         
+        $scope.eulaDeclined = function() {
+            window.location.reload();
+        }
+
         $scope.eulaAccepted = function() {
             if (window.FormData) {
                 var form = new FormData(angular.element('form')[0]);

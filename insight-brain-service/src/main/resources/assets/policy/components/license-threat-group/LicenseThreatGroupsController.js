@@ -9,7 +9,7 @@
 
   var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation']);
 
-  licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource, ApplicationId) {
+  licenseGroupModule.service('licenseGroupStore', ['$q', '$http', 'CLMAppLocations', 'CLMResource', function ($q, $http, CLMAppLocations, CLMResource) {
     var currentStoreId = null, licenseGroupStore = null;
 
     function refreshLicenseStore() {
@@ -52,9 +52,9 @@
         return licenseGroupStore.create();
       }
     };
-  });
+  }]);
 
-  licenseGroupModule.service('licenseStore', function (CLMLocations, CLMResource) {
+  licenseGroupModule.service('licenseStore', ['CLMLocations', 'CLMResource', function (CLMLocations, CLMResource) {
     var licenseStore = CLMResource.getStore({
       id: 'id',
       url: CLMLocations.getLicensesUrl(),
@@ -63,9 +63,9 @@
       }
     });
     return licenseStore;
-  });
+  }]);
 
-  licenseGroupModule.controller('LicenseThreatGroupController', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, Messages) {
+  licenseGroupModule.controller('LicenseThreatGroupController', ['$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'Messages', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, Messages) {
     function sortLicense(a, b) {
       if (a.id < b.id) {
         return -1;
@@ -237,9 +237,9 @@
     $scope.$on('pageChangeAccepted', function () {
       $scope.inlineRevertLicenseGroups();
     });
-  });
+  }]);
 
-  licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
+  licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMAppLocations', 'licenseGroupStore', 'Messages', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
     $scope.alerts = [];
     $scope.licenseSearch = '';
 
@@ -335,7 +335,7 @@
         $scope.selectedGroupLicenses = null;
       }
     });
-  });
+  }]);
 
   licenseGroupModule.filter('toLicense', ['licenseStore', function (licenseStore) {
     var licenses = null;

@@ -66,8 +66,8 @@
 
         $scope.eulaAccepted = function() {
             if (window.FormData) {
-                var form = new FormData(angular.element('form')[0]);
-                form.append('file', angular.element('input[type=file]')[0]);
+                var form = new FormData();
+                form.append('file', $('#license-input')[0].files[0]);
                 $.ajax({
                     url : $scope.uploadUrl,
                     data : form,

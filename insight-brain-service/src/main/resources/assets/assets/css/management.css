@@ -496,6 +496,7 @@ ul.tri-pane {
  */
 .common-accordion-header {
 	padding: 10px;
+	line-height:30px;
 }
 .common-accordion-header select {
 	margin-bottom: 0px;

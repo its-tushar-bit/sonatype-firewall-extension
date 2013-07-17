@@ -8,6 +8,12 @@
 	'use strict';
 	var module = angular.module('ResourceModule', []);
 
+	function createTemplateFn(object) {
+		object = object || {};
+		return function () {
+			return object;
+		};
+	}
 	module.service('CLMResource', function ($q, $http, hudson, $parse) {
 		function Store(config) {
 			var store = [],
@@ -16,7 +22,7 @@
 				resourceStore = this;
 
 			config.id = config.id || 'id';
-			config.template = config.template || {};
+			config.template = angular.isFunction(config.template) ? config.template : createTemplateFn(config.template);
 			config.relationalConfigs = config.relationalConfigs || [];
 
 			function checkDeferredResolve(deferredObject, resolve, countDown) {
@@ -97,7 +103,7 @@
 					return angular.copy(relationalConfig.template);
 				}
 
-				var resource = new Resource(angular.copy(config.template));
+				var resource = new Resource(config.template());
 				for (var property in config.relationalConfigs) {
 					if (config.relationalConfigs.hasOwnProperty(property)) {
 						var relationalConfig = config.relationalConfigs[property];

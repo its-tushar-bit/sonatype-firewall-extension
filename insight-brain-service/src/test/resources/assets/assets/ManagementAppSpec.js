@@ -2,6 +2,9 @@ describe('dashboardApp', function () {
 	var scope, state;
 
 	beforeEach(module('dashboardApp'));
+	beforeEach(module(function($provide) {
+		$provide.value('licenseChecker', { check : function(){} });
+	}));
 	beforeEach(inject(function ($rootScope, $state, $controller, $httpBackend) {
 		scope = $rootScope.$new();
 		state = $state;

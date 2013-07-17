@@ -477,7 +477,7 @@ var angularCommon;
 	angularCommon.service('BaseUrl', [function() {
 	   return {
 	       get : function() {
-               var baseSegments = ['/policy-assets/', '/application-assets/', '/unlicensed-assets/', '/assets/'],
+               var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/'],
                    idx = -1;
 
                for (var i = 0; i < baseSegments.length; i++) {
@@ -531,6 +531,18 @@ var angularCommon;
 					deferred.reject({ data: data, status : status, headers : headers, config : config });
 				});
 				return deferred.promise;
+			}
+		};
+	});
+
+	angularCommon.service('licenseChecker', function ($http, CLMLocations) {
+		return {
+			check: function(unlicensed) {
+				return $http.get(CLMLocations.getLicenseSummaryUrl()).error(function(data, status) {
+					if (status === 402) {
+					  unlicensed();
+					}
+				});
 			}
 		};
 	});

@@ -53,6 +53,13 @@ describe('PolicyEditor.js', function() {
 		return { controller : controller, scope : scope, compile : compile, sniffer: sniffer };
 	}
 
+	function expectActionRequests() {
+		inject(function($httpBackend, CLMLocations) {
+			$httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+			$httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+		});
+	}
+
 	function toRegExp(url) {
 		return new RegExp(url + '\\?timestamp=[0-9]+')
 	}
@@ -74,33 +81,70 @@ describe('PolicyEditor.js', function() {
 		}
 	});
 
-	xdescribe('inlinePolicyCreator', function () {
-		it('Store Not Modified', inject(function ($state) {
-			// Ensures that the store is not modified prior to saving
-			$state.params.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
-			var controller = getPolicyEditorController(),
-			policy = controller.scope.state.currentPolicy;
+	describe('inlinePolicyCreator', function () {
+		function getPolicyEditorController() {
+			expectActionRequests();
 
-			expect(policy).not.toBeUndefined();
-			expect(controller.isSaveDisabled()).toEqual(false);
-			policy.name = 'An Entirely New Policy Name';
+			return getController('PolicyEditorController');
+		}
 
-			expect(controller.scope.policies[0].name).toEqual('Policy1');
+		var template = getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
+			scope = null;
+
+		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
+			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
+			node.appendTo('body');
+			scope = testScope.$new(); // testScope's destruction cascades
+			$httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
+			expectActionRequests();
+			$compile(node)(scope);
+			$httpBackend.flush();
 		}));
 
-		it('Saving', function () {});
-		it('Cancel', function () {});
-		it('Create', function () {});
+		afterEach(function () {
+			$('#testInlinePolicyCreator').remove();
+		});
+
+		it('Create', inject(function (PolicyStore) {
+			var createScope = angular.element('#testInlinePolicyCreator').scope(),
+				spy = jasmine.createSpy('createPolicy');
+			spy.andReturn(PolicyStore.get().create());
+			scope.createPolicy = spy;
+			createScope.click();
+			expect(spy).toHaveBeenCalled();
+
+			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toBeDefined();
+		}));
+
+		it('Saving', inject(function ($httpBackend, PolicyStore, CLMAppLocations) {
+			var createScope = angular.element('#testInlinePolicyCreator').scope();
+			scope.createPolicy = function () {
+				return PolicyStore.get().create();
+			};
+			createScope.click();
+
+			$httpBackend.expectPOST(toRegExp(CLMAppLocations.getPolicyUrl())).respond({
+				id : 'foo',
+			});
+			createScope.savePolicy();
+			$httpBackend.flush();
+
+			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
+		}));
+
+		it('Cancel', inject(function (PolicyStore) {
+			var createScope = angular.element('#testInlinePolicyCreator').scope();
+			scope.createPolicy = function () {
+				return PolicyStore.get().create();
+			};
+			createScope.click();
+			createScope.cancel();
+
+			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
+		}));
 	});
 
 	describe('PolicyEditorController', function () {
-		function expectActionRequests() {
-			inject(function($httpBackend, CLMLocations) {
-				$httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-				$httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-			});
-		}
-
 		function expectPolicyRequest(responseData) {
 			inject(function($httpBackend, CLMAppLocations) {
 				$httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.copy(responseData));
@@ -127,7 +171,7 @@ describe('PolicyEditor.js', function() {
 			expect(controller.scope.actions).toEqual(null);
 		}));
 
-		// Unclear whether this lives here
+		// TODO Unclear whether this lives here
 		xit('Test Edit Actions', inject(function ($httpBackend, $state) {
 			function expectUpdatePolicy(response) {
 				inject(function($httpBackend, CLMAppLocations) {
@@ -156,6 +200,20 @@ describe('PolicyEditor.js', function() {
 			$httpBackend.flush();
 
 			expect(asyncRan).toEqual(true);
+		}));
+
+		// TODO Unclear whether this lives here
+		xit('Store Not Modified', inject(function ($state) {
+			// Ensures that the store is not modified prior to saving
+			$state.params.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
+			var controller = getPolicyEditorController(),
+			policy = controller.scope.state.currentPolicy;
+
+			expect(policy).not.toBeUndefined();
+			expect(controller.isSaveDisabled()).toEqual(false);
+			policy.name = 'An Entirely New Policy Name';
+
+			expect(controller.scope.policies[0].name).toEqual('Policy1');
 		}));
 	});
 

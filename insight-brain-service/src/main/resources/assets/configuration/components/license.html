@@ -1,63 +1,40 @@
-<div class='container'>
-	<div class='row' ng-show='!isLoaded()'>
-		<div class='span4 offset4'>
-			<div class='content-container' style='padding: 5px'>
+<div class='face' style="padding-left: 10px;">
+	<div ng-controller='ProductLicenseController'>
+		<div style="padding-top: 10px;">
+			<div load-error='error' reload='doLoad()'></div>
+			<div ng-show='!error && !isLoaded()'>
 				<h5><i class='icon icon-time'></i> Loading...</h5>
 			</div>
-		</div>
-	</div>
-	<div class='row' ng-show='isLoaded() && !license'>
-		<div class='span6 offset3'>
-			<div class='content-container'>
-				<div class='modal-header'>
-					<h4>
-						<span>Install License</span>
-					</h4>
-				</div>
-				<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
-					<div class='modal-body'>
-						<div class='control-group'>
-							<label class='control-label' for='file'>Select a license file to upload:</label>
-							<div class='controls'>
-								<input type="file" name="file" on-file-change="onFileChanged()"/>
-								<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
-							</div>
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-	<div class='row' ng-show='isLoaded() && license'>
-		<div class='span6 offset3'>
-			<div class='content-container'>
-				<div class='modal-header'>
-					<h4>
-						<span>CLM License</span>
-					</h4>
-				</div>
-				<div class='modal-body form-horizontal'>
-					<div class='control-group'>
-						<label class='control-label'><strong>Expiration</strong></label>
-						<div class='controls' style='padding-top:5px'>
-							{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}
-						</div>
-					</div>
-				</div>
-				<div class='modal-footer'>
-					<button class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
-						<i class='icon-white icon-minus-sign'></i> Uninstall License
+			<div ng-show='!error && isLoaded()'>
+				<div ng-show='!license'>
+					<button class='btn btn-primary' onclick="javascript:document.getElementById('license-input').click();">
+						<i class='icon-white icon-plus-sign'></i>&nbsp;Install License
 					</button>
+					<form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
+						<div style='height: 0px;width:0px; overflow:hidden;'>
+							<input id="license-input" type="file" name="file" on-file-change="onFileChanged()"/>
+						</div>
+						<input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
+					</form>
+				</div>
+				<div ng-show='license'>
+					<button class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
+						<i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
+					</button>
+					<div class='add-section form-horizontal' style='margin-top:10px'>
+						<label class='control-label'><strong>Expires</strong></label>
+						<div class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<div id="eulaModal" data-backdrop="static" class="modal hide">
 		<div class="modal-body">
-			<div class="well well-small" style="padding-top:0px;" ng-include src="'../application-assets/components/eula.html'"></div>
+			<div class="well well-small" style="padding-top:0px;" ng-include src="'../configuration-assets/components/eula.html'"></div>
 		</div>
 		<div class="modal-footer">
-			<button class='btn' data-dismiss='modal'>I Decline</button>
+			<button class='btn' data-dismiss='modal' ng-click='eulaDeclined()'>I Decline</button>
 			<button class='btn btn-primary' ng-click='eulaAccepted()'>I Accept</button>
 		</div>
 	</div>

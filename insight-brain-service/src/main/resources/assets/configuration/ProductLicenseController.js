@@ -8,11 +8,30 @@
 (function () {
     'use strict';
 
-    var adminModule = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
+    var module = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
 
-    adminModule.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
+    module.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
+
+      $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
+      $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
+
+      $scope.doLoad = function() {
+        $scope.error = null;
+        $http.get($scope.summaryUrl).success(function(data) {
+          $scope.license = data;
+        }).error(function(data, status) {
+          if (status !== 402) {
+            $scope.error = {
+              status: status,
+              data: data
+            };
+          } else {
+            $scope.license = false;
+          }
+        });
+      };
+
 		function showLicense() {
-			$scope.showInstall = false;
 			$('#eulaModal').modal('hide');
 			$('#licenseInstalledModal').modal('show');
 			setTimeout($scope.reload, 5000);
@@ -26,15 +45,8 @@
         }
 
         $scope.reload = function () {
-            if (window.location.href.indexOf('unlicensed-assets') > -1) {
-                window.location.href = window.location.href.replace('unlicensed-assets', 'assets');
-            } else {
-                window.location.reload();
-            }
+            window.location.reload();
         };
-
-        $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
-        $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
 
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');
@@ -44,18 +56,18 @@
             $('#eulaModal').modal('show');
         };
 
-        $scope.viewInstall = function() {
-            $scope.showInstall = true;
-        };
-        
         $scope.fileSelected = function() {
             $('#eulaModal').modal('show');
         };
         
+        $scope.eulaDeclined = function() {
+            window.location.reload();
+        }
+
         $scope.eulaAccepted = function() {
             if (window.FormData) {
-                var form = new FormData(angular.element('form')[0]);
-                form.append('file', angular.element('input[type=file]')[0]);
+                var form = new FormData();
+                form.append('file', $('#license-input')[0].files[0]);
                 $.ajax({
                     url : $scope.uploadUrl,
                     data : form,
@@ -97,17 +109,14 @@
         };
 
         $scope.isLoaded = function () {
-			return typeof $scope.license !== 'undefined';
-		};
+                return typeof $scope.license !== 'undefined';
+        };
 
-		$http.get($scope.summaryUrl).success(function (data) {
-			$scope.license = data;
-		}).error(function () {
-			$scope.license = false;
-		});
+        $scope.doLoad();
+
     } ]);
 
-    adminModule.directive('onFileChange', [function () {
+    module.directive('onFileChange', [function () {
         return {
 			restrict: 'A',
 			scope : false,

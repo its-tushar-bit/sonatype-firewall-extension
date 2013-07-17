@@ -35,7 +35,13 @@
 		$urlRouterProvider.otherwise( function ($injector, $location) {
 			$injector.invoke(fn);
 		} );
-	}]).run(['$rootScope', '$location', 'Messages', function ($rootScope, $location, messages) {
+	}]).run(['$rootScope', '$location', 'Messages', 'licenseChecker', function ($rootScope, $location, messages, licenseChecker) {
+
+		$rootScope.forcedRedirect = null;
+		licenseChecker.check(function() {
+			$rootScope.forcedRedirect = '/management/configuration/productlicense';
+			$location.path($rootScope.forcedRedirect);
+		});
 	    
 		// The page contains unsaved changes, continuing will discard them.
 	    $rootScope.tempState = null;
@@ -66,6 +72,12 @@
 				$rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
 			}
             $rootScope.tempState = null;
+		});
+
+		$rootScope.$on('$locationChangeSuccess', function () {
+			if ($rootScope.forcedRedirect) {
+				$location.path($rootScope.forcedRedirect);
+			}
 		});
 
 		var fn = function (event) {

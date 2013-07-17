@@ -1,21 +1,12 @@
 <form name='inlinePolicyForm' form-Submit='inlineSavePolicy()'>
 	<div class="accordion" id="policies">
 		<div class="accordion-group" ng-repeat='policy in policies'>
-			<div class="common-accordion-header">
-			    <div class="btn-group threat-level-dropdown">
-	                <a class="btn dropdown-toggle threat-level-{{policy.threatLevel}}" data-toggle="dropdown" href="#">
-	                    {{policy.threatLevel}} <span class="caret"></span>
-	                </a>
-	                <ul class="dropdown-menu">
-	                    <li ng-repeat='threatLevel in threatLevels'>
-	                        <a ng-click='policy.threatLevel=threatLevel.value;edit(policy);' class='threat-level-{{threatLevel.value}}'>{{ threatLevel.name }}</a>
-	                    </li>
-	                </ul>
-	            </div>
-	            <div class='inline' style='display: inline;'>
-                    <span id='policyName' name='policyName' ng-model='policy.name' xeditable href='javascript:;' data-type='text' alpha-numeric adjustable='true' ng-click="edit(policy)"></span>
-                    <span ng-show="inlinePolicyForm.policyName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
-	            </div>
+			<div class="common-accordion-header policy" style='line-height:30px'>
+				<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span>
+				<span class='inline'>
+					<span id='policyName' name='policyName' ng-model='policy.name' xeditable href='javascript:;' data-type='text' alpha-numeric adjustable='true' ng-click="edit(policy)"></span>
+					<span ng-show="inlinePolicyForm.policyName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+				</span>
 	            <div class='floatRight'>
 	                <div class='btn-group hover-buttons' ng-show='editable'>
 						<a class="btn btn-mini policy-button" title="Edit Policy" ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></a>

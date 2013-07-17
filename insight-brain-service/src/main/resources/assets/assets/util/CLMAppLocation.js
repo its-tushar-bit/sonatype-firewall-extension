@@ -10,12 +10,16 @@
 	var locationModule = angular.module('CLMAppLocation', ['CLMLocation', 'ApplicationModule', 'OrganizationModule']);
 	
 	locationModule.factory('CLMAppLocations', ['ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function (appId, orgId, $state, baseUrl) {
+    var isApplication = function() {
+      return $state.current.name.indexOf('application') !== -1;
+    };
+
 		var getServicePath = function() {
-			return $state.current.name.indexOf('application') !== -1 ? 'application' : 'organization';
+			return isApplication() ? 'application' : 'organization';
 		};
 
 		var getId = function() {
-			return $state.current.name.indexOf('application') !== -1 ? appId.encoded() : orgId.encoded();
+			return isApplication() ? appId.encoded() : orgId.encoded();
 		};
 
 		var getServicePathWithId = function() {
@@ -73,9 +77,7 @@
 			    return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
 			},
 
-			isApplication: function () {
-				return $state.current.name.indexOf('application') !== -1 ;
-			}
+			isApplication: isApplication
 		};
 	}]);
 }());

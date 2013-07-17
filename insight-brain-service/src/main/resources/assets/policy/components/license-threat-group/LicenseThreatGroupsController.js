@@ -10,12 +10,12 @@
   var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation']);
 
   licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource, ApplicationId) {
-    var currentStoreAppId = null, licenseGroupStore = null;
+    var currentStoreId = null, licenseGroupStore = null;
 
     function refreshLicenseStore() {
-      var isNew = !licenseGroupStore || currentStoreAppId !== ApplicationId.encoded();
+      var isNew = !licenseGroupStore || currentStoreId !== CLMAppLocations.getEntityId();
       if (isNew) {
-        currentStoreAppId = ApplicationId.encoded();
+        currentStoreId = CLMAppLocations.getEntityId();
         licenseGroupStore = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLicenseGroupsUrl() }, licenseGroupStoreTemplate));
       }
       return isNew;

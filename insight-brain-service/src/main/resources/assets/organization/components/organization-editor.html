@@ -7,16 +7,16 @@
                 <strong>Uploading Icon...</strong>
             </div>
         </div>
-		<div class="editorHeader">
-			<div class='editorImage'>
-				<div class='displayImage'>
+		<div class="editor-header">
+			<div class='editor-image'>
+				<div class='display-image'>
 					<div ng-switch on='hasRobotSource'>
 	                       <img ng-switch-when='false' id='userIcon' ng-src='{{userIconSource}}' />
 	                       <img ng-switch-when='true' id='robotIcon' ng-src='../rest/organization/services/generateIcon/{{robotHash}}'/>
 					</div>
 				</div>
-                <div class='editImage'>
-                    <a type="button" class='btn' onclick="javascript:document.getElementById('file').click();"
+                <div class='edit-image'>
+                    <a onclick="javascript:document.getElementById('file').click();"
                            ng-show='hasFormData'>Choose Icon</a>
                     <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'
                            ng-show='!hasFormData' />

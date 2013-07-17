@@ -537,6 +537,18 @@ var angularCommon;
 		};
 	});
 
+	angularCommon.service('licenseChecker', function ($http, CLMLocations) {
+		return {
+			check: function(unlicensed) {
+				return $http.get(CLMLocations.getLicenseSummaryUrl()).error(function(data, status) {
+					if (status === 402) {
+					  unlicensed();
+					}
+				});
+			}
+		};
+	});
+
 
 	angularCommon.directive('threatBox', function () {
 		return {

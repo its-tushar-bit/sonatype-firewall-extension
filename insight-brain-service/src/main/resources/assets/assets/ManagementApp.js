@@ -35,14 +35,12 @@
 		$urlRouterProvider.otherwise( function ($injector, $location) {
 			$injector.invoke(fn);
 		} );
-	}]).run(['$http', '$rootScope', '$location', 'CLMLocations', 'Messages', function ($http, $rootScope, $location, clmLocations, messages) {
+	}]).run(['$rootScope', '$location', 'Messages', 'licenseChecker', function ($rootScope, $location, messages, licenseChecker) {
 
 		$rootScope.forcedRedirect = null;
-		$http.get(clmLocations.getLicenseSummaryUrl()).error(function(msg, status){
-			if ( status === 402 ) {
-				$rootScope.forcedRedirect = '/management/configuration/productlicense';
-				$location.path($rootScope.forcedRedirect);
-			}
+		licenseChecker.check(function() {
+			$rootScope.forcedRedirect = '/management/configuration/productlicense';
+			$location.path($rootScope.forcedRedirect);
 		});
 	    
 		// The page contains unsaved changes, continuing will discard them.

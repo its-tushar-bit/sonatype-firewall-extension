@@ -1,63 +1,3 @@
-/* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */
-
-.threat-level-0, .threat-level-0:hover, .threat-level option[value="10"] {
-    border: 1px solid #17558E;
-    background-color: #2476C3;
-    font-weight: bold;
-    color: #DDD;
-}
-
-.threat-level-1, .threat-level-2, .threat-level-3, .threat-level-1:hover, .threat-level-2:hover, .threat-level-3:hover, .threat-level option[value="7"], .threat-level option[value="8"], .threat-level option[value="9"] {
-    border: 1px solid #D2A429;
-    background-color: #F5C649;
-    font-weight: bold;
-    color: #555;
-}
-
-.threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level-4:hover, .threat-level-5:hover, .threat-level-6:hover, .threat-level-7:hover, .threat-level option[value="3"], .threat-level option[value="4"], .threat-level option[value="5"], .threat-level option[value="6"] {
-    border: 1px solid #C56213;
-    background-color: #F2862F;
-    font-weight: bold;
-    color: #DDD;
-}
-
-.threat-level-8, .threat-level-9, .threat-level-10, .threat-level-8:hover, .threat-level-9:hover, .threat-level-10:hover, .threat-level option[value="0"], .threat-level option[value="1"], .threat-level option[value="2"] {
-    border: 1px solid #9F0025;
-    background-color: #DB2852;
-    font-weight: bold;
-    color: #DDD;
-}
-.policy .threat-level-1 {
-	background-color: #0047B2;
-	border: 1px solid #002966;
-	color : #DDD;
-}
-
-/* Threat Chiclets */
-.threat-chiclet {
-	display:inline-block;
-	width:25px;
-	text-align:center;
-	vertical-align: middle;
-	border-radius:5px;
-	-moz-border-radius:5px;
-}
-
-.threat-chiclet-critical {
-	color:#5C0C0A;
-	background-color:#F00;
-}
-
-.threat-chiclet-severe {
-	color:#5A3D19;
-	background-color:#F7941E;
-}
-
-.threat-chiclet-moderate {
-	color:#645723;
-	background-color:#FFDE16;
-}
-
 /* Table headers */
 table.clm-table thead tr th.sortable {
     cursor: pointer;
@@ -98,10 +38,6 @@ table.clm-table thead tr th.sorted {
     background-image: -o-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     background-image: linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#f5f9fa', endColorstr = '#b5c6e0', GradientType = 0);
-}
-
-.no-content {
-    padding-top: 100px;
 }
 
 input.editor-text {
@@ -165,17 +101,6 @@ input[type="file"] {
 
 .header-centered {
     text-align: center;
-}
-
-div.nopad {
-    padding: 0px;
-    height: 25px !important;
-    border: none;
-}
-
-.masked-cell {
-    width: 100%;
-    height: 25px;
 }
 
 tr:hover .hover-vis {

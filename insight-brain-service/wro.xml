@@ -5,6 +5,7 @@
 
 	<group name='insight'>
 		<css>/components/policy-editor.css</css>
+		<css>/threat.css</css>
 		<css>/insight.css</css>
 	</group>
 

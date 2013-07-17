@@ -49,9 +49,7 @@
         };
 
         $scope.openFileBrowser = function () {
-            var file = angular.element('input[type=file]');
-            file.replaceWith(file = file.clone(true));
-            file[0].click();
+            angular.element('input[type=file]')[0].click();
         };
 
         $scope.viewUninstallLicense = function () {

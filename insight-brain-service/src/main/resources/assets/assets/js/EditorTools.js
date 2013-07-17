@@ -18,7 +18,7 @@
 
 			$scope.alerts = [];
 			$scope.hasRobotSource = false;
-			$scope.hasFormData = typeof(window.FormData) !== 'undefined';
+			$scope.allowsInputViaJS = typeof(window.FormData) !== 'undefined' && typeof(window.FileReader) !== 'undefined';
 
 			$scope.pushAlert = function (obj) {
 				$scope.alerts.length = 0;

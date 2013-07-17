@@ -20,9 +20,9 @@
 				</div>
 				<div class='edit-image'>
                     <a onclick="javascript:document.getElementById('file').click();"
-                           ng-show='hasFormData'>Choose Icon</a>
+                           ng-show='allowsInputViaJS'>Choose Icon</a>
                     <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'
-                            ng-show='!hasFormData' />
+                            ng-show='!allowsInputViaJS' />
                     <a ng-click='generateIcon()'>Want a robot?</a>
 	            </div>
    			</div>

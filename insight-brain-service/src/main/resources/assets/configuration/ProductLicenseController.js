@@ -48,10 +48,6 @@
             window.location.reload();
         };
 
-        $scope.openFileBrowser = function () {
-            angular.element('input[type=file]')[0].click();
-        };
-
         $scope.viewUninstallLicense = function () {
             $('#licenseUninstallConfirmationModal').modal('show');
         };

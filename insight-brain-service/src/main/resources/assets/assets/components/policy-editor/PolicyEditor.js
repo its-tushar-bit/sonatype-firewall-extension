@@ -285,20 +285,18 @@
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
 		function isDirty() {
-			var changed = false;
 			if ($scope.originalConstraint) {
-				changed = $scope.originalConstraint.name != $scope.constraint.name || $scope.originalConstraint.operator != $scope.constraint.operator ||
-				$scope.originalConstraint.conditions.length != $scope.constraint.conditions.length;
-				for (var i = 0; i < $scope.originalConstraint.conditions.length && !changed; i++) {
-					changed = changed || $scope.originalConstraint.conditions[i].value != $scope.constraint.conditions[i].value ||
-					$scope.originalConstraint.conditions[i].operator != $scope.constraint.conditions[i].operator ||
-					$scope.originalConstraint.conditions[i].conditionTypeId != $scope.constraint.conditions[i].conditionTypeId; 
+				if ($scope.originalConstraint.name != $scope.constraint.name || $scope.originalConstraint.operator != $scope.constraint.operator ||
+						$scope.originalConstraint.conditions.length != $scope.constraint.conditions.length)
+					return true;
+				for (var i = 0; i < $scope.originalConstraint.conditions.length; i++) {
+					if ($scope.originalConstraint.conditions[i].value != $scope.constraint.conditions[i].value ||
+							$scope.originalConstraint.conditions[i].operator != $scope.constraint.conditions[i].operator ||
+							$scope.originalConstraint.conditions[i].conditionTypeId != $scope.constraint.conditions[i].conditionTypeId)
+						return true;
 				}
-			} else {
-//				changed = $scope.constraint.name != null || $scope.constraint.operator != null || 
-//							$scope.constraint.conditions.length != 1 || $scope.constraint.conditions[0].value != null;
 			}
-			return changed;
+			return false;
 		}
 		$scope.constraintConditionChoices = [{
 			'value' : 'AND',
@@ -348,8 +346,6 @@
 		$scope.conditionTypeChanged = function (condition) {		
 			// Remove values that were entered with the previous condition type
 			delete condition.value;
-			delete condition.v;
-			delete condition.valueModifier;
 
 			// This could be replaced with ng-init but the html is fairly verbose as it is
 			condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
@@ -393,12 +389,14 @@
 						}
 						$scope.validateConstraint();
 						$('#constraintName').focus();
+						$scope.originalConstraint = angular.copy(constraint);
 					} else {
 						$timeout(fn, 100);
 					}
 				};
-
 				fn();
+			} else {
+				$scope.originalConstraint = null;
 			}
 		});
 
@@ -417,6 +415,7 @@
 			$scope.constraint.conditions.splice(conditionIndex, 1);
 			$scope.validateConstraint();
 		};
+
 		constraints.get().then(function (results) {
 			var typeValues = {};
 			$scope.conditionTypes = {};

@@ -217,7 +217,7 @@ describe('PolicyEditor.js', function() {
 		}));
 	});
 
-	xdescribe('Constraints', function () {
+	describe('Constraints', function () {
 		function getConstraintEditorController() {
 			inject(function($httpBackend, CLMLocations, CLMAppLocations) {
 				$httpBackend.expectGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
@@ -228,41 +228,45 @@ describe('PolicyEditor.js', function() {
 		}
 
 		describe('ConstraintEditor', function () {
-			it('figures dirty state of new constraint', inject(function () {
-				var controller = getConstraintEditorController(), 
+			it('New Constraint - Dirty Checks', inject(function (PolicyStore) {
+				var controller = getConstraintEditorController(),
+					policy = PolicyStore.get().create(),
 					e;
 
 				// pristine constraint
-				controller.scope.$broadcast('policy.editConstraint', null);
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.constraint = angular.copy(policy.constraints[0]);
+				testScope.$digest();
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(false);
 
 				// changed name
-				controller.scope.$broadcast('policy.editConstraint', null);
-				controller.scope.currentConstraint.name = 'A Constraint Name';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				controller.scope.constraint.name = 'A Constraint Name';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// changed operator
-				controller.scope.$broadcast('policy.editConstraint', null);
-				controller.scope.currentConstraint.operator = 'ALL';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.constraint = angular.copy(policy.constraints[0]);
+				testScope.$digest();
+				controller.scope.constraint.operator = 'ALL';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// changed condition value
-				controller.scope.$broadcast('policy.editConstraint', null);
-				controller.scope.currentConstraint.conditions[0].value = 1;
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.constraint = angular.copy(policy.constraints[0]);
+				testScope.$digest();
+				controller.scope.constraint.conditions[0].value = 1;
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// new condition
-				controller.scope.$broadcast('policy.editConstraint', null);
-				controller.scope.currentConstraint.conditions.push({});
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.constraint = angular.copy(policy.constraints[0]);
+				testScope.$digest();
+				controller.scope.constraint.conditions.push({});
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 			}));
 
-			it('figures dirty state of existing constraint', inject(function () {
+			xit('figures dirty state of existing constraint', inject(function () {
 				var controller = getConstraintEditorController(),
 					constraint = {
 						name : 'Name',
@@ -272,95 +276,86 @@ describe('PolicyEditor.js', function() {
 					e;
 
 				// pristine constraint
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(false);
 
 				// changed name
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				controller.scope.currentConstraint.name = 'A Constraint Name';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				controller.scope.constraint.name = 'A Constraint Name';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// changed operator
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				controller.scope.currentConstraint.operator = 'ALL';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				controller.scope.constraint.operator = 'ALL';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// changed condition value
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				controller.scope.currentConstraint.conditions[0].value = 'black';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				controller.scope.constraint.conditions[0].value = 'black';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// changed condition operator
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				controller.scope.currentConstraint.conditions[0].operator = 'is not';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				controller.scope.constraint.conditions[0].operator = 'is not';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// changed condition type
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				controller.scope.currentConstraint.conditions[0].conditionTypeId = 'License';
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				controller.scope.constraint.conditions[0].conditionTypeId = 'License';
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 
 				// new condition
-				controller.scope.$broadcast('policy.editConstraint', constraint);
-				controller.scope.currentConstraint.conditions.push({});
-				e = controller.scope.$broadcast('pageChangeStarted', null);
+				testScope.$broadcast('policy.editConstraint', constraint);
+				controller.scope.constraint.conditions.push({});
+				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
 			}));
 		});
 
 		describe('ConstraintEditorController', function () {
 
-			it('Test Create New Constraint', inject(function () {
+			it('Test Create New Constraint', inject(function (PolicyStore) {
 				var controller = getConstraintEditorController(),
-				asyncRan = false;
-				controller.scope.$broadcast('policy.editConstraint', null);
+					policy = PolicyStore.get().create();
+
+				// pristine constraint
+				testScope.constraint = angular.copy(policy.constraints[0]);
+				testScope.$digest();
 
 				// Initial State should be in error
 				expect(controller.scope.constraintValidationMsg).not.toBeUndefined();
 
 				// A name alone should not be enough to validate
-				controller.scope.currentConstraint.name = 'A Constraint Name';
+				controller.scope.constraint.name = 'A Constraint Name';
 				controller.scope.validateConstraint();
 				expect(controller.scope.constraintValidationMsg).not.toBeUndefined();
 
 				// Set the condition
-				controller.scope.currentConstraint.conditions[0].valueModifier = 365;
-				controller.scope.currentConstraint.conditions[0].v = 1;
-				controller.scope.updateAge(controller.scope.currentConstraint.conditions[0]);
+				controller.scope.constraint.conditions[0].value = 365;
 				controller.scope.validateConstraint();
 				expect(controller.scope.constraintValidationMsg).not.toBeUndefined();
 
 				//Pick any/all(names are mapped to values OR/AND)
-				controller.scope.currentConstraint.operator = 'OR';
+				controller.scope.constraint.operator = 'OR';
 				controller.scope.validateConstraint();
 				expect(controller.scope.constraintValidationMsg).toBeUndefined();
-
-				testScope.$on('policy.constraintSaved', function (event, constraint) {
-					expect(constraint.id).toBeUndefined();
-					expect(constraint.name).toEqual('A Constraint Name');
-					expect(constraint.conditions).toEqual([{ conditionTypeId : 'AgeInDays', operator : 'older than', value : 365 }]);
-					asyncRan = true;
-				});
-
-				controller.scope.saveConstraint();
-
-				expect(asyncRan).toEqual(true);
 			}));
 
 			it('Test Constraint Name Validation', inject(function () {
 				var controller = getConstraintEditorController();
 
-				controller.scope.$broadcast('policy.editConstraint', {
+				testScope.constraint = {
 					name : '',
 					conditions : [{ conditionTypeId : 'AgeInDays', operator : 'older than', value : 365 }],
 					operator : 'OR'
-				});
+				};
+				testScope.$digest();
 				expect(controller.scope.constraintValidationMsg).toEqual('Please enter a name for this constraint');
 				// condition validation
 			}));
@@ -368,21 +363,21 @@ describe('PolicyEditor.js', function() {
 			it('Test Constraint Condition Validation', inject(function () {
 				var controller = getConstraintEditorController();
 
-				controller.scope.$broadcast('policy.editConstraint', {
+				testScope.constraint = {
 					name : 'ConstraintName',
 					conditions : [{ conditionTypeId : '', operator : 'older than', value : 365 }],
 					operator : 'OR'
-				});
+				};
+				testScope.$digest();
 				expect(controller.scope.constraintValidationMsg).toEqual('Please select a valid condition type for condition #1');
-				controller.scope.cancelConstraint();
 
-				controller.scope.$broadcast('policy.editConstraint', {
+				testScope.constraint = {
 					name : 'ConstraintName',
 					conditions : [{ conditionTypeId : 'AgeInDays', operator : 'older than', value : null }],
 					operator : 'OR'
-				});
+				};
+				testScope.$digest();
 				expect(controller.scope.constraintValidationMsg).toEqual('Please enter a value for condition #1');
-				controller.scope.cancelConstraint();
 			}));
 
 			// Test the manipulation of the DOM due to changing models. This test should be moved to a browser based tester such as Selenium at one point

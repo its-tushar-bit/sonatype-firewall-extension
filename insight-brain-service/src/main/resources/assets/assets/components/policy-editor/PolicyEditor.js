@@ -128,18 +128,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', 'Messages', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, messages, policyStore, actionStore) {
-
-		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
-			$scope.state.confirmationHeader = header;
-			$scope.state.confirmationBody = body;
-			$scope.state.confirmationDeclineText = declineText;
-			$scope.state.confirmationAcceptText = acceptText;
-			$scope.state.confirmationAcceptFn = acceptFn;
-			$scope.state.confirmationDeclineFn = declineFn;
-			$('#confirmationModal').modal('show');
-		}
-
+	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, $dialog, $timeout, messages, policyStore, actionStore) {
 		function returnFn() {
 			var path = $location.path();
 			$location.path(path.substring(0, path.lastIndexOf('/')));
@@ -192,39 +181,115 @@
 				$scope.actions = null;
 			}
 		});
-
-
-		$scope.confirmationAccept = function () {
-			$('#confirmationModal').modal('hide');
-			if ($scope.state.confirmationAcceptFn) {
-				$scope.state.confirmationAcceptFn();
-			}
-		};
-
-		$scope.confirmationDecline = function () {
-			$('#confirmationModal').modal('hide');
-			if ($scope.state.confirmationDeclineFn) {
-				$scope.state.confirmationDeclineFn();
-			}
-		};
-
-		$scope.viewRemoveConstraint = function (constraintIndex) {
-			viewConfirmation("Delete Constraint?",
-				"Are you sure you want to delete the Constraint named '" + $scope.policy.constraints[constraintIndex].name + "'?",
-				'Cancel',
-				'Delete',
-				function () {
-					$scope.policy.constraints.splice(constraintIndex, 1);
-				});
+		
+		$scope.removeConstraint = function (constraint) {
+		    $dialog.dialog({
+                backdrop : true,
+                backdropClick : false,
+                backdropFade : true,
+                dialogFade : true,
+                template : '<div class="modal-body">Are you sure you want to delete this Constraint?</div>' +
+                            '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+                            '<button class="btn btn-danger" ng-click="discard()">Delete</button></div>',
+                controller : ['$scope','dialog', function ($localScope, dialog) {
+                    $localScope.discard = function () {
+                        dialog.close(true);
+                        angular.forEach($scope.policy.constraints, function(value,index) {
+                            if (constraint === value) {
+                                $scope.policy.constraints.splice(index,1);
+                                return false;
+                            }
+                        });
+                    };
+                    $localScope.cancel = function () {
+                        dialog.close(true);
+                    };
+                }]
+            }).open();
 		};
 
 		$scope.editConstraint = function (constraint) {
-			$scope.$broadcast('policy.editConstraint', constraint);
+            $('#collapse' + constraint.id).collapse('show');
 		};
+		
+		$scope.addConstraint = function() {
+		    var constraint = { 
+		        id: '' + new Date().getTime(), 
+		        conditions: [], 
+		        operator: null 
+		    };
+		    $scope.policy.constraints.push(constraint);
+		    $timeout(function(){
+		        $('#collapse' + constraint.id).collapse('show');
+		    });
+		}
 
 		$scope.editNotification = function (addresses) {
 			$scope.$broadcast('editNotification', addresses);
 		};
+		
+		$scope.toggleWarnAction = function(stage, policy) {
+            var add = true;
+            if (policy.actions[stage.id]) {
+                for ( var i = policy.actions[stage.id].length - 1 ; i >= 0 ; i-- ) {
+                    switch (policy.actions[stage.id][i].actionTypeId) {
+                    case 'warn':
+                        policy.actions[stage.id].splice(i,1);
+                        add = false;
+                        break;
+                    case 'fail':
+                        policy.actions[stage.id].splice(i,1);
+                        break;
+                    } 
+                }
+            } 
+            
+            if (add) {
+                policy.actions[stage.id] = [{
+                    actionTypeId: 'warn'
+                }];
+            }
+        };
+        $scope.toggleFailureAction = function(stage, policy) {
+            var add = true;
+            if (policy.actions[stage.id]) {
+                for ( var i = policy.actions[stage.id].length - 1 ; i >= 0 ; i-- ) {
+                    switch (policy.actions[stage.id][i].actionTypeId) {
+                    case 'fail':
+                        policy.actions[stage.id].splice(i,1);
+                        add = false;
+                        break;
+                    case 'warn':
+                        policy.actions[stage.id].splice(i,1);
+                        break;
+                    } 
+                }
+            } 
+            
+            if (add) {
+                policy.actions[stage.id] = [{
+                    actionTypeId: 'fail'
+                }];
+            }
+        };
+        $scope.showWarningIcon = function(stage, policy) {
+            if (policy.actions[stage.id]) {
+                for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
+                    if (policy.actions[stage.id][i].actionTypeId == 'warn') {
+                        return true;
+                    } 
+                }
+            }
+        };
+        $scope.showFailureIcon = function(stage, policy) {
+            if (policy.actions[stage.id]) {
+                for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
+                    if (policy.actions[stage.id][i].actionTypeId == 'fail') {
+                        return true;
+                    } 
+                }
+            }
+        };
 
 		// Respond to constraint change
 		$scope.$on('policy.constraintSaved', function (event, constraint) {
@@ -467,7 +532,7 @@
 					if (scope.policy) {
 						if (scope.policy.isDirty()) {
 							// show dialog
-						$dialog.dialog({
+						    $dialog.dialog({
 								backdrop : true,
 								backdropClick : false,
 								backdropFade : true,
@@ -504,6 +569,55 @@
 			}
 		};
 	}]);
+	
+	//TODO: do NOT like the duplication here, but ultimately need same functionality, just another template to be used
+	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
+        return {
+            restrict : 'A',
+            templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
+            link : function (scope, element, attrs) {
+                scope.cancel = function () {
+                    if (scope.policy.isDirty()) {
+                        // show dialog
+                        $dialog.dialog({
+                            backdrop : true,
+                            backdropClick : false,
+                            backdropFade : true,
+                            dialogFade : true,
+                            template : '<div class="modal-body">May contain unsaved changes.</div>' +
+                                        '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+                                        '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
+                            controller : ['$scope', 'dialog', function ($scope, dialog) {
+                                $scope.discard = function () {
+                                    dialog.close(true);
+                                    scope.policy.edit = false;
+                                };
+                                $scope.cancel = function () {
+                                    dialog.close(true);
+                                };
+                            }]
+                        }).open();
+                    } else {
+                        scope.policy.edit = false;
+                    }
+                };
+                scope.savePolicy = function () {
+                    scope.policy.$save().then(function (policy) {
+                        scope.policy.edit = false;
+                    }, function (error) {
+                        scope.alerts.push({
+                            type : 'error',
+                            msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
+                        });
+                    });
+                };
+                scope.isFormValid = function() {
+                    scope[$('.inline-policy-editor').closest('form').attr('name')].$invalid;
+                };
+                scope.alerts = [];
+            }
+        };
+    }]);
 
 	module.directive('inlineConstraintEditor', function () {
 		return {

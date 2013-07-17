@@ -187,7 +187,6 @@
         }
         scope.saveLabel = function () {
           scope.label.$save().then(function (label) {
-            //scope.labels.push(label); //TODO page does not refresh on added label?
             scope.label = null;
           }, function (error) {
             scope.alerts.push({

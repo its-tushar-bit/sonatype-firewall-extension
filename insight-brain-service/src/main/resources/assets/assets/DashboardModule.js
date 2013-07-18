@@ -14,19 +14,18 @@
             $('.modal-backdrop').addClass('master-modal-backdrop');
 	    }
     };
-    
+
     var hideMasterModal = function() {
         $('#unsavedModal').modal('hide');
         $('.modal-backdrop').removeClass('master-modal-backdrop');
         masterModalShown = false;
     }
 
-	var dashboardApp = angular.module('dashboardApp', ['ui.compat', 'ui.bootstrap', 'OrganizationModule', 'ApplicationModule', 'Configuration'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
+	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
 		});
-		$routeProvider.when('', { redirectTo : '/management/application' });
 
 		var fn = function ($rootScope, messages) {
 			$rootScope.error = 'Unknown Address';
@@ -42,7 +41,7 @@
 			$rootScope.forcedRedirect = '/management/configuration/productlicense';
 			$location.path($rootScope.forcedRedirect);
 		});
-	    
+
 		// The page contains unsaved changes, continuing will discard them.
 	    $rootScope.tempState = null;
 
@@ -139,59 +138,5 @@
 		
 		$scope.$watch('$state.current.name', switchDashboard);
 		switchDashboard();
-	});
-}());
-
-(function () {
-	'use strict';
-
-	var managementModule = angular.module('ManagementModule', ['ui.compat'], ['$stateProvider', function ($stateProvider) {
-		$stateProvider.state('management', {
-			url : '/management',
-			templateUrl : '../assets/management.html',
-			controller : 'ManagementController'
-		});
-	}]);
-
-	managementModule.controller('ManagementController', function($scope, $state, commonCodeFactory) {
-		$scope.$state = $state;
-
-		$scope.managementPanes = [
-			{
-				name: 'Organizations',
-				state: 'management/organization',
-				isEnabled: true
-			},
-			{
-				name: 'Applications',
-				state: 'management/application',
-				isEnabled: true
-			},
-                        {
-                          name: 'Configuration',
-                          state: 'management/configuration',
-                          isEnabled: true
-                        }
-		];
-		
-		for (var i = 0; i < $scope.managementPanes.length; i++) {
-			var normalizedState = $scope.managementPanes[i].state.replace('/', '.');
-			if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
-				$scope.$state.selectedPane = $scope.managementPanes[i];
-				break;
-			}
-		}
-		
-		$scope.$watch('$state.current.name', function() {
-			if ($state.current.name === 'management') {
-				$state.transitionTo('management.application');
-			}
-		});
-
-        $scope.syncAlerts = [];
-        var error = commonCodeFactory.getEncodedQueryString('errorMessage');
-        if (error) {
-            $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
-        }
 	});
 }());

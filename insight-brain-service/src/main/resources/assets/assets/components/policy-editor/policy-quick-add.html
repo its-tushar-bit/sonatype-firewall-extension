@@ -7,7 +7,7 @@
 	<div show-if='policy'>
 		<div ng-controller='PolicyEditorController' style='width:830px'>
 			<form style='margin-bottom:0px' name='quickAddPolicyEditor'>
-				<input ng-click='click()' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required>
+				<input ng-click='click()' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60'>
 				<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
 				<div style='padding-top:10px'>
 					<div inline-constraint-editor='policy.constraints[0]'>

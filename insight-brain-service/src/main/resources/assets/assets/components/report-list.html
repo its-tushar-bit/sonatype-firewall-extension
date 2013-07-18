@@ -1,66 +1,64 @@
 <div class='container' style='margin-top:100px'>
-	<div class='content-container' style='padding: 20px;'>
-		<div load-error='error' reload='doLoad()'></div>
-		<div ng-hide='error'>
-			<div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-			<div ng-show='applications.length == 0'><h5>No Applications</h5></div>
-			<div ng-show='applications.length > 0'>
-				<div class='input-prepend floatLeft'>
-					<span class='add-on'><i ng-class="{'icon-search': !searchText, 'icon-remove': searchText}" ng-click="searchText = ''"></i></span>
-					<input type='text' ng-model='appFilter.name' autocomplete="off" type-Ahead='getApplicationNames'/>
-				</div>
-				<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px'>
-					<thead>
-					<tr>
-						<th class='sortable' ng-click="orderColumn='name'; orderDirection=!orderDirection"
-							ng-class="{ 'sorted' : orderColumn == 'name' }">
-							Application Name
-							<i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
-									'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
-									'emptyIconGlyph' : orderColumn != 'name' }"></i>
-						</th>
-						<th ng-repeat='stage in stages | filterReportColumns'>
-							{{stage.name}} Report
-							<i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
-									'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
-									'emptyIconGlyph' : orderColumn != stage.id }"></i>
-						</th>
-					</tr>
-					</thead>
-					<tr ng-repeat='application in applications | filter: appFilter | orderBy:orderColumn:orderDirection'>
-						<td>
-							<a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
-								<img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
-									onerror="this.src='../assets/img/defaulticon_application.png';"
-									style='height: 24px; width: 24px; margin-right:5px;'/>{{application.name}}
-							</a>
-						</td>
-						<td ng-repeat='stage in stages | filterReportColumns'>
-							<div show-if='application.policyEvaluationsResults[stage.id]'>
-								<div>
-									<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-										<img src='../assets/img/glyphicons_263_bank.png' />
-										<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
-											{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
-										</span>
-										<span ng-show='application.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
-											{{application.policyEvaluationsResults[stage.id].severeComponentCount}}
-										</span>
-										<span ng-show='application.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
-											{{application.policyEvaluationsResults[stage.id].moderateComponentCount}}
-										</span>
-										<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
-									</a>
-								</div>
-								<div>
-									<a title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-										{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}</a>
-								</div>
-							</div>
-						</td>
-					</tr>
-				</table>
+	<div load-error='error' reload='doLoad()'></div>
+	<div ng-hide='error'>
+		<div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
+		<div ng-show='applications.length == 0'><h5>No Applications</h5></div>
+		<div ng-show='applications.length > 0'>
+			<div class='input-prepend floatLeft'>
+				<span class='add-on'><i ng-class="{'icon-search': !searchText, 'icon-remove': searchText}" ng-click="searchText = ''"></i></span>
+				<input type='text' ng-model='appFilter.name' autocomplete="off" type-Ahead='getApplicationNames'/>
 			</div>
+			<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px'>
+				<thead>
+				<tr>
+					<th class='sortable' ng-click="orderColumn='name'; orderDirection=!orderDirection"
+						ng-class="{ 'sorted' : orderColumn == 'name' }">
+						Application Name
+						<i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
+								'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
+								'emptyIconGlyph' : orderColumn != 'name' }"></i>
+					</th>
+					<th ng-repeat='stage in stages | filterReportColumns'>
+						{{stage.name}} Report
+						<i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
+								'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
+								'emptyIconGlyph' : orderColumn != stage.id }"></i>
+					</th>
+				</tr>
+				</thead>
+				<tr ng-repeat='application in applications | filter: appFilter | orderBy:orderColumn:orderDirection'>
+					<td>
+						<a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
+							<img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
+								onerror="this.src='../assets/img/defaulticon_application.png';"
+								style='height: 24px; width: 24px; margin-right:5px;'/>{{application.name}}
+						</a>
+					</td>
+					<td ng-repeat='stage in stages | filterReportColumns'>
+						<div show-if='application.policyEvaluationsResults[stage.id]'>
+							<div>
+								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+									<img src='../assets/img/glyphicons_263_bank.png' />
+									<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
+										{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
+									</span>
+									<span ng-show='application.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
+										{{application.policyEvaluationsResults[stage.id].severeComponentCount}}
+									</span>
+									<span ng-show='application.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
+										{{application.policyEvaluationsResults[stage.id].moderateComponentCount}}
+									</span>
+									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+								</a>
+							</div>
+							<div>
+								<a title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+									{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}</a>
+							</div>
+						</div>
+					</td>
+				</tr>
+			</table>
 		</div>
 	</div>
 </div>

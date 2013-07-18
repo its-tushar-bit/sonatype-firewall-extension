@@ -1,6 +1,6 @@
 <div constraint-editor='constraint'>
 	<div class='control-group' style="margin-bottom: 0px;">
-		<div class='well' style="min-height: 120px; max-height: 120px; overflow: auto;">
+		<div>
 			<div style="text-align: left;" ng-repeat="condition in constraint.conditions">
 				<span ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
 				<div class="btn-group" style='vertical-align: top'>
@@ -15,9 +15,9 @@
 		</div>
 	</div>
 	<div style='padding-left: 25px'>
-		Components violate this constraint when <select ng-model="constraint.operator" ng-change="validateConstraint()"
+		<select ng-model="constraint.operator" ng-change="validateConstraint()"
 			ng-options="operator.value as operator.name for operator in constraintConditionChoices" required style='magin: 0'>
-			<option value="" ng-selected="constraint.operator == null">any/all</option>
-		</select> of the above conditions are true.
+			<option value="" ng-selected="constraint.operator == null">Any or All</option>
+		</select> of the above conditions will trigger this constraint.
 	</div>
 </div>

@@ -1,7 +1,7 @@
 <form name='inlinePolicyForm' form-Submit='inlineSavePolicy()'>
 	<div class="accordion" id="policies">
 		<div class="accordion-group" ng-repeat='policy in policies'>
-			<div class="common-accordion-header policy" style='line-height:30px'>
+			<div class="common-accordion-header policy">
 				<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span>
 				<span class='inline'>
 					<span id='policyName' name='policyName' ng-model='policy.name' xeditable href='javascript:;' data-type='text' alpha-numeric adjustable='true' ng-click="edit(policy)"></span>

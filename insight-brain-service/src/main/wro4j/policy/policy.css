@@ -1,30 +1,7 @@
-.threat-box {
-	border-radius: 2px 2px 2px 2px;
-	display: inline-block;
-	height: 18px;
-	width: 18px;
-	padding: 0px;
-	text-align: center;
-	font-family: Arial;
-	font-size: 12px;
-	font-style: normal;
-	line-height: 18px;
-	vertical-align: middle;
-	margin-right: 2px;
-}
-#policies .accordion-group:hover, .policy-parent, .policy-parent h4 {
+.policy-parent, .policy-parent h4 {
 	-moz-background-clip: padding; /* for Firefox */
 	-webkit-background-clip: padding-box; /* for Safari */
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
-}
-/* Changing policy-parent class to be a universal style for the management UI. Should we move to management.css? */ 
-.content-header {
-	border-bottom: 1px solid rgba(255, 255, 255, .6);
-	margin-bottom: 10px;
-}
-.content-header h4 {
-	color: #909090;
-	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
 #policies .constraint-name::after {
 	content: ", "
@@ -32,9 +9,6 @@
 #policies .constraint-name:last-child::after {
 	content: ""
 }
-#policies .accordion-inner {border: none; padding-bottom: 30px;}
-#policies .accordion-group {border:1px solid transparent;}
-#policies .accordion-group:hover {border: 1px solid rgba(0, 0, 0, .1);}
 #policies tr.constraints, #policies tr.actions {
 	vertical-align: text-top;
 }

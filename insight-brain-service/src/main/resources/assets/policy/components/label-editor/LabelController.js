@@ -12,15 +12,14 @@
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices']);
 
   labelModule.service('LabelStore',['CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations){
-    var currentStoreId = null, labelStore = null;
+    var labelStore = null, labelStores = {};
 
     function refreshLabelStore() {
-      var isNew = !labelStore || currentStoreId !== CLMAppLocations.getEntityId();
-      if (isNew) {
-        currentStoreId = CLMAppLocations.getEntityId();
-        labelStore = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLabelsUrl() }, labelStoreTemplate));
+      var entityId = CLMAppLocations.getEntityId();
+      labelStore = labelStores[entityId];
+      if (!labelStore) {
+        labelStore = labelStores[entityId] = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLabelsUrl() }, labelStoreTemplate));
       }
-      return isNew;
     }
 
     var labelStoreTemplate = {

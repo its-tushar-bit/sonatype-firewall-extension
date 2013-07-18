@@ -554,7 +554,7 @@
 						controller : ['$scope', 'dialog', function ($scope, dialog) {
 							$scope.discard = function () {
 								dialog.close(true);
-								scope.policy = null;
+								scope.policy.edit = false;
 							};
 							$scope.cancel = function () {
 								dialog.close(true);
@@ -562,13 +562,13 @@
 						}]
 					}).open();
 				} else {
-					scope.policy = null;
+				    scope.policy.edit = false;
 				}
 			}
 		};
 		scope.savePolicy = function () {
 			scope.policy.$save().then(function (policy) {
-				scope.policy = null;
+			    scope.policy.edit = false;
 			}, function (error) {
 				scope.alerts.push({
 					type : 'error',
@@ -590,7 +590,6 @@
 		};
 	}]);
 	
-	//TODO: do NOT like the duplication here, but ultimately need same functionality, just another template to be used
 	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
         return {
             restrict : 'A',

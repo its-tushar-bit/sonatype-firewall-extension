@@ -124,10 +124,10 @@ abstract class AbstractResourceWithIcon
         }
     }
 
-    protected Response setIconSync( String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
+    protected String setIconSync( String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
                                     InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
     {
-        String errorMessage = null;
+        String errorMessage = "";
         try
         {
             setIcon( ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
@@ -138,13 +138,7 @@ abstract class AbstractResourceWithIcon
             errorMessage = errorResponseGenerator.mapException( e ).getMessageBody();
         }
 
-        UriBuilder uriBuilder = baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "index.html" );
-        if ( errorMessage != null )
-        {
-            uriBuilder = uriBuilder.queryParam( "errorMessage", errorMessage );
-        }
-
-        return Response.seeOther( uriBuilder.build() ).build();
+        return errorMessage;
     }
 
     protected Response generateIcon( final String hashcode, final HttpServletRequest req )

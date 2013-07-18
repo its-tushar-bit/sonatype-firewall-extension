@@ -1,7 +1,5 @@
 <div class='fade' ng-class='{ in : selectedOrganization != null}'>
 	<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
-	<form id='organizationEditor' name='organizationEditor' action='{{addOrganizationSync}}' method='post' enctype='multipart/form-data'
-          onsubmit='return angular.element(this).scope().saveClick()'>
        	<div ng-show='isUploadingIcon'>
             <div class="alert alert-info">
                 <strong>Uploading Icon...</strong>
@@ -16,13 +14,20 @@
 					</div>
 				</div>
                 <div class='edit-image'>
-                    <a onclick="javascript:document.getElementById('file').click();"
-                           ng-show='allowsInputViaJS'>Choose Icon</a>
-                    <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'
-                           ng-show='!allowsInputViaJS' style="display:none;" />
-                    <a ng-click='generateIcon()'>Want a robot?</a>
+                    <form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{addOrganizationSync}}' class='form' style='margin: 0px;' method='post'>
+                        <label for='file'>Choose Icon</label>
+                        <input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
+                               onchange='angular.element(this).scope().fileChanged(this)' />
+                        <input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />
+                        <a ng-click='generateIcon()'>Want a robot?</a>
+                        <input name='organizationId' ng-model='organizationId' type='hidden'/>
+                        <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
+                        <input name='robotHash' ng-model='robotHash' type='hidden'/>
+                    </form>
                 </div>
    			</div>
+        </div>
+        <form id='organizationEditor' name='organizationEditor' method='post' enctype='multipart/form-data' form-Submit='saveClick()'>
             <div class='inline head'>
                 <h1><span id='organizationName' name='organizationName' ng-model='selectedOrganization.name' xeditable href='javascript:;' data-emptytext='Enter Organization Name'
                           data-placeholder='Enter Organization Name' data-type='text'
@@ -35,15 +40,11 @@
                     <span ng-show="organizationEditor.organizationName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
                 </div>
             </div>
-			<input name='organizationId' ng-model='organizationId' type='hidden'/>
-			<input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
-            <input name='robotHash' ng-model='robotHash' type='hidden'/>
-		</div>
-		<div ng-show='isFormDirty() || !selectedOrganization.id' style='margin-top: 5px;'>
-           	<button class='btn' type='button' ng-click="cancelClick()">Cancel</button>
-            <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
-		</div>
-	</form>
+            <div ng-show='isFormDirty() || !selectedOrganization.id' style='margin-top: 5px;'>
+                <button class='btn' type='button' ng-click="cancelClick()">Cancel</button>
+                <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
+            </div>
+	    </form>
     <div ng-switch on='selectedOrganization.id'>
         <div ng-switch-when='null'></div>
         <div ng-switch-default>

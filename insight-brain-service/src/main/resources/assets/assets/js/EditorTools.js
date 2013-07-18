@@ -11,19 +11,34 @@
     function wrap($http, method, args, clmLocations) {
     }
 
-    angular.module('EditorTools', []).service('editorTools', function($parse, $q, regexFactory, hudson, CLMAppLocations) {
+    angular.module('EditorTools', []).service('editorTools', function($parse, $q, $timeout, regexFactory, hudson, CLMAppLocations) {
 		function EditorController($scope, idSelector, hiddenId, form) {
-			var me = this;
+			var defer, me = this;
       $scope.isPostingIcon = false;
 
 			$scope.alerts = [];
 			$scope.hasRobotSource = false;
-			$scope.hasFormData = typeof(window.FormData) !== 'undefined';
 
 			$scope.pushAlert = function (obj) {
 				$scope.alerts.length = 0;
 				$scope.alerts.push(obj);
 			};
+
+      $scope.iconUploadComplete = function(content, completed) {
+        if (completed) {
+          $scope.submitActive = false;
+          $scope.isUploadingIcon = false;
+          if (content.length === 0) {
+            $scope.iconChanged = false;
+            $scope.hasRobotSource = false;
+            $scope.$emit('resetIconCache');
+            defer.resolve(null);
+          } else {
+            $scope.pushAlert({ type: 'error', msg: content } );
+            defer.reject(content);
+          }
+        }
+      };
 
 			me.generateIcon = function(name) {
 				var hash = 0;
@@ -58,7 +73,7 @@
 			};
 
 			me.saveIcon = function() {
-        var defer = $q.defer();
+        defer = $q.defer();
 
 				if (!$scope.iconChanged) {
 					$scope.submitActive = false;
@@ -107,13 +122,12 @@
 							});
 						}
 					});
-
-          return defer.promise;
 				} else {
           $scope.isPostingIcon = true;
           $scope.isUploadingIcon = true;
-					form.submit();
+          $('#iconUploadForm').find('input[type=submit]').trigger('click');
 				}
+        return defer.promise;
 			}
 		}
 

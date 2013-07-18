@@ -211,8 +211,8 @@ public class ApplicationResourceTest
             new FilePart( "file", new ByteArrayPartSource( "defaulticon_application.png", defaultIconByteArray ) ) );
         Future<Response> futureResponse = builder.execute();
         Response response = futureResponse.get();
-        assertResponseStatus( 303, response );
-        Assert.assertEquals( getRestBaseUrl() + "assets/index.html", response.getHeader( "Location" ) );
+        assertResponseStatus( 200, response );
+        Assert.assertEquals( "", response.getResponseBody() );
 
         // Test Sync Fail Update Application Icon
         builder = RestAccess.getClient().preparePost( getSetSyncIconServiceUrl() );
@@ -222,10 +222,8 @@ public class ApplicationResourceTest
                                                                             IconUtils.loadInvalidIcon() ) ) );
         futureResponse = builder.execute();
         response = futureResponse.get();
-        assertResponseStatus( 303, response );
-        Assert.assertEquals(
-            getRestBaseUrl() + "assets/index.html?errorMessage=defaulticon_application.png+is+not+a+valid+image.",
-            response.getHeader( "Location" ) );
+        assertResponseStatus( 200, response );
+        Assert.assertEquals( "defaulticon_application.png is not a valid image.", response.getResponseBody() );
     }
 
     private byte[] loadDefaultIcon()

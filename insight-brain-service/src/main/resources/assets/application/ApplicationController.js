@@ -55,7 +55,7 @@
           if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
             $timeout(function () {
               $scope.selectedApplication = $scope.applications[i];
-              $scope.origUserIconSource = $scope.userIconSource = '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId);
+              $scope.$broadcast('setApplicationIcon');
             }, 100);
             return;
           }
@@ -65,6 +65,9 @@
     }
 
     $scope.location = $location;
+
+    // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
+    $scope.applicationIconTimestamp = {};
 
     $scope.$state = $state;
     $scope.isCurrentTab = function (tabName) {
@@ -86,12 +89,35 @@
 
   applicationModule.controller('applicationEditorController', function ($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, Messages, $http, hudson, editorTools) {
     var me = this;
-    angular.extend(me, editorTools.getEditorController($scope, 'selectedApplication.id', angular.element('[name=applicationId]'), angular.element('#applicationEditor')));
+    angular.extend(me, editorTools.getEditorController($scope, 'selectedApplication.id', angular.element('[name=applicationId]'), angular.element('#iconUploadForm')));
+
+    // Application Editor controller will take care of managing its own icons
+    function setApplicationIcon() {
+      // Reset icon cache on initial load and when icon is changed
+      if (!$scope.applicationIconTimestamp[$scope.selectedApplication.publicId]) {
+        resetIconCache();
+      } else {
+        $scope.origUserIconSource = $scope.userIconSource = getUserIconSource();
+      }
+    }
+
+    function resetIconCache() {
+      if ($scope.selectedApplication) {
+        $scope.applicationIconTimestamp[$scope.selectedApplication.publicId] = new Date().getTime();
+        $scope.origUserIconSource = $scope.userIconSource = getUserIconSource();
+      }
+    }
+
+    function getUserIconSource() {
+      return '../rest/application/icon/' + encodeURIComponent($scope.selectedApplication.publicId) + '?' + $scope.applicationIconTimestamp[$scope.selectedApplication.publicId];
+    }
+
+    $scope.addApplicationSync = CLMAppLocations.addIconSync();
+    $scope.$on('setApplicationIcon', setApplicationIcon);
+    $scope.$on('resetIconCache', resetIconCache);
 
     $scope.$state = $state;
-
     $scope.submitActive = false;
-    $scope.addApplicationSync = CLMAppLocations.addIconSync();
 
     OrganizationStore.get().then(function (results) {
       $scope.organizations = results;
@@ -241,14 +267,11 @@
       $scope.submitActive = true;
 
       $scope.selectedApplication.$save().then(function() {
-        var saveDeferred = me.saveIcon();
-        if (saveDeferred) {
-          saveDeferred.then(function () {
-            if ($state.params.applicationPublicId === '_new_') {
-              $state.transitionTo('management.application.view.policies', { applicationPublicId: $scope.selectedApplication.publicId });
-            }
-          });
-        }
+        me.saveIcon().then(function () {
+          if ($state.params.applicationPublicId === '_new_') {
+            $state.transitionTo('management.application.view.policies', { applicationPublicId: $scope.selectedApplication.publicId });
+          }
+        });
       }, function(error) {
         $scope.alerts.push({
           type : 'error',

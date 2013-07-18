@@ -3,8 +3,6 @@
 	<div style="float:right; margin:10px;" class='btn-group'>
 		<a class="btn btn-mini" title="Remove Application" ng-click="confirmDeleteApplication(selectedApplication)"><i class='glyphicons-sonatype bin'></i></a>
 	</div>
-	<form id='applicationEditor' name='applicationEditor' action='{{addApplicationSync}}' method='post' enctype='multipart/form-data'
-          form-Submit='save()'>
        	<div ng-show='isUploadingIcon'>
             <div class="alert alert-info">
                 <strong>Uploading Icon...</strong>
@@ -19,14 +17,20 @@
 					</div>
 				</div>
 				<div class='edit-image'>
-                    <a onclick="javascript:document.getElementById('file').click();"
-                           ng-show='hasFormData'>Choose Icon</a>
-                    <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'
-                            ng-show='!hasFormData' />
-                    <a ng-click='generateIcon()'>Want a robot?</a>
+                    <form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{addApplicationSync}}' class='form' style='margin: 0px;' method='post'>
+                        <label for='file'>Choose Icon</label>
+                        <input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
+                               onchange='angular.element(this).scope().fileChanged(this)' />
+                        <input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />
+                        <a ng-click='generateIcon()'>Want a robot?</a>
+                        <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
+                        <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
+                        <input name='robotHash' ng-model='robotHash' type='hidden'/>
+                    </form>
 	            </div>
    			</div>
-			<div class='inline head'>
+        <form id='applicationEditor' name='applicationEditor' method='post' enctype='multipart/form-data' form-Submit='save()'>
+            <div class='inline head'>
                   <h1><span id='applicationName' name='applicationName' ng-model='selectedApplication.name' xeditable href='javascript:;' data-emptytext='Enter Application Name'
                      data-placeholder='Enter Application Name' data-type='text'
                      ng-class="{ error: applicationEditor.applicationName.$error.duplicate || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces}"
@@ -37,10 +41,10 @@
                   <span ng-show="applicationEditor.applicationName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
                   <span ng-show="applicationEditor.applicationName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
                 </div>
-			</div>
+            </div>
           <div>
             <div class='inline'>
-			<span>Application</span>
+            <span>Application</span>
                 <div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;'>
                     <div ng-switch-when='null'>
                           <span id='applicationPublicId' name='applicationPublicId  ' ng-model='selectedApplication.publicId' xeditable
@@ -68,15 +72,12 @@
             </div>
             <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>
           </div>
-            <input name='applicationId' ng-model='selectedApplication.id' type='hidden'/>
-            <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
-            <input name='robotHash' ng-model='robotHash' type='hidden'/>
-		</div>
-		<div ng-show='isFormDirty() || !selectedApplication.id' style='margin-top: 5px;'>
-           	<button class='btn' type='button' ng-click='cancel()'>Cancel</button>
-            <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
-		</div>
-	</form>
+            <div ng-show='isFormDirty() || !selectedApplication.id' style='margin-top: 5px;'>
+                <button class='btn' type='button' ng-click='cancel()'>Cancel</button>
+                <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
+            </div>
+        </form>
+    </div>
 	<div ng-switch on='selectedApplication.id'>
 		<div ng-switch-when='null'></div>
 		<div ng-switch-default>

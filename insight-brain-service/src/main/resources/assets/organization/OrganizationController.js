@@ -59,7 +59,7 @@
             $timeout(function () {
               // don't want to infect the original data
               $scope.selectedOrganization = $scope.organizations[i].$clone();
-              $scope.origUserIconSource = $scope.userIconSource = '../rest/organization/icon/' + encodeURIComponent($scope.selectedOrganization.id);
+              $scope.$broadcast('setOrganizationIcon');
             }, 100);
             return;
           }
@@ -73,6 +73,10 @@
 
 
     $scope.$state = $state;
+
+    // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
+    $scope.organizationIconTimestamp = {};
+
 
     $scope.doLoad = function () {
       $scope.error = null;
@@ -90,11 +94,35 @@
 
   organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', function ($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages) {
     var me = this;
-    angular.extend(me, editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'), angular.element('#organizationEditor')));
+    angular.extend(me, editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'), angular.element('#iconUploadForm')));
+
+    // Organization Editor controller will take care of managing its own icons
+    function setOrganizationIcon() {
+      // Reset icon cache on initial load and when icon is changed
+      if (!$scope.organizationIconTimestamp[$scope.selectedOrganization.publicId]) {
+        resetIconCache();
+      } else {
+        $scope.origUserIconSource = $scope.userIconSource = getUserIconSource();
+      }
+    }
+
+    function resetIconCache() {
+      if ($scope.selectedOrganization) {
+        $scope.organizationIconTimestamp[$scope.selectedOrganization.publicId] = new Date().getTime();
+        $scope.origUserIconSource = $scope.userIconSource = getUserIconSource();
+      }
+    }
+
+    function getUserIconSource() {
+      return '../rest/application/icon/' + encodeURIComponent($scope.selectedOrganization.publicId) + '?' + $scope.organizationIconTimestamp[$scope.selectedOrganization.publicId];
+    }
+
+    $scope.addOrganizationSync = clmAppLocations.addIconSync();
+    $scope.$on('setOrganizationIcon', setOrganizationIcon);
+    $scope.$on('resetIconCache', resetIconCache);
 
     $scope.$state = $state;
     $scope.submitActive = false;
-    $scope.addOrganizationSync = clmAppLocations.addIconSync();
 
     $scope.validateName = function (value) {
       $scope.organizationEditor.$invalid = false;
@@ -175,14 +203,11 @@
       $scope.submitActive = true;
 
       $scope.selectedOrganization.$save().then(function (data) {
-        var saveDeferred = me.saveIcon();
-        if (saveDeferred) {
-          saveDeferred.then(function () {
-            if ($state.params.organizationId === '_new_') {
-              $state.transitionTo('management.organization.view.policies', { organizationId: $scope.selectedOrganization.id });
-            }
-          });
-        }
+        me.saveIcon().then(function () {
+          if ($state.params.organizationId === '_new_') {
+            $state.transitionTo('management.organization.view.policies', { organizationId: $scope.selectedOrganization.id });
+          }
+        });
       }, function (error) {
         $scope.alerts.push({
           type: 'error',

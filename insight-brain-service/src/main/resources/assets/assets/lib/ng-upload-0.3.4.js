@@ -61,9 +61,15 @@ angular.module('ngUpload', [])
             // get content - requires jQuery
             var content = iframe.contents().find('body').text();
             // execute the upload response function in the active scope
-            scope.$apply(function () { 
+
+            if(!scope.$$phase) {
+              scope.$apply(function () {
+                fn(scope, { content: content, completed: true});
+              });
+            } else {
               fn(scope, { content: content, completed: true});
-            });
+            }
+
             // remove iframe
             if (content !== "") { // Fixes a bug in Google Chrome that dispose the iframe before content is ready.
                 setTimeout(function () { iframe.remove(); }, 250);
@@ -75,9 +81,13 @@ angular.module('ngUpload', [])
           // add the new iframe to application
           form.parent().append(iframe);
 
-          scope.$apply(function () { 
-            fn(scope, {content: "Please wait...", completed: false }); 
-          });
+          if(!scope.$$phase) {
+            scope.$apply(function () {
+              fn(scope, {content: "Please wait...", completed: false });
+            });
+          } else {
+            fn(scope, {content: "Please wait...", completed: false });
+          }
 
           var enabled = true;
           if (!options.enableControls) {

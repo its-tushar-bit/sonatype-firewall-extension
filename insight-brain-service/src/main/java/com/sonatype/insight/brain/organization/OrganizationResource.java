@@ -128,15 +128,15 @@ public class OrganizationResource
     }
 
     /**
-     * This is one of two service methods used for editing and adding icons. This method is used for synchronous calls
-     * since it returns an HTTP Response.
+     * This is one of two service methods used for editing and adding icons. This method is used by angular ng-upload
+     * and returns an empty string for success and the error message otherwise
      * 
      * @since 1.6
      */
     @POST
     @Consumes( MediaType.MULTIPART_FORM_DATA )
     @Path( ICON_PATH_SYNC )
-    public Response setIconSync( @FormDataParam( "organizationId" ) String organizationId,
+    public String setIconSync( @FormDataParam( "organizationId" ) String organizationId,
                                  @FormDataParam( "hasRobotSource" ) boolean hasRobotSource,
                                  @FormDataParam( "robotHash" ) String robotHash,
                                  @FormDataParam( "file" ) InputStream uploadedInputStream,

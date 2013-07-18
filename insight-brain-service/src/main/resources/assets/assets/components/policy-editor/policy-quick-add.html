@@ -24,14 +24,13 @@
 							</div>
 						</div>
 						<div style='padding-left:25px'>
-							Components violate this constraint when
 							<select ng-model="constraint.operator"
 									ng-change="validateConstraint()"
 									ng-options="operator.value as operator.name for operator in constraintConditionChoices"
 									required style='magin:0'>
 								<option value="" ng-selected="constraint.operator == null">any/all</option>
 							</select>
-							of the above conditions are true.
+							of the above conditions will trigger this constraint.
 						</div>
 					</div>
 					<div clm-alerts='alerts'></div>

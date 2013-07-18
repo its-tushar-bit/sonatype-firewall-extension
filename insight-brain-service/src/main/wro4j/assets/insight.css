@@ -39,6 +39,9 @@ table.clm-table thead tr th.sorted {
     background-image: linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#f5f9fa', endColorstr = '#b5c6e0', GradientType = 0);
 }
+table.clm-table td {
+	vertical-align: middle;
+}
 
 input.editor-text {
     width: 100%;

@@ -33,6 +33,8 @@
 				window.alert('hi');
 			});
 		};
+		$scope.orderColumn = 'name';
+		$scope.orderDirection = false;
 		$scope.encodeURIComponent = window.encodeURIComponent;
 		$scope.doLoad();
 	}]);

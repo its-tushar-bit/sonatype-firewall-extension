@@ -29,8 +29,7 @@
 				$scope.stages = results[0].data;
 				$scope.applications = results[1].data;
 			}, function () {
-				// TODO 
-				window.alert('hi');
+				$scope.error = arguments[0];
 			});
 		};
 		$scope.orderColumn = 'name';

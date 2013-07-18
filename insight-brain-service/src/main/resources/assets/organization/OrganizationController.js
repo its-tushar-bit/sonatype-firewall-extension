@@ -29,6 +29,11 @@
       url: '/policies/{policyId}',
       controller: 'PolicyEditorController',
       templateUrl: '../assets/components/policy-editor/policy-editor.html'
+    }).state('management.organization.view.labels', {
+      parent: 'management.organization.view',
+      url: '/labels',
+      controller: 'LabelController',
+      templateUrl: '../policy-assets/components/label-editor/labels.html'
     }).state('management.organization.view.licenses', {
       parent: 'management.organization.view',
       url: '/licenses',

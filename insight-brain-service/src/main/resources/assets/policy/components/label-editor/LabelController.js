@@ -5,30 +5,27 @@
  */
 /*global angular, $, clmBuildTimestamp */
 (function () {
-    'use strict';
+  'use strict';
 
   var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
 
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices']);
 
-  labelModule.service('LabelStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
-    var labelStore = clmResource.getStore({
-      url: clmAppLocations.getLabelsUrl(),
-      template: labelTemplate,
-      params: {
-        timestamp: new Date().getTime()
-      }
-    });
-    return labelStore;
-  }]);
+  labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'Messages', 'CLMResource',
+                                             function ($scope, $http, $dialog, clmAppLocations, messages, clmResource) {
+      var labelStore = clmResource.getStore({
+        url: clmAppLocations.getLabelsUrl(),
+        template: labelTemplate,
+        params: {
+          timestamp: new Date().getTime()
+        }
+      });
 
-    labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'LabelStore', 'Messages',
-                                               function ($scope, $http, $dialog, clmAppLocations, labelStore, messages) {
-      		function deselect() {
-			delete $scope.selectedLabel;
-                        delete $scope.label;
-			$scope.editorUrl = '';
-		}
+      function deselect() {
+        delete $scope.selectedLabel;
+        delete $scope.label;
+        $scope.editorUrl = '';
+      }
 
       $scope.deselect = deselect;
       $scope.doLoad = function () {
@@ -67,7 +64,7 @@
       $scope.doLoad();
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'CLMAppLocations', 'Messages', 'LabelStore', function ($scope, $http, clmAppLocations, messages, labelStore) {
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'CLMAppLocations', 'Messages', function ($scope, $http, clmAppLocations, messages) {
 
       function errorFn(error) {
         $scope.submitActive = false;
@@ -101,7 +98,7 @@
             $scope.$emit('labels.cancelEditLabel', $scope.selectedLabel);
           }, errorFn);
         };
-        
+
 		$scope.$watch('selectedLabel', function (newValue) {
 			if (newValue) {
 				$scope.submitActive = false;
@@ -114,7 +111,7 @@
 		                event.preventDefault();
 		            }
 		        });
-		    } else if ($scope.selectedLabel.label) {
+		    } else if ($scope.selectedLabel && $scope.selectedLabel.label) {
 		        event.preventDefault();
 		    }
 		});

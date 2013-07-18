@@ -53,9 +53,9 @@
 	background-color: #2476C3;
 	color: #FFF;
 }
-.threat-level-dropdown a.threat-level-2, .threat-level-dropdown a.threat-level-3, .threat-level-2:hover, .threat-level-3:hover, .threat-level option[value="7"], .threat-level option[value="8"] {
+.threat-level-dropdown a.threat-level-1, .threat-level-dropdown a.threat-level-2, .threat-level-dropdown a.threat-level-3, .threat-level-2:hover, .threat-level-3:hover, .threat-level option[value="7"], .threat-level option[value="8"], .threat-level option[value="9"]  {
 	background-color: #F5C649;
-	color: #444;
+	color: #444 !important;
 }
 .threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level-4:hover, .threat-level-5:hover, .threat-level-6:hover, .threat-level-7:hover, .threat-level option[value="3"], .threat-level option[value="4"], .threat-level option[value="5"], .threat-level option[value="6"] {
 	background-color: #F2862F;
@@ -65,8 +65,9 @@
 	background-color: #DB2852;
 	color: #FFF;
 }
-.policy .threat-level-1 {
+.policy .threat-level-dropdown a.threat-level-1, .policy .threat-level option[value="9"] {
 	background-color: #0047B2;
+	color: #FFF !important;
 }
 /* Threat Chiclets */
 .threat-chiclet {

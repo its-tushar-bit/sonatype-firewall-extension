@@ -22,13 +22,8 @@
             </div>
             <div class='control-group halfSize floatRight'>
                 <label class='control-label'>Threat Level:</label>
-
                 <div class='controls'>
-                    <select style='width: 120px;'
-                            class='threat-level threat-level-{{selectedGroup.threatLevel}}'
-                            ng-model='selectedGroup.threatLevel'
-                            ng-options='threatLevel.value as threatLevel.name for threatLevel in threatLevels'>
-                    </select>
+                    <span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
                 </div>
             </div>
             <div class='control-group floatLeft'>

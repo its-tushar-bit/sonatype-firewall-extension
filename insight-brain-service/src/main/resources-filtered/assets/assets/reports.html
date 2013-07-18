@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+
+	Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+	Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+	"Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<html lang="en" ng-app="reportApp">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<title>CLM Management</title>
+	<link href="lib/bootstrap/bootstrap-2.3.1.min.css" rel="stylesheet" />
+	<link href="lib/X-editable/bootstrap-editable.css" rel="stylesheet" />
+	<link href="lib/glyphicon/glyphicons.css" rel="stylesheet" />
+	<link href="lib/glyphicon/halflings.css" rel="stylesheet" />
+	<link href="css/glyphicons-sonatype.css?${build.timestamp}" rel="stylesheet" />
+	<link href="css/management.css?${build.timestamp}" rel="stylesheet"/>
+	<link href="css/insight.css?${build.timestamp}" rel="stylesheet"/>
+	<link href="../policy-assets/css/policy.css?${build.timestamp}" rel="stylesheet"/>
+	<link rel='shortcut icon' href='favicon.ico'/>
+	<script type='text/javascript'>
+		var clmBuildTimestamp = '${build.timestamp}';
+	</script>
+	<script src='lib/jquery/jquery-1.8.3.min.js'></script>
+	<script src="lib/bootstrap/bootstrap-2.3.1.min.js"></script>
+	<script src='lib/angular/angular-${angularjs.version}.min.js'></script>
+	<script src='lib/angular/angular-sanitize-${angularjs.version}.min.js'></script>
+	<script src='lib/angular-ui-router-0.0.1.min.js'></script>
+	<script src="lib/ui-bootstrap-tpls-0.3.0.min.js"></script>
+	<script src='lib/ng-upload-0.3.4.js'></script>
+	<script src='util/CLMLocation.js?${build.timestamp}'></script>
+	<script src='util/CLMAppLocation.js?${build.timestamp}'></script>
+	<script src='util/AngularCommon.js?${build.timestamp}'></script>
+	<script src='js/Resource.js?${build.timestamp}'></script>
+	<script src='js/Hudson.js?${build.timestamp}'></script>
+	<script src='DashboardModule.js?${build.timestamp}'></script>
+	<script src='ReportApp.js?${build.timestamp}'></script>
+</head>
+<body ng-controller='dashboardController'>
+	<div class="first-row navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="title brand" href="#">
+					<img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
+				</a>
+			</div>
+		</div>
+	</div>
+	<div ng-show='!error'>
+		<div class="second-row navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						{{ selectedDashboard.name }} <span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu">
+						<li ng-repeat="dashboard in availableDashboards">
+						  <a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="third-row" ui-view>
+		</div>
+	</div>
+	<div ng-show='error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>
+		<h3>Error</h3>
+		<p>An unrecoverable error has occurred while loading the page.</p>
+		<p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
+	</div>
+	<div id="unsavedModal" class="master-modal modal hide fade" ng-controller="UnsavedController" data-backdrop="static" data-keyboard="false">
+		<div class="modal-header">Unsaved Changes</div>
+		<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>
+		<div class="modal-footer">
+			<button type="button" class="btn" ng-click="close(false)">Cancel</button>
+			<button type="button" class="btn btn-danger" ng-click="close(true)">Continue</button>
+		</div>
+	</div>
+</body>
+</html>

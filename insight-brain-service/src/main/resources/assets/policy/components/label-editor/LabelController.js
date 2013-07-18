@@ -7,20 +7,46 @@
 (function () {
   'use strict';
 
-  var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
+  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null};
 
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices']);
 
-  labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'Messages', 'CLMResource',
-                                             function ($scope, $http, $dialog, clmAppLocations, messages, clmResource) {
-      $scope.labelStore = clmResource.getStore({
-        url: clmAppLocations.getLabelsUrl(),
-        template: labelTemplate,
-        params: {
-          timestamp: new Date().getTime()
-        }
-      });
+  labelModule.service('LabelStore',['CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations){
+    var currentStoreId = null, labelStore = null;
 
+    function refreshLabelStore() {
+      var isNew = !labelStore || currentStoreId !== CLMAppLocations.getEntityId();
+      if (isNew) {
+        currentStoreId = CLMAppLocations.getEntityId();
+        labelStore = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLabelsUrl() }, labelStoreTemplate));
+      }
+      return isNew;
+    }
+
+    var labelStoreTemplate = {
+      template: labelTemplate,
+      params: {
+        timestamp: new Date().getTime()
+      }
+    };
+
+    return {
+      get: function () {
+        refreshLabelStore();
+        return labelStore.get();
+      },
+      refresh: function () {
+        refreshLabelStore();
+        return labelStore.refresh();
+      },
+      create: function () {
+        return labelStore.create();
+      }
+    };
+  }]);
+
+  labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
+                                             function ($scope, $http, $dialog, clmAppLocations, messages, clmResource, LabelStore) {
       function deselect() {
         delete $scope.selectedLabel;
         delete $scope.label;
@@ -30,7 +56,7 @@
       $scope.deselect = deselect;
       $scope.doLoad = function () {
         $scope.error = null;
-        $scope.labelStore.get().then(function(labels){
+        LabelStore.get().then(function(labels){
           $scope.labels = labels;
         }, function(error){
           $scope.error = error;
@@ -39,7 +65,7 @@
 
       $scope.editLabel = function (label) {
         deselect();
-        $scope.selectedLabel = angular.copy(label || labelTemplate);
+        $scope.selectedLabel = angular.copy(label); //TODO KR - see if this has the desired effect
         $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
       };
 
@@ -64,7 +90,8 @@
       $scope.doLoad();
     }]);
 
-    labelModule.controller('LabelEditorController', ['$scope', '$http', 'CLMAppLocations', 'Messages', function ($scope, $http, clmAppLocations, messages) {
+    labelModule.controller('LabelEditorController', ['$scope', '$http', 'CLMAppLocations', 'Messages', 'LabelStore',
+                                                     function ($scope, $http, clmAppLocations, messages, LabelStore) {
 
       function errorFn(error) {
         $scope.submitActive = false;
@@ -118,7 +145,7 @@
 
       $scope.click = function () {
         if (!$scope.label) {
-          $scope.label = $scope.labelStore.create();
+          $scope.label = LabelStore.create();
           $scope.selectedLabel = $scope.label;
         }
       };

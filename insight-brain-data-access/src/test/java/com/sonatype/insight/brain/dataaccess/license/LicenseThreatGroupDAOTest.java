@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -616,5 +618,50 @@ public class LicenseThreatGroupDAOTest
         {
             assertEquals( "Name is required.", expected.getMessage() );
         }
+    }
+
+    @Test
+    public void testValidateNameLength_Insert()
+    {
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, name + "a", 5 );
+        try
+        {
+            dao.insert( group );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
+
+        group.setName( name );
+        dao.insert( group );
+    }
+
+    @Test
+    public void testValidateNameLength_Update()
+    {
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+
+        LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+        LicenseThreatGroup group = new LicenseThreatGroup( applicationId, "testValidateNameLengthUpdate", 5 );
+        dao.insert( group );
+
+        group.setName( name + "a" );
+        try
+        {
+            dao.update( group );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
+
+        group.setName( name );
+        dao.update( group );
     }
 }

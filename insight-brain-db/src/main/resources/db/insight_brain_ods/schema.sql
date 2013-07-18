@@ -52,7 +52,7 @@ CREATE TABLE component_label (
 CREATE TABLE license_threat_group (
   license_threat_group_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
-  name varchar(50) NOT NULL,
+  name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint(2) NOT NULL,
   CONSTRAINT license_threat_group_pk PRIMARY KEY (license_threat_group_id),

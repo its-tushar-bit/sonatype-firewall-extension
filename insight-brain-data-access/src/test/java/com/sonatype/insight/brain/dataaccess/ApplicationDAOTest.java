@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
@@ -464,5 +466,45 @@ public class ApplicationDAOTest
             assertEquals( "Both the application and the organization have a license threat group with the same name 'testConflictingLicenseThreatGroups'",
                           expected.getMessage() );
         }
+    }
+
+    @Test
+    public void testValidateNameLength_Insert()
+    {
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        application.setName( name + "a" );
+        try
+        {
+            applicationDAO.insert( application );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
+
+        application.setName( name );
+        applicationDAO.insert( application );
+    }
+
+    @Test
+    public void testValidateNameLength_Update()
+    {
+        applicationDAO.insert( application );
+
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        application.setName( name + "a" );
+        try
+        {
+            applicationDAO.update( application );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
+
+        application.setName( name );
+        applicationDAO.update( application );
     }
 }

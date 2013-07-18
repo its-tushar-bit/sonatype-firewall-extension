@@ -289,7 +289,7 @@ body {
 	margin: -26px 0 0;
 	font-size: 10px;
 }
-.edit-image a:first-child {
+.edit-image a:first-child, .edit-image input {
 	display: block;
 	width: 80px;
 	opacity: 0.8;

@@ -13,7 +13,7 @@
 
   labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'Messages', 'CLMResource',
                                              function ($scope, $http, $dialog, clmAppLocations, messages, clmResource) {
-      var labelStore = clmResource.getStore({
+      $scope.labelStore = clmResource.getStore({
         url: clmAppLocations.getLabelsUrl(),
         template: labelTemplate,
         params: {
@@ -30,7 +30,7 @@
       $scope.deselect = deselect;
       $scope.doLoad = function () {
         $scope.error = null;
-        labelStore.get().then(function(labels){
+        $scope.labelStore.get().then(function(labels){
           $scope.labels = labels;
         }, function(error){
           $scope.error = error;
@@ -118,7 +118,7 @@
 
       $scope.click = function () {
         if (!$scope.label) {
-          $scope.label = labelStore.create();
+          $scope.label = $scope.labelStore.create();
           $scope.selectedLabel = $scope.label;
         }
       };

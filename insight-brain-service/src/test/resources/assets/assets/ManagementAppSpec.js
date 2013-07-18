@@ -1,7 +1,13 @@
 describe('dashboardApp', function () {
 	var scope, state;
 
-	beforeEach(module('dashboardApp'));
+	beforeEach(module('DashboardModule'));
+	beforeEach(module(function($provide) {
+		$provide.value('licenseChecker', { check : function(){} });
+	}));
+	afterEach(function () {
+		scope.$destroy();
+	});
 	beforeEach(inject(function ($rootScope, $state, $controller, $httpBackend) {
 		scope = $rootScope.$new();
 		state = $state;
@@ -21,16 +27,7 @@ describe('dashboardApp', function () {
 		expect(scope.selectedDashboard).not.toBeUndefined();
 		expect(scope.selectedDashboard.name).toEqual('Management');
 	});
-	
-	it('Creates states for different panes', inject(function($httpBackend) {
-		// transitionTo returns a promise. scope.$apply does not flush this promise and therefore the transition will not occur without creating
-		// a mock $q framework. transitionTo will throw an error if the state does not exist, however, so the lack of an error indicates test success
-		state.transitionTo('management.application', {});
-		
-		$httpBackend.expectGET('../organization-assets/components/organization-navigator.html').respond('<div></div>');
-		state.transitionTo('management.organization', {});
-	}));
-	
+
 	it('Validate location change event is broadcast properly', inject(function($rootScope) {
         var successStart = false, successAccept = false;
         $rootScope.$on('pageChangeStarted', function(event, destination){
@@ -54,12 +51,15 @@ describe('dashboardApp', function () {
 describe('ManagementModule', function () {
 	var scope;
 
-	beforeEach(module('ManagementModule', 'AngularCommon'));
+	beforeEach(module( 'OrganizationModule', 'ApplicationModule', 'AngularCommon'));
 	beforeEach(inject(function ($rootScope, $state, $controller, commonCodeFactory) {
 		scope = $rootScope.$new();
-		
+
 		$controller('ManagementController', { $scope: scope, $state: $state, commonCodeFactory: commonCodeFactory });
 	}));
+	afterEach(function () {
+		scope.$destroy();
+	});
 
 	it('Lists Org before App', function() {	
 		expect(scope.managementPanes).not.toBeUndefined();

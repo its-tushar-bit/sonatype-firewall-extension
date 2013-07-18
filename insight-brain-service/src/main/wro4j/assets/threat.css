@@ -1,0 +1,92 @@
+/* the reason the value numbers are wonky is because of the way angular builds the select using ngOptions */
+.threat-box {
+	border-radius: 2px 2px 2px 2px;
+	display: inline-block;
+	height: 18px;
+	width: 18px;
+	padding: 0px;
+	text-align: center;
+	font-family: Arial;
+	font-size: 12px;
+	font-style: normal;
+	line-height: 18px;
+	vertical-align: middle;
+	margin-right: 2px;
+}
+.threat-level-dropdown a {
+	background-image: none;
+	vertical-align: top;
+	padding: 2px 6px;
+	font-weight: bold;
+	color: #FFF;
+}
+.threat-level-dropdown>.dropdown-menu {
+	min-width: 120px;
+	padding: 0;
+}
+.threat-level-dropdown .dropdown-menu>li>a {
+	font-weight: bold;
+	color: #FFF;
+	padding: 3px 10px;
+	border: 1px solid rgba(0,0,0,.2);
+	-moz-background-clip: border; /* for Firefox */
+	-webkit-background-clip: border-box; /* for Safari */
+	background-clip: border-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}
+.threat-level-dropdown .dropdown-menu>li>a:hover {
+	color: #FFF !important;
+}
+.threat-level-dropdown a:hover span {
+	border-top-color: #FFF;
+}
+.threat-level-dropdown>.dropdown-menu li:first-child a {
+	-webkit-border-radius: 5px 5px 0 0;
+	-moz-border-radius: 5px 5px 0 0;
+	border-radius: 5px 5px 0 0;
+}
+.threat-level-dropdown>.dropdown-menu li:last-child a {
+	-webkit-border-radius: 0 0 5px 5px;
+	-moz-border-radius: 0 0 5px 5px;
+	border-radius: 0 0 5px 5px;
+}
+.threat-level-0, .threat-level-0:hover, .threat-level option[value="10"] {
+	background-color: #2476C3;
+	color: #FFF;
+}
+.threat-level-dropdown a.threat-level-1, .threat-level-dropdown a.threat-level-2, .threat-level-dropdown a.threat-level-3, .threat-level-2:hover, .threat-level-3:hover, .threat-level option[value="7"], .threat-level option[value="8"], .threat-level option[value="9"]  {
+	background-color: #F5C649;
+	color: #444 !important;
+}
+.threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level-4:hover, .threat-level-5:hover, .threat-level-6:hover, .threat-level-7:hover, .threat-level option[value="3"], .threat-level option[value="4"], .threat-level option[value="5"], .threat-level option[value="6"] {
+	background-color: #F2862F;
+	color: #FFF;
+}
+.threat-level-8, .threat-level-9, .threat-level-10, .threat-level-8:hover, .threat-level-9:hover, .threat-level-10:hover, .threat-level option[value="0"], .threat-level option[value="1"], .threat-level option[value="2"] {
+	background-color: #DB2852;
+	color: #FFF;
+}
+.policy .threat-level-dropdown a.threat-level-1, .policy .threat-level option[value="9"] {
+	background-color: #0047B2;
+	color: #FFF !important;
+}
+/* Threat Chiclets */
+.threat-chiclet {
+	display: inline-block;
+	width: 25px;
+	text-align: center;
+	vertical-align: middle;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+}
+.threat-chiclet-critical {
+	color: #5C0C0A;
+	background-color: #F00;
+}
+.threat-chiclet-severe {
+	color: #5A3D19;
+	background-color: #F7941E;
+}
+.threat-chiclet-moderate {
+	color: #645723;
+	background-color: #FFDE16;
+}

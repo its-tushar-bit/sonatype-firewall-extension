@@ -15,33 +15,27 @@
             <div class="accordion" id="licenseGroups">
                 <div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
                     <div class="common-accordion-header">
-                        <div class="btn-group threat-level-dropdown">
-                            <a class="btn dropdown-toggle threat-level-{{licenseGroup.threatLevel}}" data-toggle="dropdown" href="#">
-                                {{licenseGroup.threatLevel}} <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li ng-repeat='threatLevel in threatLevels'>
-                                    <a ng-click='inlineChangeThreatLevel(licenseGroup, threatLevel)' class='threat-level-{{threatLevel.value}}'>{{ threatLevel.name }}</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class='inline' style='display: inline;'>
+                        <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>
+                        <span class='inline'>
                             <ng-form name="innerInlineLicenseGroupForm">
                                 <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
                                     data-type='text' alpha-numeric adjustable='true'></span>
                                 <span ng-show="innerInlineLicenseGroupForm.licenseGroupName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
                             </ng-form>
-                        </div>
+                        </span>
                         <div class='floatRight'>
+                            <!-- Removing because row toggles to edit 
+                            <a data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}" style='text-decoration:none'>
+                                <i class="icon-list"></i>
+                            </a>
+                            -->
                             <div class='btn-group'>
                                 <a class="btn btn-mini" title="Edit License Threat Group" ng-click='editLicenseGroup(licenseGroup)' type="button"><i class='icon-pencil'></i></a>
-                                <a type="button" class="btn btn-mini" title="Delete License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
+                                <a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
                             </div>
                         </div>
                     </div>
-                    <a class="common-accordion-toggle" data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}">
-                        <i class="icon-list"></i>
-                    </a>
+                    <a class="common-accordion-toggle" data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}"></a>
                     <div id="collapse{{licenseGroup.id}}" class="common-accordion-body accordion-body collapse">
                         <div class="accordion-inner">
                             <b>Licenses</b>

@@ -9,6 +9,8 @@ import java.util.Locale;
 
 public class NameHelper
 {
+    public static final int MAX_NAME_LENGTH = 60;
+
     private NameHelper()
     {
     }
@@ -48,6 +50,10 @@ public class NameHelper
         {
             throw new InvalidNameException(
                                             "Name must not have leading or trailing spaces, or have two spaces in a row." );
+        }
+        if ( name.length() > MAX_NAME_LENGTH )
+        {
+            throw new InvalidNameException( "Name must be " + NameHelper.MAX_NAME_LENGTH + " characters or less." );
         }
     }
 }

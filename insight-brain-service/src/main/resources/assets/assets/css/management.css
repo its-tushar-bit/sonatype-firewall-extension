@@ -9,7 +9,7 @@
 @font-face {
 	font-family: ProximaNovaBold;
 	src: url(../fonts/proximanova-bold-webfont.ttf);
-}	
+}
 @font-face {
 	font-family: ProximaNovaSemibold;
 	src: url(../fonts/ProximaNova-Sbold-webfont.ttf);
@@ -73,21 +73,14 @@ h4 {
 	text-decoration: none;
 	color: black;
 }
-/*
-.second-row.navbar-fixed-top hr {
-	margin: 0;
-	border: 0;
-	border-top: 1px solid #c6c6c6;
-	border-bottom: 1px solid #e8e8e8;
-}
-*/
 .second-row.navbar-fixed-top {
 	top: 53px;
 	border-bottom: 1px solid rgba(0,0,0,.15);
-	border-top: 1px solid #e8e8e8;
+	box-shadow: 0px 1px 0px rgba(255,255,255,.4);
+	border-top: 1px solid #E8E8E8;
 }
 .navbar-inner a.dropdown-toggle {
-	color: #36424e;
+	color: #17558E;
 	font-weight: 500;
 	padding: 5px 6px 5px 15px;
 	display: inline-block;
@@ -119,7 +112,7 @@ h4 {
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;
 	box-shadow: none;
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E4E4E4', endColorstr='#E0E0E0');
+ filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E4E4E4', endColorstr='#E0E0E0');
 	border: 0;
 }
 .navbar .brand {
@@ -170,24 +163,22 @@ body {
 	position: fixed;
 	height: 100%;
 	border-right: 1px solid rgba(0, 0, 0, .1);
-	border-top: 1px solid rgba(255, 255, 255, .4);
 }
 .navigation .nav-list {
 	margin-top: 5px;
 }
-.navigation a, .subnavigation a {
+.nav-list>li>a {
 	font-size: 85%;
-	color: #444444;	
+	color: #444444;
+	padding: 7px 15px;
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
-	color: #36424e;
 	text-shadow: none;
 }
 .navigation .nav>.disabled>a:hover, .navigation .nav>.disabled>a:focus, .subnavigation .nav>.disabled>a:hover, .subnavigation .nav>.disabled>a:focus {
 	text-decoration: none;
 	background-color: transparent;
 	cursor: default;
-	color: #36424e;
 }
 .subnavigation {
 	background-color: #E8E8E8;
@@ -197,16 +188,15 @@ body {
 	height: 100%;
 	overflow: auto;
 	border-right: 1px solid rgba(0, 0, 0, .1);
-	border-left: 1px solid rgba(255, 255, 255, .2);
-	border-top: 1px solid rgba(255, 255, 255, .2);
 }
 .subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus, .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
 	color: #36424e;
 	text-shadow: 0px 1px 0px rgba(255,255,255,0.9);
-	background-color: #f4f4f4;
 }
 .navigation .nav-list>.active>a, .subnavigation .nav-list>.active>a {
-	font-weight: 500;
+	font-weight: bold;
+	background-color: transparent;
+	color: #17558E;
 }
 .subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .nav-list>.active>a:hover {
 	background-color: #f4f4f4;
@@ -233,10 +223,8 @@ body {
 	vertical-align: middle;
 }
 .content {
-	margin-left: 273px;
+	margin-left: 271px;
 	height: 100%;
-	border-left: 1px solid rgba(255, 255, 255, .6);
-	border-top: 1px solid rgba(255, 255, 255, .6);
 }
 .content .nav-tabs {
 	border-bottom-color: black;
@@ -267,58 +255,75 @@ body {
 	background-color: #ffffff;
 	cursor: pointer;
 }
+.content-section .accordion-group:hover, .policy-parent, .policy-parent h4 {
+	-moz-background-clip: padding; /* for Firefox */
+	-webkit-background-clip: padding-box; /* for Safari */
+	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}
+.content-header {
+	border-bottom: 1px solid rgba(255, 255, 255, .6);
+	margin-bottom: 10px;
+}
+.content-header h4 {
+	color: #909090;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+.accordion-inner {
+	border: none;
+	padding-bottom: 30px;
+}
+.accordion-group {
+	border: 1px solid transparent;
+}
+.accordion-group:hover {
+	border: 1px solid rgba(0, 0, 0, .1);
+}
 .tabbable {
 	clear: both;
 }
-.editorHeader {
+.editor-header {
 	padding-top: 20px;
 	padding-left: 10px;
 }
-.editorHeader h2 {
+.editor-header h2 {
 	border: 1px;
 }
-.editorImage {
+.editor-image {
 	float: left;
 	margin-right: 15px;
 	text-align: center;
 	height: 120px;
 }
-.editorImage img {
+.editor-image img {
 	height: 80px;
 	width: 80px;
 	margin: 0;
 	border: 0;
 }
-.editorImage:hover .editImage {
+.editor-image:hover .edit-image {
 	display: block;
 }
-.editImage {
+.edit-image {
 	display: none;
-	opacity: 0.99;
-	filter: alpha(opacity=99);
-	-webkit-transition: all .2s linear;
-	-moz-transition: all .2s linear;
-	transition: all .2s linear;
-	margin: -28px 0 0;
-	/*
-	margin: -20px 0 0;
-	*/
+	margin: -26px 0 0;
 	font-size: 10px;
 }
-.editImage input {
+.edit-image a:first-child, .edit-image input {
 	display: block;
 	width: 80px;
-	font-size: 10px;/*
-	height: 20px;
-	padding: 0;
-	border-radius: 0;
-	opacity: .9;
-	outline: none;
-	*/
+	opacity: 0.8;
+	filter: alpha(opacity=80);
+	background-color: #17558E;
+	color: #ffffff;
+	padding: 3px 0;
+	font-weight: bold;
 }
-.editorImage:hover .displayImage {
-	opacity: 0.2;
-	filter: alpha(opacity=20);
+.edit-image a:hover {
+	text-decoration: none;
+}
+.editor-image:hover .display-image {
+	opacity: 0.5;
+	filter: alpha(opacity=50);
 	pointer-events: none;
 	-webkit-transition: all .1s linear;
 	-moz-transition: all .1s linear;
@@ -335,10 +340,12 @@ body {
 /**
  * Inline Editor
  */
+.inline {
+	margin-top: -10px;
+}
 .head h1 {
-	margin: -10px 0 0 0;
 	white-space: nowrap;
-    height: 55px;
+	height: 55px;
 }
 .inline.head h1 span, .inline.head h1 input, .inline .editable-container input {
 	background: transparent;
@@ -399,7 +406,7 @@ body {
 .inline a {
 	-webkit-appearance: none;
 	-webkit-box-shadow: none;
-    box-shadow: none;
+	box-shadow: none;
 	border-top: none;
 	border-right: none;
 	border-left: none;
@@ -523,22 +530,6 @@ ul.tri-pane {
 .accordion-group:hover .hover-buttons {
 	visibility: visible;
 }
-/**
- * Threat level dropdown
- */
-.threat-level-dropdown a {
-	background-image: none;
-	vertical-align:top;
-}
-.threat-level-dropdown ul {
-	padding: 0px;
-	border-radius: 0px;
-	-webkit-border-radius: 0px;
-	-moz-border-radius: 0px;
-}
-/**
- * License Accordion Expand
- */
 .common-expand-toggle {
 	display: inline-block;
 	width: 100%

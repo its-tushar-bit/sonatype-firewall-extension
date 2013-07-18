@@ -7,15 +7,15 @@
 (function () {
   'use strict';
 
-  var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation']);
+  var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation', 'CommonServices']);
 
-  licenseGroupModule.service('licenseGroupStore', function ($q, $http, CLMAppLocations, CLMResource, ApplicationId) {
-    var currentStoreAppId = null, licenseGroupStore = null;
+  licenseGroupModule.service('licenseGroupStore', ['$q', '$http', 'CLMAppLocations', 'CLMResource', function ($q, $http, CLMAppLocations, CLMResource) {
+    var currentStoreId = null, licenseGroupStore = null;
 
     function refreshLicenseStore() {
-      var isNew = !licenseGroupStore || currentStoreAppId !== ApplicationId.encoded();
+      var isNew = !licenseGroupStore || currentStoreId !== CLMAppLocations.getEntityId();
       if (isNew) {
-        currentStoreAppId = ApplicationId.encoded();
+        currentStoreId = CLMAppLocations.getEntityId();
         licenseGroupStore = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLicenseGroupsUrl() }, licenseGroupStoreTemplate));
       }
       return isNew;
@@ -52,9 +52,9 @@
         return licenseGroupStore.create();
       }
     };
-  });
+  }]);
 
-  licenseGroupModule.service('licenseStore', function (CLMLocations, CLMResource) {
+  licenseGroupModule.service('licenseStore', ['CLMLocations', 'CLMResource', function (CLMLocations, CLMResource) {
     var licenseStore = CLMResource.getStore({
       id: 'id',
       url: CLMLocations.getLicensesUrl(),
@@ -63,9 +63,9 @@
       }
     });
     return licenseStore;
-  });
+  }]);
 
-  licenseGroupModule.controller('LicenseThreatGroupController', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, Messages) {
+  licenseGroupModule.controller('LicenseThreatGroupController', ['$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'Messages', function ($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, Messages) {
     function sortLicense(a, b) {
       if (a.id < b.id) {
         return -1;
@@ -93,20 +93,6 @@
     $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
     $scope.allLicenses = null;
     $scope.allExpanded = false;
-
-    $scope.threatLevels = [
-      {'value': 10, 'name': '10'},
-      {'value': 9, 'name': '9'},
-      {'value': 8, 'name': '8'},
-      {'value': 7, 'name': '7'},
-      {'value': 6, 'name': '6'},
-      {'value': 5, 'name': '5'},
-      {'value': 4, 'name': '4'},
-      {'value': 3, 'name': '3'},
-      {'value': 2, 'name': '2'},
-      {'value': 1, 'name': '1'},
-      {'value': 0, 'name': 'No Threat'}
-    ];
 
     $scope.doLoad = function () {
       $scope.error = null;
@@ -237,9 +223,9 @@
     $scope.$on('pageChangeAccepted', function () {
       $scope.inlineRevertLicenseGroups();
     });
-  });
+  }]);
 
-  licenseGroupModule.controller('LicenseThreatGroupEditorController', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
+  licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMAppLocations', 'licenseGroupStore', 'Messages', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
     $scope.alerts = [];
     $scope.licenseSearch = '';
 
@@ -335,7 +321,7 @@
         $scope.selectedGroupLicenses = null;
       }
     });
-  });
+  }]);
 
   licenseGroupModule.filter('toLicense', ['licenseStore', function (licenseStore) {
     var licenses = null;

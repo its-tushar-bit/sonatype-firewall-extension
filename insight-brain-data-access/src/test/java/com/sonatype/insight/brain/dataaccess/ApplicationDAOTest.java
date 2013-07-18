@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
@@ -467,38 +469,42 @@ public class ApplicationDAOTest
     }
 
     @Test
-    public void testConflictingLabels()
+    public void testValidateNameLength_Insert()
     {
-        final LabelDAO labelDAO = new LabelDAO();
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        application.setName( name + "a" );
+        try
+        {
+            applicationDAO.insert( application );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
 
-        // org and org label
-        organization = new Organization( "testConflictingLabels" );
-        new OrganizationDAO().insert( organization );
-        Label orgLabel = new Label();
-        orgLabel.setColor( Color.black );
-        orgLabel.setLabel( "testLabel" );
-        orgLabel.setOwnerId( organization.getId() );
-        labelDAO.insert( orgLabel );
-
-        // app and app label
-        application.setName( "testConflictingLabels" );
+        application.setName( name );
         applicationDAO.insert( application );
-        Label appLabel = new Label();
-        appLabel.setColor( Color.black );
-        appLabel.setLabel( "testLabel" );
-        appLabel.setOwnerId( application.getId() );
-        labelDAO.insert( appLabel );
+    }
 
-        application.setOrganizationId( organization.getId() );
+    @Test
+    public void testValidateNameLength_Update()
+    {
+        applicationDAO.insert( application );
+
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        application.setName( name + "a" );
         try
         {
             applicationDAO.update( application );
-            fail( "Expected InvalidApplicationException" );
+            fail( "Expected InvalidNameException" );
         }
-        catch ( InvalidApplicationException expected )
+        catch ( InvalidNameException expected )
         {
-            assertEquals( "Both the application and the organization have labels with the same names."
-                + " Conflicting label names :" + " 'testlabel'", expected.getMessage() );
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
         }
+
+        application.setName( name );
+        applicationDAO.update( application );
     }
 }

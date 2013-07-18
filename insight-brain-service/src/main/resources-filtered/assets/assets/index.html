@@ -6,7 +6,7 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<html lang="en" ng-app="dashboardApp">
+<html lang="en" ng-app="managementApp">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -30,6 +30,7 @@
     <script src='lib/angular/angular-sanitize-${angularjs.version}.min.js'></script>
     <script src='lib/angular-ui-router-0.0.1.min.js'></script>
     <script src="lib/ui-bootstrap-tpls-0.3.0.min.js"></script>
+    <script src='lib/ng-upload-0.3.4.js'></script>
     <script src='util/CLMLocation.js?${build.timestamp}'></script>
     <script src='util/CLMAppLocation.js?${build.timestamp}'></script>
     <script src='util/AngularCommon.js?${build.timestamp}'></script>
@@ -37,14 +38,16 @@
     <script src='js/Hudson.js?${build.timestamp}'></script>
     <script src='js/EditorTools.js?${build.timestamp}'></script>
     <script src='components/policy-editor/PolicyEditor.js?${build.timestamp}'></script>
-    <script src='../policy-assets/components/label-editor/LabelsController.js?${build.timestamp}'></script>
+    <script src='../policy-assets/components/label-editor/LabelController.js?${build.timestamp}'></script>
     <script src='../policy-assets/components/policy/PolicyController.js?${build.timestamp}'></script>
     <script src='../policy-assets/components/license-threat-group/LicenseThreatGroupsController.js?${build.timestamp}'></script>
     <script src='../application-assets/ApplicationController.js?${build.timestamp}'></script>
     <script src='../organization-assets/OrganizationController.js?${build.timestamp}'></script>
+    <script src='../configuration-assets/ProductLicenseController.js?${build.timestamp}'></script>
     <script src='../configuration-assets/ConfigurationController.js?${build.timestamp}'></script>
     <script src='../assets/components/list-editor/ListEditor.js?${build.timestamp}'></script>
     <script src='components/notification-manager/NotificationManager.js?${build.timestamp}'></script>
+    <script src='DashboardModule.js?${build.timestamp}'></script>
     <script src='ManagementApp.js?${build.timestamp}'></script>
 </head>
 <body ng-controller='dashboardController'>

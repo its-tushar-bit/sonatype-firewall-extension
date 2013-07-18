@@ -41,7 +41,7 @@
 				</table>
 			</div>
 			<div ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.policies.length > 0'>
-				<div class="policy-parent" ng-switch='applicablePolicy.editable'>
+				<div class="content-header" ng-switch='applicablePolicy.editable'>
 					<h4 ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</h4>
 					<h4 ng-switch-default>Policies Inherited from {{applicablePolicy.ownerName}}</h4>
 				</div>

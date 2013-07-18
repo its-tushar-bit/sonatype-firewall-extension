@@ -7,7 +7,7 @@
 (function () {
 	"use strict";
 
-	angular.module('CLMLocation', ['AngularCommon']).factory('CLMLocations', ['BaseUrl', function (baseUrl) {
+	var module = angular.module('CLMLocation', []).factory('CLMLocations', ['BaseUrl', function (baseUrl) {
 		return {
 			getLicensesUrl: function () {
 				return baseUrl.get() + '/rest/license';
@@ -58,5 +58,27 @@
 			    return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationId) + '/' + encodeURIComponent(scanId) + '/embedReport/index.html';
 			}
 		};
+	}]);
+
+	module.service('BaseUrl', [function() {
+		return {
+			get : function() {
+				var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/'],
+					idx = -1;
+
+				for (var i = 0; i < baseSegments.length; i++) {
+					idx = window.location.href.indexOf(baseSegments[i]);
+					if (idx !== -1) {
+						break;
+					}
+				}
+
+				if (idx > -1) {
+					return window.location.href.substring(0, idx);
+				}
+				
+				return '';
+			}
+		}; 
 	}]);
 }());

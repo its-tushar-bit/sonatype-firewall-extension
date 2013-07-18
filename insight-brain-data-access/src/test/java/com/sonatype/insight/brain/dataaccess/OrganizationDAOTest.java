@@ -18,6 +18,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
@@ -310,5 +312,46 @@ public class OrganizationDAOTest
         {
             assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
         }
+    }
+
+    @Test
+    public void testValidateNameLength_Insert()
+    {
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        organization.setName( name + "a" );
+        try
+        {
+            dao.insert( organization );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
+
+        organization.setName( name );
+        dao.insert( organization );
+    }
+
+    @Test
+    public void testValidateNameLength_Update()
+    {
+        organization.setName( "test name" );
+        dao.insert( organization );
+
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        organization.setName( name + "a" );
+        try
+        {
+            dao.update( organization );
+            fail( "Expected InvalidNameException" );
+        }
+        catch ( InvalidNameException expected )
+        {
+            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
+        }
+
+        organization.setName( name );
+        dao.update( organization );
     }
 }

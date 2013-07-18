@@ -1,0 +1,21 @@
+<table>
+	<tr class="constraints">
+		<td class="header">Constraints:</td>
+		<td><span class="constraint-name" ng-repeat="constraint in policy.constraints">{{constraint.name}}</span></td>
+	</tr>
+	<tr class="actions">
+		<td class="header">Actions:</td>
+		<td>
+			<table style="height: 40px;" ng-show="getActionCount(policy)">
+				<tr>
+					<td class="action-item" ng-repeat="stage in getActionStages()"><span>{{stage.name}}</span> <br> <img
+						ng-src='{{getStageIconPath(stage, policy)}}' style="height: 20px; width: 20px;" /></td>
+				</tr>
+			</table>
+			<span ng-hide="getActionCount(policy)">No actions are assigned.</span>
+		</td>
+	</tr>
+	<tr>
+		<td ng-show='editable' colspan="2" style="padding-top: 10px;"><a class='btn btn-primary pull-right' ng-click='policy.edit=true'>Edit</a></td>
+	</tr>
+</table>

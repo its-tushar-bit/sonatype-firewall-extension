@@ -1,25 +1,24 @@
-<div class='fade in' style='width:625px' ng-controller='LabelEditorController'>
-	<form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabelClick();'>
+<div class='fade in' style='width:830px' ng-controller='LabelEditorController'>
+	<form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabelClick("labelEditor", selectedLabel);'>
 	    <div class="modal-body">
 			<div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
-				<label class="control-label" for="labelEditorLabel">Label:</label>
-				<div class="controls">
-					<input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
-					<span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
+              <label class="control-label" for="labelEditorLabel">Label:</label>
+              <div class="controls">
+                <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
+                <span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
 					<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
 					<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
 				</div>
 			</div>
 	        <div>
 	            <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
-	                <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;margin:5px'>{{selectedLabel.label}}</span>
+	                <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{selectedLabel.label}}</span>
 	            </div>
 	        </div>
-	        <div clm-alerts='alerts'></div>
-	    </div>
-	    <div class="modal-footer">
-	        <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
-	        <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid)'>Save</button>
-	    </div>
+          <div class="pull-right">
+            <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
+            <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>
+          </div>
+        </div>
 	</form>
 </div>

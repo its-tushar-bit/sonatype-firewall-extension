@@ -2,64 +2,106 @@
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
-	border-style: solid;
-	border-width: 1px;
+	border: 1px solid transparent;
 	font-size: 12px;
+	font-weight: bold;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 	overflow: hidden;
-	margin: 0;
-	padding: 1px 3px;
+	padding: 5px 25px 5px 10px;
 	vertical-align: middle;
-	border-color: #AFBFCF;
-	line-height: 13px;
+	line-height: 14px;
 	max-width: 200px;
 	display: inline-block;
 	word-break: break-all;
-	padding: 5px 10px;
 	cursor: pointer;
+	white-space: nowrap;
+}
+.whiteLabel, .Label {
+	border-color: #c6c6c6;
+}
+form[name="labelEditor"] .clmLabel {
+	padding: 5px 10px;
+}
+.clmLabel:hover {
+	border-color: #C1C1C1;
+}
+.yellowLabel, .greyLabel, .whiteLabel, .Label {
+	text-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
 .whiteLabel {
-	background-color: #EEEEEE;
-	color: black;
+	background-color: #FFFFFF;
 }
 .greyLabel {
-	background-color: #BFBFBF;
-	color: black;
+	background-color: #C6C6C6;
+}
+.greyLabel:hover {
+	border-color: #909090;
 }
 .blackLabel {
 	background-color: #444444;
 	color: white;
 }
+.blackLabel:hover {
+	border-color: #black;
+}
 .greenLabel {
-	background-color: #46A546;
+	background-color: #0B9743;
 	color: white;
+}
+.greenLabel:hover {
+	border-color: #04642A;
 }
 .yellowLabel {
-	background-color: #FAF20F;
-	color: black;
+	background-color: #F5C649;
+}
+.yellowLabel:hover {
+	border-color: #D2A429;
 }
 .orangeLabel {
-	background-color: #F89406;
+	background-color: #F2862F;
+	border-color: #C56213;
 	color: white;
+}
+.orangeLabel:hover {
+	border-color: #C56213;
 }
 .redLabel {
-	background-color: #C43C35;
+	background-color: #880625;
 	color: white;
+}
+.redLabel:hover {
+	border-color: #460011;
 }
 .blueLabel {
-	background-color: #0080FF;
+	background-color: #2476C3;
 	color: white;
 }
+.blueLabel:hover {
+	border-color: #17558E;
+}
 .labelContainer {
-	padding: 2px;
-	margin: 2px;
 	display: inline-block;
 	cursor: pointer;
-	border-radius: 3px;
-	border: 1px solid lightgrey;
+	border-radius: 4px;
+	border: 1px solid transparent;
+	position: relative;
+	margin-right: 5px;
+	transition: border linear .2s,box-shadow linear .2s;
 }
 .labelContainer.active {
-	border: 1px dashed black;
+	border: 1px solid rgba(82,168,236,0.8);
+	outline: 0;
+	outline: thin solid 9;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
+	-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
+	box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
 }
-.clmLabel.active {
-	border: 1px dashed black;
+.deleteHoverTransparent {
+	background-position: -314px 0px;
+	opacity: .3;
+	filter: alpha(opacity=50);
+	vertical-align: top;
+	position: absolute;
+	right: 4px;
+	top: 6px;
 }

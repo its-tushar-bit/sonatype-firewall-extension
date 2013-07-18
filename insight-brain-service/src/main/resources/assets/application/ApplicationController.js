@@ -212,10 +212,12 @@
     };
 
     $scope.cancel = function () {
-      $scope.selectedApplication.$revert();
-      if ($scope.iconChanged) {
-        $scope.userIconSource = $scope.origUserIconSource;
-        $scope.iconChanged = false;
+      if ($scope.selectedApplication) {
+        $scope.selectedApplication.$revert();
+        if ($scope.iconChanged) {
+          $scope.userIconSource = $scope.origUserIconSource;
+          $scope.iconChanged = false;
+        }
       }
     };
 

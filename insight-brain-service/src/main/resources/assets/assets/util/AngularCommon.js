@@ -545,6 +545,20 @@
 			}
 		};
 	});
+
+      /**
+       *  When clicking this element, we will assign focus to the first child input.
+       */
+        angularCommon.directive('focusInputOnClick', function () {
+          return {
+            link : function (scope, element, attrs) {
+              var angularElement = angular.element(element);
+              angularElement.on('click', function(){
+                angularElement.find('input')[0].focus();
+              });
+            }
+          };
+        });
 }());
 
 (function () {

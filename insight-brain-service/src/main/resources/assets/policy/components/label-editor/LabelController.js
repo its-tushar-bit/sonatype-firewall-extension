@@ -169,13 +169,7 @@
   labelModule.directive('inlineLabelCreator', function () {
     return {
       templateUrl : "../policy-assets/components/label-editor/label-inline-editor.html",
-      controller: 'LabelEditorController',
-      link : function (scope, element, attrs) {
-        var div = angular.element(element);
-        div.on('click', function(){
-          div.find('#labelName').focus();
-        });
-      }
+      controller: 'LabelEditorController'
     };
   })
 }());

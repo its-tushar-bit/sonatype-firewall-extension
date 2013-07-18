@@ -24,11 +24,13 @@
 
     labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'LabelStore', 'Messages',
                                                function ($scope, $http, $dialog, clmAppLocations, labelStore, messages) {
-		function deselect() {
+      		function deselect() {
 			delete $scope.selectedLabel;
+                        delete $scope.label;
 			$scope.editorUrl = '';
 		}
-      $scope.labelStore = labelStore;
+
+      $scope.deselect = deselect;
       $scope.doLoad = function () {
         $scope.error = null;
         labelStore.get().then(function(labels){
@@ -38,11 +40,10 @@
         });
       };
 
-      $scope.doLoad();
-
       $scope.editLabel = function (label) {
-                      $scope.selectedLabel = angular.copy(label || labelTemplate);
-                      $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
+        deselect();
+        $scope.selectedLabel = angular.copy(label || labelTemplate);
+        $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
       };
 
       $scope.deleteLabel = function (label) {
@@ -53,22 +54,20 @@
             type: 'error',
             msg: 'An error occurred while deleting the label. (' +
                 messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
-          })
+          });
+          deselect();
         });
       };
 
-		$scope.$on('labels.cancelEditLabel', function (event, label) {
-			event.stopPropagation();
-			if (!label || label === $scope.selectedLabel) {
-				deselect();
-			}
-		});
+      $scope.$on('labels.cancelEditLabel', function (event, label) {
+              event.stopPropagation();
+              deselect();
+      });
 
-		$scope.doLoad();
+      $scope.doLoad();
     }]);
 
     labelModule.controller('LabelEditorController', ['$scope', '$http', 'CLMAppLocations', 'Messages', 'LabelStore', function ($scope, $http, clmAppLocations, messages, labelStore) {
-        $scope.alerts = [];
 
       function errorFn(error) {
         $scope.submitActive = false;
@@ -109,7 +108,7 @@
 			}
 		});
 		$scope.$on('pageChangeStarted', function (event) {
-		    if ($scope.selectedLabel.id) {
+		    if ($scope.selectedLabel && $scope.selectedLabel.id) {
 		        angular.forEach($scope.labels, function (candidate) {
 		            if (candidate.id === $scope.selectedLabel.id && !angular.equals(candidate, $scope.selectedLabel)) {
 		                event.preventDefault();
@@ -119,6 +118,31 @@
 		        event.preventDefault();
 		    }
 		});
+
+      $scope.click = function () {
+        if (!$scope.label) {
+          $scope.label = labelStore.create();
+          $scope.selectedLabel = $scope.label;
+        }
+      };
+      $scope.cancel = function () {
+        if ($scope.label) {
+          $scope.label = null;
+        }
+      };
+      $scope.setInlineColor = function(color, $event){
+        $scope.label.color = color;
+      }
+      $scope.saveLabel = function () {
+        $scope.label.$save().then(function (label) {
+          $scope.deselect();
+        }, function (error) {
+          $scope.alerts.push({
+            type : 'error',
+            msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage(error) + ')'
+          });
+        });
+      };
     }]);
 
   labelModule.directive('itemLabel', function () {
@@ -145,42 +169,12 @@
         };
     });
 
-  labelModule.directive('inlineLabelCreator', ['Messages', 'LabelStore', function (messages, labelStore) {
+  labelModule.directive('inlineLabelCreator', function () {
     return {
-      restrict : 'A',
       templateUrl : "../policy-assets/components/label-editor/label-inline-editor.html",
-      scope : {  },
-      link : function (scope, element, attrs, ctrl) {
-        scope.click = function () {
-          if (!scope.label) {
-            scope.label = labelStore.create();
-          }
-        };
-        scope.cancel = function () {
-          if (scope.label) {
-              scope.label = null;
-          }
-        };
-        scope.setInlineColor = function(color, $event){
-          //scope.$apply(function(){
-            scope.label.color = color;
-            //angular.element($event.target).addClass('active');
-          //});
-        }
-        scope.saveLabel = function () {
-          scope.label.$save().then(function (label) {
-            scope.label = null;
-          }, function (error) {
-            scope.alerts.push({
-              type : 'error',
-              msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage(error) + ')'
-            });
-          });
-        };
-        scope.$on('labels.cancelEditLabel', function(){
-          scope.label = null;
-        });
+      controller: 'LabelEditorController',
+      link : function (scope, element, attrs) {
       }
     };
-  }])
+  })
 }());

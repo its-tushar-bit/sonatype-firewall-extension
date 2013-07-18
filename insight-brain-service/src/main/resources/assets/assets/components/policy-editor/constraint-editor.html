@@ -1,8 +1,8 @@
-<div constraint-editor='constraint'>
+<div inline-constraint-editor='constraint'>
 	<div class='control-group' style="margin-bottom: 0px;">
 		<div>
 			<div style="text-align: left;" ng-repeat="condition in constraint.conditions">
-				<span ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
+				<span style="padding-left:25px;"ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
 				<div class="btn-group" style='vertical-align: top'>
 					<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1">
 						<i class="icon-minus-sign"></i>

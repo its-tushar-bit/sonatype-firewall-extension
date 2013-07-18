@@ -21,7 +21,7 @@
         masterModalShown = false;
     }
 
-	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
+	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'AngularCommon'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop

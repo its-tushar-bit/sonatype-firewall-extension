@@ -127,9 +127,9 @@
           $scope.label = null;
         }
       };
-      $scope.setInlineColor = function(color, $event){
+      $scope.setInlineColor = function(color){
         $scope.label.color = color;
-      }
+      };
       $scope.saveLabel = function () {
         $scope.label.$save().then(function (label) {
           $scope.deselect();

@@ -104,7 +104,7 @@
     // Organization Editor controller will take care of managing its own icons
     function setOrganizationIcon() {
       // Reset icon cache on initial load and when icon is changed
-      if (!$scope.organizationIconTimestamp[$scope.selectedOrganization.publicId]) {
+      if (!$scope.organizationIconTimestamp[$scope.selectedOrganization.id]) {
         resetIconCache();
       } else {
         $scope.origUserIconSource = $scope.userIconSource = getUserIconSource();
@@ -113,13 +113,13 @@
 
     function resetIconCache() {
       if ($scope.selectedOrganization) {
-        $scope.organizationIconTimestamp[$scope.selectedOrganization.publicId] = new Date().getTime();
+        $scope.organizationIconTimestamp[$scope.selectedOrganization.id] = new Date().getTime();
         $scope.origUserIconSource = $scope.userIconSource = getUserIconSource();
       }
     }
 
     function getUserIconSource() {
-      return '../rest/application/icon/' + encodeURIComponent($scope.selectedOrganization.publicId) + '?' + $scope.organizationIconTimestamp[$scope.selectedOrganization.publicId];
+      return '../rest/organization/icon/' + encodeURIComponent($scope.selectedOrganization.id) + '?' + $scope.organizationIconTimestamp[$scope.selectedOrganization.id];
     }
 
     $scope.addOrganizationSync = clmAppLocations.addIconSync();

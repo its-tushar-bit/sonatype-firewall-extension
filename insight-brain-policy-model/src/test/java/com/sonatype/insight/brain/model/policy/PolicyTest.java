@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -76,6 +78,25 @@ public class PolicyTest
             ValidationResult result = policy.validate( applicationId );
             assertValidationResult( result, "The policy name must be alpha numeric." );
         }
+    }
+
+    @Test
+    public void testValidate_NameLength()
+    {
+        Policy policy = new Policy();
+        Constraint constraint = new Constraint( "Constraint Id", "Constraint Name", LogicalOperator.AND );
+        constraint.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
+        policy.addConstraint( constraint );
+
+        policy.setName( name + "a" );
+        ValidationResult result = policy.validate( applicationId );
+        assertValidationResult( result, "The policy name must be " + NameHelper.MAX_NAME_LENGTH
+            + " characters or less." );
+
+        policy.setName( name );
+        result = policy.validate( applicationId );
+        Assert.assertTrue( result.isValid() );
     }
 
     @Test

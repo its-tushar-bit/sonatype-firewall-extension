@@ -109,7 +109,7 @@ public class ComponentDAOTest
     @After
     public void exit()
     {
-        List<Label> labels = labelDAO.getByApplicationId( applicationId );
+        List<Label> labels = labelDAO.getByOwnerId( applicationId );
         for ( Label label : labels )
         {
             labelDAO.delete( label );

@@ -16,12 +16,12 @@ import com.sonatype.insight.brain.model.label.Label;
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
 {
-    public List<Label> getByApplicationId( String applicationId )
+    public List<Label> getByOwnerId( String ownerId )
     {
         EntityManager em = createEntityManager();
         try
         {
-            return getByApplicationId( em, applicationId );
+            return getByOwnerId( em, ownerId );
         }
         finally
         {
@@ -29,29 +29,29 @@ public class LabelDAO
         }
     }
 
-    public List<Label> getByApplicationId( EntityManager em, String applicationId )
+    public List<Label> getByOwnerId( EntityManager em, String ownerId )
     {
         String sQuery = "SELECT label FROM Label label" + //
-            " WHERE label.applicationId=?1" + //
+            " WHERE label.ownerId=?1" + //
             " ORDER BY label.labelLowercase";
-        return getList( em, sQuery, applicationId );
+        return getList( em, sQuery, ownerId );
     }
 
-    public List<Label> getByApplicationIdAndHash( String applicationId, String hash )
+    public List<Label> getByOwnerIdAndHash( String ownerId, String hash )
     {
         String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
-            " WHERE label.id=componentLabel.labelId AND label.applicationId=componentLabel.applicationId" + //
-            " AND label.applicationId=?1 AND componentLabel.hash=?2" + //
+            " WHERE label.id=componentLabel.labelId AND label.ownerId=componentLabel.ownerId" + //
+            " AND label.ownerId=?1 AND componentLabel.hash=?2" + //
             " ORDER BY label.labelLowercase";
-        return getList( sQuery, applicationId, hash );
+        return getList( sQuery, ownerId, hash );
     }
 
-    public Label getByApplicationIdAndLowercaseLabel( String applicationId, String labelLowercase )
+    public Label getByOwnerIdAndLowercaseLabel( String ownerId, String labelLowercase )
     {
         EntityManager em = createEntityManager();
         try
         {
-            return getByApplicationIdAndLowercaseLabel( em, applicationId, labelLowercase );
+            return getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase );
         }
         finally
         {
@@ -59,11 +59,11 @@ public class LabelDAO
         }
     }
 
-    public Label getByApplicationIdAndLowercaseLabel( EntityManager em, String applicationId, String labelLowercase )
+    public Label getByOwnerIdAndLowercaseLabel( EntityManager em, String ownerId, String labelLowercase )
     {
         String sQuery = "SELECT label FROM Label label" + //
-            " WHERE  label.applicationId=?1 AND label.labelLowercase=?2";
-        return get( em, sQuery, applicationId, labelLowercase );
+            " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
+        return get( em, sQuery, ownerId, labelLowercase );
     }
 
     @Override
@@ -106,23 +106,48 @@ public class LabelDAO
     public void insert( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
-        if ( getByApplicationIdAndLowercaseLabel( em, label.getApplicationId(), label.getLabelLowercase() ) != null )
+        validateLabelUnique( em, label, false );
+        super.insert( em, label );
+    }
+
+    private void validateLabelUnique( EntityManager em, Label label, boolean update )
+        throws InvalidLabelException
+    {
+        // first, check the same label does not exist in for the same owner
+        // this is enforced by db unique key, but checking in java gives nicer error message
+        Label otherLabel = getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
+        if ( otherLabel != null && ( !update || !otherLabel.getId().equals( label.getId() ) ) )
         {
             throw new InvalidLabelException( "A label with the same name already exists" );
         }
-        super.insert( em, label );
+
+        // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
+        // label uniqueness constraints
+
+        // owner can be an app, make sure organization does not have this label already
+        String aQuery = "SELECT label FROM Label label, Application app" + //
+            " WHERE label.ownerId=app.organizationId AND app.id=?1" + //
+            "    AND label.labelLowercase=?2";
+        if ( get( em, aQuery, label.getOwnerId(), label.getLabelLowercase() ) != null )
+        {
+            throw new InvalidLabelException( "A label with the same name already exists" );
+        }
+
+        // owner can be an org, make sure none of org's apps have this label already
+        String oQuery = "SELECT label FROM Label label, Application app" + //
+            " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
+            "    AND label.labelLowercase=?2";
+        if ( get( em, oQuery, label.getOwnerId(), label.getLabelLowercase() ) != null )
+        {
+            throw new InvalidLabelException( "A label with the same name already exists" );
+        }
     }
 
     @Override
     public void update( EntityManager em, Label label )
     {
         validateLabelText( label.getLabel() );
-        Label otherLabel =
-            getByApplicationIdAndLowercaseLabel( em, label.getApplicationId(), label.getLabelLowercase() );
-        if ( otherLabel != null && !otherLabel.getId().equals( label.getId() ) )
-        {
-            throw new InvalidLabelException( "A label with the same name already exists" );
-        }
+        validateLabelUnique( em, label, true );
         super.update( em, label );
     }
 }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -183,7 +184,7 @@ public class ApplicationDAO
         {
             throw new InvalidApplicationException( "Cannot change Public ID of existing application." );
         }
-        if ( existingApplication.getOrganizationId() != null)
+        if ( existingApplication.getOrganizationId() != null )
         {
             if ( !existingApplication.getOrganizationId().equals( application.getOrganizationId() ) )
             {
@@ -194,6 +195,7 @@ public class ApplicationDAO
         {
             Organization organization = new OrganizationDAO().getByIdNotNull( application.getOrganizationId() );
             checkConflictingLicenseThreatGroups( em, application, organization );
+            checkConflictingLabels( em, existingApplication, organization );
         }
         existingApplication = getByName( em, application.getName() );
         if ( existingApplication != null && !existingApplication.getId().equals( application.getId() ) )
@@ -225,6 +227,30 @@ public class ApplicationDAO
         }
     }
 
+    private void checkConflictingLabels( EntityManager em, Application application, Organization organization )
+    {
+        final List<Label> conflicts = new ArrayList<Label>();
+        final LabelDAO labelDAO = new LabelDAO();
+        for ( Label appLabel : labelDAO.getByOwnerId( em, application.getId() ) )
+        {
+            if ( labelDAO.getByOwnerIdAndLowercaseLabel( em, organization.getId(), appLabel.getLabelLowercase() ) != null )
+            {
+                conflicts.add( appLabel );
+            }
+        }
+        if ( !conflicts.isEmpty() )
+        {
+            final StringBuilder msg =
+                new StringBuilder( "Both the application and the organization have labels with the same names."
+                    + " Conflicting label names :" );
+            for ( Label conflict : conflicts )
+            {
+                msg.append( " '" ).append( conflict.getLabelLowercase() ).append( '\'' );
+            }
+            throw new InvalidApplicationException( msg.toString() );
+        }
+    }
+
     public void deleteWithIcon( Application application, File iconDirectory )
     {
         File applicationIconDirectory = new File( iconDirectory, application.getId() );
@@ -245,8 +271,7 @@ public class ApplicationDAO
     {
         // Cascade to license threat groups
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        List<LicenseThreatGroup> licenseThreatGroups =
-            licenseThreatGroupDAO.getByOwnerId( em, application.getId() );
+        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId( em, application.getId() );
         for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
         {
             licenseThreatGroupDAO.delete( em, licenseThreatGroup );
@@ -254,7 +279,7 @@ public class ApplicationDAO
 
         // Cascade to labels
         LabelDAO labelDAO = new LabelDAO();
-        List<Label> labels = labelDAO.getByApplicationId( em, application.getId() );
+        List<Label> labels = labelDAO.getByOwnerId( em, application.getId() );
         for ( Label label : labels )
         {
             labelDAO.delete( em, label );

@@ -21,8 +21,11 @@ public class ComponentLabel
     @Column( name = "component_label_id" )
     private String id;
 
-    @Column( name = "application_id" )
-    private String applicationId;
+    /**
+     * @since 1.6
+     */
+    @Column( name = "owner_id" )
+    private String ownerId;
 
     @Column( name = "label_id" )
     private String labelId;
@@ -34,9 +37,9 @@ public class ComponentLabel
     {
     }
 
-    public ComponentLabel( String applicationId, String labelId, String hash )
+    public ComponentLabel( String ownerId, String labelId, String hash )
     {
-        this.applicationId = applicationId;
+        this.ownerId = ownerId;
         this.labelId = labelId;
         this.hash = hash;
     }
@@ -53,14 +56,20 @@ public class ComponentLabel
         this.id = id;
     }
 
-    public String getApplicationId()
+    /**
+     * @since 1.6
+     */
+    public String getOwnerId()
     {
-        return applicationId;
+        return ownerId;
     }
 
-    public void setApplicationId( String applicationId )
+    /**
+     * @since 1.6
+     */
+    public void setOwnerId( String ownerId )
     {
-        this.applicationId = applicationId;
+        this.ownerId = ownerId;
     }
 
     public String getHash()

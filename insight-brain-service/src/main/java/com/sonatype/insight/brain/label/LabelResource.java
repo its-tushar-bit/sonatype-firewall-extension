@@ -19,16 +19,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -36,77 +35,88 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Path( LabelResource.SERVICE_PATH )
 public class LabelResource
 {
-    public static final String SERVICE_PATH = "rest/label/application/{applicationPublicId}";
+    public static final String SERVICE_BASEPATH = "rest/label/";
+
+    public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
 
     @Context
     private InsightWork work;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
-
     private LabelDAO labelDAO = new LabelDAO();
 
+    /**
+     * @since 1.6
+     */
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<Label> getLabels( @PathParam( "applicationPublicId" ) String applicationPublicId )
+    public List<Label> getLabels( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
+        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        return labelDAO.getByApplicationId( application.getId() );
+        return labelDAO.getByOwnerId( ownerId );
     }
 
+    /**
+     * @since 1.6
+     */
     @POST
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Label addLabel( @PathParam( "applicationPublicId" ) String applicationPublicId, Label label )
+    public Label addLabel( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId,
+                           Label label )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         label.setId( null );
-        label.setApplicationId( appId );
+        label.setOwnerId( ownerId );
         label.fixLabelLowercase();
         labelDAO.insert( label );
 
         return label;
     }
 
+    /**
+     * @since 1.6
+     */
     @PUT
     @Consumes( MediaType.APPLICATION_JSON )
     @Produces( MediaType.APPLICATION_JSON )
-    public Label updateLabel( @PathParam( "applicationPublicId" ) String applicationPublicId, Label label )
+    public Label updateLabel( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId,
+                              Label label )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        label.setApplicationId( appId );
+        label.setOwnerId( ownerId );
         label.fixLabelLowercase();
         labelDAO.update( label );
 
         return label;
     }
 
+    /**
+     * @since 1.6
+     */
     @DELETE
     @Path( "{labelId}" )
-    public void deleteLabel( @PathParam( "applicationPublicId" ) String applicationPublicId,
+    public void deleteLabel( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId,
                              @PathParam( "labelId" ) String labelId )
     {
-        Application application = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String appId = application.getId();
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         Label label = labelDAO.getById( labelId );
         if ( label == null )
         {
             throw new NotFoundException( "Cannot find a label with id " + labelId );
         }
-        if ( !appId.equals( label.getApplicationId() ) )
+        if ( !internalOwnerId.equals( label.getOwnerId() ) )
         {
-            throw new NotFoundException( "Cannot find a label with id " + labelId + " for application id "
-                + applicationPublicId );
+            throw new NotFoundException( "Cannot find a label with id " + labelId + " for " + ownerType + " id "
+                + ownerId );
         }
 
         // Verify that the label is not used in a policy condition
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        for ( Policy policy : policyDAO.getByOwnerId( appId ) )
+        for ( Policy policy : policyDAO.getByOwnerId( internalOwnerId ) )
         {
             for ( Constraint constraint : policy.getConstraints() )
             {

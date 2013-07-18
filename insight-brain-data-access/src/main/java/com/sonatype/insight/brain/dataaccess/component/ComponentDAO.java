@@ -301,7 +301,7 @@ public class ComponentDAO
     private void loadComponentLabels( String applicationId, Component component, ComponentLabelDAO componentLabelDAO )
     {
         List<ComponentLabel> componentLabels =
-            componentLabelDAO.getByApplicationIdAndHash( applicationId, component.getHash() );
+            componentLabelDAO.getByOwnerIdAndHash( applicationId, component.getHash() );
         for ( ComponentLabel componentLabel : componentLabels )
         {
             component.addLabelId( componentLabel.getLabelId() );

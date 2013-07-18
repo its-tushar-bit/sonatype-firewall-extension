@@ -9,7 +9,7 @@
 
   var labelTemplate = {id: null, applicationId: null, label: '', labelLowercase: null, color: null};
 
-  var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation']);
+  var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices']);
 
   labelModule.service('LabelStore', ['CLMLocations', 'CLMAppLocations', 'CLMResource', function (clmLocations, clmAppLocations, clmResource) {
     var labelStore = clmResource.getStore({

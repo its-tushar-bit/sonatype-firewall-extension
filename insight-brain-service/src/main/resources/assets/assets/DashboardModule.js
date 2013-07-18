@@ -6,7 +6,7 @@
 (function(){
 	"use strict";
 	var masterModalShown = false;
-	
+
 	var showMasterModal = function() {
 	    if (!masterModalShown) {
     	    masterModalShown = true;
@@ -21,7 +21,7 @@
         masterModalShown = false;
     }
 
-	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'AngularCommon'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
+	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'CommonServices'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -53,7 +53,7 @@
 			var e;
 			$rootScope.tempNewUrl = null;
 			$rootScope.tempDestination = $location.url();
-			
+
             if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
                 //special case where back button is hit, locationUrl will be the same as the oldUrl!!
                 if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
@@ -67,7 +67,7 @@
 					showMasterModal();
 					return;
 				}
-				
+
 				$rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
 			}
             $rootScope.tempState = null;
@@ -91,11 +91,11 @@
 			$rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
 			$(window).unbind('beforeunload', fn);
 		});
-		
+
 		//this causes the browser to notify the user that the page contains unsaved data
 		$(window).bind('beforeunload', fn);
 	}]);
-	
+
 	//this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 	$.fn.modal.Constructor.prototype.enforceFocus = function() {
         var that = this;
@@ -128,14 +128,14 @@
 				}
 			}
 		}
-		
+
 		$scope.$state = $state;
 		$scope.availableDashboards = [
 			{
 				name: 'Management',
 				state: 'management'
 			}];
-		
+
 		$scope.$watch('$state.current.name', switchDashboard);
 		switchDashboard();
 	});

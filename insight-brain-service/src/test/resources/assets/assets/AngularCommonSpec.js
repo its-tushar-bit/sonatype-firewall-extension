@@ -1,7 +1,7 @@
 describe('AngularCommon', function () {
   var scope, compile, httpBackend, regex, mockModel, form;
 
-  beforeEach(module('AngularCommon'));
+  beforeEach(module('AngularCommon', 'CommonServices'));
   beforeEach(inject(function ($httpBackend, $rootScope, $compile, regexFactory, $timeout) {
     scope = $rootScope.$new();
     compile = $compile;

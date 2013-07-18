@@ -242,9 +242,40 @@
 		    });
 		}
 
-		$scope.editNotification = function (addresses) {
+		$scope.editNotification = function (stage,policy) {
+		    $scope.currentNotificationStage = stage.id;
+		    $scope.currentNotificationPolicy = policy;
+		    var addresses = [];
+		    
+		    for (var i = 0 ; i < policy.actions[stage.id].length ; i++) {
+		        if (policy.actions[stage.id][i].actionTypeId == 'notify') {
+		            addresses = policy.actions[stage.id][i].target.split(',');
+		            break;
+		        }
+		    }
+		    
 			$scope.$broadcast('editNotification', addresses);
 		};
+		
+        $scope.$on('editNotificationDone', function (event, addresses) {
+            var found = false;
+            for (var i = 0 ; i < $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].length ; i++) {
+                if ($scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].actionTypeId == 'notify') {
+                    $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].target = addresses.join();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].push({
+                    actionTypeId : 'notify',
+                    target : addresses.join()
+                })
+            }
+            
+            $scope.currentNotificationPolicy = null;
+            $scope.currentNotificationStage = null;
+        });
 		
 		$scope.toggleWarnAction = function(stage, policy) {
             var add = true;
@@ -308,6 +339,15 @@
                 }
             }
         };
+        $scope.getEmailList = function(stage, policy) {
+            if (policy.actions[stage.id]) {
+                for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
+                    if (policy.actions[stage.id][i].actionTypeId == 'notify') {
+                        return policy.actions[stage.id][i].target;
+                    } 
+                }
+            }
+        }
 
 		// Respond to constraint change
 		$scope.$on('policy.constraintSaved', function (event, constraint) {

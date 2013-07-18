@@ -18,6 +18,15 @@
 	}
 
     module.controller('NotificationManagementController', [ '$scope', '$timeout', function($scope, $timeout) {
+        var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
+        $scope.setEditorError = function (error) {
+            $scope.error = error;
+        };
+
+        $scope.validateEmail = function (value) {
+            return EMAIL_REGEXP.test(value);
+        };
+        
 		function resetInput() {
 			delete $scope.currentNotificationEmail;
             $timeout(function () {
@@ -25,37 +34,22 @@
                 $scope.neditor.email.$setViewValue('');
             });
 		}
-		var addressArray = null;
 		$scope.$on('editNotification', function (event, addresses) {
-            resetInput();
-            addressArray = addresses;
             $scope.notificationEmailList = angular.copy(addresses);
-			sort($scope.notificationEmailList);
+            sort($scope.notificationEmailList);
             $('#editNotificationsModal').modal('show');
             $('#editNotificationsModal input').focus();
 		});
-
-        $scope.addNotificationEmail = function() {
-			if ($scope.neditor.$valid) {
-				$scope.notificationEmailList.push($scope.currentNotificationEmail);
-				resetInput();
-				sort($scope.notificationEmailList);
-			}
-        };
 
         $scope.cancelNotificationEmail = function() {
             $('#editNotificationsModal').modal('hide');
         };
 
         $scope.doneNotificationEmail = function() {
-			addressArray.splice(addressArray.length);
-			angular.copy($scope.notificationEmailList, addressArray);
-            $('#editNotificationsModal').modal('hide');
+            $scope.$broadcast('editNotificationDone',$scope.notificationEmailList)
+			$('#editNotificationsModal').modal('hide');
         };
 
-        $scope.removeNotificationEmail = function(index) {
-            $scope.notificationEmailList.splice(index, 1);
-        };
         
         //ditch edits in this case
         $scope.$on('pageChangeAccepted', function (event) {
@@ -63,43 +57,7 @@
         });
     }]);
 
-    module.directive('entersubmit', function () {
-        return function(scope, element, attrs) {
-            element.bind('keydown', function(e) {
-                if (e.keyCode === 13) { // Enter
-                    e.preventDefault();
-                    element.trigger('submit');
-                }
-            });
-        };
-    });
-
-    var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
-    module.directive('emailInput', function() {
-        return {
-            require : 'ngModel',
-            restrict : 'A',
-            scope : false,
-            link : function(directiveScope, elm, attrs, ctrl) {
-				ctrl.$setValidity('invalid', false);
-				ctrl.$parsers.unshift(function(newValue) {
-					var notInvalid = !newValue || EMAIL_REGEXP.test(newValue),
-						notDuplicate = true;
-					for ( var i = 0; i < directiveScope.notificationEmailList.length; i++) {
-						if (directiveScope.notificationEmailList[i] === newValue) {
-							notDuplicate = false;
-							break;
-						}
-					}
-					ctrl.$setValidity('invalid', notInvalid);
-					ctrl.$setValidity('unique', notDuplicate);
-                    return (notInvalid && notDuplicate) ? newValue : undefined;
-                });
-            }
-        };
-    });
-
-    module.directive('notificationManagement', function() {
+    module.directive('notificationmanagement', function() {
         return {
             restrict : 'A',
             replace : true,

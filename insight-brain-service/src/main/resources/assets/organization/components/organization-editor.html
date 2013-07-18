@@ -16,10 +16,10 @@
 					</div>
 				</div>
                 <div class='edit-image'>
-                    <a type="button" class='btn' onclick="javascript:document.getElementById('file').click();"
+                    <a onclick="javascript:document.getElementById('file').click();"
                            ng-show='allowsInputViaJS'>Choose Icon</a>
                     <input name='file' id='file' type='file' accept='image/*' onchange='angular.element(this).scope().fileChanged(this)'
-                           ng-show='!allowsInputViaJS' />
+                           ng-show='!allowsInputViaJS' style="display:none;" />
                     <a ng-click='generateIcon()'>Want a robot?</a>
                 </div>
    			</div>

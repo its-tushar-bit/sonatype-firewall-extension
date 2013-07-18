@@ -554,7 +554,7 @@
 						controller : ['$scope', 'dialog', function ($scope, dialog) {
 							$scope.discard = function () {
 								dialog.close(true);
-								scope.policy.edit = false;
+								scope.policy = null;
 							};
 							$scope.cancel = function () {
 								dialog.close(true);
@@ -562,13 +562,13 @@
 						}]
 					}).open();
 				} else {
-				    scope.policy.edit = false;
+				    scope.policy = null;
 				}
 			}
 		};
 		scope.savePolicy = function () {
 			scope.policy.$save().then(function (policy) {
-			    scope.policy.edit = false;
+			    scope.policy = null;
 			}, function (error) {
 				scope.alerts.push({
 					type : 'error',

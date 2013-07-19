@@ -50,6 +50,7 @@
         delete $scope.selectedLabel;
         delete $scope.label;
         $scope.editorUrl = '';
+        $scope.submitActive = false;
       }
 
       $scope.deselect = deselect;
@@ -138,14 +139,10 @@
       };
 
       $scope.saveLabel = function () {
+        $scope.submitActive = true;
         $scope.selectedLabel.$save().then(function (label) {
           $scope.deselect();
-        }, function (error) {
-          $scope.alerts.push({
-            type : 'error',
-            msg : 'An error occurred while saving the label. (' + messages.getHttpErrorMessage(error) + ')'
-          });
-        });
+        }, errorFn);
       };
     }]);
 

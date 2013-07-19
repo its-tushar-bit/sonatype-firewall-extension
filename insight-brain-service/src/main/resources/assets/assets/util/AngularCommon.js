@@ -498,7 +498,7 @@
 			scope : {
 				selected : '='
 			},
-			template : '<span class="threat-level-dropdown dropdown">' +
+			template : '<span ng-show="!noSelect" class="threat-level-dropdown dropdown">' +
 					'<a class="btn dropdown-toggle threat-level-{{selected}}" data-toggle="dropdown" href="#">' +
 					'{{selected}} <span class="caret"></span>' +
 					'</a>' +
@@ -507,9 +507,13 @@
 						'<a ng-click="select(10 - $index)" class="threat-level-{{10 - $index}}">{{ threatLevel }}</a>' +
 						'</li>' +
 					'</ul>' +
-				'</span>',
+				'</span>' +
+				'<span ng-show="noSelect" class="threat-chiclet threat-level-{{selected}}">&nbsp</span>',
 			link : function (scope, element, attrs) {
 				// TODO Dark Blue for some usages
+			    if (attrs.noselect) {
+			        scope.noSelect = true;
+			    }
 				scope.threatLevels = [10, 9, 8, 7, 6, 5, 4, 3, 2, attrs.one || 1, attrs.zero || 0];
 				scope.select = function (threat) {
 					scope.selected = threat;

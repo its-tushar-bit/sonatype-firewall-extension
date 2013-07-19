@@ -1,18 +1,18 @@
 <div class='inline-policy-editor' ng-controller='PolicyEditorController' style="width:875px;">
+	<input type='text' ng-model='policy.name' required maxlength='60'>
+	<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span> 
 	<div>
 		<label>Constraints</label>
 	</div>
 	<div class="accordion">
 		<div class="accordion-group" ng-repeat='constraint in policy.constraints'>
 			<div class="common-accordion-header">
-	            <div class='inline' style='display: inline;'>
-                    <span id='constraintName' name='constraintName' ng-model='constraint.name' xeditable href='javascript:;' data-type='text' alpha-numeric adjustable='true' ng-click="editConstraint(constraint)"></span>
-                </div>
-	            <div class='floatRight'>
+				<span>{{constraint.name}}</span>
+				<div class='floatRight'>
 	                <div class='btn-group hover-buttons'>
 						<a class="btn btn-mini policy-button" title="Edit Constraint" ng-click="editConstraint(constraint)"><i class="icon-pencil" style="margin-top: 0px;"></i></a>
 						<a class="btn btn-mini policy-button" title="Remove Constraint" ng-show="policy.constraints.length > 1" ng-click="removeConstraint(constraint)"><i class="icon-minus-sign" style="margin-top: 0px;"></i></a>
-            <a class="btn btn-mini policy-button" title="Add Constraint" ng-click="addConstraint()"><i class="icon-plus-sign" style="margin-top: 0px;"></i></a>
+            			<a class="btn btn-mini policy-button" title="Add Constraint" ng-click="addConstraint()"><i class="icon-plus-sign" style="margin-top: 0px;"></i></a>
 					</div>
 	            </div>
 			</div>
@@ -45,7 +45,7 @@
 	</table>
 	<div clm-alerts='alerts'></div>
 	<div class='btn-group pull-right' style='padding-bottom:10px;'>
-		<a class='btn' ng-click='policy.edit=false;angular.extend(policy, policy.$original);'>Cancel</a>
+		<a class='btn' ng-click='cancel()'>Reset</a>
 		<a class='btn btn-primary' ng-disabled='isFormValid()' ng-click="savePolicy()">Save</a>
 	</div>
 	<div notificationmanagement></div>

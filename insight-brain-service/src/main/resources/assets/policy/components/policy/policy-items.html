@@ -2,14 +2,11 @@
 	<div class="accordion" id="policies">
 		<div class="accordion-group" ng-repeat='policy in policies'>
 			<div class="common-accordion-header policy">
-				<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span>
-				<span class='inline'>
-        	<h3>
-						<span id='policyName' name='policyName' ng-model='policy.name' xeditable href='javascript:;' data-type='text' alpha-numeric adjustable='true' ng-click="edit(policy)"></span>
-          </h3>
-					<span ng-show="inlinePolicyForm.policyName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
-				</span>
-	            <div class='floatRight'>
+				<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)' noSelect='true'></span>
+				<h3>
+					<span>{{policy.name}}</span>
+          		</h3>
+				<div class='floatRight'>
 	                <div class='btn-group hover-buttons' ng-show='editable'>
 						<a class="btn btn-mini policy-button" title="Edit Policy" ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></a>
 						<a class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash" style="margin-top: 0px;"></i></a>

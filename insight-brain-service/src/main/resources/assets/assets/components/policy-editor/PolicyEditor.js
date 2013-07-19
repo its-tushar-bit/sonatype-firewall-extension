@@ -582,7 +582,7 @@
 		scope.cancel = function () {
 			if (scope.policy) {
 				if (scope.policy.isDirty()) {
-					// show dialog
+				    // show dialog
 				    $dialog.dialog({
 						backdrop : true,
 						backdropClick : false,
@@ -594,7 +594,8 @@
 						controller : ['$scope', 'dialog', function ($scope, dialog) {
 							$scope.discard = function () {
 								dialog.close(true);
-								scope.policy = null;
+								scope.policy.$revert();
+			                    scope.policy = null;
 							};
 							$scope.cancel = function () {
 								dialog.close(true);

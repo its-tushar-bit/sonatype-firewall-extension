@@ -47,6 +47,10 @@
   labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
                                              function ($scope, $http, $dialog, clmAppLocations, messages, clmResource, LabelStore) {
       function deselect() {
+        if($scope.selectedLabel)
+        {
+          $scope.selectedLabel.$revert();
+        }
         delete $scope.selectedLabel;
         delete $scope.label;
         $scope.editorUrl = '';
@@ -67,7 +71,7 @@
 
       $scope.editLabel = function (label) {
         deselect();
-        $scope.selectedLabel = angular.copy(label);
+        $scope.selectedLabel = label;
         $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
       };
 

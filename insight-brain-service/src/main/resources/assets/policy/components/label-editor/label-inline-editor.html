@@ -17,7 +17,7 @@
         <div ng-show='label' class="modal-body">
           <div>
             <div class='labelContainer' ng-repeat="color in colors" ng-class="{active: label.color == color}"
-                 ng-click='setInlineColor(color);'>
+                 ng-click='setColor(color);'>
               <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{label.label}}</span>
             </div>
           </div>

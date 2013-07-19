@@ -145,10 +145,6 @@
         }
       };
 
-      $scope.setInlineColor = function(color){
-        $scope.label.color = color;
-      };
-
       $scope.saveLabel = function () {
         $scope.submitActive = true;
         $scope.selectedLabel.$save().then(function (label) {

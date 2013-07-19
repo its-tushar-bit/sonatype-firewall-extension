@@ -15,10 +15,10 @@
 			</div>
 			<a class="common-accordion-toggle" data-toggle="collapse" data-parent="policies" href="#collapse{{policy.id}}"></a>
 			<div id="collapse{{policy.id}}" class="common-accordion-body accordion-body collapse">
-				<div class="accordion-inner" ng-hide="policyEditMap[policy.id]">
+				<div class="accordion-inner" show-if="!policyEditMap[policy.id]">
 					<div ng-include='"../policy-assets/components/policy/policy-inline-summary.html"'></div>
 				</div>
-				<div class="accordion-inner" ng-show="policyEditMap[policy.id]">
+				<div class="accordion-inner" show-if="policyEditMap[policy.id]">
 					<div inline-policy-editor></div>
 				</div>
 			</div>

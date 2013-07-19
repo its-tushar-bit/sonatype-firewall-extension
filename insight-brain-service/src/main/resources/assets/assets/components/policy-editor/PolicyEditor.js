@@ -595,10 +595,7 @@
 							$scope.discard = function () {
 								dialog.close(true);
 								scope.policy.$revert();
-								if (scope.policyEditMap) {
-									delete scope.policyEditMap[scope.policy.id];
-								}
-			                    scope.policy = null;
+								scope.hide();
 							};
 							$scope.cancel = function () {
 								dialog.close(true);
@@ -606,19 +603,13 @@
 						}]
 					}).open();
 				} else {
-				    if (scope.policyEditMap) {
-				    	delete scope.policyEditMap[scope.policy.id];
-				    }
-                    scope.policy = null;
+					scope.hide();
 				}
 			}
 		};
 		scope.savePolicy = function () {
 			scope.policy.$save().then(function (policy) {
-			    if (scope.policyEditMap) {
-			    	delete scope.policyEditMap[scope.policy.id];
-			    }
-                scope.policy = null;
+				scope.hide();
 			}, function (error) {
 				scope.alerts.push({
 					type : 'error',
@@ -636,7 +627,12 @@
 			scope : {
 				createPolicy : '&inlinePolicyCreator'
 			},
-			controller : 'InlinePolicyEditorController'
+			controller : 'InlinePolicyEditorController',
+			link : function (scope) {
+				scope.hide = function () {
+					scope.policy = null;
+				};
+			}
 		};
 	}]);
 	
@@ -644,7 +640,12 @@
         return {
             restrict : 'A',
             templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
-			controller : 'InlinePolicyEditorController'
+			controller : 'InlinePolicyEditorController',
+			link : function (scope) {
+				scope.hide = function () {
+					scope.policyEditMap[scope.policy.id] = null;
+				};
+			}
         };
     }]);
 

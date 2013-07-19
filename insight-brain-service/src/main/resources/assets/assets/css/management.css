@@ -43,9 +43,6 @@ h4 {
 	color: #36424e;
 	text-transform: uppercase;
 }
-h3 {
-	font-size: 18.5px;
-}
 .glyphicons-sonatype:before {
 	font: 14px/28px 'Glyphicons';
 }
@@ -266,16 +263,27 @@ body {
 .content-section {
 	border-top: 1px solid rgba(255, 255, 255, .6);
 }
-#policies, #licenseGroups, .label-list {
-	margin-left: 15px
+.content-section h3 {
+	display: inline-block;
+	margin: 2px 0 0 5px;
+	line-height: 22px;	
+	font-size: 18.5px;
+}
+.content-section label {
+	font-weight: bold;
 }
 .content-header {
 	border-bottom: 1px solid rgba(255, 255, 255, .6);
 	margin: 20px 0 10px 25px;
 }
 .content-header h4 {
-	color: #909090;
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+#policies, #licenseGroups {
+	margin-left: 15px;
+}
+.label-list {
+	margin-left: 25px;
 }
 .accordion-inner {
 	border: none;
@@ -559,10 +567,9 @@ ul.tri-pane {
 	padding: 10px 25px;
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
-/**
- * Detail View Header Area
- * Can we grab something other than id to style? (TH)
- */
+.add-section .add-new {
+	text-align: left;
+}
 #applicationEditor, #organizationEditor {
 	margin: 0 15px;
 	height: 130px;

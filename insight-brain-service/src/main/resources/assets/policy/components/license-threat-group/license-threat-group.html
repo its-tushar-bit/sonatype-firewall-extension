@@ -1,6 +1,6 @@
 <div>
 	<div class='add-section'>
-		<button type='button' class='btn btn-primary' ng-click='editLicenseGroup()'><i class="icon-white icon-plus-sign"></i> New License Threat Group</button>
+		<button type='button' class='btn btn-primary add-new' ng-click='editLicenseGroup()'><i class="icon-white icon-plus"></i> New License Threat Group</button>
 	</div>
 	<div class='content-section'>
 		<div load-error='error' reload='doLoad()'></div>
@@ -18,9 +18,11 @@
                         <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>
                         <span class='inline'>
                             <ng-form name="innerInlineLicenseGroupForm">
-                                <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
-                                    data-type='text' alpha-numeric adjustable='true'></span>
-                                <span ng-show="innerInlineLicenseGroupForm.licenseGroupName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+                            		<h3>
+                                  <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
+                                      data-type='text' alpha-numeric adjustable='true'></span>
+                                  <span ng-show="innerInlineLicenseGroupForm.licenseGroupName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+                                </h3>
                             </ng-form>
                         </span>
                         <div class='floatRight'>

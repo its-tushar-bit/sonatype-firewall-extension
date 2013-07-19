@@ -69,7 +69,7 @@
           </a>
           <ul class="dropdown-menu">
             <li ng-repeat="dashboard in availableDashboards">
-              <a href='#/{{dashboard.state}}'>{{ dashboard.name }}</a>
+              <a ng-href='{{dashboard.href}}'>{{ dashboard.name }}</a>
             </li>
           </ul>
 				</div>

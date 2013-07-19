@@ -122,7 +122,7 @@
 	dashboardApp.controller('dashboardController', function($scope, $state) {
 		function switchDashboard() {
 			for (var i = 0; i < $scope.availableDashboards.length; i++) {
-				if ($state.current.name.indexOf($scope.availableDashboards[i].state) !== -1) {
+				if (window.location.href.indexOf($scope.availableDashboards[i].href) !== -1) {
 					$scope.selectedDashboard = $scope.availableDashboards[i];
 					break;
 				}
@@ -130,11 +130,13 @@
 		}
 
 		$scope.$state = $state;
-		$scope.availableDashboards = [
-			{
-				name: 'Management',
-				state: 'management'
-			}];
+		$scope.availableDashboards = [{
+			name: 'Management',
+			href: 'index.html#/management'
+		}, {
+			name: 'Reports',
+			href: 'reports.html#/reports'
+		}];
 
 		$scope.$watch('$state.current.name', switchDashboard);
 		switchDashboard();

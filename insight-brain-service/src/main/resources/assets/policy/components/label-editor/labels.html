@@ -11,7 +11,7 @@
       <div class="content-header">
         <h4>{{selectedApplication.name}} Labels</h4>
       </div>
-      <div>
+      <div class="label-list">
         <div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(label)'>
           <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
             <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span>

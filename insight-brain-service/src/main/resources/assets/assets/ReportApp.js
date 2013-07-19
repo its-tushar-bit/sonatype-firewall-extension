@@ -5,7 +5,7 @@
  */
 (function () {
 	"use strict";
-	var reportApp = angular.module('reportApp', ['DashboardModule', 'ReportList'],
+	var reportApp = angular.module('reportApp', ['DashboardModule', 'ReportList', 'Report'],
 			['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 				$routeProvider.when('', { redirectTo : '/reports' });
 			}]);

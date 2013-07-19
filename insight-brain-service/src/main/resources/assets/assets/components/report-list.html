@@ -34,7 +34,7 @@
 					<td ng-repeat='stage in stages | filterReportColumns'>
 						<div show-if='application.policyEvaluationsResults[stage.id]'>
 							<div>
-								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
 									<img src='../assets/img/glyphicons_263_bank.png' />
 									<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
 										{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
@@ -49,7 +49,7 @@
 								</a>
 							</div>
 							<div>
-								<a title='View Report' href='#/report/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+								<a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
 									{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}</a>
 							</div>
 						</div>

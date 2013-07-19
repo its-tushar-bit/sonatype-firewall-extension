@@ -5,65 +5,84 @@
  */
 /*global angular, $, clmBuildTimestamp, window, document */
 (function () {
-    'use strict';
+	'use strict';
 
-    var reportModule = angular.module('Report', ['CLMLocation']);
+	var reportModule = angular.module('Report', ['CLMLocation', 'ui.compat', 'AngularCommon'], ['$stateProvider', function ($stateProvider) {
+		$stateProvider.state('report', {
+			url: '/reports/{publicId}/{stageId}',
+			controller: 'ReportController',
+			templateUrl: '../application-assets/components/report.html'
+		});
+	}]);
 
-    reportModule.controller('ReportController', ['$scope', '$routeParams', '$http', 'CLMLocations', function ($scope, $routeParams, $http, clmLocations) {
-        $http.get(clmLocations.getApplicationUrl(decodeURIComponent($routeParams.encodedApplicationId)), {
-            params: { timestamp: new Date().getTime() }
-        }).success(function (data) {
-            var stageId = decodeURIComponent($routeParams.encodedStageId);
-            for (var stageTypeId in data.policyEvaluations) {
-                if (stageTypeId === stageId) {
-                    $scope.policyEvaluation = data.policyEvaluations[stageTypeId];
-                    break;
-                }
-            }
-            $scope.application = data;
-            $scope.reportUrl = '../rest/report/' + $routeParams.encodedApplicationId + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html';
-            $http.get(clmLocations.getActionStageUrl(), {
-                params: { timestamp: new Date().getTime() }
-            }).success(function (stages) {
-                var i;
-                for (i = 0; i < stages.length; i++) {
-                    if (stages[i].id == $scope.policyEvaluation.stage.stageTypeId) {
-                        $scope.policyEvaluation.stage.stageName = stages[i].name;
-                        break;
-                    }
-                }
-            });
-        });
-    }]);
+	reportModule.controller('ReportController', ['$scope', '$state', '$http', '$q', 'CLMLocations', function ($scope, $state, $http, $q, clmLocations) {
+		$scope.doLoad = function () {
+			var appListPromise = $http.get(clmLocations.getApplicationUrl($state.params.publicId), {
+					params: { timestamp: new Date().getTime() }
+				}),
+				actionStagePromise = $http.get(clmLocations.getActionStageUrl(), {
+					params: { timestamp: new Date().getTime() }
+				});
+			$scope.error = null;
 
-    reportModule.directive('expandableIframe', function () {
-        return {
-            template: "<iframe ng-src='{{reportUrl}}' width='100%' height='1000px' border='0' frameborder='0' scrolling='yes' style='overflow:auto;'/>",
-            compile: function () {
-                var resizeTimeoutId;
+			$q.all([appListPromise, actionStagePromise]).then(function (results) {
+				var stageId = $state.params.stageId;
+				for (var stageTypeId in results[0].data.policyEvaluations) {
+					if (stageTypeId === stageId) {
+						$scope.policyEvaluation = results[0].data.policyEvaluations[stageTypeId];
+						break;
+					}
+				}
+				$scope.application = results[0].data;
+				$scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/' + encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html';
 
-                function setDimensions() {
-                    var iframe = angular.element('iframe');
-                    if (!iframe || iframe.length === 0) {
-                        clearTimeout(resizeTimeoutId);
-                        return;
-                    }
-                    var windowHeight = $(window).height(),
-                        containerTop = iframe.offset().top,
-                        bottomPadding = 20,
-                        height = Math.max(400, windowHeight - containerTop - bottomPadding);
+				for (var i = 0; i < results[1].data.length; i++) {
+					if (results[1].data[i].id == $scope.policyEvaluation.stage.stageTypeId) {
+						$scope.policyEvaluation.stage.stageName = results[1].data[i].name;
+						break;
+					}
+				}
+			}, function () {
+				$scope.error = arguments[0];
+			});
+		};
+		$scope.doLoad();
+	}]);
 
-                    iframe.css({ 'height': height + 'px' });
-                }
+	reportModule.directive('expandableIframe', function () {
+		return {
+			template: "<iframe ng-src='{{url}}' width='100%' height='1000px' border='0' frameborder='0' scrolling='yes' style='overflow:auto;'/>",
+			scope : {
+				url : '=expandableIframe'
+			},
+			link : function (scope, element, attrs) {
+				var resizeTimeoutId;
 
-                function dedupe() {
-                    clearTimeout(resizeTimeoutId);
-                    resizeTimeoutId = setTimeout(setDimensions, 100);
-                }
+				function setDimensions() {
+					var iframe = angular.element('iframe');
+					if (!iframe || iframe.length === 0) {
+						clearTimeout(resizeTimeoutId);
+						return;
+					}
+					var windowHeight = $(window).height(),
+					containerTop = iframe.offset().top,
+					bottomPadding = 20,
+					height = Math.max(400, windowHeight - containerTop - bottomPadding);
 
-                setTimeout(setDimensions, 100);
-                window.onresize = dedupe;
-            }
-        };
-    });
+					iframe.css({ 'height': height + 'px' });
+				}
+
+				function dedupe() {
+					clearTimeout(resizeTimeoutId);
+					resizeTimeoutId = setTimeout(setDimensions, 100);
+				}
+
+				setTimeout(setDimensions, 100);
+				window.onresize = dedupe;
+				scope.$on('$destroy', function () {
+					clearTimeout(resizeTimeoutId);
+				});
+			}
+		};
+	});
 }());

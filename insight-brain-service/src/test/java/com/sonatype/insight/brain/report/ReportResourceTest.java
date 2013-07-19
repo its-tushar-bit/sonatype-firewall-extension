@@ -292,15 +292,17 @@ public class ReportResourceTest
         assertResponseStatus( 200, response );
         String expiresHeader = response.getHeader( "Expires" );
         assertNotNull( expiresHeader );
-        assertTrue( "index.html expires in one year",
-                    expiresHeader.contains( expirationHeaderFormat.format( calendar.getTime() ) ) );
+        Date expires = expirationHeaderFormat.parse( expiresHeader );
+        assertTrue( "index.html expires in one year: " + expires + " vs " + calendar.getTime(),
+                    Math.abs( calendar.getTimeInMillis() - expires.getTime() ) <= 2 * 60 * 1000 );
 
         calendar.setTime( new Date() );
         response = RestAccess.get( resourcePrefix + "/embedReport/data.json" );
         assertResponseStatus( 200, response );
         expiresHeader = response.getHeader( "Expires" );
-        assertTrue( "data.json expires immediately",
-                    expiresHeader.contains( expirationHeaderFormat.format( calendar.getTime() ) ) );
+        expires = expirationHeaderFormat.parse( expiresHeader );
+        assertTrue( "data.json expires immediately: " + expires + " vs " + calendar.getTime(),
+                    Math.abs( calendar.getTimeInMillis() - expires.getTime() ) <= 2 * 60 * 1000 );
 
         Map<String, String> ifModifiedSinceHeader = new HashMap<String, String>();
         calendar.set( Calendar.DAY_OF_MONTH, calendar.get( Calendar.DAY_OF_MONTH ) + 1 );

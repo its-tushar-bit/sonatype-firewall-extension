@@ -103,6 +103,7 @@
 								$scope.submitActive = false;
 								$scope.isUploadingIcon = false;
                 $scope.iconChanged = false;
+                $scope.$emit('resetIconCache');
                 defer.resolve(data);
 							});
 						},

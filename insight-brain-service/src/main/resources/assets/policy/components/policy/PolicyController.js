@@ -125,9 +125,9 @@
 				editable : '=editable',
 				remove : '='
 			},
-			transclude : true,
 			priority: 99,
 			link: function(scope, elem, attr, ctrl) {
+			    scope.policyEditMap = {};
 				scope.getActionCount = function (policy) {
 					var actionCount = 0;
 					angular.forEach(policy.actions, function (value, key) {
@@ -185,9 +185,8 @@
 				    }
 				};
 				
-				
 				scope.edit = function(policy) {
-				    policy.edit = true;
+				    scope.policyEditMap[policy.id] = true;
 				    $('#collapse' + policy.id).collapse('show');
 				};
 			}

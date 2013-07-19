@@ -595,6 +595,7 @@
 							$scope.discard = function () {
 								dialog.close(true);
 								scope.policy.$revert();
+								delete scope.policyEditMap[scope.policy.id];
 			                    scope.policy = null;
 							};
 							$scope.cancel = function () {
@@ -603,13 +604,15 @@
 						}]
 					}).open();
 				} else {
-				    scope.policy = null;
+				    delete scope.policyEditMap[scope.policy.id];
+                    scope.policy = null;
 				}
 			}
 		};
 		scope.savePolicy = function () {
 			scope.policy.$save().then(function (policy) {
-			    scope.policy = null;
+			    delete scope.policyEditMap[scope.policy.id];
+                scope.policy = null;
 			}, function (error) {
 				scope.alerts.push({
 					type : 'error',

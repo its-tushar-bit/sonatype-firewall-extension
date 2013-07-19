@@ -556,9 +556,9 @@
         angularCommon.directive('focusInputOnClick', function () {
           return {
             link : function (scope, element, attrs) {
-              var angularElement = angular.element(element);
-              angularElement.on('click', function(){
-                angularElement.find('input')[0].focus();
+              element.on('click', function(){
+                element.find('input')[0].focus();
+                element.off('click');
               });
             }
           };

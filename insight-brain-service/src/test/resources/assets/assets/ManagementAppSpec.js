@@ -19,15 +19,6 @@ describe('dashboardApp', function () {
 	
 	}));
 
-	it('Adjusts the dashboard dropdown', function() {	
-		scope.$apply(function() {
-			state.current.name = 'management.application';
-		});
-		
-		expect(scope.selectedDashboard).not.toBeUndefined();
-		expect(scope.selectedDashboard.name).toEqual('Management');
-	});
-
 	it('Validate location change event is broadcast properly', inject(function($rootScope) {
         var successStart = false, successAccept = false;
         $rootScope.$on('pageChangeStarted', function(event, destination){

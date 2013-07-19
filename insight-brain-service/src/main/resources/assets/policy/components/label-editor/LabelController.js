@@ -51,6 +51,7 @@
         delete $scope.label;
         $scope.editorUrl = '';
         $scope.submitActive = false;
+        $scope.alerts.length = 0;
       }
 
       $scope.deselect = deselect;
@@ -66,7 +67,7 @@
 
       $scope.editLabel = function (label) {
         deselect();
-        $scope.selectedLabel = angular.copy(label); //TODO KR - see if this has the desired effect
+        $scope.selectedLabel = angular.copy(label);
         $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
       };
 
@@ -128,9 +129,15 @@
 		});
 
       $scope.click = function () {
-        if (!$scope.label) {
+        if (!$scope.selectedLabel) {
           $scope.label = LabelStore.create();
           $scope.selectedLabel = $scope.label;
+        }
+        else if($scope.selectedLabel && $scope.selectedLabel.id){
+          $scope.alerts.push({
+            type: 'error',
+            msg: 'Please finish editing before trying to create a new label.'
+          })
         }
       };
 

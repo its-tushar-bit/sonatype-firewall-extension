@@ -556,12 +556,12 @@
         angularCommon.directive('focusInputOnClick', function () {
           return {
             link : function (scope, element, attrs) {
-              element.on('click', function(){
+              element.on('click.inputFocus', function(){
                 var inputs = element.find('input');
                 if(inputs){
                   inputs[0].focus();
                 }
-                element.off('click');
+                element.off('click.inputFocus');
               });
             }
           };

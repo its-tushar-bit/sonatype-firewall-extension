@@ -10,21 +10,18 @@
 			</div>
 			<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px'>
 				<thead>
-				<tr>
-					<th class='sortable' ng-click="orderColumn='name'; orderDirection=!orderDirection"
-						ng-class="{ 'sorted' : orderColumn == 'name' }">
-						Application Name
-						<i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
-								'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
-								'emptyIconGlyph' : orderColumn != 'name' }"></i>
-					</th>
-					<th ng-repeat='stage in stages | filterReportColumns'>
-						{{stage.name}} Report
-						<i ng-class="{ 'icon-chevron-down' : orderColumn == stage.id && orderDirection,
-								'icon-chevron-up' : orderColumn == stage.id && !orderDirection,
-								'emptyIconGlyph' : orderColumn != stage.id }"></i>
-					</th>
-				</tr>
+					<tr>
+						<th class='sortable' ng-click="orderColumn='name'; orderDirection=!orderDirection"
+							ng-class="{ 'sorted' : orderColumn == 'name' }">
+							Application Name
+							<i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
+									'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
+									'emptyIconGlyph' : orderColumn != 'name' }"></i>
+						</th>
+						<th ng-repeat='stage in stages | filterReportColumns'>
+							{{stage.name}} Report
+						</th>
+					</tr>
 				</thead>
 				<tr ng-repeat='application in applications | filter: appFilter | orderBy:orderColumn:orderDirection'>
 					<td>

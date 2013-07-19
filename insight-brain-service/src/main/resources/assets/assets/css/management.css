@@ -171,6 +171,7 @@ body {
 	font-size: 85%;
 	color: #444444;
 	padding: 7px 15px;
+	white-space: nowrap;
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	text-shadow: none;

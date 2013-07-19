@@ -25,6 +25,8 @@
 	reportModule.controller('ReportListController', ['$scope', '$http', '$q', 'CLMLocations', function ($scope, $http, $q, clmLocations) {
 		$scope.doLoad = function () {
 			var promises = [$http.get(clmLocations.getActionStageUrl()), $http.get(clmLocations.getApplicationsUrl())];
+			$scope.error = null;
+
 			$q.all(promises).then(function (results) {
 				$scope.stages = results[0].data;
 				$scope.applications = results[1].data;

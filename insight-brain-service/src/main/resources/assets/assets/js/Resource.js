@@ -176,9 +176,16 @@
 					return angular.copy(original);
 				};
 
-				/// Note - this function will not remove any properties not defined on the original object
 				me.$revert = function() {
-					angular.extend(me, original);
+				    //first clean the data
+                    angular.forEach(me, function(meValue, meKey) {
+                        angular.forEach(original, function (origValue, origKey) {        
+                            if (meKey === origKey) {
+                                delete me[meKey];
+                            }
+                        });
+                    });
+					angular.extend(me, angular.copy(original));
 					for (var relationalProperty in config.relationalConfigs) {
 						if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
 							var relationalResource = $parse(relationalProperty)(me);

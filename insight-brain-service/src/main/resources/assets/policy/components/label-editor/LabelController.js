@@ -71,7 +71,7 @@
 
       $scope.editLabel = function (label) {
         deselect();
-        $scope.selectedLabel = label;
+        $scope.selectedLabel = angular.copy(label || labelTemplate);
         $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
       };
 

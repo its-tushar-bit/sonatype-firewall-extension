@@ -53,6 +53,7 @@
       }
 
       $scope.deselect = deselect;
+
       $scope.doLoad = function () {
         $scope.error = null;
         LabelStore.get().then(function(labels){
@@ -91,7 +92,6 @@
 
     labelModule.controller('LabelEditorController', ['$scope', '$http', 'CLMAppLocations', 'Messages', 'LabelStore',
                                                      function ($scope, $http, clmAppLocations, messages, LabelStore) {
-
       function errorFn(error) {
         $scope.submitActive = false;
         $scope.alerts.push({
@@ -114,22 +114,6 @@
             return valid && !$scope.submitActive && label != null && label.label;
         };
 
-        $scope.saveLabelClick = function (valid, label) {
-            if (!$scope.canSaveEdit(valid, label)) {
-                return;
-            }
-
-          $scope.submitActive = true;
-          $scope.selectedLabel.$save().then(function () {
-            $scope.$emit('labels.cancelEditLabel', $scope.selectedLabel);
-          }, errorFn);
-        };
-
-		$scope.$watch('selectedLabel', function (newValue) {
-			if (newValue) {
-				$scope.submitActive = false;
-			}
-		});
 		$scope.$on('pageChangeStarted', function (event) {
 		    if ($scope.selectedLabel && $scope.selectedLabel.id) {
 		        angular.forEach($scope.labels, function (candidate) {
@@ -148,16 +132,13 @@
           $scope.selectedLabel = $scope.label;
         }
       };
-      $scope.cancel = function () {
-        if ($scope.label) {
-          $scope.label = null;
-        }
-      };
+
       $scope.setInlineColor = function(color){
         $scope.label.color = color;
       };
+
       $scope.saveLabel = function () {
-        $scope.label.$save().then(function (label) {
+        $scope.selectedLabel.$save().then(function (label) {
           $scope.deselect();
         }, function (error) {
           $scope.alerts.push({

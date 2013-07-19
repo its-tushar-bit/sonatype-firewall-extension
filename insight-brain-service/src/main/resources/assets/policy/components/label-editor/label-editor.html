@@ -1,5 +1,5 @@
 <div class='fade in' style='width:830px' ng-controller='LabelEditorController'>
-	<form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabelClick("labelEditor", selectedLabel);'>
+	<form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
 	    <div class="modal-body">
 			<div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
               <label class="control-label" for="labelEditorLabel">Label:</label>

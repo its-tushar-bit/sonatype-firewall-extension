@@ -182,7 +182,7 @@ body {
 }
 .subnavigation {
 	background-color: #E8E8E8;
-	width: 154px;
+	width: 150px;
 	margin-left: 121px;
 	position: fixed;
 	height: 100%;
@@ -286,9 +286,6 @@ body {
 #policies, #licenseGroups {
 	margin-left: 15px;
 }
-.label-list {
-	margin-left: 25px;
-}
 .accordion-inner {
 	border: none;
 	padding-bottom: 30px;
@@ -304,7 +301,7 @@ body {
 }
 .editor-header {
 	padding-top: 20px;
-	padding-left: 10px;
+	padding-left: 30px;
 }
 .editor-header h2 {
 	border: 1px;

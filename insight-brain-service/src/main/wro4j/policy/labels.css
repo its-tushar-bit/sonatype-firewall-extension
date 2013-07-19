@@ -2,7 +2,7 @@
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
-	border: 1px solid transparent;
+	border: 1px solid rgba(0,0,0,0.25);
 	font-size: 12px;
 	font-weight: bold;
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
@@ -38,11 +38,12 @@ form[name="labelEditor"] .clmLabel {
 	border-color: #909090;
 }
 .blackLabel {
+	border-color: #000;
 	background-color: #444444;
 	color: white;
 }
 .blackLabel:hover {
-	border-color: #black;
+	border-color: #000;
 }
 .greenLabel {
 	background-color: #0B9743;
@@ -104,4 +105,10 @@ form[name="labelEditor"] .clmLabel {
 	position: absolute;
 	right: 4px;
 	top: 6px;
+}
+.label-list {
+	margin-left: 25px;
+}
+.label-list .clmLabel {
+	padding-right: 25px
 }

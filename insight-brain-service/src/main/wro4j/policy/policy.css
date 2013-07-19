@@ -102,9 +102,9 @@
 	-moz-border-radius: 0 0 4px 4px;
 	border-radius: 0 0 4px 4px;
 }
-tbody>tr>td:nth-child(2):hover {
+table.policy-actions>tbody>tr>td:nth-child(2):hover {
 	background-color: #FFF;
 }
-tbody>tr>td:nth-child(3):hover {
+table.policy-actions>tbody>tr>td:nth-child(3):hover {
 	background-color: #FFF;
 }

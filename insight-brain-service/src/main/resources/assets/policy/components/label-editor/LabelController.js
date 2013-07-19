@@ -79,12 +79,12 @@
         label.$delete().then(function(){
           deselect();
         }, function(error){
+          deselect();
           $scope.alerts.push({
             type: 'error',
             msg: 'An error occurred while deleting the label. (' +
                 messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
           });
-          deselect();
         });
       };
 

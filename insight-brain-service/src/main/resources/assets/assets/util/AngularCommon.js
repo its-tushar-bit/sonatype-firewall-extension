@@ -557,7 +557,10 @@
           return {
             link : function (scope, element, attrs) {
               element.on('click', function(){
-                element.find('input')[0].focus();
+                var inputs = element.find('input');
+                if(inputs){
+                  inputs[0].focus();
+                }
                 element.off('click');
               });
             }

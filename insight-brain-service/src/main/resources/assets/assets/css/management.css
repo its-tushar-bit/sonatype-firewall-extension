@@ -262,12 +262,16 @@ body {
 }
 .content-section {
 	border-top: 1px solid rgba(255, 255, 255, .6);
+	padding-right: 25px;
 }
 .content-section h3 {
 	display: inline-block;
-	margin: 2px 0 0 5px;
-	line-height: 22px;	
+	margin: 0 0 0 5px;
+	line-height: 26px;	
 	font-size: 18.5px;
+}
+.content-section h3 span {
+	font-weight:normal;
 }
 .content-section label {
 	font-weight: bold;
@@ -539,8 +543,10 @@ ul.tri-pane {
 	padding-top: 5px;
 }
 .common-accordion-body ul {
+	/*
 	max-height: 200px;
 	overflow: auto;
+	*/
 }
 .accordion-group .hover-buttons {
 	visibility: hidden;
@@ -550,7 +556,8 @@ ul.tri-pane {
 }
 .common-expand-toggle {
 	display: inline-block;
-	width: 100%
+	width: 100%;
+	margin: 15px;
 }
 .common-expand-toggle a {
 	float: right;

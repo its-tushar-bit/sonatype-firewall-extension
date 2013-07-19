@@ -19,6 +19,7 @@
 	padding: 2px 6px;
 	font-weight: bold;
 	color: #FFF;
+	border: 0;
 }
 .threat-level-dropdown>.dropdown-menu {
 	min-width: 120px;

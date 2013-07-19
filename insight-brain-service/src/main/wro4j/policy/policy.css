@@ -15,7 +15,6 @@
 #policies .constraints td.header, #policies .actions td.header {
 	min-width: 100px;
 	font-weight: bold;
-	padding-left: 20px;
 }
 #policies .actions .action-item {
 	border-left: 1px solid #ffffff;
@@ -31,16 +30,16 @@
 #policies .actions .action-item:last-child {
 	border-right: none;
 }
-.deleteHoverTransparent{
-  opacity: 0.5;
-  filter: alpha(opacity=50);
-  vertical-align: top;
-  padding: 0;
-  margin: 0;
+.deleteHoverTransparent {
+	opacity: 0.5;
+	filter: alpha(opacity=50);
+	vertical-align: top;
+	padding: 0;
+	margin: 0;
 }
 .deleteHoverTransparent:hover {
-  opacity: 1;
-  filter: alpha(opacity=100);
+	opacity: 1;
+	filter: alpha(opacity=100);
 }
 .licenseContainer {
 	overflow: auto;
@@ -55,4 +54,57 @@
 }
 .licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
 	cursor: pointer
+}
+.inline-policy-editor .common-accordion-header {
+	padding: 4px 5px;
+	margin: 0;
+}
+.inline-policy-editor .common-accordion-toggle {
+	height: 20px;
+	margin-top: -28px;
+	padding: 5px;
+}
+#constraintName {
+	font-weight: normal;
+	font-style: normal;
+}
+.inline-policy-editor .accordion-group, .inline-policy-editor .accordion-group:hover {
+	border-width: 1px 1px 0 1px;
+	border-color: rgba(0, 0, 0, .1);
+	margin: 0;
+	border-radius: 0;
+}
+.inline-policy-editor div.accordion-group:nth-child(odd) {
+	background-color: #f9f9f9;
+}
+.inline-policy-editor div.accordion-group:first-child {
+	-webkit-border-radius: 4px 4px 0 0;
+	-moz-border-radius: 4px 4px 0 0;
+	border-radius: 4px 4px 0 0;
+}
+.inline-policy-editor div.accordion-group:last-child {
+	-webkit-border-radius: 0 0 4px 4px;
+	-moz-border-radius: 0 0 4px 4px;
+	border-radius: 0 0 4px 4px;
+}
+.inline-policy-editor div.accordion-group:hover {
+	background-color: #FFF;
+}
+.inline-policy-editor div.accordion-group .hover-buttons {
+	visibility: hidden;
+}
+.inline-policy-editor div.accordion-group:hover .btn-group {
+	visibility: visible;
+}
+.inline-policy-editor .accordion {
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+	-webkit-border-radius: 0 0 4px 4px;
+	-moz-border-radius: 0 0 4px 4px;
+	border-radius: 0 0 4px 4px;
+}
+tbody>tr>td:nth-child(2):hover {
+	background-color: #FFF;
+}
+tbody>tr>td:nth-child(3):hover {
+	background-color: #FFF;
 }

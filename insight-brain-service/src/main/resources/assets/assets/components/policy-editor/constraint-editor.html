@@ -1,24 +1,20 @@
 <div inline-constraint-editor='constraint'>
 	<div class='control-group' style="margin-bottom: 0px;">
-		<div class='well' style="min-height:120px;max-height:120px;overflow:auto;">
-			<div class='form-horizontal'>
-				<div class='control-group' style="padding-right:10px;margin-bottom:10px;">
-				    <label class="control-label" style="text-align:left;width:130px;">Constraint name</label>
-				    <div class='controls' style="margin-left:70px;">
-				    	<input type="text"  ng-model="constraint.name" ng-change="validateConstraint()" required>
-				    </div>
-				</div>
-			</div>
-			<div style="text-align:left;" ng-repeat="condition in constraint.conditions">
+		<div>
+			<div style="text-align: left;" ng-repeat="condition in constraint.conditions">
 				<span ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
-				<div class="btn-group" style='vertical-align:top'>
-					<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1"><i class="icon-minus-sign"></i></button>
-					<button class="btn" type='button' ng-click="addCondition()" title="Add Condition"><i class="icon-plus-sign"></i></button>
+				<div class="btn-group" style='vertical-align: top'>
+					<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1">
+						<i class="icon-minus-sign"></i>
+					</button>
+					<button class="btn" type='button' ng-click="addCondition()" title="Add Condition">
+						<i class="icon-plus-sign"></i>
+					</button>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div style='padding-left: 25px'>
+	<div>
 		<select ng-model="constraint.operator" ng-change="validateConstraint()"
 			ng-options="operator.value as operator.name for operator in constraintConditionChoices" required style='margin: 0'>
 			<option value="" ng-selected="constraint.operator == null">Any or All</option>

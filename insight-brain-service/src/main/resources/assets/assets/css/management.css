@@ -171,7 +171,6 @@ body {
 	font-size: 85%;
 	color: #444444;
 	padding: 7px 15px;
-	white-space: nowrap;
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	text-shadow: none;
@@ -183,7 +182,7 @@ body {
 }
 .subnavigation {
 	background-color: #E8E8E8;
-	width: 150px;
+	width: 154px;
 	margin-left: 121px;
 	position: fixed;
 	height: 100%;

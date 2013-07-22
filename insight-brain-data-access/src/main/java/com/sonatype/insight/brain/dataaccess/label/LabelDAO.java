@@ -10,6 +10,10 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 
@@ -113,33 +117,59 @@ public class LabelDAO
     private void validateLabelUnique( EntityManager em, Label label, boolean update )
         throws InvalidLabelException
     {
+        // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
+        // label uniqueness constraints
+        final ApplicationDAO appDAO = new ApplicationDAO();
+        final OrganizationDAO orgDAO = new OrganizationDAO();
+
         // first, check the same label does not exist in for the same owner
         // this is enforced by db unique key, but checking in java gives nicer error message
         Label otherLabel = getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
         if ( otherLabel != null && ( !update || !otherLabel.getId().equals( label.getId() ) ) )
         {
-            throw new InvalidLabelException( "A label with the same name already exists" );
-        }
+            final Application app = appDAO.getById( em, label.getOwnerId() );
+            if ( app != null )
+            {
+                final String message =
+                    String.format( "A label with name '%s' already exists in application(s) '%s'.",
+                                   label.getLabelLowercase(), app.getName() );
+                throw new InvalidLabelException( message );
+            }
 
-        // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
-        // label uniqueness constraints
-
-        // owner can be an app, make sure organization does not have this label already
-        String aQuery = "SELECT label FROM Label label, Application app" + //
-            " WHERE label.ownerId=app.organizationId AND app.id=?1" + //
-            "    AND label.labelLowercase=?2";
-        if ( get( em, aQuery, label.getOwnerId(), label.getLabelLowercase() ) != null )
-        {
-            throw new InvalidLabelException( "A label with the same name already exists" );
+            Organization org = orgDAO.getById( em, label.getOwnerId() );
+            final String message =
+                String.format( "A label with name '%s' already exists in organization '%s'.",
+                               label.getLabelLowercase(), org.getName() );
+            throw new InvalidLabelException( message );
         }
 
         // owner can be an org, make sure none of org's apps have this label already
-        String oQuery = "SELECT label FROM Label label, Application app" + //
-            " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
-            "    AND label.labelLowercase=?2";
-        if ( get( em, oQuery, label.getOwnerId(), label.getLabelLowercase() ) != null )
+        final List<Application> apps =
+            appDAO.getByOrganizationIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
+        if ( !apps.isEmpty() )
         {
-            throw new InvalidLabelException( "A label with the same name already exists" );
+            final StringBuilder message = new StringBuilder();
+            message.append( "A label with name '" ).append( label.getLabelLowercase() ).append( "' already exists in application(s)" );
+            for ( Application app : apps )
+            {
+                message.append( " '" ).append( app.getName() ).append( '\'' );
+            }
+            message.append( '.' );
+            throw new InvalidLabelException( message.toString() );
+        }
+
+        // owner can be an app, make sure organization does not have this label already
+        final Application app = appDAO.getById( em, label.getOwnerId() );
+        if ( app != null && app.getOrganizationId() != null )
+        {
+            if ( getByOwnerIdAndLowercaseLabel( em, app.getOrganizationId(), label.getLabelLowercase() ) != null )
+            {
+                final Organization org = orgDAO.getById( em, app.getOrganizationId() );
+                final String message =
+                    String.format( "A label with name '%s' already exists in organization '%s'.",
+                                   label.getLabelLowercase(), org.getName() );
+                throw new InvalidLabelException( message );
+            }
         }
     }
 

@@ -298,4 +298,13 @@ public class ApplicationDAO
             throw new InvalidApplicationException( "ID is required." );
         }
     }
+
+    public List<Application> getByOrganizationIdAndLowercaseLabel( EntityManager em, String organizationId,
+                                                                   String labelLowercase )
+    {
+        final String oQuery = "SELECT app FROM Label label, Application app" + //
+            " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
+            "    AND label.labelLowercase=?2";
+        return getList( em, oQuery, organizationId, labelLowercase );
+    }
 }

@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -22,6 +21,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseThreatGroupLicenseDAOTest
     extends AbstractDbDAOTest
 {
+    @Before
+    public void before()
+    {
+        createDefaultApplication();
+    }
+
     private void testCRUD( String ownerId )
         throws Exception
     {
@@ -74,10 +79,6 @@ public class LicenseThreatGroupLicenseDAOTest
     public void testCRUD_Organization()
         throws Exception
     {
-        organization = new Organization();
-        organization.setName( "testCRUD-Organization" );
-        new OrganizationDAO().insert( organization );
-
         testCRUD( organization.getId() );
     }
 
@@ -214,9 +215,6 @@ public class LicenseThreatGroupLicenseDAOTest
     public void testAddSameLicenseToTwoGroups_Organization()
         throws Exception
     {
-        organization = new Organization( "testAddSameLicenseToTwoGroups-Organization" );
-        new OrganizationDAO().insert( organization );
-
         testAddSameLicenseToTwoGroups( organization.getId() );
     }
 

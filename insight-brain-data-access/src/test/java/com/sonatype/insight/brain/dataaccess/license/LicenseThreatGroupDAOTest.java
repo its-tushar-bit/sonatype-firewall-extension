@@ -12,21 +12,24 @@ import static org.junit.Assert.fail;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
 public class LicenseThreatGroupDAOTest
     extends AbstractDbDAOTest
 {
+    @Before
+    public void before()
+    {
+        createDefaultApplication();
+    }
+
     private void testCRUD( String ownerId )
         throws Exception
     {
@@ -70,10 +73,6 @@ public class LicenseThreatGroupDAOTest
     public void testCRUD_Organization()
         throws Exception
     {
-        organization = new Organization();
-        organization.setName( "testCRUD-Organization" );
-        new OrganizationDAO().insert( organization );
-
         testCRUD( organization.getId() );
     }
 
@@ -142,13 +141,6 @@ public class LicenseThreatGroupDAOTest
         throws Exception
     {
         LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-        
-        organization = new Organization( "testInsertDuplicateName-ApplicationOrganization" );
-        new OrganizationDAO().insert( organization );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByIdNotNull( applicationId );
-        application.setOrganizationId( organization.getId() );
-        applicationDAO.update( application );
 
         // Add a group to the organization
         LicenseThreatGroup group = new LicenseThreatGroup();
@@ -182,13 +174,6 @@ public class LicenseThreatGroupDAOTest
     {
         LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
 
-        organization = new Organization( "testInsertDuplicateName-OrganizationApplication" );
-        new OrganizationDAO().insert( organization );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByIdNotNull( applicationId );
-        application.setOrganizationId( organization.getId() );
-        applicationDAO.update( application );
-
         // Add a group to the application
         LicenseThreatGroup group = new LicenseThreatGroup();
         group.setOwnerId( applicationId );
@@ -208,7 +193,7 @@ public class LicenseThreatGroupDAOTest
         }
         catch ( InvalidLicenseThreatGroupException expected )
         {
-            if ( !"A license threat group with the same name already exists for application 'AbstractDbDAOTest'".equals( expected.getMessage() ) )
+            if ( !"A license threat group with the same name already exists for application 'AbstractDbDAOTest-AppName'".equals( expected.getMessage() ) )
             {
                 throw expected;
             }
@@ -262,13 +247,6 @@ public class LicenseThreatGroupDAOTest
     {
         LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
 
-        organization = new Organization( "testUpdateDuplicateName-ApplicationOrganization" );
-        new OrganizationDAO().insert( organization );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByIdNotNull( applicationId );
-        application.setOrganizationId( organization.getId() );
-        applicationDAO.update( application );
-
         // Add a group to the organization
         LicenseThreatGroup group1 = new LicenseThreatGroup();
         group1.setOwnerId( organization.getId() );
@@ -310,13 +288,6 @@ public class LicenseThreatGroupDAOTest
     {
         LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
 
-        organization = new Organization( "testUpdateDuplicateName-OrganizationApplication" );
-        new OrganizationDAO().insert( organization );
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByIdNotNull( applicationId );
-        application.setOrganizationId( organization.getId() );
-        applicationDAO.update( application );
-
         // Add a group to the organization
         LicenseThreatGroup group1 = new LicenseThreatGroup();
         group1.setOwnerId( organization.getId() );
@@ -345,7 +316,7 @@ public class LicenseThreatGroupDAOTest
         }
         catch ( InvalidLicenseThreatGroupException expected )
         {
-            if ( !"A license threat group with the same name already exists for application 'AbstractDbDAOTest'".equals( expected.getMessage() ) )
+            if ( !"A license threat group with the same name already exists for application 'AbstractDbDAOTest-AppName'".equals( expected.getMessage() ) )
             {
                 throw expected;
             }

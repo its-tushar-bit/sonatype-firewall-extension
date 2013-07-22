@@ -5,18 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
-import java.util.List;
 import java.util.Locale;
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -24,36 +19,10 @@ import com.sonatype.insight.brain.model.label.Label;
 public class LabelDAOTest
     extends AbstractDbDAOTest
 {
-    @Override
-    public void setUp()
+    @Before
+    public void before()
     {
-        // 'super.setUp()' is intentionally omitted
-
-        // create an organization
-        OrganizationDAO organizationDAO = new OrganizationDAO();
-        organization = new Organization( "organization" );
-        organizationDAO.insert( organization );
-
-        // Create an application
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = new Application();
-        application.setName( applicationName );
-        application.setPublicId( applicationPublicId );
-        application.setOrganizationId( organization.getId() );
-        applicationDAO.insert( application );
-        applicationId = application.getId();
-        Assert.assertNotNull( applicationId );
-    }
-
-    @After
-    public void cleanUp()
-    {
-        LabelDAO dao = new LabelDAO();
-        List<Label> labels = dao.getByOwnerId( applicationId );
-        for ( Label label : labels )
-        {
-            dao.delete( label );
-        }
+        createDefaultApplication();
     }
 
     @Test

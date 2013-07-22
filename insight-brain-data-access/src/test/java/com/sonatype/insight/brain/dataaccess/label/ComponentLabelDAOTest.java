@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -25,15 +25,10 @@ public class ComponentLabelDAOTest
 {
     private final String hash = "ababababab";
 
-    @After
-    public void cleanUp()
+    @Before
+    public void before()
     {
-        LabelDAO labelDAO = new LabelDAO();
-        List<Label> labels = labelDAO.getByOwnerId( applicationId );
-        for ( Label label : labels )
-        {
-            labelDAO.delete( label );
-        }
+        createDefaultApplication();
     }
 
     @Test

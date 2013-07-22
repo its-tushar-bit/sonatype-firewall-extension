@@ -5,9 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -16,38 +17,54 @@ public abstract class AbstractDbDAOTest
 {
     protected String applicationId;
 
-    protected static String applicationPublicId = "AbstractDbDAOTest_AppId";
-
-    protected static String applicationName = "AbstractDbDAOTest";
-
     protected Organization organization;
 
-    @Before
-    public void setUp()
+    protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
+
+    protected Set<Organization> organizationsToDelete = new LinkedHashSet<Organization>();
+
+    protected Organization createOrganization( String name )
     {
+        Organization organization = new Organization( name );
+        new OrganizationDAO().insert( organization );
+        organizationsToDelete.add( organization );
+        return organization;
+    }
+
+    protected void createDefaultApplication()
+    {
+        // Create an organization
+        organization = createOrganization( "AbstractDbDAOTest" );
+
         // Create an application
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = new Application();
-        application.setName( applicationName );
-        application.setPublicId( applicationPublicId );
-        applicationDAO.insert( application );
+        Application application =
+            new Application( "AbstractDbDAOTest_AppPublicId", "AbstractDbDAOTest-AppName", organization.getId() );
+        new ApplicationDAO().insert( application );
+        applicationsToDelete.add( application );
         applicationId = application.getId();
-        Assert.assertNotNull( applicationId );
     }
 
     @After
     public void tearDown()
     {
         ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getById( applicationId );
-        if ( application != null )
+        for ( Application application : applicationsToDelete )
         {
-            applicationDAO.delete( application );
+            application = applicationDAO.getById( application.getId() );
+            if (application != null)
+            {
+                applicationDAO.delete( application );
+            }
         }
 
-        if ( organization != null && organization.getId() != null )
+        OrganizationDAO organizationDAO = new OrganizationDAO();
+        for ( Organization organization : organizationsToDelete )
         {
-            new OrganizationDAO().delete( organization );
+            organization = organizationDAO.getById( organization.getId() );
+            if (organization != null)
+            {
+                organizationDAO.delete( organization );
+            }
         }
     }
 }

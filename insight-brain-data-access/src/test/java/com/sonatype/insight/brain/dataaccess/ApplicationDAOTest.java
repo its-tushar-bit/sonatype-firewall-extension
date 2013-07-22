@@ -69,7 +69,8 @@ public class ApplicationDAOTest
         throws Exception
     {
         // Create
-        // The super class creates an application by default
+        createDefaultApplication();
+
         BufferedImage image = new BufferedImage( 420, 420, BufferedImage.TYPE_INT_ARGB );
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write( image, "png", byteArrayOutputStream );
@@ -108,13 +109,8 @@ public class ApplicationDAOTest
     @Test
     public void testUpdateOrganizationId()
     {
-        OrganizationDAO organizationDAO = new OrganizationDAO();
-        Organization organization1 = new Organization();
-        organization1.setName( "testUpdateOrganizationId 1" );
-        organizationDAO.insert( organization1 );
-        Organization organization2 = new Organization();
-        organization2.setName( "testUpdateOrganizationId 2" );
-        organizationDAO.insert( organization2 );
+        Organization organization1 = createOrganization( "testUpdateOrganizationId 1" );
+        Organization organization2 = createOrganization( "testUpdateOrganizationId 2" );
 
         applicationDAO.insert( application );
         application.setOrganizationId( organization1.getId() );
@@ -138,10 +134,6 @@ public class ApplicationDAOTest
         {
             assertEquals( "Cannot change the parent organization of an application.", expected.getMessage() );
         }
-
-        applicationDAO.delete( application );
-        organizationDAO.delete( organization1 );
-        organizationDAO.delete( organization2 );
     }
 
     @Test
@@ -413,6 +405,7 @@ public class ApplicationDAOTest
         application1.setPublicId( "testpublicid1" );
         application1.setName( "testDuplicateName1" );
         applicationDAO.insert( application1 );
+        applicationsToDelete.add( application1 );
 
         application1.setName( "Test Duplicate Name" );
         try
@@ -449,8 +442,7 @@ public class ApplicationDAOTest
             new LicenseThreatGroup( application.getId(), "testConflictingLicenseThreatGroups", 2 );
         licenseThreatGroupDAO.insert( appLicenseThreatGroup );
 
-        organization = new Organization( "testConflictingLicenseThreatGroups" );
-        new OrganizationDAO().insert( organization );
+        organization = createOrganization( "testConflictingLicenseThreatGroups" );
         LicenseThreatGroup orgLicenseThreatGroup =
             new LicenseThreatGroup( organization.getId(), "test conflictingLicenseThreatGroups", 4 );
         licenseThreatGroupDAO.insert( orgLicenseThreatGroup );

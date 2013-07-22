@@ -20,7 +20,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,18 +38,11 @@ public class OrganizationDAOTest
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    @Before
-    public void before()
-    {
-        organization = new Organization();
-    }
-
     @Test
     public void testCreateDefaultLicenseThreatGroups()
         throws Exception
     {
-        organization.setName( "OrganizationDAOTest" );
-        dao.insert( organization );
+        organization = createOrganization( "OrganizationDAOTest" );
         List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( organization.getId() );
         Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size() );
     }
@@ -60,8 +52,7 @@ public class OrganizationDAOTest
         throws Exception
     {
         // Create
-        organization.setName( "OrganizationDAOTest" );
-        dao.insert( organization );
+        organization = createOrganization( "OrganizationDAOTest" );
         String organizationId = organization.getId();
         organization = dao.getById( organizationId );
         Assert.assertEquals( "OrganizationDAOTest", organization.getName() );
@@ -102,7 +93,7 @@ public class OrganizationDAOTest
     @Test
     public void testValidateNullName_Insert()
     {
-        organization.setName( null );
+        Organization organization = new Organization( null /* name */);
         try
         {
             dao.insert( organization );
@@ -117,9 +108,8 @@ public class OrganizationDAOTest
     @Test
     public void testValidateNullName_Update()
     {
-        organization.setName( "testValidateNullName" );
+        organization = createOrganization( "testValidateNullName" );
         assertEquals( "testvalidatenullname", organization.getNameLowercaseNoWhitespace() );
-        dao.insert( organization );
 
         organization.setName( null );
         assertNull( organization.getNameLowercaseNoWhitespace() );
@@ -137,10 +127,9 @@ public class OrganizationDAOTest
     @Test
     public void testValidateEmptyName_Insert()
     {
-        organization.setName( " " );
         try
         {
-            dao.insert( organization );
+            createOrganization( " " );
             fail( "Expected InvalidNameException" );
         }
         catch ( InvalidNameException expected )
@@ -152,9 +141,8 @@ public class OrganizationDAOTest
     @Test
     public void testValidateEmptyName_Update()
     {
-        organization.setName( "testValidateEmptyName" );
+        organization = createOrganization( "testValidateEmptyName" );
         assertEquals( "testvalidateemptyname", organization.getNameLowercaseNoWhitespace() );
-        dao.insert( organization );
 
         organization.setName( " " );
         assertEquals( "", organization.getNameLowercaseNoWhitespace() );
@@ -175,7 +163,7 @@ public class OrganizationDAOTest
         String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
         for ( String name : invalidAlphaNumericNames )
         {
-            organization.setName( name );
+            Organization organization = new Organization( name );
             try
             {
                 dao.insert( organization );
@@ -191,8 +179,7 @@ public class OrganizationDAOTest
     @Test
     public void testValidateNameInvalidChars_Update()
     {
-        organization.setName( "testValidateNameInvalidChars" );
-        dao.insert( organization );
+        organization = createOrganization( "testValidateNameInvalidChars" );
         String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
         for ( String name : invalidAlphaNumericNames )
         {
@@ -217,10 +204,9 @@ public class OrganizationDAOTest
                 "ends with double space  " };
         for ( String name : invalidSpacingNames )
         {
-            organization.setName( name );
             try
             {
-                dao.insert( organization );
+                createOrganization( name );
                 fail( "Expected InvalidNameException" );
             }
             catch ( InvalidNameException expected )
@@ -234,8 +220,7 @@ public class OrganizationDAOTest
     @Test
     public void testValidateNameSpaces_Update()
     {
-        organization.setName( "testValidateNameSpaces" );
-        dao.insert( organization );
+        organization = createOrganization( "testValidateNameSpaces" );
 
         String[] invalidSpacingNames =
             { " leading space", "trailing space ", "double  space", "  starts with double space",
@@ -261,8 +246,7 @@ public class OrganizationDAOTest
     {
         String name = "test string With Case and Whitespace";
 
-        organization.setName( name );
-        dao.insert( organization );
+        organization = createOrganization( name );
 
         assertEquals( name, organization.getName() );
         assertEquals( "teststringwithcaseandwhitespace", organization.getNameLowercaseNoWhitespace() );
@@ -276,31 +260,24 @@ public class OrganizationDAOTest
     @Test
     public void testDuplicateName_Insert()
     {
-        organization.setName( "testDuplicateName" );
-        dao.insert( organization );
+        createOrganization( "testDuplicateName" );
 
-        Organization organization1 = new Organization();
-        organization1.setName( "Test Duplicate Name" );
         try
         {
-            dao.insert( organization1 );
+            createOrganization( "testDuplicateName" );
             fail( "Expected InvalidNameException" );
         }
         catch ( InvalidNameException expected )
         {
-            assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
+            assertEquals( "testDuplicateName is already used as a name.", expected.getMessage() );
         }
     }
 
     @Test
     public void testDuplicateName_Update()
     {
-        organization.setName( "testDuplicateName" );
-        dao.insert( organization );
-
-        Organization organization1 = new Organization();
-        organization1.setName( "testDuplicateName1" );
-        dao.insert( organization1 );
+        createOrganization( "testDuplicateName" );
+        Organization organization1 = createOrganization( "testDuplicateName1" );
 
         organization1.setName( "Test Duplicate Name" );
         try
@@ -318,10 +295,9 @@ public class OrganizationDAOTest
     public void testValidateNameLength_Insert()
     {
         String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
-        organization.setName( name + "a" );
         try
         {
-            dao.insert( organization );
+            createOrganization( name + "a" );
             fail( "Expected InvalidNameException" );
         }
         catch ( InvalidNameException expected )
@@ -329,15 +305,13 @@ public class OrganizationDAOTest
             assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
         }
 
-        organization.setName( name );
-        dao.insert( organization );
+        createOrganization( name );
     }
 
     @Test
     public void testValidateNameLength_Update()
     {
-        organization.setName( "test name" );
-        dao.insert( organization );
+        organization = createOrganization( "test name" );
 
         String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
         organization.setName( name + "a" );

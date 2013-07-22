@@ -63,6 +63,8 @@ public class MultiLicenseDAOTest
     @Test
     public void testGetLicenseThreatLevelByApplicationIdAndMultiLicenseId()
     {
+        createDefaultApplication();
+
         MultiLicenseDAO dao = new MultiLicenseDAO();
         Collection<MultiLicense> multiLicenses = dao.getAll();
 

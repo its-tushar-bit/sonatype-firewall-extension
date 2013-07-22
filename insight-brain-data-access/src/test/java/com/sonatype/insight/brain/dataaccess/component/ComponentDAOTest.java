@@ -15,20 +15,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -50,13 +44,7 @@ public class ComponentDAOTest
     @Before
     public void before()
     {
-        organization = new Organization( "ComponentDAOTest" );
-        new OrganizationDAO().insert( organization );
-
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getByIdNotNull( applicationId );
-        application.setOrganizationId( organization.getId() );
-        applicationDAO.update( application );
+        createDefaultApplication();
     }
 
     private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV( String refId, String source,
@@ -98,27 +86,13 @@ public class ComponentDAOTest
         assertEquals( new TreeSet<String>( Arrays.asList( expected ) ), actualNames );
     }
 
-    @Before
-    public void init()
+    @Test
+    public void testGetComponent()
     {
         Label label = new Label( applicationId, "red", null );
         labelDAO.insert( label );
         componentLabelDAO.insert( new ComponentLabel( applicationId, label.getId(), COMP_HASH ) );
-    }
 
-    @After
-    public void exit()
-    {
-        List<Label> labels = labelDAO.getByOwnerId( applicationId );
-        for ( Label label : labels )
-        {
-            labelDAO.delete( label );
-        }
-    }
-
-    @Test
-    public void testGetComponent()
-    {
         MatchedComponent info = new MatchedComponent();
         info.setHash( COMP_HASH );
         info.setGroupId( "gid" );

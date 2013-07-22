@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
@@ -44,6 +47,15 @@ public class LabelValueType
     @Override
     public List<Label> getAvailableValues()
     {
-        return new LabelDAO().getByOwnerId( ownerId );
+        final LabelDAO labelDAO = new LabelDAO();
+        final ApplicationDAO applicationDAO = new ApplicationDAO();
+        final Application application = applicationDAO.getById( ownerId );
+        final List<Label> labels = new ArrayList<Label>();
+        if ( application != null && application.getOrganizationId() != null )
+        {
+            labels.addAll( labelDAO.getByOwnerId( application.getOrganizationId() ) );
+        }
+        labels.addAll( labelDAO.getByOwnerId( ownerId ) );
+        return labels;
     }
 }

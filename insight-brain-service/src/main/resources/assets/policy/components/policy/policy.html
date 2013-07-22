@@ -20,18 +20,21 @@
 					</thead>
 					<tr>
 						<td ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
-							<div ng-show='stageTypeId == stage.id' ng-repeat='(stageTypeId, result) in application.policyEvaluationsResults'>
-								<a ng-show='stageTypeId == stage.id' class='no-hover-underline' style='vertical-align: middle;'
-								   ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-								   title='View Report' target='_new' href='{{policyEvaluation.reportUrl}}'>
-									<span ng-show='result.criticalComponentCount > 0' class='threat-chiclet threat-chiclet-critical'>{{result.criticalComponentCount}}</span>
-									<span ng-show='result.severeComponentCount > 0' class='threat-chiclet threat-chiclet-severe'>{{result.severeComponentCount}}</span>
-									<span ng-show='result.moderateComponentCount > 0' class='threat-chiclet threat-chiclet-moderate'>{{result.moderateComponentCount}}</span>
-									<span ng-show='result.criticalComponentCount == 0 && result.severeComponentCount == 0 && result.moderateComponentCount == 0' style="color:#000000;">No violations</span>
+							<div show-if='application.policyEvaluationsResults[stage.id]'>
+								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='reports.html#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+									<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
+										{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
+									</span>
+									<span ng-show='application.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
+										{{application.policyEvaluationsResults[stage.id].severeComponentCount}}
+									</span>
+									<span ng-show='application.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
+										{{application.policyEvaluationsResults[stage.id].moderateComponentCount}}
+									</span>
+									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 								</a>
-								<a ng-show='stageTypeId == stage.id' title="{{policyEvaluation.time | date:'yyyy-MM-dd'}}"
-									ng-repeat='(stageTypeId, policyEvaluation) in application.policyEvaluations'
-									ng-click='reEvaluatePolicy(application, policyEvaluation)'>
+								<a title="{{application.policyEvaluationsResults[stage.id].time | date:'yyyy-MM-dd'}}"
+										ng-click='reEvaluatePolicy(application, application.policyEvaluationsResults[stage.id])'>
 									<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
 									<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
 								</a>

@@ -4,7 +4,6 @@
 		xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
 	<group name='insight'>
-		<css>/components/policy-editor.css</css>
 		<css>/threat.css</css>
 		<css>/insight.css</css>
 	</group>

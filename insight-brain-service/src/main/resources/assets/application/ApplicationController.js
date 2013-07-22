@@ -23,11 +23,6 @@
       url: '/policies',
       controller: 'PolicyController',
       templateUrl: '../policy-assets/components/policy/policy.html'
-    }).state('management.application.view.policies.edit', {
-      parent: 'management.application.view',
-      url: '/policies/{policyId}',
-      controller: 'PolicyEditorController',
-      templateUrl: '../assets/components/policy-editor/policy-editor.html'
     }).state('management.application.view.labels', {
       parent: 'management.application.view',
       url: '/labels',

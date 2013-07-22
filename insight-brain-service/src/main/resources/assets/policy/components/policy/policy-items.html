@@ -1,27 +1,27 @@
-<form name='inlinePolicyForm' form-Submit='inlineSavePolicy()'>
-	<div class="accordion policies">
-		<div class="accordion-group" ng-repeat='policy in policies'>
-			<div class="common-accordion-header policy">
-				<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)' noSelect='true'></span>
-				<h3>
-					<span>{{policy.name}}</span>
-          		</h3>
-				<div class='floatRight'>
-	                <div class='btn-group hover-buttons' ng-show='editable'>
-						<a class="btn btn-mini policy-button" title="Edit Policy" ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></a>
-						<a class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash" style="margin-top: 0px;"></i></a>
-					</div>
-	            </div>
-			</div>
-			<a class="common-accordion-toggle" data-toggle="collapse" data-parent="policies" href="#collapse{{policy.id}}"></a>
-			<div id="collapse{{policy.id}}" class="common-accordion-body accordion-body collapse">
-				<div class="accordion-inner" show-if="!policyEditMap[policy.id]">
-					<div ng-include='"../policy-assets/components/policy/policy-inline-summary.html"'></div>
-				</div>
-				<div class="accordion-inner" show-if="policyEditMap[policy.id]">
-					<div inline-policy-editor></div>
+<div class="accordion policies">
+	<div class="accordion-group" ng-repeat='policy in policies'>
+		<div class="common-accordion-header policy">
+			<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)' noSelect='true'></span>
+			<h3>
+				<span>{{policy.name}}</span>
+			</h3>
+			<div class='floatRight'>
+				<div class='btn-group hover-buttons' ng-show='editable'>
+					<a class="btn btn-mini policy-button" title="Edit Policy" ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></a> <a
+						class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash" style="margin-top: 0px;"></i></a>
 				</div>
 			</div>
 		</div>
+		<a class="common-accordion-toggle" data-toggle="collapse" data-parent="policies" href="#collapse{{policy.id}}"></a>
+		<div id="collapse{{policy.id}}" class="common-accordion-body accordion-body collapse">
+			<div class="accordion-inner" show-if="!policyEditMap[policy.id]">
+				<div ng-include='"../policy-assets/components/policy/policy-inline-summary.html"'></div>
+			</div>
+			<div class="accordion-inner" show-if="policyEditMap[policy.id]">
+				<form name='inlinePolicyForm'>
+					<div inline-policy-editor></div>
+				</form>
+			</div>
+			</div>
 	</div>
-</form>
+</div>

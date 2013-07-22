@@ -7,6 +7,19 @@
 (function () {
 	'use strict';
 	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'ui.bootstrap', 'AngularCommon', 'CommonServices']);
+	
+	module.service('ConditionTypes', function(){
+	    var types;
+	    
+	    return {
+	        get : function() {
+	            return types;
+	        },
+	        set : function(conditionTypes) {
+	            types = conditionTypes;
+	        }
+	    }
+	});
 
 	module.service('PolicyStore', ['ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (constraintStore, clmLocations, clmAppLocations, clmResource) {
 		var conditionTypes = null,
@@ -406,7 +419,7 @@
 		});
 	}]);
 
-	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
+	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', 'ConditionTypes', function ($scope, $timeout, constraints, $conditionTypes) {
 		function isDirty() {
 			if ($scope.originalConstraint) {
 				if ($scope.originalConstraint.name != $scope.constraint.name || $scope.originalConstraint.operator != $scope.constraint.operator ||
@@ -435,37 +448,7 @@
 				event.preventDefault();
 			}
 		});
-
-		$scope.validateConstraint = function () {
-			var i,
-				conditions = $scope.constraint.conditions,
-				conditionType;
-
-			delete $scope.constraintValidationMsg;
-
-			if (!$scope.constraint.name) {
-				$scope.constraintValidationMsg = 'Please enter a name for this constraint';
-				return;
-			}
-
-			for (i = 0; i < conditions.length; i++) {
-				conditionType = $scope.conditionTypes[conditions[i].conditionTypeId];
-				if (conditionType === null || angular.isUndefined(conditionType)) {
-					$scope.constraintValidationMsg = 'Please select a valid condition type for condition #' + (i + 1);
-					return;
-				} else if (conditionType.valueTypeId && (conditions[i].value === null || angular.isUndefined(conditions[i].value))) {
-					$scope.constraintValidationMsg = 'Please enter a value for condition #' + (i + 1);
-					return;
-				}
-			}
-
-			if(!$scope.constraint.operator)
-			{
-				$scope.constraintValidationMsg = 'You must select any or all of the conditions';
-				return;
-			}
-		};
-
+		
 		$scope.conditionTypeChanged = function (condition) {		
 			// Remove values that were entered with the previous condition type
 			delete condition.value;
@@ -486,8 +469,6 @@
 					}
 					break;
 			}
-
-			$scope.validateConstraint();
 		};
 		$scope.$watch('constraint', function (constraint) {
 			if (constraint) {
@@ -510,7 +491,6 @@
 								}
 							});
 						}
-						$scope.validateConstraint();
 						$('#constraintName').focus();
 						$scope.originalConstraint = angular.copy(constraint);
 					} else {
@@ -530,13 +510,10 @@
 				conditionTypeId: conditionType.id,
 				operator: conditionType.supportedOperators[0]
 			});
-
-			$scope.validateConstraint();
 		};
 
 		$scope.removeCondition = function (conditionIndex) {
 			$scope.constraint.conditions.splice(conditionIndex, 1);
-			$scope.validateConstraint();
 		};
 
 		constraints.get().then(function (results) {
@@ -550,6 +527,7 @@
 				type.valueType = typeValue;
 				$scope.conditionTypes[type.id] = type;
 			});
+			$conditionTypes.set($scope.conditionTypes);
 		}, function (error) {
 			// TODO handle this error
 		});
@@ -573,8 +551,8 @@
 		};
 	}]);
 
-	module.controller('InlinePolicyEditorController', ['$scope', '$dialog', 'Messages', function (scope, $dialog, messages) {
-		scope.click = function () {
+	module.controller('InlinePolicyEditorController', ['$scope', '$dialog', 'Messages', 'ConditionTypes', function (scope, $dialog, messages, conditionTypes) {
+	    scope.click = function () {
 			if (!scope.policy) {
 				scope.policy = scope.createPolicy();
 			}
@@ -608,15 +586,61 @@
 			}
 		};
 		scope.savePolicy = function () {
-			scope.policy.$save().then(function (policy) {
-				scope.hide();
-			}, function (error) {
-				scope.alerts.push({
-					type : 'error',
-					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
-				});
-			});
+		    scope.alerts = [];
+		    if (scope.validate()) {
+    			scope.policy.$save().then(function (policy) {
+    				scope.hide();
+    			}, function (error) {
+    				scope.alerts.push({
+    					type : 'error',
+    					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
+    				});
+    			});
+		    }
 		};
+		scope.validate = function() {
+            var msg = null;
+            if (scope.policy) {
+                if (!scope.policy.name) {
+                    msg = 'Enter a valid name for the policy';
+                } else {
+                    $.each(scope.policy.constraints, function(constraintIndex,constraint){
+                        if (!constraint.name) {
+                            msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
+                            return false;
+                        } else if(!constraint.operator) {
+                            msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
+                            return false;
+                        }
+                        
+                        $.each(constraint.conditions, function(conditionIndex, condition){
+                            var conditionType = conditionTypes.get()[condition.conditionTypeId];
+                            if (!conditionType) {
+                                msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                return false;
+                            } else if (conditionType.valueTypeId && !(condition.value === 0 || condition.value)) {
+                                msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                return false;
+                            }
+                        });
+                        
+                        if (msg) {
+                            return false;
+                        }
+                    });
+                }
+            }
+            
+            if (msg) {
+                scope.alerts.push({
+                    msg:msg,
+                    type:'error'
+                });
+                return false;
+            } else {
+                return true;
+            }
+        };
 		scope.alerts = [];
 	}]);
 

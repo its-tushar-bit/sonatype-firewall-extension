@@ -3,31 +3,31 @@
 	-webkit-background-clip: padding-box; /* for Safari */
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
-#policies .constraint-name::after {
+.policies .constraint-name::after {
 	content: ", "
 }
-#policies .constraint-name:last-child::after {
+.policies .constraint-name:last-child::after {
 	content: ""
 }
-#policies tr.constraints, #policies tr.actions {
+.policies tr.constraints, .policies tr.actions {
 	vertical-align: text-top;
 }
-#policies .constraints td.header, #policies .actions td.header {
+.policies .constraints td.header, .policies .actions td.header {
 	min-width: 100px;
 	font-weight: bold;
 }
-#policies .actions .action-item {
+.policies .actions .action-item {
 	border-left: 1px solid #ffffff;
 	border-right: 1px solid #e8e8e8;
 	text-align: center;
 	padding: 0 10px;
 	vertical-align: text-top;
 }
-#policies .actions .action-item:first-child {
+.policies .actions .action-item:first-child {
 	border-left: none;
 	padding-left: 0;
 }
-#policies .actions .action-item:last-child {
+.policies .actions .action-item:last-child {
 	border-right: none;
 }
 .deleteHoverTransparent {

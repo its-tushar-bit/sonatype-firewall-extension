@@ -108,3 +108,4 @@ table.policy-actions>tbody>tr>td:nth-child(2):hover {
 table.policy-actions>tbody>tr>td:nth-child(3):hover {
 	background-color: #FFF;
 }
+table.policy-actions td:last-child {border-right: 1px solid #ddd;}

@@ -7,7 +7,7 @@
   <div show-if="label">
     <div style='width:830px' ng-controller='LabelEditorController'>
       <form name='inlineLabelEditor' class='form-horizontal' style='margin-bottom:0'>
-        <div>
+        <div class="control-group" ng-class='{ error : inlineLabelEditor.labelName.$error.duplicate || inlineLabelEditor.labelName.$error.empty || inlineLabelEditor.labelName.$error.invalid }'>
           <input ng-click='click()' id="labelName" name='labelName' type='text' placeholder='New Label'
                  ng-model='label.label' style='margin-bottom:0px' item-label>
           <span ng-show='inlineLabelEditor.labelName.$error.empty' class="help-inline">Required</span>

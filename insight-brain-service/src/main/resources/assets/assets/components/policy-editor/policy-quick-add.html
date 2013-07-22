@@ -7,8 +7,12 @@
 	<div show-if='policy'>
 		<div ng-controller='PolicyEditorController' style='width:830px'>
 			<form style='margin-bottom:0px' name='quickAddPolicyEditor'>
-				<input ng-click='click()' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60'>
-				<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
+				<div class="control-group" ng-class='{ error : quickAddPolicyEditor.name.$error.alphaNumeric || quickAddPolicyEditor.name.$error.spaces }'>
+					<input ng-click='click()' name='name' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>
+					<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
+					<span ng-show="quickAddPolicyEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
+					<span ng-show="quickAddPolicyEditor.name.$error.spaces && !quickAddPolicyEditor.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
+				</div>
 				<div style='padding-top:10px'>
 					<div inline-constraint-editor='policy.constraints[0]'>
 						<input type="text"  ng-model="constraint.name" ng-change="validateConstraint()" placeholder='Constraint Name...' required>

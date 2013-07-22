@@ -46,7 +46,7 @@
 			<td>{{actionStage.name}}</td>
 			<td style="height: 22px;text-align:center;cursor:pointer;" ng-click='toggleWarnAction(actionStage,policy)'><img ng-show='showWarningIcon(actionStage, policy)' src='../assets/img/policyalert.png' style="height: 20px; width: 20px;" /></td>
 			<td style="text-align:center;cursor:pointer;" ng-click='toggleFailureAction(actionStage,policy)'><img ng-show='showFailureIcon(actionStage, policy)' src='../assets/img/policyerror.png' style="height: 20px; width: 20px;" /></td>
-			<td><i class="icon-user" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage,policy)'></i>{{getEmailList(actionStage,policy)}}</td>
+			<td><i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage,policy)'></i>{{getEmailList(actionStage,policy)}}</td>
 		</tr>
 	</table>
 	<div clm-alerts='alerts'></div>

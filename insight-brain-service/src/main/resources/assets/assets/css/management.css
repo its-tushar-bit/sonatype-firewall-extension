@@ -288,7 +288,16 @@ body {
 }
 .accordion-inner {
 	border: none;
-	padding-bottom: 30px;
+	padding: 20px 15px 30px;
+}
+.common-accordion-toggle {
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
+		-webkit-transition: border .3s linear;
+		-moz-transition: border .3s linear;
+		transition: border .3s linear;
+}
+.common-accordion-toggle.collapsed {
+    border-bottom: 1px solid transparent;
 }
 .accordion-group {
 	border: 1px solid transparent;

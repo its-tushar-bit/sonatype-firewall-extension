@@ -127,4 +127,10 @@ table.policy-actions>tbody>tr>td:nth-child(2):hover {
 table.policy-actions>tbody>tr>td:nth-child(3):hover {
 	background-color: #FFF;
 }
-table.policy-actions td:last-child {border-right: 1px solid #ddd;}
+table.policy-actions td:last-child {
+	border-right: 1px solid #ddd;
+}
+table.policy-actions>tbody>tr>td:nth-child(2):hover {
+	background: url("../assets/img/policyalert-k.png") no-repeat center;
+	background-size: 20px;
+}

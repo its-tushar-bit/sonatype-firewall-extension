@@ -259,14 +259,15 @@
 		    $scope.currentNotificationStage = stage.id;
 		    $scope.currentNotificationPolicy = policy;
 		    var addresses = [];
-		    
-		    for (var i = 0 ; i < policy.actions[stage.id].length ; i++) {
-		        if (policy.actions[stage.id][i].actionTypeId == 'notify') {
-		            addresses = policy.actions[stage.id][i].target.split(',');
-		            break;
-		        }
-		    }
-		    
+
+			if (policy.actions[stage.id]) {
+				for (var i = 0 ; i < policy.actions[stage.id].length ; i++) {
+					if (policy.actions[stage.id][i].actionTypeId == 'notify') {
+						addresses = policy.actions[stage.id][i].target.split(',');
+						break;
+					}
+				}
+			}
 			$scope.$broadcast('editNotification', addresses);
 		};
 		

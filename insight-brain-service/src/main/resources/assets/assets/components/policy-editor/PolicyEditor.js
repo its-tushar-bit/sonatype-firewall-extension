@@ -66,54 +66,6 @@
 					policyStores[ownerId] = store;
 				}
 				return store;
-			},
-			serializeActions : function (uiActions) {
-				var policyActions = {};
-				angular.forEach(uiActions, function (stage, stageName) {
-					var serializedActions = [];
-					if (stage.action !== null && stage.action !== 'none') {
-						serializedActions.push({ actionTypeId : stage.action });
-					}
-					angular.forEach(stage.notify, function (email) {
-						serializedActions.push({ actionTypeId : 'notify', target : email });
-					});
-					policyActions[stageName] = serializedActions;
-				});
-				return policyActions;
-			},
-			deserializeActions :  function (policyActions) {
-				//Re-arrange action data for UI
-				var uiActions = {};
-				angular.forEach(policyActions, function (actions, stageName) {
-					uiActions[stageName] = {
-						action : null,
-						notify : []
-					};
-					angular.forEach(actions, function (action, index) {
-						if (action.actionTypeId === 'notify') {
-							uiActions[stageName].notify.push(action.target);
-						} else {
-							uiActions[stageName].action = action.actionTypeId;
-						}
-					});
-				});
-				return uiActions;
-			},
-			isActionDirty : function (policy, actions) {
-				var changed = false;
-				angular.forEach(actions, function (dAction, dStage) {
-					var emailCount = 0;
-					angular.forEach(policy.actions[dStage], function (policyAction) {
-						if (policyAction.actionTypeId === 'notify') {
-							changed = changed || (dAction.notify.indexOf(policyAction.target) === -1);
-							emailCount++;
-						} else {
-							changed = changed || (policyAction.actionTypeId !== dAction.action);
-						}
-					});
-					changed = changed || emailCount !== dAction.notify.length || (dAction.action !== null && emailCount === policy.actions[dStage].length);
-				});
-				return changed;
 			}
 		};
 	}]);
@@ -165,33 +117,51 @@
 			$location.path(path.substring(0, path.lastIndexOf('/')));
 		}
 
-		function getActions(actionStages) {
-			var actions = {};
-			angular.forEach(actionStages, function (stage) {
-				actions[stage.id] = [];
-			});
-			return policyStore.deserializeActions(actions);
-		}
-
 		function isDirty() {
 			var changed = false;
 			if ($scope.policy) {
 				if (angular.isUndefined($scope.policy.id)) {
 					changed = $scope.policy.constraints.length > 0 || $scope.policy.name;
-					if (!changed) {
-						angular.forEach(policyStore.serializeActions($scope.actions), function (actions, stage) {
-							changed = changed || actions.length > 0;
-						});
-					}
 				} else {
 					angular.forEach($scope.policies, function (policy, index) {
 						if (policy.id === $scope.policy.id) {
-							changed = $scope.policy.isDirty() || policyStore.isActionDirty($scope.policy, $scope.actions);
+							changed = $scope.policy.isDirty();
 						}
 					});
 				}
 			}
 			return changed;
+		}
+		
+		function toggleAction(policy, stageId, action) {
+		    var add = true;
+            if (policy.actions[stageId]) {
+                for ( var i = policy.actions[stageId].length - 1 ; i >= 0 ; i-- ) {
+                    switch (policy.actions[stageId][i].actionTypeId) {
+                    case 'warn':
+                        policy.actions[stageId].splice(i,1);
+                        if (action === 'warn') {
+                            add = false;
+                        }
+                        break;
+                    case 'fail':
+                        policy.actions[stageId].splice(i,1);
+                        if (action === 'fail') {
+                            add = false;
+                        }
+                        break;
+                    } 
+                }
+            } 
+            
+            if (add) {
+                if (!policy.actions[stageId]) {
+                    policy.actions[stageId] = [];
+                }
+                policy.actions[stageId].push({
+                    actionTypeId: action
+                });
+            }
 		}
 
 		$scope.doLoad = function () {
@@ -204,14 +174,6 @@
 				$scope.error = angular.isArray(errors) ? errors[0] : errors;
 			});
 		};
-
-		$scope.$watch('policy', function () {
-			if ($scope.policy) {
-				$scope.actions = angular.extend(getActions($scope.actionStages), policyStore.deserializeActions($scope.policy.actions));
-			} else {
-				$scope.actions = null;
-			}
-		});
 		
 		$scope.removeConstraint = function (constraint) {
 		    $dialog.dialog({
@@ -292,49 +254,12 @@
         });
 		
 		$scope.toggleWarnAction = function(stage, policy) {
-            var add = true;
-            if (policy.actions[stage.id]) {
-                for ( var i = policy.actions[stage.id].length - 1 ; i >= 0 ; i-- ) {
-                    switch (policy.actions[stage.id][i].actionTypeId) {
-                    case 'warn':
-                        policy.actions[stage.id].splice(i,1);
-                        add = false;
-                        break;
-                    case 'fail':
-                        policy.actions[stage.id].splice(i,1);
-                        break;
-                    } 
-                }
-            } 
-            
-            if (add) {
-                policy.actions[stage.id] = [{
-                    actionTypeId: 'warn'
-                }];
-            }
+		    toggleAction(policy, stage.id, 'warn');
         };
         $scope.toggleFailureAction = function(stage, policy) {
-            var add = true;
-            if (policy.actions[stage.id]) {
-                for ( var i = policy.actions[stage.id].length - 1 ; i >= 0 ; i-- ) {
-                    switch (policy.actions[stage.id][i].actionTypeId) {
-                    case 'fail':
-                        policy.actions[stage.id].splice(i,1);
-                        add = false;
-                        break;
-                    case 'warn':
-                        policy.actions[stage.id].splice(i,1);
-                        break;
-                    } 
-                }
-            } 
-            
-            if (add) {
-                policy.actions[stage.id] = [{
-                    actionTypeId: 'fail'
-                }];
-            }
+            toggleAction(policy, stage.id, 'fail');
         };
+        
         $scope.showWarningIcon = function(stage, policy) {
             if (policy.actions[stage.id]) {
                 for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
@@ -477,20 +402,6 @@
 					if ($scope.conditionTypes) {
 						if ($scope.constraint.conditions.length === 0) {
 							$scope.addCondition();
-						} else {
-							angular.forEach($scope.constraint.conditions, function (condition) {
-								if ($scope.conditionTypes[condition.conditionTypeId]) {
-									switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
-										case "PercentageValueType":
-										case "IntegerValueType":
-											var value = parseInt(condition.value, 10);
-											if (!isNaN(value)) {
-												condition.value = value;
-											}
-											break;
-									}
-								}
-							});
 						}
 						$('#constraintName').focus();
 						$scope.originalConstraint = angular.copy(constraint);
@@ -619,7 +530,7 @@
                             if (!conditionType) {
                                 msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
                                 return false;
-                            } else if (conditionType.valueTypeId && !(condition.value === 0 || condition.value)) {
+                            } else if (conditionType.valueTypeId && !condition.value) {
                                 msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
                                 return false;
                             }
@@ -693,21 +604,27 @@
 			template : "<input type='number' style='width:100px;vertical-align:top' ng-model='value' placeholder='{{placeholder}}' required> <select style='width:100px;vertical-align:top' ng-model='modifier' ng-options='timeSpan.value as timeSpan.name for timeSpan in timeSpans' required></select>",
 			link : function (scope, element, attrs) {
 				function updateModel() {
-					scope.model = (scope.value !== '' && scope.value !== null && scope.modifier) ? scope.value * scope.modifier : null;
+					scope.numModel = (scope.value !== '' && scope.value !== null && scope.modifier) ? scope.value * scope.modifier : null;
+					scope.model = scope.numModel ? '' + scope.numModel : '';
 				}
 				function updateValue() {
-					if (!scope.model) {
+				    var numModel = parseInt(scope.model);
+				    if (isNaN(numModel)) {
+				        numModel = null;
+				    }
+				    
+					if (!numModel) {
 						scope.value = null;
 						scope.modifier = 365;
 					} else {
-						if (scope.model >= 365 && scope.model % 365 === 0) {
+						if (numModel >= 365 && numModel % 365 === 0) {
 							scope.modifier = 365;
-						} else if (scope.model >= 30 && scope.model % 30 === 0) {
+						} else if (numModel >= 30 && numModel % 30 === 0) {
 							scope.modifier = 30;
 						} else {
 							scope.modifier = 1;
 						}
-						scope.value = scope.model / scope.modifier;
+						scope.value = numModel / scope.modifier;
 					}
 				}
 				scope.timeSpans = [{'value':1, 'name':'Days'},{'value':30, 'name':'Months'},{'value':365, 'name':'Years'}];

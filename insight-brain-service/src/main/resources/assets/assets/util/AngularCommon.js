@@ -468,28 +468,6 @@
 			return arrayToReturn;
 		};
 	});
-	
-	angularCommon.service('policyEvaluator', function ($q, hudson, CLMLocations) {
-		return {
-			evaluate: function(application, policyEvaluation) {
-				var deferred = $q.defer();
-				var stage = policyEvaluation.stage;
-				hudson.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
-					policyEvaluation.time = new Date();
-					for (var stageTypeId in application.policyEvaluationsResults) {
-		                if (stageTypeId === stage.stageTypeId) {
-		                	application.policyEvaluationsResults[stageTypeId] = data;
-		                    break;
-		                }
-		            }
-					deferred.resolve(data);
-				}).error(function (data, status, headers, config) {
-					deferred.reject({ data: data, status : status, headers : headers, config : config });
-				});
-				return deferred.promise;
-			}
-		};
-	});
 
 	/**
 	 * Common component for threat drop downs
@@ -568,18 +546,7 @@
 (function () {
 	"use strict";
 
-	var services = angular.module('CommonServices', ['CLMLocation']);
-	services.service('licenseChecker', function ($http, CLMLocations) {
-		return {
-			check: function(unlicensed) {
-				return $http.get(CLMLocations.getLicenseSummaryUrl()).error(function(data, status) {
-					if (status === 402) {
-						unlicensed();
-					}
-				});
-			}
-		};
-	});
+	var services = angular.module('CommonServices', []);
 
 	services.service('Messages', function () {
 		return {

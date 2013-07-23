@@ -21,7 +21,7 @@
         masterModalShown = false;
     };
 
-	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'CommonServices'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
+	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'CLMLocation', 'CommonServices'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
 			url : '/',
 			controller : angular.noop
@@ -141,4 +141,17 @@
 		$scope.$watch('$state.current.name', switchDashboard);
 		switchDashboard();
 	});
+
+	dashboardApp.service('licenseChecker', function ($http, CLMLocations) {
+		return {
+			check: function(unlicensed) {
+				return $http.get(CLMLocations.getLicenseSummaryUrl()).error(function(data, status) {
+					if (status === 402) {
+						unlicensed();
+					}
+				});
+			}
+		};
+	});
+
 }());

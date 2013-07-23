@@ -204,4 +204,26 @@
 			}
 		};
 	}]);
+
+	policyModule.service('policyEvaluator', function ($q, hudson, CLMLocations) {
+		return {
+			evaluate: function(application, policyEvaluation) {
+				var deferred = $q.defer();
+				var stage = policyEvaluation.stage;
+				hudson.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
+					policyEvaluation.time = new Date();
+					for (var stageTypeId in application.policyEvaluationsResults) {
+						if (stageTypeId === stage.stageTypeId) {
+							application.policyEvaluationsResults[stageTypeId] = data;
+							break;
+						}
+					}
+					deferred.resolve(data);
+				}).error(function (data, status, headers, config) {
+					deferred.reject({ data: data, status : status, headers : headers, config : config });
+				});
+				return deferred.promise;
+			}
+		};
+	});
 }());

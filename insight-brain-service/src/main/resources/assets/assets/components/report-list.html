@@ -5,7 +5,7 @@
 		<div ng-show='applications.length == 0'><h5>No Applications</h5></div>
 		<div ng-show='applications.length > 0'>
 			<div class='input-prepend'>
-				<span class='add-on'><i ng-class="{'icon-search': !searchText, 'icon-remove': searchText}" ng-click="searchText = ''"></i></span>
+				<span class='add-on'><i ng-class="{'icon-search': !appFilter.name, 'icon-remove': appFilter.name}" ng-click="appFilter.name = ''"></i></span>
 				<input type='text' ng-model='appFilter.name' autocomplete="off" placeholder='Filter Applications...' />
 			</div>
 			<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px;background-color: white'>

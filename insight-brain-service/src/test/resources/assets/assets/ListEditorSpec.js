@@ -25,21 +25,7 @@ describe('ListEditor', function () {
         inputElement[0].dispatchEvent(evt);
     }
     var scope,
-        template;
-
-    (function () {
-        var baseUrl;
-        if (location.hostname) {
-            baseUrl = 'src/main/resources/assets/';
-        } else {
-            baseUrl = 'src/';
-        }
-        $.ajax(baseUrl + 'assets/components/list-editor/list-editor.html', {
-            async : false
-        }).success(function (data) {
-            template = data;
-        });
-    }());
+        template = SpecUtil.getTemplate('assets/components/list-editor/list-editor.html');
 
     beforeEach(module('ListEditor'));
 

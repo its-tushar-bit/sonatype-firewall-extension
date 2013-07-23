@@ -10,37 +10,6 @@ describe('PolicyEditor.js', function() {
 		sampleActions = { build : [ { actionTypeId : 'notify', target : 'test@example.org' } ], develop : [], operate : [], procure : [{ actionTypeId : 'fail' }], release : [], 'stage-release' : []},
 		testScope = null;
 
-	function getTemplate(url) {
-		url = url.split('/');
-		if (url[0] === '..') {
-			url.splice(0, 1);
-		}
-		if (url[0] === 'policy-assets') {
-			url[0] = 'policy';
-		} else if (url[0] === 'organization-assets') {
-			url[0] = 'organization';
-		} else if (url[0] === 'application-assets') {
-			url[0] = 'application';
-		}
-
-		if (location.hostname) {
-			url = 'src/main/resources/assets/' + url.join('/');
-		} else {
-			url = 'src/' + url.join('/');
-		}
-
-		var data = null;
-		$.ajax({
-			async: false,
-			dataType: 'html',
-			url: url,
-			success: function(responseData) {
-				data = responseData;
-			}
-		});
-		return data;
-	}
-
 	function getController(controllerName) {
 		var controller = null,
 			scope = null,
@@ -104,7 +73,7 @@ describe('PolicyEditor.js', function() {
 			return getController('PolicyEditorController');
 		}
 
-		var template = getTemplate("../assets/components/policy-editor/policy-quick-add.html"),
+		var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-quick-add.html"),
 			scope = null;
 
 		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
@@ -180,8 +149,8 @@ describe('PolicyEditor.js', function() {
 			return getController('PolicyEditorController');
 		}
 		
-        var template = getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
-            notificationTemplate = getTemplate("../assets/components/notification-manager/notification-manager.html"),
+        var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
+            notificationTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
             scope = null, controller = null;
 
         beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {

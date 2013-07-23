@@ -448,6 +448,7 @@
             <include>**/*.js</include>
           </sourceIncludes>
           <specIncludes>
+            <include>SpecUtil.js</include>
             <include>**/lib/*.js</include>
             <include>**/*MockData.js</include>
             <include>**/*-spec.js</include>

@@ -109,7 +109,7 @@
 
     $scope.isExpanded = function(applicablePolicy) {
       return $scope.allExpanded[applicablePolicy.ownerId] || false;
-    }
+    };
 
 		$scope.doLoad();
 

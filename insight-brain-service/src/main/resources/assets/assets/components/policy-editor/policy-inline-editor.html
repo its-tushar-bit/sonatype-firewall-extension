@@ -1,7 +1,11 @@
 <div class='inline-policy-editor' ng-controller='PolicyEditorController' style="width:875px;">
 	<form name='inlinePolicyForm'>
-		<input type='text' ng-model='policy.name' required maxlength='60'>
-		<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span> 
+		<div class="control-group" ng-class='{ error : inlinePolicyForm.name.$error.alphaNumeric || inlinePolicyForm.name.$error.spaces }'>
+			<input name='name' type='text' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>
+			<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
+			<span ng-show="inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
+			<span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
+		</div> 
 		<div>
 			<span>Constraints</span>
 		</div>

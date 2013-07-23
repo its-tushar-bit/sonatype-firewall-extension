@@ -423,18 +423,20 @@
 		});
 		elem.on('click.editable', function() {
 			$timeout(function() {
-				elem.data('editable').input.$input.on('keyup', function () {
-					if (failed) {
-            scope.$apply(function () {
-              failed = checkWhitespace();
-            });
-					}
-				});
-				elem.data('editable').input.$input.on('blur', function () {
-          scope.$apply(function () {
-            failed = checkWhitespace();
-          });
-				});
+			    if (elem.data('editable')){
+    				elem.data('editable').input.$input.on('keyup', function () {
+    					if (failed) {
+                            scope.$apply(function () {
+                              failed = checkWhitespace();
+                            });
+    					}
+    				});
+    				elem.data('editable').input.$input.on('blur', function () {
+    				    scope.$apply(function () {
+                            failed = checkWhitespace();
+                        });
+    				});
+			    }
 			}, 100);
 			return true;
 		});

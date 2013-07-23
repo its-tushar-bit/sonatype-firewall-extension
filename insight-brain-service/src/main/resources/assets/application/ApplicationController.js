@@ -49,7 +49,7 @@
         for (var i = 0; i < $scope.applications.length; i++) {
           if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
             $timeout(function () {
-              $scope.selectedApplication = $scope.applications[i];
+              $scope.selectedApplication = $scope.applications[i].$clone();
               $scope.$broadcast('setApplicationIcon');
             }, 100);
             return;

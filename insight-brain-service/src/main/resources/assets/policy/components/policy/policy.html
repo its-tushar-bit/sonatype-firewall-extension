@@ -8,40 +8,38 @@
 			<h5><i class='icon-time'></i> Loading...</h5>
 		</div>
 		<div class='fade' ng-class='{in : state}'>
-			<div style='width:600px;' ng-show='application != null'>
-				<table class='table clm-table' ng-show='application.stageCount'>
-					<thead>
-						<tr>
-							<th ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
-								{{stage.name}} Report Violations
-							</th>
-						</tr>
-					</thead>
+			<table class='table clm-table' ng-show='application.stageCount' style='width:600px;'>
+				<thead>
 					<tr>
-						<td ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
-							<div show-if='application.policyEvaluationsResults[stage.id]'>
-								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='reports.html#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-									<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
-										{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
-									</span>
-									<span ng-show='application.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
-										{{application.policyEvaluationsResults[stage.id].severeComponentCount}}
-									</span>
-									<span ng-show='application.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
-										{{application.policyEvaluationsResults[stage.id].moderateComponentCount}}
-									</span>
-									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
-								</a>
-								<a title="{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}"
-										ng-click='reEvaluatePolicy(application, application.policyEvaluations[stage.id])'>
-									<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
-									<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
-								</a>
-							</div>
-						</td>
+						<th ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
+							{{stage.name}} Report Violations
+						</th>
 					</tr>
-				</table>
-			</div>
+				</thead>
+				<tr>
+					<td ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
+						<div show-if='application.policyEvaluationsResults[stage.id]'>
+							<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='reports.html#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+								<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
+									{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
+								</span>
+								<span ng-show='application.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
+									{{application.policyEvaluationsResults[stage.id].severeComponentCount}}
+								</span>
+								<span ng-show='application.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
+									{{application.policyEvaluationsResults[stage.id].moderateComponentCount}}
+								</span>
+								<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+							</a>
+							<a title="{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}"
+									ng-click='reEvaluatePolicy(application, application.policyEvaluations[stage.id])'>
+								<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
+								<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
+							</a>
+						</div>
+					</td>
+				</tr>
+			</table>
 			<div clm-alerts='alerts' class='policies'></div>
 			<div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.policies.length > 0'>
 				<div class="content-header" ng-switch='applicablePolicy.editable'>

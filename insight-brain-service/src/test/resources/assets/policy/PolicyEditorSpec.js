@@ -103,6 +103,7 @@ describe('PolicyEditor.js', function() {
 			scope = null;
 
 		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
+		    getPolicyEditorController();
 			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades

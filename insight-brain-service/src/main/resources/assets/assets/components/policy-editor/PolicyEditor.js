@@ -111,7 +111,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ConditionTypes', function ($scope, $state, $location, $dialog, $timeout, messages, policyStore, $conditionTypes) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ConditionTypes', '$q', 'ActionStore', function ($scope, $state, $location, $dialog, $timeout, messages, policyStore, $conditionTypes, $q, actionStore) {
 		function returnFn() {
 			var path = $location.path();
 			$location.path(path.substring(0, path.lastIndexOf('/')));
@@ -396,7 +396,18 @@
                 return true;
             }
         };
+        $scope.doLoad = function () {
+            $scope.error = null;
+            $q.all([actionStore.get()]).then(function (results) {
+                var actionStages = results[0][1];
+
+                $scope.actionStages = actionStages;
+            }, function (errors) {
+                $scope.error = angular.isArray(errors) ? errors[0] : errors;
+            });
+        };
         $scope.alerts = [];
+        $scope.doLoad();
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', 'ConditionTypes', function ($scope, $timeout, constraints, $conditionTypes) {
@@ -531,12 +542,12 @@
 				};
 				scope.getFormName = function() {
 				    return 'quickAddPolicyEditor';
-				}
+				};
 			}
 		};
 	}]);
 	
-	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', '$q', 'ActionStore', function ($dialog, messages, $q, actionStore) {
+	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
         return {
             restrict : 'A',
             templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
@@ -545,21 +556,9 @@
 				scope.hide = function () {
 					scope.policyEditMap[scope.policy.id] = null;
 				};
-				scope.doLoad = function () {
-				    scope.error = null;
-		            $q.all([actionStore.get()]).then(function (results) {
-		                var actionStages = results[0][1];
-
-		                scope.actionStages = actionStages;
-		            }, function (errors) {
-		                scope.error = angular.isArray(errors) ? errors[0] : errors;
-		            });
-				};
 				scope.getFormName = function() {
 				    return 'inlinePolicyForm';
 				}
-				
-				scope.doLoad();
 			}
         };
     }]);

@@ -100,10 +100,18 @@
 		$scope.createPolicy = function () {
 			return policyStore.get().create();
 		};
+		
+		$scope.toggleAll = function () {
+            var action = $scope.allExpanded ? 'hide' : 'show';
+            $('.policies').find('.accordion-body').collapse(action);
+            $scope.allExpanded = !$scope.allExpanded;
+        };
 
 		$scope.doLoad();
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
+		
+		$scope.allExpanded = false;
 	}]);
 
 	policyModule.directive('policyItems', ['ActionStore', function (actionStore) {

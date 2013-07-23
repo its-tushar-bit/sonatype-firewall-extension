@@ -542,6 +542,7 @@ ul.tri-pane {
 	z-index: 99;
 	margin-top: -40px;
 	cursor: pointer;
+	position: relative;
 }
 .common-accordion-toggle i {
 	float: right;
@@ -563,7 +564,6 @@ ul.tri-pane {
 .common-expand-toggle {
 	display: inline-block;
 	width: 100%;
-	margin: 15px;
 }
 .common-expand-toggle a {
 	float: right;

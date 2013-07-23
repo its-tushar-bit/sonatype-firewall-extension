@@ -362,10 +362,10 @@
 		}
 		$scope.constraintConditionChoices = [{
 			'value' : 'AND',
-			'name' : 'all'
+			'name' : 'All'
 		},{
 			'value' : 'OR',
-			'name' : 'any'
+			'name' : 'Any'
 		}];
 
 		//make sure user is aware they are about to lose changes

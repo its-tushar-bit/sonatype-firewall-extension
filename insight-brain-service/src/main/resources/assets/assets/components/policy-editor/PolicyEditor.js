@@ -111,7 +111,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ActionStore', function ($scope, $state, $q, $location, $dialog, $timeout, messages, policyStore, actionStore) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ActionStore', 'ConditionTypes', function ($scope, $state, $q, $location, $dialog, $timeout, messages, policyStore, actionStore, $conditionTypes) {
 		function returnFn() {
 			var path = $location.path();
 			$location.path(path.substring(0, path.lastIndexOf('/')));
@@ -307,42 +307,98 @@
 				event.preventDefault();
 			}
 		});
-
-		$scope.doLoad();
-	}]);
-
-	module.directive('ModalConstraintController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
-		$scope.cancelConstraint = function () {
-			$('#editConstraintModal').modal('hide');
-			$scope.originalConstraint = $scope.currentConstraint = null;
-		};
-
-		//ditch edits in this case
-		$scope.$on('pageChangeAccepted', function (event) {
-			$scope.cancelConstraint();
-		});
-
-		$scope.saveConstraint = function () {
-			angular.forEach($scope.currentConstraint.conditions, function (condition) {
-				// Remove temporary values used by the UI
-				delete condition.v;
-				delete condition.valueModifier;
-			});
-			if ($scope.originalConstraint) {
-				angular.forEach($scope.currentConstraint, function (value, key) {
-					$scope.originalConstraint[key] = value;
-				});
-			}
-			$scope.$emit('policy.constraintSaved', $scope.originalConstraint || $scope.currentConstraint);
-			$('#editConstraintModal').modal('hide');
-			$scope.originalConstraint = $scope.currentConstraint = null;
-		};
-
-		$scope.$on('policy.editConstraint', function (event, constraint) {
-			$('#editConstraintModal').modal('show');
-			$scope.originalConstraint = constraint || null;
-			$scope.constraint = constraint ? angular.copy(constraint) : { conditions: [], operator: null };
-		});
+		
+		$scope.click = function () {
+            if (!$scope.policy) {
+                $scope.policy = $scope.createPolicy();
+            }
+        };
+        $scope.cancel = function () {
+            if ($scope.policy) {
+                if ($scope.policy.isDirty()) {
+                    // show dialog
+                    $dialog.dialog({
+                        backdrop : true,
+                        backdropClick : false,
+                        backdropFade : true,
+                        dialogFade : true,
+                        template : '<div class="modal-body">May contain unsaved changes.</div>' +
+                                    '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+                                    '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
+                        controller : ['$scope', 'dialog', function (scope, dialog) {
+                            scope.discard = function () {
+                                dialog.close(true);
+                                $scope.policy.$revert();
+                                $scope.hide();
+                            };
+                            scope.cancel = function () {
+                                dialog.close(true);
+                            };
+                        }]
+                    }).open();
+                } else {
+                    $scope.hide();
+                }
+            }
+        };
+        $scope.savePolicy = function () {
+            $scope.alerts = [];
+            if ($scope.validate()) {
+                $scope.policy.$save().then(function (policy) {
+                    $scope.hide();
+                }, function (error) {
+                    $scope.alerts.push({
+                        type : 'error',
+                        msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
+                    });
+                });
+            }
+        };
+        $scope.validate = function() {
+            var msg = null;
+            if ($scope.policy) {
+                if (!$scope.policy.name) {
+                    msg = 'Enter a valid name for the policy';
+                } else {
+                    $.each($scope.policy.constraints, function(constraintIndex,constraint){
+                        if (!constraint.name) {
+                            msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
+                            return false;
+                        } else if(!constraint.operator) {
+                            msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
+                            return false;
+                        }
+                        
+                        $.each(constraint.conditions, function(conditionIndex, condition){
+                            var conditionType = $conditionTypes.get()[condition.conditionTypeId];
+                            if (!conditionType) {
+                                msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                return false;
+                            } else if (conditionType.valueTypeId && !condition.value) {
+                                msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                return false;
+                            }
+                        });
+                        
+                        if (msg) {
+                            return false;
+                        }
+                    });
+                }
+            }
+            
+            if (msg) {
+                $scope.alerts.push({
+                    msg:msg,
+                    type:'error'
+                });
+                return false;
+            } else {
+                return true;
+            }
+        };
+        $scope.alerts = [];
+        $scope.doLoad();
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', 'ConditionTypes', function ($scope, $timeout, constraints, $conditionTypes) {
@@ -463,99 +519,6 @@
 		};
 	}]);
 
-	module.controller('InlinePolicyEditorController', ['$scope', '$dialog', 'Messages', 'ConditionTypes', function (scope, $dialog, messages, conditionTypes) {
-	    scope.click = function () {
-			if (!scope.policy) {
-				scope.policy = scope.createPolicy();
-			}
-		};
-		scope.cancel = function () {
-			if (scope.policy) {
-				if (scope.policy.isDirty()) {
-				    // show dialog
-				    $dialog.dialog({
-						backdrop : true,
-						backdropClick : false,
-						backdropFade : true,
-						dialogFade : true,
-						template : '<div class="modal-body">May contain unsaved changes.</div>' +
-									'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-									'<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
-						controller : ['$scope', 'dialog', function ($scope, dialog) {
-							$scope.discard = function () {
-								dialog.close(true);
-								scope.policy.$revert();
-								scope.hide();
-							};
-							$scope.cancel = function () {
-								dialog.close(true);
-							};
-						}]
-					}).open();
-				} else {
-					scope.hide();
-				}
-			}
-		};
-		scope.savePolicy = function () {
-		    scope.alerts = [];
-		    if (scope.validate()) {
-    			scope.policy.$save().then(function (policy) {
-    				scope.hide();
-    			}, function (error) {
-    				scope.alerts.push({
-    					type : 'error',
-    					msg : 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
-    				});
-    			});
-		    }
-		};
-		scope.validate = function() {
-            var msg = null;
-            if (scope.policy) {
-                if (!scope.policy.name) {
-                    msg = 'Enter a valid name for the policy';
-                } else {
-                    $.each(scope.policy.constraints, function(constraintIndex,constraint){
-                        if (!constraint.name) {
-                            msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
-                            return false;
-                        } else if(!constraint.operator) {
-                            msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
-                            return false;
-                        }
-                        
-                        $.each(constraint.conditions, function(conditionIndex, condition){
-                            var conditionType = conditionTypes.get()[condition.conditionTypeId];
-                            if (!conditionType) {
-                                msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
-                                return false;
-                            } else if (conditionType.valueTypeId && !condition.value) {
-                                msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
-                                return false;
-                            }
-                        });
-                        
-                        if (msg) {
-                            return false;
-                        }
-                    });
-                }
-            }
-            
-            if (msg) {
-                scope.alerts.push({
-                    msg:msg,
-                    type:'error'
-                });
-                return false;
-            } else {
-                return true;
-            }
-        };
-		scope.alerts = [];
-	}]);
-
 	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', function ($dialog, messages) {
 		return {
 			restrict : 'A',
@@ -563,7 +526,7 @@
 			scope : {
 				createPolicy : '&inlinePolicyCreator'
 			},
-			controller : 'InlinePolicyEditorController',
+			controller : 'PolicyEditorController',
 			link : function (scope) {
 				scope.hide = function () {
 					scope.policy = null;
@@ -576,7 +539,7 @@
         return {
             restrict : 'A',
             templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
-			controller : 'InlinePolicyEditorController',
+			controller : 'PolicyEditorController',
 			link : function (scope) {
 				scope.hide = function () {
 					scope.policyEditMap[scope.policy.id] = null;

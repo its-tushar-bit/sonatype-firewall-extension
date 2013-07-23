@@ -36,7 +36,7 @@
                      ng-class="{ error: applicationEditor.applicationName.$error.duplicate || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces}"
                      alpha-numeric has-whitespace='suggestedName'
                      is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
-                <div>
+                <div class='errors'>
                   <span ng-show="applicationEditor.applicationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>
                   <span ng-show="applicationEditor.applicationName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
                   <span ng-show="applicationEditor.applicationName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>

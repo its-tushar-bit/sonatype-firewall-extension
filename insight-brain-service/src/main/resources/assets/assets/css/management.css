@@ -406,6 +406,10 @@ body {
 .inline.head .editable-error-block {
 	font-size: 14px;
 }
+.inline.head .errors {
+    margin-bottom: 5px;
+    margin-top: -8px;
+}
 .inline input:focus {
 	outline: none;
 	border: 0;

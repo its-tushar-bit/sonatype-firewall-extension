@@ -13,7 +13,7 @@
 					<span ng-show="quickAddPolicyEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
 					<span ng-show="quickAddPolicyEditor.name.$error.spaces && !quickAddPolicyEditor.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
 				</div>
-				<div style='padding-top:10px'>
+				<div>
 					<div inline-constraint-editor='policy.constraints[0]'>
 						<input type="text"  ng-model="constraint.name" placeholder='Constraint Name...' required>
 						<div class='control-group' style="margin-bottom:0px;">
@@ -31,7 +31,7 @@
 							<select ng-model="constraint.operator"
 									ng-options="operator.value as operator.name for operator in constraintConditionChoices"
 									required style='magin:0'>
-								<option value="" ng-selected="constraint.operator == null">any/all</option>
+								<option value="" ng-selected="constraint.operator == null">Any/All</option>
 							</select>
 							of the above conditions will trigger this constraint.
 						</div>

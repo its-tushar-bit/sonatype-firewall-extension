@@ -185,7 +185,7 @@ public class LabelConditionTypeTest
     }
 
     @Test
-    public void testOrganizationLavelIs()
+    public void testOrganizationLabelIs()
     {
         // Create some labels
         Label label1 = new Label( organizationId, "Good", Color.green );

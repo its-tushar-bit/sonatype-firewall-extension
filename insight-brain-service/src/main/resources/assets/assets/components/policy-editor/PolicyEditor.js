@@ -111,7 +111,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$q', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ActionStore', 'ConditionTypes', function ($scope, $state, $q, $location, $dialog, $timeout, messages, policyStore, actionStore, $conditionTypes) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ConditionTypes', function ($scope, $state, $location, $dialog, $timeout, messages, policyStore, $conditionTypes) {
 		function returnFn() {
 			var path = $location.path();
 			$location.path(path.substring(0, path.lastIndexOf('/')));
@@ -163,17 +163,6 @@
                 });
             }
 		}
-
-		$scope.doLoad = function () {
-			$scope.error = null;
-			$q.all([actionStore.get()]).then(function (results) {
-				var actionStages = results[0][1];
-
-				$scope.actionStages = actionStages;
-			}, function (errors) {
-				$scope.error = angular.isArray(errors) ? errors[0] : errors;
-			});
-		};
 		
 		$scope.removeConstraint = function (constraint) {
 		    $dialog.dialog({
@@ -398,7 +387,6 @@
             }
         };
         $scope.alerts = [];
-        $scope.doLoad();
 	}]);
 
 	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', 'ConditionTypes', function ($scope, $timeout, constraints, $conditionTypes) {
@@ -535,7 +523,7 @@
 		};
 	}]);
 	
-	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
+	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', '$q', 'ActionStore', function ($dialog, messages, $q, actionStore) {
         return {
             restrict : 'A',
             templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
@@ -544,6 +532,18 @@
 				scope.hide = function () {
 					scope.policyEditMap[scope.policy.id] = null;
 				};
+				scope.doLoad = function () {
+				    scope.error = null;
+		            $q.all([actionStore.get()]).then(function (results) {
+		                var actionStages = results[0][1];
+
+		                scope.actionStages = actionStages;
+		            }, function (errors) {
+		                scope.error = angular.isArray(errors) ? errors[0] : errors;
+		            });
+				};
+				
+				scope.doLoad();
 			}
         };
     }]);

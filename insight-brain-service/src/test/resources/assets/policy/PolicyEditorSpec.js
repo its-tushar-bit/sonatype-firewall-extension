@@ -1,5 +1,10 @@
 var clmBuildTimestamp = '';
 
+//TODO: validate data loaded properly on edit
+//TODO: validate validations on policy name, constraint name, constraint operator, and constraint conditions
+//TODO: validate cancel prompts and reverts any changes on OK
+//TODO: validate action editing works properly
+
 describe('PolicyEditor.js', function() {
 	var sampleData = [{"id":"c2e1bf404e6d4f5d9458069a04a5cf11","name":"Policy1","enabled":true,"threatLevel":8,"constraints":[{"id":"f52c8ce2958743d5b5e10b176bfce67b","name":"Constraint1","enabled":true,"operator":"OR","conditions":[{"conditionTypeId":"AgeInDays","operator":"older than","value":"365"}]}],"actions":{"procure":[{"actionTypeId":"fail","target":null}],"develop":[{"actionTypeId":"warn","target":null}],"build":[],"stage-release":[{"actionTypeId":"fail","target":null}],"release":[],"operate":[]}}],
 		sampleActions = { build : [ { actionTypeId : 'notify', target : 'test@example.org' } ], develop : [], operate : [], procure : [{ actionTypeId : 'fail' }], release : [], 'stage-release' : []},
@@ -128,6 +133,7 @@ describe('PolicyEditor.js', function() {
 			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toBeDefined();
 		});
 
+		//TODO: check validation
 		it('Saving', inject(function ($httpBackend, CLMAppLocations) {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
 
@@ -161,7 +167,7 @@ describe('PolicyEditor.js', function() {
 		});
 	});
 
-	describe('PolicyEditorController', function () {
+	describe('InlinePolicyEditor', function () {
 		function expectPolicyRequest(responseData) {
 			inject(function($httpBackend, CLMAppLocations) {
 				$httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.copy(responseData));
@@ -173,8 +179,21 @@ describe('PolicyEditor.js', function() {
 
 			return getController('PolicyEditorController');
 		}
+		
+		it('Test policy validation', inject(function(){
+		    
+		}));
+		
+		it('Test update policy', inject(function(){
+		    
+		}));
+		
+		it('Test cancel update policy', inject(function(){
+		    
+		}));
 
-		// TODO Unclear whether this lives here
+		/*
+		//old stuff left here for idea purposes
 		xit('Test Edit Actions', inject(function ($httpBackend, $state) {
 			function expectUpdatePolicy(response) {
 				inject(function($httpBackend, CLMAppLocations) {
@@ -205,7 +224,6 @@ describe('PolicyEditor.js', function() {
 			expect(asyncRan).toEqual(true);
 		}));
 
-		// TODO Unclear whether this lives here
 		xit('Store Not Modified', inject(function ($state) {
 			// Ensures that the store is not modified prior to saving
 			$state.params.policyId = 'c2e1bf404e6d4f5d9458069a04a5cf11';
@@ -218,6 +236,7 @@ describe('PolicyEditor.js', function() {
 
 			expect(controller.scope.policies[0].name).toEqual('Policy1');
 		}));
+		*/
 	});
 
 	describe('Constraints', function () {
@@ -323,7 +342,8 @@ describe('PolicyEditor.js', function() {
 
 		describe('ConstraintEditorController', function () {
 
-		    //TODO: need to move the validation tests into the policy controller, as they aren't here any longer
+		    /*
+		    //old tests left here for idea purposes
 			xit('Test Create New Constraint', inject(function (PolicyStore) {
 				var controller = getConstraintEditorController(),
 					policy = createNewPolicy();
@@ -451,11 +471,10 @@ describe('PolicyEditor.js', function() {
 				expect(conditionOptions[0].value).toEqual('0');
 
 				angular.element('#policyEditor').remove();
-			}));
+			}));*/
 		});
 	});
 
-	// TODO Test Response of PolicyEditorController to events from Constraint Controller
 	describe('PolicyStore', function () {
 		it('Default Values', inject(function (PolicyStore) {
 			var newPolicy = createNewPolicy();

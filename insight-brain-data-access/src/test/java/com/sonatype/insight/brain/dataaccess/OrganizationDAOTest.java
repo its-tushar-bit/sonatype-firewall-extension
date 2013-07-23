@@ -24,10 +24,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 public class OrganizationDAOTest
@@ -327,5 +330,30 @@ public class OrganizationDAOTest
 
         organization.setName( name );
         dao.update( organization );
+    }
+
+    @Test
+    public void testCascadeDeleteLabels()
+    {
+        final OrganizationDAO organizationDAO = new OrganizationDAO();
+        final LabelDAO labelDAO = new LabelDAO();
+
+        Organization organization = new Organization( "organization" );
+        organizationDAO.insert( organization );
+
+        String organizationId = organization.getId();
+
+        Label label = new Label();
+        label.setLabel( "label" );
+        label.setColor( Color.black );
+        label.setOwnerId( organization.getId() );
+        labelDAO.insert( label );
+
+        // sanity check
+        Assert.assertFalse( labelDAO.getByOwnerId( organizationId ).isEmpty() );
+
+        organizationDAO.delete( organization );
+
+        Assert.assertTrue( labelDAO.getByOwnerId( organizationId ).isEmpty() );
     }
 }

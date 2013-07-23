@@ -180,6 +180,31 @@ describe('PolicyEditor.js', function() {
 			return getController('PolicyEditorController');
 		}
 		
+        var template = getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
+            notificationTemplate = getTemplate("../assets/components/notification-manager/notification-manager.html"),
+            scope = null, controller = null;
+
+        beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
+            var obj = getPolicyEditorController();
+            controller = obj.controller;
+            scope = obj.scope;
+            scope.policy = {
+                actions: {
+                    
+                }
+            };
+            var node = $("<div id='testInlinePolicyEditor' inline-policy-editor></div>");
+            node.appendTo('body');
+            $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
+            $httpBackend.whenGET("../assets/components/notification-manager/notification-manager.html?").respond(notificationTemplate);
+            $compile(node)(scope);
+            $httpBackend.flush();
+        }));
+
+        afterEach(function () {
+            $('#testInlinePolicyEditor').remove();
+        });
+		
 		it('Test policy validation', inject(function(){
 		    
 		}));

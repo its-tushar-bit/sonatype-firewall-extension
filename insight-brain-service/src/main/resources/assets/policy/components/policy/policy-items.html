@@ -1,10 +1,8 @@
 <div class="accordion policies">
 	<div class="accordion-group" ng-repeat='policy in policies'>
 		<div class="common-accordion-header policy">
-			<span threat-box selected='policy.threatLevel' one='1' zero='0 (None)' noSelect='true'></span>
-			<h3>
-				<span>{{policy.name}}</span>
-			</h3>
+			<span class='threat-chiclet threat-level-{{policy.threatLevel}}'>&nbsp;</span>
+			<h3>{{policy.name}}</h3>
 			<div class='floatRight' style='position:relative;z-index:100;'>
 				<div class='btn-group hover-buttons' ng-show='editable'>
 					<a class="btn btn-mini policy-button" title="Edit Policy" ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></a> <a

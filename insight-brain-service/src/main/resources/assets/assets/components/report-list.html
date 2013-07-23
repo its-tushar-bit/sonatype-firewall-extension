@@ -35,7 +35,6 @@
 						<div show-if='application.policyEvaluationsResults[stage.id]'>
 							<div>
 								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-									<img src='../assets/img/glyphicons_263_bank.png' />
 									<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
 										{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
 									</span>

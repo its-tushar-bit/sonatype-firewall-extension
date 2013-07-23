@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  var organizationModule = angular.module('OrganizationModule', ['ui.compat', 'ManagementModule', 'Organization', 'CommonServices'], ['$stateProvider', function ($stateProvider) {
+  var organizationModule = angular.module('OrganizationModule', ['ui.compat', 'ManagementModule', 'Organization', 'CommonServices', 'CLMLocation'], ['$stateProvider', function ($stateProvider) {
     $stateProvider.state('management.organization', {
       parent: 'management',
       url: '/organization',

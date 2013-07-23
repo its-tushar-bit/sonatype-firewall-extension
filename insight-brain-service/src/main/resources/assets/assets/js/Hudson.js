@@ -90,7 +90,7 @@
 		return result;
 	}
 
-	angular.module('Hudson', ['CLMLocation']).service('hudson', ['$http', 'BaseUrl', function ($http, baseUrl) {
+	angular.module('Hudson', ['CommonServices']).service('hudson', ['$http', 'BaseUrl', function ($http, baseUrl) {
 		if (tested === null) {
 			startTest($http, baseUrl);
 		}

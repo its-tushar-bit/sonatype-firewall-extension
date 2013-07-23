@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  var applicationModule = angular.module('ApplicationModule', ['ui.compat', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon'], ['$stateProvider', function ($stateProvider) {
+  var applicationModule = angular.module('ApplicationModule', ['ui.compat', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon', 'CLMLocation'], ['$stateProvider', function ($stateProvider) {
     $stateProvider.state('management.application', {
       parent: 'management',
       url: '/application',

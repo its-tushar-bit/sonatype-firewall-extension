@@ -570,4 +570,25 @@
 			}
 		};
 	});
+
+	services.service('BaseUrl', [function() {
+		return {
+			get : function() {
+				var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/'],
+					idx = -1;
+
+				for (var i = 0; i < baseSegments.length; i++) {
+					idx = window.location.href.indexOf(baseSegments[i]);
+					if (idx !== -1) {
+						break;
+					}
+				}
+
+				if (idx > -1) {
+					return window.location.href.substring(0, idx);
+				}
+				return '';
+			}
+		};
+	}]);
 }());

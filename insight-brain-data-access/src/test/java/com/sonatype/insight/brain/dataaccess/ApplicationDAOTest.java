@@ -42,8 +42,6 @@ public class ApplicationDAOTest
 {
     private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private Application application;
-
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 

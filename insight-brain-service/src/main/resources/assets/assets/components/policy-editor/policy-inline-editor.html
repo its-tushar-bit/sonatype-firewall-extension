@@ -14,7 +14,7 @@
 				<div class="common-accordion-header">
 					<span show-if="constraint.name">{{constraint.name}}</span>
 					<span show-if="!constraint.name">New Constraint</span>
-					<div class='floatRight'>
+					<div class='accordion-header-buttons'>
 		                <div class='btn-group hover-buttons'>
 		                	<a class="btn btn-mini policy-button" title="Edit Constraint" ng-click="editConstraint(constraint)"><i class="icon-pencil" style="margin-top: 0px;"></i></a>
 							<a class="btn btn-mini policy-button" title="Remove Constraint" ng-show="policy.constraints.length > 1" ng-click="removeConstraint(constraint)"><i class="icon-minus-sign" style="margin-top: 0px;"></i></a>

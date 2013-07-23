@@ -603,4 +603,11 @@ ul.tri-pane {
 .licenseSelectListItem:hover {
 	background-color: #E8E8E8;
 }
+.accordion-header-buttons {
+	float: right;
+}
+.accordion-header-buttons, .accordion-header-clickable {
+	position: relative;
+	z-index: 200;
+}
 

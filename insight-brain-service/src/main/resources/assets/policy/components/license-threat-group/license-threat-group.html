@@ -20,17 +20,19 @@
             <div class="accordion" id="licenseGroups">
                 <div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
                     <div class="common-accordion-header">
-                        <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>
-                        <span class='inline'>
-                            <ng-form name="innerInlineLicenseGroupForm">
-                            		<h3>
-                                  <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
-                                      data-type='text' alpha-numeric adjustable='true'></span>
-                                  <span ng-show="innerInlineLicenseGroupForm.licenseGroupName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
-                                </h3>
-                            </ng-form>
+                    	<span class="accordion-header-clickable">
+	                        <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>
+	                        <span class='inline'>
+	                            <ng-form name="innerInlineLicenseGroupForm">
+	                            		<h3>
+	                                  <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
+	                                      data-type='text' alpha-numeric adjustable='true'></span>
+	                                  <span ng-show="innerInlineLicenseGroupForm.licenseGroupName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+	                                </h3>
+	                            </ng-form>
+	                        </span>
                         </span>
-                        <div class='floatRight'>
+                        <div class='accordion-header-buttons'>
                             <!-- Removing because row toggles to edit 
                             <a data-toggle="collapse" data-parent="licenseGroups" href="#collapse{{licenseGroup.id}}" style='text-decoration:none'>
                                 <i class="icon-list"></i>

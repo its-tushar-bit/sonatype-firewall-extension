@@ -331,7 +331,6 @@
             }
         };
         $scope.savePolicy = function () {
-            $scope.alerts = [];
             if ($scope.validate()) {
                 $scope.policy.$save().then(function (policy) {
                     $scope.hide();
@@ -345,6 +344,7 @@
         };
         $scope.validate = function() {
             var msg = null;
+            $scope.alerts = [];
             if ($scope.policy) {
                 var form = $scope[$scope.getFormName()];
                 if (form){
@@ -357,30 +357,37 @@
                         } else if (error.alphaNumeric) {
                             msg = 'Policy name must be alpha numeric.';
                         } else {
-                            $.each($scope.policy.constraints, function(constraintIndex,constraint){
-                                if (!constraint.name) {
-                                    msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
-                                    return false;
-                                } else if(!constraint.operator) {
-                                    msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
-                                    return false;
-                                }
-                                
-                                $.each(constraint.conditions, function(conditionIndex, condition){
-                                    var conditionType = $conditionTypes.get()[condition.conditionTypeId];
-                                    if (!conditionType) {
-                                        msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                            if (!$scope.policy.constraints || !$scope.policy.constraints.length) {
+                                msg = 'You must add at least one constraint to the policy.';
+                            } else {
+                                $.each($scope.policy.constraints, function(constraintIndex,constraint){
+                                    if (!constraint.name) {
+                                        msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
                                         return false;
-                                    } else if (conditionType.valueTypeId && !condition.value) {
-                                        msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                    } else if(!constraint.operator) {
+                                        msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
+                                        return false;
+                                    }
+                                    if (!constraint.conditions || !constraint.conditions.length) {
+                                        msg = 'You must add at least one condition to constraint #' + (constraintIndex + 1);
+                                    } else {
+                                        $.each(constraint.conditions, function(conditionIndex, condition){
+                                            var conditionType = $conditionTypes.get()[condition.conditionTypeId];
+                                            if (!conditionType) {
+                                                msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                                return false;
+                                            } else if (conditionType.valueTypeId && !condition.value) {
+                                                msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                                return false;
+                                            }
+                                        });
+                                    }
+                                    
+                                    if (msg) {
                                         return false;
                                     }
                                 });
-                                
-                                if (msg) {
-                                    return false;
-                                }
-                            });
+                            }
                         }
                     } 
                 }

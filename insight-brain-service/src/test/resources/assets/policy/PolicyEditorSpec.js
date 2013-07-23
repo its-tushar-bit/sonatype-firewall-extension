@@ -189,8 +189,8 @@ describe('PolicyEditor.js', function() {
             controller = obj.controller;
             scope = obj.scope;
             scope.policy = {
+                constraints: [],
                 actions: {
-                    
                 }
             };
             var node = $("<div id='testInlinePolicyEditor' inline-policy-editor></div>");
@@ -206,7 +206,51 @@ describe('PolicyEditor.js', function() {
         });
 		
 		it('Test policy validation', inject(function(){
+		    //policy name uses the form validation stuff
+		    var form = {
+                name : {
+                    $error : {
+                        required : true,
+                        spaces : true,
+                        alphaNumeric : true
+                    }   
+                }
+            };
+		    var validateValidation = function(scope, msg) {
+		        scope.validate();
+	            expect(scope.alerts.length).toEqual(1);
+	            expect(scope.alerts[0].msg).toEqual(msg);
+	            expect(scope.alerts[0].type).toEqual('error');
+		    };
 		    
+		    scope[scope.getFormName()] = form;
+		    validateValidation(scope,'Policy name is required.');
+		    
+		    form.name.$error.required = false;
+		    validateValidation(scope,'Policy name cannot contain leading, trailing or double spaces or tabs.');
+		    
+            form.name.$error.spaces = false;
+            validateValidation(scope,'Policy name must be alpha numeric.');
+            
+            form.name.$error.alphaNumeric = false;
+            validateValidation(scope,'You must add at least one constraint to the policy.');
+            
+            scope.policy.constraints.push({});
+            validateValidation(scope,'Enter a valid name for constraint #1');
+            
+            scope.policy.constraints[0].name = 'name';
+            validateValidation(scope,'You must select any or all of the conditions for constraint #1');
+            
+            scope.policy.constraints[0].operator = 'any';
+            validateValidation(scope,'You must add at least one condition to constraint #1');
+            
+            /*
+             * TODO need to wrap up this test, have to run for kids first
+            scope.policy.constraints[0].conditions = [{}];
+            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint #1');
+            scope.policy.constraints[0].conditions[0].conditionTypeId = 'AgeInDays';
+            validateValidation(scope,'Please enter a value for condition #1 in constraint #1');
+		    */
 		}));
 		
 		it('Test update policy', inject(function(){

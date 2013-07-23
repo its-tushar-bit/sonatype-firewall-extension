@@ -569,6 +569,44 @@
 		};
 	});
 
+	services.filter('ago', function () {
+		return function (date) {
+			var ago = '',
+				diff,
+				unit,
+				val;
+
+			if (!date) {
+				return ago;
+			}
+			diff = new Date().getTime() - date;
+
+			if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
+				val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
+				unit = 'Year';
+			} else if (diff > 30 * 24 * 60 * 60 * 1000) {
+				val = diff / (30 * 24 * 60 * 60 * 1000);
+				unit = 'Month';
+			} else if (diff > 24 * 60 * 60 * 1000) {
+				val = diff / (24 * 60 * 60 * 1000);
+				unit = 'Day';
+			} else if (diff > 60 * 60 * 1000) {
+				val = diff / (60 * 60 * 1000);
+				unit = 'Hour';
+			} else if (diff > 60 * 1000) {
+				val = diff / (60 * 1000);
+				unit = 'Minute';
+			} else {
+				return 'Some Seconds';
+			}
+			val = Math.floor(val);
+			if (val > 1) {
+				unit += 's';
+			}
+			return val + ' ' + unit + ' Ago';
+		}
+	});
+
 	services.service('BaseUrl', [function() {
 		return {
 			get : function() {

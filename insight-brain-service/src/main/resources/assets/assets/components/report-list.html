@@ -19,7 +19,7 @@
 									'emptyIconGlyph' : orderColumn != 'name' }"></i>
 						</th>
 						<th ng-repeat='stage in stages | filterReportColumns'>
-							{{stage.name}} Report
+							{{stage.name}} Violations
 						</th>
 					</tr>
 				</thead>
@@ -50,7 +50,7 @@
 							</div>
 							<div>
 								<a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-									{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}</a>
+									{{application.policyEvaluations[stage.id].time | ago}}</a>
 							</div>
 						</div>
 					</td>

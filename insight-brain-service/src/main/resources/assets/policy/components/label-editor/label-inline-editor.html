@@ -14,9 +14,9 @@
           <span ng-show='inlineLabelEditor.labelName.$error.duplicate' class="help-inline">Duplicate Label</span>
           <span ng-show='inlineLabelEditor.labelName.$error.invalid' class="help-inline">Invalid Character</span>
         </div>
-        <div ng-show='label' class="modal-body">
+        <div ng-show='label' class="modal-body color-selector">
           <div>
-            <div class='labelContainer' ng-repeat="color in colors" ng-class="{active: label.color == color}"
+            <div class='label-container' ng-repeat="color in colors" ng-class="{active: label.color == color}"
                  ng-click='setColor(color);'>
               <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{label.label}}</span>
             </div>

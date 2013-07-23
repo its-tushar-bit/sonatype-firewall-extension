@@ -80,7 +80,7 @@ form[name="labelEditor"] .clmLabel {
 .blueLabel:hover {
 	border-color: #17558E;
 }
-.labelContainer {
+.label-container {
 	display: inline-block;
 	cursor: pointer;
 	-webkit-border-radius: 5px;
@@ -91,7 +91,7 @@ form[name="labelEditor"] .clmLabel {
 	margin-right: 5px;
 	transition: border linear .2s,box-shadow linear .2s;
 }
-.labelContainer.active {
+.label-container.active {
 	border: 2px solid rgb(82,168,236);
 	outline: 0;
 	outline: thin solid 9;

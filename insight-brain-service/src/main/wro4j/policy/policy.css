@@ -33,6 +33,9 @@
 .policies .actions .action-item:last-child {
 	border-right: none;
 }
+.add-section .color-selector {
+	padding: 0;
+}
 .deleteHoverTransparent {
 	opacity: 0.5;
 	filter: alpha(opacity=50);
@@ -128,11 +131,11 @@ table.policy-actions>tbody>tr>td:nth-child(3):hover {
 	background-color: #FFF;
 }
 table.policy-actions>tbody>tr>td:nth-child(2):hover {
-	background: url("../../assets/img/policyalert-k.png") no-repeat center;
+	background: url("../../assets/img/policyalert-k.png") no-repeat center #FFF;
 	background-size: 20px;
 }
 table.policy-actions>tbody>tr>td:nth-child(3):hover {
-	background: url("../../assets/img/policyerror-k.png") no-repeat center;
+	background: url("../../assets/img/policyerror-k.png") no-repeat center #FFF;
 	background-size: 20px;
 }
 table.policy-actions td:last-child {

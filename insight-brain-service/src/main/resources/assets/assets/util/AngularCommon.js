@@ -533,13 +533,13 @@
 				var visScope,
 					visElement;
 				scope.$watch(attr.showIf, function (val) {
-					if (val) {
+					if (val && !visScope) {
 						visScope = scope.$new();
 						$transclude(visScope, function (clone) {
 							element.after(clone);
 							visElement = clone;
 						});
-					} else if (visScope) {
+					} else if (!val && visScope) {
 						visScope.$destroy();
 						visElement.remove();
 						visElement = visScope = null;

@@ -290,13 +290,13 @@ body {
 	border: none;
 	padding: 20px 15px 30px;
 }
-.common-accordion-toggle {
+.policy-top {
     border-bottom: 1px solid rgba(0, 0, 0, .1);
 		-webkit-transition: border .3s linear;
 		-moz-transition: border .3s linear;
 		transition: border .3s linear;
 }
-.common-accordion-toggle.collapsed {
+.policy-top.collapsed {
     border-bottom: 1px solid transparent;
 }
 .accordion-group {

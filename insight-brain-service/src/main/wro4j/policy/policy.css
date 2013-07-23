@@ -107,10 +107,10 @@
 	-moz-border-radius: 0 0 4px 4px;
 	border-radius: 0 0 4px 4px;
 }
-table.policy-actions thead tr:first th {
+table.policy-actions thead tr:first-child th {
 	border : 0;
 }
-table.policy-actions thead tr:first th:nth-child(2) {
+table.policy-actions thead tr:first-child th:nth-child(2) {
 	border-radius: 4px 4px 0 0;
 	border: 1px solid #ddd;
 	border-bottom: 0;

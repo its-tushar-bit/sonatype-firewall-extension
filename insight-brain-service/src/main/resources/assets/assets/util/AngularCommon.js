@@ -443,10 +443,8 @@
 
         // Allows validation to be invoked by code or user input
         scope.$watch(attr.ngModel, function(newValue) {
-          if (typeof newValue !== 'undefined') {
             newValue = newValue || '';
             checkWhitespace(newValue);
-          }
         });
       }
     };

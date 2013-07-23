@@ -101,17 +101,21 @@
 			return policyStore.get().create();
 		};
 		
-		$scope.toggleAll = function () {
-            var action = $scope.allExpanded ? 'hide' : 'show';
-            $('.policies').find('.accordion-body').collapse(action);
-            $scope.allExpanded = !$scope.allExpanded;
+		$scope.toggleAll = function (applicablePolicy) {
+            var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';
+            $('#' + applicablePolicy.ownerId).find('.accordion-body').collapse(action);
+            $scope.allExpanded[applicablePolicy.ownerId] = !($scope.allExpanded[applicablePolicy.ownerId] || false);
         };
+
+    $scope.isExpanded = function(applicablePolicy) {
+      return $scope.allExpanded[applicablePolicy.ownerId] || false;
+    }
 
 		$scope.doLoad();
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
-		
-		$scope.allExpanded = false;
+
+    $scope.allExpanded = {};
 	}]);
 
 	policyModule.directive('policyItems', ['ActionStore', function (actionStore) {

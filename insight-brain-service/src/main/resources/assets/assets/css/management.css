@@ -577,7 +577,7 @@ ul.tri-pane {
 }
 .add-section {
 	background-color: #E8E8E8;
-	padding: 10px 25px;
+    padding: 10px 25px;
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
 .add-section .add-new {

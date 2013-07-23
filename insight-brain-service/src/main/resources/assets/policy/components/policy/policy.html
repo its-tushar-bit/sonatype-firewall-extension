@@ -19,7 +19,8 @@
 				<tr>
 					<td ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
 						<div show-if='application.policyEvaluationsResults[stage.id]'>
-							<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='reports.html#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+							<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{application.policyEvaluations[stage.id].time | date:"yyyy-MM-dd"}}'
+									ng-href='reports.html#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
 								<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
 									{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
 								</span>
@@ -31,7 +32,7 @@
 								</span>
 								<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 							</a>
-							<a title="{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}"
+							<a title="Re-evaluate Policy"
 									ng-click='reEvaluatePolicy(application, application.policyEvaluations[stage.id])'>
 								<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
 								<i ng-show='reEvaluatingPolicy' class='icon-time'></i>

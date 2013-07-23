@@ -59,7 +59,7 @@
 							for (var relationalProperty in config.relationalConfigs) {
 								if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
 									var relationalConfig = config.relationalConfigs[relationalProperty];
-									var linkedResource = new LinkedResource(new Array(), angular.copy(relationalConfig));
+									var linkedResource = new LinkedResource([], angular.copy(relationalConfig));
 
 									// URL should be a function taking the parent resource as an argument
 									if (jQuery.isFunction(linkedResource.config.url)) {
@@ -107,7 +107,7 @@
 				for (var property in config.relationalConfigs) {
 					if (config.relationalConfigs.hasOwnProperty(property)) {
 						var relationalConfig = config.relationalConfigs[property];
-						$parse(property).assign(resource, new LinkedResource(new Array(), angular.copy(relationalConfig)));
+						$parse(property).assign(resource, new LinkedResource([], angular.copy(relationalConfig)));
 					}
 				}
 				return resource;
@@ -345,7 +345,7 @@
 					}
 				};
 			}
-			LinkedResource.prototype = new Array();
+			LinkedResource.prototype = [];
 			LinkedResource.prototype['$save'] = function() {
 				var deferred = $q.defer(),
 				me = this;

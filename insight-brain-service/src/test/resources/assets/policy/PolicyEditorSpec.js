@@ -12,19 +12,15 @@ describe('PolicyEditor.js', function() {
 
 	function getController(controllerName) {
 		var controller = null,
-			scope = null,
-			compile = null,
-			sniffer = null;
+			scope = null;
 
 		inject(function ($controller, $httpBackend, $compile, $sniffer) {
 			scope = testScope.$new();
 			controller = $controller(controllerName, {$scope: scope});
-			compile = $compile;
-			sniffer = $sniffer;
 			$httpBackend.flush();
 		});
 
-		return { controller : controller, scope : scope, compile : compile, sniffer: sniffer };
+		return { controller : controller, scope : scope };
 	}
 
 	function expectActionRequests() {

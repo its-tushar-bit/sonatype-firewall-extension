@@ -305,7 +305,7 @@ public class LabelDAOTest
         {
             String expectedMessage =
                 String.format( "A label with name '%s' already exists in application(s) '%s'.",
-                               label1.getLabelLowercase(), applicationName );
+                               label.getLabelLowercase(), application.getName() );
             if ( !expectedMessage.equals( expected.getMessage() ) )
             {
                 throw expected;
@@ -349,7 +349,7 @@ public class LabelDAOTest
         {
             String expectedMessage =
                 String.format( "A label with name '%s' already exists in application(s) '%s'.",
-                               label.getLabelLowercase(), applicationName );
+                               label2.getLabelLowercase(), application.getName() );
             if ( !expectedMessage.equals( expected.getMessage() ) )
             {
                 throw expected;
@@ -382,8 +382,8 @@ public class LabelDAOTest
         catch ( InvalidLabelException expected )
         {
             final String expectedMessage =
-                String.format( "A label with name '%s' already exists in organization '%s'.",
-                               label1.getLabelLowercase(), organization.getName() );
+                String.format( "A label with name '%s' already exists in application(s) '%s'.",
+                               label1.getLabelLowercase(), application.getName() );
             if ( !expectedMessage.equals( expected.getMessage() ) )
             {
                 throw expected;
@@ -406,7 +406,7 @@ public class LabelDAOTest
         {
             String expectedMessage =
                 String.format( "A label with name '%s' already exists in application(s) '%s'.",
-                               label1.getLabelLowercase(), applicationName );
+                               label2.getLabelLowercase(), application.getName() );
             if ( !expectedMessage.equals( expected.getMessage() ) )
             {
                 throw expected;
@@ -440,8 +440,8 @@ public class LabelDAOTest
         catch ( InvalidLabelException expected )
         {
             String expectedMessage =
-                String.format( "A label with name '%s' already exists in application(s) '%s'.",
-                               label1.getLabelLowercase(), applicationName );
+                String.format( "A label with name '%s' already exists in organization '%s'.",
+                               label1.getLabelLowercase(), organization.getName() );
             if ( !expectedMessage.equals( expected.getMessage() ) )
             {
                 throw expected;

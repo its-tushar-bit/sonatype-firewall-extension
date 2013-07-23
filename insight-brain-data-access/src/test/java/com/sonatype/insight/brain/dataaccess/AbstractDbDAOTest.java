@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.Organization;
 
 public abstract class AbstractDbDAOTest
 {
+    protected Application application;
+
     protected String applicationId;
 
     protected Organization organization;
@@ -36,8 +38,7 @@ public abstract class AbstractDbDAOTest
         // Create an organization
         organization = createOrganization( "AbstractDbDAOTest" );
 
-        // Create an application
-        Application application =
+        application =
             new Application( "AbstractDbDAOTest_AppPublicId", "AbstractDbDAOTest-AppName", organization.getId() );
         new ApplicationDAO().insert( application );
         applicationsToDelete.add( application );
@@ -51,7 +52,7 @@ public abstract class AbstractDbDAOTest
         for ( Application application : applicationsToDelete )
         {
             application = applicationDAO.getById( application.getId() );
-            if (application != null)
+            if ( application != null )
             {
                 applicationDAO.delete( application );
             }
@@ -61,7 +62,7 @@ public abstract class AbstractDbDAOTest
         for ( Organization organization : organizationsToDelete )
         {
             organization = organizationDAO.getById( organization.getId() );
-            if (organization != null)
+            if ( organization != null )
             {
                 organizationDAO.delete( organization );
             }

@@ -18,7 +18,7 @@
 	        set : function(conditionTypes) {
 	            types = conditionTypes;
 	        }
-	    }
+	    };
 	});
 
 	module.service('PolicyStore', ['ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (constraintStore, clmLocations, clmAppLocations, clmResource) {
@@ -204,7 +204,7 @@
 		    $timeout(function(){
 		        $('#collapse' + constraint.id).collapse('show');
 		    });
-		}
+		};
 
 		$scope.editNotification = function (stage,policy) {
 		    $scope.currentNotificationStage = stage.id;
@@ -235,7 +235,7 @@
                 $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].push({
                     actionTypeId : 'notify',
                     target : addresses.join()
-                })
+                });
             }
             
             $scope.currentNotificationPolicy = null;
@@ -275,7 +275,7 @@
                     } 
                 }
             }
-        }
+        };
 
 		// Respond to constraint change
 		$scope.$on('policy.constraintSaved', function (event, constraint) {
@@ -558,7 +558,7 @@
 				};
 				scope.getFormName = function() {
 				    return 'inlinePolicyForm';
-				}
+				};
 			}
         };
     }]);
@@ -586,11 +586,11 @@
 					scope.model = scope.numModel ? '' + scope.numModel : '';
 				}
 				function updateValue() {
-				    var numModel = parseInt(scope.model);
+					var numModel = parseInt(scope.model, 10);
 				    if (isNaN(numModel)) {
 				        numModel = null;
 				    }
-				    
+
 					if (!numModel) {
 						scope.value = null;
 						scope.modifier = 365;

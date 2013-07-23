@@ -46,7 +46,7 @@
         };
 
         $scope.doneNotificationEmail = function() {
-            $scope.$broadcast('editNotificationDone',$scope.notificationEmailList)
+            $scope.$broadcast('editNotificationDone',$scope.notificationEmailList);
 			$('#editNotificationsModal').modal('hide');
         };
 

@@ -141,7 +141,7 @@
           $scope.alerts.push({
             type: 'error',
             msg: 'Please finish editing before trying to create a new label.'
-          })
+          });
         }
       };
 
@@ -182,5 +182,5 @@
       templateUrl : "../policy-assets/components/label-editor/label-inline-editor.html",
       controller: 'LabelEditorController'
     };
-  })
+  });
 }());

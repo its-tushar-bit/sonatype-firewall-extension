@@ -62,7 +62,7 @@
         
         $scope.eulaDeclined = function() {
             window.location.reload();
-        }
+        };
 
         $scope.eulaAccepted = function() {
             if (window.FormData) {

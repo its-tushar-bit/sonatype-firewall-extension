@@ -29,11 +29,11 @@
         controller: 'ProductLicenseController',
         templateUrl: '../configuration-assets/components/license.html'
       }).state('management.configuration.proprietarypackages',{
-            parent : 'management.configuration',
-            url: '/proprietarypackages',
-            controller: 'ProprietaryConfigurationController',
-            templateUrl: '../configuration-assets/components/proprietary.html'
-          })
+        parent : 'management.configuration',
+        url: '/proprietarypackages',
+        controller: 'ProprietaryConfigurationController',
+        templateUrl: '../configuration-assets/components/proprietary.html'
+      });
     }]);
 
     module.controller('ConfigurationController',['$scope', '$state', 'commonCodeFactory', '$location', function ($scope, $state, commonCodeFactory, $location) {

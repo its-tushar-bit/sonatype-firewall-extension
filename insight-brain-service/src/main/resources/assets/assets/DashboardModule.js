@@ -19,7 +19,7 @@
         $('#unsavedModal').modal('hide');
         $('.modal-backdrop').removeClass('master-modal-backdrop');
         masterModalShown = false;
-    }
+    };
 
 	var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'CommonServices'], ['$stateProvider', '$routeProvider', '$urlRouterProvider', function ($stateProvider, $routeProvider, $urlRouterProvider) {
 		$stateProvider.state('home', {
@@ -103,7 +103,7 @@
         $(document).on('focusin.modal', function(e) {
             if (!done && that.$element[0] !== e.target && !that.$element.has(e.target).length) {
                 done = true;
-                that.$element.focus()
+                that.$element.focus();
             }
         });
     };

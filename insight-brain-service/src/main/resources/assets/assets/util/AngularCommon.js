@@ -142,7 +142,7 @@
 					ctrl.$setValidity('duplicate', passed);
 
 					return passed ? value : undefined;
-				}
+				};
 
 				ctrl.$parsers.push(validator);
 

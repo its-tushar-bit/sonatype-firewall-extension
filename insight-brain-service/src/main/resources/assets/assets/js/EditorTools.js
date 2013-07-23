@@ -129,7 +129,7 @@
           $('#iconUploadForm').find('input[type=submit]').trigger('click');
 				}
         return defer.promise;
-			}
+			};
 		}
 
         return {

@@ -7,10 +7,15 @@
 		<div class='content-container' style='text-align:center;width:370px;margin:auto' ng-show='!licenseGroups && !error'>
 			<h5><i class='icon-time'></i> Loading...</h5>
 		</div>
-		<div class='common-expand-toggle' style="margin:15px;" ng-switch on='allExpanded'>
-			<a ng-switch-when="false" ng-click='toggleAll()'><i class="glyphicons-halflings-sonatype expand"></i> Expand All</a>
-			<a ng-switch-when="true" ng-click='toggleAll()'><i class="glyphicons-halflings-sonatype collapse"></i> Collapse All</a>
-		</div>
+        <div class="content-header">
+            <h4>
+                {{selectedApplication.name}} License Threat Groups
+                <div class='common-expand-toggle' ng-switch on='allExpanded'>
+                    <a ng-switch-when="false" ng-click='toggleAll()'><i class="glyphicons-halflings-sonatype expand"></i> Expand All</a>
+                    <a ng-switch-when="true" ng-click='toggleAll()'><i class="glyphicons-halflings-sonatype collapse"></i> Collapse All</a>
+                </div>
+            </h4>
+        </div>
         <form name='inlineLicenseGroupForm' form-Submit='inlineSaveLicenseGroup()'>
             <div class="accordion" id="licenseGroups">
                 <div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>

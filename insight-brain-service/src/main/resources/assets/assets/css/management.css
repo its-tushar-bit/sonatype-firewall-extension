@@ -562,8 +562,8 @@ ul.tri-pane {
 	visibility: visible;
 }
 .common-expand-toggle {
-	display: inline-block;
-	width: 100%;
+	display: inline;
+	margin: 15px;
 }
 .common-expand-toggle a {
 	float: right;

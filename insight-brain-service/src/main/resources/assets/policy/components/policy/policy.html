@@ -32,8 +32,8 @@
 									</span>
 									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 								</a>
-								<a title="{{application.policyEvaluationsResults[stage.id].time | date:'yyyy-MM-dd'}}"
-										ng-click='reEvaluatePolicy(application, application.policyEvaluationsResults[stage.id])'>
+								<a title="{{application.policyEvaluations[stage.id].time | date:'yyyy-MM-dd'}}"
+										ng-click='reEvaluatePolicy(application, application.policyEvaluations[stage.id])'>
 									<i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
 									<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
 								</a>

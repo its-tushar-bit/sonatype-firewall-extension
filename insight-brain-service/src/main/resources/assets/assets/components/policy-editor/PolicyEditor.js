@@ -114,29 +114,29 @@
 			return false;
 		}
 		
-        function showActionIcon(policy, stageId, action) {
-            if (policy.actions[stageId]) {
-                for ( var i = 0 ; i < policy.actions[stageId].length ; i++ ) {
-                    if (policy.actions[stageId][i].actionTypeId == action) {
+        function showActionIcon(stageId, action) {
+            if ($scope.policy.actions[stageId]) {
+                for ( var i = 0 ; i < $scope.policy.actions[stageId].length ; i++ ) {
+                    if ($scope.policy.actions[stageId][i].actionTypeId == action) {
                         return true;
                     } 
                 }
             }
         }
 		
-		function toggleAction(policy, stageId, action) {
+		function toggleAction(stageId, action) {
 		    var add = true;
-            if (policy.actions[stageId]) {
-                for ( var i = policy.actions[stageId].length - 1 ; i >= 0 ; i-- ) {
-                    switch (policy.actions[stageId][i].actionTypeId) {
+            if ($scope.policy.actions[stageId]) {
+                for ( var i = $scope.policy.actions[stageId].length - 1 ; i >= 0 ; i-- ) {
+                    switch ($scope.policy.actions[stageId][i].actionTypeId) {
                     case 'warn':
-                        policy.actions[stageId].splice(i,1);
+                        $scope.policy.actions[stageId].splice(i,1);
                         if (action === 'warn') {
                             add = false;
                         }
                         break;
                     case 'fail':
-                        policy.actions[stageId].splice(i,1);
+                        $scope.policy.actions[stageId].splice(i,1);
                         if (action === 'fail') {
                             add = false;
                         }
@@ -146,10 +146,11 @@
             } 
             
             if (add) {
-                if (!policy.actions[stageId]) {
-                    policy.actions[stageId] = [];
+                $scope.policy.actions = $scope.policy.actions || {};
+                if (!$scope.policy.actions[stageId]) {
+                    $scope.policy.actions[stageId] = [];
                 }
-                policy.actions[stageId].push({
+                $scope.policy.actions[stageId].push({
                     actionTypeId: action
                 });
             }
@@ -256,20 +257,20 @@
 			}).open();
 		};
 
-		$scope.toggleWarnAction = function(stage, policy) {
-		    toggleAction(policy, stage.id, 'warn');
+		$scope.toggleWarnAction = function(stage) {
+		    toggleAction(stage.id, 'warn');
         };
         
-        $scope.toggleFailureAction = function(stage, policy) {
-            toggleAction(policy, stage.id, 'fail');
+        $scope.toggleFailureAction = function(stage) {
+            toggleAction(stage.id, 'fail');
         };
         
-        $scope.showWarningIcon = function(stage, policy) {
-            return showActionIcon(policy, stage.id, 'warn');
+        $scope.showWarningIcon = function(stage) {
+            return showActionIcon(stage.id, 'warn');
         };
         
-        $scope.showFailureIcon = function(stage, policy) {
-            return showActionIcon(policy, stage.id, 'fail');
+        $scope.showFailureIcon = function(stage) {
+            return showActionIcon(stage.id, 'fail');
         };
 
         $scope.getEmailList = function(stage) {

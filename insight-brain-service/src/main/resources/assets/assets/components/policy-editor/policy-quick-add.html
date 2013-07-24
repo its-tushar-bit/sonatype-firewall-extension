@@ -5,7 +5,7 @@
 		</button>
 	</div>
 	<div show-if='policy'>
-		<div ng-controller='PolicyEditorController' style='width:830px'>
+		<div ng-controller='PolicyEditorController' style='width:840px'>
 			<form style='margin-bottom:0px' name='quickAddPolicyEditor'>
 				<div class="control-group" ng-class='{ error : quickAddPolicyEditor.name.$error.alphaNumeric || quickAddPolicyEditor.name.$error.spaces }'>
 					<input id='quickAddPolicyNameInput' ng-click='click()' name='name' type='text' placeholder='New Policy' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>

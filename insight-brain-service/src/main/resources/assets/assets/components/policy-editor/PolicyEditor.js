@@ -214,14 +214,11 @@
 				backdropClick : false,
 				backdropFade : true,
 				dialogFade : true,
-				template : '<div class="modal-header"><h3>Notifications</h3></div>' +
-							'<div class="modal-body"><div list-editor place-holder="Email Address" max-length="100" entries="notificationEmailList" set-error="setEditorError" validator="validateEmail"></div></div>' +
-							'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-							'<button class="btn btn-primary" ng-click="save()">Save</button></div>',
+				templateUrl : 'notification',
 				controller : ['$scope', 'dialog', function (scope, dialog) {
 					var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
 					scope.validateEmail = function (value) {
-						return EMAIL_REGEXP.test(value);
+						return !value || EMAIL_REGEXP.test(value);
 					};
 					scope.setEditorError = function (error) {
 						scope.error = error;

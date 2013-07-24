@@ -35,7 +35,7 @@
                      data-placeholder='Enter Application Name' data-type='text'
                      ng-class="{ error: applicationEditor.applicationName.$error.duplicate || applicationEditor.applicationName.$error.alphaNumeric || applicationEditor.applicationName.$error.spaces}"
                      alpha-numeric has-whitespace='suggestedName'
-                     is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'></span></h1>
+                     is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'></span></h1>
                 <div class='errors'>
                   <span ng-show="applicationEditor.applicationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>
                   <span ng-show="applicationEditor.applicationName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>

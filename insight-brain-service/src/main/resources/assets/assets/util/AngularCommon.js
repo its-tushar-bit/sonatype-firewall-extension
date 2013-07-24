@@ -530,10 +530,8 @@
           return {
             link : function (scope, element, attrs) {
               element.on('click.inputFocus', function() {
-                var inputs;
                 if (attrs.focusInput) {
-                  inputs = angular.element('#' + attrs.focusInput);
-                  inputs.focus();
+                  angular.element('#' + attrs.focusInput).focus();
                 }
               });
             }

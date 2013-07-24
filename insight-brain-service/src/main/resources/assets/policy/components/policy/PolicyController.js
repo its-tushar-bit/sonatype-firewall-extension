@@ -100,6 +100,9 @@
 		$scope.toggleAll = function (applicablePolicy) {
             var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';
             $('#' + applicablePolicy.ownerId).find('.accordion-body').collapse(action);
+            //TODO: to work around collapse bug, fixed in newer release of bootstrap
+            //https://github.com/twitter/bootstrap/pull/7424/files
+            $('#' + applicablePolicy.ownerId).find('.policy-top')[action == 'hide' ? 'addClass' : 'removeClass']('collapsed');
             $scope.allExpanded[applicablePolicy.ownerId] = !($scope.allExpanded[applicablePolicy.ownerId] || false);
         };
 

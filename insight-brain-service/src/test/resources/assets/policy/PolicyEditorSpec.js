@@ -512,4 +512,55 @@ describe('PolicyEditor.js', function() {
 			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : null }]);
 		}));
 	});
+
+	describe('ageInDays', function () {
+		var scope = null;
+
+		beforeEach(inject(function ($compile) {
+            var node = $("<div id='testAgeInDays' age-in-days ng-model='age'></div>");
+            node.appendTo('body');
+            scope = testScope.$new();
+            $compile(node)(scope);
+            scope.$digest();
+		}));
+
+		afterEach(function () {
+			$('#testAgeInDays').remove();
+		});
+
+		it('Simple Number', function () {
+			SpecUtil.setInput($('#testAgeInDays input:first'), '1');
+			expect(scope.age).toEqual('365'); // year is default
+		});
+
+		it('Null Value', function () {
+			scope.age = null;
+			scope.$digest();
+			expect(scope.age).toEqual(null);
+			expect($('#testAgeInDays input:first').val()).toEqual('');
+		});
+
+		it('Remove Value', function () {
+			scope.age = null;
+			scope.$digest();
+			expect(scope.age).toEqual(null);
+			SpecUtil.setInput($('#testAgeInDays input:first'), '1');
+			expect(scope.age).toEqual('365');
+			SpecUtil.setInput($('#testAgeInDays input:first'), '');
+			expect(scope.age).toEqual(null);
+		});
+
+		it('Zero Value (edge case)', function () {
+			SpecUtil.setInput($('#testAgeInDays input:first'), '0');
+			expect(scope.age).toEqual('0');
+		});
+
+		// TODO The select event doesn't fire need to investigate
+		xit('Change Modifier', function () {
+			SpecUtil.setInput($('#testAgeInDays input:first'), '1');
+			expect(scope.age).toEqual('365');
+			SpecUtil.setInput($('#testAgeInDays select'), 30);
+			expect(scope.age).toEqual('30');
+		});
+	});
 });

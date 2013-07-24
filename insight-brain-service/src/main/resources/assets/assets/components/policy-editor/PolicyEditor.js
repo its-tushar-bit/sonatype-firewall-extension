@@ -589,16 +589,16 @@
 			template : "<input type='number' style='width:100px;vertical-align:top' ng-model='value' placeholder='{{placeholder}}' required> <select style='width:100px;vertical-align:top' ng-model='modifier' ng-options='timeSpan.value as timeSpan.name for timeSpan in timeSpans' required></select>",
 			link : function (scope, element, attrs) {
 				function updateModel() {
-					scope.numModel = (scope.value !== '' && scope.value !== null && scope.modifier) ? scope.value * scope.modifier : null;
-					scope.model = scope.numModel ? '' + scope.numModel : '';
+					if (typeof scope.value === 'number' && scope.modifier) {
+						scope.model = '' + (scope.value * scope.modifier);
+					} else {
+						scope.model = null;
+					}
 				}
 				function updateValue() {
 					var numModel = parseInt(scope.model, 10);
-				    if (isNaN(numModel)) {
-				        numModel = null;
-				    }
 
-					if (!numModel) {
+					if (isNaN(numModel) || numModel === null || numModel === undefined) {
 						scope.value = null;
 						scope.modifier = 365;
 					} else {

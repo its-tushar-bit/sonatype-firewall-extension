@@ -29,8 +29,18 @@ var SpecUtil = {
 		});
 		return data;
 	},
+
 	toRegExp : function toRegExp(url) {
 		return new RegExp(url + '\\?timestamp=[0-9]+')
-	}
+	},
+	setInput : function (inputElement, val) {
+		var evt = document.createEvent('HTMLEvents');
+		inputElement.val(val);
 
+		inject(function ($sniffer) {
+			var type = inputElement[0].localName;
+			evt.initEvent($sniffer.hasEvent(type) ? type : 'change', false, false);
+		});
+		inputElement[0].dispatchEvent(evt);
+	}
 };

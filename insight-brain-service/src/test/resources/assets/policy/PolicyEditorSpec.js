@@ -169,23 +169,21 @@ describe('PolicyEditor.js', function() {
 		
         var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
             notificationTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
+            constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
             scope = null, controller = null;
 
         beforeEach(inject(function ($compile, $httpBackend, PolicyStore, CLMLocations, CLMAppLocations) {
             var obj = getPolicyEditorController();
             controller = obj.controller;
             scope = obj.scope;
-            scope.policy = {
-                constraints: [],
-                actions: {
-                }
-            };
+            scope.policy = createNewPolicy();
             var node = $("<div id='testInlinePolicyEditor' inline-policy-editor></div>");
             node.appendTo('body');
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
             $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
             $httpBackend.whenGET("../assets/components/notification-manager/notification-manager.html?").respond(notificationTemplate);
+            $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html").respond(constraintEditorTemplate);
             $compile(node)(scope);
             PolicyStore.get();
             $httpBackend.flush();
@@ -194,7 +192,7 @@ describe('PolicyEditor.js', function() {
         afterEach(function () {
             $('#testInlinePolicyEditor').remove();
         });
-		
+
 		it('Test policy validation', inject(function(){
 		    //policy name uses the form validation stuff
 		    var form = {
@@ -212,6 +210,7 @@ describe('PolicyEditor.js', function() {
 	            expect(scope.alerts[0].msg).toEqual(msg);
 	            expect(scope.alerts[0].type).toEqual('error');
 		    };
+		    scope.policy.constraints = [];
 		    
 		    scope[scope.getFormName()] = form;
 		    validateValidation(scope,'Policy name is required.');

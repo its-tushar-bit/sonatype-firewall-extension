@@ -547,6 +547,11 @@
 				scope.getFormName = function() {
 				    return 'inlinePolicyForm';
 				};
+				scope.$on('$destroy', function () {
+					if (scope.policy) {
+						scope.policy.$revert();
+					}
+				});
 			}
         };
     }]);

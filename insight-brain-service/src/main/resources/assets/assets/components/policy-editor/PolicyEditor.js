@@ -207,7 +207,13 @@
             var found = false;
             for (var i = 0 ; i < $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].length ; i++) {
                 if ($scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].actionTypeId == 'notify') {
-                    $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].target = addresses.join();
+                    if (addresses.length) {
+                        //if valid addresses, update target
+                        $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].target = addresses.join();
+                    } else {
+                        //otherwise dump the action
+                        $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].splice(i,1);
+                    }
                     found = true;
                     break;
                 }

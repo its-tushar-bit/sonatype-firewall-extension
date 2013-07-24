@@ -18,7 +18,7 @@ describe('ComponentLabelEditor tests', function() {
 
 		$httpBackend.expectGET(new RegExp('\\.\\./brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00\\?timestamp=[0-9]+')).
 			respond([{ "label" : "foo", "color" : "black"}]);
-		$httpBackend.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?timestamp=[0-9]+')).
+		$httpBackend.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).
 			respond([{ "label" : "foo", "color" : "black"}]);
 
 		scope = $rootScope.$new();
@@ -32,7 +32,7 @@ describe('ComponentLabelEditor tests', function() {
 
 	it('Test Add Label', function () {
 		$http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00').respond([{ "label" : "foo", "color" : "black"},{ "label" : "bar", "color" : "yellow"},{ "label" : "asdf", "color" : null}]);
-		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
+		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
 
 		scope.$apply(function () {
 			scope.labelInput = 'bar asdf';
@@ -62,7 +62,7 @@ describe('ComponentLabelEditor tests', function() {
 
 	it('Test Remove', function () {
 		$http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00').respond([]);
-		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
+		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
 		scope.removeLabel( scope.itemLabels[0] );
 		$http.flush();
 		expect( scope.itemLabels.length ).toEqual(0);
@@ -81,7 +81,7 @@ describe('ComponentLabelEditor tests', function() {
 		$http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00', { labels: ['foo', 'bar', 'label'], color : null}).respond(function () {
 			return [200, ['bar', 'foo']];
 		});
-		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
+		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
 		scope.addLabels();
 		$http.flush();
 	});

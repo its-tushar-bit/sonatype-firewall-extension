@@ -48,7 +48,7 @@ public class ComponentLabelResource
 
         componentLabelDAO.setComponentLabels( ownerId, hash, data.getLabels(), data.getColor() );
 
-        return labelDAO.getByOwnerIdAndHash( ownerId, hash );
+        return labelDAO.getByOwnerIdAndHash( ownerId, hash, true );
     }
 
     /**
@@ -60,6 +60,6 @@ public class ComponentLabelResource
                                            @PathParam( "ownerId" ) String ownerId, @PathParam( "hash" ) String hash )
     {
         ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
-        return labelDAO.getByOwnerIdAndHash( ownerId, hash );
+        return labelDAO.getByOwnerIdAndHash( ownerId, hash, true );
     }
 }

@@ -10,12 +10,14 @@ import java.util.List;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -45,15 +47,18 @@ public class LabelResource
     private LabelDAO labelDAO = new LabelDAO();
 
     /**
+     * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
+     *            hierarchy, default is {@code false}
      * @since 1.6
      */
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )
-    public List<Label> getLabels( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId )
+    public List<Label> getLabels( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId,
+                                  @QueryParam( "inherit" ) @DefaultValue( "false" ) boolean inherit )
     {
         ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        return labelDAO.getByOwnerId( ownerId );
+        return labelDAO.getByOwnerId( ownerId, inherit );
     }
 
     /**

@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -471,6 +475,46 @@ public class LabelDAOTest
             }
         }
 
+    }
+
+    @Test
+    public void testGetByOwnerId_inheritedLabels()
+    {
+        LabelDAO labelDAO = new LabelDAO();
+
+        Label label1 = new Label();
+        label1.setOwnerId( organization.getId() );
+        label1.setLabel( "org-label" );
+        label1.setColor( Color.blue );
+        labelDAO.insert( label1 );
+
+        Label label2 = new Label();
+        label2.setOwnerId( applicationId );
+        label2.setLabel( "app-label" );
+        label2.setColor( Color.blue );
+        labelDAO.insert( label2 );
+
+        assertLabels( Arrays.asList( label2 ), labelDAO.getByOwnerId( applicationId, false ) );
+
+        assertLabels( Arrays.asList( label1, label2 ), labelDAO.getByOwnerId( applicationId, true ) );
+    }
+
+    private void assertLabels( Collection<Label> expected, Collection<Label> actual )
+    {
+        final Map<String, Label> expectedMap = toLabelsMap( expected );
+        final Map<String, Label> actualMap = toLabelsMap( actual );
+
+        Assert.assertEquals( expectedMap.keySet(), actualMap.keySet() );
+    }
+
+    private Map<String, Label> toLabelsMap( Collection<Label> actual )
+    {
+        final Map<String, Label> actualMap = new HashMap<String, Label>();
+        for ( Label label : actual )
+        {
+            actualMap.put( label.getId(), label );
+        }
+        return actualMap;
     }
 
     private void assertLabel( String applicationId, String label, Color color, Label actual )

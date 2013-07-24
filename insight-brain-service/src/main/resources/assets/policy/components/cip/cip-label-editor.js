@@ -66,7 +66,7 @@
 		$scope.reloadLabels();
 
 		$scope.reloadAppLabels = function () {
-			$http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId, { params : { timestamp : new Date().getTime() } }).success(function (data) {
+			$http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId, { params : { inherit : 'true', timestamp : new Date().getTime() } }).success(function (data) {
 				$scope.availableLabels = data;
 			}).error(errorFn);
 		};

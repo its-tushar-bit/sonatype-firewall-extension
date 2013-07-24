@@ -209,6 +209,42 @@ public class ComponentLabelDAOTest
         }
     }
 
+    @Test
+    public void testOrganizationInheritance()
+    {
+        final LabelDAO labelDAO = new LabelDAO();
+        final Label orgLabel = new Label();
+        orgLabel.setColor( Color.white );
+        orgLabel.setLabel( "org-label" );
+        orgLabel.setOwnerId( organization.getId() );
+        labelDAO.insert( orgLabel );
+        final Label appLabel = new Label();
+        appLabel.setColor( Color.white );
+        appLabel.setLabel( "app-label" );
+        appLabel.setOwnerId( application.getId() );
+        labelDAO.insert( appLabel );
+
+        ComponentLabelDAO dao = new ComponentLabelDAO();
+
+        // sanity check
+        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+        Assert.assertEquals( 0, componentLabels.size() );
+
+        Set<String> labels = toLabelSet( orgLabel.getLabel(), appLabel.getLabel() );
+
+        dao.setComponentLabels( applicationId, hash, labels, null );
+
+        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
+        Assert.assertNotNull( componentLabels );
+
+        Assert.assertEquals( orgLabel.getId(), componentLabels.get( 0 ).getLabelId() );
+        Assert.assertEquals( orgLabel.getOwnerId(), componentLabels.get( 0 ).getOwnerId() );
+
+        Assert.assertEquals( appLabel.getId(), componentLabels.get( 1 ).getLabelId() );
+        Assert.assertEquals( appLabel.getOwnerId(), componentLabels.get( 1 ).getOwnerId() );
+    }
+
     private void assertComponentLabels( Set<String> expectedLabels, List<ComponentLabel> actualLabels )
     {
         Assert.assertEquals( expectedLabels.size(), actualLabels.size() );

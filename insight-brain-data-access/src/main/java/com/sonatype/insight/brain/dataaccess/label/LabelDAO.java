@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -22,10 +23,15 @@ public class LabelDAO
 {
     public List<Label> getByOwnerId( String ownerId )
     {
+        return getByOwnerId( ownerId, false );
+    }
+
+    public List<Label> getByOwnerId( String ownerId, boolean inherit )
+    {
         EntityManager em = createEntityManager();
         try
         {
-            return getByOwnerId( em, ownerId );
+            return getByOwnerId( em, ownerId, inherit );
         }
         finally
         {
@@ -35,27 +41,71 @@ public class LabelDAO
 
     public List<Label> getByOwnerId( EntityManager em, String ownerId )
     {
-        String sQuery = "SELECT label FROM Label label" + //
+        return getByOwnerId( em, ownerId, false );
+    }
+
+    /**
+     * @param inherit inherit boolean if {@code true} the returned list will include labels inherited from organization
+     *            hierarchy
+     */
+    public List<Label> getByOwnerId( EntityManager em, String ownerId, boolean inherit )
+    {
+        final String sQuery = "SELECT label FROM Label label" + //
             " WHERE label.ownerId=?1" + //
             " ORDER BY label.labelLowercase";
-        return getList( em, sQuery, ownerId );
+        final List<Label> labels = new ArrayList<Label>();
+        if ( inherit )
+        {
+            final ApplicationDAO applicationDAO = new ApplicationDAO();
+            final Application application = applicationDAO.getById( ownerId );
+            if ( application != null && application.getOrganizationId() != null )
+            {
+                labels.addAll( getList( em, sQuery, application.getOrganizationId() ) );
+            }
+        }
+        labels.addAll( getList( em, sQuery, ownerId ) );
+        return labels;
     }
 
-    public List<Label> getByOwnerIdAndHash( String ownerId, String hash )
-    {
-        String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
-            " WHERE label.id=componentLabel.labelId AND label.ownerId=componentLabel.ownerId" + //
-            " AND label.ownerId=?1 AND componentLabel.hash=?2" + //
-            " ORDER BY label.labelLowercase";
-        return getList( sQuery, ownerId, hash );
-    }
-
-    public Label getByOwnerIdAndLowercaseLabel( String ownerId, String labelLowercase )
+    /**
+     * @param ownerId String application or organization id
+     * @param hash component hash
+     * @param inherit if labels inherited from organization hierarchy should be included or not
+     */
+    public List<Label> getByOwnerIdAndHash( String ownerId, String hash, boolean inherit )
     {
         EntityManager em = createEntityManager();
         try
         {
-            return getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase );
+            final String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
+                " WHERE label.id=componentLabel.labelId AND label.ownerId=componentLabel.ownerId" + //
+                " AND label.ownerId=?1 AND componentLabel.hash=?2" + //
+                " ORDER BY label.labelLowercase";
+            List<Label> labels = new ArrayList<Label>();
+            if ( inherit )
+            {
+                final ApplicationDAO applicationDAO = new ApplicationDAO();
+                final Application application = applicationDAO.getById( em, ownerId );
+                if ( application != null && application.getOrganizationId() != null )
+                {
+                    labels.addAll( getList( em, sQuery, application.getOrganizationId(), hash ) );
+                }
+            }
+            labels.addAll( getList( em, sQuery, ownerId, hash ) );
+            return labels;
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public Label getByOwnerIdAndLowercaseLabel( String ownerId, String labelLowercase, boolean inherit )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase, inherit );
         }
         finally
         {
@@ -65,9 +115,28 @@ public class LabelDAO
 
     public Label getByOwnerIdAndLowercaseLabel( EntityManager em, String ownerId, String labelLowercase )
     {
-        String sQuery = "SELECT label FROM Label label" + //
+        return getByOwnerIdAndLowercaseLabel( ownerId, labelLowercase, false );
+    }
+
+    public Label getByOwnerIdAndLowercaseLabel( EntityManager em, String ownerId, String labelLowercase, boolean inherit )
+    {
+        final String sQuery = "SELECT label FROM Label label" + //
             " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
-        return get( em, sQuery, ownerId, labelLowercase );
+        Label label = null;
+        if ( inherit )
+        {
+            final ApplicationDAO applicationDAO = new ApplicationDAO();
+            final Application application = applicationDAO.getById( em, ownerId );
+            if ( application != null && application.getOrganizationId() != null )
+            {
+                label = get( em, sQuery, application.getOrganizationId(), labelLowercase );
+            }
+        }
+        if ( label == null )
+        {
+            label = get( em, sQuery, ownerId, labelLowercase );
+        }
+        return label;
     }
 
     @Override
@@ -124,7 +193,7 @@ public class LabelDAO
 
         // first, check the same label does not exist in for the same owner
         // this is enforced by db unique key, but checking in java gives nicer error message
-        Label otherLabel = getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase() );
+        Label otherLabel = getByOwnerIdAndLowercaseLabel( em, label.getOwnerId(), label.getLabelLowercase(), false );
         if ( otherLabel != null && ( !update || !otherLabel.getId().equals( label.getId() ) ) )
         {
             final Application app = appDAO.getById( em, label.getOwnerId() );
@@ -162,7 +231,7 @@ public class LabelDAO
         final Application app = appDAO.getById( em, label.getOwnerId() );
         if ( app != null && app.getOrganizationId() != null )
         {
-            if ( getByOwnerIdAndLowercaseLabel( em, app.getOrganizationId(), label.getLabelLowercase() ) != null )
+            if ( getByOwnerIdAndLowercaseLabel( em, app.getOrganizationId(), label.getLabelLowercase(), false ) != null )
             {
                 final Organization org = orgDAO.getById( em, app.getOrganizationId() );
                 final String message =

@@ -15,6 +15,8 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -44,9 +46,17 @@ public class ComponentLabelDAO
 
     public List<ComponentLabel> getByOwnerIdAndHash( EntityManager em, String ownerId, String hash )
     {
-        String sQuery = "SELECT label FROM ComponentLabel label" + //
+        final String sQuery = "SELECT label FROM ComponentLabel label" + //
             " WHERE label.ownerId=?1 AND label.hash=?2";
-        return getList( em, sQuery, ownerId, hash );
+        final ApplicationDAO applicationDAO = new ApplicationDAO();
+        final Application application = applicationDAO.getById( em, ownerId );
+        final List<ComponentLabel> labels = new ArrayList<ComponentLabel>();
+        if ( application != null && application.getOrganizationId() != null )
+        {
+            labels.addAll( getList( em, sQuery, application.getOrganizationId(), hash ) );
+        }
+        labels.addAll( getList( em, sQuery, ownerId, hash ) );
+        return labels;
     }
 
     @Override
@@ -127,7 +137,7 @@ public class ComponentLabelDAO
             for ( String stringLabel : stringLabels )
             {
                 String labelLowercase = stringLabel.toLowerCase( Locale.ENGLISH );
-                Label label = labelDAO.getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase );
+                Label label = labelDAO.getByOwnerIdAndLowercaseLabel( em, ownerId, labelLowercase, true );
                 if ( label == null )
                 {
                     label = new Label();
@@ -137,7 +147,7 @@ public class ComponentLabelDAO
                     labelDAO.insert( em, label );
                 }
                 ComponentLabel componentLabel = new ComponentLabel();
-                componentLabel.setOwnerId( ownerId );
+                componentLabel.setOwnerId( label.getOwnerId() );
                 componentLabel.setHash( hash );
                 componentLabel.setLabelId( label.getId() );
                 insert( em, componentLabel );

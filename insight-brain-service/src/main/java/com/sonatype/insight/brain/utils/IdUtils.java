@@ -11,13 +11,17 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 public class IdUtils
 {
 
+    public static final String TYPE_ORGANIZATION = "organization";
+
+    public static final String TYPE_APPLICATION = "application";
+
     public static String getInternalOwnerId( String ownerType, String ownerId )
     {
-        if ( "application".equals( ownerType ) )
+        if ( TYPE_APPLICATION.equals( ownerType ) )
         {
             return new ApplicationDAO().getByPublicIdNotNull( ownerId ).getId();
         }
-        else if ( "organization".equals( ownerType ) )
+        else if ( TYPE_ORGANIZATION.equals( ownerType ) )
         {
             return new OrganizationDAO().getByIdNotNull( ownerId ).getId();
         }

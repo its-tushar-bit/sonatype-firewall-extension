@@ -561,33 +561,8 @@
               <goal>run</goal>
             </goals>
             <configuration>
-	          <targetGroups>insight</targetGroups>
+	          <targetGroups>clm-server</targetGroups>
 	          <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
-	          <contextFolder>${basedir}/src/main/wro4j/assets</contextFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>css-policy-assets</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-	          <targetGroups>policy</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/policy/css/</cssDestinationFolder>
-	          <contextFolder>${basedir}/src/main/wro4j/policy</contextFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>css-application-assets</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-	          <targetGroups>application</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/application/css/</cssDestinationFolder>
-	          <contextFolder>${basedir}/src/main/wro4j/applications</contextFolder>
             </configuration>
           </execution>
         </executions>
@@ -596,6 +571,7 @@
           <extraConfigFile>${basedir}/wro.properties</extraConfigFile>
           <wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
           <ignoreMissingResources>false</ignoreMissingResources>
+          <contextFolder>${basedir}/src/main/wro4j/</contextFolder>
         </configuration>
       </plugin>
       <plugin>

@@ -3,17 +3,33 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
+	<group name='lib'>
+		<css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+		<css>/lib/glyphicons/glyphicons.css</css>
+		<css>/lib/glyphicons/halflings.css</css>
+		<css>/lib/X-editable/bootstrap-editable.css</css>
+		<css>/assets/glyphicons-sonatype.css</css>
+	</group>
+
 	<group name='insight'>
-		<css>/threat.css</css>
-		<css>/insight.css</css>
+		<css>/assets/threat.css</css>
+		<css>/assets/insight.css</css>
 	</group>
 
 	<group name='policy'>
-		<css>/labels.css</css>
-		<css>/policy.css</css>
+		<css>/policy/labels.css</css>
+		<css>/policy/policy.css</css>
+		<css>/assets/management.css</css>
 	</group>
 
 	<group name='application'>
-		<css>/application.css</css>
+		<css>/applications/application.css</css>
+	</group>
+
+	<group name='clm-server'>
+		<group-ref>lib</group-ref>
+		<group-ref>insight</group-ref>
+		<group-ref>application</group-ref>
+		<group-ref>policy</group-ref>
 	</group>
 </groups>

@@ -126,6 +126,35 @@ describe('PolicyEditor.js', function() {
 
 			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
 		});
+
+		describe('isDirty', function () {
+			it('Unchanged', function () {
+				var createScope = angular.element('#testInlinePolicyCreator').scope();
+				scope.createPolicy = function () {
+					return createNewPolicy();
+				};
+				createScope.click();
+				expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(false);
+			});
+			it('Policy Name', function () {
+				var createScope = angular.element('#testInlinePolicyCreator').scope();
+				scope.createPolicy = function () {
+					return createNewPolicy();
+				};
+				createScope.click();
+				createScope.policy.name = 'foo';
+				expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
+			});
+			it('Constraint Name', function () {
+				var createScope = angular.element('#testInlinePolicyCreator').scope();
+				scope.createPolicy = function () {
+					return createNewPolicy();
+				};
+				createScope.click();
+				createScope.policy.constraints[0].name = 'foo'
+				expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
+			});
+		});
 	});
 
 	describe('InlinePolicyEditor', function () {

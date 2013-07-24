@@ -118,19 +118,10 @@
 		}
 
 		function isDirty() {
-			var changed = false;
 			if ($scope.policy) {
-				if (angular.isUndefined($scope.policy.id)) {
-					changed = $scope.policy.constraints.length > 0 || $scope.policy.name;
-				} else {
-					angular.forEach($scope.policies, function (policy, index) {
-						if (policy.id === $scope.policy.id) {
-							changed = $scope.policy.isDirty();
-						}
-					});
-				}
+				return $scope.policy.isDirty();
 			}
-			return changed;
+			return false;
 		}
 		
 		function toggleAction(policy, stageId, action) {

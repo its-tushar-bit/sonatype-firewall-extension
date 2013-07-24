@@ -515,17 +515,18 @@
 		};
 	}]);
 
-	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', function ($dialog, messages) {
+	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', 'PolicyStore', function ($dialog, messages, policyStore) {
 		return {
 			restrict : 'A',
 			templateUrl : "../assets/components/policy-editor/policy-quick-add.html",
-			scope : {
-				createPolicy : '&inlinePolicyCreator'
-			},
+			scope : {},
 			controller : 'PolicyEditorController',
 			link : function (scope) {
 				scope.hide = function () {
 					scope.policy = null;
+				};
+				scope.createPolicy = function () {
+					return policyStore.get().create();
 				};
 				scope.getFormName = function() {
 				    return 'quickAddPolicyEditor';
@@ -533,7 +534,7 @@
 			}
 		};
 	}]);
-	
+
 	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
         return {
             restrict : 'A',

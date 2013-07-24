@@ -36,7 +36,6 @@ describe('PolicyEditor.js', function() {
 			$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
 			$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 			policy = PolicyStore.get().create();
-			$httpBackend.flush();
 		});
 		return policy;
 	}
@@ -69,7 +68,8 @@ describe('PolicyEditor.js', function() {
 			scope = null;
 
 		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
-		    getPolicyEditorController();
+			getPolicyEditorController();
+			createNewPolicy();
 			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
@@ -83,13 +83,10 @@ describe('PolicyEditor.js', function() {
 		});
 
 		it('Create', function () {
-			var createScope = angular.element('#testInlinePolicyCreator').scope(),
-				spy = jasmine.createSpy('createPolicy');
+			var createScope = angular.element('#testInlinePolicyCreator').scope();
 
-			spy.andReturn(createNewPolicy());
-			scope.createPolicy = spy;
 			createScope.click();
-			expect(spy).toHaveBeenCalled();
+			expect(createScope.policy).not.toBeUndefined();
 
 			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toBeDefined();
 		});

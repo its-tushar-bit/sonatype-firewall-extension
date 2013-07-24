@@ -97,10 +97,6 @@
 			});
 		};
 
-		$scope.createPolicy = function () {
-			return policyStore.get().create();
-		};
-		
 		$scope.toggleAll = function (applicablePolicy) {
             var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';
             $('#' + applicablePolicy.ownerId).find('.accordion-body').collapse(action);

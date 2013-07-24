@@ -6,7 +6,7 @@
 /*global angular, $, window, Option */
 (function () {
 	'use strict';
-	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'ui.bootstrap', 'AngularCommon', 'CommonServices']);
+	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'ResourceModule', 'ui.compat', 'ui.bootstrap', 'AngularCommon', 'CommonServices']);
 	
 	module.service('PolicyStore', ['ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (constraintStore, clmLocations, clmAppLocations, clmResource) {
 		var conditionTypes = null,
@@ -197,48 +197,68 @@
 		    });
 		};
 
-		$scope.editNotification = function (stage,policy) {
-		    $scope.currentNotificationStage = stage.id;
-		    $scope.currentNotificationPolicy = policy;
-		    var addresses = [];
+		$scope.editNotification = function (stage) {
+			var addresses = [];
 
-			if (policy.actions[stage.id]) {
-				for (var i = 0 ; i < policy.actions[stage.id].length ; i++) {
-					if (policy.actions[stage.id][i].actionTypeId == 'notify') {
-						addresses = policy.actions[stage.id][i].target.split(',');
+			if ($scope.policy.actions[stage.id]) {
+				for (var i = 0 ; i < $scope.policy.actions[stage.id].length ; i++) {
+					if ($scope.policy.actions[stage.id][i].actionTypeId == 'notify') {
+						addresses = $scope.policy.actions[stage.id][i].target.split(',');
 						break;
 					}
 				}
 			}
-			$scope.$broadcast('editNotification', addresses);
+
+			$dialog.dialog({
+				backdrop : true,
+				backdropClick : false,
+				backdropFade : true,
+				dialogFade : true,
+				template : '<div class="modal-header"><h3>Notifications</h3></div>' +
+							'<div class="modal-body"><div list-editor place-holder="Email Address" max-length="100" entries="notificationEmailList" set-error="setEditorError" validator="validateEmail"></div></div>' +
+							'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+							'<button class="btn btn-primary" ng-click="save()">Save</button></div>',
+				controller : ['$scope', 'dialog', function (scope, dialog) {
+					var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
+					scope.validateEmail = function (value) {
+						return EMAIL_REGEXP.test(value);
+					};
+					scope.setEditorError = function (error) {
+						scope.error = error;
+					};
+					scope.notificationEmailList = addresses;
+
+					scope.save = function () {
+						var found = false;
+						$scope.policy.actions[stage.id] = $scope.policy.actions[stage.id] || [];
+						for (var i = 0 ; i < $scope.policy.actions[stage.id].length ; i++) {
+							if ($scope.policy.actions[stage.id][i].actionTypeId == 'notify') {
+								if (addresses.length) {
+									//if valid addresses, update target
+									$scope.policy.actions[stage.id][i].target = addresses.join();
+								} else {
+									//otherwise dump the action
+									$scope.policy.actions[stage.id].splice(i,1);
+								}
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							$scope.policy.actions[stage.id].push({
+								actionTypeId : 'notify',
+								target : addresses.join()
+							});
+						}
+						dialog.close(true);
+					};
+					scope.cancel = function () {
+						dialog.close(true);
+					};
+				}]
+			}).open();
 		};
-		
-        $scope.$on('editNotificationDone', function (event, addresses) {
-            var found = false;
-            for (var i = 0 ; i < $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].length ; i++) {
-                if ($scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].actionTypeId == 'notify') {
-                    if (addresses.length) {
-                        //if valid addresses, update target
-                        $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage][i].target = addresses.join();
-                    } else {
-                        //otherwise dump the action
-                        $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].splice(i,1);
-                    }
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                $scope.currentNotificationPolicy.actions[$scope.currentNotificationStage].push({
-                    actionTypeId : 'notify',
-                    target : addresses.join()
-                });
-            }
-            
-            $scope.currentNotificationPolicy = null;
-            $scope.currentNotificationStage = null;
-        });
-		
+
 		$scope.toggleWarnAction = function(stage, policy) {
 		    toggleAction(policy, stage.id, 'warn');
         };
@@ -254,12 +274,12 @@
         $scope.showFailureIcon = function(stage, policy) {
             return showActionIcon(policy, stage.id, 'fail');
         };
-        
-        $scope.getEmailList = function(stage, policy) {
-            if (policy.actions[stage.id]) {
-                for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
-                    if (policy.actions[stage.id][i].actionTypeId == 'notify') {
-                        return policy.actions[stage.id][i].target;
+
+        $scope.getEmailList = function(stage) {
+            if ($scope.policy.actions[stage.id]) {
+                for ( var i = 0 ; i < $scope.policy.actions[stage.id].length ; i++ ) {
+                    if ($scope.policy.actions[stage.id][i].actionTypeId == 'notify') {
+                        return $scope.policy.actions[stage.id][i].target.split(',').join(', ');
                     } 
                 }
             }
@@ -361,7 +381,7 @@
                     }
                 }
             }
-            
+
             if (msg) {
                 $scope.alerts.push({
                     msg:msg,

@@ -5,8 +5,8 @@
 			<h3>{{policy.name}}</h3>
 			<div class='accordion-header-buttons'>
 				<div class='btn-group hover-buttons' ng-show='editable'>
-					<a class="btn btn-mini policy-button" title="Edit Policy" ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></a> <a
-						class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash" style="margin-top: 0px;"></i></a>
+					<button type='button' class="btn btn-mini policy-button" title="Edit Policy" ng-disabled='policyEditMap[policy.id]' ng-click="edit(policy)"><i class="icon-pencil" style="margin-top: 0px;"></i></button>
+					<button type='button' class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash" style="margin-top: 0px;"></i></button>
 				</div>
 			</div>
 		</div>

@@ -25,8 +25,8 @@ describe('PolicyEditor.js', function() {
 
 	function expectActionRequests() {
 		inject(function($httpBackend, CLMLocations) {
-			$httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-			$httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+			$httpBackend.whenGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+			$httpBackend.whenGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
 		});
 	}
 
@@ -166,26 +166,38 @@ describe('PolicyEditor.js', function() {
 
 			return getController('PolicyEditorController');
 		}
+		function getPolicyController() {
+			inject(function ($httpBackend, CLMAppLocations) {
+				$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+				$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+			});
+
+			return getController('PolicyController');
+		}
 		
         var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
             notificationTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
             constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
-            scope = null, controller = null;
+            parentScope = null,
+            policyScope = null,
+            scope = null;
 
-        beforeEach(inject(function ($compile, $httpBackend, PolicyStore, CLMLocations, CLMAppLocations) {
-            var obj = getPolicyEditorController();
-            controller = obj.controller;
-            scope = obj.scope;
-            scope.policy = createNewPolicy();
-            var node = $("<div id='testInlinePolicyEditor' inline-policy-editor></div>");
+        beforeEach(inject(function ($compile, $httpBackend, CLMLocations, CLMAppLocations) {
+            var node = $("<div><div show-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor '></div></div></div>");
             node.appendTo('body');
+            expectActionRequests()
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
             $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
             $httpBackend.whenGET("../assets/components/notification-manager/notification-manager.html?").respond(notificationTemplate);
             $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html").respond(constraintEditorTemplate);
-            $compile(node)(scope);
-            PolicyStore.get();
+
+            parentScope = testScope.$new();
+            parentScope.policyEditMap = {};
+            policyScope = parentScope.$new();
+            policyScope.policy = createNewPolicy();
+
+            $compile(node)(policyScope.$new());
             $httpBackend.flush();
         }));
 
@@ -210,7 +222,12 @@ describe('PolicyEditor.js', function() {
 	            expect(scope.alerts[0].msg).toEqual(msg);
 	            expect(scope.alerts[0].type).toEqual('error');
 		    };
-		    scope.policy.constraints = [];
+
+		    parentScope.policyEditMap[policyScope.policy.id] = true;
+			parentScope.$digest();
+			scope = angular.element('#testInlinePolicyEditor').scope();
+
+            scope.policy.constraints = [];
 		    
 		    scope[scope.getFormName()] = form;
 		    validateValidation(scope,'Policy name is required.');
@@ -270,9 +287,24 @@ describe('PolicyEditor.js', function() {
 		it('Test update policy', inject(function(){
 		    
 		}));
-		
-		it('Test cancel update policy', inject(function(){
-		    
+
+		it('Test cancel update policy', inject(function(PolicyStore, CLMAppLocations, $httpBackend) {
+			var policyStoreContents;
+			$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+			$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+			PolicyStore.get().get().then(function () {
+				policyStoreContents = arguments[0];
+				policyScope.policy = policyStoreContents[0];
+			});
+			$httpBackend.flush();
+			parentScope.policyEditMap[policyScope.policy.id] = true;
+			parentScope.$digest();
+
+			policyScope.policy.name = 'asdflkasdfkljasfdklj';
+			expect(policyScope.policy.isDirty()).toEqual(true);
+			policyScope.$destroy();
+			parentScope.$digest();
+			expect(policyStoreContents[0].isDirty()).toEqual(false);
 		}));
 
 		/*

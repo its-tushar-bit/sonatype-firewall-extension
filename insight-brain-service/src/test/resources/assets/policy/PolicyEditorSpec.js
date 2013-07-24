@@ -174,7 +174,7 @@ describe('PolicyEditor.js', function() {
             notificationTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
             scope = null, controller = null;
 
-        beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
+        beforeEach(inject(function ($compile, $httpBackend, PolicyStore, CLMLocations, CLMAppLocations) {
             var obj = getPolicyEditorController();
             controller = obj.controller;
             scope = obj.scope;
@@ -185,9 +185,12 @@ describe('PolicyEditor.js', function() {
             };
             var node = $("<div id='testInlinePolicyEditor' inline-policy-editor></div>");
             node.appendTo('body');
+            $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+            $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
             $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
             $httpBackend.whenGET("../assets/components/notification-manager/notification-manager.html?").respond(notificationTemplate);
             $compile(node)(scope);
+            PolicyStore.get();
             $httpBackend.flush();
         }));
 
@@ -234,13 +237,38 @@ describe('PolicyEditor.js', function() {
             scope.policy.constraints[0].operator = 'any';
             validateValidation(scope,'You must add at least one condition to constraint #1');
             
-            /*
-             * TODO need to wrap up this test, have to run for kids first
             scope.policy.constraints[0].conditions = [{}];
             validateValidation(scope,'Please select a valid condition type for condition #1 in constraint #1');
+            
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'AgeInDays';
             validateValidation(scope,'Please enter a value for condition #1 in constraint #1');
-		    */
+            
+            scope.policy.constraints[0].conditions[0].value = '300';
+            scope.policy.constraints.push({});
+            validateValidation(scope,'Enter a valid name for constraint #2');
+            
+            scope.policy.constraints[1].name = 'name';
+            validateValidation(scope,'You must select any or all of the conditions for constraint #2');
+            
+            scope.policy.constraints[1].operator = 'any';
+            validateValidation(scope,'You must add at least one condition to constraint #2');
+            
+            scope.policy.constraints[1].conditions = [{}];
+            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint #2');
+            
+            scope.policy.constraints[1].conditions[0].conditionTypeId = 'AgeInDays';
+            validateValidation(scope,'Please enter a value for condition #1 in constraint #2');
+            
+            scope.policy.constraints[1].conditions[0].value = '300';
+            scope.policy.constraints[1].conditions.push({});
+            validateValidation(scope,'Please select a valid condition type for condition #2 in constraint #2');
+            
+            scope.policy.constraints[1].conditions[1].conditionTypeId = 'AgeInDays';
+            validateValidation(scope,'Please enter a value for condition #2 in constraint #2');
+            
+            scope.policy.constraints[1].conditions[1].value = '300';
+            scope.validate();
+            expect(scope.alerts.length).toEqual(0);
 		}));
 		
 		it('Test update policy', inject(function(){

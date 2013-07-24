@@ -8,19 +8,6 @@
 	'use strict';
 	var module = angular.module('PolicyEditor', ['CLMAppLocation', 'Hudson', 'NotificationManagement', 'ResourceModule', 'ui.compat', 'ui.bootstrap', 'AngularCommon', 'CommonServices']);
 	
-	module.service('ConditionTypes', function(){
-	    var types;
-	    
-	    return {
-	        get : function() {
-	            return types;
-	        },
-	        set : function(conditionTypes) {
-	            types = conditionTypes;
-	        }
-	    };
-	});
-
 	module.service('PolicyStore', ['ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', function (constraintStore, clmLocations, clmAppLocations, clmResource) {
 		var conditionTypes = null,
 			policyStoreTemplate = {
@@ -66,6 +53,9 @@
 					policyStores[ownerId] = store;
 				}
 				return store;
+			},
+			getConditionTypes : function () {
+			    return conditionTypes;
 			}
 		};
 	}]);
@@ -111,7 +101,7 @@
 		};
 	}]);
 
-	module.controller('PolicyEditorController', ['$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', 'ConditionTypes', '$q', 'ActionStore', function ($scope, $state, $location, $dialog, $timeout, messages, policyStore, $conditionTypes, $q, actionStore) {
+	module.controller('PolicyEditorController', ['$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', '$q', 'ActionStore', function ($scope, $state, $location, $dialog, $timeout, messages, policyStore, $q, actionStore) {
 		function returnFn() {
 			var path = $location.path();
 			$location.path(path.substring(0, path.lastIndexOf('/')));
@@ -363,7 +353,7 @@
                                         msg = 'You must add at least one condition to constraint #' + (constraintIndex + 1);
                                     } else {
                                         $.each(constraint.conditions, function(conditionIndex, condition){
-                                            var conditionType = $conditionTypes.get()[condition.conditionTypeId];
+                                            var conditionType = policyStore.getConditionTypes()[condition.conditionTypeId];
                                             if (!conditionType) {
                                                 msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
                                                 return false;
@@ -408,7 +398,7 @@
         $scope.doLoad();
 	}]);
 
-	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', 'ConditionTypes', function ($scope, $timeout, constraints, $conditionTypes) {
+	module.controller('ConstraintEditorController', ['$scope', '$timeout',  'ConstraintStore', function ($scope, $timeout, constraints) {
 		function isDirty() {
 			if ($scope.originalConstraint) {
 				if ($scope.originalConstraint.name != $scope.constraint.name || $scope.originalConstraint.operator != $scope.constraint.operator ||
@@ -502,7 +492,6 @@
 				type.valueType = typeValue;
 				$scope.conditionTypes[type.id] = type;
 			});
-			$conditionTypes.set($scope.conditionTypes);
 		}, function (error) {
 			// TODO handle this error
 		});

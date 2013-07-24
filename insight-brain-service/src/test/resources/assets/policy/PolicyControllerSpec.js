@@ -52,19 +52,10 @@ describe('PolicyController tests', function() {
         var sc = $compile('<div policy-items></div>')(scope).scope();
         $httpBackend.flush();
         expect(sc.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(1);
-        expect(sc.getActions(scope.applicablePolicies[0].policies[0])).toEqual('Build: Fail');
-
         expect(sc.getActionCount(scope.applicablePolicies[0].policies[1])).toEqual(1);
-        expect(sc.getActions(scope.applicablePolicies[0].policies[1])).toEqual('Build: Fail');
-
         expect(sc.getActionCount(scope.applicablePolicies[0].policies[2])).toEqual(0);
-        expect(sc.getActions(scope.applicablePolicies[0].policies[2])).toEqual('');
-
-        expect(sc.getActionCount(scope.applicablePolicies[0].policies[3])).toEqual(0);
-        expect(sc.getActions(scope.applicablePolicies[0].policies[3])).toEqual('');
-
+        expect(sc.getActionCount(scope.applicablePolicies[0].policies[3])).toEqual(0);        
         expect(sc.getActionCount(scope.applicablePolicies[0].policies[4])).toEqual(0);
-        expect(sc.getActions(scope.applicablePolicies[0].policies[4])).toEqual('');
     }));
 
     it('Test remove policy', inject(function(CLMAppLocations, $httpBackend) {

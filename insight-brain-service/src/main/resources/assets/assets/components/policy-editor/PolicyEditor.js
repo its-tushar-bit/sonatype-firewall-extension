@@ -114,6 +114,16 @@
 			return false;
 		}
 		
+        function showActionIcon(policy, stageId, action) {
+            if (policy.actions[stageId]) {
+                for ( var i = 0 ; i < policy.actions[stageId].length ; i++ ) {
+                    if (policy.actions[stageId][i].actionTypeId == action) {
+                        return true;
+                    } 
+                }
+            }
+        }
+		
 		function toggleAction(policy, stageId, action) {
 		    var add = true;
             if (policy.actions[stageId]) {
@@ -232,28 +242,19 @@
 		$scope.toggleWarnAction = function(stage, policy) {
 		    toggleAction(policy, stage.id, 'warn');
         };
+        
         $scope.toggleFailureAction = function(stage, policy) {
             toggleAction(policy, stage.id, 'fail');
         };
         
         $scope.showWarningIcon = function(stage, policy) {
-            if (policy.actions[stage.id]) {
-                for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
-                    if (policy.actions[stage.id][i].actionTypeId == 'warn') {
-                        return true;
-                    } 
-                }
-            }
+            return showActionIcon(policy, stage.id, 'warn');
         };
+        
         $scope.showFailureIcon = function(stage, policy) {
-            if (policy.actions[stage.id]) {
-                for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
-                    if (policy.actions[stage.id][i].actionTypeId == 'fail') {
-                        return true;
-                    } 
-                }
-            }
+            return showActionIcon(policy, stage.id, 'fail');
         };
+        
         $scope.getEmailList = function(stage, policy) {
             if (policy.actions[stage.id]) {
                 for ( var i = 0 ; i < policy.actions[stage.id].length ; i++ ) {
@@ -264,20 +265,7 @@
             }
         };
 
-		// Respond to constraint change
-		$scope.$on('policy.constraintSaved', function (event, constraint) {
-			event.stopPropagation();
-			var present = false;
-			angular.forEach($scope.policy.constraints, function (candidate) {
-				present = present || candidate === constraint;
-			});
-			if (!present) {
-				// New constraint
-				$scope.policy.constraints.push(constraint);
-			}
-		});
-
-		//make sure user is aware they are about to lose changes
+        //make sure user is aware they are about to lose changes
 		$scope.$on('pageChangeStarted', function (event) {
 			if (isDirty()) {
 				event.preventDefault();

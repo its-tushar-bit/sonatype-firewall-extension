@@ -103,15 +103,15 @@
             $scope.allExpanded[applicablePolicy.ownerId] = !($scope.allExpanded[applicablePolicy.ownerId] || false);
         };
 
-    $scope.isExpanded = function(applicablePolicy) {
-      return $scope.allExpanded[applicablePolicy.ownerId] || false;
-    };
+        $scope.isExpanded = function(applicablePolicy) {
+          return $scope.allExpanded[applicablePolicy.ownerId] || false;
+        };
 
 		$scope.doLoad();
 
 		$scope.encodeURIComponent = window.encodeURIComponent;
 
-    $scope.allExpanded = {};
+		$scope.allExpanded = {};
 	}]);
 
 	policyModule.directive('policyItems', ['ActionStore', function (actionStore) {
@@ -144,39 +144,6 @@
 						}
 					});
 					return actionCount;
-				};
-				scope.getActions = function (policy) {
-					var actions = '';
-					angular.forEach(policy.actions, function (value, key) {
-						var j, currentStageText = '', formattedName;
-						if (value.length > 0) {
-							if (actions.length > 0) {
-								actions += ', ';
-							}
-
-							for (j = 0; j < actionStageList.length; j++) {
-								if (actionStageList[j].id == key) {
-									currentStageText += actionStageList[j].name + ': ';
-									break;
-								}
-							}
-
-							for (j = 0; j < value.length; j++) {
-								formattedName = capitalize(value[j].actionTypeId);
-								if (currentStageText.indexOf(formattedName) < 0) {
-									if (j > 0) {
-										currentStageText += '/';
-									}
-									currentStageText += formattedName;
-								}
-							}
-
-							if (currentStageText) {
-								actions += currentStageText;
-							}
-						}
-					});
-					return actions;
 				};
 				scope.getActionStages = function() {
 				    return actionStageList;

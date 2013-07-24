@@ -306,7 +306,8 @@
                         backdropClick : false,
                         backdropFade : true,
                         dialogFade : true,
-                        template : '<div class="modal-body">May contain unsaved changes.</div>' +
+                        template : '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
+                                   '<div class="modal-body">This policy may contain unsaved changes.  Continuing will discard any unsaved changes.</div>' +
                                     '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
                                     '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
                         controller : ['$scope', 'dialog', function (scope, dialog) {

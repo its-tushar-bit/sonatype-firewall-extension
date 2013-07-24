@@ -18,7 +18,7 @@
         </div>
         <form name='inlineLicenseGroupForm' form-Submit='inlineSaveLicenseGroup()'>
             <div class="accordion" id="licenseGroups">
-                <div class="accordion-group" ng-repeat='licenseGroup in licenseGroups'>
+                <div class="accordion-group" ng-repeat='licenseGroup in licenseGroups | orderBy: "threatLevel" : true'>
                     <div class="common-accordion-header">
                     	<span class="accordion-header-clickable">
 	                        <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>

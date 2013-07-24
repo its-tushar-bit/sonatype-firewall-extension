@@ -524,7 +524,7 @@
 		};
 	}]);
 
-	module.directive('inlinePolicyCreator', ['$dialog', 'Messages', 'PolicyStore', function ($dialog, messages, policyStore) {
+	module.directive('inlinePolicyCreator', ['PolicyStore', function (policyStore) {
 		return {
 			restrict : 'A',
 			templateUrl : "../assets/components/policy-editor/policy-quick-add.html",
@@ -544,7 +544,7 @@
 		};
 	}]);
 
-	module.directive('inlinePolicyEditor', ['$dialog', 'Messages', function ($dialog, messages) {
+	module.directive('inlinePolicyEditor', [function () {
         return {
             restrict : 'A',
             templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",

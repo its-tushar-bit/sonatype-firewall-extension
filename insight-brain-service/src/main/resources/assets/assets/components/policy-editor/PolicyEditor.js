@@ -102,11 +102,6 @@
 	}]);
 
 	module.controller('PolicyEditorController', ['$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', '$q', 'ActionStore', function ($scope, $state, $location, $dialog, $timeout, messages, policyStore, $q, actionStore) {
-		function returnFn() {
-			var path = $location.path();
-			$location.path(path.substring(0, path.lastIndexOf('/')));
-		}
-
 		function isDirty() {
 			if ($scope.policy) {
 				return $scope.policy.isDirty();

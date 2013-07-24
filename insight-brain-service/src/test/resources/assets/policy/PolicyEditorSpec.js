@@ -284,8 +284,26 @@ describe('PolicyEditor.js', function() {
             expect(scope.alerts.length).toEqual(0);
 		}));
 		
-		it('Test update policy', inject(function(){
-		    
+		it('Test update policy', inject(function(PolicyStore, CLMAppLocations, $httpBackend) {
+			var policyStoreContents;
+			$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+			$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+			PolicyStore.get().get().then(function () {
+				policyStoreContents = arguments[0];
+				policyScope.policy = policyStoreContents[0];
+			});
+			$httpBackend.flush();
+			parentScope.policyEditMap[policyScope.policy.id] = true;
+			parentScope.$digest();
+
+			policyScope.policy.name = 'asdflkasdfkljasfdklj';
+			expect(policyScope.policy.isDirty()).toEqual(true);
+
+			$httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.extend(angular.copy(policyScope.policy.$getOriginal()), { name : policyScope.policy.name }));
+			angular.element('#testInlinePolicyEditor').scope().savePolicy()
+			$httpBackend.flush();
+
+			expect(policyStoreContents[0].isDirty()).toEqual(false);
 		}));
 
 		it('Test cancel update policy', inject(function(PolicyStore, CLMAppLocations, $httpBackend) {

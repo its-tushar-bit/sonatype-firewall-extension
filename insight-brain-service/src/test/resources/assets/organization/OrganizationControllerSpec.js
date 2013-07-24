@@ -63,6 +63,31 @@ describe('OrganizationController', function () {
     expect(scope.selectedOrganization).not.toBeUndefined();
     expect(scope.selectedOrganization.name).toEqual(null);
   }));
+
+  it('passes through alerts', inject(function($state, $httpBackend) {
+    $httpBackend.expectGET('../assets/management.html').respond('<div></div>');
+    $httpBackend.expectGET('../organization-assets/components/organization-navigator.html').respond('<div></div>');
+    $httpBackend.expectGET('../organization-assets/components/organization-editor.html').respond('<div></div>');
+
+    $state.transitionTo('management.organization.view');
+
+    $httpBackend.flush();
+
+    expect($state.current.data.passThroughAlerts).not.toBeUndefined();
+    expect($state.current.data.passThroughAlerts.length).toEqual(0);
+    $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'orgtest'});
+
+    $httpBackend.expectGET('../policy-assets/components/policy/policy.html').respond('<div></div>');
+
+    $state.transitionTo('management.organization.view.policies', { organizationId: 'ID' });
+
+    $httpBackend.flush();
+
+    expect($state.current.data.passThroughAlerts).not.toBeUndefined();
+    expect($state.current.data.passThroughAlerts.length).toEqual(1);
+    expect($state.current.data.passThroughAlerts[0].msg).toEqual('orgtest');
+    expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
+  }));
 });
 
 describe('OrganizationEditorController', function () {

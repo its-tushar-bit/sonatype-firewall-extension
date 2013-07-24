@@ -17,11 +17,17 @@
       parent: 'management.application',
       url: '/{applicationPublicId}',
       controller: 'applicationEditorController',
+      data: {
+        passThroughAlerts: []
+      },
       templateUrl: '../application-assets/components/application-editor.html'
     }).state('management.application.view.policies', {
       parent: 'management.application.view',
       url: '/policies',
       controller: 'PolicyController',
+      data: {
+        passThroughAlerts: []
+      },
       templateUrl: '../policy-assets/components/policy/policy.html'
     }).state('management.application.view.labels', {
       parent: 'management.application.view',
@@ -68,6 +74,13 @@
     $scope.isCurrentTab = function (tabName) {
       return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
     };
+    $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState){
+      if (toState.data && toState.data.passThroughAlerts && fromState.data && fromState.data.passThroughAlerts) {
+        angular.forEach(fromState.data.passThroughAlerts, function(alert) {
+          toState.data.passThroughAlerts.push(alert);
+        });
+      }
+    });
 
     $scope.doLoad = function () {
       $scope.error = null;
@@ -137,8 +150,13 @@
       $scope.selectedApplication.organizationId = organization.id;
     };
 
-    $scope.alerts = [];
     $scope.messages = editorTools.messages;
+
+    if ($state.current.data && $state.current.data.passThroughAlerts) {
+      angular.forEach($state.current.data.passThroughAlerts, function(alert) {
+        $scope.pushAlert(alert);
+      });
+    }
 
     $scope.generateIcon = function () {
       me.generateIcon($scope.selectedApplication.name);
@@ -266,6 +284,14 @@
       $scope.selectedApplication.$save().then(function() {
         me.saveIcon().then(function () {
           if ($state.params.applicationPublicId === '_new_') {
+            $state.transitionTo('management.application.view.policies', { applicationPublicId: $scope.selectedApplication.publicId });
+          }
+        }, function(error) {
+          if ($state.params.applicationPublicId === '_new_') {
+            $state.current.data.passThroughAlerts.push({
+              type : 'error',
+              msg : 'An error occurred while saving the icon. (' + error + ')'
+            });
             $state.transitionTo('management.application.view.policies', { applicationPublicId: $scope.selectedApplication.publicId });
           }
         });

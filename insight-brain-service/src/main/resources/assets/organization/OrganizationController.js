@@ -18,11 +18,17 @@
       parent: 'management.organization',
       url: '/{organizationId}',
       controller: 'OrganizationEditorController',
+      data: {
+        passThroughAlerts: []
+      },
       templateUrl: '../organization-assets/components/organization-editor.html'
     }).state('management.organization.view.policies', {
       parent: 'management.organization.view',
       url: '/policies',
       controller: 'PolicyController',
+      data: {
+        passThroughAlerts: []
+      },
       templateUrl: '../policy-assets/components/policy/policy.html'
     }).state('management.organization.view.labels', {
       parent: 'management.organization.view',
@@ -77,6 +83,13 @@
     // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
     $scope.organizationIconTimestamp = {};
 
+    $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState){
+      if (toState.data && toState.data.passThroughAlerts && fromState.data && fromState.data.passThroughAlerts) {
+        angular.forEach(fromState.data.passThroughAlerts, function(alert) {
+          toState.data.passThroughAlerts.push(alert);
+        });
+      }
+    });
 
     $scope.doLoad = function () {
       $scope.error = null;
@@ -123,6 +136,12 @@
 
     $scope.$state = $state;
     $scope.submitActive = false;
+
+    if ($state.current.data && $state.current.data.passThroughAlerts) {
+      angular.forEach($state.current.data.passThroughAlerts, function(alert) {
+        $scope.pushAlert(alert);
+      });
+    }
 
     $scope.validateName = function (value) {
       $scope.organizationEditor.$invalid = false;
@@ -205,6 +224,14 @@
       $scope.selectedOrganization.$save().then(function (data) {
         me.saveIcon().then(function () {
           if ($state.params.organizationId === '_new_') {
+            $state.transitionTo('management.organization.view.policies', { organizationId: $scope.selectedOrganization.id });
+          }
+        }, function(error) {
+          if ($state.params.organizationId === '_new_') {
+            $state.current.data.passThroughAlerts.push({
+              type : 'error',
+              msg : 'An error occurred while saving the icon. (' + error + ')'
+            });
             $state.transitionTo('management.organization.view.policies', { organizationId: $scope.selectedOrganization.id });
           }
         });

@@ -322,7 +322,7 @@
             $scope.alerts = [];
             if ($scope.policy) {
                 var form = $scope[$scope.getFormName()];
-                if (form){
+                if (form) {
                     var error = form.name.$error;
                     if (error) {
                         if (error.required) {
@@ -331,40 +331,34 @@
                             msg = 'Policy name cannot contain leading, trailing or double spaces or tabs.';
                         } else if (error.alphaNumeric) {
                             msg = 'Policy name must be alpha numeric.';
+                        } else if (!$scope.policy.constraints || !$scope.policy.constraints.length) {
+                            msg = 'You must add at least one constraint to the policy.';
                         } else {
-                            if (!$scope.policy.constraints || !$scope.policy.constraints.length) {
-                                msg = 'You must add at least one constraint to the policy.';
-                            } else {
-                                $.each($scope.policy.constraints, function(constraintIndex,constraint){
-                                    if (!constraint.name) {
-                                        msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
-                                        return false;
-                                    } else if(!constraint.operator) {
-                                        msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
-                                        return false;
-                                    }
-                                    if (!constraint.conditions || !constraint.conditions.length) {
-                                        msg = 'You must add at least one condition to constraint #' + (constraintIndex + 1);
-                                    } else {
-                                        $.each(constraint.conditions, function(conditionIndex, condition){
-                                            var conditionType = policyStore.getConditionTypes()[condition.conditionTypeId];
-                                            if (!conditionType) {
-                                                msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
-                                                return false;
-                                            } else if (conditionType.valueTypeId && !condition.value) {
-                                                msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
-                                                return false;
-                                            }
-                                        });
-                                    }
-                                    
-                                    if (msg) {
-                                        return false;
-                                    }
-                                });
-                            }
+                            $.each($scope.policy.constraints, function(constraintIndex,constraint) {
+                                if (!constraint.name) {
+                                    msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
+                                } else if(!constraint.operator) {
+                                    msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
+                                } else if (!constraint.conditions || !constraint.conditions.length) {
+                                    msg = 'You must add at least one condition to constraint #' + (constraintIndex + 1);
+                                } else {
+                                    $.each(constraint.conditions, function(conditionIndex, condition) {
+                                        var conditionType = policyStore.getConditionTypes()[condition.conditionTypeId];
+                                        if (!conditionType) {
+                                            msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                            return false;
+                                        } else if (conditionType.valueTypeId && !condition.value) {
+                                            msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                            return false;
+                                        }
+                                    });
+                                }
+                                if (msg) {
+                                    return false;
+                                }
+                            });
                         }
-                    } 
+                    }
                 }
             }
             

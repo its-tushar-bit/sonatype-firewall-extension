@@ -3,10 +3,6 @@ var clmTimestamp = '';
 describe('ApplicationController', function () {
   var scope, httpBackend, rootScope, state, mockApplication;
 
-  function toRegExp(getUrl) {
-    return new RegExp(getUrl + '\\?timestamp=[0-9]+');
-  }
-
   beforeEach(module('ApplicationModule'));
   beforeEach(module(function ($provide) {
     $provide.value('ApplicationId', {
@@ -25,7 +21,7 @@ describe('ApplicationController', function () {
 
     var applicationsData = ApplicationMockData.getApplicationsData();
     mockApplication = applicationsData[0];
-    httpBackend.whenGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+    httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
     scope = $rootScope.$new();
     state = $state;
@@ -65,10 +61,6 @@ describe('ApplicationController', function () {
 describe('ApplicationEditorController', function () {
   var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
 
-  function toRegExp(getUrl) {
-    return new RegExp(getUrl + '\\?timestamp=[0-9]+');
-  }
-
   beforeEach(module('ApplicationModule', 'OrganizationModule'));
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
     httpBackend = $httpBackend;
@@ -78,11 +70,11 @@ describe('ApplicationEditorController', function () {
 
     var applicationsData = ApplicationMockData.getApplicationsData();
     mockApplication = applicationsData[0];
-    httpBackend.whenGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+    httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
     var organizationData = OrganizationMockData.getGETResponse();
     mockOrganization = organizationData[0];
-    httpBackend.expectGET(toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
+    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
 
     scope = $rootScope.$new();
     state = $state;

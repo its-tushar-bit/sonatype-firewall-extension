@@ -3,10 +3,6 @@ var clmTimestamp = '';
 describe('LicenseThreatGroup', function() {
 	var scope, mockGroup;
 
-	function toRegExp( getUrl ) {
-		return new RegExp( getUrl + '\\?timestamp=[0-9]+' );
-	}
-
 	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
 		return $http;
 	}]);
@@ -22,9 +18,9 @@ describe('LicenseThreatGroup', function() {
 	}));
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
-		$httpBackend.whenGET(toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
-		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
-		$httpBackend.whenGET(toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 		licenseGroupStore.get().then(function (data) {
 			mockGroup = data[0];
 		});

@@ -28,5 +28,9 @@ var SpecUtil = {
 			}
 		});
 		return data;
+	},
+	toRegExp : function toRegExp(url) {
+		return new RegExp(url + '\\?timestamp=[0-9]+')
 	}
+
 };

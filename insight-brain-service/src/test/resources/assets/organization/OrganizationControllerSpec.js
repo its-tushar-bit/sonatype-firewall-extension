@@ -3,10 +3,6 @@ var clmTimestamp = '';
 describe('OrganizationController', function () {
   var scope, httpBackend, rootScope, state, mockOrganization;
 
-  function toRegExp(url) {
-    return new RegExp(url + '\\?timestamp=[0-9]+');
-  }
-
   beforeEach(module('OrganizationModule'));
   beforeEach(module(function ($provide) {
     $provide.value('OrganizationId', {
@@ -24,7 +20,7 @@ describe('OrganizationController', function () {
 
     var organizationsData = OrganizationMockData.getGETResponse();
     mockOrganization = organizationsData[0];
-    httpBackend.whenGET(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
+    httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
 
     scope = $rootScope.$new();
     state = $state;
@@ -72,10 +68,6 @@ describe('OrganizationController', function () {
 describe('OrganizationEditorController', function () {
   var scope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization, mockOrganization;
 
-  function toRegExp(getUrl) {
-    return new RegExp(getUrl + '\\?timestamp=[0-9]+');
-  }
-
   beforeEach(module('OrganizationModule'));
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, OrganizationStore) {
     httpBackend = $httpBackend;
@@ -85,7 +77,7 @@ describe('OrganizationEditorController', function () {
 
     var organizationsData = OrganizationMockData.getGETResponse();
     mockOrganization = organizationsData[0];
-    httpBackend.whenGET(toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationsData);
+    httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationsData);
 
     scope = $rootScope.$new();
     state = $state;
@@ -149,7 +141,7 @@ describe('OrganizationEditorController', function () {
     scope.selectedOrganization.name = "newName";
     scope.generateIcon();
 
-    httpBackend.expectPUT(toRegExp(CLMAppLocations.getEntitiesUrl())).respond(mockOrganization);
+    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(mockOrganization);
 
     var hasFormData = window.FormData;
     window.FormData = false;
@@ -192,7 +184,7 @@ describe('OrganizationEditorController', function () {
     scope.selectedOrganization.name = 'name';
     scope.organizationEditor = {}
 
-    httpBackend.expectPOST(toRegExp(CLMLocations.getOrganizationsUrl()), {
+    httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl()), {
       id: null,
       name: 'name'
     }).respond(OrganizationMockData.getPOSTResponse('name'));

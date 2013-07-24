@@ -1,10 +1,6 @@
 var clmBuildTimestamp = '';
 
 describe('PolicyController tests', function() {
-    function toRegExp(getUrl) {
-        return new RegExp(getUrl + '\\?timestamp=[0-9]+');
-    }
-
     var scope;
 
 	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
@@ -31,11 +27,11 @@ describe('PolicyController tests', function() {
 
         $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-        $httpBackend.expectGET(toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
-        $httpBackend.expectGET(toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-        $httpBackend.expectGET(toRegExp(CLMAppLocations.getEntityUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
-		$httpBackend.whenGET(toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
-		$httpBackend.whenGET(toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getEntityUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
         // inject the controller
         scope = $rootScope.$new();
 

@@ -1,9 +1,6 @@
 describe('LabelController.js', function() {
 
   var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null};
-  function toRegExp(url) {
-    return new RegExp(url + '\\?timestamp=[0-9]+')
-  }
   var LabelMockData = {
     getLabels : function(){
       return [angular.copy(labelTemplate)]
@@ -98,7 +95,7 @@ describe('LabelController.js', function() {
     beforeEach(inject(function ($rootScope, $controller, $httpBackend, CLMAppLocations, $state) {
       scope = testScope;
       scope.alerts = [];
-      $httpBackend.whenGET(toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
       labelController = $controller('LabelController', {$scope: scope});
       labelEditController = $controller('LabelEditorController', {$scope: scope});
       $httpBackend.flush();

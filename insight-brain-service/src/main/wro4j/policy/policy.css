@@ -141,3 +141,9 @@ table.policy-actions>tbody>tr>td:nth-child(3):hover {
 table.policy-actions td:last-child {
 	border-right: 1px solid #ddd;
 }
+.condition-container {
+	min-height:120px;
+	max-height:120px;
+	overflow:auto;
+	margin-bottom:10px;
+}

@@ -42,7 +42,8 @@
 				</tr>
 			</table>
 			<div clm-alerts='alerts' class='policies'></div>
-			<div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.policies.length > 0'>
+			<!-- Note that i check for .editable in ng-show, this is because I ALWAYS want to show the section header for the app tests -->
+			<div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.editable || applicablePolicy.policies.length > 0'>
 				<div class="content-header">
 					<h4>
 						<span ng-switch='applicablePolicy.editable'>
@@ -55,7 +56,10 @@
                         </div>
                     </h4>
 				</div>
-				<div policy-items='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>
+				<div ng-switch='applicablePolicy.policies.length'>
+					<div ng-switch-when='0'><em style="margin-left:25px;">No policies available</em></div>
+					<div ng-switch-default policy-items='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>	
+				</div>				
 			</div>
 		</div>
 	</div>

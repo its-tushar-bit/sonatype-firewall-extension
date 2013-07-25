@@ -55,6 +55,20 @@ public class PolicyDAO
         this.workDir = workDir;
     }
 
+    public Policy getByOwnerIdAndPolicyId( String ownerId, String policyId )
+    {
+        List<Policy> policies = getByOwnerId( ownerId );
+        for ( Policy policy : policies )
+        {
+            if ( policy.getId().equals( policyId ) )
+            {
+                return policy;
+            }
+        }
+
+        return null;
+    }
+
     public List<Policy> getByOwnerId( final String ownerId )
     {
         final JsonStore store = policyStore( ownerId );

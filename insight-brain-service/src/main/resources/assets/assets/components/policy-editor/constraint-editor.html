@@ -22,7 +22,7 @@
 			</div>
 		</div>
 	</div>
-	<div>
+	<div ng-show='constraint.conditions.length > 1'>
 		<select ng-model="constraint.operator" ng-change="validateConstraint()"
 			ng-options="operator.value as operator.name for operator in constraintConditionChoices" required style='margin: 0'>
 			<option value="" ng-selected="constraint.operator == null">Any or All</option>

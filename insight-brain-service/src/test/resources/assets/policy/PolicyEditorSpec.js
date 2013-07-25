@@ -99,7 +99,7 @@ describe('PolicyEditor.js', function() {
 			    var policy = createNewPolicy();
 			    policy.name = 'testname';
 			    policy.constraints[0].name = 'constraintname';
-			    policy.constraints[0].operator = 'any';
+			    policy.constraints[0].operator = 'OR';
 			    return policy;
 			};
 			createScope.click();
@@ -176,8 +176,7 @@ describe('PolicyEditor.js', function() {
 		}
 		
         var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
-            notificationTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
-            constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/notification-manager/notification-manager.html"),
+            constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/constraint-editor.html"),
             parentScope = null,
             policyScope = null,
             scope = null;
@@ -189,7 +188,6 @@ describe('PolicyEditor.js', function() {
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
             $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
-            $httpBackend.whenGET("../assets/components/notification-manager/notification-manager.html?").respond(notificationTemplate);
             $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html").respond(constraintEditorTemplate);
 
             parentScope = testScope.$new();
@@ -247,7 +245,7 @@ describe('PolicyEditor.js', function() {
             scope.policy.constraints[0].name = 'name';
             validateValidation(scope,'You must select any or all of the conditions for constraint #1');
             
-            scope.policy.constraints[0].operator = 'any';
+            scope.policy.constraints[0].operator = 'OR';
             validateValidation(scope,'You must add at least one condition to constraint #1');
             
             scope.policy.constraints[0].conditions = [{}];
@@ -263,7 +261,7 @@ describe('PolicyEditor.js', function() {
             scope.policy.constraints[1].name = 'name';
             validateValidation(scope,'You must select any or all of the conditions for constraint #2');
             
-            scope.policy.constraints[1].operator = 'any';
+            scope.policy.constraints[1].operator = 'OR';
             validateValidation(scope,'You must add at least one condition to constraint #2');
             
             scope.policy.constraints[1].conditions = [{}];
@@ -612,7 +610,7 @@ describe('PolicyEditor.js', function() {
 		it('Default Values', inject(function (PolicyStore) {
 			var newPolicy = createNewPolicy();
 			expect(newPolicy.threatLevel).toEqual(5);
-			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : null }]);
+			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : 'OR' }]);
 		}));
 	});
 

@@ -15,7 +15,7 @@
 				template : function () {
 					var o = {
 						threatLevel : 5,
-						constraints : [{ conditions: [], operator: null }],
+						constraints : [{ conditions: [], operator: 'OR' }],
 						actions : {}
 					};
 					if (conditionTypes) {
@@ -185,7 +185,7 @@
 		    var constraint = { 
 		        id: '' + new Date().getTime(), 
 		        conditions: [], 
-		        operator: null 
+		        operator: 'OR' 
 		    };
 		    $scope.policy.constraints.push(constraint);
 		    $timeout(function(){
@@ -473,6 +473,11 @@
 		$scope.addCondition = function () {
 			var conditionType = $scope.conditionTypes['AgeInDays'];
 
+			//when switching from 1 -> 2 conditions, enable the operator field and force selection
+			if ($scope.constraint.conditions.length === 1) {
+			    $scope.constraint.operator = null;
+			}
+			
 			$scope.constraint.conditions.push({
 				conditionTypeId: conditionType.id,
 				operator: conditionType.supportedOperators[0]
@@ -481,6 +486,11 @@
 
 		$scope.removeCondition = function (conditionIndex) {
 			$scope.constraint.conditions.splice(conditionIndex, 1);
+			
+			//when switching from 2 -> 1 conditions, disable the operator field and default the selection
+			if ($scope.constraint.conditions.length === 1) {
+                $scope.constraint.operator = 'OR';
+            }
 		};
 
 		constraints.get().then(function (results) {

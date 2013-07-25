@@ -27,7 +27,7 @@
 								</div>
 							</div>
 						</div>
-						<div>
+						<div ng-show='constraint.conditions.length > 1'>
 							<select ng-model="constraint.operator"
 									ng-options="operator.value as operator.name for operator in constraintConditionChoices"
 									required style='magin:0'>

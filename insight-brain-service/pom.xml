@@ -431,7 +431,7 @@
         <extensions>true</extensions>
         <executions>
           <execution>
-            <id>${jasmine-brain-id}}</id>
+            <id>${jasmine-brain-id}</id>
             <phase>test</phase>
             <goals>
               <goal>test</goal>
@@ -463,7 +463,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>${jasmine-cip-id}}</id>
+            <id>${jasmine-cip-id}</id>
             <phase>test</phase>
             <goals>
               <goal>test</goal>

@@ -200,15 +200,15 @@ public class LabelDAO
             if ( app != null )
             {
                 final String message =
-                    String.format( "A label with name '%s' already exists in application(s) '%s'.",
-                                   label.getLabelLowercase(), app.getName() );
+                    String.format( "A label with name '%s' already exists in application '%s'.", otherLabel.getLabel(),
+                                   app.getName() );
                 throw new InvalidLabelException( message );
             }
 
             Organization org = orgDAO.getById( em, label.getOwnerId() );
             final String message =
-                String.format( "A label with name '%s' already exists in organization '%s'.",
-                               label.getLabelLowercase(), org.getName() );
+                String.format( "A label with name '%s' already exists in organization '%s'.", otherLabel.getLabel(),
+                               org.getName() );
             throw new InvalidLabelException( message );
         }
 
@@ -218,7 +218,7 @@ public class LabelDAO
         if ( !apps.isEmpty() )
         {
             final StringBuilder message = new StringBuilder();
-            message.append( "A label with name '" ).append( label.getLabelLowercase() ).append( "' already exists in application(s)" );
+            message.append( "A label with name '" ).append( label.getLabel() ).append( "' already exists in application(s)" );
             for ( Application app : apps )
             {
                 message.append( " '" ).append( app.getName() ).append( '\'' );
@@ -231,12 +231,13 @@ public class LabelDAO
         final Application app = appDAO.getById( em, label.getOwnerId() );
         if ( app != null && app.getOrganizationId() != null )
         {
-            if ( getByOwnerIdAndLowercaseLabel( em, app.getOrganizationId(), label.getLabelLowercase(), false ) != null )
+            otherLabel = getByOwnerIdAndLowercaseLabel( em, app.getOrganizationId(), label.getLabelLowercase(), false );
+            if ( otherLabel != null )
             {
                 final Organization org = orgDAO.getById( em, app.getOrganizationId() );
                 final String message =
                     String.format( "A label with name '%s' already exists in organization '%s'.",
-                                   label.getLabelLowercase(), org.getName() );
+                                   otherLabel.getLabel(), org.getName() );
                 throw new InvalidLabelException( message );
             }
         }

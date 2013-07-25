@@ -86,4 +86,31 @@ describe('Configuration', function () {
             expect(scope.error).toEqual('Error: 500 A Random Error');
         }));
     });
+
+    describe('Validate', function () {
+        it('Good Inputs', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
+            scope = $rootScope.$new();
+            $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
+            controller = $controller('ProprietaryConfigurationController', { $scope : scope });
+            $httpBackend.flush();
+
+            expect(scope.validatePackage('com.sonatype')).toEqual(true);
+            expect(scope.validatePackage('com.sona*')).toEqual(true);
+            expect(scope.validatePackage('*.sonatype')).toEqual(true);
+        }));
+
+        it('Bad Inputs', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
+            scope = $rootScope.$new();
+            $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
+            controller = $controller('ProprietaryConfigurationController', { $scope : scope });
+            $httpBackend.flush();
+
+            expect(scope.validatePackage('com sonatype')).toEqual(false);
+            expect(scope.validatePackage('com/sonatype')).toEqual(false);
+            expect(scope.validatePackage('com.sonatype.')).toEqual(false);
+            expect(scope.validatePackage('.com.sonatype')).toEqual(false);
+            expect(scope.validatePackage('com.sonatype.*')).toEqual(false);
+            expect(scope.validatePackage('com.sonatype.**')).toEqual(false);
+        }));
+    });
 });

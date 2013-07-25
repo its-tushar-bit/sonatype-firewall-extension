@@ -74,7 +74,7 @@
     }]);
 
     module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
-        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$'); 
+        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*([^ /.*]|[^ /.*]\\*)$'); 
 
         $scope.doLoad = function () {
             $http.get(clmLocations.getProprietaryConfig(), { params : { "ts" : new Date().getTime() } }).success(function (data) {

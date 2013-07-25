@@ -177,6 +177,7 @@ describe('PolicyEditor.js', function() {
 		
         var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
             constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/constraint-editor.html"),
+            conditionEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/condition-editor.html"),
             parentScope = null,
             policyScope = null,
             scope = null;
@@ -189,6 +190,7 @@ describe('PolicyEditor.js', function() {
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
             $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
             $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html").respond(constraintEditorTemplate);
+            $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html").respond(conditionEditorTemplate);
 
             parentScope = testScope.$new();
             parentScope.policyEditMap = {};

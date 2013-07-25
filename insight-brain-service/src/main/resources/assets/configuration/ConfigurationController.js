@@ -108,7 +108,7 @@
         };
 
         $scope.validatePackage = function (value) {
-            return PACKAGE_REGEXP.test(value);
+            return PACKAGE_REGEXP.test(value) ? null : 'Invalid package prefix, enter e.g. com.mycompany';
         };
 
         $scope.doLoad();

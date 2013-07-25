@@ -47,7 +47,8 @@
 			link : function (scope, elm, attrs, ctrl) {
 				var validate = function(newValue) {
 					var unique = angular.isArray(scope.entries) && scope.entries.indexOf(newValue) === -1,
-						validInput = typeof scope.validator === "function" ? scope.validator(newValue) : true;
+						validation = typeof scope.validator === "function" ? scope.validator(newValue) : true,
+						validInput = typeof validation === "string" ? false : validation != false;
 	
 					ctrl.$setValidity('unique', unique);
 					ctrl.$setValidity('validInput', validInput);
@@ -56,7 +57,7 @@
 						if (!unique) {
 							scope.setError('Enter a unique value');
 						} else if (!validInput) {
-							scope.setError('Invalid ' + scope.placeHolder);
+							scope.setError(typeof validation === "string" ? validation : 'Invalid ' + scope.placeHolder);
 						} else {
 							scope.setError(null);
 						}

@@ -1,67 +1,54 @@
-  <div ng-controller='LicenseThreatGroupEditorController'>
-    <form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
-        <div class='modal-body'>
-            <div class='control-group halfSize floatLeft'
-                 ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty ||
-                  licenseGroupEditor.name.$error.alphaNumeric || licenseGroupEditor.name.$error.spaces}'>
-                <label class='control-label' for='licenseGroupEditorName'>Name:</label>
-
-                <div class='controls'>
-                    <input id='licenseGroupEditorName' name='name' type='text'
-                           class='input' maxlength='60' ng-model='selectedGroup.name'
-                           required alpha-numeric is-Duplicate is-Duplicate-Array='licenseGroups' is-Duplicate-Id-Field='name'
-                           placeholder="Enter name">
-                  <div>
-                    <span ng-show="licenseGroupEditor.name.$error.required" class="help-inline">Name is required</span>
-                    <span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
-                    <span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>
-                    <span ng-show="licenseGroupEditor.name.$error.spaces" class="help-inline">No leading, trailing or double spaces or tabs<br/>Suggested name: {{suggestedName}}
-                    </span>
-                  </div>
-                </div>
-            </div>
-            <div class='control-group halfSize floatRight'>
-                <label class='control-label'>Threat Level:</label>
-                <div class='controls'>
-                    <span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
-                </div>
-            </div>
-            <div class='control-group floatLeft'>
-                <div class='input-prepend fullWidthPrependedTextBox'>
-                    <span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}"
-                                            ng-click="licenseSearch = ''"></i></span>
-                    <input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-down='searchEnter()'
-                           prevent-submit/>
-                </div>
-                <div class='selectList'>
-                    <h5>Applied Licenses</h5>
-                    <div>
-                        <div>
-                            <div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'
-                                 ng-click='removeLicense(l)' class='licenseSelectListItem'>
-                                <i class='icon-minus-sign'></i>&nbsp;<span
-                                    title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='selectList'>
-                    <h5>Available Licenses</h5>
-                    <div>
-                        <div>
-                            <div ng-repeat='l in allLicenses | filterLicenses: { groupLicenses: selectedGroupLicenses, searchLicense: licenseSearch } | orderBy: "shortDisplayName"'
-                            		 ng-click='addLicense(l)' class='licenseSelectListItem'>
-                                <i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div clm-alerts='alerts'></div>
-        <div class='modal-footer'>
-            <button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-            <button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-        </div>
-    </form>
+<div>
+	<div class='control-group halfSize floatLeft'
+			ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty ||
+			licenseGroupEditor.name.$error.alphaNumeric || licenseGroupEditor.name.$error.spaces}'>
+		<label class='control-label' for='licenseGroupEditorName'>Name:</label>
+		<div class='controls'>
+			<input id='licenseGroupEditorName' name='name' type='text'
+				class='input' maxlength='60' ng-model='selectedGroup.name'
+				required alpha-numeric is-Duplicate is-Duplicate-Array='licenseGroups' is-Duplicate-Id-Field='name'
+				placeholder="Enter name">
+		 <div>
+			<span ng-show="licenseGroupEditor.name.$error.required" class="help-inline">Name is required</span>
+			<span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
+			<span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>
+			<span ng-show="licenseGroupEditor.name.$error.spaces" class="help-inline">No leading, trailing or double spaces or tabs<br/>Suggested name: {{suggestedName}}
+			</span>
+		 </div>
+		</div>
+	</div>
+	<div class='control-group halfSize floatRight'>
+		<label class='control-label'>Threat Level:</label>
+		<div class='controls'>
+			<span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
+		</div>
+	</div>
+	<div class='control-group floatLeft'>
+		<div class='input-prepend fullWidthPrependedTextBox'>
+			<span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
+			<input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit/>
+		</div>
+		<div class='selectList'>
+			<h5>Applied Licenses</h5>
+			<div>
+				<div>
+					<div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'
+						ng-click='removeLicense(l)' class='licenseSelectListItem'>
+						<i class='icon-minus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='selectList'>
+			<h5>Available Licenses</h5>
+			<div>
+				<div>
+					<div ng-repeat='l in allLicenses | filterLicenses: { groupLicenses: selectedGroupLicenses, searchLicense: licenseSearch } | orderBy: "shortDisplayName"'
+							ng-click='addLicense(l)' class='licenseSelectListItem'>
+						<i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

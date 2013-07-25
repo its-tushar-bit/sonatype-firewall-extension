@@ -153,6 +153,7 @@ a {
     padding: 2px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    background-color:white;
 }
 
 .selectList > div > div {

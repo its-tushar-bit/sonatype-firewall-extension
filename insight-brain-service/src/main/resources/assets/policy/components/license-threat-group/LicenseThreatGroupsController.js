@@ -378,4 +378,26 @@
       }
     };
   });
+
+	licenseGroupModule.directive('ltgCreator', ['$q', 'licenseGroupStore', 'licenseStore', function ($q, licenseGroupStore, licenseStore) {
+		return {
+			restrict : 'A',
+			templateUrl : 'ltgcreator',
+			scope : {},
+			link : function (scope, element, attrs) {
+				scope.createNew = function () {
+					scope.selectedGroup = licenseGroupStore.create();
+				};
+				$q.all([licenseGroupStore.get(), licenseStore.get()]).then(function (results) {
+					scope.licenseGroups = results[0];
+					scope.allLicenses = results[1];
+				}, function () {});
+				scope.$on('license.cancelLicenseGroupEdit', function (e) {
+					e.stopPropagation();
+					// TODO confirmation
+					scope.selectedGroup = null;
+				});
+			}
+		};
+	}]);
 }());

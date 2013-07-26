@@ -47,5 +47,14 @@ LicenseGroupMockData = {
 			    "licenseThreatGroupId":"6a45d92848a9462497554939263458ba",
 			    "licenseId":"AFL-UNSPECIFIED"
 			}];
+		},
+		getApplicableLicenseGroupData : function() {
+			return {
+				licenseThreatGroupsByOwner: [{
+					ownerId : "78c1d44c07584e57945f04890c672e82",
+					ownerName: "applicationName",
+					ownerType : "application"
+				}]
+			};
 		}
 };

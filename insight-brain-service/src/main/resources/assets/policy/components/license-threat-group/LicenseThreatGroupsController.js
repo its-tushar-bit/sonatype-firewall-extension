@@ -49,6 +49,13 @@
       },
       create: function () {
         return licenseGroupStore.create();
+      },
+      store: function (ownerId, ownerType) {
+        var licenseGroupStore = licenseGroupStores[ownerId];
+        if (!licenseGroupStore) {
+          licenseGroupStore = licenseGroupStores[ownerId] = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLicenseGroupsUrl(ownerId, ownerType) }, licenseGroupStoreTemplate));
+        }
+        return licenseGroupStore;
       }
     };
   }]);
@@ -91,17 +98,35 @@
 
     $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
     $scope.allLicenses = null;
-    $scope.allExpanded = false;
+    $scope.allExpanded = {};
 
     $scope.doLoad = function () {
       $scope.error = null;
+      var promises = [licenseStore.get(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
+          params: { timestamp: new Date().getTime() }
+      })];
 
-      $q.all([licenseStore.get(), licenseGroupStore.get()]).then(function (results) {
+      $q.all(promises).then(function (results) {
         var licenses = results[0];
-        var licenseGroups = results[1];
 
         $scope.allLicenses = licenses.sort(sortLicense);
-        $scope.licenseGroups = licenseGroups;
+        $scope.applicableLicenseGroups = results[1].data.licenseThreatGroupsByOwner;
+        promises = [];
+        angular.forEach($scope.applicableLicenseGroups, function (applicableLicenseGroup, index) {
+          applicableLicenseGroup.editable = index === 0;
+          if (index === 0) {
+            promises.push(licenseGroupStore.get());
+          } else {
+            promises.push(licenseGroupStore.store(applicableLicenseGroup.ownerId, applicableLicenseGroup.ownerType).get());
+          }
+        });
+        $q.all(promises).then(function (results) {
+          angular.forEach(results, function (licenseGroups, index) {
+            $scope.applicableLicenseGroups[index].licenseThreatGroups = licenseGroups;
+          });
+        }, function (errors) {
+          $scope.error = angular.isArray(errors) ? errors[0] : errors;
+        });
       }, function (errors) {
         $scope.error = angular.isArray(errors) ? errors[0] : errors;
       });
@@ -173,10 +198,14 @@
       angular.extend(licenseThreatGroup, original);
     };
 
-    $scope.toggleAll = function () {
-      var action = $scope.allExpanded ? 'hide' : 'show';
-      angular.element('.accordion-body').collapse(action);
-      $scope.allExpanded = !$scope.allExpanded;
+    $scope.toggleAll = function (applicableLicenseGroup) {
+      var action = $scope.allExpanded[applicableLicenseGroup.ownerId] ? 'hide' : 'show';
+      $('#' + applicableLicenseGroup.ownerId).find('.accordion-body').collapse(action);
+      $scope.allExpanded[applicableLicenseGroup.ownerId] = !($scope.allExpanded[applicableLicenseGroup.ownerId] || false);
+    };
+
+    $scope.isExpanded = function(applicableLicenseGroup) {
+      return $scope.allExpanded[applicableLicenseGroup.ownerId] || false;
     };
 
     $scope.confirmDeleteLicenseGroup = function (group) {

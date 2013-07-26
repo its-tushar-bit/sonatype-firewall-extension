@@ -29,14 +29,12 @@
 
 	var policyViolationApp = angular.module('PolicyViolations', ['Hudson']);
 
-	policyViolationApp.controller('PolicyViolationsController', [ 'hudson', '$http', '$scope', '$timeout', 'PolicyViolationData', function(hudson, $http, $scope, $timeout, policyViolationData) {
+	policyViolationApp.controller('PolicyViolationsController', [ 'hudson', '$http', '$scope', '$timeout', 'PolicyViolationData', 'Messages', function(hudson, $http, $scope, $timeout, policyViolationData, messages) {
 		function errorFn(data, status, headersFn, config) {
-			var header = headersFn();
-			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-				$scope.errorResponse = 'Server Error';
-			} else {
-				$scope.errorResponse = data;
-			}
+		    $scope.alerts.push({
+                type : 'error',
+                msg : messages.getHttpErrorMessage({ status: status,  data: data })
+            });
 		}
 
 		function startIfReady() {
@@ -118,7 +116,6 @@
 		
 		//user really wants to waive the component, so send the request on down
 		$scope.acceptWaiveComponent = function() {
-            $('#componentWaiverModal').modal('hide');
             var parts = $scope.waiverSelectedOwner.split('$$');
             var data = {
                 hash : policyViolationData.hash,
@@ -126,9 +123,13 @@
                 comment : $scope.waiverComment
             };
 		    hudson.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0], data).success(function(responseData){
-		        //TODO: show anything on success?
-		    }).error(errorFn);		    
+		        $('#componentWaiverModal').modal('hide');
+		    }).error(function(data, status, headersFn, config){
+		        $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status,  data: data });
+		    });		    
 		}
+		
+		$scope.alerts = [];
 
 		$http.get('policyalerts.json', {
 			params : {

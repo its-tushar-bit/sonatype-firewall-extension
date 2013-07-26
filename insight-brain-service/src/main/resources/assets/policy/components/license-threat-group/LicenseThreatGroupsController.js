@@ -96,15 +96,17 @@
       $scope.selectedGroup = null;
     }
 
-    $scope.editorUrl = '../policy-assets/components/license-threat-group/license-threat-group-editor.html?' + clmBuildTimestamp;
     $scope.allLicenses = null;
     $scope.allExpanded = {};
 
     $scope.doLoad = function () {
-      $scope.error = null;
       var promises = [licenseStore.get(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
           params: { timestamp: new Date().getTime() }
       })];
+      if ($scope.error) {
+        $scope.error = null;
+        $scope.$broadcast('reload');
+      }
 
       $q.all(promises).then(function (results) {
         var licenses = results[0];
@@ -417,14 +419,24 @@
 				scope.createNew = function () {
 					scope.selectedGroup = licenseGroupStore.create();
 				};
-				$q.all([licenseGroupStore.get(), licenseStore.get()]).then(function (results) {
-					scope.licenseGroups = results[0];
-					scope.allLicenses = results[1];
-				}, function () {});
+				function load() {
+					scope.licenseGroups = null;
+					scope.allLicenses = null;
+					$q.all([licenseGroupStore.get(), licenseStore.get()]).then(function (results) {
+						scope.licenseGroups = results[0];
+						scope.allLicenses = results[1];
+					}, function () {
+						/* Errors are handled above this point */
+					});
+				}
+				load();
 				scope.$on('license.cancelLicenseGroupEdit', function (e) {
 					e.stopPropagation();
 					// TODO confirmation
 					scope.selectedGroup = null;
+				});
+				scope.$on('reload', function () {
+					load();
 				});
 			}
 		};

@@ -72,6 +72,9 @@ public class LabelResource
     }
 
     /**
+     * Returns all the labels associated with an ownerId. The labels are grouped by ownerId and the owner name and type
+     * are returned.
+     *
      * @since 1.6
      */
     @GET

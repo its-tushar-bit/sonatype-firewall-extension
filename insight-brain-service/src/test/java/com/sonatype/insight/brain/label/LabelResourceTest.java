@@ -239,6 +239,9 @@ public class LabelResourceTest
         Assert.assertEquals( 0, labels.length );
     }
 
+    /**
+     * Tests for {@link LabelResource#getApplicableLabels(java.lang.String, java.lang.String)}.
+     */
     @Test
     public void testGetApplicableLabels()
         throws Exception

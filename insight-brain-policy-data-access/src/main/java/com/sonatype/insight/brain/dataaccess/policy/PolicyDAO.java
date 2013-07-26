@@ -240,7 +240,6 @@ public class PolicyDAO
                     return;
                 }
             }
-            // TODO Throw an exception if the policy does not exist
         }
         catch ( final IOException e )
         {

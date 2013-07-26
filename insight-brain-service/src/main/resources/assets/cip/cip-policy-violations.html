@@ -5,7 +5,8 @@
 					Policy/<i>Action</i>
 				</div></th>
 			<th class="cip-policy-table-header"><div>Constraint</div></th>
-			<th class="cip-policy-table-header-last"><div>Condition Value</div></th>
+			<th class="cip-policy-table-header"><div>Condition Value</div></th>
+			<th class="cip-policy-table-header-last"><div>Actions</div></th>
 		</thead>
 		<tr ng-repeat="policyAlert in processedPolicyAlerts">
 			<td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{policyAlert.color}}">
@@ -30,6 +31,9 @@
 				<div ng-repeat="constraint in policyAlert.constraints">
 					<div ng-repeat="conditionFact in constraint.conditionFacts" style="color: #555555;">{{conditionFact.reason}}</div>
 				</div>
+			</td>
+			<td>
+				<button type='none' class='btn btn-primary' ng-click='waiveComponent()'>Waive</button>
 			</td>
 		</tr>
 	</table>

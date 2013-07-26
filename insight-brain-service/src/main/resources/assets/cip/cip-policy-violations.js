@@ -75,6 +75,16 @@
 				});
 			}
 		}
+		
+		$scope.waiveComponent = function() {
+		    //TODO: send request to server to retrieve the waiver context, effectively the list of orgs/apps you can assign the waiver too
+		    //rest/waiver/application/{applicationPublicId}/applicable/context/{policyId}
+		    //TODO: show modal which will ask for some data, and send it to the server, following data required
+		    //policyViolationData.hash
+		    //app or org as entered in modal
+		    //comment entered in modal
+		    //rest url to come
+		}
 
 		$http.get('policyalerts.json', {
 			params : {

@@ -240,18 +240,16 @@ public class LabelResourceTest
     }
 
     @Test
-    public void testGetApplicablePolicies()
+    public void testGetApplicableLabels()
         throws Exception
     {
         // Create an organization and an application
         String orgName = "testGetApplicableLabelsOrg";
-        String orgId = createOrganization( orgName ).getId();
+        Organization organization = createOrganization( orgName );
+        String orgId = organization.getId();
         String appName = "testGetApplicableLabelsApp";
-        String appPublicId = appName;
-        Application app = new Application( appPublicId, appName, orgId );
-        ApplicationDAO appDAO = new ApplicationDAO();
-        appDAO.insert( app );
-        applicationsToDelete.add( app );
+        String appPublicId = "testGetApplicableLabelsApp";
+        Application app = super.createApplication(appPublicId, appPublicId, organization);
         String appId = app.getId();
 
         // Verify the applicable labels for the application

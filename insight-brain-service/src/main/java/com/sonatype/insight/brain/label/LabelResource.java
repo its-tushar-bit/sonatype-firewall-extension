@@ -72,7 +72,7 @@ public class LabelResource
     }
 
     /**
-     * @since 1.7
+     * @since 1.6
      */
     @GET
     @Produces( { MediaType.APPLICATION_JSON } )

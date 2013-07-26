@@ -274,10 +274,20 @@ public abstract class AbstractBrainServiceTest
         return createApplication( publicId, name, createLicenseThreatGroups, true );
     }
 
+    protected Application createApplication( String publicId, String name, Organization organization )
+    {
+        return createApplication( publicId, name, true, false, organization );
+    }
+
     protected Application createApplication( String publicId, String name, boolean createLicenseThreatGroups,
                                              boolean withOrg )
     {
-        Organization organization = null;
+        return createApplication( publicId, name, createLicenseThreatGroups, withOrg, null );
+    }
+
+    protected Application createApplication( String publicId, String name, boolean createLicenseThreatGroups,
+                                             boolean withOrg, Organization organization )
+    {
         if ( withOrg )
         {
             organization = createOrganization( name, createLicenseThreatGroups );
@@ -287,7 +297,7 @@ public abstract class AbstractBrainServiceTest
         Application application = new Application();
         application.setPublicId( publicId );
         application.setName( name );
-        application.setOrganizationId( withOrg ? organization.getId() : null );
+        application.setOrganizationId( organization != null ? organization.getId() : null );
         applicationDAO.insert( application );
         applicationsToDelete.add( application );
         return application;

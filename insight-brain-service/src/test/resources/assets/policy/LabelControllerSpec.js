@@ -128,8 +128,8 @@ describe('LabelController.js', function() {
     beforeEach(inject(function ($rootScope, $controller, $httpBackend, CLMAppLocations, $state) {
       scope = testScope;
       scope.alerts = [];
-      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabels())).respond(LabelMockData.getLabels());
-      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabelsUrl());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabels());
       labelController = $controller('LabelController', {$scope: scope});
       labelEditController = $controller('LabelEditorController', {$scope: scope});
       $httpBackend.flush();
@@ -163,7 +163,7 @@ describe('LabelController.js', function() {
     });
 
     it('Can edit a label with or without an id', function(){
-      scope.editLabel();
+      scope.editLabel(true);
       expect(scope.selectedLabel).toEqual(labelTemplate);
     });
 

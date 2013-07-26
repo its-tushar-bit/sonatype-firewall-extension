@@ -4,6 +4,39 @@ describe('LabelController.js', function() {
   var LabelMockData = {
     getLabels : function(){
       return [angular.copy(labelTemplate)]
+    },
+    getApplicableLabels : function() {
+      return {
+        "labelsByOwner":[
+          {
+            "ownerId":"appownerid",
+            "ownerName":"appname",
+            "ownerType":"application",
+            "labels":[
+              {
+                "id":"applabelid",
+                "ownerId":"appownerid",
+                "label":"AppLabel",
+                "labelLowercase":"applabel",
+                "color":"red"
+              }
+            ]
+          },
+          {
+            "ownerId":"orgownerid",
+            "ownerName":"orgname",
+            "ownerType":"organization",
+            "labels":[
+              {
+                "id":"orglabelid",
+                "ownerId":"orgownerid",
+                "label":"OrgLabel",
+                "labelLowercase":"orglabel",
+                "color":"red"
+              }
+            ]
+          }]
+      };
     }
   }
   //var LabelStore = {
@@ -95,7 +128,8 @@ describe('LabelController.js', function() {
     beforeEach(inject(function ($rootScope, $controller, $httpBackend, CLMAppLocations, $state) {
       scope = testScope;
       scope.alerts = [];
-      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabels())).respond(LabelMockData.getLabels());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabelsUrl());
       labelController = $controller('LabelController', {$scope: scope});
       labelEditController = $controller('LabelEditorController', {$scope: scope});
       $httpBackend.flush();

@@ -14,6 +14,9 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
+import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
@@ -33,6 +36,9 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class LabelResourceTest
     extends AbstractResourceTest
 {
+    private static final String APP = "application";
+
+    private static final String ORG = "organization";
 
     @Test
     public void testDeleteLabel_UsedInPolicyCondition()
@@ -184,7 +190,7 @@ public class LabelResourceTest
         Organization organization = createOrganization( orgName );
 
         // Get all labels
-        Response response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        Response response = RestAccess.get( getServiceURL( ORG, organization.getId() ) );
         assertResponseStatus( 200, response );
         Label[] labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -193,13 +199,13 @@ public class LabelResourceTest
         // Add a label
         Label label = new Label();
         label.setLabel( "MyLabel" );
-        response = RestAccess.post( getServiceURL( "organization", organization.getId() ), JsonHelpers.asJson( label ) );
+        response = RestAccess.post( getServiceURL( ORG, organization.getId() ), JsonHelpers.asJson( label ) );
         assertResponseStatus( 200, response );
         label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
         assertLabel( organization.getId(), "MyLabel", null /* color */, label );
 
         // Get all labels
-        response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        response = RestAccess.get( getServiceURL( ORG, organization.getId() ) );
         assertResponseStatus( 200, response );
         labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -208,13 +214,13 @@ public class LabelResourceTest
 
         // Update a label
         label.setLabel( "MyUpdatedLabel" );
-        response = RestAccess.put( getServiceURL( "organization", organization.getId() ), JsonHelpers.asJson( label ) );
+        response = RestAccess.put( getServiceURL( ORG, organization.getId() ), JsonHelpers.asJson( label ) );
         assertResponseStatus( 200, response );
         label = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
         assertLabel( organization.getId(), "MyUpdatedLabel", null /* color */, label );
 
         // Get all labels
-        response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        response = RestAccess.get( getServiceURL( ORG, organization.getId() ) );
         assertResponseStatus( 200, response );
         labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
@@ -222,15 +228,101 @@ public class LabelResourceTest
         assertLabel( organization.getId(), "MyUpdatedLabel", null /* color */, labels[0] );
 
         // Delete a label
-        response = RestAccess.delete( getServiceURL( "organization", organization.getId() ) + "/" + label.getId() );
+        response = RestAccess.delete( getServiceURL( ORG, organization.getId() ) + "/" + label.getId() );
         assertResponseStatus( 204, response );
 
         // Get all labels
-        response = RestAccess.get( getServiceURL( "organization", organization.getId() ) );
+        response = RestAccess.get( getServiceURL( ORG, organization.getId() ) );
         assertResponseStatus( 200, response );
         labels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
         Assert.assertNotNull( labels );
         Assert.assertEquals( 0, labels.length );
+    }
+
+    @Test
+    public void testGetApplicablePolicies()
+        throws Exception
+    {
+        // Create an organization and an application
+        String orgName = "testGetApplicableLabelsOrg";
+        String orgId = createOrganization( orgName ).getId();
+        String appName = "testGetApplicableLabelsApp";
+        String appPublicId = appName;
+        Application app = new Application( appPublicId, appName, orgId );
+        ApplicationDAO appDAO = new ApplicationDAO();
+        appDAO.insert( app );
+        applicationsToDelete.add( app );
+        String appId = app.getId();
+
+        // Verify the applicable labels for the application
+        Response response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        assertResponseStatus( 200, response );
+        ApplicableLabels applicableLabels = JsonHelpers.fromJson( response.getResponseBody(), ApplicableLabels.class );
+        Assert.assertNotNull( applicableLabels );
+        Assert.assertEquals( 2, applicableLabels.labelsByOwner.size() );
+        assertLabelsByOwner( appId, appName, "application", 0, applicableLabels.labelsByOwner.get( 0 ) );
+        assertLabelsByOwner( orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get( 1 ) );
+
+        // Verify the applicable labels for the organization
+        response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicableLabels = JsonHelpers.fromJson( response.getResponseBody(), ApplicableLabels.class );
+        Assert.assertNotNull( applicableLabels );
+        Assert.assertEquals( 1, applicableLabels.labelsByOwner.size() );
+        assertLabelsByOwner( orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get( 0 ) );
+
+        // Create a label for the application
+        Label appLabel = new Label();
+        appLabel.setLabel( "testGetApplicableLabels_App_label" );
+        response = RestAccess.post( getServiceURL( APP, appPublicId ), JsonHelpers.asJson( appLabel ) );
+        assertResponseStatus( 200, response );
+        appLabel = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
+
+        // Verify the applicable labels for the application
+        response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicableLabels = JsonHelpers.fromJson( response.getResponseBody(), ApplicableLabels.class );
+        Assert.assertNotNull( applicableLabels );
+        Assert.assertEquals( 2, applicableLabels.labelsByOwner.size() );
+        assertLabelsByOwner( appId, appName, "application", 1, applicableLabels.labelsByOwner.get( 0 ) );
+        assertLabelsByOwner( orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get( 1 ) );
+        Assert.assertEquals( appLabel.getId(), applicableLabels.labelsByOwner.get( 0 ).labels.get( 0 ).getId() );
+
+        // Verify the applicable labels for the organization
+        response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicableLabels = JsonHelpers.fromJson( response.getResponseBody(), ApplicableLabels.class );
+        Assert.assertNotNull( applicableLabels );
+        Assert.assertEquals( 1, applicableLabels.labelsByOwner.size() );
+        assertLabelsByOwner( orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get( 0 ) );
+
+        // Create a label for the organization
+        Label orgLabel = new Label();
+        orgLabel.setLabel( "testGetApplicableLabels_Org_label" );
+        response = RestAccess.post( getServiceURL( ORG, orgId ), JsonHelpers.asJson( orgLabel ) );
+        assertResponseStatus( 200, response );
+        orgLabel = JsonHelpers.fromJson( response.getResponseBody(), Label.class );
+
+        // Verify the applicable labels for the application
+        response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicableLabels = JsonHelpers.fromJson( response.getResponseBody(), ApplicableLabels.class );
+        Assert.assertNotNull( applicableLabels );
+        Assert.assertEquals( 2, applicableLabels.labelsByOwner.size() );
+        assertLabelsByOwner( appId, appName, "application", 1, applicableLabels.labelsByOwner.get( 0 ) );
+        assertLabelsByOwner( orgId, orgName, "organization", 1, applicableLabels.labelsByOwner.get( 1 ) );
+        Assert.assertEquals( appLabel.getId(), applicableLabels.labelsByOwner.get( 0 ).labels.get( 0 ).getId() );
+        Assert.assertEquals( orgLabel.getId(), applicableLabels.labelsByOwner.get( 1 ).labels.get( 0 ).getId() );
+
+        // Verify the applicable labels for the organization
+        response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
+        assertResponseStatus( 200, response );
+        applicableLabels = JsonHelpers.fromJson( response.getResponseBody(), ApplicableLabels.class );
+        Assert.assertNotNull( applicableLabels );
+        Assert.assertEquals( 1, applicableLabels.labelsByOwner.size() );
+        assertLabelsByOwner( orgId, orgName, "organization", 1, applicableLabels.labelsByOwner.get( 0 ) );
+        Assert.assertEquals( orgLabel.getId(), applicableLabels.labelsByOwner.get( 0 ).labels.get( 0 ).getId() );
     }
 
     private void assertLabel( String ownerId, String label, Color color, Label actual )
@@ -241,9 +333,18 @@ public class LabelResourceTest
         Assert.assertEquals( color, actual.getColor() );
     }
 
+    private void assertLabelsByOwner( String ownerId, String ownerName, String ownerType, int labelsCount,
+                                        LabelsByOwner actual )
+    {
+        Assert.assertEquals( ownerId, actual.ownerId );
+        Assert.assertEquals( ownerName, actual.ownerName );
+        Assert.assertEquals( ownerType, actual.ownerType );
+        Assert.assertEquals( labelsCount, actual.labels.size() );
+    }
+
     private String getServiceURLForApplication( final String appId )
     {
-        return getServiceURL( "application", appId );
+        return getServiceURL( APP, appId );
     }
 
     private String getServiceURL( final String ownerType, final String ownerId )

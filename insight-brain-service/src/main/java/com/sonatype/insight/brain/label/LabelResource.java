@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Named;
@@ -21,8 +22,15 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -40,6 +48,8 @@ public class LabelResource
     public static final String SERVICE_BASEPATH = "rest/label/";
 
     public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
+
+    private static final Logger log = LoggerFactory.getLogger( LabelResource.class );
 
     @Context
     private InsightWork work;
@@ -59,6 +69,52 @@ public class LabelResource
         ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         return labelDAO.getByOwnerId( ownerId, inherit );
+    }
+
+    /**
+     * @since 1.7
+     */
+    @GET
+    @Produces( { MediaType.APPLICATION_JSON } )
+    @Path( "applicable" )
+    public ApplicableLabels getApplicableLabels( @PathParam( "ownerType" ) String ownerType,
+                                                       @PathParam( "ownerId" ) String ownerId )
+    {
+        log.debug( "Received request to get all applicable labels for {} id {}", ownerType, ownerId );
+
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+
+        ApplicableLabels result = new ApplicableLabels();
+
+        result.labelsByOwner = new ArrayList<LabelsByOwner>();
+        String organizationId;
+        if ( "application".equals( ownerType ) )
+        {
+            Application application = new ApplicationDAO().getByIdNotNull( internalOwnerId );
+            LabelsByOwner labelsByOwner = new LabelsByOwner();
+            labelsByOwner.ownerId = application.getId();
+            labelsByOwner.ownerName = application.getName();
+            labelsByOwner.ownerType = "application";
+            labelsByOwner.labels = labelDAO.getByOwnerId( application.getId() );
+            result.labelsByOwner.add( labelsByOwner );
+            organizationId = application.getOrganizationId();
+        }
+        else
+        {
+            organizationId = internalOwnerId;
+        }
+        if ( organizationId != null )
+        {
+            Organization organization = new OrganizationDAO().getByIdNotNull( organizationId );
+            LabelsByOwner labelsByOwner = new LabelsByOwner();
+            labelsByOwner.ownerId = organization.getId();
+            labelsByOwner.ownerName = organization.getName();
+            labelsByOwner.ownerType = "organization";
+            labelsByOwner.labels = labelDAO.getByOwnerId( organization.getId() );
+            result.labelsByOwner.add( labelsByOwner );
+        }
+
+        return result;
     }
 
     /**
@@ -140,5 +196,21 @@ public class LabelResource
         }
 
         labelDAO.delete( label );
+    }
+
+    public static class ApplicableLabels
+    {
+        public List<LabelsByOwner> labelsByOwner;
+    }
+
+    public static class LabelsByOwner
+    {
+        public String ownerId;
+
+        public String ownerName;
+
+        public String ownerType;
+
+        public List<Label> labels;
     }
 }

@@ -15,7 +15,7 @@
 				node.empty();
 				container.appendTo(node);
 
-				angular.module('labelEditor' + timestamp, ['ui.bootstrap']).service('ComponentLabelEditorGAV', function () {
+				angular.module('labelEditor' + timestamp, []).service('ComponentLabelEditorGAV', function () {
 					return {
 						applicationId : applicationId,
 						hash : hash

@@ -32,6 +32,7 @@ CREATE TABLE label (
   label varchar(50) NOT NULL,
   label_lowercase varchar(50) NOT NULL,
   color varchar(20) NULL,
+  description varchar(255) NULL,
   CONSTRAINT label_pk PRIMARY KEY (label_id),
   CONSTRAINT label_uk UNIQUE KEY (owner_id, label_lowercase)
 );

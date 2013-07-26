@@ -24,6 +24,8 @@
     <angularjs.version>1.0.7</angularjs.version>
     <jasmine.version>1.3.1.2</jasmine.version>
     <saga.version>1.4.2</saga.version>
+    <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
+    <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
   </properties>
 
   <dependencies>
@@ -429,30 +431,65 @@
         <extensions>true</extensions>
         <executions>
           <execution>
-            <id>test-policy-assets</id>
+            <id>${jasmine.brain.id}</id>
             <phase>test</phase>
             <goals>
               <goal>test</goal>
             </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>assets/lib/jquery/jquery-*.min.js</include>
+                <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
+                <include>assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
+                <include>assets/lib/X-editable/bootstrap-editable.min.js</include>
+                <include>assets/**/*.js</include>
+                <include>application/**/*.js</include>
+                <include>policy/**/*.js</include>
+                <include>organization/**/*.js</include>
+                <include>configuration/**/*.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>SpecUtil.js</include>
+                <include>**/lib/*.js</include>
+                <include>**/*MockData.js</include>
+                <include>**/*-spec.js</include>
+                <include>**/*Spec.js</include>
+              </specIncludes>
+              <specExcludes>
+                <exclude>**/cip*.js</exclude>
+                <exclude>**/CIP*.js</exclude>
+              </specExcludes>
+              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.cip.id}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>assets/lib/jquery/jquery-*.min.js</include>
+                <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>cip/*.js</include>
+                <include>assets/util/AngularCommon.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>SpecUtil.js</include>
+                <include>**/lib/*.js</include>
+                <include>**/*MockData.js</include>
+                <include>**/cip*.js</include>
+                <include>**/CIP*.js</include>
+              </specIncludes>
+              <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
+            </configuration>
           </execution>
         </executions>
         <configuration>
-          <sourceIncludes>
-            <include>assets/lib/jquery/jquery-*.min.js</include>
-            <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
-            <include>assets/lib/angular/angular-${angularjs.version}.js</include>
-            <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
-            <include>assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
-            <include>assets/lib/X-editable/bootstrap-editable.min.js</include>
-            <include>**/*.js</include>
-          </sourceIncludes>
-          <specIncludes>
-            <include>SpecUtil.js</include>
-            <include>**/lib/*.js</include>
-            <include>**/*MockData.js</include>
-            <include>**/*-spec.js</include>
-            <include>**/*Spec.js</include>
-          </specIncludes>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
           <keepServerAlive>true</keepServerAlive>
@@ -639,4 +676,19 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>test-cip</id>
+      <properties>
+        <jasmine.cip.id>default-cli</jasmine.cip.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-brain</id>
+      <properties>
+        <jasmine.brain.id>default-cli</jasmine.brain.id>
+      </properties>
+    </profile>
+  </profiles>
 </project>

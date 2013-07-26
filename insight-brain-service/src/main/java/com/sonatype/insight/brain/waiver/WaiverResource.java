@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 @Named
@@ -60,7 +61,7 @@ public class WaiverResource
         if ( policy != null )
         {
             // The policy belongs to the application
-            return new ApplicableContext( applicationId, application.getName(), "application" );
+            return new ApplicableContext( applicationId, application.getName(), IdUtils.TYPE_APPLICATION );
         }
 
         if ( application.getOrganizationId() != null )
@@ -75,11 +76,12 @@ public class WaiverResource
 
         // The policy belongs to an organization
         Organization organization = new OrganizationDAO().getById( application.getOrganizationId() );
-        ApplicableContext result = new ApplicableContext( organization.getId(), organization.getName(), "organization" );
+        ApplicableContext result =
+            new ApplicableContext( organization.getId(), organization.getName(), IdUtils.TYPE_ORGANIZATION );
         result.children = new ArrayList<ApplicableContext>();
         // Currently we need only the application specified by the applicationPublicId. In the future we might need to
         // return all the applications for this organization.
-        result.children.add( new ApplicableContext( applicationId, application.getName(), "application" ) );
+        result.children.add( new ApplicableContext( applicationId, application.getName(), IdUtils.TYPE_APPLICATION ) );
         return result;
     }
 

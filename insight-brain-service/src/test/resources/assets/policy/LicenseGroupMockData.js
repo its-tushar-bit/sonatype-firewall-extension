@@ -54,6 +54,10 @@ LicenseGroupMockData = {
 					ownerId : "78c1d44c07584e57945f04890c672e82",
 					ownerName: "applicationName",
 					ownerType : "application"
+				}, {
+					ownerId : "9999999c07584e57945f04890c672e99",
+					ownerName: "orgName",
+					ownerType : "organization"
 				}]
 			};
 		}

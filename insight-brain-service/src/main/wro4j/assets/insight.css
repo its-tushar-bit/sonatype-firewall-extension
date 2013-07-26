@@ -70,6 +70,8 @@ input[type="file"] {
 
 .halfSize {
     width: 49.5%;
+    display: inline-block;
+    vertical-align: top;
 }
 
 .floatLeft {

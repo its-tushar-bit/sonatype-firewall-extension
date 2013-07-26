@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -125,7 +126,7 @@ public class HashGAV
 
     public void setHash( String hash )
     {
-        this.hash = truncateHash( hash );
+        this.hash = HashHelper.truncateHash( hash );
     }
 
     @Column( name = "comment" )
@@ -163,25 +164,5 @@ public class HashGAV
     public MavenCoordinates getCoordinates()
     {
         return MavenCoordinates.copy( coords );
-    }
-
-    /**
-     * We use only the first 10 bytes of the hashes, so we have to truncate to the first 20 chars in the string
-     * representation of a hash.
-     * 
-     * @param hash a hash that may need truncation
-     * @return a new hash truncated to the correct length, or the original hash if no truncation is needed
-     */
-    public static String truncateHash( final String hash )
-    {
-        int MAX_LENGTH = 20;
-        if ( hash != null && hash.length() > MAX_LENGTH )
-        {
-            return hash.substring( 0, MAX_LENGTH );
-        }
-        else
-        {
-            return hash;
-        }
     }
 }

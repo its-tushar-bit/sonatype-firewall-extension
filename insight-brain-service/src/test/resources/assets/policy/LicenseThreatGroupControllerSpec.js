@@ -19,7 +19,9 @@ describe('LicenseThreatGroup', function() {
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLicenseGroupsUrl())).respond(LicenseGroupMockData.getApplicableLicenseGroupData());
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
+		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl('9999999c07584e57945f04890c672e99', 'organization'))).respond(LicenseGroupMockData.getLicenseGroupData());
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 		licenseGroupStore.get().then(function (data) {
 			mockGroup = data[0];
@@ -44,12 +46,20 @@ describe('LicenseThreatGroup', function() {
 			expect(scope.allLicenses[0].id).toEqual('AAL');
 		});
 		it('loads license groups.', function() {
-			expect(scope.licenseGroups).not.toBeUndefined();
-			expect(scope.licenseGroups.length).toEqual(1);
+			expect(scope.applicableLicenseGroups).not.toBeUndefined();
+			expect(scope.applicableLicenseGroups.length).toEqual(2);
+			expect(scope.applicableLicenseGroups[0].licenseThreatGroups).not.toBeUndefined();
+			expect(scope.applicableLicenseGroups[0].licenseThreatGroups.length).toEqual(1);
+			expect(scope.applicableLicenseGroups[0].editable).toEqual(true);
+			expect(scope.applicableLicenseGroups[1].licenseThreatGroups).not.toBeUndefined();
+			expect(scope.applicableLicenseGroups[1].licenseThreatGroups.length).toEqual(1);
+			expect(scope.applicableLicenseGroups[1].editable).toEqual(false);
 		});
 		it('loads license group licenses.', function() {
-			expect(scope.licenseGroups[0].licenses).not.toBeUndefined();
-			expect(scope.licenseGroups[0].licenses.length).toEqual(2);
+			expect(scope.applicableLicenseGroups[0].licenseThreatGroups[0].licenses).not.toBeUndefined();
+			expect(scope.applicableLicenseGroups[0].licenseThreatGroups[0].licenses.length).toEqual(2);
+			expect(scope.applicableLicenseGroups[1].licenseThreatGroups[0].licenses).not.toBeUndefined();
+			expect(scope.applicableLicenseGroups[1].licenseThreatGroups[0].licenses.length).toEqual(2);
 		});
 		it('loads the group editor.', function() {
 			scope.editLicenseGroup(mockGroup);

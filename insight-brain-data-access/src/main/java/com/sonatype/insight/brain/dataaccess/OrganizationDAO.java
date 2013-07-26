@@ -11,11 +11,13 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class OrganizationDAO
@@ -146,6 +148,14 @@ public class OrganizationDAO
         for ( Label label : labels )
         {
             labelDAO.delete( em, label );
+        }
+
+        // Cascade to policy waivers
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId( em, organization.getId() );
+        for ( PolicyWaiver policyWaiver : policyWaivers )
+        {
+            policyWaiverDAO.delete( em, policyWaiver );
         }
 
         super.delete( em, organization );

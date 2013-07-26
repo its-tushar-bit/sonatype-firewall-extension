@@ -26,12 +26,14 @@ import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
 public class OrganizationDAOTest
     extends AbstractDbDAOTest
@@ -333,13 +335,12 @@ public class OrganizationDAOTest
     }
 
     @Test
-    public void testCascadeDeleteLabels()
+    public void testCascadeDeleteToLabels()
     {
-        final OrganizationDAO organizationDAO = new OrganizationDAO();
         final LabelDAO labelDAO = new LabelDAO();
 
         Organization organization = new Organization( "organization" );
-        organizationDAO.insert( organization );
+        dao.insert( organization );
 
         String organizationId = organization.getId();
 
@@ -352,8 +353,26 @@ public class OrganizationDAOTest
         // sanity check
         Assert.assertFalse( labelDAO.getByOwnerId( organizationId ).isEmpty() );
 
-        organizationDAO.delete( organization );
+        dao.delete( organization );
 
         Assert.assertTrue( labelDAO.getByOwnerId( organizationId ).isEmpty() );
+    }
+
+    @Test
+    public void testCascadeDeleteToPolicyWaivers()
+    {
+        Organization organization = new Organization( "testCascadeDeleteToPolicyWaivers" );
+        dao.insert( organization );
+
+        PolicyWaiver policyWaiver =
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization.getId(), "My comment" );
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        policyWaiverDAO.insert( policyWaiver );
+        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId( organization.getId() );
+        assertEquals( 1, policyWaivers.size() );
+
+        dao.delete( organization );
+        policyWaivers = policyWaiverDAO.getByOwnerId( organization.getId() );
+        assertEquals( 0, policyWaivers.size() );
     }
 }

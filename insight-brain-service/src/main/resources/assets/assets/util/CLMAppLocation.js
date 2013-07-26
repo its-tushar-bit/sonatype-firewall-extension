@@ -35,8 +35,12 @@
 				return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
 			},
 
-			getLicenseGroupsUrl: function () {
-				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId();
+			getLicenseGroupsUrl: function (ownerId, ownerType) {
+				return baseUrl.get() + '/rest/licenseThreatGroup/' + (ownerId ? ownerType + '/' + ownerId : getServicePathWithId());
+			},
+
+			getApplicableLicenseGroupsUrl : function () {
+				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/applicable';
 			},
 
 			getDeleteLicenseGroupUrl: function (group) {

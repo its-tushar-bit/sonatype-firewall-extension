@@ -21,7 +21,7 @@ public class OperationalDataStoreProvider
 {
     private static final Logger log = LoggerFactory.getLogger( OperationalDataStoreProvider.class );
 
-    public static final int DESIRED_DATABASE_VERSION = 20;
+    public static final int DESIRED_DATABASE_VERSION = 21;
 
     public static final String ID = "insight_brain_ods";
 

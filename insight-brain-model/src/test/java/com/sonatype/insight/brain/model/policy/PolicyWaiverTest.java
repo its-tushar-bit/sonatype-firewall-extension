@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.component;
+package com.sonatype.insight.brain.model.policy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -11,10 +11,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * Test of {@link HashGAV} model. 
- */
-public class HashGAVTest
+public class PolicyWaiverTest
 {
     private final String longHash = "123456789012345678901";
     
@@ -32,17 +29,16 @@ public class HashGAVTest
     @Test
     public void testLongHashTruncatedWhenObjectCreated()
     {
-        HashGAV hashGAV =
-            new HashGAV( longHash, null /* groupId */, null /* artifactId */, null /* version */, null /* extension */,
-                         null /* classifier */);
-        assertEquals( expectedTruncatedHash, hashGAV.getHash() );
+        PolicyWaiver policyWaiver =
+            new PolicyWaiver( longHash, null /* policyId */, null /* ownerId */, null /* comment */);
+        assertEquals( expectedTruncatedHash, policyWaiver.getHash() );
     }
 
     @Test
     public void testLongHashTruncatedWhenHashSet()
     {
-        HashGAV hashGAV = new HashGAV();
-        hashGAV.setHash( longHash );
-        assertEquals( expectedTruncatedHash, hashGAV.getHash() );
+        PolicyWaiver policyWaiver = new PolicyWaiver();
+        policyWaiver.setHash( longHash );
+        assertEquals( expectedTruncatedHash, policyWaiver.getHash() );
     }
 }

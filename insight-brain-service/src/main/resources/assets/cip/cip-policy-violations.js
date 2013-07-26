@@ -80,17 +80,23 @@
 			}
 		}
 		
+		//Waive component policy trigger, so that it will no longer be triggered in future
 		$scope.waiveComponent = function(policyAlert) {
+		    //get the tree of contexts, and flatten down into a list we can display properly
 		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
 		        function processContext(context) {
 		            if (context) {
+		                //only bother checking children if an org, apps dont have children
     		            if (context.type === 'organization') {
                             $scope.waiverTargets.push({id:context.id,name:context.name,type:context.type});
                             angular.forEach(context.children, function(childContext, childContextIndex){
                                 processContext(childContext); 
                             });
                         } else {
+                            //insert the app in position 1, app should always be shown first, and will be defaulted
                             $scope.waiverTargets.splice(0, 0, {id:context.id,name:context.name,type:context.type});
+                            //set the app as the default selected value
+                            $scope.waiverSelectedOwner = context.id + '$$' + context.type;
                         }
 		            }
 		        }
@@ -99,7 +105,6 @@
 		        $scope.waiverSelectOwner = (data.children && data.children.length);
 		        $scope.waiverTargets = [];
 	            processContext(data);
-	            $scope.waiverSelectedOwner = $scope.waiverTargets.length ? ($scope.waiverTargets[0].id + '$$' + $scope.waiverTargets[0].type) : undefined;
 	            $scope.waiverComment = undefined;
                 
 		        $('#componentWaiverModal').modal('show');
@@ -111,12 +116,9 @@
 		    $('#componentWaiverModal').modal('hide');
 		}
 		
+		//user really wants to waive the component, so send the request on down
 		$scope.acceptWaiveComponent = function() {
-		    //TODO: show modal which will ask for some data, and send it to the server, following data required
-            //policyViolationData.hash
-            //app or org as selected in modal (or just app if no selection required)
-            //comment entered in modal
-            //rest url to come
+		    //TODO: send request to server
 		    $('#componentWaiverModal').modal('hide');
 		}
 

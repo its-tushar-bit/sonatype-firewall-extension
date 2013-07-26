@@ -19,12 +19,14 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class ApplicationDAO
@@ -283,6 +285,14 @@ public class ApplicationDAO
         for ( Label label : labels )
         {
             labelDAO.delete( em, label );
+        }
+
+        // Cascade to policy waivers
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId( em, application.getId() );
+        for ( PolicyWaiver policyWaiver : policyWaivers )
+        {
+            policyWaiverDAO.delete( em, policyWaiver );
         }
 
         super.delete( em, application );

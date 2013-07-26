@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -41,7 +42,7 @@ public class HashGAVDAO
         // hash.
         String sQuery = "SELECT entity FROM HashGAV entity" + //
             " WHERE entity.hash=?1";
-        return get( em, sQuery, HashGAV.truncateHash( hash ) );
+        return get( em, sQuery, HashHelper.truncateHash( hash ) );
     }
 
     private HashGAV getByGAVEC( EntityManager em, String groupId, String artifactId, String version, String extension,

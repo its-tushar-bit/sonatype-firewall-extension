@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonStore;
@@ -227,7 +228,16 @@ public class PolicyDAO
                 {
                     policies.remove( i );
                     savePolicies( store, policies );
-                    break;
+
+                    // Cascade to policy waivers
+                    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+                    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId( policyId );
+                    for ( PolicyWaiver policyWaiver : policyWaivers )
+                    {
+                        policyWaiverDAO.delete( policyWaiver );
+                    }
+
+                    return;
                 }
             }
             // TODO Throw an exception if the policy does not exist

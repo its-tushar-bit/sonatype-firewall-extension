@@ -8,11 +8,14 @@
     <div style='width:830px' ng-controller='LabelEditorController'>
       <form name='inlineLabelEditor' class='form-horizontal' style='margin-bottom:0'>
         <div class="control-group" ng-class='{ error : inlineLabelEditor.labelName.$error.duplicate || inlineLabelEditor.labelName.$error.empty || inlineLabelEditor.labelName.$error.invalid }'>
-          <input ng-click='click()' id="labelName" name='labelName' type='text' placeholder='New Label'
+          <div class="controls" style="margin-left: 0;">
+            <input ng-click='click()' id="labelName" name='labelName' type='text' placeholder='New Label'
                  ng-model='label.label' style='margin-bottom:0px' item-label>
-          <span ng-show='inlineLabelEditor.labelName.$error.empty' class="help-inline">Required</span>
-          <span ng-show='inlineLabelEditor.labelName.$error.duplicate' class="help-inline">Duplicate Label</span>
-          <span ng-show='inlineLabelEditor.labelName.$error.invalid' class="help-inline">Invalid Character</span>
+            <span ng-show='inlineLabelEditor.labelName.$error.empty' class="help-inline">Required</span>
+            <span ng-show='inlineLabelEditor.labelName.$error.duplicate' class="help-inline">Duplicate Label</span>
+            <span ng-show='inlineLabelEditor.labelName.$error.invalid' class="help-inline">Invalid Character</span>
+          </div>
+          <textarea maxlength="255" ng-model='selectedLabel.description' placeholder="Add a description..."></textarea>
         </div>
         <div ng-show='label' class="modal-body color-selector">
           <div>

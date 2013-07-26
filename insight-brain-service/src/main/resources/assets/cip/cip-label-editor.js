@@ -15,7 +15,7 @@
 				node.empty();
 				container.appendTo(node);
 
-				angular.module('labelEditor' + timestamp, []).service('ComponentLabelEditorGAV', function () {
+				angular.module('labelEditor' + timestamp, ['ui.bootstrap']).service('ComponentLabelEditorGAV', function () {
 					return {
 						applicationId : applicationId,
 						hash : hash
@@ -25,17 +25,6 @@
 			}
 		}
 	});
-
-	function locate(needle, haystack, haystackProperty) {
-		var result = null;
-		angular.forEach(haystack, function (candidate, key) {
-			if (candidate !== null && needle === candidate[haystackProperty]) {
-				result = candidate;
-				return false;
-			}
-		});
-		return result;
-	}
 
 	var labelsApp = angular.module('ComponentLabelEditor', []);
 

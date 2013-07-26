@@ -14,7 +14,7 @@
       <div class="label-list">
         <div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(label)'>
           <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
-            <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span>
+            <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}" data-tooltip-placement="bottom"> {{label.label}}</span>
             <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
         </div>
         <em ng-show='labels.length == 0'>No labels available</em></div>

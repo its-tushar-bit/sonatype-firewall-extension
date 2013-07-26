@@ -27,9 +27,9 @@
 		}
 	});
 
-	var policyViolationApp = angular.module('PolicyViolations', []);
+	var policyViolationApp = angular.module('PolicyViolations', ['Hudson']);
 
-	policyViolationApp.controller('PolicyViolationsController', [ '$http', '$scope', '$timeout', 'PolicyViolationData', function($http, $scope, $timeout, policyViolationData) {
+	policyViolationApp.controller('PolicyViolationsController', [ 'hudson', '$http', '$scope', '$timeout', 'PolicyViolationData', function(hudson, $http, $scope, $timeout, policyViolationData) {
 		function errorFn(data, status, headersFn, config) {
 			var header = headersFn();
 			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
@@ -94,9 +94,9 @@
                             });
                         } else {
                             //insert the app in position 1, app should always be shown first, and will be defaulted
-                            $scope.waiverTargets.splice(0, 0, {id:context.id,name:context.name,type:context.type});
+                            $scope.waiverTargets.splice(0, 0, {id:policyViolationData.appId,name:context.name,type:context.type});
                             //set the app as the default selected value
-                            $scope.waiverSelectedOwner = context.id + '$$' + context.type;
+                            $scope.waiverSelectedOwner = policyViolationData.appId + '$$' + context.type;
                         }
 		            }
 		        }
@@ -106,7 +106,7 @@
 		        $scope.waiverTargets = [];
 	            processContext(data);
 	            $scope.waiverComment = undefined;
-                
+                $scope.waiverPolicyAlert = policyAlert;
 		        $('#componentWaiverModal').modal('show');
 		    }).error(errorFn);
 		}
@@ -118,8 +118,16 @@
 		
 		//user really wants to waive the component, so send the request on down
 		$scope.acceptWaiveComponent = function() {
-		    //TODO: send request to server
-		    $('#componentWaiverModal').modal('hide');
+            $('#componentWaiverModal').modal('hide');
+            var parts = $scope.waiverSelectedOwner.split('$$');
+            var data = {
+                hash : policyViolationData.hash,
+                policyId : $scope.waiverPolicyAlert.id,
+                comment : $scope.waiverComment
+            };
+		    hudson.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0], data).success(function(responseData){
+		        //TODO: show anything on success?
+		    }).error(errorFn);		    
 		}
 
 		$http.get('policyalerts.json', {

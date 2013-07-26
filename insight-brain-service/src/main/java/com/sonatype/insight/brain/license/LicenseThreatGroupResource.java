@@ -21,9 +21,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -58,6 +60,41 @@ public class LicenseThreatGroupResource
         ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         return licenseThreatGroupDAO.getByOwnerId( ownerId );
+    }
+
+    /**
+     * @since 1.6
+     */
+    @GET
+    @Path( "applicable" )
+    @Produces( { MediaType.APPLICATION_JSON } )
+    public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups( @PathParam( "ownerType" ) String ownerType,
+                                                                           @PathParam( "ownerId" ) String ownerId )
+    {
+        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+
+        ApplicableLicenseThreatGroups result = new ApplicableLicenseThreatGroups();
+
+        String organizationId;
+        if ( IdUtils.TYPE_APPLICATION.equals( ownerType ) )
+        {
+            Application app = new ApplicationDAO().getByIdNotNull( ownerId );
+            result.add( app.getId(), app.getName(), IdUtils.TYPE_APPLICATION,
+                        licenseThreatGroupDAO.getByOwnerId( app.getId() ) );
+            organizationId = app.getOrganizationId();
+        }
+        else
+        {
+            organizationId = ownerId;
+        }
+        if ( organizationId != null )
+        {
+            Organization org = new OrganizationDAO().getByIdNotNull( organizationId );
+            result.add( org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION,
+                        licenseThreatGroupDAO.getByOwnerId( org.getId() ) );
+        }
+
+        return result;
     }
 
     @POST
@@ -130,5 +167,33 @@ public class LicenseThreatGroupResource
         }
 
         licenseThreatGroupDAO.delete( licenseThreatGroup );
+    }
+
+    public static class ApplicableLicenseThreatGroups
+    {
+        public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner =
+            new ArrayList<LicenseThreatGroupsByOwner>();
+
+        public void add( String ownerId, String ownerName, String ownerType,
+                         List<LicenseThreatGroup> licenseThreatGroups )
+        {
+            LicenseThreatGroupsByOwner ltgbo = new LicenseThreatGroupsByOwner();
+            ltgbo.ownerId = ownerId;
+            ltgbo.ownerName = ownerName;
+            ltgbo.ownerType = ownerType;
+            ltgbo.licenseThreatGroups = licenseThreatGroups;
+            licenseThreatGroupsByOwner.add( ltgbo );
+        }
+    }
+
+    public static class LicenseThreatGroupsByOwner
+    {
+        public String ownerId;
+
+        public String ownerName;
+
+        public String ownerType;
+
+        public List<LicenseThreatGroup> licenseThreatGroups;
     }
 }

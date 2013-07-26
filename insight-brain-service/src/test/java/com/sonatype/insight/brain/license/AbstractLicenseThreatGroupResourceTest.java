@@ -10,6 +10,8 @@ import org.junit.Assert;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupsByOwner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -135,6 +137,36 @@ abstract class AbstractLicenseThreatGroupResourceTest
         return getRestBaseUrl()
             + LicenseThreatGroupResource.SERVICE_PATH.replace( "{ownerType: application|organization}", getOwnerType() ).replace( "{ownerId}",
                                                                                                                                   ownerId );
+    }
+
+    private String getApplicableUrl( String ownerId )
+    {
+        return getServiceURL( ownerId ) + "/applicable";
+    }
+
+    protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups( String ownerId )
+        throws Exception
+    {
+        Response response = RestAccess.get( getApplicableUrl( ownerId ) );
+        assertResponseStatus( 200, response );
+        return JsonHelpers.fromJson( response.getResponseBody(), ApplicableLicenseThreatGroups.class );
+    }
+
+    protected LicenseThreatGroup createLicenseThreatGroup( String name, String ownerId )
+    {
+        LicenseThreatGroup ltg = new LicenseThreatGroup( ownerId, name, 5 );
+        new LicenseThreatGroupDAO().insert( ltg );
+        return ltg;
+    }
+
+    protected void assertLicenseThreatGroupsByOwner( String ownerId, String ownerName, String ownerType,
+                                                     int licenseThreatGroupCount, LicenseThreatGroupsByOwner actual )
+    {
+        Assert.assertEquals( ownerId, actual.ownerId );
+        Assert.assertEquals( ownerName, actual.ownerName );
+        Assert.assertEquals( ownerType, actual.ownerType );
+        Assert.assertNotNull( actual.licenseThreatGroups );
+        Assert.assertEquals( licenseThreatGroupCount, actual.licenseThreatGroups.size() );
     }
 
     protected abstract String getOwnerType();

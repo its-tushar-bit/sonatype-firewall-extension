@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.license;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.utils.IdUtils;
 
 public class OrganizationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
@@ -47,6 +51,22 @@ public class OrganizationLicenseThreatGroupResourceTest
     {
         Application app = createApplication( "appPublicId", "appName" );
         testDelete_InUseByPolicy( app.getOrganizationId(), app.getOrganizationId(), app.getId() );
+    }
+
+    @Test
+    public void testGetApplicable()
+        throws Exception
+    {
+        Organization org = createOrganization( "orgName", false );
+        createLicenseThreatGroup( "LTG-0", org.getId() );
+        createLicenseThreatGroup( "LTG-1", org.getId() );
+
+        ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups( org.getId() );
+        assertNotNull( altgs );
+        assertNotNull( altgs.licenseThreatGroupsByOwner );
+        assertEquals( 1, altgs.licenseThreatGroupsByOwner.size() );
+        assertLicenseThreatGroupsByOwner( org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 2,
+                                          altgs.licenseThreatGroupsByOwner.get( 0 ) );
     }
 
     @Override

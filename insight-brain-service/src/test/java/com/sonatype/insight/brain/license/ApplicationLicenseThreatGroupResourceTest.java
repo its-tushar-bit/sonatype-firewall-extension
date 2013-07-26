@@ -5,9 +5,16 @@
  */
 package com.sonatype.insight.brain.license;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.utils.IdUtils;
 
 public class ApplicationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
@@ -38,6 +45,44 @@ public class ApplicationLicenseThreatGroupResourceTest
     {
         Application app = createApplication( "appPublicId" );
         testDelete_InUseByPolicy( app.getPublicId(), app.getId(), app.getId() );
+    }
+
+    @Test
+    public void testGetApplicable_AppWithoutOrg()
+        throws Exception
+    {
+        Application app = createApplication( "appPublicId", "appName", false, false );
+        createLicenseThreatGroup( "LTG-0", app.getId() );
+        createLicenseThreatGroup( "LTG-1", app.getId() );
+
+        ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups( app.getPublicId() );
+        assertNotNull( altgs );
+        assertNotNull( altgs.licenseThreatGroupsByOwner );
+        assertEquals( 1, altgs.licenseThreatGroupsByOwner.size() );
+        assertLicenseThreatGroupsByOwner( app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, 2,
+                                          altgs.licenseThreatGroupsByOwner.get( 0 ) );
+    }
+
+    @Test
+    public void testGetApplicable_AppWithOrg()
+        throws Exception
+    {
+        Organization org = createOrganization( "orgName", false );
+        createLicenseThreatGroup( "LTG-2", org.getId() );
+        Application app = createApplication( "appPublicId", "appName", false, false );
+        app.setOrganizationId( org.getId() );
+        new ApplicationDAO().update( app );
+        createLicenseThreatGroup( "LTG-0", app.getId() );
+        createLicenseThreatGroup( "LTG-1", app.getId() );
+
+        ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups( app.getPublicId() );
+        assertNotNull( altgs );
+        assertNotNull( altgs.licenseThreatGroupsByOwner );
+        assertEquals( 2, altgs.licenseThreatGroupsByOwner.size() );
+        assertLicenseThreatGroupsByOwner( app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, 2,
+                                          altgs.licenseThreatGroupsByOwner.get( 0 ) );
+        assertLicenseThreatGroupsByOwner( org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 1,
+                                          altgs.licenseThreatGroupsByOwner.get( 1 ) );
     }
 
     @Override

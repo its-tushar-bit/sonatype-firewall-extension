@@ -17,7 +17,8 @@
 
 				angular.module('policyViolations' + timestamp, []).service('PolicyViolationData', function() {
 					return {
-						hash : hash
+						hash : hash,
+						appId : appId
 					};
 				});
 
@@ -73,17 +74,50 @@
 				$scope.processedPolicyAlerts.sort(function(policyA, policyB) {
 					return policyA.threatLevel > policyB.threatLevel ? -11 : policyA.threatLevel < policyB.threatLevel ? 1 : 0;
 				});
+				
+				//move the modal out into the body, so it appears properly ABOVE the backdrop
+				$("#componentWaiverModal").appendTo("body");
 			}
 		}
 		
-		$scope.waiveComponent = function() {
-		    //TODO: send request to server to retrieve the waiver context, effectively the list of orgs/apps you can assign the waiver too
-		    //rest/waiver/application/{applicationPublicId}/applicable/context/{policyId}
+		$scope.waiveComponent = function(policyAlert) {
+		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
+		        function processContext(context) {
+		            if (context) {
+    		            if (context.type === 'organization') {
+                            $scope.waiverTargets.push({id:context.id,name:context.name,type:context.type});
+                            angular.forEach(context.children, function(childContext, childContextIndex){
+                                processContext(childContext); 
+                            });
+                        } else {
+                            $scope.waiverTargets.splice(0, 0, {id:context.id,name:context.name,type:context.type});
+                        }
+		            }
+		        }
+		        
+		        //if only application present, no need to show the app/org radio buttons
+		        $scope.waiverSelectOwner = (data.children && data.children.length);
+		        $scope.waiverTargets = [];
+	            processContext(data);
+	            $scope.waiverSelectedOwner = $scope.waiverTargets.length ? ($scope.waiverTargets[0].id + '$$' + $scope.waiverTargets[0].type) : undefined;
+	            $scope.waiverComment = undefined;
+                
+		        $('#componentWaiverModal').modal('show');
+		    }).error(errorFn);
+		}
+		
+		//pretty simple, they decline just dump the modal
+		$scope.declineWaiveComponent = function() {
+		    $('#componentWaiverModal').modal('hide');
+		}
+		
+		$scope.acceptWaiveComponent = function() {
 		    //TODO: show modal which will ask for some data, and send it to the server, following data required
-		    //policyViolationData.hash
-		    //app or org as entered in modal
-		    //comment entered in modal
-		    //rest url to come
+            //policyViolationData.hash
+            //app or org as selected in modal (or just app if no selection required)
+            //comment entered in modal
+            //rest url to come
+		    $('#componentWaiverModal').modal('hide');
 		}
 
 		$http.get('policyalerts.json', {

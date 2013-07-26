@@ -33,10 +33,31 @@
 				</div>
 			</td>
 			<td>
-				<button type='none' class='btn btn-primary' ng-click='waiveComponent()'>Waive</button>
+				<button type='none' class='btn btn-primary' ng-click='waiveComponent(policyAlert)'>Waive</button>
 			</td>
 		</tr>
 	</table>
+	<div id="componentWaiverModal" class="modal hide fade">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h3>Waive component?</h3>
+		</div>
+		<div class="modal-body">
+			<p>Would you like to waive any future violations of this policy for this component?</p>
+			<div ng-show="waiverSelectOwner" style="padding-bottom:5px;">
+				<div ng-repeat="waiverTarget in waiverTargets">
+					<input type="radio" ng-model="waiverSelectedOwner" name="waiverSelectedOwner" value="{{waiverTarget.id + '$$' + waiverTarget.type}}">{{'Wave for ' + waiverTarget.type + ' ' + waiverTarget.name}}
+				</div>
+			</div>
+			<div>
+				<textarea ng-model="waiverComment" placeholder="Enter comment..."></textarea>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="btn" ng-click="declineWaiveComponent()">No</a>
+			<a href="#" class="btn btn-primary" ng-click="acceptWaiveComponent()">Yes</a>
+		</div>
+	</div>
 	<div ng-show='policyAlerts.length == 0'>
 		<b>No Policy Violations</b>
 	</div>

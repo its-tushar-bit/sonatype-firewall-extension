@@ -198,7 +198,7 @@ body {
 	background-color: transparent;
 	color: #17558E;
 }
-.subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .nav-list>.active>a:hover {
+.subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .subnavigation .nav>li.missing-org>a:hover, .nav-list>.active>a:hover {
 	background-color: #f4f4f4;
 }
 .subnavigation-expanded {
@@ -621,4 +621,10 @@ ul.tri-pane {
 }
 .slide.in {
 	height: auto;
+}
+.subnavigation .nav>li.missing-org>a {
+	color: #b94a48;
+	background-color: #f2dede;
+	border-top: 1px solid #eed3d7;
+	border-bottom: 1px solid #eed3d7;
 }

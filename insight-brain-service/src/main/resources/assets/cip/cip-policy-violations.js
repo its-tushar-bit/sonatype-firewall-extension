@@ -104,6 +104,7 @@
 		        $scope.waiverTargets = [];
 	            processContext(data);
 	            $scope.waiverComment = undefined;
+	            $scope.waiveAssignError = undefined;
                 $scope.waiverPolicyAlert = policyAlert;
 		        $('#componentWaiverModal').modal('show');
 		    }).error(errorFn);

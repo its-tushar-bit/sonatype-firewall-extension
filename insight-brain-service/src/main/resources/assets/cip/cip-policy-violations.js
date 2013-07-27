@@ -27,7 +27,7 @@
 		}
 	});
 
-	var policyViolationApp = angular.module('PolicyViolations', ['Hudson']);
+	var policyViolationApp = angular.module('PolicyViolations', ['CommonServices', 'Hudson']);
 
 	policyViolationApp.controller('PolicyViolationsController', [ 'hudson', '$http', '$scope', '$timeout', 'PolicyViolationData', 'Messages', function(hudson, $http, $scope, $timeout, policyViolationData, messages) {
 		function errorFn(data, status, headersFn, config) {

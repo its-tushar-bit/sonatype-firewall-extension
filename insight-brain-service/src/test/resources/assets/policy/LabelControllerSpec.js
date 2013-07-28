@@ -1,21 +1,11 @@
 describe('LabelController.js', function() {
 
-  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null};
+  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null, description: null};
   var LabelMockData = {
     getLabels : function(){
       return [angular.copy(labelTemplate)]
     }
   }
-  //var LabelStore = {
-  //  create: function(){
-  //    return angular.copy(labelTemplate);
-  //  },
-  //  get: function(){}
-  //}
-  ////provide a mocked LabelStore impl
-  //beforeEach(module('Labels',function($provide) {
-  //  $provide.value('LabelStore', LabelStore);
-  //}));
 
   beforeEach(module('Labels'));
 

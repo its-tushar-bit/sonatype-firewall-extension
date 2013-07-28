@@ -21,7 +21,10 @@ import com.sonatype.insight.brain.model.label.Label;
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
 {
-    public List<Label> getByOwnerId( String ownerId )
+
+  public static final int MAX_DESC_SIZE = 255;
+
+  public List<Label> getByOwnerId( String ownerId )
     {
         return getByOwnerId( ownerId, false );
     }
@@ -180,7 +183,18 @@ public class LabelDAO
     {
         validateLabelText( label.getLabel() );
         validateLabelUnique( em, label, false );
+        validateLabelDescription(label.getDescription());
         super.insert( em, label );
+    }
+
+    private void validateLabelDescription( String description)
+    {
+      if(description != null && description.length() > MAX_DESC_SIZE)
+      {
+        throw new InvalidLabelException(
+            "The label description can't be longer than " + MAX_DESC_SIZE + " characters, the one supplied has " +
+                description.length() + " characters. ");
+      }
     }
 
     private void validateLabelUnique( EntityManager em, Label label, boolean update )

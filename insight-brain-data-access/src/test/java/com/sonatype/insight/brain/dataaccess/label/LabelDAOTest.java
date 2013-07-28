@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +20,11 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class LabelDAOTest
     extends AbstractDbDAOTest
@@ -42,7 +48,7 @@ public class LabelDAOTest
         try
         {
             dao.insert( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -59,7 +65,7 @@ public class LabelDAOTest
         try
         {
             dao.update( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -83,7 +89,7 @@ public class LabelDAOTest
         try
         {
             dao.insert( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -100,7 +106,7 @@ public class LabelDAOTest
         try
         {
             dao.update( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -124,7 +130,7 @@ public class LabelDAOTest
         try
         {
             dao.insert( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -141,7 +147,7 @@ public class LabelDAOTest
         try
         {
             dao.update( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -165,7 +171,7 @@ public class LabelDAOTest
         try
         {
             dao.insert( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -182,7 +188,7 @@ public class LabelDAOTest
         try
         {
             dao.update( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -206,7 +212,7 @@ public class LabelDAOTest
         Assert.assertNotNull( label.getId() );
         label = dao.getById( label.getId() );
         Assert.assertNotNull( label );
-        assertLabel( applicationId, "MyLabel", Color.blue, label );
+        assertLabel( applicationId, "MyLabel", Color.blue, label, null );
 
         // Update the color using a new Label instance. This is important because an instance that was not retrieved
         // from the db was never marked as attached/detached by openjpa.
@@ -231,14 +237,15 @@ public class LabelDAOTest
         // Create
         Label label = new Label();
         label.setOwnerId( applicationId );
-        label.setLabel( "MyLabel" );
-        label.setColor( Color.blue );
+        label.setLabel("MyLabel");
+        label.setColor(Color.blue);
+        label.setDescription("My label   description.");
         dao.insert( label );
         Assert.assertNotNull( label.getId() );
 
         label = dao.getById( label.getId() );
         Assert.assertNotNull( label );
-        assertLabel( applicationId, "MyLabel", Color.blue, label );
+        assertLabel( applicationId, "MyLabel", Color.blue, label, "My label   description." );
 
         // Update
         label.setLabel( "MyUpdatedLabel" );
@@ -246,7 +253,7 @@ public class LabelDAOTest
 
         label = dao.getById( label.getId() );
         Assert.assertNotNull( label );
-        assertLabel( applicationId, "MyUpdatedLabel", Color.blue, label );
+        assertLabel( applicationId, "MyUpdatedLabel", Color.blue, label, "My label   description." );
 
         // Delete
         dao.delete( label );
@@ -303,7 +310,7 @@ public class LabelDAOTest
         try
         {
             labelDAO.insert( label );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -340,14 +347,14 @@ public class LabelDAOTest
         // Update without changing the name
         label2.setColor( Color.red );
         labelDAO.update( label2 );
-        assertLabel( applicationId, "MyLabel2", Color.red, label2 );
+        assertLabel( applicationId, "MyLabel2", Color.red, label2, null );
 
         // Update with a conflicting name
         label2.setLabel( label1.getLabel() );
         try
         {
             labelDAO.update( label2 );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -381,7 +388,7 @@ public class LabelDAOTest
             label2.setLabel( "MyLabel" );
             label2.setColor( Color.blue );
             labelDAO.insert( label2 );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -404,7 +411,7 @@ public class LabelDAOTest
         {
             label2.setLabel( "MyLabel" );
             labelDAO.update( label2 );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -439,7 +446,7 @@ public class LabelDAOTest
             label2.setLabel( "MyLabel" );
             label2.setColor( Color.blue );
             labelDAO.insert( label2 );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -462,7 +469,7 @@ public class LabelDAOTest
         {
             label2.setLabel( "MyLabel" );
             labelDAO.update( label2 );
-            Assert.fail( "Expected InvalidLabelException" );
+            fail("Expected InvalidLabelException");
         }
         catch ( InvalidLabelException expected )
         {
@@ -499,12 +506,27 @@ public class LabelDAOTest
         assertLabels( Arrays.asList( label1, label2 ), labelDAO.getByOwnerId( applicationId, true ) );
     }
 
+  @Test
+  public void testLongDescription()
+  {
+    LabelDAO labelDAO = new LabelDAO();
+    Label label = new Label(organization.getId(), "testLongDescriptionLabel", Color.black);
+    label.setDescription(StringUtils.leftPad("", LabelDAO.MAX_DESC_SIZE + 1, "a"));
+    try {
+      labelDAO.insert(label);
+      fail("Should have thrown InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      assertThat(e.getMessage(), startsWith("The label description can't be longer than"));
+    }
+  }
+
     private void assertLabels( Collection<Label> expected, Collection<Label> actual )
     {
         final Map<String, Label> expectedMap = toLabelsMap( expected );
         final Map<String, Label> actualMap = toLabelsMap( actual );
 
-        Assert.assertEquals( expectedMap.keySet(), actualMap.keySet() );
+        assertEquals(expectedMap.keySet(), actualMap.keySet());
     }
 
     private Map<String, Label> toLabelsMap( Collection<Label> actual )
@@ -517,11 +539,12 @@ public class LabelDAOTest
         return actualMap;
     }
 
-    private void assertLabel( String applicationId, String label, Color color, Label actual )
+    private void assertLabel( String applicationId, String label, Color color, Label actual, String description )
     {
-        Assert.assertEquals( applicationId, actual.getOwnerId() );
-        Assert.assertEquals( label, actual.getLabel() );
-        Assert.assertEquals( label.toLowerCase( Locale.ENGLISH ), actual.getLabelLowercase() );
-        Assert.assertEquals( color, actual.getColor() );
+        assertEquals(applicationId, actual.getOwnerId());
+        assertEquals(label, actual.getLabel());
+        assertEquals(label.toLowerCase(Locale.ENGLISH), actual.getLabelLowercase());
+        assertEquals(color, actual.getColor());
+        assertEquals(description, actual.getDescription());
     }
 }

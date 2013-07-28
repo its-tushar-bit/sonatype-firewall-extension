@@ -26,17 +26,6 @@
 		}
 	});
 
-	function locate(needle, haystack, haystackProperty) {
-		var result = null;
-		angular.forEach(haystack, function (candidate, key) {
-			if (candidate !== null && needle === candidate[haystackProperty]) {
-				result = candidate;
-				return false;
-			}
-		});
-		return result;
-	}
-
 	var labelsApp = angular.module('ComponentLabelEditor', []);
 
 	labelsApp.controller('LabelsController', ['$http', '$scope', 'ComponentLabelEditorGAV', function ($http, $scope, componentLabelEditorGAV) {

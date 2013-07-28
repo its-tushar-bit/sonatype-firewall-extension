@@ -37,6 +37,9 @@ public class Label
     @Column( name = "label_lowercase" )
     private String labelLowercase;
 
+    @Column ( name = "description")
+    private String description;
+
     @Column( name = "color" )
     @Enumerated( EnumType.STRING )
     private Color color;
@@ -114,7 +117,15 @@ public class Label
         this.color = color;
     }
 
-    @Override
+    public String getDescription() {
+      return description;
+    }
+
+    public void setDescription(final String description) {
+      this.description = description;
+    }
+
+  @Override
     public String toString()
     {
         return "Label=" + label;

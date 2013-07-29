@@ -26,7 +26,7 @@
                   <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span>
                 </span>
                 <span ng-switch-default>
-                  <span class="clmLabel {{label.color}}Label"> {{label.label}} </span>
+                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}" data-tooltip-placement="bottom"> {{label.label}} </span>
                 </span>
               </span>
             </div>

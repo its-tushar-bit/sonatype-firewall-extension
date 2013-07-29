@@ -81,6 +81,7 @@
 		//Waive component policy trigger, so that it will no longer be triggered in future
 		$scope.waiveComponent = function(policyAlert) {
 		    $scope.waiverLoading = true;
+		    $('#componentWaiverModal').modal('show');
 		    //get the tree of contexts, and flatten down into a list we can display properly
 		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
 		        $scope.waiverLoading = false;
@@ -109,7 +110,6 @@
 	            $scope.waiverComment = undefined;
 	            $scope.waiveAssignError = undefined;
                 $scope.waiverPolicyAlert = policyAlert;
-                $('#componentWaiverModal').modal('show');
 		    }).error(function(){
 		        $scope.waiverLoading = false;
 		        errorFn(arguments);

@@ -79,6 +79,6 @@ public class PolicyWaiverResource
         String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-        return policyWaiverDAO.getByOwnerIdHash( internalOwnerId, hash, true );
+        return policyWaiverDAO.getByOwnerIdAndHash( internalOwnerId, hash, true /* inherit */);
     }
 }

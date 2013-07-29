@@ -112,8 +112,8 @@ public class PolicyWaiverResourceTest
             RestAccess.get( getServiceURL( "application", application1.getPublicId() )
                 + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
-        List<PolicyWaiver> waivers = JsonHelpers.fromJson( response.getResponseBody(), List.class );
-        assertEquals( 1, waivers.size() );
+        PolicyWaiver[] waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
+        assertEquals( 1, waivers.length );
 
         PolicyWaiver waiver2 =
             new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization1.getId(), "My comment" );
@@ -123,14 +123,14 @@ public class PolicyWaiverResourceTest
             RestAccess.get( getServiceURL( "application", application1.getPublicId() )
                 + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
-        waivers = JsonHelpers.fromJson( response.getResponseBody(), List.class );
-        assertEquals( 2, waivers.size() );
+        waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
+        assertEquals( 2, waivers.length );
 
         response =
             RestAccess.get( getServiceURL( "organization", organization1.getId() ) + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
-        waivers = JsonHelpers.fromJson( response.getResponseBody(), List.class );
-        assertEquals( 1, waivers.size() );
+        waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
+        assertEquals( 1, waivers.length );
     }
 
     private void testDelete_OwnerIdMismatch( String ownerType, String ownerPublicId1, String ownerId1,

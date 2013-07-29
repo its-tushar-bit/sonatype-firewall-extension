@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.label;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Named;
@@ -125,31 +124,53 @@ public class LabelResource
         // Verify that the label is not used in a policy condition
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
 
-        List<Policy> policies = new ArrayList<Policy>();
-        policies.addAll( policyDAO.getByOwnerId( internalOwnerId ) );
-        for ( Application app : new ApplicationDAO().getByOrganizationId( internalOwnerId ) )
+        String inUseError = "Cannot delete the label because it is used in a condition for the '%s' policy";
+
+        for ( Policy policy : policyDAO.getByOwnerId( internalOwnerId ) )
         {
-            policies.addAll( policyDAO.getByOwnerId( app.getId() ) );
+            if ( isLabelUsedInPolicy( labelId, policy ) )
+            {
+                throw new BadRequestException( String.format( inUseError, policy.getName() ) );
+            }
         }
 
-        for ( Policy policy : policies )
+        if ( IdUtils.TYPE_ORGANIZATION.equals( ownerType ) )
         {
-            for ( Constraint constraint : policy.getConstraints() )
+            inUseError = inUseError + " in application '%s'";
+
+            for ( Application app : new ApplicationDAO().getByOrganizationId( internalOwnerId ) )
             {
-                for ( Condition condition : constraint.getConditions() )
+                for ( Policy policy : policyDAO.getByOwnerId( app.getId() ) )
                 {
-                    if ( LabelConditionType.ID.equals( condition.getConditionTypeId() )
-                        && labelId.equals( condition.getValue() ) )
+                    if ( isLabelUsedInPolicy( labelId, policy ) )
                     {
-                        // The label is used in a policy condition
-                        throw new BadRequestException(
-                                                       "Cannot delete the label because it is used in a condition for the '"
-                                                           + policy.getName() + "' policy" );
+                        throw new BadRequestException( String.format( inUseError, policy.getName(), app.getName() ) );
                     }
                 }
             }
         }
 
         labelDAO.delete( label );
+    }
+
+    /**
+     * Returns {@code true} if the given labelId is used in the given policy; otherwise {@code false}.
+     * 
+     * @since 1.6
+     */
+    private static boolean isLabelUsedInPolicy( String labelId, Policy policy )
+    {
+        for ( Constraint constraint : policy.getConstraints() )
+        {
+            for ( Condition condition : constraint.getConditions() )
+            {
+                if ( LabelConditionType.ID.equals( condition.getConditionTypeId() )
+                    && labelId.equals( condition.getValue() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

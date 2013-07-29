@@ -50,7 +50,8 @@ public class OrganizationLicenseThreatGroupResourceTest
         throws Exception
     {
         Application app = createApplication( "appPublicId", "appName" );
-        testDelete_InUseByPolicy( app.getOrganizationId(), app.getOrganizationId(), app.getId() );
+        testDelete_InUseByPolicy( app.getOrganizationId(), app.getOrganizationId(), app.getId(),
+                                  "in application 'appName'" );
     }
 
     @Test

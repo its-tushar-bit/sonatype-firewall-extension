@@ -39,8 +39,8 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
         response = RestAccess.delete( getServiceURL( ownerPublicId2 ) + "/" + group.getId() );
         assertResponseStatus( 404, response );
-        Assert.assertEquals( "Cannot find a license threat group with id " + group.getId() + " for owner id "
-            + ownerId2, response.getResponseBody() );
+        Assert.assertEquals( "Cannot find a license threat group with id " + group.getId() + " for " + getOwnerType()
+            + " id " + ownerPublicId2, response.getResponseBody() );
         // Verify that the group was not deleted
         response = RestAccess.get( getServiceURL( ownerPublicId1 ) );
         assertResponseStatus( 200, response );
@@ -51,6 +51,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
     }
 
     protected void testDelete_InUseByPolicy( String ownerPublicId, String ownerId, String policyOwnerId )
+        throws Exception
+    {
+        testDelete_InUseByPolicy( ownerPublicId, ownerId, policyOwnerId, null );
+    }
+
+    protected void testDelete_InUseByPolicy( String ownerPublicId, String ownerId, String policyOwnerId,
+                                             String policyLocation )
         throws Exception
     {
         LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
@@ -65,8 +72,15 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
         Response response = RestAccess.delete( getServiceURL( ownerPublicId ) + "/" + ltg.getId() );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Cannot delete the license threat group"
-            + " because it is used in a condition for the 'policyName' policy", response.getResponseBody() );
+
+        String error =
+            "Cannot delete the license threat group because it is used in a condition for the 'policyName' policy";
+        if ( null != policyLocation )
+        {
+            error = error + " " + policyLocation;
+        }
+
+        Assert.assertEquals( error, response.getResponseBody() );
         Assert.assertNotNull( ltgDAO.getById( ltg.getId() ) );
     }
 

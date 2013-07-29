@@ -312,8 +312,8 @@ public class LabelResourceTest
         // Try to delete the label
         response = RestAccess.delete( getServiceURLForOrganization( organizationId ) + "/" + label.getId() );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy",
-                             response.getResponseBody() );
+        Assert.assertEquals( "Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy"
+            + " in application 'Application Name 1'", response.getResponseBody() );
 
         // Verify that the label was not deleted
         response = RestAccess.get( getServiceURLForOrganization( organizationId ) );

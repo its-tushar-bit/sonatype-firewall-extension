@@ -1,24 +1,43 @@
 <div>
   <div load-error='error' reload='doLoad()'></div>
-  <div class='content-container' style='text-align:center;width:370px;margin:25px auto' ng-show='labels == null && !error'>
+  <div class='content-container' style='text-align:center;width:370px;margin:25px auto' ng-show='applicableLabels == null && !error'>
     <h5><i class='icon-time'></i> Loading...</h5>
   </div>
-  <div ng-show='!error && labels != null'>
+  <div ng-show='!error && applicableLabels != null'>
     <div class='add-section'>
       <div inline-label-creator></div>
     </div>
-    <div class="content-section">
-      <div class="content-header">
-        <h4>{{selectedApplication.name}} Labels</h4>
-      </div>
-      <div class="label-list">
-        <div ng-repeat='label in labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(label)'>
-          <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
-            <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span>
-            <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span></div>
+    <div id='{{applicableLabel.ownerId}}' ng-repeat='applicableLabel in applicableLabels' ng-show='applicableLabel.editable || applicableLabel.labels.length > 0'>
+      <div class="content-section">
+        <div class="content-header">
+          <h4>
+            <span ng-switch='applicableLabel.editable'>
+                <span ng-switch-when='true'>{{applicableLabel.ownerName}} Labels</span>
+                <span ng-switch-default>Labels Inherited from {{applicableLabel.ownerName}}</span>
+            </span>
+          </h4>
         </div>
-        <em ng-show='labels.length == 0'>No labels available</em></div>
-      <div ng-include='editorUrl' style="margin-left: 25px;"></div>
+        <div class="label-list">
+          <div ng-repeat='label in applicableLabel.labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(applicableLabel.editable, label)'>
+            <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
+              <span ng-switch='applicableLabel.editable'>
+                <span ng-switch-when='true'>
+                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}" data-tooltip-placement="bottom"> {{label.label}}</span>
+                  <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span>
+                </span>
+                <span ng-switch-default>
+                  <span class="clmLabel {{label.color}}Label"> {{label.label}} </span>
+                </span>
+              </span>
+            </div>
+          </div>
+          <em ng-show='labels.length == 0'>No labels available</em></div>
+        <span ng-switch='applicableLabel.editable'>
+          <span ng-switch-when='true'>
+            <div ng-include='editorUrl' style="margin-left: 25px;"></div>
+          </span>
+        </span>
+      </div>
     </div>
   </div>
   <div error-Modal></div>

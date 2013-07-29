@@ -1,21 +1,44 @@
 describe('LabelController.js', function() {
 
-  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null};
+  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null, description: null};
   var LabelMockData = {
     getLabels : function(){
       return [angular.copy(labelTemplate)]
+    },
+    getApplicableLabels : function() {
+      return {
+        "labelsByOwner":[
+          {
+            "ownerId":"appownerid",
+            "ownerName":"appname",
+            "ownerType":"application",
+            "labels":[
+              {
+                "id":"applabelid",
+                "ownerId":"appownerid",
+                "label":"AppLabel",
+                "labelLowercase":"applabel",
+                "color":"red"
+              }
+            ]
+          },
+          {
+            "ownerId":"orgownerid",
+            "ownerName":"orgname",
+            "ownerType":"organization",
+            "labels":[
+              {
+                "id":"orglabelid",
+                "ownerId":"orgownerid",
+                "label":"OrgLabel",
+                "labelLowercase":"orglabel",
+                "color":"red"
+              }
+            ]
+          }]
+      };
     }
   }
-  //var LabelStore = {
-  //  create: function(){
-  //    return angular.copy(labelTemplate);
-  //  },
-  //  get: function(){}
-  //}
-  ////provide a mocked LabelStore impl
-  //beforeEach(module('Labels',function($provide) {
-  //  $provide.value('LabelStore', LabelStore);
-  //}));
 
   beforeEach(module('Labels'));
 
@@ -96,6 +119,7 @@ describe('LabelController.js', function() {
       scope = testScope;
       scope.alerts = [];
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabels());
       labelController = $controller('LabelController', {$scope: scope});
       labelEditController = $controller('LabelEditorController', {$scope: scope});
       $httpBackend.flush();
@@ -129,7 +153,7 @@ describe('LabelController.js', function() {
     });
 
     it('Can edit a label with or without an id', function(){
-      scope.editLabel();
+      scope.editLabel(true);
       expect(scope.selectedLabel).toEqual(labelTemplate);
     });
 

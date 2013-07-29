@@ -12,16 +12,32 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
+    @Test
+    public void testGetByIdNotNull()
+    {
+        try
+        {
+            new PolicyWaiverDAO().getByIdNotNull( "fake id" );
+            fail( "Expected NotFoundException" );
+        }
+        catch ( NotFoundException expected )
+        {
+            assertEquals( "Cannot find a policy waiver with id fake id", expected.getMessage() );
+        }
+    }
+
     @Test
     public void testCRUD()
         throws Exception
@@ -79,6 +95,14 @@ public class PolicyWaiverDAOTest
         assertEquals( createTime, actual.getCreateTime() );
     }
 
+    private void assertPolicyWaiver( PolicyWaiver expected, PolicyWaiver actual )
+    {
+        assertEquals( expected.getHash(), actual.getHash() );
+        assertEquals( expected.getPolicyId(), actual.getPolicyId() );
+        assertEquals( expected.getOwnerId(), actual.getOwnerId() );
+        assertEquals( expected.getComment(), actual.getComment() );
+    }
+
     @Test
     public void testAddDuplicate()
         throws Exception
@@ -104,5 +128,37 @@ public class PolicyWaiverDAOTest
         }
 
         dao.delete( policyWaiver1 );
+    }
+
+    @Test
+    public void testGetByOwnerId_Inherited()
+    {
+        createDefaultApplication();
+        PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+        PolicyWaiver policyWaiverOrg = new PolicyWaiver( "1", "MyPolicyId1", organization.getId(), "My comment1" );
+        dao.insert( policyWaiverOrg );
+
+        PolicyWaiver policyWaiverApp = new PolicyWaiver( "2", "MyPolicyId2", application.getId(), "My comment2" );
+        dao.insert( policyWaiverApp );
+
+        // Assert for application
+        List<PolicyWaiver> policyWaivers = dao.getByOwnerId( application.getId(), false /* inherit */);
+        assertEquals( 1, policyWaivers.size() );
+        assertPolicyWaiver( policyWaiverApp, policyWaivers.get( 0 ) );
+
+        policyWaivers = dao.getByOwnerId( application.getId(), true /* inherit */);
+        assertEquals( 2, policyWaivers.size() );
+        assertPolicyWaiver( policyWaiverOrg, policyWaivers.get( 0 ) );
+        assertPolicyWaiver( policyWaiverApp, policyWaivers.get( 1 ) );
+
+        // Assert for organizationn
+        policyWaivers = dao.getByOwnerId( organization.getId(), false /* inherit */);
+        assertEquals( 1, policyWaivers.size() );
+        assertPolicyWaiver( policyWaiverOrg, policyWaivers.get( 0 ) );
+
+        policyWaivers = dao.getByOwnerId( organization.getId(), true /* inherit */);
+        assertEquals( 1, policyWaivers.size() );
+        assertPolicyWaiver( policyWaiverOrg, policyWaivers.get( 0 ) );
     }
 }

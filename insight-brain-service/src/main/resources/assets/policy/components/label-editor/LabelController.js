@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null};
+  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null, description: null};
 
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices']);
 
@@ -44,8 +44,8 @@
     };
   }]);
 
-  labelModule.controller('LabelController', ['$scope', '$http', '$dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
-                                             function ($scope, $http, $dialog, clmAppLocations, messages, clmResource, LabelStore) {
+  labelModule.controller('LabelController', ['$scope', '$http', '$dialog', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
+                                             function ($scope, $http, $dialog, $q, clmAppLocations, messages, clmResource, LabelStore) {
       function deselect() {
         if($scope.selectedLabel)
         {
@@ -62,14 +62,27 @@
 
       $scope.doLoad = function () {
         $scope.error = null;
-        LabelStore.get().then(function(labels){
-          $scope.labels = labels;
+        var promises = [LabelStore.get(), $http.get(clmAppLocations.getApplicableLabelsUrl(), {
+          params: { timestamp: new Date().getTime() }
+        })];
+
+        $q.all(promises).then(function(results){
+          $scope.applicableLabels = results[1].data.labelsByOwner;
+          angular.forEach($scope.applicableLabels, function (applicableLabel, index) {
+            applicableLabel.editable = index === 0;
+            if (index === 0) {
+              applicableLabel.labels = results[0];
+            }
+          });
         }, function(error){
           $scope.error = error;
         });
       };
 
-      $scope.editLabel = function (label) {
+      $scope.editLabel = function (isEditable, label) {
+        if (!isEditable) {
+          return;
+        }
         deselect();
         $scope.selectedLabel = angular.copy(label || labelTemplate);
         $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;

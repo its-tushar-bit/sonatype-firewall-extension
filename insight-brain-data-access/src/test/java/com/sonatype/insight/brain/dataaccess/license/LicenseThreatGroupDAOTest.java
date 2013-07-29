@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LicenseThreatGroupDAOTest
     extends AbstractDbDAOTest
@@ -634,5 +635,19 @@ public class LicenseThreatGroupDAOTest
 
         group.setName( name );
         dao.update( group );
+    }
+
+    @Test
+    public void testGetByIdNotNull()
+    {
+        try
+        {
+            new LicenseThreatGroupDAO().getByIdNotNull( "fake id" );
+            fail( "Expected NotFoundException" );
+        }
+        catch ( NotFoundException expected )
+        {
+            assertEquals( "Cannot find a license threat group with id fake id", expected.getMessage() );
+        }
     }
 }

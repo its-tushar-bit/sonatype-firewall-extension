@@ -134,33 +134,40 @@ public class LicenseThreatGroupResource
                                           @PathParam( "ownerId" ) String ownerId,
                                           @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
     {
-        ownerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getById( licenseThreatGroupId );
-        if ( !ownerId.equals( licenseThreatGroup.getOwnerId() ) )
+        LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByIdNotNull( licenseThreatGroupId );
+        if ( !internalOwnerId.equals( licenseThreatGroup.getOwnerId() ) )
         {
-            throw new NotFoundException( "Cannot find a license threat group with id " + licenseThreatGroupId
-                + " for owner id " + ownerId );
+            throw new NotFoundException( "Cannot find a license threat group with id " + licenseThreatGroupId + " for "
+                + ownerType + " id " + ownerId );
         }
 
-        List<Policy> policies = new ArrayList<Policy>();
+        // Verify that the license threat group is not used in a policy condition
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        policies.addAll( policyDAO.getByOwnerId( ownerId ) );
-        for ( Application app : new ApplicationDAO().getByOrganizationId( ownerId ) )
+
+        String inUseError =
+            "Cannot delete the license threat group because it is used in a condition for the '%s' policy";
+
+        for ( Policy policy : policyDAO.getByOwnerId( internalOwnerId ) )
         {
-            policies.addAll( policyDAO.getByOwnerId( app.getId() ) );
-        }
-        for ( Policy policy : policies )
-        {
-            for ( Constraint constraint : policy.getConstraints() )
+            if ( isLicenseThreatGroupUsedInPolicy( licenseThreatGroupId, policy ) )
             {
-                for ( Condition condition : constraint.getConditions() )
+                throw new BadRequestException( String.format( inUseError, policy.getName() ) );
+            }
+        }
+
+        if ( IdUtils.TYPE_ORGANIZATION.equals( ownerType ) )
+        {
+            inUseError = inUseError + " in application '%s'";
+
+            for ( Application app : new ApplicationDAO().getByOrganizationId( internalOwnerId ) )
+            {
+                for ( Policy policy : policyDAO.getByOwnerId( app.getId() ) )
                 {
-                    if ( LicenseThreatGroupConditionType.ID.equals( condition.getConditionTypeId() )
-                        && licenseThreatGroupId.equals( condition.getValue() ) )
+                    if ( isLicenseThreatGroupUsedInPolicy( licenseThreatGroupId, policy ) )
                     {
-                        throw new BadRequestException( "Cannot delete the license threat group because it is used"
-                            + " in a condition for the '" + policy.getName() + "' policy" );
+                        throw new BadRequestException( String.format( inUseError, policy.getName(), app.getName() ) );
                     }
                 }
             }
@@ -195,5 +202,26 @@ public class LicenseThreatGroupResource
         public String ownerType;
 
         public List<LicenseThreatGroup> licenseThreatGroups;
+    }
+
+    /**
+     * Returns {@code true} if the given licenseThreatGroupId is used in the given policy; otherwise {@code false}.
+     * 
+     * @since 1.6
+     */
+    private static boolean isLicenseThreatGroupUsedInPolicy( String licenseThreatGroupId, Policy policy )
+    {
+        for ( Constraint constraint : policy.getConstraints() )
+        {
+            for ( Condition condition : constraint.getConditions() )
+            {
+                if ( LicenseThreatGroupConditionType.ID.equals( condition.getConditionTypeId() )
+                    && licenseThreatGroupId.equals( condition.getValue() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

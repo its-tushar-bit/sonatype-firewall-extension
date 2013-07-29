@@ -5,11 +5,12 @@
               <div class="controls" style="margin-left: 0;">
                 <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
                 <span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
-					<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
-					<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
-				</div>
-			</div>
-	        <div>
+				<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
+				<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
+              </div>
+              <textarea maxlength="255" rows="5" ng-model='selectedLabel.description' placeholder="Add a description..."></textarea>
+            </div>
+          <div>
 	            <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
 	                <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{selectedLabel.label}}</span>
 	            </div>

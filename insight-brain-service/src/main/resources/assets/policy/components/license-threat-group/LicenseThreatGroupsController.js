@@ -125,6 +125,9 @@
         $q.all(promises).then(function (results) {
           angular.forEach(results, function (licenseGroups, index) {
             $scope.applicableLicenseGroups[index].licenseThreatGroups = licenseGroups;
+            if (index === 0) {
+              $scope.licenseGroups = licenseGroups;
+            }
           });
         }, function (errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;

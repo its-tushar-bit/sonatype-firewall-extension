@@ -31,6 +31,10 @@
 				return baseUrl.get() + '/rest/label/' + getServicePathWithId();
 			},
 
+      getApplicableLabelsUrl: function() {
+        return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/applicable';
+      },
+
 			getDeleteLabelsUrl: function (label) {
 				return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
 			},

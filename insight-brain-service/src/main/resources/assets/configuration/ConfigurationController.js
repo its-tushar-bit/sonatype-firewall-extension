@@ -103,6 +103,10 @@
             $scope.packages = angular.copy($scope.proprietary.packages);
         };
 
+        $scope.isDirty = function() {
+          return $scope.packages && $scope.proprietary && $scope.packages.length != $scope.proprietary.packages.length;
+        }
+
         $scope.setEditorError = function (error) {
             $scope.error = error;
         };
@@ -112,5 +116,11 @@
         };
 
         $scope.doLoad();
+
+      $scope.$on('pageChangeStarted', function (event) {
+        if ($scope.isDirty()) {
+          event.preventDefault();
+        }
+      });
     }]);
 }());

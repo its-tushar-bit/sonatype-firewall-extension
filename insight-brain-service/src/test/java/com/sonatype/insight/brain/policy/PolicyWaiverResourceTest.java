@@ -57,18 +57,21 @@ public class PolicyWaiverResourceTest
         assertPolicyWaiver( "MyPolicyId", ownerId, "My comment", policyWaiver );
 
         // Get
-        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId( ownerId );
-        assertEquals( 1, policyWaivers.size() );
-        assertPolicyWaiver( "MyPolicyId", ownerId, "My comment", policyWaivers.get( 0 ) );
+        response = RestAccess.get( getServiceURL( ownerType, ownerPublicId ) + "/component/12345678901234567890" );
+        assertResponseStatus( 200, response );
+        PolicyWaiver[] policyWaivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
+        assertEquals( 1, policyWaivers.length );
+        assertPolicyWaiver( "MyPolicyId", ownerId, "My comment", policyWaivers[0] );
 
         // Delete
         response = RestAccess.delete( getServiceURL( ownerType, ownerPublicId ) + "/" + policyWaiver.getId() );
         assertResponseStatus( 204, response );
 
         // Get
-        policyWaivers = policyWaiverDAO.getByOwnerId( ownerId );
-        assertEquals( 0, policyWaivers.size() );
+        response = RestAccess.get( getServiceURL( ownerType, ownerPublicId ) + "/component/12345678901234567890" );
+        assertResponseStatus( 200, response );
+        policyWaivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
+        assertEquals( 0, policyWaivers.length );
     }
 
     @Test

@@ -95,7 +95,7 @@ public class PolicyWaiverResourceTest
     }
 
     @Test
-    public void test_getPolicyWaiversByHash()
+    public void testGetPolicyWaiversByHash()
         throws Exception
     {
         Organization organization1 = createOrganization( "PolicyWaiverResourceTest1" );
@@ -114,6 +114,7 @@ public class PolicyWaiverResourceTest
         assertResponseStatus( 200, response );
         PolicyWaiver[] waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
         assertEquals( 1, waivers.length );
+        assertPolicyWaiver( "MyPolicyId", application1.getId(), "My comment", waivers[0] );
 
         PolicyWaiver waiver2 =
             new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization1.getId(), "My comment" );
@@ -125,12 +126,15 @@ public class PolicyWaiverResourceTest
         assertResponseStatus( 200, response );
         waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
         assertEquals( 2, waivers.length );
+        assertPolicyWaiver( "MyPolicyId", organization1.getId(), "My comment", waivers[0] );
+        assertPolicyWaiver( "MyPolicyId", application1.getId(), "My comment", waivers[1] );
 
         response =
             RestAccess.get( getServiceURL( "organization", organization1.getId() ) + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
         waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
         assertEquals( 1, waivers.length );
+        assertPolicyWaiver( "MyPolicyId", organization1.getId(), "My comment", waivers[0] );
     }
 
     private void testDelete_OwnerIdMismatch( String ownerType, String ownerPublicId1, String ownerId1,

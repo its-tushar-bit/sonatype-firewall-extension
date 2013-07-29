@@ -56,10 +56,6 @@ public class PolicyWaiverResource
 
         PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
         PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull( policyWaiverId );
-        if ( policyWaiver == null )
-        {
-            return;
-        }
         if ( !internalOwnerId.equals( policyWaiver.getOwnerId() ) )
         {
             throw new NotFoundException( "Cannot find a policy waiver with id " + policyWaiverId + " for " + ownerType

@@ -101,43 +101,44 @@ public class PolicyWaiverResourceTest
     public void testGetPolicyWaiversByHash()
         throws Exception
     {
-        Organization organization1 = createOrganization( "PolicyWaiverResourceTest1" );
-        String appPublicId1 = "PolicyWaiverResourceTest_AppId1";
-        Application application1 = createApplication( appPublicId1, "PolicyWaiverResourceTest AppId1", organization1 );
+        Organization organization = createOrganization( "PolicyWaiverResourceTest1" );
+        String appPublicId = "PolicyWaiverResourceTest_AppId1";
+        Application application = createApplication( appPublicId, "PolicyWaiverResourceTest AppId1", organization );
 
         PolicyWaiver waiver1 =
-            new PolicyWaiver( "12345678901234567890", "MyPolicyId", application1.getId(), "My comment" );
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", application.getId(), "My comment" );
 
         PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
         policyWaiverDAO.insert( waiver1 );
 
         Response response =
-            RestAccess.get( getServiceURL( "application", application1.getPublicId() )
+            RestAccess.get( getServiceURL( IdUtils.TYPE_APPLICATION, application.getPublicId() )
                 + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
         PolicyWaiver[] waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
         assertEquals( 1, waivers.length );
-        assertPolicyWaiver( "MyPolicyId", application1.getId(), "My comment", waivers[0] );
+        assertPolicyWaiver( "MyPolicyId", application.getId(), "My comment", waivers[0] );
 
         PolicyWaiver waiver2 =
-            new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization1.getId(), "My comment" );
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization.getId(), "My comment" );
         policyWaiverDAO.insert( waiver2 );
 
         response =
-            RestAccess.get( getServiceURL( "application", application1.getPublicId() )
+            RestAccess.get( getServiceURL( IdUtils.TYPE_APPLICATION, application.getPublicId() )
                 + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
         waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
         assertEquals( 2, waivers.length );
-        assertPolicyWaiver( "MyPolicyId", organization1.getId(), "My comment", waivers[0] );
-        assertPolicyWaiver( "MyPolicyId", application1.getId(), "My comment", waivers[1] );
+        assertPolicyWaiver( "MyPolicyId", organization.getId(), "My comment", waivers[0] );
+        assertPolicyWaiver( "MyPolicyId", application.getId(), "My comment", waivers[1] );
 
         response =
-            RestAccess.get( getServiceURL( "organization", organization1.getId() ) + "/component/12345678901234567890" );
+            RestAccess.get( getServiceURL( IdUtils.TYPE_ORGANIZATION, organization.getId() )
+                + "/component/12345678901234567890" );
         assertResponseStatus( 200, response );
         waivers = JsonHelpers.fromJson( response.getResponseBody(), PolicyWaiver[].class );
         assertEquals( 1, waivers.length );
-        assertPolicyWaiver( "MyPolicyId", organization1.getId(), "My comment", waivers[0] );
+        assertPolicyWaiver( "MyPolicyId", organization.getId(), "My comment", waivers[0] );
     }
 
     private void testDelete_OwnerIdMismatch( String ownerType, String ownerPublicId1, String ownerId1,

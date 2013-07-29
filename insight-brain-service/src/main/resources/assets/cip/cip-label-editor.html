@@ -2,13 +2,19 @@
 	<div style='float:right;width:49.5%;margin-bottom:10px'>
 		<h5>Available <i class='icon-refresh' ng-click='reloadAppLabels()' spinner></i></h5>
 		<div class='availableContainer'>
-			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'><span title='{{label.description || label.label}}'>{{label.label}}</span>&nbsp;<i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i></span>
+			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
+              <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
+              <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
+            </span>
 		</div>
 	</div>
 	<div style='width:49.5%;margin-bottom:10px'>
 		<h5>Applied <i class='icon-refresh' ng-click='reloadLabels()' spinner></i></h5>
 		<div class='appliedContainer'>
-			<span ng-repeat='label in itemLabels | orderBy:"label"' class='clmLabel {{label.color}}Label'><span title='{{label.description || label.label}}'>{{label.label}}</span>&nbsp;<i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i></span>
+			<span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
+              <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
+              <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
+            </span>
 		</div>
 		<div>
 			<form class='form-inline' ng-submit='addLabels($event);' name='cipFormEditor'>

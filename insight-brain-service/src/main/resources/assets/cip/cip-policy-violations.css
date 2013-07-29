@@ -5,17 +5,17 @@
 	border-right: 1px solid #CFD0D2;
 }
 
-.cip-policy-table-header,.cip-policy-table-header-last {
+.cip-policy-table-header {
 	border-left: 1px solid #CFD0D2 !important;
 	border-top: 1px solid #CFD0D2 !important;
 	padding: 0px !important;
 }
 
-.cip-policy-table-header-last {
+.cip-policy-table-header:last-child {
 	border-right: 1px solid #CFD0D2 !important;
 }
 
-.cip-policy-table-header>div,.cip-policy-table-header-last>div {
+.cip-policy-table-header>div {
 	/* For IE */
 	filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr=#FAFAFC,
 		endColorstr=#CFD0D2 );

@@ -17,7 +17,8 @@
 
 				angular.module('policyViolations' + timestamp, []).service('PolicyViolationData', function() {
 					return {
-						hash : hash
+						hash : hash,
+						appId : appId
 					};
 				});
 
@@ -26,16 +27,14 @@
 		}
 	});
 
-	var policyViolationApp = angular.module('PolicyViolations', []);
+	var policyViolationApp = angular.module('PolicyViolations', ['CommonServices', 'Hudson']);
 
-	policyViolationApp.controller('PolicyViolationsController', [ '$http', '$scope', '$timeout', 'PolicyViolationData', function($http, $scope, $timeout, policyViolationData) {
+	policyViolationApp.controller('PolicyViolationsController', [ 'hudson', '$http', '$scope', '$timeout', 'PolicyViolationData', 'Messages', function(hudson, $http, $scope, $timeout, policyViolationData, messages) {
 		function errorFn(data, status, headersFn, config) {
-			var header = headersFn();
-			if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-				$scope.errorResponse = 'Server Error';
-			} else {
-				$scope.errorResponse = data;
-			}
+		    $scope.alerts.push({
+                type : 'error',
+                msg : messages.getHttpErrorMessage({ status: status,  data: data })
+            });
 		}
 
 		function startIfReady() {
@@ -73,8 +72,73 @@
 				$scope.processedPolicyAlerts.sort(function(policyA, policyB) {
 					return policyA.threatLevel > policyB.threatLevel ? -11 : policyA.threatLevel < policyB.threatLevel ? 1 : 0;
 				});
+				
+				//move the modal out into the body, so it appears properly ABOVE the backdrop
+				$("#componentWaiverModal").appendTo("body");
 			}
 		}
+		
+		//Waive component policy trigger, so that it will no longer be triggered in future
+		$scope.waiveComponent = function(policyAlert) {
+		    $scope.waiverLoading = true;
+		    $('#componentWaiverModal').modal('show');
+		    //get the tree of contexts, and flatten down into a list we can display properly
+		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
+		        $scope.waiverLoading = false;
+		        function processContext(context) {
+		            if (context) {
+		                //only bother checking children if an org, apps dont have children
+    		            if (context.type === 'organization') {
+                            $scope.waiverTargets.push({id:context.id,name:context.name,type:context.type});
+                            angular.forEach(context.children, function(childContext, childContextIndex){
+                                processContext(childContext); 
+                            });
+                        } else {
+                            //insert the app in position 1, app should always be shown first, and will be defaulted
+                            var waiverTarget = {id:policyViolationData.appId,name:context.name,type:context.type};
+                            $scope.waiverTargets.splice(0, 0, waiverTarget);
+                            //set the app as the default selected value
+                            $scope.waiverSelectedTarget = waiverTarget;
+                        }
+		            }
+		        }
+		        
+		        //if only application present, no need to show the app/org radio buttons
+		        $scope.waiverSelectOwner = (data.children && data.children.length);
+		        $scope.waiverTargets = [];
+	            processContext(data);
+	            $scope.waiverComment = undefined;
+	            $scope.waiveAssignError = undefined;
+                $scope.waiverPolicyAlert = policyAlert;
+		    }).error(function(){
+		        $scope.waiverLoading = false;
+		        errorFn(arguments);
+		    });
+		}
+		
+		//pretty simple, they decline just dump the modal
+		$scope.declineWaiveComponent = function() {
+		    $('#componentWaiverModal').modal('hide');
+		}
+		
+		//user really wants to waive the component, so send the request on down
+		$scope.acceptWaiveComponent = function() {
+            var data = {
+                hash : policyViolationData.hash,
+                policyId : $scope.waiverPolicyAlert.id,
+                comment : $scope.waiverComment
+            };
+            $scope.waiverSaving = true;
+            hudson.post(CLM.path + 'rest/policyWaiver/' + $scope.waiverSelectedTarget.type + '/' + $scope.waiverSelectedTarget.id, data).success(function(responseData){
+                $scope.waiverSaving = false;
+                $('#componentWaiverModal').modal('hide');
+		    }).error(function(data, status, headersFn, config){
+		        $scope.waiverSaving = false;
+		        $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status,  data: data });
+		    });		    
+		}
+		
+		$scope.alerts = [];
 
 		$http.get('policyalerts.json', {
 			params : {

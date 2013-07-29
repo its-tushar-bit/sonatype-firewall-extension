@@ -136,11 +136,7 @@ public class LicenseThreatGroupResource
     {
         String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getById( licenseThreatGroupId );
-        if ( licenseThreatGroup == null )
-        {
-            throw new NotFoundException( "Cannot find a license threat group with id " + licenseThreatGroupId );
-        }
+        LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByIdNotNull( licenseThreatGroupId );
         if ( !internalOwnerId.equals( licenseThreatGroup.getOwnerId() ) )
         {
             throw new NotFoundException( "Cannot find a license threat group with id " + licenseThreatGroupId + " for "

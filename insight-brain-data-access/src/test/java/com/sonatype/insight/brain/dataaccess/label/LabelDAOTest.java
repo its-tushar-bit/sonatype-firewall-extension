@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,11 +25,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LabelDAOTest
     extends AbstractDbDAOTest
@@ -504,6 +505,20 @@ public class LabelDAOTest
         assertLabels( Arrays.asList( label2 ), labelDAO.getByOwnerId( applicationId, false ) );
 
         assertLabels( Arrays.asList( label1, label2 ), labelDAO.getByOwnerId( applicationId, true ) );
+    }
+
+    @Test
+    public void testGetByIdNotNull()
+    {
+        try
+        {
+            new LabelDAO().getByIdNotNull( "fake id" );
+            fail( "Expected NotFoundException" );
+        }
+        catch ( NotFoundException expected )
+        {
+            assertEquals( "Cannot find a label with id fake id", expected.getMessage() );
+        }
     }
 
   @Test

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
@@ -148,6 +149,29 @@ public class LabelDAO
         String sQuery = "SELECT label FROM Label label" + //
             " WHERE label.id=?1";
         return get( em, sQuery, id );
+    }
+
+    private Label getByIdNotNull( EntityManager em, String id )
+    {
+        Label label = getById( em, id );
+        if ( label == null )
+        {
+            throw new NotFoundException( "Cannot find a label with id " + id );
+        }
+        return label;
+    }
+
+    public Label getByIdNotNull( String id )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByIdNotNull( em, id );
+        }
+        finally
+        {
+            close( em );
+        }
     }
 
     @Override

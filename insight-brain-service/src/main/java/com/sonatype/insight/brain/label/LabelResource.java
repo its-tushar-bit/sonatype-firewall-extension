@@ -167,11 +167,7 @@ public class LabelResource
     {
         String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
-        Label label = labelDAO.getById( labelId );
-        if ( label == null )
-        {
-            throw new NotFoundException( "Cannot find a label with id " + labelId );
-        }
+        Label label = labelDAO.getByIdNotNull( labelId );
         if ( !internalOwnerId.equals( label.getOwnerId() ) )
         {
             throw new NotFoundException( "Cannot find a label with id " + labelId + " for " + ownerType + " id "

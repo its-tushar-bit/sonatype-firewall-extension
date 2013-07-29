@@ -71,12 +71,25 @@ public class LicenseThreatGroupDAO
 
     LicenseThreatGroup getByIdNotNull( EntityManager em, String id )
     {
-        LicenseThreatGroup licenseThreatGroup = getById( id );
+        LicenseThreatGroup licenseThreatGroup = getById( em, id );
         if ( licenseThreatGroup == null )
         {
             throw new NotFoundException( "Cannot find a license threat group with id " + id );
         }
         return licenseThreatGroup;
+    }
+
+    public LicenseThreatGroup getByIdNotNull( String id )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByIdNotNull( em, id );
+        }
+        finally
+        {
+            close( em );
+        }
     }
 
     public LicenseThreatGroup getByOwnerIdAndName( String ownerId, String name )

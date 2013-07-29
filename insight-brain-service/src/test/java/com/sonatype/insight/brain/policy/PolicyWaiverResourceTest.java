@@ -31,7 +31,7 @@ public class PolicyWaiverResourceTest
         String appPublicId = "PolicyWaiverResourceTest_AppId";
         Application application = createApplication( appPublicId );
 
-        testApplicationCRUD( IdUtils.TYPE_APPLICATION, appPublicId, application.getId() );
+        testCRUD( IdUtils.TYPE_APPLICATION, appPublicId, application.getId() );
     }
 
     @Test
@@ -40,10 +40,10 @@ public class PolicyWaiverResourceTest
     {
         Organization organization = createOrganization( "PolicyWaiverResourceTest" );
 
-        testApplicationCRUD( IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId() );
+        testCRUD( IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId() );
     }
 
-    private void testApplicationCRUD( String ownerType, String ownerPublicId, String ownerId )
+    private void testCRUD( String ownerType, String ownerPublicId, String ownerId )
         throws Exception
     {
         // Create

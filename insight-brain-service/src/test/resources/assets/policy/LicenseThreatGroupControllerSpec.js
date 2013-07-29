@@ -54,6 +54,8 @@ describe('LicenseThreatGroup', function() {
 			expect(scope.applicableLicenseGroups[1].licenseThreatGroups).not.toBeUndefined();
 			expect(scope.applicableLicenseGroups[1].licenseThreatGroups.length).toEqual(1);
 			expect(scope.applicableLicenseGroups[1].editable).toEqual(false);
+			expect(scope.licenseGroups).not.toBeUndefined();
+			expect(scope.licenseGroups).toEqual(scope.applicableLicenseGroups[0].licenseThreatGroups);
 		});
 		it('loads license group licenses.', function() {
 			expect(scope.applicableLicenseGroups[0].licenseThreatGroups[0].licenses).not.toBeUndefined();

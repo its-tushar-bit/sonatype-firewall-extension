@@ -138,7 +138,7 @@ public class PolicyWaiverResourceTest
         throws Exception
     {
         PolicyWaiver policyWaiver =
-            new PolicyWaiver( "12345678901234567890", "MyPolicyId", ownerPublicId1, "My comment" );
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", null /* ownerId */, "My comment" );
         Response response =
             RestAccess.post( getServiceURL( ownerType, ownerPublicId1 ), JsonHelpers.asJson( policyWaiver ) );
         assertResponseStatus( 200, response );

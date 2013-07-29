@@ -15,7 +15,7 @@
             <span ng-show='inlineLabelEditor.labelName.$error.duplicate' class="help-inline">Duplicate Label</span>
             <span ng-show='inlineLabelEditor.labelName.$error.invalid' class="help-inline">Invalid Character</span>
           </div>
-          <textarea maxlength="255" ng-model='selectedLabel.description' placeholder="Add a description..."></textarea>
+          <textarea maxlength="255" rows="5" ng-model='selectedLabel.description' placeholder="Add a description..."></textarea>
         </div>
         <div ng-show='label' class="modal-body color-selector">
           <div>

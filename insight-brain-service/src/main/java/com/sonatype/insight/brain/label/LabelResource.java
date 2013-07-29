@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Named;
@@ -21,8 +22,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -121,7 +124,15 @@ public class LabelResource
 
         // Verify that the label is not used in a policy condition
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-        for ( Policy policy : policyDAO.getByOwnerId( internalOwnerId ) )
+
+        List<Policy> policies = new ArrayList<Policy>();
+        policies.addAll( policyDAO.getByOwnerId( internalOwnerId ) );
+        for ( Application app : new ApplicationDAO().getByOrganizationId( internalOwnerId ) )
+        {
+            policies.addAll( policyDAO.getByOwnerId( app.getId() ) );
+        }
+
+        for ( Policy policy : policies )
         {
             for ( Constraint constraint : policy.getConstraints() )
             {

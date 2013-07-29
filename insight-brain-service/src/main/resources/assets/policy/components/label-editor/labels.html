@@ -1,14 +1,16 @@
 <div>
-  <div load-error='error' reload='doLoad()'></div>
-  <div class='content-container' style='text-align:center;width:370px;margin:25px auto' ng-show='applicableLabels == null && !error'>
-    <h5><i class='icon-time'></i> Loading...</h5>
+  <div class='add-section'>
+    <div inline-label-creator></div>
   </div>
-  <div ng-show='!error && applicableLabels != null'>
-    <div class='add-section'>
-      <div inline-label-creator></div>
+  <div class="content-section">
+    <div load-error='error' reload='doLoad()'></div>
+    <div class='content-container' style='text-align:center;width:370px;margin:25px auto'
+         ng-show='applicableLabels == null && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
     </div>
-    <div id='{{applicableLabel.ownerId}}' ng-repeat='applicableLabel in applicableLabels' ng-show='applicableLabel.editable || applicableLabel.labels.length > 0'>
-      <div class="content-section">
+    <div ng-show='!error && applicableLabels != null'>
+      <div id='{{applicableLabel.ownerId}}' ng-repeat='applicableLabel in applicableLabels'
+           ng-show='applicableLabel.editable || applicableLabel.labels.length > 0'>
         <div class="content-header">
           <h4>
             <span ng-switch='applicableLabel.editable'>
@@ -18,15 +20,19 @@
           </h4>
         </div>
         <div class="label-list">
-          <div ng-repeat='label in applicableLabel.labels | orderBy:"label"' style='display:inline-block;'  ng-click='editLabel(applicableLabel.editable, label)'>
+          <div ng-repeat='label in applicableLabel.labels | orderBy:"label"' style='display:inline-block;'
+               ng-click='editLabel(applicableLabel.editable, label)'>
             <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
               <span ng-switch='applicableLabel.editable'>
                 <span ng-switch-when='true'>
-                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}" data-tooltip-placement="bottom"> {{label.label}}</span>
-                  <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span>
+                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}"
+                        data-tooltip-placement="bottom"> {{label.label}}</span>
+                  <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent"
+                        ng-click="deleteLabel(label)"></span>
                 </span>
                 <span ng-switch-default>
-                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}" data-tooltip-placement="bottom"> {{label.label}} </span>
+                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}"
+                        data-tooltip-placement="bottom"> {{label.label}} </span>
                 </span>
               </span>
             </div>

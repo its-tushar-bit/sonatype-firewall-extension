@@ -43,7 +43,10 @@
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 			<h3>Waive component?</h3>
 		</div>
-		<div class="modal-body">
+		<div class="modal-body" ng-show="waiverLoading">
+			<span>Loading data...</span>
+		</div>
+		<div class="modal-body" ng-show="!waiverLoading">
 			<p>Would you like to waive any future violations of this policy for this component?</p>
 			<div ng-show="waiverSelectOwner" style="padding-bottom:5px;">
 				<div ng-repeat="waiverTarget in waiverTargets">
@@ -56,8 +59,8 @@
 		</div>
 		<div class="modal-footer">
 			<span class="alert alert-error" ng-show="waiveAssignError" style="padding-right:200px;">{{waiveAssignError}}</span>
-			<a href="#" class="btn" ng-click="declineWaiveComponent()">No</a>
-			<a href="#" class="btn btn-primary" ng-click="acceptWaiveComponent()">Yes</a>
+			<a href="#" class="btn" ng-click="declineWaiveComponent()" ng-disabled="waiverSaving">No</a>
+			<a href="#" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Yes</a>
 		</div>
 	</div>
 	<div ng-show='policyAlerts.length == 0'>

@@ -80,8 +80,10 @@
 		
 		//Waive component policy trigger, so that it will no longer be triggered in future
 		$scope.waiveComponent = function(policyAlert) {
+		    $scope.waiverLoading = true;
 		    //get the tree of contexts, and flatten down into a list we can display properly
 		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
+		        $scope.waiverLoading = false;
 		        function processContext(context) {
 		            if (context) {
 		                //only bother checking children if an org, apps dont have children
@@ -107,8 +109,11 @@
 	            $scope.waiverComment = undefined;
 	            $scope.waiveAssignError = undefined;
                 $scope.waiverPolicyAlert = policyAlert;
-		        $('#componentWaiverModal').modal('show');
-		    }).error(errorFn);
+                $('#componentWaiverModal').modal('show');
+		    }).error(function(){
+		        $scope.waiverLoading = false;
+		        errorFn(arguments);
+		    });
 		}
 		
 		//pretty simple, they decline just dump the modal
@@ -123,9 +128,12 @@
                 policyId : $scope.waiverPolicyAlert.id,
                 comment : $scope.waiverComment
             };
-		    hudson.post(CLM.path + 'rest/policyWaiver/' + $scope.waiverSelectedTarget.type + '/' + $scope.waiverSelectedTarget.id, data).success(function(responseData){
-		        $('#componentWaiverModal').modal('hide');
+            $scope.waiverSaving = true;
+            hudson.post(CLM.path + 'rest/policyWaiver/' + $scope.waiverSelectedTarget.type + '/' + $scope.waiverSelectedTarget.id, data).success(function(responseData){
+                $scope.waiverSaving = false;
+                $('#componentWaiverModal').modal('hide');
 		    }).error(function(data, status, headersFn, config){
+		        $scope.waiverSaving = false;
 		        $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status,  data: data });
 		    });		    
 		}

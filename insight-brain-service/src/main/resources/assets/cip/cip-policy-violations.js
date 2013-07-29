@@ -92,9 +92,10 @@
                             });
                         } else {
                             //insert the app in position 1, app should always be shown first, and will be defaulted
-                            $scope.waiverTargets.splice(0, 0, {id:policyViolationData.appId,name:context.name,type:context.type});
+                            var waiverTarget = {id:policyViolationData.appId,name:context.name,type:context.type};
+                            $scope.waiverTargets.splice(0, 0, waiverTarget);
                             //set the app as the default selected value
-                            $scope.waiverSelectedOwner = policyViolationData.appId + '$$' + context.type;
+                            $scope.waiverSelectedTarget = waiverTarget;
                         }
 		            }
 		        }
@@ -117,13 +118,12 @@
 		
 		//user really wants to waive the component, so send the request on down
 		$scope.acceptWaiveComponent = function() {
-            var parts = $scope.waiverSelectedOwner.split('$$');
             var data = {
                 hash : policyViolationData.hash,
                 policyId : $scope.waiverPolicyAlert.id,
                 comment : $scope.waiverComment
             };
-		    hudson.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0], data).success(function(responseData){
+		    hudson.post(CLM.path + 'rest/policyWaiver/' + $scope.waiverSelectedTarget.type + '/' + $scope.waiverSelectedTarget.id, data).success(function(responseData){
 		        $('#componentWaiverModal').modal('hide');
 		    }).error(function(data, status, headersFn, config){
 		        $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status,  data: data });

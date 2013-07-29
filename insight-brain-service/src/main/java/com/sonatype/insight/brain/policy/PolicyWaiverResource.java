@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.6
@@ -40,5 +42,27 @@ public class PolicyWaiverResource
         policyWaiver.setOwnerId( internalOwnerId );
         new PolicyWaiverDAO().insert( policyWaiver );
         return policyWaiver;
+    }
+
+    @DELETE
+    @Path( "{policyWaiverId}" )
+    public void deletePolicyWaiver( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId,
+                                    @PathParam( "policyWaiverId" ) String policyWaiverId )
+    {
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        PolicyWaiver policyWaiver = policyWaiverDAO.getById( policyWaiverId );
+        if ( policyWaiver == null )
+        {
+            return;
+        }
+        if ( !internalOwnerId.equals( policyWaiver.getOwnerId() ) )
+        {
+            throw new NotFoundException( "Cannot find a policy waiver with id " + policyWaiverId + " for " + ownerType
+                + " id " + ownerId );
+        }
+
+        policyWaiverDAO.delete( policyWaiver );
     }
 }

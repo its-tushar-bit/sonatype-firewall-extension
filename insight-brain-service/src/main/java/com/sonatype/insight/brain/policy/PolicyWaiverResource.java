@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.List;
+
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -64,5 +67,18 @@ public class PolicyWaiverResource
         }
 
         policyWaiverDAO.delete( policyWaiver );
+    }
+
+    @GET
+    @Path( "component/{hash}" )
+    @Produces( MediaType.APPLICATION_JSON )
+    public List<PolicyWaiver> getPolicyWaiversByHash( @PathParam( "ownerType" ) String ownerType,
+                                                      @PathParam( "ownerId" ) String ownerId,
+                                                      @PathParam( "hash" ) String hash )
+    {
+        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        return policyWaiverDAO.getByOwnerIdHash( internalOwnerId, hash, true );
     }
 }

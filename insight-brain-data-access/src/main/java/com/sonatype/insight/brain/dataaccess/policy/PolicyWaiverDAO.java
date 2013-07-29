@@ -41,6 +41,30 @@ public class PolicyWaiverDAO
         }
     }
 
+    public List<PolicyWaiver> getByOwnerIdHash( String ownerId, String hash, boolean inherit )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            List<PolicyWaiver> waivers = new ArrayList<PolicyWaiver>();
+            if ( inherit )
+            {
+                ApplicationDAO applicationDAO = new ApplicationDAO();
+                Application application = applicationDAO.getById( ownerId );
+                if ( application != null && application.getOrganizationId() != null )
+                {
+                    waivers.addAll( getByOwnerIdHash( em, application.getOrganizationId(), hash ) );
+                }
+            }
+            waivers.addAll( getByOwnerIdHash( em, ownerId, hash ) );
+            return waivers;
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
     public List<PolicyWaiver> getByOwnerId( String ownerId, boolean inherit )
     {
         EntityManager em = createEntityManager();
@@ -63,6 +87,13 @@ public class PolicyWaiverDAO
         {
             close( em );
         }
+    }
+
+    public List<PolicyWaiver> getByOwnerIdHash( EntityManager em, String ownerId, String hash )
+    {
+        String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
+            " WHERE entity.ownerId=?1 AND entity.hash=?2";
+        return getList( em, sQuery, ownerId, hash );
     }
 
     public List<PolicyWaiver> getByOwnerId( EntityManager em, String ownerId )

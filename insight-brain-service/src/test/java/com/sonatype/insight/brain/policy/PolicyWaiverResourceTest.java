@@ -94,6 +94,45 @@ public class PolicyWaiverResourceTest
                                     organization2.getId() );
     }
 
+    @Test
+    public void test_getPolicyWaiversByHash()
+        throws Exception
+    {
+        Organization organization1 = createOrganization( "PolicyWaiverResourceTest1" );
+        String appPublicId1 = "PolicyWaiverResourceTest_AppId1";
+        Application application1 = createApplication( appPublicId1, "PolicyWaiverResourceTest AppId1", organization1 );
+
+        PolicyWaiver waiver1 =
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", application1.getId(), "My comment" );
+
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        policyWaiverDAO.insert( waiver1 );
+
+        Response response =
+            RestAccess.get( getServiceURL( "application", application1.getPublicId() )
+                + "/component/12345678901234567890" );
+        assertResponseStatus( 200, response );
+        List<PolicyWaiver> waivers = JsonHelpers.fromJson( response.getResponseBody(), List.class );
+        assertEquals( 1, waivers.size() );
+
+        PolicyWaiver waiver2 =
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization1.getId(), "My comment" );
+        policyWaiverDAO.insert( waiver2 );
+
+        response =
+            RestAccess.get( getServiceURL( "application", application1.getPublicId() )
+                + "/component/12345678901234567890" );
+        assertResponseStatus( 200, response );
+        waivers = JsonHelpers.fromJson( response.getResponseBody(), List.class );
+        assertEquals( 2, waivers.size() );
+
+        response =
+            RestAccess.get( getServiceURL( "organization", organization1.getId() ) + "/component/12345678901234567890" );
+        assertResponseStatus( 200, response );
+        waivers = JsonHelpers.fromJson( response.getResponseBody(), List.class );
+        assertEquals( 1, waivers.size() );
+    }
+
     private void testDelete_OwnerIdMismatch( String ownerType, String ownerPublicId1, String ownerId1,
                                              String ownerPublicId2 )
         throws Exception

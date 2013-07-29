@@ -155,6 +155,30 @@ public class PolicyWaiverResourceTest
         assertPolicyWaiver( "MyPolicyId", ownerId1, "My comment", policyWaivers.get( 0 ) );
     }
 
+    @Test
+    public void testDelete_Nonexistant_Application()
+        throws Exception
+    {
+        String appPublicId = "PolicyWaiverResourceTest_AppId";
+        createApplication( appPublicId );
+
+        Response response = RestAccess.delete( getServiceURL( IdUtils.TYPE_APPLICATION, appPublicId ) + "/YettiId" );
+        assertResponseStatus( 404, response );
+        Assert.assertEquals( "Cannot find a policy waiver with id YettiId", response.getResponseBody() );
+    }
+
+    @Test
+    public void testDelete_Nonexistant_Organization()
+        throws Exception
+    {
+        Organization organization = createOrganization( "PolicyWaiverResourceTest" );
+
+        Response response =
+            RestAccess.delete( getServiceURL( IdUtils.TYPE_ORGANIZATION, organization.getId() ) + "/YettiId" );
+        assertResponseStatus( 404, response );
+        Assert.assertEquals( "Cannot find a policy waiver with id YettiId", response.getResponseBody() );
+    }
+
     private void assertPolicyWaiver( String policyId, String ownerId, String comment, PolicyWaiver actual )
     {
         assertEquals( policyId, actual.getPolicyId() );

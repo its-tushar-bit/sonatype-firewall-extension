@@ -19,10 +19,25 @@ import org.junit.Test;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
+    @Test
+    public void testGetByIdNotNull()
+    {
+        try
+        {
+            new PolicyWaiverDAO().getByIdNotNull( "fake id" );
+            fail( "Expected NotFoundException" );
+        }
+        catch ( NotFoundException expected )
+        {
+            assertEquals( "Cannot find a policy waiver with id fake id", expected.getMessage() );
+        }
+    }
+
     @Test
     public void testCRUD()
         throws Exception

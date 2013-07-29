@@ -55,7 +55,7 @@ public class PolicyWaiverResource
         String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
 
         PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-        PolicyWaiver policyWaiver = policyWaiverDAO.getById( policyWaiverId );
+        PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull( policyWaiverId );
         if ( policyWaiver == null )
         {
             return;

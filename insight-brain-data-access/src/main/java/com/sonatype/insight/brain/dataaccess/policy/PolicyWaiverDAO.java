@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class PolicyWaiverDAO
     extends AbstractOperationalSqlDAO<PolicyWaiver>
@@ -26,6 +27,29 @@ public class PolicyWaiverDAO
         String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
             " WHERE entity.id=?1";
         return get( em, sQuery, id );
+    }
+
+    private PolicyWaiver getByIdNotNull( EntityManager em, String id )
+    {
+        PolicyWaiver policyWaiver = getById( em, id );
+        if ( policyWaiver == null )
+        {
+            throw new NotFoundException( "Cannot find a policy waiver with id " + id );
+        }
+        return policyWaiver;
+    }
+
+    public PolicyWaiver getByIdNotNull( String id )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            return getByIdNotNull( em, id );
+        }
+        finally
+        {
+            close( em );
+        }
     }
 
     public List<PolicyWaiver> getByOwnerId( String ownerId )

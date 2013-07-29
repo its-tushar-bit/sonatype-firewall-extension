@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;

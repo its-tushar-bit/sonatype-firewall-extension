@@ -91,13 +91,13 @@ public class LabelResource
 
         result.labelsByOwner = new ArrayList<LabelsByOwner>();
         String organizationId;
-        if ( "application".equals( ownerType ) )
+        if ( IdUtils.TYPE_APPLICATION.equals( ownerType ) )
         {
             Application application = new ApplicationDAO().getByIdNotNull( internalOwnerId );
             LabelsByOwner labelsByOwner = new LabelsByOwner();
             labelsByOwner.ownerId = application.getId();
             labelsByOwner.ownerName = application.getName();
-            labelsByOwner.ownerType = "application";
+            labelsByOwner.ownerType = IdUtils.TYPE_APPLICATION;
             labelsByOwner.labels = labelDAO.getByOwnerId( application.getId() );
             result.labelsByOwner.add( labelsByOwner );
             organizationId = application.getOrganizationId();
@@ -112,7 +112,7 @@ public class LabelResource
             LabelsByOwner labelsByOwner = new LabelsByOwner();
             labelsByOwner.ownerId = organization.getId();
             labelsByOwner.ownerName = organization.getName();
-            labelsByOwner.ownerType = "organization";
+            labelsByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
             labelsByOwner.labels = labelDAO.getByOwnerId( organization.getId() );
             result.labelsByOwner.add( labelsByOwner );
         }

@@ -105,13 +105,13 @@ public class PolicyResource
 
         result.policiesByOwner = new ArrayList<PoliciesByOwner>();
         String organizationId;
-        if ( "application".equals( ownerType ) )
+        if ( IdUtils.TYPE_APPLICATION.equals( ownerType ) )
         {
             Application application = new ApplicationDAO().getByIdNotNull( internalOwnerId );
             PoliciesByOwner policiesByOwner = new PoliciesByOwner();
             policiesByOwner.ownerId = application.getId();
             policiesByOwner.ownerName = application.getName();
-            policiesByOwner.ownerType = "application";
+            policiesByOwner.ownerType = IdUtils.TYPE_APPLICATION;
             policiesByOwner.policies = policyDAO().getByOwnerId( application.getId() );
             result.policiesByOwner.add( policiesByOwner );
             organizationId = application.getOrganizationId();
@@ -126,7 +126,7 @@ public class PolicyResource
             PoliciesByOwner policiesByOwner = new PoliciesByOwner();
             policiesByOwner.ownerId = organization.getId();
             policiesByOwner.ownerName = organization.getName();
-            policiesByOwner.ownerType = "organization";
+            policiesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
             policiesByOwner.policies = policyDAO().getByOwnerId( organization.getId() );
             result.policiesByOwner.add( policiesByOwner );
         }

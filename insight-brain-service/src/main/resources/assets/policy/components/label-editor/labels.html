@@ -12,9 +12,9 @@
         <div class="content-header">
           <h4>
             <span ng-switch='applicableLabel.editable'>
-							<span ng-switch-when='true'>{{applicableLabel.ownerName}} Labels</span>
-							<span ng-switch-default>Labels Inherited from {{applicableLabel.ownerName}}</span>
-						</span>
+                <span ng-switch-when='true'>{{applicableLabel.ownerName}} Labels</span>
+                <span ng-switch-default>Labels Inherited from {{applicableLabel.ownerName}}</span>
+            </span>
           </h4>
         </div>
         <div class="label-list">
@@ -22,7 +22,7 @@
             <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
               <span ng-switch='applicableLabel.editable'>
                 <span ng-switch-when='true'>
-                  <span title="Edit {{label.label}} Label" class="clmLabel {{label.color}}Label"> {{label.label}} </span>
+                  <span class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}" data-tooltip-placement="bottom"> {{label.label}}</span>
                   <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent" ng-click="deleteLabel(label)"></span>
                 </span>
                 <span ng-switch-default>

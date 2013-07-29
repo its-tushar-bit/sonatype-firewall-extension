@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
@@ -428,6 +430,24 @@ public class ApplicationDAOTest
         labelDAO.insert( label );
 
         applicationDAO.delete( application );
+    }
+
+    @Test
+    public void testCascadeDeleteToPolicyWaivers()
+    {
+        application.setName( "testCascadeDeleteToPolicyWaivers" );
+        applicationDAO.insert( application );
+
+        PolicyWaiver policyWaiver =
+            new PolicyWaiver( "12345678901234567890", "MyPolicyId", application.getId(), "My comment" );
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        policyWaiverDAO.insert( policyWaiver );
+        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId( application.getId() );
+        assertEquals( 1, policyWaivers.size() );
+
+        applicationDAO.delete( application );
+        policyWaivers = policyWaiverDAO.getByOwnerId( application.getId() );
+        assertEquals( 0, policyWaivers.size() );
     }
 
     @Test

@@ -63,8 +63,13 @@ describe('PolicyEditor.js', function() {
 
 			return getController('PolicyEditorController');
 		}
+		
+		function getConstraintEditorController() {
+		    return getController('ConstraintEditorController');
+		}
 
-		var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-quick-add.html"),
+		var quickAddTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/policy-quick-add.html"),
+		    conditionTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/condition-editor.html"),
 			scope = null;
 
 		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
@@ -73,7 +78,8 @@ describe('PolicyEditor.js', function() {
 			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
-			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html").respond(template);
+			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html").respond(quickAddTemplate);
+			$httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html").respond(conditionTemplate);
 			$compile(node)(scope);
 			$httpBackend.flush();
 		}));
@@ -120,8 +126,41 @@ describe('PolicyEditor.js', function() {
 			};
 			createScope.click();
 			createScope.cancel();
+		});
+		
+		it('Operator hidden when one condition', function() {
+		    var createScope = angular.element('#testInlinePolicyCreator > div').scope();
+            scope.createPolicy = function () {
+                return createNewPolicy();
+            };
+            
+            createScope.click();
+            expect(createScope.policy).toBeDefined();
 
-			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
+            //digest changes that occurred on the click event
+            createScope.$digest();
+            
+            //by default the operator field should be hidden, as there is only 1 condition initially
+            var operator = $('#testInlinePolicyCreator').find('select[ng-model="constraint.operator"]')[0];
+            expect($(operator).is(":visible")).toEqual(false);
+            
+            constraintScope = getConstraintEditorController().scope;
+            constraintScope.constraint = createScope.policy.constraints[0];
+            
+            constraintScope.addCondition();
+            
+            createScope.$digest();
+            
+            //now we should be add 2 conditions, so the field should show
+            operator = $('#testInlinePolicyCreator').find('select[ng-model="constraint.operator"]')[0];
+            expect($(operator).is(":visible")).toEqual(true);
+            
+            constraintScope.removeCondition(1);
+            
+            createScope.$digest();
+            
+            operator = $('#testInlinePolicyCreator').find('select[ng-model="constraint.operator"]')[0];
+            expect($(operator).is(":visible")).toEqual(false);
 		});
 
 		describe('isDirty', function () {

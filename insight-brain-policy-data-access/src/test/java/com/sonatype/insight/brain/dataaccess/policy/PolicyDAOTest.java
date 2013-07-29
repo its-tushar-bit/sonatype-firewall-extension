@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 
 public class PolicyDAOTest
@@ -702,5 +705,32 @@ public class PolicyDAOTest
         List<Policy> policies = policyDAO.getApplicableByOwnerId( app.getId() );
         Assert.assertEquals( 1, policies.size() );
         Assert.assertEquals( policyNameApp, policies.get( 0 ).getName() );
+    }
+
+    @Test
+    public void testCascadeDeleteToPolicyWaivers()
+        throws Exception
+    {
+        File dataStoreDir = tempDir.newFolder( "PolicyDAOTest" );
+        PolicyDAO policyDAO = new PolicyDAO( dataStoreDir );
+        String applicationId = "PolicyDAOTest_AppId";
+
+        Policy policy = new Policy();
+        policy.setName( "PolicyDAOTest new policy 1" );
+        final Constraint constraint1 = new Constraint( null, "PolicyDAOTest new constraint 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        policy.addConstraint( constraint1 );
+        policyDAO.insert( applicationId, policy );
+
+        PolicyWaiver policyWaiver =
+            new PolicyWaiver( "12345678901234567890", policy.getId(), "MyOwnerId", "My comment" );
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        policyWaiverDAO.insert( policyWaiver );
+        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId( policy.getId() );
+        assertEquals( 1, policyWaivers.size() );
+
+        policyDAO.delete( applicationId, policy.getId() );
+        policyWaivers = policyWaiverDAO.getByOwnerId( policy.getId() );
+        assertEquals( 0, policyWaivers.size() );
     }
 }

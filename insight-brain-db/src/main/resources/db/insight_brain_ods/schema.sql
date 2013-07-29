@@ -32,6 +32,7 @@ CREATE TABLE label (
   label varchar(50) NOT NULL,
   label_lowercase varchar(50) NOT NULL,
   color varchar(20) NULL,
+  description varchar(255) NULL,
   CONSTRAINT label_pk PRIMARY KEY (label_id),
   CONSTRAINT label_uk UNIQUE KEY (owner_id, label_lowercase)
 );
@@ -78,7 +79,19 @@ CREATE TABLE hash_gav (
   classifier varchar(50),
   comment varchar(1000) NULL,
   create_time datetime NULL,
-  CONSTRAINT hash_gav_id PRIMARY KEY (hash_gav_id),
+  CONSTRAINT hash_gav_pk PRIMARY KEY (hash_gav_id),
   CONSTRAINT hash_gav_hash_uk UNIQUE KEY (hash),
   CONSTRAINT hash_gav_gavec_uk UNIQUE KEY (group_id, artifact_id, version, extension, classifier)
+);
+
+CREATE TABLE policy_waiver (
+  policy_waiver_id varchar(50) NOT NULL,
+  hash varchar(20) NOT NULL,
+  policy_id varchar(50) NOT NULL,
+  constraint_id varchar(50) NULL,
+  owner_id varchar(50) NOT NULL,
+  comment varchar(1000) NULL,
+  create_time datetime NOT NULL,
+  CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
+  CONSTRAINT policy_waiver_uk UNIQUE KEY (hash, policy_id, constraint_id, owner_id)
 );

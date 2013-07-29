@@ -82,15 +82,6 @@
 		};
 	}]);
 
-	/**
-	 * Enables bootstrap tooltip on an element
-	 */
-	angularCommon.directive('tip', function () {
-		return function (scope, element, attrs) {
-			$(element).tooltip();
-		};
-	});
-
 	angularCommon.factory('regexFactory', function () {
 		return {
 			allLetters: function () {

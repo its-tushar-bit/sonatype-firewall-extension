@@ -53,19 +53,19 @@
 	-moz-border-radius: 0 0 5px 5px;
 	border-radius: 0 0 5px 5px;
 }
-.threat-level-0, .threat-level-0:hover {
+.threat-level-0, .threat-level-0:hover, .threat-level-0:focus {
 	background-color: #2476C3;
 	color: #FFF;
 }
-.threat-level-1, .threat-level-2, .threat-level-3, .threat-level-2:hover, .threat-level-3:hover {
+.threat-level-1, .threat-level-2, .threat-level-3, .threat-level-2:hover, .threat-level-3:hover, .threat-level-2:focus, .threat-level-3:focus {
 	background-color: #F5C649;
 	color: #444 !important;
 }
-.threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level-4:hover, .threat-level-5:hover, .threat-level-6:hover, .threat-level-7:hover {
+.threat-level-4, .threat-level-5, .threat-level-6, .threat-level-7, .threat-level-4:hover, .threat-level-5:hover, .threat-level-6:hover, .threat-level-7:hover, .threat-level-4:focus, .threat-level-5:focus, .threat-level-6:focus, .threat-level-7:focus {
 	background-color: #F2862F;
 	color: #FFF;
 }
-.threat-level-8, .threat-level-9, .threat-level-10, .threat-level-8:hover, .threat-level-9:hover, .threat-level-10:hover {
+.threat-level-8, .threat-level-9, .threat-level-10, .threat-level-8:hover, .threat-level-9:hover, .threat-level-10:hover, .threat-level-8:focus, .threat-level-9:focus, .threat-level-10:focus {
 	background-color: #DB2852;
 	color: #FFF;
 }

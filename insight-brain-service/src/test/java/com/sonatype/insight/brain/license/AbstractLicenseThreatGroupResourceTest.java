@@ -10,6 +10,8 @@ import org.junit.Assert;
 import com.ning.http.client.Response;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupsByOwner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -37,8 +39,8 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
         response = RestAccess.delete( getServiceURL( ownerPublicId2 ) + "/" + group.getId() );
         assertResponseStatus( 404, response );
-        Assert.assertEquals( "Cannot find a license threat group with id " + group.getId() + " for owner id "
-            + ownerId2, response.getResponseBody() );
+        Assert.assertEquals( "Cannot find a license threat group with id " + group.getId() + " for " + getOwnerType()
+            + " id " + ownerPublicId2, response.getResponseBody() );
         // Verify that the group was not deleted
         response = RestAccess.get( getServiceURL( ownerPublicId1 ) );
         assertResponseStatus( 200, response );
@@ -49,6 +51,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
     }
 
     protected void testDelete_InUseByPolicy( String ownerPublicId, String ownerId, String policyOwnerId )
+        throws Exception
+    {
+        testDelete_InUseByPolicy( ownerPublicId, ownerId, policyOwnerId, null );
+    }
+
+    protected void testDelete_InUseByPolicy( String ownerPublicId, String ownerId, String policyOwnerId,
+                                             String policyLocation )
         throws Exception
     {
         LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
@@ -63,8 +72,15 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
         Response response = RestAccess.delete( getServiceURL( ownerPublicId ) + "/" + ltg.getId() );
         assertResponseStatus( 400, response );
-        Assert.assertEquals( "Cannot delete the license threat group"
-            + " because it is used in a condition for the 'policyName' policy", response.getResponseBody() );
+
+        String error =
+            "Cannot delete the license threat group because it is used in a condition for the 'policyName' policy";
+        if ( null != policyLocation )
+        {
+            error = error + " " + policyLocation;
+        }
+
+        Assert.assertEquals( error, response.getResponseBody() );
         Assert.assertNotNull( ltgDAO.getById( ltg.getId() ) );
     }
 
@@ -135,6 +151,36 @@ abstract class AbstractLicenseThreatGroupResourceTest
         return getRestBaseUrl()
             + LicenseThreatGroupResource.SERVICE_PATH.replace( "{ownerType: application|organization}", getOwnerType() ).replace( "{ownerId}",
                                                                                                                                   ownerId );
+    }
+
+    private String getApplicableUrl( String ownerId )
+    {
+        return getServiceURL( ownerId ) + "/applicable";
+    }
+
+    protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups( String ownerId )
+        throws Exception
+    {
+        Response response = RestAccess.get( getApplicableUrl( ownerId ) );
+        assertResponseStatus( 200, response );
+        return JsonHelpers.fromJson( response.getResponseBody(), ApplicableLicenseThreatGroups.class );
+    }
+
+    protected LicenseThreatGroup createLicenseThreatGroup( String name, String ownerId )
+    {
+        LicenseThreatGroup ltg = new LicenseThreatGroup( ownerId, name, 5 );
+        new LicenseThreatGroupDAO().insert( ltg );
+        return ltg;
+    }
+
+    protected void assertLicenseThreatGroupsByOwner( String ownerId, String ownerName, String ownerType,
+                                                     int licenseThreatGroupCount, LicenseThreatGroupsByOwner actual )
+    {
+        Assert.assertEquals( ownerId, actual.ownerId );
+        Assert.assertEquals( ownerName, actual.ownerName );
+        Assert.assertEquals( ownerType, actual.ownerType );
+        Assert.assertNotNull( actual.licenseThreatGroups );
+        Assert.assertEquals( licenseThreatGroupCount, actual.licenseThreatGroups.size() );
     }
 
     protected abstract String getOwnerType();

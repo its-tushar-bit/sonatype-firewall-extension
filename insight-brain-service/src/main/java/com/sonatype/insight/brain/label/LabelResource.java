@@ -180,19 +180,28 @@ public class LabelResource
 
         // Verify that the label is not used in a policy condition
         PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
+
+        String inUseError = "Cannot delete the label because it is used in a condition for the '%s' policy";
+
         for ( Policy policy : policyDAO.getByOwnerId( internalOwnerId ) )
         {
-            for ( Constraint constraint : policy.getConstraints() )
+            if ( isLabelUsedInPolicy( labelId, policy ) )
             {
-                for ( Condition condition : constraint.getConditions() )
+                throw new BadRequestException( String.format( inUseError, policy.getName() ) );
+            }
+        }
+
+        if ( IdUtils.TYPE_ORGANIZATION.equals( ownerType ) )
+        {
+            inUseError = inUseError + " in application '%s'";
+
+            for ( Application app : new ApplicationDAO().getByOrganizationId( internalOwnerId ) )
+            {
+                for ( Policy policy : policyDAO.getByOwnerId( app.getId() ) )
                 {
-                    if ( LabelConditionType.ID.equals( condition.getConditionTypeId() )
-                        && labelId.equals( condition.getValue() ) )
+                    if ( isLabelUsedInPolicy( labelId, policy ) )
                     {
-                        // The label is used in a policy condition
-                        throw new BadRequestException(
-                                                       "Cannot delete the label because it is used in a condition for the '"
-                                                           + policy.getName() + "' policy" );
+                        throw new BadRequestException( String.format( inUseError, policy.getName(), app.getName() ) );
                     }
                 }
             }
@@ -215,5 +224,26 @@ public class LabelResource
         public String ownerType;
 
         public List<Label> labels;
+    }
+
+    /**
+     * Returns {@code true} if the given labelId is used in the given policy; otherwise {@code false}.
+     * 
+     * @since 1.6
+     */
+    private static boolean isLabelUsedInPolicy( String labelId, Policy policy )
+    {
+        for ( Constraint constraint : policy.getConstraints() )
+        {
+            for ( Condition condition : constraint.getConditions() )
+            {
+                if ( LabelConditionType.ID.equals( condition.getConditionTypeId() )
+                    && labelId.equals( condition.getValue() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -17,6 +17,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.utils.IdUtils;
 
+/**
+ * @since 1.6
+ */
 @Named
 @Path( PolicyWaiverResource.SERVICE_PATH )
 public class PolicyWaiverResource

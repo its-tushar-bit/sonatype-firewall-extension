@@ -12,9 +12,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseFactory;
@@ -35,11 +37,13 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
@@ -76,12 +80,34 @@ public class PolicyEvaluator
     {
         final long start = System.currentTimeMillis();
 
-        final List<MatchFact> facts = evaluateFacts( applicationId, policies, components );
+        List<MatchFact> facts = evaluateFacts( applicationId, policies, components );
+        facts = applyWaivers( applicationId, facts );
         final List<PolicyAlert> alerts = createAlerts( policies, facts, stage );
 
         log.debug( "Evaluated policies in {} millisecs", System.currentTimeMillis() - start );
 
         return alerts;
+    }
+
+    private List<MatchFact> applyWaivers( String applicationId, List<MatchFact> facts )
+    {
+        List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId( applicationId, true /* inherit */);
+        Set<String> policyWaiverKeys = new LinkedHashSet<String>();
+        for ( PolicyWaiver policyWaiver : policyWaivers )
+        {
+            policyWaiverKeys.add( policyWaiver.getPolicyId() + "_" + policyWaiver.getHash() );
+        }
+
+        List<MatchFact> result = new ArrayList<MatchFact>();
+        for ( MatchFact fact : facts )
+        {
+            if ( !policyWaiverKeys.contains( fact.getPolicyId() + "_" + fact.getComponent().getHash() ) )
+            {
+                result.add( fact );
+            }
+        }
+
+        return result;
     }
 
     static List<PolicyAlert> createAlerts( final List<Policy> policies, final List<MatchFact> facts, final Stage stage )

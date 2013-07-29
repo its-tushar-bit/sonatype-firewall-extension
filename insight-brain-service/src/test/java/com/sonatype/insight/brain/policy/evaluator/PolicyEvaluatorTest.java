@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -623,5 +625,82 @@ public class PolicyEvaluatorTest
             constraint.addCondition( new Condition( LicenseConditionType.ID, "is", "Apache-2.0" ) );
         }
         return constraint;
+    }
+
+    @Test
+    public void testEvaluate_PolicyWaived()
+    {
+        Stage stage = new Stage( BuildStageType.ID );
+
+        // Create two policies
+        List<Constraint> constraints1 = new ArrayList<Constraint>();
+        Constraint constraint1 = new Constraint( "ConstraintId1", "Constraint Name 1", LogicalOperator.AND );
+        constraint1.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraints1.add( constraint1 );
+        Policy policy1 = new Policy( "PolicyId1", "Policy Name 1" );
+        policy1.setConstraints( constraints1 );
+        policy1.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+        List<Constraint> constraints2 = new ArrayList<Constraint>();
+        Constraint constraint2 = new Constraint( "ConstraintId2", "Constraint Name 2", LogicalOperator.AND );
+        constraint2.addCondition( new Condition( SecurityVulnerabilityConditionType.ID, "present" ) );
+        constraints2.add( constraint2 );
+        Policy policy2 = new Policy( "PolicyId2", "Policy Name 2" );
+        policy2.setConstraints( constraints2 );
+        policy2.addAction( stage.getStageTypeId(), new Action( FailActionType.ID ) );
+
+        // Create two components
+        List<Component> components = new ArrayList<Component>();
+        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
+        component1.setHash( "hash1" );
+        component1.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
+        component1.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component1 );
+        Component component2 = new Component( "g2", "a2", "v2", MatchState.EXACT );
+        component2.setHash( "hash2" );
+        component2.addSecurityVulnerability( new SecurityVulnerability( "osvdb", "sv1", 3F ) );
+        component2.addDeclaredLicenseId( "Apache-2.0" );
+        components.add( component2 );
+
+        // Evaluate the policy
+        List<PolicyAlert> policyAlerts =
+            new PolicyEvaluator().evaluate( applicationId, stage, Arrays.asList( policy1, policy2 ), components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 2, policyAlerts.size() );
+        Assert.assertEquals( 2, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
+        Assert.assertEquals( 2, policyAlerts.get( 1 ).getTrigger().getComponentFacts().size() );
+        assertContainsPolicyAlert( component1, policy1.getId(), policy1.getName(), FailActionType.ID,
+                                   constraint1.getId(), constraint1.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+        assertContainsPolicyAlert( component2, policy1.getId(), policy1.getName(), FailActionType.ID,
+                                   constraint1.getId(), constraint1.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+        assertContainsPolicyAlert( component1, policy2.getId(), policy2.getName(), FailActionType.ID,
+                                   constraint2.getId(), constraint2.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+        assertContainsPolicyAlert( component2, policy2.getId(), policy2.getName(), FailActionType.ID,
+                                   constraint2.getId(), constraint2.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+
+        // Waive policy1 for component1 and re-evaluate
+        PolicyWaiver policyWaiver = new PolicyWaiver( "hash1", policy1.getId(), applicationId, null /* comment */);
+        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+        policyWaiverDAO.insert( policyWaiver );
+        policyAlerts =
+            new PolicyEvaluator().evaluate( applicationId, stage, Arrays.asList( policy1, policy2 ), components );
+        Assert.assertNotNull( policyAlerts );
+        Assert.assertEquals( 2, policyAlerts.size() );
+        Assert.assertEquals( 1, policyAlerts.get( 0 ).getTrigger().getComponentFacts().size() );
+        Assert.assertEquals( 2, policyAlerts.get( 1 ).getTrigger().getComponentFacts().size() );
+        assertContainsPolicyAlert( component2, policy1.getId(), policy1.getName(), FailActionType.ID,
+                                   constraint1.getId(), constraint1.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+        assertContainsPolicyAlert( component1, policy2.getId(), policy2.getName(), FailActionType.ID,
+                                   constraint2.getId(), constraint2.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+        assertContainsPolicyAlert( component2, policy2.getId(), policy2.getName(), FailActionType.ID,
+                                   constraint2.getId(), constraint2.getName(), SecurityVulnerabilityConditionType.ID,
+                                   policyAlerts );
+
+        policyWaiverDAO.delete( policyWaiver );
     }
 }

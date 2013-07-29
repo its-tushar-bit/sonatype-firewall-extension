@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -31,6 +34,30 @@ public class PolicyWaiverDAO
         try
         {
             return getByOwnerId( em, ownerId );
+        }
+        finally
+        {
+            close( em );
+        }
+    }
+
+    public List<PolicyWaiver> getByOwnerId( String ownerId, boolean inherit )
+    {
+        EntityManager em = createEntityManager();
+        try
+        {
+            List<PolicyWaiver> policyWaivers = new ArrayList<PolicyWaiver>();
+            if ( inherit )
+            {
+                ApplicationDAO applicationDAO = new ApplicationDAO();
+                Application application = applicationDAO.getById( ownerId );
+                if ( application != null && application.getOrganizationId() != null )
+                {
+                    policyWaivers.addAll( getByOwnerId( em, application.getOrganizationId() ) );
+                }
+            }
+            policyWaivers.addAll( getByOwnerId( em, ownerId ) );
+            return policyWaivers;
         }
         finally
         {

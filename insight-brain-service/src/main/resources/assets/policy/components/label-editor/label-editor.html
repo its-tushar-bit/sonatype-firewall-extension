@@ -8,7 +8,7 @@
 				<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
 				<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
               </div>
-              <textarea maxlength="255" rows="5" ng-model='selectedLabel.description' placeholder="Add a description..."></textarea>
+              <textarea maxlength="255" rows="3" style="width:530px;margin-top:10px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter a description..."></textarea>
             </div>
           <div>
 	            <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >

@@ -111,8 +111,4 @@ form[name="labelEditor"] .clmLabel {
 .label-list {
 	margin-left: 25px;
 }
-.label-list .clmLabel {
-	padding-right: 25px
-}
-
 .tooltip-inner {min-width:100px;}

@@ -96,7 +96,7 @@
 	border-radius: 0 0 4px 4px;
 }
 .inline-policy-editor div.accordion-group:hover {
-	background-color: #FFF;
+	/*background-color: #FFF;*/
 }
 .inline-policy-editor div.accordion-group .hover-buttons {
 	visibility: hidden;

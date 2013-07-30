@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<html lang="en" ng-app="managementApp">
+	<head>
+		<script type='text/javascript'>
+			function loadFn() {
+				var query = window.location.search.substring(1).split('&'),
+					baseUrl = window.location.href.split('policy-assets')[0];
+
+				baseUrl += "assets/index.html#/management/application/";
+
+				for (var i=0; i<query.length; i++) {
+					var appId = query[i].split('=');
+					if (appId.length > 0 && appId[0] === 'appId') {
+						window.location.href = baseUrl + appId[1] + "/policies";
+						return;
+					}
+				}
+				window.location.href = baseUrl;
+			}
+		</script>
+	</head>
+	<body onload='javascript:loadFn()'>
+		Redirecting...
+	</body>
+</html>

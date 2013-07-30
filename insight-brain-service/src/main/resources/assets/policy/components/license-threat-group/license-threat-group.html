@@ -96,24 +96,8 @@
                 <div class="accordion licenseGroups">
                     <div class="accordion-group" ng-repeat='licenseGroup in applicableLicenseGroup.licenseThreatGroups | orderBy: "threatLevel" : true'>
                         <div class="common-accordion-header">
-                            <span class="accordion-header-clickable">
-                                <span ng-show='applicableLicenseGroup.editable'>
-                                <span threat-box selected='licenseGroup.threatLevel' one='1' zero='No Threat'></span>
-                                <span class='inline'>
-                                    <ng-form name="innerInlineLicenseGroupForm">
-                                            <h3>
-                                          <span id='licenseGroupName' name='licenseGroupName' ng-model='licenseGroup.name' xeditable href='javascript:;' data-emptytext='License Threat Group Name'
-                                              data-type='text' alpha-numeric adjustable='true'></span>
-                                          <span ng-show="innerInlineLicenseGroupForm.licenseGroupName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
-                                        </h3>
-                                    </ng-form>
-                                </span>
-                                </span>
-                                <span ng-show='!applicableLicenseGroup.editable'>
-                                    <span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>{{licenseGroup.threatLevel}}</span>
-                                    <h3><span>{{licenseGroup.name}}</span></h3>
-                                </span>
-                            </span>
+                            <span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
+                            <h3>{{licenseGroup.name}}</h3>
                             <div class='accordion-header-buttons'>
                                 <div class='btn-group' ng-show='applicableLicenseGroup.editable'>
                                     <a class="btn btn-mini" title="Edit License Threat Group" ng-click='editLicenseGroup(licenseGroup)' type="button"><i class='icon-pencil'></i></a>
@@ -133,10 +117,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div ng-show='hasInlineChanges()' class='floatRight'>
-                <button class="btn" ng-click='inlineRevertLicenseGroups()' type="button">Cancel</button>
-                <button class="btn btn-primary" ng-disabled='!canSaveInlineEdit()'>Save</button>
             </div>
         </form>
 		<div id='licenseModal' data-backdrop='static' class='modal hide fade'>

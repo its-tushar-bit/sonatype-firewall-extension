@@ -157,52 +157,6 @@
       angular.element('#licenseModal').modal('show');
     };
 
-    $scope.inlineChangeThreatLevel = function (licenseGroup, threatLevel) {
-      licenseGroup.threatLevel = threatLevel.value;
-    };
-
-    $scope.hasInlineChanges = function () {
-      if (!$scope.licenseGroups) {
-        return false;
-      }
-      for (var i = 0; i < $scope.licenseGroups.length; i++) {
-        if ($scope.licenseGroups[i].isDirty()) {
-          return true;
-        }
-      }
-    };
-
-    $scope.canSaveInlineEdit = function () {
-      return $scope.hasInlineChanges() && !$scope.inlineLicenseGroupForm.$invalid;
-    };
-
-    $scope.inlineSaveLicenseGroup = function () {
-      for (var i = 0; i < $scope.licenseGroups.length; i++) {
-        var licenseThreatGroup = $scope.licenseGroups[i];
-        if (licenseThreatGroup.isDirty()) {
-          licenseThreatGroup.$save().then(angular.noop, function (rejection) {
-            $scope.alerts.push({
-              type: 'error',
-              msg: 'An error occurred while saving the license threat group. (' + Messages.getHttpErrorMessage(rejection) + ')'
-            });
-            $scope.inlineRevertLicenseGroup(licenseThreatGroup);
-          });
-        }
-      }
-    };
-
-    $scope.inlineRevertLicenseGroups = function () {
-      for (var i = 0; i < $scope.licenseGroups.length; i++) {
-        var licenseGroup = $scope.licenseGroups[i];
-        $scope.inlineRevertLicenseGroup(licenseGroup);
-      }
-    };
-
-    $scope.inlineRevertLicenseGroup = function (licenseThreatGroup) {
-      var original = licenseThreatGroup.$getOriginal();
-      angular.extend(licenseThreatGroup, original);
-    };
-
     $scope.toggleAll = function (applicableLicenseGroup) {
       var action = $scope.allExpanded[applicableLicenseGroup.ownerId] ? 'hide' : 'show';
       $('#' + applicableLicenseGroup.ownerId).find('.accordion-body').collapse(action);
@@ -251,10 +205,6 @@
       if (dirty) {
         event.preventDefault();
       }
-    });
-
-    $scope.$on('pageChangeAccepted', function () {
-      $scope.inlineRevertLicenseGroups();
     });
   }]);
 

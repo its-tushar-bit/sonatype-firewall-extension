@@ -113,4 +113,56 @@ describe('Configuration', function () {
             expect(scope.validatePackage('com.sonatype.**')).toMatch(/invalid.*/i);
         }));
     });
+
+  describe('ProprietaryConfigurationController "isDirty"', function(){
+    it('Should be true if we have added a proprietary package', inject(function($controller, $rootScope, $httpBackend, CLMLocations){
+      scope = $rootScope.$new();
+      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
+      controller = $controller('ProprietaryConfigurationController', { $scope : scope });
+      $httpBackend.flush();
+      expect(scope.isDirty()).toBeFalsy();
+
+      scope.packages.push('bar');
+      expect(scope.isDirty()).toBeTruthy();
+    }));
+
+    it('Should be true if we have deleted a proprietary package', inject(function($controller, $rootScope, $httpBackend, CLMLocations){
+      scope = $rootScope.$new();
+      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
+      controller = $controller('ProprietaryConfigurationController', { $scope : scope });
+      $httpBackend.flush();
+      expect(scope.isDirty()).toBeFalsy();
+
+      scope.packages.length = 0;
+      expect(scope.isDirty()).toBeTruthy();
+    }));
+
+    it('Should be false if we have both added and deleted the same proprietary package', inject(function($controller, $rootScope, $httpBackend, CLMLocations){
+      scope = $rootScope.$new();
+      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
+      controller = $controller('ProprietaryConfigurationController', { $scope : scope });
+      $httpBackend.flush();
+      expect(scope.isDirty()).toBeFalsy();
+
+      scope.packages.length = 0;
+      expect(scope.isDirty()).toBeTruthy();
+
+      scope.packages.push('foo');
+      expect(scope.isDirty()).toBeFalsy();
+    }));
+
+    it('Should be false if we have reset', inject(function($controller, $rootScope, $httpBackend, CLMLocations){
+      scope = $rootScope.$new();
+      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages : ['foo']});
+      controller = $controller('ProprietaryConfigurationController', { $scope : scope });
+      $httpBackend.flush();
+      expect(scope.isDirty()).toBeFalsy();
+
+      scope.packages.length = 0;
+      expect(scope.isDirty()).toBeTruthy();
+
+      scope.reset();
+      expect(scope.isDirty()).toBeFalsy();
+    }));
+  });
 });

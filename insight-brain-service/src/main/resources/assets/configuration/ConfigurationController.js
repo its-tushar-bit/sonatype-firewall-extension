@@ -93,6 +93,7 @@
             $http.put(clmLocations.getProprietaryConfig(), proprietary).success(function () {
                 $scope.saving = false;
                 $scope.proprietary = proprietary;
+                $scope.reset();
             }).error(function (data, status, headersFn, config) {
                 $scope.saving = false;
                 $scope.error = getMessage.apply(null, arguments);
@@ -104,7 +105,7 @@
         };
 
         $scope.isDirty = function() {
-          return $scope.packages && $scope.proprietary && $scope.packages.length != $scope.proprietary.packages.length;
+          return $scope.packages && $scope.proprietary && !angular.equals($scope.packages, $scope.proprietary.packages);
         }
 
         $scope.setEditorError = function (error) {

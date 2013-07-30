@@ -133,17 +133,18 @@
             return valid && !$scope.submitActive && label != null && label.label;
         };
 
-		$scope.$on('pageChangeStarted', function (event) {
-		    if ($scope.selectedLabel && $scope.selectedLabel.id) {
-		        angular.forEach($scope.labels, function (candidate) {
-		            if (candidate.id === $scope.selectedLabel.id && !angular.equals(candidate, $scope.selectedLabel)) {
-		                event.preventDefault();
-		            }
-		        });
-		    } else if ($scope.selectedLabel && $scope.selectedLabel.label) {
-		        event.preventDefault();
-		    }
-		});
+        $scope.$on('pageChangeStarted', function (event) {
+            if ($scope.applicableLabel && $scope.selectedLabel && $scope.selectedLabel.id) {
+                angular.forEach($scope.applicableLabel.labels, function (candidate) {
+                    if (candidate.isDirty()) {
+                        event.preventDefault();
+                      return false;
+                    }
+                });
+            } else if ($scope.selectedLabel && $scope.selectedLabel.label) {
+                event.preventDefault();
+            }
+        });
 
       $scope.click = function () {
         if (!$scope.selectedLabel) {

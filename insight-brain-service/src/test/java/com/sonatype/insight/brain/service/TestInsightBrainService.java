@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.inject.BeanScanning;
 
+import com.google.common.base.Optional;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.Application;
@@ -22,6 +23,8 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.yammer.dropwizard.config.Environment;
+import com.yammer.dropwizard.config.HttpConfiguration;
+import com.yammer.dropwizard.config.SslConfiguration;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 import com.yammer.dropwizard.util.Duration;
 
@@ -33,6 +36,10 @@ public class TestInsightBrainService
     private int testPort;
 
     private int testAdminPort;
+
+    private String testKeystore;
+
+    private String testKeystorePassword;
 
     private String testSaasAddress;
 
@@ -54,6 +61,12 @@ public class TestInsightBrainService
     public void setHttpAdminPort( final int port )
     {
         testAdminPort = port;
+    }
+
+    public void setKeyStore( final String path, final String password )
+    {
+        testKeystore = path;
+        testKeystorePassword = password;
     }
 
     public void setSaasAddress( final String saasAddress )
@@ -83,8 +96,18 @@ public class TestInsightBrainService
     public Configuration getClientConfiguration()
     {
         final Configuration configuration = new Configuration();
-        configuration.setServerUrl( "http://localhost:" + testPort );
-        configuration.setServerAdminUrl( "http://localhost:" + testAdminPort
+        String protocol = "http";
+        if ( testKeystore != null )
+        {
+            protocol = "https";
+        }
+        String adminProtocol = "http";
+        if ( testAdminPort == testPort )
+        {
+            adminProtocol = protocol;
+        }
+        configuration.setServerUrl( protocol + "://localhost:" + testPort );
+        configuration.setServerAdminUrl( adminProtocol + "://localhost:" + testAdminPort
             + ( testAdminPort != testPort ? "" : "/admin" ) );
         return configuration;
     }
@@ -189,6 +212,15 @@ public class TestInsightBrainService
         config.getHttpConfiguration().setPort( testPort );
         config.getHttpConfiguration().setAdminPort( testAdminPort );
         config.getHttpConfiguration().setShutdownGracePeriod( Duration.milliseconds( 1 ) );
+        if ( testKeystore != null )
+        {
+            final SslConfiguration sslConfiguration = new SslConfiguration();
+            sslConfiguration.setKeyStore( Optional.of( new File( testKeystore ).getAbsoluteFile() ) );
+            sslConfiguration.setKeyStorePassword( Optional.of( testKeystorePassword ) );
+
+            config.getHttpConfiguration().setConnectorType( HttpConfiguration.ConnectorType.NONBLOCKING_SSL );
+            config.getHttpConfiguration().setSslConfiguration( sslConfiguration );
+        }
         config.setSonatypeWork( getWorkDir().getPath() );
         config.setSaasAddress( testSaasAddress );
         config.setBaseUrl( testBaseUrl );

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.rm.rest;
 
+import org.apache.http.client.HttpClient;
+import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
@@ -73,4 +75,27 @@ public class RestClientConfiguration
         config.setProxyAuth( auth );
         return this;
     }
+
+    public RestClientConfiguration setHttpClientProvider( final HttpClientProvider httpClientProvider )
+    {
+        config.setHttpClientProvider(
+            new HttpClientUtils.HttpClientProvider()
+            {
+                @Override
+                public HttpClient createHttpClient( final Configuration config )
+                {
+                    return httpClientProvider.createHttpClient( RestClientConfiguration.this );
+                }
+            }
+        );
+        return this;
+    }
+
+    public static interface HttpClientProvider
+    {
+
+        HttpClient createHttpClient( RestClientConfiguration config );
+
+    }
+
 }

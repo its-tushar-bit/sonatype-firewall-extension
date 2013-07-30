@@ -41,6 +41,10 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-client-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-archive</artifactId>
     </dependency>
     <dependency>
@@ -54,6 +58,18 @@
     <dependency>
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.5</version>
+      <exclusions>
+        <exclusion>
+          <!-- using jcl-over-slf4j instead -->
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -113,6 +129,8 @@
                 <excludes>
                   <!-- for proper integration, allow host environment to override these -->
                   <exclude>*:slf4j-api</exclude>
+                  <exclude>*:httpcore</exclude>
+                  <exclude>*:httpclient</exclude>
                 </excludes>
               </artifactSet>
               <filters>
@@ -153,6 +171,7 @@
                   <pattern>org.</pattern>
                   <shadedPattern>zz.org.</shadedPattern>
                   <excludes>
+                    <exclude>org.apache.http.**</exclude>
                     <exclude>org.ietf.**</exclude>
                     <exclude>org.slf4j.**</exclude>
                     <exclude>org.w3c.**</exclude>

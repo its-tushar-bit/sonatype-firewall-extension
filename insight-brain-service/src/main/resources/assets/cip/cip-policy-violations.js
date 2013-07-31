@@ -74,14 +74,14 @@
 				});
 				
 				//move the modal out into the body, so it appears properly ABOVE the backdrop
-				$("#componentWaiverModal").appendTo("body");
+				$("#componentAddWaiverModal").appendTo("body");
 			}
 		}
 		
 		//Waive component policy trigger, so that it will no longer be triggered in future
 		$scope.waiveComponent = function(policyAlert) {
 		    $scope.waiverLoading = true;
-		    $('#componentWaiverModal').modal('show');
+		    $('#componentAddWaiverModal').modal('show');
 		    //get the tree of contexts, and flatten down into a list we can display properly
 		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
 		        $scope.waiverLoading = false;
@@ -98,7 +98,7 @@
                             var waiverTarget = {id:policyViolationData.appId,name:context.name,type:context.type};
                             $scope.waiverTargets.splice(0, 0, waiverTarget);
                             //set the app as the default selected value
-                            $scope.waiverSelectedTarget = waiverTarget;
+                            $scope.waiverSelectedTarget = waiverTarget.id + '$$' + waiverTarget.type;
                         }
 		            }
 		        }
@@ -106,10 +106,10 @@
 		        //if only application present, no need to show the app/org radio buttons
 		        $scope.waiverSelectOwner = (data.children && data.children.length);
 		        $scope.waiverTargets = [];
-	            processContext(data);
-	            $scope.waiverComment = undefined;
-	            $scope.waiveAssignError = undefined;
-                $scope.waiverPolicyAlert = policyAlert;
+	          processContext(data);
+	          $scope.waiverComment = undefined;
+	          $scope.waiveAssignError = undefined;
+            $scope.waiverPolicyAlert = policyAlert;
 		    }).error(function(){
 		        $scope.waiverLoading = false;
 		        errorFn(arguments);
@@ -118,7 +118,7 @@
 		
 		//pretty simple, they decline just dump the modal
 		$scope.declineWaiveComponent = function() {
-		    $('#componentWaiverModal').modal('hide');
+		    $('#componentAddWaiverModal').modal('hide');
 		}
 		
 		//user really wants to waive the component, so send the request on down
@@ -129,9 +129,10 @@
                 comment : $scope.waiverComment
             };
             $scope.waiverSaving = true;
-            hudson.post(CLM.path + 'rest/policyWaiver/' + $scope.waiverSelectedTarget.type + '/' + $scope.waiverSelectedTarget.id, data).success(function(responseData){
+            var parts = $scope.waiverSelectedTarget.split('$$');
+            hudson.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0], data).success(function(responseData){
                 $scope.waiverSaving = false;
-                $('#componentWaiverModal').modal('hide');
+                $('#componentAddWaiverModal').modal('hide');
 		    }).error(function(data, status, headersFn, config){
 		        $scope.waiverSaving = false;
 		        $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status,  data: data });

@@ -85,7 +85,7 @@ describe('CIP Policy Waiver tests', function() {
 
         $http.flush();
 
-        scope.waiverSelectedTarget = {id:'appId',type:'application'};
+        scope.waiverSelectedTarget = 'appId$$application';
         scope.waiverComment = 'this is my comment!';
 
         $http.whenPOST('../brain/rest/policyWaiver/application/appId', {

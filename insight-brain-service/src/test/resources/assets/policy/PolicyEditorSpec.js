@@ -284,39 +284,39 @@ describe('PolicyEditor.js', function() {
             validateValidation(scope,'Enter a valid name for constraint #1');
             
             scope.policy.constraints[0].name = 'name';
-            validateValidation(scope,'You must select any or all of the conditions for constraint #1');
+            validateValidation(scope,'You must select any or all of the conditions for constraint "name"');
             
             scope.policy.constraints[0].operator = 'OR';
-            validateValidation(scope,'You must add at least one condition to constraint #1');
+            validateValidation(scope,'You must add at least one condition to constraint "name"');
             
             scope.policy.constraints[0].conditions = [{}];
-            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint #1');
+            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #1 in constraint #1');
+            validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
             
             scope.policy.constraints[0].conditions[0].value = '300';
             scope.policy.constraints.push({});
             validateValidation(scope,'Enter a valid name for constraint #2');
             
             scope.policy.constraints[1].name = 'name';
-            validateValidation(scope,'You must select any or all of the conditions for constraint #2');
+            validateValidation(scope,'You must select any or all of the conditions for constraint "name"');
             
             scope.policy.constraints[1].operator = 'OR';
-            validateValidation(scope,'You must add at least one condition to constraint #2');
+            validateValidation(scope,'You must add at least one condition to constraint "name"');
             
             scope.policy.constraints[1].conditions = [{}];
-            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint #2');
+            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #1 in constraint #2');
+            validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].value = '300';
             scope.policy.constraints[1].conditions.push({});
-            validateValidation(scope,'Please select a valid condition type for condition #2 in constraint #2');
+            validateValidation(scope,'Please select a valid condition type for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #2 in constraint #2');
+            validateValidation(scope,'Please enter a value for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].value = '300';
             scope.validate();

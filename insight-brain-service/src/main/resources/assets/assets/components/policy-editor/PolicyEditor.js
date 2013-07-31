@@ -348,17 +348,17 @@
                                 if (!constraint.name) {
                                     msg = 'Enter a valid name for constraint #' + (constraintIndex + 1);
                                 } else if(!constraint.operator) {
-                                    msg = 'You must select any or all of the conditions for constraint #' + (constraintIndex + 1);
+                                    msg = 'You must select any or all of the conditions for constraint "' + constraint.name + '"';
                                 } else if (!constraint.conditions || !constraint.conditions.length) {
-                                    msg = 'You must add at least one condition to constraint #' + (constraintIndex + 1);
+                                    msg = 'You must add at least one condition to constraint "' + constraint.name + '"';
                                 } else {
                                     $.each(constraint.conditions, function(conditionIndex, condition) {
                                         var conditionType = policyStore.getConditionTypes()[condition.conditionTypeId];
                                         if (!conditionType) {
-                                            msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                            msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
                                             return false;
                                         } else if (conditionType.valueTypeId && !condition.value) {
-                                            msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint #' + (constraintIndex + 1);
+                                            msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
                                             return false;
                                         }
                                     });

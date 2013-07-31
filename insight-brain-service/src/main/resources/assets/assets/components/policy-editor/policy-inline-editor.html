@@ -24,7 +24,7 @@
 									<span ng-show="constraint.name">{{constraint.name}}</span>
 									<span ng-show="!constraint.name">New Constraint</span>
 								</span>
-								<input ng-switch-when='true' type="text" ng-model="constraint.name" ng-change="validateConstraint()" ng-click='nothing($event)' placeholder='Constraint Name' required>
+								<input ng-switch-when='true' type="text" ng-model="constraint.name" ng-change="validateConstraint()" ng-click='stop($event)' placeholder='Constraint Name' required>
 							</span>
 						</a>
 					</div>

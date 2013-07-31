@@ -568,6 +568,16 @@
 		};
 	}]);
 
+	module.directive('inlineConstraintEditor', function () {
+		return {
+			restrict : 'A',
+			scope : {
+				constraint : '=inlineConstraintEditor'
+			},
+			controller : 'ConstraintEditorController'
+		};
+	});
+
 	module.directive('inlinePolicyEditor', [function () {
         return {
             restrict : 'A',

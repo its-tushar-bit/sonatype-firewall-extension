@@ -1,24 +1,14 @@
-<div inline-constraint-editor='constraint'>
+<div>
 	<div class='control-group' style="margin-bottom: 0px;">
-		<div>
-			<div class='form-horizontal'>
-		        <div class='control-group' style="padding-right:10px;margin-bottom:10px;">
-		            <label class="control-label" style="text-align:left;width:130px;">Constraint name</label>
-		            <div class='controls' style="margin-left:70px;">
-		                <input type="text"  ng-model="constraint.name" ng-change="validateConstraint()" required>
-		            </div>
-		        </div>
-		    </div>
-			<div style="text-align: left;" ng-repeat="condition in constraint.conditions">
-				<span ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
-				<div class="btn-group" style='vertical-align: top'>
-					<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1">
-						<i class="icon-minus-sign"></i>
-					</button>
-					<button class="btn" type='button' ng-click="addCondition()" title="Add Condition">
-						<i class="icon-plus-sign"></i>
-					</button>
-				</div>
+		<div style="text-align: left;" ng-repeat="condition in constraint.conditions">
+			<span ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
+			<div class="btn-group" style='vertical-align: top'>
+				<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1">
+					<i class="icon-minus-sign"></i>
+				</button>
+				<button class="btn" type='button' ng-click="addCondition()" title="Add Condition">
+					<i class="icon-plus-sign"></i>
+				</button>
 			</div>
 		</div>
 	</div>

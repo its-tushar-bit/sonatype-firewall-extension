@@ -95,18 +95,17 @@
                 </div>
                 <div class="accordion licenseGroups">
                     <div class="accordion-group" ng-repeat='licenseGroup in applicableLicenseGroup.licenseThreatGroups | orderBy: "threatLevel" : true'>
-                        <div class="common-accordion-header">
-                            <span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
-                            <h3>{{licenseGroup.name}}</h3>
-                            <div class='accordion-header-buttons'>
-                                <div class='btn-group' ng-show='applicableLicenseGroup.editable'>
-                                    <a class="btn btn-mini" title="Edit License Threat Group" ng-click='editLicenseGroup(licenseGroup)' type="button"><i class='icon-pencil'></i></a>
-                                    <a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
-                                </div>
+                        <div class="accordion-heading">
+                            <div class='btn-group floatRight' ng-show='applicableLicenseGroup.editable'>
+                               <a class="btn btn-mini" title="Edit License Threat Group" ng-click='editLicenseGroup(licenseGroup)' type="button"><i class='icon-pencil'></i></a>
+                               <a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
                             </div>
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" href="#collapse{{licenseGroup.id}}">
+                                <span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
+                                <h3>{{licenseGroup.name}}</h3>
+                            </a>
                         </div>
-                        <a class="common-accordion-toggle" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" href="#collapse{{licenseGroup.id}}"></a>
-                        <div id="collapse{{licenseGroup.id}}" class="common-accordion-body accordion-body collapse">
+                        <div id="collapse{{licenseGroup.id}}" class="accordion-body collapse">
                             <div class="accordion-inner">
                                 <b>Licenses</b>
                                 <ul class="unstyled">

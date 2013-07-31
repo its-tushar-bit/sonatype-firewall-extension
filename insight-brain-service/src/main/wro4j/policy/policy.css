@@ -63,15 +63,6 @@
 .licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
 	cursor: pointer
 }
-.inline-policy-editor .common-accordion-header {
-	padding: 4px 5px;
-	margin: 0;
-}
-.inline-policy-editor .common-accordion-toggle {
-	height: 20px;
-	margin-top: -28px;
-	padding: 5px;
-}
 #constraintName {
 	font-weight: normal;
 	font-style: normal;
@@ -143,4 +134,7 @@ table.policy-actions td:last-child {
 	max-height:120px;
 	overflow:auto;
 	margin-bottom:10px;
+}
+.policy-button > i {
+	margin-top : 0px;
 }

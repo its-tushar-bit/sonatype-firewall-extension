@@ -176,10 +176,6 @@
                 }]
             }).open();
 		};
-
-		$scope.editConstraint = function (constraint) {
-            $('#collapse' + constraint.id).collapse('show');
-		};
 		
 		$scope.addConstraint = function() {
 		    var constraint = { 
@@ -423,6 +419,31 @@
 			'name' : 'Any'
 		}];
 
+		/**
+		 * Prevents the event from continuing
+		 */
+		$scope.stop = function ($event) {
+			$event.stopPropagation();
+		};
+
+		/**
+		 * Returns whether constraint's accordion expanded
+		 */
+		$scope.isExpanded = function (constraint) {
+			return $('#collapse' + constraint.id).hasClass('in');
+		};
+
+		/**
+		 * Toggle the accordion expansion associated with the constraint
+		 */
+		$scope.toggleConstraint = function (constraint) {
+			if ($scope.isExpanded(constraint)) {
+				$('#collapse' + constraint.id).collapse('hide');
+			} else {
+				$('#collapse' + constraint.id).collapse('show');
+			}
+		};
+
 		//make sure user is aware they are about to lose changes
 		$scope.$on('pageChangeStarted', function (event) {
 			if (isDirty()) {
@@ -567,16 +588,6 @@
 			}
         };
     }]);
-
-	module.directive('inlineConstraintEditor', function () {
-		return {
-			restrict : 'A',
-			scope : {
-				constraint : '=inlineConstraintEditor'
-			},
-			controller : 'ConstraintEditorController'
-		};
-	});
 
 	module.directive('ageInDays', function () {
 		return {

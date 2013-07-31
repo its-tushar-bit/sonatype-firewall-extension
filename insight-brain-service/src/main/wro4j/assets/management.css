@@ -223,8 +223,12 @@ body {
 	vertical-align: middle;
 }
 .content {
-	margin-left: 271px;
-	height: 100%;
+	position: absolute;
+	top: 85px;
+	bottom : 0px;
+	right : 0px;
+	left : 272px;
+	overflow : auto;
 }
 .content .nav-tabs {
 	border-bottom-color: black;

@@ -40,11 +40,6 @@ public class ConfigurationClient
             // improve error msg
             throw (IOException) new UnknownHostException( "Unknown host: " + e.getMessage() ).initCause( e );
         }
-        catch ( NumberFormatException e )
-        {
-            // improve error msg (thrown from httpclient in response to non-numeric port specs)
-            throw new IllegalArgumentException( "Invalid port", e );
-        }
         final int status = result.status();
         if ( status >= 300 )
         {

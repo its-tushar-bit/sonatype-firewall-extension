@@ -106,7 +106,6 @@ public class ConfigurationClientTest
     }
 
     @Test
-    @org.junit.Ignore
     public void testValidateConfiguration_InvalidPort()
         throws Exception
     {
@@ -119,7 +118,7 @@ public class ConfigurationClientTest
         }
         catch ( Exception e )
         {
-            assertMatch( "(?i).*Invalid port.*", e.getMessage() );
+            assertMatch( "(?i).*Illegal .* port.*", e.getMessage() );
         }
     }
 

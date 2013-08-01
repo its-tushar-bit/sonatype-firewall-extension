@@ -1,7 +1,7 @@
 <div class='inline-policy-editor' ng-controller='PolicyEditorController' style="width:875px;">
 	<form name='inlinePolicyForm'>
 		<div class="control-group" ng-class='{ error : inlinePolicyForm.name.$error.alphaNumeric || inlinePolicyForm.name.$error.spaces }'>
-			<input name='name' type='text' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>
+			<input name='name' type='text' ng-model='policy.name' style='margin-bottom:20px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>
 			<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
 			<span ng-show="inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
 			<span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
@@ -55,8 +55,8 @@
 			</thead>
 			<tr ng-repeat="actionStage in actionStages">
 				<td>{{actionStage.name}}</td>
-				<td style="height: 22px;text-align:center;cursor:pointer;" ng-click='toggleWarnAction(actionStage)'><img ng-show='showWarningIcon(actionStage)' src='../assets/img/policyalert.png' style="height: 20px; width: 20px;" /></td>
-				<td style="text-align:center;cursor:pointer;" ng-click='toggleFailureAction(actionStage)'><img ng-show='showFailureIcon(actionStage)' src='../assets/img/policyerror.png' style="height: 20px; width: 20px;" /></td>
+				<td style="height: 22px;text-align:center;cursor:pointer;" ng-click='toggleWarnAction(actionStage)'><img ng-show='showWarningIcon(actionStage)' src='../assets/img/policyalert.png' style="height: 13px; width: 13px;" /></td>
+				<td style="text-align:center;cursor:pointer;" ng-click='toggleFailureAction(actionStage)'><img ng-show='showFailureIcon(actionStage)' src='../assets/img/policyerror.png' style="height: 13px; width: 13px;" /></td>
 				<td style="width:400px;">
 					<div style="width:400px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
 						<i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage,policy)'></i>{{getEmailList(actionStage)}}

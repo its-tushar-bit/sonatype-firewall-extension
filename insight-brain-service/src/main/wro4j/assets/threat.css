@@ -85,6 +85,10 @@
 	font-weight: bold;
 	font-size: 14px;
 }
+.policy .threat-chiclet,
+.licenseGroups .threat-chiclet {
+	padding: 0; /* These show color only, no count */
+}
 .threat-chiclet-critical {
 	color: #FFF;
 	background-color: #DB2852;

@@ -22,7 +22,7 @@
 							<span ng-switch='isExpanded(constraint)'>
 								<span ng-switch-when='false'>
 									<span ng-show="constraint.name">{{constraint.name}}</span>
-									<span ng-show="!constraint.name">New Constraint</span>
+									<span ng-show="!constraint.name">[Unnamed Constraint]</span>
 								</span>
 								<input ng-switch-when='true' type="text" ng-model="constraint.name" ng-change="validateConstraint()" ng-click='stop($event)' placeholder='Enter Constraint Name' required>
 							</span>

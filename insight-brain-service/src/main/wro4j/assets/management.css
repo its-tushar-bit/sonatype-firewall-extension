@@ -301,11 +301,9 @@ body {
 .accordion-heading input {
 	margin : 0px;
 }
-.accordion-heading a:hover {
-	text-decoration : none
-}
 .accordion-heading a {
 	color : black;
+	text-decoration : none;
 }
 .accordion-heading > .floatRight {
 	padding-top: 5px;

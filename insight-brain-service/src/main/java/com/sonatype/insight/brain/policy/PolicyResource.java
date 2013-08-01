@@ -288,6 +288,13 @@ public class PolicyResource
             if ( exportDTO.labels.size() > 0 )
             {
                 Map<String, String> idMap = new HashMap<String, String>();
+                //include any existing org labels, in case they're used in app policies. These are NOT candidates for deletion.
+                if(application.getOrganizationId() != null)
+                {
+                  for (Label label : labelDAO.getByOwnerId(application.getOrganizationId())) {
+                    idMap.put(label.getId(), label.getId());
+                  }
+                }
                 for ( Label label : exportDTO.labels )
                 {
                     String oldId = label.getId();
@@ -326,8 +333,7 @@ public class PolicyResource
             {
                 labelDAO.delete( em, label );
             }
-            
-            
+
             if ( exportDTO.licenseThreatGroups.size() > 0 )
             {
                 Map<String, String> idMap = new HashMap<String, String>();

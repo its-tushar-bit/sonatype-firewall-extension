@@ -21,12 +21,14 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -40,6 +42,11 @@ import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
 import com.yammer.dropwizard.testing.JsonHelpers;
+
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class PolicyResourceTest
     extends AbstractResourceTest
@@ -88,11 +95,11 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         PolicyExportResult policyExportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
-        Assert.assertNotNull( policyExportResult );
-        Assert.assertTrue( !policyExportResult.policies.isEmpty() );
-        Assert.assertTrue( !policyExportResult.labels.isEmpty() );
-        Assert.assertTrue( !policyExportResult.licenseThreatGroups.isEmpty() );
-        Assert.assertTrue( !policyExportResult.licenseThreatGroupLicenses.isEmpty() );
+        assertNotNull(policyExportResult);
+        assertTrue(!policyExportResult.policies.isEmpty());
+        assertTrue(!policyExportResult.labels.isEmpty());
+        assertTrue(!policyExportResult.licenseThreatGroups.isEmpty());
+        assertTrue(!policyExportResult.licenseThreatGroupLicenses.isEmpty());
 
         // Import
         String newApplicationPublicId = applicationPublicId + "1";
@@ -100,14 +107,14 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
-        Assert.assertNotNull( policyImportResult );
+        assertNotNull(policyImportResult);
         Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
-        Assert.assertTrue( policyImportResult.applicationURL,
-                           policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
-                               + newApplicationPublicId ) );
+        assertTrue(policyImportResult.applicationURL,
+            policyImportResult.applicationURL.endsWith("/policy-assets/index.html?appId="
+                + newApplicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
-        Assert.assertNotNull( application );
+        assertNotNull(application);
         List<Label> labels = labelDAO.getByOwnerId( application.getId() );
         Assert.assertEquals( 1, labels.size() );
         Assert.assertEquals( label.getLabel(), labels.get( 0 ).getLabel() );
@@ -126,21 +133,21 @@ public class PolicyResourceTest
         Assert.assertEquals( 1, policies.length );
         Assert.assertEquals( policy.getName(), policies[0].getName() );
         ValidationResult policyValidationResult = policies[0].validate( application.getId() );
-        Assert.assertTrue( policyValidationResult.toMessageString(), policyValidationResult.isValid() );
+        assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
 
         // Import again for a different application
         newApplicationPublicId = applicationPublicId + "2";
         response = RestAccess.put( getServiceURL( APP, newApplicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );
         assertResponseStatus( 200, response );
         policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
-        Assert.assertNotNull( policyImportResult );
+        assertNotNull(policyImportResult);
         Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
-        Assert.assertTrue( policyImportResult.applicationURL,
-                           policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
-                               + newApplicationPublicId ) );
+        assertTrue(policyImportResult.applicationURL,
+            policyImportResult.applicationURL.endsWith("/policy-assets/index.html?appId="
+                + newApplicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
-        Assert.assertNotNull( application );
+        assertNotNull(application);
         labels = labelDAO.getByOwnerId( application.getId() );
         Assert.assertEquals( 1, labels.size() );
         Assert.assertEquals( label.getLabel(), labels.get( 0 ).getLabel() );
@@ -158,7 +165,7 @@ public class PolicyResourceTest
         Assert.assertEquals( 1, policies.length );
         Assert.assertEquals( policy.getName(), policies[0].getName() );
         policyValidationResult = policies[0].validate( application.getId() );
-        Assert.assertTrue( policyValidationResult.toMessageString(), policyValidationResult.isValid() );
+        assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
     }
 
     @Test
@@ -203,11 +210,11 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         PolicyExportResult policyExportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
-        Assert.assertNotNull( policyExportResult );
-        Assert.assertTrue( !policyExportResult.policies.isEmpty() );
-        Assert.assertTrue( !policyExportResult.labels.isEmpty() );
-        Assert.assertTrue( !policyExportResult.licenseThreatGroups.isEmpty() );
-        Assert.assertTrue( !policyExportResult.licenseThreatGroupLicenses.isEmpty() );
+        assertNotNull(policyExportResult);
+        assertTrue(!policyExportResult.policies.isEmpty());
+        assertTrue(!policyExportResult.labels.isEmpty());
+        assertTrue(!policyExportResult.licenseThreatGroups.isEmpty());
+        assertTrue(!policyExportResult.licenseThreatGroupLicenses.isEmpty());
 
         // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
         labelDAO.delete( label1 );
@@ -224,14 +231,14 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         PolicyImportResult policyImportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
-        Assert.assertNotNull( policyImportResult );
+        assertNotNull(policyImportResult);
         Assert.assertEquals( application.getName(), policyImportResult.applicationName );
-        Assert.assertTrue( policyImportResult.applicationURL,
-                           policyImportResult.applicationURL.endsWith( "/policy-assets/index.html?appId="
-                               + applicationPublicId ) );
+        assertTrue(policyImportResult.applicationURL,
+            policyImportResult.applicationURL.endsWith("/policy-assets/index.html?appId="
+                + applicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
-        Assert.assertNotNull( application );
+        assertNotNull(application);
         List<Label> labels = labelDAO.getByOwnerId( application.getId() );
         Assert.assertEquals( 2, labels.size() );
         Assert.assertEquals( label1.getId(), labels.get( 0 ).getId() );
@@ -257,7 +264,7 @@ public class PolicyResourceTest
         Assert.assertEquals( policy.getName(), policies[0].getName() );
         Assert.assertNotEquals( policy.getId(), policies[0].getId() );
         ValidationResult policyValidationResult = policies[0].validate( application.getId() );
-        Assert.assertTrue( policyValidationResult.toMessageString(), policyValidationResult.isValid() );
+        assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
     }
 
     @Test
@@ -274,7 +281,7 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         PolicyExportResult policyExportResult =
             JsonHelpers.fromJson( response.getResponseBody(), PolicyExportResult.class );
-        Assert.assertNotNull( policyExportResult );
+        assertNotNull(policyExportResult);
 
         // Import
         response = RestAccess.put( getServiceURL( APP, applicationPublicId + "1" ) + "/import", JsonHelpers.asJson( policyExportResult ) );
@@ -321,7 +328,7 @@ public class PolicyResourceTest
         Response response = RestAccess.post( getServiceURL( ownerType, ownerId ), JsonHelpers.asJson( policy ) );
         assertResponseStatus( 200, response );
         final Policy policy1 = JsonHelpers.fromJson( response.getResponseBody(), Policy.class );
-        Assert.assertNotNull( policy1.getId() );
+        assertNotNull(policy1.getId());
         Assert.assertEquals( "PolicyResourceTest new policy", policy1.getName() );
 
         Assert.assertEquals( 1, store.modificationCount() );
@@ -330,7 +337,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( ownerType, ownerId ) );
         assertResponseStatus( 200, response );
         Policy[] policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
-        Assert.assertNotNull( policies );
+        assertNotNull(policies);
         Assert.assertEquals( 1, policies.length );
         Assert.assertEquals( policy1.getId(), policies[0].getId() );
         Assert.assertEquals( policy1.getName(), policies[0].getName() );
@@ -357,7 +364,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( ownerType, ownerId ) );
         assertResponseStatus( 200, response );
         policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
-        Assert.assertNotNull( policies );
+        assertNotNull(policies);
         Assert.assertEquals( 1, policies.length );
         Assert.assertEquals( policy2.getId(), policies[0].getId() );
         Assert.assertEquals( policy2.getName(), policies[0].getName() );
@@ -383,7 +390,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( ownerType, ownerId ) );
         assertResponseStatus( 200, response );
         policies = JsonHelpers.fromJson( response.getResponseBody(), Policy[].class );
-        Assert.assertNotNull( policies );
+        assertNotNull(policies);
         Assert.assertEquals( 0, policies.length );
 
         Assert.assertEquals( 3, store.modificationCount() );
@@ -505,7 +512,7 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         ApplicablePolicies applicablePolicies =
             JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
-        Assert.assertNotNull( applicablePolicies );
+        assertNotNull(applicablePolicies);
         Assert.assertEquals( 2, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( appId, appName, "application", 0, applicablePolicies.policiesByOwner.get( 0 ) );
         assertPoliciesByOwner( orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get( 1 ) );
@@ -514,7 +521,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
         assertResponseStatus( 200, response );
         applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
-        Assert.assertNotNull( applicablePolicies );
+        assertNotNull(applicablePolicies);
         Assert.assertEquals( 1, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get( 0 ) );
 
@@ -533,7 +540,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
         assertResponseStatus( 200, response );
         applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
-        Assert.assertNotNull( applicablePolicies );
+        assertNotNull(applicablePolicies);
         Assert.assertEquals( 2, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( appId, appName, "application", 1, applicablePolicies.policiesByOwner.get( 0 ) );
         assertPoliciesByOwner( orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get( 1 ) );
@@ -543,7 +550,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
         assertResponseStatus( 200, response );
         applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
-        Assert.assertNotNull( applicablePolicies );
+        assertNotNull(applicablePolicies);
         Assert.assertEquals( 1, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get( 0 ) );
 
@@ -562,7 +569,7 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( APP, appPublicId ) + "/applicable" );
         assertResponseStatus( 200, response );
         applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
-        Assert.assertNotNull( applicablePolicies );
+        assertNotNull(applicablePolicies);
         Assert.assertEquals( 2, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( appId, appName, "application", 1, applicablePolicies.policiesByOwner.get( 0 ) );
         assertPoliciesByOwner( orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get( 1 ) );
@@ -573,11 +580,45 @@ public class PolicyResourceTest
         response = RestAccess.get( getServiceURL( ORG, orgId ) + "/applicable" );
         assertResponseStatus( 200, response );
         applicablePolicies = JsonHelpers.fromJson( response.getResponseBody(), ApplicablePolicies.class );
-        Assert.assertNotNull( applicablePolicies );
+        assertNotNull(applicablePolicies);
         Assert.assertEquals( 1, applicablePolicies.policiesByOwner.size() );
         assertPoliciesByOwner( orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get( 0 ) );
         Assert.assertEquals( orgPolicy.getId(), applicablePolicies.policiesByOwner.get( 0 ).policies.get( 0 ).getId() );
     }
+
+  /**
+   * Test for condition in CLM-636
+   */
+  @Test
+  public void testImportOrgLabelCondition() throws Exception {
+    //create an Org with a Label that we then use in an App policy
+    String name = "testImportOrgLabelCondition";
+    Organization org = createOrganization(name);
+    Application application = createApplication(name, name, org);
+    LabelDAO labelDAO = new LabelDAO();
+    Label label = new Label(org.getId(), name, Color.black);
+    labelDAO.insert(label);
+    Policy policy = new Policy(name, name);
+    Constraint constraint = new Constraint(name, name, LogicalOperator.OR);
+    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    policy.addConstraint(constraint);
+    Response response = RestAccess.post(getServiceURL(APP, application.getPublicId()), JsonHelpers.asJson(policy));
+    assertResponseStatus(200, response);
+
+    // Export the policy
+    response = RestAccess.get(getServiceURL(APP, application.getPublicId()) + "/export");
+    assertResponseStatus(200, response);
+    PolicyExportResult policyExportResult =
+        JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
+    assertNotNull(policyExportResult);
+    assertTrue(!policyExportResult.policies.isEmpty());
+    assertThat(policyExportResult.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is(label.getId()));
+
+    // Import it directly back
+    response = RestAccess
+        .put(getServiceURL(APP, application.getPublicId()) + "/import", JsonHelpers.asJson(policyExportResult));
+    assertResponseStatus(200, response);
+  }
 
     private String getServiceURL( final String ownerType, final String ownerId )
     {

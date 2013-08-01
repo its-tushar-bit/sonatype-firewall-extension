@@ -160,6 +160,9 @@
     $scope.toggleAll = function (applicableLicenseGroup) {
       var action = $scope.allExpanded[applicableLicenseGroup.ownerId] ? 'hide' : 'show';
       $('#' + applicableLicenseGroup.ownerId).find('.accordion-body').collapse(action);
+      //TODO: to work around collapse bug, fixed in newer release of bootstrap
+      //https://github.com/twitter/bootstrap/pull/7424/files
+      $('#' + applicableLicenseGroup.ownerId).find('.licenseGroup-top')[action == 'hide' ? 'addClass' : 'removeClass']('collapsed');
       $scope.allExpanded[applicableLicenseGroup.ownerId] = !($scope.allExpanded[applicableLicenseGroup.ownerId] || false);
     };
 

@@ -311,13 +311,13 @@ body {
 	padding-top: 5px;
 	padding-right : 5px;
 }
-.policy-top {
+.policy-top, .licenseGroup-top {
     border-bottom: 1px solid rgba(0, 0, 0, .1);
 		-webkit-transition: border .3s linear;
 		-moz-transition: border .3s linear;
 		transition: border .3s linear;
 }
-.policy-top.collapsed {
+.policy-top.collapsed, .licenseGroup-top.collapsed {
     border-bottom: 1px solid transparent;
 }
 .accordion-group {

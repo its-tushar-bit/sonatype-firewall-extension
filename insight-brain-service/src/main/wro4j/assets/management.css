@@ -513,7 +513,6 @@ ul.tri-pane {
 	width : 100%;
 	margin: 0px;
 	list-style-type: none;
-	border-bottom: 1px solid #C6C6C6;
 	min-width: 500px;
 }
 .tri-pane a {
@@ -577,6 +576,7 @@ ul.tri-pane {
 .add-section {
 	background-color: #E8E8E8;
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
+	border-top: 1px solid #C6C6C6;
 	min-height: 30px;
 	padding: 10px 25px;
 }

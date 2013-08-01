@@ -41,7 +41,6 @@ h4 {
 	font-size: 13px;
 	margin-bottom: 0;
 	color: #36424e;
-	text-transform: uppercase;
 }
 .glyphicons-sonatype:before {
 	font: 14px/28px 'Glyphicons';
@@ -223,12 +222,8 @@ body {
 	vertical-align: middle;
 }
 .content {
-	position: absolute;
-	top: 85px;
-	bottom : 0px;
-	right : 0px;
-	left : 272px;
-	overflow : auto;
+	left: 272px;
+	height: 100%;
 }
 .content .nav-tabs {
 	border-bottom-color: black;
@@ -271,7 +266,8 @@ body {
 .content-section h3 {
 	display: inline-block;
 	margin: 0 0 0 5px;
-	line-height: 28px;	
+	line-height: 20px;
+	font-size: 14px;	
 }
 .content-section h3 span {
 	font-weight:normal;
@@ -285,10 +281,13 @@ body {
 }
 .content-header h4 {
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
-	color: #777;
 }
 .policies, .licenseGroups {
-	margin-left: 15px;
+	margin-left: 25px;
+}
+.policies .accordion-heading .accordion-toggle,
+.licenseGroups .accordion-heading .accordion-toggle {
+	padding: 5px;
 }
 .accordion-inner {
 	border: none;
@@ -304,8 +303,8 @@ body {
 	color : black;
 }
 .accordion-heading > .floatRight {
-	padding-top: 8px;
-	padding-right : 8px;
+	padding-top: 5px;
+	padding-right : 5px;
 }
 .policy-top {
     border-bottom: 1px solid rgba(0, 0, 0, .1);
@@ -561,7 +560,9 @@ ul.tri-pane {
 	margin: 15px;
 }
 .common-expand-toggle a {
-	float: right;
+	float: left;
+	margin-right: 5px;
+	text-decoration: none;
 }
 /**
  * Error blocks

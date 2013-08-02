@@ -71,16 +71,16 @@ public class PolicyResource
 
   private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
 
-  public static final String ORG_IMPORT_LTG_ERROR = "Organization already has LicenseThreatGroups besides the default " +
+  public static final String ORG_IMPORT_LTG_ERROR = "Organization already has license threat groups besides the default " +
       "ones defined, cannot import data unless the Organization is new.";
 
-  public static final String ORG_IMPORT_LABEL_ERROR = "Organization already has Labels defined, cannot import data " +
+  public static final String ORG_IMPORT_LABEL_ERROR = "Organization already has labels defined, cannot import data " +
       "unless the Organization is new.";
 
-  public static final String ORG_IMPORT_POLICY_ERROR = "Organization already has Policies defined, cannot import data " +
+  public static final String ORG_IMPORT_POLICY_ERROR = "Organization already has policies defined, cannot import data " +
       "unless the Organization is new.";
 
-  public static final String ORG_IMPORT_APP_ERROR = "Organization already has Applications defined, cannot import data " +
+  public static final String ORG_IMPORT_APP_ERROR = "Organization already has applications defined, cannot import data " +
       "unless the Organization is new.";
 
   @Context
@@ -249,12 +249,11 @@ public class PolicyResource
    * between v1.5 and v1.6
    * @since 1.6
    */
-  private PolicyImportResult importFromApplicationToOrganization(final String orgId,
-                                                                 final PolicyExportResult exportDTO)
+  private PolicyImportResult importFromApplicationToOrganization(String orgId, PolicyExportResult exportDTO)
   {
     // ensure that Org exists and does not already have Apps, Policy, Label or LTGs
     OrganizationDAO organizationDAO = new OrganizationDAO();
-    Organization organization = organizationDAO.getByIdNotNull(orgId); //should just throw an exception if the org can't be found
+    Organization organization = organizationDAO.getByIdNotNull(orgId);
     List<Application> applications = new ApplicationDAO().getByOrganizationId(orgId);
     if(!applications.isEmpty())
     {
@@ -281,16 +280,15 @@ public class PolicyResource
       throw new BadRequestException( ORG_IMPORT_LTG_ERROR);
     }
 
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(orgId);
-    ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-
     EntityManager em = organizationDAO.createEntityManager();
     try {
       em.getTransaction().begin();
 
-      //Set labels with Org as the owner
+      LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+      ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
       LabelDAO labelDAO = new LabelDAO();
+
+      //Set labels with Org as the owner
       for (Label label : exportDTO.labels) {
         label.setOwnerId(orgId);
         labelDAO.update(em, label);
@@ -314,12 +312,7 @@ public class PolicyResource
       }
 
       if (!exportDTO.licenseThreatGroupLicenses.isEmpty()) {
-        //Delete existing(default) LTGLs from Organization to prevent conflict with imported LTGLs
-        for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenses) {
-          licenseThreatGroupLicenseDAO.delete(em, licenseThreatGroupLicense);
-        }
-
-        //Set LTGs with Org as the owner
+        //Set LTGLs with Org as the owner
         for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
           licenseThreatGroupLicense.setOwnerId(orgId);
           licenseThreatGroupLicenseDAO.update(em, licenseThreatGroupLicense);
@@ -355,7 +348,7 @@ public class PolicyResource
   /**
    * Import an Application, either by creating a new Application or modifying an existing one.
    */
-  private PolicyImportResult importApplication(final String appId, final PolicyExportResult exportDTO) {
+  private PolicyImportResult importApplication(String appId, PolicyExportResult exportDTO) {
     Application application;
     ApplicationDAO applicationDAO = new ApplicationDAO();
     EntityManager em = applicationDAO.createEntityManager();
@@ -511,7 +504,7 @@ public class PolicyResource
     return result;
   }
 
-  private PolicyExportResult readPolicyExportResult(final InputStream stream) throws IOException {
+  private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {
     byte[] importBytes;
     try
     {

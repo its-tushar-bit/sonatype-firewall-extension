@@ -785,6 +785,7 @@ public class PolicyResourceTest
     Response response = RestAccess.put(getServiceURL(ORG, "nonsenseId") + "/import",
         JsonHelpers.asJson(createPolicyExportResult()));
     assertResponseStatus(404, response);
+    assertThat(response.getResponseBody(), is("Cannot find organization with id nonsenseId."));
   }
 
   private String getServiceURL( final String ownerType, final String ownerId )

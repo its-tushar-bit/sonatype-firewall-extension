@@ -632,6 +632,7 @@ public class PolicyResourceTest
     Response response = RestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
         JsonHelpers.asJson(createPolicyExportResult()));
     assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_LABEL_ERROR));
   }
 
   /**
@@ -645,6 +646,7 @@ public class PolicyResourceTest
     Response response = RestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
         JsonHelpers.asJson(createPolicyExportResult()));
     assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_APP_ERROR));
   }
 
   /**
@@ -662,6 +664,7 @@ public class PolicyResourceTest
     response = RestAccess.put(getServiceURL(ORG, org.getId()) + "/import", JsonHelpers.asJson(
         createPolicyExportResult()));
     assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_POLICY_ERROR));
   }
 
   /**
@@ -681,6 +684,7 @@ public class PolicyResourceTest
     response = RestAccess.put(getServiceURL(ORG, org.getId()) + "/import", JsonHelpers.asJson(
         createPolicyExportResult()));
     assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_LTG_ERROR));
   }
 
   /**
@@ -705,15 +709,19 @@ public class PolicyResourceTest
     String name = "testImportAppToOrg";
     Application application = createApplication(name+"App", name+"App");
     Label label = addLabel(application.getId(), application.getName(), Color.black);
-    Policy policy = createDefaultPolicy(label.getId());
-    Response response = RestAccess.post( getServiceURL( APP, application.getPublicId() ), JsonHelpers.asJson( policy ) );
-    assertResponseStatus( 200, response );
 
     LicenseThreatGroup licenseThreatGroup = createDefaultLTG(application.getPublicId());
     String ltgUrl =
         getRestBaseUrl() + expandRestUrl(LicenseThreatGroupResource.SERVICE_PATH, APP, application.getPublicId());
-    response = RestAccess.post( ltgUrl, JsonHelpers.asJson( licenseThreatGroup ) );
+    Response response = RestAccess.post( ltgUrl, JsonHelpers.asJson( licenseThreatGroup ) );
     assertResponseStatus(200, response);
+    licenseThreatGroup = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+
+    //use both the label and the LTG in Policy Conditions to ensure that they are valid after ownership is transferred
+    Policy policy = createDefaultPolicy(label.getId());
+    policy.getConstraints().get(0).getConditions().add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
+    response = RestAccess.post( getServiceURL( APP, application.getPublicId() ), JsonHelpers.asJson( policy ) );
+    assertResponseStatus( 200, response );
 
     //export policy from app
     response = RestAccess.get(getServiceURL(APP, application.getPublicId() + "/export") );
@@ -741,8 +749,9 @@ public class PolicyResourceTest
     List<Policy> policies = policyDAO.getByOwnerId(org.getId());
     assertThat(policies, hasSize(1));
     assertThat(policies.get(0).getConstraints(), hasSize(1));
-    assertThat(policies.get(0).getConstraints().get(0).getConditions(), hasSize(1));
+    assertThat(policies.get(0).getConstraints().get(0).getConditions(), hasSize(2));
     assertThat(policies.get(0).getConstraints().get(0).getConditions().get(0).getConditionTypeId(), is(LabelConditionType.ID));
+    assertThat(policies.get(0).getConstraints().get(0).getConditions().get(1).getConditionTypeId(), is(LicenseThreatGroupConditionType.ID));
 
     //verify LTGs
     List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(org.getId());

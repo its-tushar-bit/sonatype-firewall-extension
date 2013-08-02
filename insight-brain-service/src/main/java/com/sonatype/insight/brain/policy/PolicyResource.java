@@ -67,9 +67,21 @@ public class PolicyResource
 {
     public static final String SERVICE_PATH = "rest/policy/{ownerType: application|organization}/{ownerId}";
 
-    private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
+  private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
 
-    @Context
+  public static final String ORG_IMPORT_LTG_ERROR = "Organization already has LicenseThreatGroups besides the default " +
+      "ones defined, cannot import data unless the Organization is new.";
+
+  public static final String ORG_IMPORT_LABEL_ERROR = "Organization already has Labels defined, cannot import data " +
+      "unless the Organization is new.";
+
+  public static final String ORG_IMPORT_POLICY_ERROR = "Organization already has Policies defined, cannot import data " +
+      "unless the Organization is new.";
+
+  public static final String ORG_IMPORT_APP_ERROR = "Organization already has Applications defined, cannot import data " +
+      "unless the Organization is new.";
+
+  @Context
     private InsightWork work;
 
     @Context
@@ -244,30 +256,30 @@ public class PolicyResource
     List<Application> applications = new ApplicationDAO().getByOrganizationId(orgId);
     if(!applications.isEmpty())
     {
-      throw new BadRequestException( "Organization already has Applications defined, cannot import data unless the Organization is new." );
+      throw new BadRequestException(ORG_IMPORT_APP_ERROR);
     }
 
     PolicyDAO policyDAO = policyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
     if(!policies.isEmpty())
     {
-      throw new BadRequestException( "Organization already has Policies defined, cannot import data unless the Organization is new." );
+      throw new BadRequestException(ORG_IMPORT_POLICY_ERROR);
     }
 
     List<Label> labels = new LabelDAO().getByOwnerId(organization.getId());
     if(!labels.isEmpty())
     {
-      throw new BadRequestException( "Organization already has Labels defined, cannot import data unless the Organization is new." );
+      throw new BadRequestException(ORG_IMPORT_LABEL_ERROR);
     }
 
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(orgId);
 
     if(licenseThreatGroups.size() != 4){
-      throw new BadRequestException( "Organization already has LicenseThreatGroups besides the default ones defined, " +
-          "cannot import data unless the Organization is new." );
+      throw new BadRequestException( ORG_IMPORT_LTG_ERROR);
     }
 
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
     EntityManager em = organizationDAO.createEntityManager();
     try {
       em.getTransaction().begin();
@@ -290,14 +302,30 @@ public class PolicyResource
           licenseThreatGroup.setOwnerId(orgId);
           licenseThreatGroupDAO.update(em, licenseThreatGroup);
         }
-    }
+      }
+
+      if (!exportDTO.licenseThreatGroupLicenses.isEmpty()) {
+        //Delete existing(default) LTGLs from Organization to prevent conflict with imported LTGLs
+        for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenseDAO.getByOwnerId(orgId)) {
+          licenseThreatGroupLicenseDAO.delete(em, licenseThreatGroupLicense);
+        }
+
+        //Set LTGs with Org as the owner
+        for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
+          licenseThreatGroupLicense.setOwnerId(orgId);
+          licenseThreatGroupLicenseDAO.update(em, licenseThreatGroupLicense);
+        }
+      }
 
       em.getTransaction().commit();
 
       //Create org policies from exportDTO. Since this is not stored in the DB, the strategy of changing the ownerId and
       //updating does not work.
       for (Policy policy : exportDTO.policies) {
-        policyDAO.delete(policy.getOwnerId(), policy.getId());
+        //remove existing policy if it exists
+        if(policyDAO.getByOwnerIdAndPolicyId(policy.getOwnerId(), policy.getId()) != null){
+          policyDAO.delete(policy.getOwnerId(), policy.getId());
+        }
         policy.setOwnerId(orgId);
         policyDAO.insert(orgId, policy);
       }

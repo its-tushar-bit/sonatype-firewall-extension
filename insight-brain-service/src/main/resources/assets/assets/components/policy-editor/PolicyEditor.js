@@ -551,7 +551,7 @@
 	module.directive('inlinePolicyCreator', ['PolicyStore', function (policyStore) {
 		return {
 			restrict : 'A',
-			templateUrl : "../assets/components/policy-editor/policy-quick-add.html",
+			templateUrl : '../assets/components/policy-editor/policy-quick-add.html?' + clmBuildTimestamp,
 			scope : {},
 			controller : 'PolicyEditorController',
 			link : function (scope) {
@@ -581,7 +581,7 @@
 	module.directive('inlinePolicyEditor', [function () {
         return {
             restrict : 'A',
-            templateUrl : "../assets/components/policy-editor/policy-inline-editor.html",
+            templateUrl : '../assets/components/policy-editor/policy-inline-editor.html?' + clmBuildTimestamp,
 			controller : 'PolicyEditorController',
 			link : function (scope) {
 				scope.hide = function () {

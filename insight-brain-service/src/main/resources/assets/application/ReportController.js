@@ -11,7 +11,7 @@
 		$stateProvider.state('report', {
 			url: '/reports/{publicId}/{stageId}',
 			controller: 'ReportController',
-			templateUrl: '../application-assets/components/report.html'
+			templateUrl: '../application-assets/components/report.html?' + clmBuildTimestamp
 		});
 	}]);
 

@@ -58,9 +58,9 @@ describe('ApplicationController', function () {
   }));
 
   it('passes through alerts', inject(function($state, $httpBackend) {
-    $httpBackend.expectGET('../assets/management.html').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-navigator.html').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-editor.html').respond('<div></div>');
+    $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+    $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
+    $httpBackend.expectGET('../application-assets/components/application-editor.html?').respond('<div></div>');
 
     $state.transitionTo('management.application.view');
 
@@ -70,7 +70,7 @@ describe('ApplicationController', function () {
     expect($state.current.data.passThroughAlerts.length).toEqual(0);
     $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'apptest'});
 
-    $httpBackend.expectGET('../policy-assets/components/policy/policy.html').respond('<div></div>');
+    $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
 
     $state.transitionTo('management.application.view.policies', { applicationPublicId: 'publicID' });
 
@@ -189,8 +189,8 @@ describe('ApplicationEditorController', function () {
     scope.selectedApplication.name = "newName";
     scope.generateIcon();
 
-    $httpBackend.expectGET('../assets/management.html').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-navigator.html').respond('<div></div>');
+    $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+    $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
     scope.cancel();
 

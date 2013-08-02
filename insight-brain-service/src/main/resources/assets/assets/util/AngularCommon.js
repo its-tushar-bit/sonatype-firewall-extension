@@ -14,7 +14,7 @@
 		return {
 			replace: true,
 			scope : true,
-			templateUrl: '../assets/components/errorModal.html',
+			templateUrl: '../assets/components/errorModal.html?' + clmBuildTimestamp,
 			link: function ($scope, element) {
 				function showError(errorResponse) {
 					$scope.errorResponse = errorResponse;

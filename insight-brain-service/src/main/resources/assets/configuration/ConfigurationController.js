@@ -22,17 +22,17 @@
         parent : 'management',
         url : '/configuration',
         controller : 'ConfigurationController',
-        templateUrl : '../configuration-assets/components/configuration-navigator.html'
+        templateUrl : '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
       }).state('management.configuration.productlicense',{
         parent : 'management.configuration',
         url: '/productlicense',
         controller: 'ProductLicenseController',
-        templateUrl: '../configuration-assets/components/license.html'
+        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
       }).state('management.configuration.proprietarypackages',{
         parent : 'management.configuration',
         url: '/proprietarypackages',
         controller: 'ProprietaryConfigurationController',
-        templateUrl: '../configuration-assets/components/proprietary.html'
+        templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
       });
     }]);
 

@@ -17,7 +17,7 @@
 	var reportModule = angular.module('ReportList', ['ui.compat', 'AngularCommon'], ['$stateProvider', function ($stateProvider) {
 		$stateProvider.state('reports', {
 			url : '/reports',
-			templateUrl : '../assets/components/report-list.html',
+			templateUrl : '../assets/components/report-list.html?' + clmBuildTimestamp,
 			controller : 'ReportListController'
 		});
 	}]);

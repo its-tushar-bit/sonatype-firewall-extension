@@ -130,7 +130,7 @@
 		});
 		return {
 			restrict : 'A',
-			templateUrl : '../policy-assets/components/policy/policy-items.html',
+			templateUrl : '../policy-assets/components/policy/policy-items.html?' + clmBuildTimestamp,
 			scope : {
 				policies : '=policyItems',
 				editable : '=editable',

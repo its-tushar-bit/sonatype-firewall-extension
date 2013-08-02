@@ -78,7 +78,7 @@ describe('PolicyEditor.js', function() {
 			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
-			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html").respond(quickAddTemplate);
+			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html?").respond(quickAddTemplate);
 			$httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html").respond(conditionTemplate);
 			$compile(node)(scope);
 			$httpBackend.flush();
@@ -227,7 +227,7 @@ describe('PolicyEditor.js', function() {
             expectActionRequests()
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
-            $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html").respond(template);
+            $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html?").respond(template);
             $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html").respond(constraintEditorTemplate);
             $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html").respond(conditionEditorTemplate);
 
@@ -583,7 +583,7 @@ describe('PolicyEditor.js', function() {
 
 				$httpBackend.expectGET('../assets/components/notification-manager/notification-manager.html?').respond('<div></div>');
 
-				var editor = angular.element(getTemplate('../assets/components/policy-editor/policy-editor.html'));
+				var editor = angular.element(getTemplate('../assets/components/policy-editor/policy-editor.html?'));
 				var body = angular.element('body').append("<div id='policyEditor'></div>").find('#policyEditor').append(editor);
 
 				var constraint = {
@@ -593,7 +593,7 @@ describe('PolicyEditor.js', function() {
 				};
 
 				$httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
-				$httpBackend.expectGET('../assets/components/policy-editor/condition-editor.html').respond(getTemplate('../assets/components/policy-editor/condition-editor.html'));
+				$httpBackend.expectGET('../assets/components/policy-editor/condition-editor.html?').respond(getTemplate('../assets/components/policy-editor/condition-editor.html?'));
 
 				$compile(body)(scope);
 				scope.$broadcast('policy.editConstraint', constraint);

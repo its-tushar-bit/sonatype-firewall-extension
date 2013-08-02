@@ -193,7 +193,7 @@
 
   labelModule.directive('inlineLabelCreator', function () {
     return {
-      templateUrl : "../policy-assets/components/label-editor/label-inline-editor.html",
+      templateUrl : '../policy-assets/components/label-editor/label-inline-editor.html?' + clmBuildTimestamp,
       controller: 'LabelEditorController'
     };
   });

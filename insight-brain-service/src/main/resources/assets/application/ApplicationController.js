@@ -12,7 +12,7 @@
       parent: 'management',
       url: '/application',
       controller: 'applicationController',
-      templateUrl: '../application-assets/components/application-navigator.html'
+      templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
     }).state('management.application.view', {
       parent: 'management.application',
       url: '/{applicationPublicId}',
@@ -20,7 +20,7 @@
       data: {
         passThroughAlerts: []
       },
-      templateUrl: '../application-assets/components/application-editor.html'
+      templateUrl: '../application-assets/components/application-editor.html?' + clmBuildTimestamp
     }).state('management.application.view.policies', {
       parent: 'management.application.view',
       url: '/policies',
@@ -28,17 +28,17 @@
       data: {
         passThroughAlerts: []
       },
-      templateUrl: '../policy-assets/components/policy/policy.html'
+      templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
     }).state('management.application.view.labels', {
       parent: 'management.application.view',
       url: '/labels',
       controller: 'LabelController',
-      templateUrl: '../policy-assets/components/label-editor/labels.html'
+      templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
     }).state('management.application.view.licenses', {
       parent: 'management.application.view',
       url: '/licenses',
       controller: 'LicenseThreatGroupController',
-      templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html'
+      templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
     });
   }]);
 

@@ -25,7 +25,7 @@
 		<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="PercentageValueType" ng-pattern='/^((\d{1,2})|(100))$/' ng-change="validateConstraint()" required>
 		<span ng-switch-default ng-switch on='conditionTypes[condition.conditionTypeId].valueType.dataType'>
 			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="String" ng-change="validateConstraint()" required>
-			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" ng-pattern='/^\d+$/' ng-change="validateConstraint()" required>
+			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" ng-pattern='/^(\d|10)$/' ng-change="validateConstraint()" required>
 			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Float" ng-pattern='/^\d+(\.\d+)?$/' ng-change="validateConstraint()" required>
 		</span>
 	</span>

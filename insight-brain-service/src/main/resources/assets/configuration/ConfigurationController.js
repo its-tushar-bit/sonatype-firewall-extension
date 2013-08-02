@@ -74,7 +74,7 @@
     }]);
 
     module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
-        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*([^ /.*]|[^ /.*]\\*)$'); 
+        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$'); 
 
         $scope.doLoad = function () {
             $http.get(clmLocations.getProprietaryConfig(), { params : { "ts" : new Date().getTime() } }).success(function (data) {
@@ -113,7 +113,12 @@
         };
 
         $scope.validatePackage = function (value) {
-            return PACKAGE_REGEXP.test(value) ? null : 'Invalid package prefix, enter e.g. com.mycompany';
+            if (!PACKAGE_REGEXP.test(value)) {
+                return 'Invalid package prefix, enter e.g. com.mycompany';
+            } else if (value && value.indexOf('*') >= 0) {
+                return 'Wildcards are not allowed/required';
+            }
+            return null;
         };
 
         $scope.doLoad();

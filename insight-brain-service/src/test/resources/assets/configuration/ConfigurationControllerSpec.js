@@ -95,8 +95,6 @@ describe('Configuration', function () {
             $httpBackend.flush();
 
             expect(scope.validatePackage('com.sonatype')).toBe(null);
-            expect(scope.validatePackage('com.sona*')).toBe(null);
-            expect(scope.validatePackage('*.sonatype')).toBe(null);
         }));
 
         it('Bad Inputs', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
@@ -109,8 +107,10 @@ describe('Configuration', function () {
             expect(scope.validatePackage('com/sonatype')).toMatch(/invalid.*/i);
             expect(scope.validatePackage('com.sonatype.')).toMatch(/invalid.*/i);
             expect(scope.validatePackage('.com.sonatype')).toMatch(/invalid.*/i);
-            expect(scope.validatePackage('com.sonatype.*')).toMatch(/invalid.*/i);
-            expect(scope.validatePackage('com.sonatype.**')).toMatch(/invalid.*/i);
+            expect(scope.validatePackage('com.sonatype.*')).toMatch(/wildcards.*/i);
+            expect(scope.validatePackage('com.sonatype.**')).toMatch(/wildcards.*/i);
+            expect(scope.validatePackage('com.sona*')).toMatch(/wildcards.*/i);
+            expect(scope.validatePackage('*.sonatype')).toMatch(/wildcards.*/i);
         }));
     });
 

@@ -32,8 +32,6 @@ public class PolicyClient
 {
     private static final Logger log = LoggerFactory.getLogger( PolicyClient.class );
 
-  private static final ContentType JSON_CONTENT_TYPE = ContentType.create("application/json", "UTF-8");
-
     private final String appId;
 
     public PolicyClient( final Configuration config, final String appId )
@@ -67,8 +65,7 @@ public class PolicyClient
     public PolicyEvaluationResult evaluate( final String scanId, final Stage stage )
         throws IOException
     {
-        final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ) );
-    entity.setContentType(JSON_CONTENT_TYPE.toString());
+        final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ), ContentType.APPLICATION_JSON );
 
         final Result httpResult = path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId ).post( entity );
         if ( httpResult.status() >= 400 )

@@ -59,7 +59,7 @@ public final class ReportClient
         throws IOException
     {
         final String[] params = { "user", user, "where", where };
-    final StringEntity entity = new StringEntity(jsonData, ContentType.create("application/json", "UTF-8"));
+    final StringEntity entity = new StringEntity(jsonData, ContentType.APPLICATION_JSON);
         return path( "rest/report", appId, scanId, "augmentData", path ).query( params ).post( entity );
     }
 

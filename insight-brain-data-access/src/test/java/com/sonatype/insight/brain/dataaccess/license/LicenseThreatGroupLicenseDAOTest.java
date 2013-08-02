@@ -52,14 +52,7 @@ public class LicenseThreatGroupLicenseDAOTest
         assertLicenseThreatGroupLicense( ownerId, group.getId(), "UNSPECIFIED", licenseThreatGroupLicense );
 
         // Update
-        try
-        {
-            dao.update( licenseThreatGroupLicense );
-            Assert.fail( "Expected UnsupportedOperationException" );
-        }
-        catch ( UnsupportedOperationException expected )
-        {
-        }
+        dao.update( licenseThreatGroupLicense );
 
         // Delete
         dao.delete( licenseThreatGroupLicense );

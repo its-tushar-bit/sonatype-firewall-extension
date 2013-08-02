@@ -35,12 +35,14 @@ import org.slf4j.LoggerFactory;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -280,6 +282,9 @@ public class PolicyResource
     }
 
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(orgId);
+    ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
     EntityManager em = organizationDAO.createEntityManager();
     try {
       em.getTransaction().begin();
@@ -289,6 +294,10 @@ public class PolicyResource
       for (Label label : exportDTO.labels) {
         label.setOwnerId(orgId);
         labelDAO.update(em, label);
+        for (ComponentLabel componentLabel : componentLabelDAO.getByLabelId(em, label.getId())) {
+          componentLabel.setOwnerId(orgId);
+          componentLabelDAO.update(em, componentLabel);
+        }
       }
 
       if (!exportDTO.licenseThreatGroups.isEmpty()) {
@@ -306,7 +315,7 @@ public class PolicyResource
 
       if (!exportDTO.licenseThreatGroupLicenses.isEmpty()) {
         //Delete existing(default) LTGLs from Organization to prevent conflict with imported LTGLs
-        for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenseDAO.getByOwnerId(orgId)) {
+        for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenses) {
           licenseThreatGroupLicenseDAO.delete(em, licenseThreatGroupLicense);
         }
 
@@ -337,8 +346,8 @@ public class PolicyResource
     PolicyImportResult result = new PolicyImportResult();
     result.applicationName = organization.getName();
     UriBuilder uriBuilder =
-        baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH )
-            .path( "index.html#/management/organization/" + organization.getId() );
+        baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "index.html")
+            .fragment("/management/organization/" + organization.getId() );
     result.applicationURL = uriBuilder.build().toString();
     return result;
   }
@@ -495,8 +504,8 @@ public class PolicyResource
     PolicyImportResult result = new PolicyImportResult();
     result.applicationName = application.getName();
     UriBuilder uriBuilder =
-            baseUrl.redirect().path( InsightBrainService.POLICY_ASSET_PATH ).path( "index.html" ).queryParam( "appId",
-                                                                                                              appId );
+            baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path("index.html")
+                .fragment("/management/application/" + appId);
     result.applicationURL = uriBuilder.build().toString();
 
     return result;

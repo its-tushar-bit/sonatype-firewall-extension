@@ -115,9 +115,7 @@ public class PolicyResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         assertNotNull(policyImportResult);
         Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
-        assertTrue(policyImportResult.applicationURL,
-            policyImportResult.applicationURL.endsWith("/policy-assets/index.html?appId="
-                + newApplicationPublicId));
+        assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/application/" + newApplicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         assertNotNull(application);
@@ -148,9 +146,7 @@ public class PolicyResourceTest
         policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         assertNotNull(policyImportResult);
         Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
-        assertTrue(policyImportResult.applicationURL,
-            policyImportResult.applicationURL.endsWith("/policy-assets/index.html?appId="
-                + newApplicationPublicId));
+        assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/application/" + newApplicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         assertNotNull(application);
@@ -235,9 +231,7 @@ public class PolicyResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         assertNotNull(policyImportResult);
         Assert.assertEquals( application.getName(), policyImportResult.applicationName );
-        assertTrue(policyImportResult.applicationURL,
-            policyImportResult.applicationURL.endsWith("/policy-assets/index.html?appId="
-                + applicationPublicId));
+        assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/application/" + applicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         assertNotNull(application);
@@ -736,7 +730,7 @@ public class PolicyResourceTest
     //verify result object
     PolicyImportResult policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
     assertThat(policyImportResult.applicationName, is(org.getName()));
-    assertThat(policyImportResult.applicationURL, endsWith(org.getId()));
+    assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/organization/" + org.getId()));
 
     //verify labels
     List<Label> orgLabels = labelDAO.getByOwnerId(org.getId());

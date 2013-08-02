@@ -64,12 +64,6 @@ public class LicenseThreatGroupLicenseDAO
     }
 
     @Override
-    public void update( EntityManager em, LicenseThreatGroupLicense licenseThreatGroupLicense )
-    {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void insert( EntityManager em, LicenseThreatGroupLicense entity )
     {
         new LicenseDAO().getByIdNotNull( entity.getLicenseId() );

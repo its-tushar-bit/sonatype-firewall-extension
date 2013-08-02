@@ -19,7 +19,7 @@
 				<tr>
 					<td ng-repeat='stage in state.actionStageList | filterReportColumns' style="text-align:center;">
 						<div show-if='application.policyEvaluationsResults[stage.id]'>
-							<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{application.policyEvaluations[stage.id].time | date:"yyyy-MM-dd"}}'
+							<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{application.policyEvaluations[stage.id].time | ago}}'
 									ng-href='reports.html#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
 								<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
 									{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}

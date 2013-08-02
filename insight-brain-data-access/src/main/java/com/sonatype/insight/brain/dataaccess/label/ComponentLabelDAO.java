@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.label.Label;
 public class ComponentLabelDAO
     extends AbstractOperationalSqlDAO<ComponentLabel>
 {
-    List<ComponentLabel> getByLabelId( EntityManager em, String labelId )
+    public List<ComponentLabel> getByLabelId( EntityManager em, String labelId )
     {
         String sQuery = "SELECT entity FROM ComponentLabel entity" + //
             " WHERE entity.labelId=?1";
@@ -57,12 +57,6 @@ public class ComponentLabelDAO
         }
         labels.addAll( getList( em, sQuery, ownerId, hash ) );
         return labels;
-    }
-
-    @Override
-    public void update( EntityManager em, ComponentLabel entity )
-    {
-        throw new UnsupportedOperationException();
     }
 
     public void setComponentLabels( String ownerId, String hash, Set<String> stringLabels, Color defaultColor )

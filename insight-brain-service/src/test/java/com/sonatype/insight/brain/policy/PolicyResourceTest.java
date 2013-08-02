@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.label.ComponentLabelResource;
+import com.sonatype.insight.brain.label.ComponentLabelState;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -115,7 +118,8 @@ public class PolicyResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         assertNotNull(policyImportResult);
         Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
-        assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/application/" + newApplicationPublicId));
+        assertThat(policyImportResult.applicationURL,
+            endsWith("index.html#/management/application/" + newApplicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         assertNotNull(application);
@@ -145,8 +149,9 @@ public class PolicyResourceTest
         assertResponseStatus( 200, response );
         policyImportResult = JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         assertNotNull(policyImportResult);
-        Assert.assertEquals( newApplicationPublicId, policyImportResult.applicationName );
-        assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/application/" + newApplicationPublicId));
+        Assert.assertEquals(newApplicationPublicId, policyImportResult.applicationName);
+        assertThat(policyImportResult.applicationURL,
+            endsWith("index.html#/management/application/" + newApplicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         assertNotNull(application);
@@ -231,7 +236,8 @@ public class PolicyResourceTest
             JsonHelpers.fromJson( response.getResponseBody(), PolicyImportResult.class );
         assertNotNull(policyImportResult);
         Assert.assertEquals( application.getName(), policyImportResult.applicationName );
-        assertThat(policyImportResult.applicationURL,endsWith("index.html#/management/application/" + applicationPublicId));
+        assertThat(policyImportResult.applicationURL,
+            endsWith("index.html#/management/application/" + applicationPublicId));
         application = new ApplicationDAO().getByName( policyImportResult.applicationName );
         applicationsToDelete.add( application );
         assertNotNull(application);
@@ -717,6 +723,15 @@ public class PolicyResourceTest
     response = RestAccess.post( getServiceURL( APP, application.getPublicId() ), JsonHelpers.asJson( policy ) );
     assertResponseStatus( 200, response );
 
+    //label a (fake)component with our app label
+    ComponentLabelState state = new ComponentLabelState();
+    state.setLabels(Sets.newHashSet(label.getLabel()));
+    state.setColor(label.getColor());
+    String hash = "componenthash";
+    response = RestAccess.put(getRestBaseUrl() +
+        expandRestUrl(ComponentLabelResource.SERVICE_PATH, APP, application.getPublicId(), hash), JsonHelpers.asJson(state));
+    assertResponseStatus(200, response);
+
     //export policy from app
     response = RestAccess.get(getServiceURL(APP, application.getPublicId() + "/export") );
     assertResponseStatus(200, response);
@@ -751,6 +766,14 @@ public class PolicyResourceTest
     List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(org.getId());
     assertThat(licenseThreatGroups, hasSize(1));
     assertThat(licenseThreatGroups.get(0).getName(), is(licenseThreatGroup.getName()));
+
+    //verify ComponentLabels
+    response = RestAccess.get(getRestBaseUrl() +
+        expandRestUrl(ComponentLabelResource.SERVICE_PATH, ORG, org.getId(), hash));
+    assertResponseStatus(200, response);
+    Label[] orgComponentLabels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
+    assertThat(orgComponentLabels.length, is(1));
+    assertThat(orgComponentLabels[0].getLabel(), is(label.getLabel()));
   }
 
   /**

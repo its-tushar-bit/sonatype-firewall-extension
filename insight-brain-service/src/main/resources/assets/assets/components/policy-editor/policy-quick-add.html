@@ -8,14 +8,14 @@
 		<div ng-controller='PolicyEditorController' style='width:840px'>
 			<form style='margin-bottom:0px' name='quickAddPolicyEditor'>
 				<div class="control-group" ng-class='{ error : quickAddPolicyEditor.name.$error.alphaNumeric || quickAddPolicyEditor.name.$error.spaces }'>
-					<input id='quickAddPolicyNameInput' ng-click='click()' name='name' type='text' placeholder='Policy Name...' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>
+					<input id='quickAddPolicyNameInput' ng-click='click()' name='name' type='text' placeholder='Enter Policy Name' ng-model='policy.name' style='margin-bottom:0px' required maxlength='60' alpha-numeric has-whitespace='suggestedName'>
 					<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
 					<span ng-show="quickAddPolicyEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
 					<span ng-show="quickAddPolicyEditor.name.$error.spaces && !quickAddPolicyEditor.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
 				</div>
 				<div>
 					<div inline-constraint-editor='policy.constraints[0]'>
-						<input type="text"  ng-model="constraint.name" placeholder='Constraint Name...' required>
+						<input type="text"  ng-model="constraint.name" placeholder='Enter Constraint Name' required>
 						<div class='control-group' style="margin-bottom:0px;">
 							<div class='well condition-container'>
 								<div style="text-align:left;" ng-repeat="condition in constraint.conditions">

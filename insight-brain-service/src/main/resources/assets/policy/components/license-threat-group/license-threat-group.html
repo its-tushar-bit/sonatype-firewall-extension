@@ -28,7 +28,7 @@
 			<input id='licenseGroupEditorName' name='name' type='text'
 				class='input' maxlength='60' ng-model='selectedGroup.name'
 				required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='name'
-				placeholder="Enter name" style='width:248px;'>
+				placeholder="Enter Name" style='width:248px;'>
 		 <div>
 			<span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
 			<span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>
@@ -44,7 +44,7 @@
 	<div class='control-group clear'>
 		<div class='input-prepend fullWidthPrependedTextBox'>
 			<span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
-			<input type='text' placeholder='Search for license' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit style='width:221px'>
+			<input type='text' placeholder='Search for License' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit style='width:221px'>
 		</div>
 		<div class='selectList'>
 			<h5>Applied Licenses</h5>

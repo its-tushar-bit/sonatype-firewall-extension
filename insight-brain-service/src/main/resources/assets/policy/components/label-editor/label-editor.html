@@ -3,12 +3,12 @@
 	    <div class="modal-body" style="padding: 15px 0;">
 			<div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
               <div class="controls" style="margin-left: 0;">
-                <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' item-label>
+                <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label" item-label>
                 <span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
 				<span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
 				<span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
               </div>
-              <textarea maxlength="255" rows="3" style="width:530px;margin-top:10px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter a description..."></textarea>
+              <textarea maxlength="255" rows="3" style="width:530px;margin-top:10px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter Description"></textarea>
             </div>
           <div>
 	            <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >

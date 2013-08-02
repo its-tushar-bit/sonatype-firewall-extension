@@ -5,31 +5,11 @@
  *          trademark of Sonatype, Inc.
  */
 /* global angular, $, window, CLM, setTimeout, applicationId */
+
 (function() {
   'use strict';
 
-  function processResults($scope, results) {
-    $scope.waiverLoading = false;
-    $scope.waivers = results[0].data;
-
-    // process the results to add policy name and owner name
-    $.each($scope.waivers, function(waiverIndex, waiver) {
-      var date = new Date(waiver.createTime);
-      waiver.createTimeStr = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
-      $.each(results[1].data.policiesByOwner, function(policyOwnerIndex, policyOwner) {
-        $.each(policyOwner.policies, function(policyIndex, policy) {
-          if (waiver.policyId === policy.id) {
-            waiver.policyName = policy.name;
-            waiver.ownerName = policyOwner.ownerName;
-            return false;
-          }
-        });
-        if (waiver.policyName) { return false; }
-      });
-    });
-  }
-
-  function panelLoadHandler(event, data) {
+  function appendModal() {
     $('body')
             .append(
                     '<div id="componentExistingWaiverModal" ng-controller="ComponentInfoController" data-keyboard="false" data-backdrop="static" class="modal hide fade">'
@@ -62,27 +42,39 @@
                             + '<span class="alert alert-error" ng-show="appError" style="padding-right:200px;">{{appError}}</span>'
                             + '<button type="button" class="btn btn-primary" ng-click="close()">Close</button>'
                             + '</div>' + '</div>');
+  }
 
+  function appendButton() {
     // insert a new row into the comp info tab for the view waivers button
     $('#infoPanelArtifactTable tr:last').after(
             '<tr><td></td><td><button type="none" class="btn btn-primary" data-toggle="modal" '
                     + 'data-target="#componentExistingWaiverModal">View Waivers</button>' + '</td>' + '</tr>');
+  }
 
-    angular.bootstrap($('#componentExistingWaiverModal')[0], ['ComponentInfo']);
+  function panelLoadHandler(event, data) {
+    if (!$('button[data-target="#componentExistingWaiverModal"]').length) {
+      appendButton();
+      appendModal();
 
-    // when the button is clicked, get data in the scope and $apply since we are
-    // outside of angular
-    $('button[data-target="#componentExistingWaiverModal"]').bind('click', function() {
-      var scope = angular.element('#componentExistingWaiverModal').scope();
-      scope.$apply(function() {
-        scope.hash = data.gav.hash;
-        scope.applicationId = applicationId;
-        scope.viewWaivers();
+      // when the button is clicked, get data in the scope and $apply since we
+      // are outside of angular
+      $('button[data-target="#componentExistingWaiverModal"]').bind('click', function() {
+        var scope = data.scope;
+        if (!scope) {
+          angular.bootstrap($('#componentExistingWaiverModal')[0], ['ComponentInfo']);
+          scope = angular.element('#componentExistingWaiverModal').scope();
+        }
+        scope.$apply(function() {
+          scope.hash = data.gav.hash;
+          scope.applicationId = applicationId;
+          scope.viewWaivers();
+        });
       });
-    });
+    }
   }
 
   function doBind() {
+    $(document).unbind('artifactInfoPanelLoading', panelLoadHandler);
     $(document).bind('artifactInfoPanelLoading', panelLoadHandler);
   }
 
@@ -95,13 +87,33 @@
       '$timeout',
       function($scope, $http, $q, $timeout) {
         $scope.viewWaivers = function() {
+          function processResults(results) {
+            $scope.waiverLoading = false;
+            $scope.waivers = results[0].data;
+
+            // process the results to add policy name and owner name
+            $.each($scope.waivers, function(waiverIndex, waiver) {
+              var date = new Date(waiver.createTime);
+              waiver.createTimeStr = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+              $.each(results[1].data.policiesByOwner, function(policyOwnerIndex, policyOwner) {
+                $.each(policyOwner.policies, function(policyIndex, policy) {
+                  if (waiver.policyId === policy.id) {
+                    waiver.policyName = policy.name;
+                    waiver.ownerName = policyOwner.ownerName;
+                    return false;
+                  }
+                });
+                if (waiver.policyName) { return false; }
+              });
+            });
+          }
           // get the waivers and policies from the server
           var policyWaiverPromise = $http.get(CLM.path + 'rest/policyWaiver/application/' + $scope.applicationId
                   + '/component/' + $scope.hash), policyPromise = $http.get(CLM.path + 'rest/policy/application/'
                   + $scope.applicationId + '/applicable');
 
           $q.all([policyWaiverPromise, policyPromise]).then(function(results) {
-            processResults($scope, results);
+            processResults(results);
           }, function() {
             $scope.waiverLoading = false;
             $scope.appError = arguments[0];
@@ -114,13 +126,10 @@
             $('#componentExistingWaiverModal').remove();
           }, 500);
         };
-        // this is solely for test purposes, since the angular mock is junking
-        // all events in between tests
         $scope.rebind = function() {
           doBind();
         }
       }]);
 
   doBind();
-
 }());

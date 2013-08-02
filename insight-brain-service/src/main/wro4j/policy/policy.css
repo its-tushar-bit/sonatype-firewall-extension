@@ -138,3 +138,10 @@ table.policy-actions td:last-child {
 .policy-button > i {
 	margin-top : 0px;
 }
+.condition-value {
+	display:inline-block;
+	width:690px
+}
+.condition-value select, .condition-value input {
+	vertical-align:top;
+}

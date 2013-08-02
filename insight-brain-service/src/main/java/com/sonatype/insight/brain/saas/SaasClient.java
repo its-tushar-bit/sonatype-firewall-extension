@@ -23,6 +23,22 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.AbstractInjectable;
+import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.version.VersionResource;
+import com.sonatype.insight.client.utils.HttpClientUtils;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.GatewayTimeoutException;
+import com.sonatype.insight.error.exception.InternalServerException;
+import com.sonatype.insight.error.exception.NotAuthenticatedException;
+import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.json.store.JsonUtils;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -39,31 +55,15 @@ import org.apache.http.conn.ClientConnectionManagerFactory;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.service.AbstractInjectable;
-import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.version.VersionResource;
-import com.sonatype.insight.client.utils.HttpClientUtils;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.ConflictException;
-import com.sonatype.insight.error.exception.GatewayTimeoutException;
-import com.sonatype.insight.error.exception.InternalServerException;
-import com.sonatype.insight.error.exception.NotAuthenticatedException;
-import com.sonatype.insight.error.exception.NotAuthorizedException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * HTTP client for accessing Sonatype hosted services (SaaS).
@@ -85,6 +85,7 @@ public class SaasClient
     
     public static final String UPLOAD_FILE_ATTRIBUTE = "saas.upload.file";
 
+  @SuppressWarnings("deprecation")
     @Inject
     public SaasClient( final InsightProxy proxy, final CLMLicenseManager licenseManager )
     {
@@ -194,7 +195,7 @@ public class SaasClient
         throws IOException
     {
         Header hdr = response.getFirstHeader( HttpHeaders.CONTENT_TYPE );
-        if ( hdr != null && hdr.getValue() != null && hdr.getValue().contains( HTTP.PLAIN_TEXT_TYPE )
+    if (hdr != null && hdr.getValue() != null && hdr.getValue().contains(ContentType.TEXT_PLAIN.getMimeType())
             && response.getEntity() != null )
         {
             return EntityUtils.toString( response.getEntity(), "UTF-8" );
@@ -260,7 +261,7 @@ public class SaasClient
         File uploadFile = (File) request.getAttribute( UPLOAD_FILE_ATTRIBUTE );
         if ( uploadFile != null )
         {
-            return new FileEntity( uploadFile, request.getContentType() );
+      return new FileEntity(uploadFile, ContentType.create(request.getContentType()));
         }
 
         return new InputStreamEntity( request.getInputStream(), request.getContentLength() );
@@ -360,7 +361,7 @@ public class SaasClient
         @Override
         public ClientConnectionManager newInstance( HttpParams params, SchemeRegistry schemeRegistry )
         {
-            ThreadSafeClientConnManager connManager = new ThreadSafeClientConnManager();
+      PoolingClientConnectionManager connManager = new PoolingClientConnectionManager();
             connManager.setDefaultMaxPerRoute( connManager.getMaxTotal() );
             return connManager;
         }

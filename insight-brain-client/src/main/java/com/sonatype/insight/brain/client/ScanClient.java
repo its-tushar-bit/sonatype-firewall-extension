@@ -8,19 +8,22 @@ package com.sonatype.insight.brain.client;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.entity.FileEntity;
-
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.client.utils.AbstractClient;
-import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
+import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.FileEntity;
 
 public class ScanClient
     extends AbstractClient
 {
+  private static final ContentType GZIP_CONTENT_TYPE = ContentType.create("application/x-gzip");
+
     private final String appId;
 
     public ScanClient( final Configuration config, final String appId )
@@ -33,14 +36,14 @@ public class ScanClient
     public ScanReceipt uploadCiScan( final File scanFile )
         throws IOException
     {
-        final Result result = path( "rest/ci/scan", appId ).put( new FileEntity( scanFile, "application/x-gzip" ) );
+    final Result result = path("rest/ci/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
         return handleUpload( result );
     }
 
     public ScanReceipt uploadRepoManScan( final File scanFile )
         throws IOException
     {
-        final Result result = path( "rest/rm/scan", appId ).put( new FileEntity( scanFile, "application/x-gzip" ) );
+    final Result result = path("rest/rm/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
         return handleUpload( result );
     }
 

@@ -8,15 +8,6 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.HTTP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.AbstractServletClient;
@@ -26,6 +17,15 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.ServletResult;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.message.BasicHttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PolicyClient
     extends AbstractServletClient<PolicyClient>
@@ -65,8 +65,7 @@ public class PolicyClient
     public PolicyEvaluationResult evaluate( final String scanId, final Stage stage )
         throws IOException
     {
-        final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ) );
-        entity.setContentType( "application/json" + HTTP.CHARSET_PARAM + "UTF-8" );
+        final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ), ContentType.APPLICATION_JSON );
 
         final Result httpResult = path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId ).post( entity );
         if ( httpResult.status() >= 400 )

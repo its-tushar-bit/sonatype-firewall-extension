@@ -8,12 +8,13 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.http.entity.StringEntity;
-
 import com.sonatype.insight.client.utils.AbstractServletClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.ServletResult;
 import com.sonatype.insight.client.utils.UrlUtils;
+
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 
 public final class ReportClient
     extends AbstractServletClient<ReportClient>
@@ -58,7 +59,7 @@ public final class ReportClient
         throws IOException
     {
         final String[] params = { "user", user, "where", where };
-        final StringEntity entity = new StringEntity( jsonData, "application/json", "UTF-8" );
+    final StringEntity entity = new StringEntity(jsonData, ContentType.APPLICATION_JSON);
         return path( "rest/report", appId, scanId, "augmentData", path ).query( params ).post( entity );
     }
 

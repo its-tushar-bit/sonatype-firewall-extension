@@ -1,32 +1,32 @@
-<span style='display:inline-block;width:690px'>
-	<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged(condition)" ng-options="conditionType.id as conditionType.name for (key,conditionType) in conditionTypes" style="vertical-align:top;">
+<span class='condition-value'>
+	<select ng-model="condition.conditionTypeId" ng-change="conditionTypeChanged(condition)" ng-options="conditionType.id as conditionType.name for (key,conditionType) in conditionTypes">
 	</select>
-	<select ng-model="condition.operator" ng-change="validateConstraint()" ng-show="conditionType.id == condition.conditionTypeId" ng-repeat="conditionType in conditionTypes" ng-options="operator for operator in conditionTypes[conditionType.id].supportedOperators" style="vertical-align:top;">
+	<select ng-model="condition.operator" ng-change="validateConstraint()" ng-show="conditionType.id == condition.conditionTypeId" ng-repeat="conditionType in conditionTypes" ng-options="operator for operator in conditionTypes[conditionType.id].supportedOperators">
 	</select>
 	<span ng-switch on='conditionTypes[condition.conditionTypeId].valueTypeId'>
-		<select ng-model="condition.value" ng-switch-when="LicenseCategoryValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="LicenseCategoryValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="LicenseValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.shortDisplayName for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="LicenseValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.shortDisplayName for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="LicenseThreatGroupValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="LicenseThreatGroupValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="LicenseStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="LicenseStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="IdentificationSourceValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="IdentificationSourceValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="MatchStateValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="MatchStateValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="SecurityVulnerabilityStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="SecurityVulnerabilityStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="LabelValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.label for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" style="vertical-align:top;" required>
+		<select ng-model="condition.value" ng-switch-when="LabelValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-change="validateConstraint()" ng-options="c.id as c.label for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
 		<span ng-switch-when="AgeInDaysValueType" age-in-days ng-model="condition.value">
 		</span>
-		<input type="number" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="PercentageValueType" min='0' max='100' ng-change="validateConstraint()" style="vertical-align:top;" required>
+		<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="PercentageValueType" ng-pattern='/^((\d{1,2})|(100))$/' ng-change="validateConstraint()" required>
 		<span ng-switch-default ng-switch on='conditionTypes[condition.conditionTypeId].valueType.dataType'>
-			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="String" ng-change="validateConstraint()" style="vertical-align:top;" required>
-			<input type="number" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" min='0' max='10' ng-change="validateConstraint()" style="vertical-align:top;" required>
-			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Float" ng-pattern='/^\d+(\.\d+)?$/' ng-change="validateConstraint()" style="vertical-align:top;" required>
+			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="String" ng-change="validateConstraint()" required>
+			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" ng-pattern='/^\d+$/' ng-change="validateConstraint()" required>
+			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Float" ng-pattern='/^\d+(\.\d+)?$/' ng-change="validateConstraint()" required>
 		</span>
 	</span>
 </span>

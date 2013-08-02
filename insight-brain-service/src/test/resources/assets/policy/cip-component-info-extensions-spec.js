@@ -1,24 +1,24 @@
 /* global window */
-var applicationId = 'appId', CLM = {
+var CLM = {
   path: '../brain/'
-};
-describe('CIP Component info extensions tests', function() {
-  var $scope;
-  
-  angular.module('Hudson', []).factory('hudson', ['$http', function($http) {
-    return $http;
-  }]);
-  
-  beforeEach(module('ComponentInfo'));
+}, applicationId = 'appId';
 
-  beforeEach(inject(function($rootScope, $compile, $controller, $httpBackend) {
-    $scope = $rootScope.$new();
+describe('CIP Component info extensions tests', function() {
+  var scope, $http;
+
+  beforeEach(module('ComponentInfo'));
+  // setup our http backend to return what we want
+  beforeEach(inject(function($rootScope, $controller, $httpBackend, $compile) {
+    $http = $httpBackend;
+    scope = $rootScope.$new();
     $controller('ComponentInfoController', {
-      $scope: $scope
+      $scope: scope,
+      global: {}
     });
+
     var node = $("<table id='infoPanelArtifactTable'><tr></tr></table>");
     node.appendTo('body');
-    $compile(node)($scope);
+    $compile(node)(scope);
   }));
 
   afterEach(function() {
@@ -26,15 +26,22 @@ describe('CIP Component info extensions tests', function() {
     $('#componentExistingWaiverModal').remove();
   });
 
-  afterEach(inject(function($httpBackend) {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  }));
+  afterEach(function() {
+    $http.verifyNoOutstandingExpectation();
+  });
 
-  //TODO: commented out because weird stuff is happening, the http requests aren't getting shoveled
-  //through the mock httpBackend...
-  xit('Validate button and modal injected', inject(function($httpBackend) {
-    $httpBackend.expectGET('../brain/rest/policyWaiver/application/appId/component/1234').respond([{
+  xit('Validate button and modal injected', function() {
+    $.event.trigger("artifactInfoPanelLoading", {
+      gav: {
+        hash: '1234'
+      }
+    });
+
+    expect($('button[data-target="#componentExistingWaiverModal"]').length).toEqual(1);
+
+    expect($('#componentExistingWaiverModal').length).toEqual(1);
+
+    $http.expectGET('../brain/rest/policyWaiver/application/appId/component/1234').respond([{
       id: "id",
       hash: "1234",
       policyId: "policyId",
@@ -43,7 +50,7 @@ describe('CIP Component info extensions tests', function() {
       comment: "some comment",
       createTime: 1375366539817
     }]);
-    $httpBackend.expectGET('../brain/rest/policy/application/appId/applicable').respond({
+    $http.expectGET('../brain/rest/policy/application/appId/applicable').respond({
       "policiesByOwner": [{
         "ownerId": "ownerId",
         "ownerName": "ownerName",
@@ -70,23 +77,13 @@ describe('CIP Component info extensions tests', function() {
       }]
     });
 
-    $.event.trigger("artifactInfoPanelLoading", {
-      gav: {
-        hash: '1234'
-      }
-    });
-
-    expect($('button[data-target="#componentExistingWaiverModal"]').length).toEqual(1);
-
-    expect($('#componentExistingWaiverModal').length).toEqual(0);
-
     $('button[data-target="#componentExistingWaiverModal"]').trigger('click');
 
-    $httpBackend.flush();
+    $http.flush();
 
     expect($('#componentExistingWaiverModal').length).toEqual(1);
-    expect($scope.hash).toEqual('1234');
-    expect($scope.applicationId).toEqual('appId');
+    expect(scope.hash).toEqual('1234');
+    expect(scope.applicationId).toEqual('appId');
 
     var values = $('#componentExistingWaiverModal').find('td');
 
@@ -96,5 +93,5 @@ describe('CIP Component info extensions tests', function() {
     expect(values[1].val()).toEqual('8/1/2013');
     expect(values[2].val()).toEqual('test');
     expect(values[3].val()).toEqual('asdfdsa');
-  }));
+  });
 });

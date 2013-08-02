@@ -82,6 +82,10 @@
     });
   }
 
+  function doBind() {
+    $(document).bind('artifactInfoPanelLoading', panelLoadHandler);
+  }
+
   var componentInfoApp = angular.module('ComponentInfo', []);
 
   componentInfoApp.controller('ComponentInfoController', [
@@ -110,8 +114,13 @@
             $('#componentExistingWaiverModal').remove();
           }, 500);
         };
+        // this is solely for test purposes, since the angular mock is junking
+        // all events in between tests
+        $scope.rebind = function() {
+          doBind();
+        }
       }]);
 
-  // setup our stuff when the panel is being built
-  $(document).bind('artifactInfoPanelLoading', panelLoadHandler);
+  doBind();
+
 }());

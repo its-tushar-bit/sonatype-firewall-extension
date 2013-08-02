@@ -19,6 +19,9 @@ describe('CIP Component info extensions tests', function() {
     var node = $("<table id='infoPanelArtifactTable'><tr></tr></table>");
     node.appendTo('body');
     $compile(node)(scope);
+    
+    //required since angular mocks dumps all bindings between tests
+    scope.rebind();
   }));
 
   afterEach(function() {
@@ -41,7 +44,7 @@ describe('CIP Component info extensions tests', function() {
 
     expect($('#componentExistingWaiverModal').length).toEqual(1);
 
-    $http.expectGET('../brain/rest/policyWaiver/application/appId/component/1234').respond([{
+    $http.expectGET(CLM.path + 'rest/policyWaiver/application/appId/component/1234').respond([{
       id: "id",
       hash: "1234",
       policyId: "policyId",
@@ -50,7 +53,7 @@ describe('CIP Component info extensions tests', function() {
       comment: "some comment",
       createTime: 1375366539817
     }]);
-    $http.expectGET('../brain/rest/policy/application/appId/applicable').respond({
+    $http.expectGET(CLM.path + 'rest/policy/application/appId/applicable').respond({
       "policiesByOwner": [{
         "ownerId": "ownerId",
         "ownerName": "ownerName",

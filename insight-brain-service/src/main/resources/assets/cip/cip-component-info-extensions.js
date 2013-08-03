@@ -120,11 +120,12 @@
           });
         };
         $scope.close = function() {
-          $('#componentExistingWaiverModal').modal('hide');
           // simply giving the animation enough time to run
-          $timeout(function() {
+          $('#componentExistingWaiverModal').on('hidden.bs.modal', function () {
             $('#componentExistingWaiverModal').remove();
-          }, 500);
+          });
+
+          $('#componentExistingWaiverModal').modal('hide');
         };
         $scope.rebind = function() {
           doBind();

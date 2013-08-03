@@ -27,8 +27,6 @@ describe('CIP Component info extensions tests', function() {
     // required since angular mocks dumps all bindings between tests
     $scope.rebind();
 
-    $compile(node)($scope);
-
     $.event.trigger("artifactInfoPanelLoading", {
       gav: {
         hash: '1234'
@@ -38,6 +36,8 @@ describe('CIP Component info extensions tests', function() {
 
     expect($('button[data-target="#componentExistingWaiverModal"]').length).toEqual(1);
     expect($('#componentExistingWaiverModal').length).toEqual(1);
+    
+    $compile($('#componentExistingWaiverModal'))($scope);
 
     $httpBackend.expectGET(CLM.path + 'rest/policyWaiver/application/appId/component/1234').respond([{
       id: "id",
@@ -89,14 +89,15 @@ describe('CIP Component info extensions tests', function() {
 
     expect(values.length).toEqual(4);
 
-    /*
-     * TODO: find why these values aren't properly translated with angular
-     * currently fields marked as {{policyName}} for example
-     * 
-     * expect($(values[0]).text()).toEqual('policyId');
-     * expect($(values[1]).text()).toEqual('8/1/2013');
-     * expect($(values[2]).text()).toEqual('test');
-     * expect($(values[3]).text()).toEqual('asdfdsa');
-     */
+    expect($(values[0]).text()).toEqual('policyName');
+    expect($(values[1]).text()).toEqual('8/1/2013');
+    expect($(values[2]).text()).toEqual('ownerName');
+    expect($(values[3]).text()).toEqual('some comment');
+
+    $scope.close();
+    //don't wait, junk the thing now
+    $('#componentExistingWaiverModal').trigger('hidden.bs.modal');
+    
+    expect($('#componentExistingWaiverModal').length).toEqual(0);
   }));
 });

@@ -36,11 +36,13 @@
                             + '<td>{{waiver.createTimeStr}}</td>'
                             + '<td>{{waiver.ownerName}}</td>'
                             + '<td>{{waiver.comment}}</td>'
+                            + '<td><button class="btn btn-mini" ng-click="remove(waiver)" title="Remove {{placeHolder}}">'
+                            + '<i class="icon-minus-sign"></i></button></td>'
                             + '</tr>'
                             + '</table>'
                             + '</div>'
                             + '<div class="modal-footer">'
-                            + '<span class="alert alert-error" ng-show="appError" style="padding-right:200px;">{{appError}}</span>'
+                            + '<span class="alert alert-error" ng-show="appError" style="margin-right:10px;">{{appError}}</span>'
                             + '<button type="button" class="btn btn-primary" ng-click="close()">Close</button>'
                             + '</div>' + '</div>');
   }
@@ -55,12 +57,13 @@
   function panelLoadHandler(event, data) {
     if (!$('button[data-target="#componentExistingWaiverModal"]').length) {
       appendButton();
-      appendModal();
-
+      
       // when the button is clicked, get data in the scope and $apply since we
       // are outside of angular
       $('button[data-target="#componentExistingWaiverModal"]').bind('click', function() {
+        appendModal();
         var scope = data.scope;
+        //support for testing, will only bootstrap if necessary
         if (!scope) {
           angular.bootstrap($('#componentExistingWaiverModal')[0], ['ComponentInfo']);
           scope = angular.element('#componentExistingWaiverModal').scope();
@@ -74,6 +77,7 @@
     }
   }
 
+  //bind to the info panel loading event
   function doBind() {
     $(document).unbind('artifactInfoPanelLoading', panelLoadHandler);
     $(document).bind('artifactInfoPanelLoading', panelLoadHandler);
@@ -97,23 +101,34 @@
               var date = new Date(waiver.createTime);
               waiver.createTimeStr = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
               $.each(results[1].data.policiesByOwner, function(policyOwnerIndex, policyOwner) {
+                if (waiver.ownerId === policyOwner.ownerId) {
+                  waiver.type = policyOwner.ownerType;
+                  waiver.ownerName = policyOwner.ownerName;
+                  //for apps, we need to find the publicId and set that as the ownerId
+                  if (waiver.type === 'application') {
+                    $.each(results[2].data, function(applicationIndex, application){
+                      if (application.id === waiver.ownerId) {
+                        waiver.ownerId = application.publicId;
+                        return false;
+                      }
+                    });
+                  }
+                }
                 $.each(policyOwner.policies, function(policyIndex, policy) {
                   if (waiver.policyId === policy.id) {
                     waiver.policyName = policy.name;
-                    waiver.ownerName = policyOwner.ownerName;
                     return false;
                   }
                 });
-                if (waiver.policyName) { return false; }
               });
             });
           }
           // get the waivers and policies from the server
           var policyWaiverPromise = $http.get(CLM.path + 'rest/policyWaiver/application/' + $scope.applicationId
                   + '/component/' + $scope.hash), policyPromise = $http.get(CLM.path + 'rest/policy/application/'
-                  + $scope.applicationId + '/applicable');
+                  + $scope.applicationId + '/applicable'), applicationPromise = $http.get(CLM.path + 'rest/application');
 
-          $q.all([policyWaiverPromise, policyPromise]).then(function(results) {
+          $q.all([policyWaiverPromise, policyPromise, applicationPromise]).then(function(results) {
             processResults(results);
           }, function() {
             $scope.waiverLoading = false;
@@ -127,6 +142,11 @@
           });
 
           $('#componentExistingWaiverModal').modal('hide');
+        };
+        $scope.remove = function(waiver) {
+          $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function(){
+            $scope.waivers.splice($scope.waivers.indexOf(waiver),1);
+          }).error(function(){$scope.appError = arguments[0]});
         };
         $scope.rebind = function() {
           doBind();

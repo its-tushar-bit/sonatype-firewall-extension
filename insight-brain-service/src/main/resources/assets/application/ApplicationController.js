@@ -202,8 +202,8 @@
       }
       var originalApplication = $scope.selectedApplication.$getOriginal();
       var currentApplication = $scope.selectedApplication;
-      return currentApplication.publicId !== originalApplication.publicId || currentApplication.name !== originalApplication.name
-      || currentApplication.organizationId !== originalApplication.organizationId || $scope.iconChanged;
+      return currentApplication.publicId != originalApplication.publicId || currentApplication.name != originalApplication.name
+      || currentApplication.organizationId != originalApplication.organizationId || $scope.iconChanged;
     };
 
     //make sure user is aware they are about to lose changes

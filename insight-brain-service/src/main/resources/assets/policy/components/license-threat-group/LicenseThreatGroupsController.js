@@ -148,11 +148,6 @@
       }
     };
 
-
-    $scope.randomSort = function(contact) {
-      return Math.random();
-    };
-
     $scope.editLicenseGroup = function (group) {
       if (group) {
         $scope.selectedGroup = group.$clone();

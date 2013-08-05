@@ -19,7 +19,7 @@
 						<div class='control-group' style="margin-bottom:0px;">
 							<div class='condition-container'>
 								<div style="text-align:left;" ng-repeat="condition in constraint.conditions">
-									<span ng-include='"../assets/components/policy-editor/condition-editor.html"'></span>
+									<span clm-include='"../assets/components/policy-editor/condition-editor.html"'></span>
 									<div class="btn-group" style='vertical-align:top'>
 										<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1"><i class="icon-minus-sign"></i></button>
 										<button class="btn" type='button' ng-click="addCondition()" title="Add Condition"><i class="icon-plus-sign"></i></button>

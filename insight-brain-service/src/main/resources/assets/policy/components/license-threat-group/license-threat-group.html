@@ -108,9 +108,9 @@
                         <div id="collapse{{licenseGroup.id}}" class="accordion-body collapse">
                             <div class="accordion-inner">
                                 <b>Licenses</b>
-                                <ul class="unstyled">
-                                    <li ng-repeat='l in licenseGroup.licenses | orderBy: l.licenseId'>
-                                        {{getDisplayName(l.licenseId)}}</li>
+                                <ul class="unstyled max-height-scrollable">
+                                    <li ng-repeat='l in licenseGroup.licenses | orderBy: getDisplayName'>
+                                        {{getDisplayName(l)}}</li>
                                 </ul>
                             </div>
                         </div>

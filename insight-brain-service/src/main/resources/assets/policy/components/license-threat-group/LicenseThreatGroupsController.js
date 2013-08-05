@@ -139,12 +139,18 @@
 
     $scope.doLoad();
 
-    $scope.getDisplayName = function (licenseId) {
+    $scope.getDisplayName = function (license) {
+      var licenseId = license.licenseId;
       for (var i = 0; i < $scope.allLicenses.length; i++) {
         if ($scope.allLicenses[i].id === licenseId) {
           return '(' + $scope.allLicenses[i].shortDisplayName + ') ' + $scope.allLicenses[i].longDisplayName;
         }
       }
+    };
+
+
+    $scope.randomSort = function(contact) {
+      return Math.random();
     };
 
     $scope.editLicenseGroup = function (group) {

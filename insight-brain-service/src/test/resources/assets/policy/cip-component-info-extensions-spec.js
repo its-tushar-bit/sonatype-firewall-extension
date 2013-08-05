@@ -96,7 +96,7 @@ describe('CIP Component info extensions tests', function() {
     expect(values.length).toEqual(5);
 
     expect($(values[0]).text()).toEqual('policyName');
-    expect($(values[1]).text()).toEqual('8/1/2013');
+    expect($(values[1]).text()).toEqual('2013-08-01');
     expect($(values[2]).text()).toEqual('ownerName');
     expect($(values[3]).text()).toEqual('some comment');
 

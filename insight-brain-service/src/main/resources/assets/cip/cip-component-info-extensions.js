@@ -33,7 +33,7 @@
                             + '</thead>'
                             + '<tr ng-repeat="waiver in waivers">'
                             + '<td>{{waiver.policyName}}</td>'
-                            + '<td>{{waiver.createTimeStr}}</td>'
+                            + '<td>{{waiver.createTime | date:"yyyy-MM-dd"}}</td>'
                             + '<td>{{waiver.ownerName}}</td>'
                             + '<td>{{waiver.comment}}</td>'
                             + '<td><button class="btn btn-mini" ng-click="remove(waiver)" title="Remove {{placeHolder}}">'
@@ -98,8 +98,6 @@
 
             // process the results to add policy name and owner name
             $.each($scope.waivers, function(waiverIndex, waiver) {
-              var date = new Date(waiver.createTime);
-              waiver.createTimeStr = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
               $.each(results[1].data.policiesByOwner, function(policyOwnerIndex, policyOwner) {
                 if (waiver.ownerId === policyOwner.ownerId) {
                   waiver.type = policyOwner.ownerType;

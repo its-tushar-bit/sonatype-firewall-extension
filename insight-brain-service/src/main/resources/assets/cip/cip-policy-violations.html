@@ -50,7 +50,7 @@
 			<p>Would you like to waive any future violations of this policy for this component?</p>
 			<div ng-show="waiverSelectOwner" style="padding-bottom:5px;">
 				<div ng-repeat="waiverTarget in waiverTargets">
-					<input type="radio" ng-model="waiverSelectedTarget" name="waiverSelectedTarget" value="{{waiverTarget.id + '$$' + waiverTarget.type}}">{{'Waive for ' + waiverTarget.type + ' ' + waiverTarget.name}}
+					<input type="radio" ng-model="waiver.selectedTarget" name="waiverSelectedTarget" value="{{waiverTarget.id + '$$' + waiverTarget.type}}">{{'Waive for ' + waiverTarget.type + ' ' + waiverTarget.name}}
 				</div>
 			</div>
 			<div>

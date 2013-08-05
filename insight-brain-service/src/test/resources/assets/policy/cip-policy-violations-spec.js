@@ -71,12 +71,17 @@ describe('CIP Policy Waiver tests', function() {
         $httpBackend.verifyNoOutstandingExpectation();
     }));
 
-    it('Test waive policy', function() {
+    it('Test waive policy at org level', function() {
         $http.whenGET('../brain/rest/waiver/application/appId/applicable/context/policyId').respond({
-            id : 'appId',
-            name : 'app',
-            type : 'application',
-            children : null
+            id : 'orgId',
+            name : 'org',
+            type : 'organization',
+            children : [{
+                id : 'appId',
+                name : 'app',
+                type : 'application',
+                children : null
+          }]
         });
 
         scope.waiveComponent({
@@ -85,7 +90,40 @@ describe('CIP Policy Waiver tests', function() {
 
         $http.flush();
 
-        scope.waiverSelectedTarget = 'appId$$application';
+        scope.waiver.selectedTarget = 'orgId$$organization';
+        scope.waiverComment = 'this is my comment!';
+
+        $http.whenPOST('../brain/rest/policyWaiver/organization/orgId', {
+            hash : "1",
+            policyId : "policyId",
+            comment : "this is my comment!"
+        }).respond({});
+
+        scope.acceptWaiveComponent();
+
+        $http.flush();
+    });
+
+    it('Test waive policy at app level', function() {
+        $http.whenGET('../brain/rest/waiver/application/appId/applicable/context/policyId').respond({
+            id : 'orgId',
+            name : 'org',
+            type : 'organization',
+            children : [{
+                id : 'appId',
+                name : 'app',
+                type : 'application',
+                children : null
+          }]
+        });
+
+        scope.waiveComponent({
+            id : 'policyId'
+        });
+
+        $http.flush();
+
+        scope.waiver.selectedTarget = 'appId$$application';
         scope.waiverComment = 'this is my comment!';
 
         $http.whenPOST('../brain/rest/policyWaiver/application/appId', {

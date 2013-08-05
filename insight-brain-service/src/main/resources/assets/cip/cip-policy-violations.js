@@ -78,6 +78,8 @@
 			}
 		}
 		
+		$scope.waiver = {};
+		
 		//Waive component policy trigger, so that it will no longer be triggered in future
 		$scope.waiveComponent = function(policyAlert) {
 		    $scope.waiverLoading = true;
@@ -98,7 +100,7 @@
                             var waiverTarget = {id:policyViolationData.appId,name:context.name,type:context.type};
                             $scope.waiverTargets.splice(0, 0, waiverTarget);
                             //set the app as the default selected value
-                            $scope.waiverSelectedTarget = waiverTarget.id + '$$' + waiverTarget.type;
+                            $scope.waiver.selectedTarget = waiverTarget.id + '$$' + waiverTarget.type;
                         }
 		            }
 		        }
@@ -129,7 +131,7 @@
                 comment : $scope.waiverComment
             };
             $scope.waiverSaving = true;
-            var parts = $scope.waiverSelectedTarget.split('$$');
+            var parts = $scope.waiver.selectedTarget.split('$$');
             hudson.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0], data).success(function(responseData){
                 $scope.waiverSaving = false;
                 $('#componentAddWaiverModal').modal('hide');

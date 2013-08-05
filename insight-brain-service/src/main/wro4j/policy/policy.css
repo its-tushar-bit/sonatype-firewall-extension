@@ -130,9 +130,7 @@ table.policy-actions td:last-child {
 	border-right: 1px solid #ddd;
 }
 .condition-container {
-	min-height:120px;
-	max-height:120px;
-	overflow:auto;
+	padding: 10px;
 	margin-bottom:10px;
 }
 .policy-button > i {

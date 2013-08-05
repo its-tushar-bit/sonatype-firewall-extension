@@ -168,8 +168,9 @@ body {
 }
 .nav-list>li>a {
 	font-size: 85%;
-	color: #444444;
+	color: #17558E;
 	padding: 7px 15px;
+	font-weight: 500;
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
 	text-shadow: none;
@@ -193,12 +194,15 @@ body {
 	text-shadow: 0px 1px 0px rgba(255,255,255,0.9);
 }
 .navigation .nav-list>.active>a, .subnavigation .nav-list>.active>a {
-	font-weight: 500;
 	background-color: transparent;
 	color: #17558E;
+	border-left: 3px solid #2476FC;
+	padding-left: 12px;
+	font-weight: bold;	
 }
 .subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .subnavigation .nav>li.missing-org>a:hover, .nav-list>.active>a:hover {
 	background-color: #f4f4f4;
+	color: #2476FC;
 }
 .subnavigation-expanded {
 	width: 100%;
@@ -564,6 +568,8 @@ ul.tri-pane {
 	float: left;
 	margin-right: 5px;
 	text-decoration: none;
+	opacity: .4;
+	filter: alpha(opacity=80);	
 }
 /**
  * Error blocks
@@ -581,6 +587,7 @@ ul.tri-pane {
 }
 .add-section .add-new {
 	text-align: left;
+	padding: 4px 6px;
 }
 #applicationEditor, #organizationEditor {
 	margin: 0 15px;

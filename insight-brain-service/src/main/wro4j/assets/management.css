@@ -4,15 +4,24 @@
 
 @font-face {
 	font-family: ProximaNovaRegular;
-	src: url(../fonts/proximanova-reg-webfont.ttf);
+	src: url(../fonts/proximanova-reg-webfont.eot);
+	src: url(../fonts/proximanova-reg-webfont.woff) format('woff'),
+	url(../fonts/proximanova-reg-webfont.ttf) format('truetype'),
+	url(../fonts/proximanova-reg-webfont.svg#webfont) format('svg');
 }
 @font-face {
 	font-family: ProximaNovaBold;
-	src: url(../fonts/proximanova-bold-webfont.ttf);
+	src: url(../fonts/proximanova-bold-webfont.eot);
+	src: url(../fonts/proximanova-bold-webfont.woff) format('woff'),
+	url(../fonts/proximanova-bold-webfont.ttf) format('truetype'),
+	url(../fonts/proximanova-bold-webfont.svg#webfont) format('svg');
 }
 @font-face {
 	font-family: ProximaNovaSemibold;
-	src: url(../fonts/ProximaNova-Sbold-webfont.ttf);
+	src: url(../fonts/proximanova-sbold-webfont.eot);
+	src: url(../fonts/proximanova-sbold-webfont.woff) format('woff'),
+	url(../fonts/proximanova-sbold-webfont.ttf) format('truetype'),
+	url(../fonts/proximanova-sbold-webfont.svg#webfont) format('svg');
 }
 body {
 	background: #f4f4f4;
@@ -27,7 +36,7 @@ body {
 	top: 0;
 	left: 0;
 	right: 0;
-    	-webkit-font-smoothing: auto;
+	-webkit-font-smoothing: auto;
 }
 a, a:hover, a:active, a:focus {
 	color: #2476C3;

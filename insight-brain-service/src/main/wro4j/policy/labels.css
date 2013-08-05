@@ -91,6 +91,9 @@ form[name="labelEditor"] .clmLabel {
 	margin-right: 5px;
 	transition: border linear .2s,box-shadow linear .2s;
 }
+.blackLabelRemove, .orangeLabelRemove, .greenLabelRemove, .redLabelRemove, .blueLabelRemove {
+	background-image: url("../lib/glyphicon/glyphicons_halflings-white.png") !important;
+}
 .labelContainer.active {
 	border: 2px solid rgb(82,168,236);
 	outline: 0;

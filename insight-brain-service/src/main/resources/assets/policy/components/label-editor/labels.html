@@ -27,7 +27,7 @@
                 <span ng-switch-when='true'>
                   <span style="padding-right: 25px;" class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}"
                         data-tooltip-placement="bottom"> {{label.label}}</span>
-                  <span title="Delete {{label.label}} Label" class="icon-remove-circle deleteHoverTransparent"
+                  <span title="Delete {{label.label}} Label" class="icon-remove-circle {{label.color}}LabelRemove deleteHoverTransparent"
                         ng-click="deleteLabel(label)"></span>
                 </span>
                 <span ng-switch-default>

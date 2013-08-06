@@ -123,8 +123,8 @@
           }
           // get the waivers and policies from the server
           var policyWaiverPromise = $http.get(CLM.path + 'rest/policyWaiver/application/' + $scope.applicationId
-                  + '/component/' + $scope.hash), policyPromise = $http.get(CLM.path + 'rest/policy/application/'
-                  + $scope.applicationId + '/applicable'), applicationPromise = $http.get(CLM.path + 'rest/application');
+                  + '/component/' + $scope.hash + '?timestamp=' + new Date().getTime()), policyPromise = $http.get(CLM.path + 'rest/policy/application/'
+                  + $scope.applicationId + '/applicable?timestamp=' + new Date().getTime()), applicationPromise = $http.get(CLM.path + 'rest/application');
 
           $q.all([policyWaiverPromise, policyPromise, applicationPromise]).then(function(results) {
             processResults(results);

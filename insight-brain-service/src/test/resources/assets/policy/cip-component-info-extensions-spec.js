@@ -30,7 +30,7 @@ describe('CIP Component info extensions tests', function() {
     expect($('button[data-target="#componentExistingWaiverModal"]').length).toEqual(1);
     expect($('#componentExistingWaiverModal').length).toEqual(0);
 
-    $httpBackend.expectGET(CLM.path + 'rest/policyWaiver/application/appId/component/1234').respond([{
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1234')).respond([{
       id: "id",
       hash: "1234",
       policyId: "policyId",
@@ -39,7 +39,7 @@ describe('CIP Component info extensions tests', function() {
       comment: "some comment",
       createTime: 1375366539817
     }]);
-    $httpBackend.expectGET(CLM.path + 'rest/policy/application/appId/applicable').respond({
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policy/application/appId/applicable')).respond({
       "policiesByOwner": [{
         "ownerId": "ownerId",
         "ownerName": "ownerName",

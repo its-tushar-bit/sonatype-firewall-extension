@@ -144,11 +144,13 @@
         $scope.remove = function(waiver) {
           $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function(){
             $scope.waivers.splice($scope.waivers.indexOf(waiver),1);
-          }).error(function(){$scope.appError = arguments[0]});
+          }).error(function () {
+            $scope.appError = arguments[0];
+          });
         };
         $scope.rebind = function() {
           doBind();
-        }
+        };
       }]);
 
   doBind();

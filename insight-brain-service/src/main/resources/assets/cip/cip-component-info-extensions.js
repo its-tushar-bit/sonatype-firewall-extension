@@ -92,8 +92,9 @@
       '$timeout',
       function($scope, $http, $q, $timeout) {
         $scope.viewWaivers = function() {
+          $scope.waiversLoading = true;
           function processResults(results) {
-            $scope.waiverLoading = false;
+            $scope.waiversLoading = false;
             $scope.waivers = results[0].data;
 
             // process the results to add policy name and owner name
@@ -129,7 +130,7 @@
           $q.all([policyWaiverPromise, policyPromise, applicationPromise]).then(function(results) {
             processResults(results);
           }, function() {
-            $scope.waiverLoading = false;
+            $scope.waiversLoading = false;
             $scope.appError = arguments[0];
           });
         };

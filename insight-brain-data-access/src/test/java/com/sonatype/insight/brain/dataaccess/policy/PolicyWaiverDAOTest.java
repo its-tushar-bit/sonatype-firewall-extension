@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.codehaus.plexus.util.StringUtils;
+
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
@@ -161,4 +163,25 @@ public class PolicyWaiverDAOTest
         assertEquals( 1, policyWaivers.size() );
         assertPolicyWaiver( policyWaiverOrg, policyWaivers.get( 0 ) );
     }
+
+  @Test
+  public void testCommentTooLong() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String hash = "12345678901234567890";
+    String policyId = "MyPolicyId";
+    String ownerId = "MyOwnerId";
+    String comment = StringUtils.repeat("X", 1001);
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
+
+    try {
+      dao.insert(policyWaiver1);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+    }
+
+    dao.delete(policyWaiver1);
+  }
 }

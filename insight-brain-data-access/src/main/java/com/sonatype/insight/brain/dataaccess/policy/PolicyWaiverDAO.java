@@ -152,6 +152,10 @@ public class PolicyWaiverDAO
         {
             throw new BadRequestException( "This policy waiver already exists" );
         }
+        if ( entity.getComment() != null && entity.getComment().length() > 1000 )
+        {
+            throw new BadRequestException( "Comment length must not exceed 1000 characters" );
+        }
 
         entity.setCreateTime( new Date() );
 

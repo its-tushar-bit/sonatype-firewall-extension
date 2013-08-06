@@ -91,6 +91,17 @@
       '$q',
       '$timeout',
       function($scope, $http, $q, $timeout) {
+        function handleHttpError(data, statusCode, headerFn, config) {
+            if (statusCode === 0) {
+              $scope.appError = 'Failed to contact server';
+            } else if (headerFn()['content-type'].indexOf('text/html') === -1) {
+              $scope.appError = data;
+            } else {
+              console.log(data);
+              $scope.appError = 'Error: CI server may be unable to reach CLM server';
+            }
+          }
+
         $scope.viewWaivers = function() {
           $scope.waiversLoading = true;
           function processResults(results) {
@@ -130,8 +141,7 @@
           $q.all([policyWaiverPromise, policyPromise, applicationPromise]).then(function(results) {
             processResults(results);
           }, function() {
-            $scope.waiversLoading = false;
-            $scope.appError = arguments[0];
+            handleHttpError(arguments[0].data, arguments[0].status, arguments[0].headers, arguments[0].config);
           });
         };
         $scope.close = function() {
@@ -145,9 +155,7 @@
         $scope.remove = function(waiver) {
           $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function(){
             $scope.waivers.splice($scope.waivers.indexOf(waiver),1);
-          }).error(function () {
-            $scope.appError = arguments[0];
-          });
+          }).error(handleHttpError);
         };
         $scope.rebind = function() {
           doBind();

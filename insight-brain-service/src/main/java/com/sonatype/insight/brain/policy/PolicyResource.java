@@ -276,8 +276,9 @@ public class PolicyResource
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(orgId);
 
-    if(licenseThreatGroups.size() != 4){
-      throw new BadRequestException( ORG_IMPORT_LTG_ERROR);
+    int size = licenseThreatGroups.size();
+    if(size != 4 && size != 0 ){
+      throw new BadRequestException( ORG_IMPORT_LTG_ERROR );
     }
 
     EntityManager em = organizationDAO.createEntityManager();

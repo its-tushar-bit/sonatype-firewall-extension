@@ -10,13 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -47,15 +40,23 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
-import com.yammer.dropwizard.testing.JsonHelpers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.ning.http.client.Response;
+import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Assert;
+import org.junit.Test;
+
+import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
+import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static com.sonatype.insight.brain.utils.IdUtils.*;
 
 public class PolicyResourceTest
     extends AbstractResourceTest
@@ -227,7 +228,7 @@ public class PolicyResourceTest
         // Delete one label - it should be re-created by the import.
         labelDAO.delete( label2 );
         // Add a new label - it should be deleted by the import.
-        Label label3 = addLabel(appId, "label3", Color.red);
+    addLabel(appId, "label3", Color.red);
 
         // Import
         response = RestAccess.put( getServiceURL( APP, applicationPublicId ) + "/import", JsonHelpers.asJson( policyExportResult ) );

@@ -86,7 +86,7 @@
 		    $scope.waiverLoading = true;
 		    $('#componentAddWaiverModal').modal('show');
 		    //get the tree of contexts, and flatten down into a list we can display properly
-		    $http.get(CLM.path + 'rest/waiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
+		    $http.get(CLM.path + 'rest/policyWaiver/application/' + policyViolationData.appId + '/applicable/context/' + policyAlert.id).success(function(data){
 		        $scope.waiverLoading = false;
 		        function processContext(context) {
 		            if (context) {

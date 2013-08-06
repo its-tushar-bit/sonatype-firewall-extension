@@ -72,7 +72,7 @@ describe('CIP Policy Waiver tests', function() {
     }));
 
     it('Test waive policy at org level', function() {
-        $http.whenGET('../brain/rest/waiver/application/appId/applicable/context/policyId').respond({
+        $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',

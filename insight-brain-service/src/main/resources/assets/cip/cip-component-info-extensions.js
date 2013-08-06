@@ -42,7 +42,7 @@
                             + '</table>'
                             + '</div>'
                             + '<div class="modal-footer">'
-                            + '<span class="alert alert-error" ng-show="appError" style="margin-right:10px;">{{appError}}</span>'
+                            + '<span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>'
                             + '<button type="button" class="btn btn-primary" ng-click="close()">Close</button>'
                             + '</div>' + '</div>');
   }

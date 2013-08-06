@@ -74,6 +74,7 @@
 				});
 				
 				//move the modal out into the body, so it appears properly ABOVE the backdrop
+				$("body > #componentAddWaiverModal").remove();
 				$("#componentAddWaiverModal").appendTo("body");
 			}
 		}

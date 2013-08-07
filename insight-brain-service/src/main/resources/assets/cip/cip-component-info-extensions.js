@@ -10,41 +10,55 @@
   'use strict';
 
   function appendModal() {
-    $('body')
-            .append(
-                    '<div id="componentExistingWaiverModal" ng-controller="ComponentInfoController" data-keyboard="false" data-backdrop="static" class="modal hide fade">'
-                            + '<div class="modal-header">'
-                            + '<button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>'
-                            + '<h3>Component Waivers</h3>'
-                            + '</div>'
-                            + '<div class="modal-body" ng-show="waiversLoading">'
-                            + '<span>Loading data...</span>'
-                            + '</div>'
-                            + '<div class="modal-body" ng-show="!waiversLoading">'
-                            + '<div ng-show="!waivers.length"><em style="margin-left:25px;">No waivers assigned</em></div>'
-                            + '<table ng-show="waivers.length" class="table table-condensed">'
-                            + '<thead>'
-                            + '<tr>'
-                            + '<th>Policy</th>'
-                            + '<th>Created</th>'
-                            + '<th>Owner</th>'
-                            + '<th>Comment</th>'
-                            + '</tr>'
-                            + '</thead>'
-                            + '<tr ng-repeat="waiver in waivers">'
-                            + '<td>{{waiver.policyName}}</td>'
-                            + '<td>{{waiver.createTime | date:"yyyy-MM-dd"}}</td>'
-                            + '<td>{{waiver.ownerName}}</td>'
-                            + '<td>{{waiver.comment}}</td>'
-                            + '<td><button class="btn btn-mini" ng-click="remove(waiver)" title="Remove {{placeHolder}}">'
-                            + '<i class="icon-minus-sign"></i></button></td>'
-                            + '</tr>'
-                            + '</table>'
-                            + '</div>'
-                            + '<div class="modal-footer">'
-                            + '<span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>'
-                            + '<button type="button" class="btn btn-primary" ng-click="close()">Close</button>'
-                            + '</div>' + '</div>');
+    $('body').append('<div id="componentExistingWaiverModal" ng-controller="ComponentInfoController" data-keyboard="false" data-backdrop="static" class="modal hide fade">' +
+			'<div ng-hide="confirmDelete">' +
+				'<div class="modal-header">' +
+					'<button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>' +
+					'<h3>Component Waivers</h3>' +
+				'</div>' +
+				'<div class="modal-body" ng-show="waiversLoading">' +
+					'<span>Loading data...</span>' +
+				'</div>' +
+				'<div class="modal-body" ng-show="!waiversLoading">' +
+					'<div ng-show="!waivers.length"><em style="margin-left:25px;">No waivers assigned</em></div>' +
+					'<table ng-show="waivers.length" class="table table-condensed">' +
+						'<thead>' +
+							'<tr>' +
+								'<th>Policy</th>' +
+								'<th>Created</th>' +
+								'<th>Owner</th>' +
+								'<th>Comment</th>' +
+							'</tr>' +
+						'</thead>' +
+						'<tr ng-repeat="waiver in waivers">' +
+							'<td>{{waiver.policyName}}</td>' +
+							'<td>{{waiver.createTime | date:"yyyy-MM-dd"}}</td>' +
+							'<td>{{waiver.ownerName}}</td>' +
+							'<td>{{waiver.comment}}</td>' +
+							'<td>' +
+								'<button class="btn btn-mini" ng-click="remove(waiver)" title="Remove {{placeHolder}}"><i class="icon-minus-sign"></i></button>' +
+							'</td>' +
+						'</tr>' +
+					'</table>' +
+				'</div>' +
+				'<div class="modal-footer">' +
+					'<span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>' +
+					'<button type="button" class="btn btn-primary" ng-click="close()">Close</button>' +
+				'</div>' +
+			'</div>' +
+			'<div ng-show="confirmDelete">' +
+				'<div class="modal-header">' +
+					'<h3>Remove Waiver</h3>' +
+				'</div>' +
+				'<div class="modal-body" >' +
+					'Removing the waiver for {{waver.policyName}} will reinstate violations for this component if applicable.' +
+				'</div>' +
+				'<div class="modal-footer">' +
+					'<button type="button" class="btn" ng-click="confirmDelete = null">Cancel</button>' +
+					'<button type="button" class="btn btn-danger" ng-click="removeWaiver()">Continue</button>' +
+				'</div>' +
+			'</div>' +
+		'</div>');
   }
 
   function appendButton() {
@@ -152,12 +166,21 @@
 
           $('#componentExistingWaiverModal').modal('hide');
         };
-        $scope.remove = function(waiver) {
-          $scope.appError = null;
-          $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function(){
-            $scope.waivers.splice($scope.waivers.indexOf(waiver),1);
-          }).error(handleHttpError);
+
+        $scope.remove = function (waiver) {
+          $scope.confirmDelete = waiver;
         };
+
+        $scope.removeWaiver = function () {
+          var waiver = $scope.confirmDelete;
+          $scope.confirmDelete = null;
+          $scope.appError = null;
+
+          $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function () {
+            $scope.waivers.splice($scope.waivers.indexOf(waiver), 1);
+          }).error(handleHttpError);
+        }
+
         $scope.rebind = function() {
           doBind();
         };

@@ -19,64 +19,57 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 public class DatamartProvider
 {
-    private static final Logger log = LoggerFactory.getLogger( DatamartProvider.class );
+  private static final Logger log = LoggerFactory.getLogger(DatamartProvider.class);
 
-    public static final int DESIRED_DATABASE_VERSION = 3;
+  public static final int DESIRED_DATABASE_VERSION = 3;
 
-    public static final String ID = "insight_brain_dm";
+  public static final String ID = "insight_brain_dm";
 
-    private static DataSource dataSource;
+  private static DataSource dataSource;
 
-    private static EntityManagerFactory entityManagerFactory;
+  private static EntityManagerFactory entityManagerFactory;
 
-    private static volatile boolean isInitialized = false;
+  private static volatile boolean isInitialized = false;
 
-    private DatamartProvider()
-    {
+  private DatamartProvider() {
+  }
+
+  public static synchronized void init(DatabaseConfig databaseConfig) {
+    if (isInitialized) {
+      return;
     }
 
-    public static synchronized void init( DatabaseConfig databaseConfig )
-    {
-        if ( isInitialized )
-        {
-            return;
-        }
+    log.info("Initializing the {} data store.", ID);
+    long start = System.currentTimeMillis();
 
-        log.info( "Initializing the {} data store.", ID );
-        long start = System.currentTimeMillis();
+    dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
+    new H2DatabaseMigrator()
+        .migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 1 /* defaultCurrentVersion */);
+    Map<String, Object> props = new LinkedHashMap<String, Object>();
+    props.put("openjpa.ConnectionFactory", dataSource);
+    entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainDM", props);
+    isInitialized = true;
 
-        dataSource = new DataSourceFactory().newDataSource( databaseConfig, ID );
-        new H2DatabaseMigrator().migrate( databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 1 /* defaultCurrentVersion */);
-        Map<String, Object> props = new LinkedHashMap<String, Object>();
-        props.put( "openjpa.ConnectionFactory", dataSource );
-        entityManagerFactory = Persistence.createEntityManagerFactory( "InsightBrainDM", props );
-        isInitialized = true;
+    log.info("Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start);
+  }
 
-        log.info( "Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start );
+  public static DataSource getDataSource() {
+    if (!isInitialized) {
+      init(null /* databaseConfig */);
     }
+    return dataSource;
+  }
 
-    public static DataSource getDataSource()
-    {
-        if ( !isInitialized )
-        {
-            init( null /* databaseConfig */);
-        }
-        return dataSource;
+  public static EntityManagerFactory getJPAEntityManagerFactory() {
+    if (!isInitialized) {
+      init(null /* databaseConfig */);
     }
+    return entityManagerFactory;
+  }
 
-    public static EntityManagerFactory getJPAEntityManagerFactory()
-    {
-        if ( !isInitialized )
-        {
-            init( null /* databaseConfig */);
-        }
-        return entityManagerFactory;
-    }
-
-    static synchronized void clear_ForTestsOnly()
-    {
-        dataSource = null;
-        entityManagerFactory = null;
-        isInitialized = false;
-    }
+  static synchronized void clear_ForTestsOnly() {
+    dataSource = null;
+    entityManagerFactory = null;
+    isInitialized = false;
+  }
 }

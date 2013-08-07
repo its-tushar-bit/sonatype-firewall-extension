@@ -21,148 +21,125 @@ import com.sonatype.insight.model.HasStringId;
  * @since 1.4.1
  */
 @Entity
-@Table( name = "hash_gav" )
+@Table(name = "hash_gav")
 public class HashGAV
     implements HasStringId
 {
-    private String id;
+  private String id;
 
-    private String hash;
+  private String hash;
 
-    private String comment;
+  private String comment;
 
-    private Date createTime;
+  private Date createTime;
 
-    /**
-     * Convenience object to store Maven coordinates.
-     */
-    private MavenCoordinates coords;
+  /**
+   * Convenience object to store Maven coordinates.
+   */
+  private MavenCoordinates coords;
 
-    public HashGAV()
-    {
-        coords = new MavenCoordinates();
-    }
+  public HashGAV() {
+    coords = new MavenCoordinates();
+  }
 
-    public HashGAV( String hash, String groupId, String artifactId, String version, String extension, String classifier )
-    {
-        setHash( hash );
-        coords = new MavenCoordinates( groupId, artifactId, version, extension, classifier );
-    }
+  public HashGAV(String hash, String groupId, String artifactId, String version, String extension, String classifier) {
+    setHash(hash);
+    coords = new MavenCoordinates(groupId, artifactId, version, extension, classifier);
+  }
 
-    @Id
-    @Column( name = "hash_gav_id" )
-    @Override
-    public String getId()
-    {
-        return id;
-    }
+  @Id
+  @Column(name = "hash_gav_id")
+  @Override
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @Column( name = "group_id" )
-    public String getGroupId()
-    {
-        return coords.getGroupId();
-    }
+  @Column(name = "group_id")
+  public String getGroupId() {
+    return coords.getGroupId();
+  }
 
-    public void setGroupId( String groupId )
-    {
-        this.coords.setGroupId( groupId );
-    }
+  public void setGroupId(String groupId) {
+    this.coords.setGroupId(groupId);
+  }
 
-    @Column( name = "artifact_id" )
-    public String getArtifactId()
-    {
-        return coords.getArtifactId();
-    }
+  @Column(name = "artifact_id")
+  public String getArtifactId() {
+    return coords.getArtifactId();
+  }
 
-    public void setArtifactId( String artifactId )
-    {
-        this.coords.setArtifactId( artifactId );
-    }
+  public void setArtifactId(String artifactId) {
+    this.coords.setArtifactId(artifactId);
+  }
 
-    @Column( name = "version" )
-    public String getVersion()
-    {
-        return coords.getVersion();
-    }
+  @Column(name = "version")
+  public String getVersion() {
+    return coords.getVersion();
+  }
 
-    public void setVersion( String version )
-    {
-        this.coords.setVersion( version );
-    }
+  public void setVersion(String version) {
+    this.coords.setVersion(version);
+  }
 
-    @Column( name = "classifier" )
-    public String getClassifier()
-    {
-        return coords.getClassifier();
-    }
+  @Column(name = "classifier")
+  public String getClassifier() {
+    return coords.getClassifier();
+  }
 
-    public void setClassifier( String classifier )
-    {
-        this.coords.setClassifier( classifier );
-    }
+  public void setClassifier(String classifier) {
+    this.coords.setClassifier(classifier);
+  }
 
-    @Column( name = "extension" )
-    public String getExtension()
-    {
-        return coords.getExtension();
-    }
+  @Column(name = "extension")
+  public String getExtension() {
+    return coords.getExtension();
+  }
 
-    public void setExtension( String extension )
-    {
-        this.coords.setExtension( extension );
-    }
+  public void setExtension(String extension) {
+    this.coords.setExtension(extension);
+  }
 
-    @Column( name = "hash" )
-    public String getHash()
-    {
-        return hash;
-    }
+  @Column(name = "hash")
+  public String getHash() {
+    return hash;
+  }
 
-    public void setHash( String hash )
-    {
-        this.hash = HashHelper.truncateHash( hash );
-    }
+  public void setHash(String hash) {
+    this.hash = HashHelper.truncateHash(hash);
+  }
 
-    @Column( name = "comment" )
-    public String getComment()
-    {
-        return comment;
-    }
+  @Column(name = "comment")
+  public String getComment() {
+    return comment;
+  }
 
-    public void setComment( String comment )
-    {
-        this.comment = comment;
-    }
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
 
-    @Column( name = "create_time" )
-    public Date getCreateTime()
-    {
-        return createTime;
-    }
+  @Column(name = "create_time")
+  public Date getCreateTime() {
+    return createTime;
+  }
 
-    public void setCreateTime( Date createTime )
-    {
-        this.createTime = createTime;
-    }
+  public void setCreateTime(Date createTime) {
+    this.createTime = createTime;
+  }
 
-    public Long getCreateTimeLong()
-    {
-        return ( createTime != null ) ? createTime.getTime() : null;
-    }
+  public Long getCreateTimeLong() {
+    return (createTime != null) ? createTime.getTime() : null;
+  }
 
-    public String getGAVECString()
-    {
-        return coords.getGAVECString();
-    }
+  public String getGAVECString() {
+    return coords.getGAVECString();
+  }
 
-    public MavenCoordinates getCoordinates()
-    {
-        return MavenCoordinates.copy( coords );
-    }
+  public MavenCoordinates getCoordinates() {
+    return MavenCoordinates.copy(coords);
+  }
 }

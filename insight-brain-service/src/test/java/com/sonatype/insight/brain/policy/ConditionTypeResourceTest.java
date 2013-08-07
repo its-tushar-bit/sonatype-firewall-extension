@@ -17,19 +17,16 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ConditionTypeResourceTest
     extends AbstractResourceTest
 {
-    @Test
-    public void testGetConditionTypes()
-        throws Exception
-    {
-        final Response response = RestAccess.get( getServiceURL() );
-        assertResponseStatus( 200, response );
-        final Object[] conditionTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
-        Assert.assertNotNull( conditionTypes );
-        Assert.assertTrue( conditionTypes.length > 0 );
-    }
+  @Test
+  public void testGetConditionTypes() throws Exception {
+    final Response response = RestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    final Object[] conditionTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    Assert.assertNotNull(conditionTypes);
+    Assert.assertTrue(conditionTypes.length > 0);
+  }
 
-    private String getServiceURL()
-    {
-        return getRestBaseUrl() + ConditionTypeResource.SERVICE_PATH;
-    }
+  private String getServiceURL() {
+    return getRestBaseUrl() + ConditionTypeResource.SERVICE_PATH;
+  }
 }

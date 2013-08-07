@@ -22,56 +22,48 @@ import com.sonatype.insight.brain.model.label.Label;
 
 public class LabelValueTypeTest
 {
-    private Organization org;
+  private Organization org;
 
-    private Application app;
+  private Application app;
 
-    @Before
-    public void setUp()
-        throws Exception
-    {
-        org = new Organization( "orgName" );
-        new OrganizationDAO().insert( org );
-        app = new Application();
-        app.setName( "appName" );
-        app.setPublicId( "appId" );
-        app.setOrganizationId( org.getId() );
-        new ApplicationDAO().insert( app );
-        Label label = new Label( app.getId(), "appLabel", null );
-        new LabelDAO().insert( label );
+  @Before
+  public void setUp() throws Exception {
+    org = new Organization("orgName");
+    new OrganizationDAO().insert(org);
+    app = new Application();
+    app.setName("appName");
+    app.setPublicId("appId");
+    app.setOrganizationId(org.getId());
+    new ApplicationDAO().insert(app);
+    Label label = new Label(app.getId(), "appLabel", null);
+    new LabelDAO().insert(label);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    ApplicationDAO appDAO = new ApplicationDAO();
+    for (Application app : appDAO.getAll()) {
+      appDAO.delete(app);
     }
-
-    @After
-    public void tearDown()
-        throws Exception
-    {
-        ApplicationDAO appDAO = new ApplicationDAO();
-        for ( Application app : appDAO.getAll() )
-        {
-            appDAO.delete( app );
-        }
-        OrganizationDAO orgDAO = new OrganizationDAO();
-        for ( Organization org : orgDAO.getAll() )
-        {
-            orgDAO.delete( org );
-        }
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    for (Organization org : orgDAO.getAll()) {
+      orgDAO.delete(org);
     }
+  }
 
-    @Test
-    public void testGetAvailableValues_AppLevel()
-    {
-        LabelValueType type = new LabelValueType( app.getId() );
-        List<Label> labels = type.getAvailableValues();
-        assertNotNull( labels );
-        assertEquals( 1, labels.size() );
-    }
+  @Test
+  public void testGetAvailableValues_AppLevel() {
+    LabelValueType type = new LabelValueType(app.getId());
+    List<Label> labels = type.getAvailableValues();
+    assertNotNull(labels);
+    assertEquals(1, labels.size());
+  }
 
-    @Test
-    public void testGetAvailableValues_OrgLevel()
-    {
-        LabelValueType type = new LabelValueType( org.getId() );
-        List<Label> labels = type.getAvailableValues();
-        assertNotNull( labels );
-        assertEquals( 0, labels.size() );
-    }
+  @Test
+  public void testGetAvailableValues_OrgLevel() {
+    LabelValueType type = new LabelValueType(org.getId());
+    List<Label> labels = type.getAvailableValues();
+    assertNotNull(labels);
+    assertEquals(0, labels.size());
+  }
 }

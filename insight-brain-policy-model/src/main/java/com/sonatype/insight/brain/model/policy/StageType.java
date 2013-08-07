@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 public interface StageType
 {
-    String getId();
+  String getId();
 
-    String getName();
+  String getName();
 }

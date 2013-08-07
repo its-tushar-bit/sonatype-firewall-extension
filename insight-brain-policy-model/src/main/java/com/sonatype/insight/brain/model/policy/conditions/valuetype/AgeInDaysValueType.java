@@ -12,29 +12,25 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class AgeInDaysValueType
     implements ConditionValueType<Integer>
 {
-    public static final String ID = "AgeInDaysValueType";
+  public static final String ID = "AgeInDaysValueType";
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "Integer";
-    }
+  @Override
+  public String getDataType() {
+    return "Integer";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<Integer> getAvailableValues()
-    {
-        return null;
-    }
+  @Override
+  public List<Integer> getAvailableValues() {
+    return null;
+  }
 }

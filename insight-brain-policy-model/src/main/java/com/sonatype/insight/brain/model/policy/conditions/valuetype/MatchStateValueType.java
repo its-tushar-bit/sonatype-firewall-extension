@@ -13,29 +13,25 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class MatchStateValueType
     implements ConditionValueType<MatchState>
 {
-    public static final String ID = "MatchStateValueType";
+  public static final String ID = "MatchStateValueType";
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "MatchState";
-    }
+  @Override
+  public String getDataType() {
+    return "MatchState";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<MatchState> getAvailableValues()
-    {
-        return MatchState.getAll();
-    }
+  @Override
+  public List<MatchState> getAvailableValues() {
+    return MatchState.getAll();
+  }
 }

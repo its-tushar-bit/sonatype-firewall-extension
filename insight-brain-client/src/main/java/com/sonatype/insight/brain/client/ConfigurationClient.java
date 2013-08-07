@@ -22,77 +22,59 @@ import com.sonatype.insight.json.store.JsonUtils;
 public class ConfigurationClient
     extends AbstractClient
 {
-    public ConfigurationClient( final Configuration config )
-    {
-        super( config );
-    }
+  public ConfigurationClient(final Configuration config) {
+    super(config);
+  }
 
-    private Result get( RequestBuilder builder )
-        throws IOException
-    {
-        final Result result;
-        try
-        {
-            result = builder.get();
-        }
-        catch ( UnknownHostException e )
-        {
-            // improve error msg
-            throw (IOException) new UnknownHostException( "Unknown host: " + e.getMessage() ).initCause( e );
-        }
-        final int status = result.status();
-        if ( status >= 300 )
-        {
-            throw new HttpResponseException( status, result.text() );
-        }
-        return result;
+  private Result get(RequestBuilder builder) throws IOException {
+    final Result result;
+    try {
+      result = builder.get();
     }
+    catch (UnknownHostException e) {
+      // improve error msg
+      throw (IOException) new UnknownHostException("Unknown host: " + e.getMessage()).initCause(e);
+    }
+    final int status = result.status();
+    if (status >= 300) {
+      throw new HttpResponseException(status, result.text());
+    }
+    return result;
+  }
 
-    @SuppressWarnings( "unchecked" )
-    public Map<String, String> getApplicationIdNameMap()
-        throws IOException
-    {
-        Result result = get( path( "rest/application/services/names" ) );
-        Map<String, String> applicationsById = new TreeMap<String, String>( String.CASE_INSENSITIVE_ORDER );
-        applicationsById.putAll( JsonUtils.parse( result.text(), Map.class ) );
-        return applicationsById;
-    }
+  @SuppressWarnings("unchecked")
+  public Map<String, String> getApplicationIdNameMap() throws IOException {
+    Result result = get(path("rest/application/services/names"));
+    Map<String, String> applicationsById = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+    applicationsById.putAll(JsonUtils.parse(result.text(), Map.class));
+    return applicationsById;
+  }
 
-    public void validateConfiguration()
-        throws IOException
-    {
-        final Result result = get( path( "rest/version" ) );
-        final String text = result.text();
-        // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
-        try
-        {
-            final Map<?, ?> versionInfo = JsonUtils.parse( text, Map.class );
-            if ( versionInfo.get( "version" ) == null && versionInfo.get( "name" ) == null )
-            {
-                throw new Exception( "No CLM version information present" );
-            }
-        }
-        catch ( Exception e )
-        {
-            throw new IOException( "Server is not compatible with this Sonatype CLM integration", e );
-        }
+  public void validateConfiguration() throws IOException {
+    final Result result = get(path("rest/version"));
+    final String text = result.text();
+    // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
+    try {
+      final Map<?, ?> versionInfo = JsonUtils.parse(text, Map.class);
+      if (versionInfo.get("version") == null && versionInfo.get("name") == null) {
+        throw new Exception("No CLM version information present");
+      }
     }
+    catch (Exception e) {
+      throw new IOException("Server is not compatible with this Sonatype CLM integration", e);
+    }
+  }
 
-    public void validateApplicationId( final String appId )
-        throws IOException
-    {
-        final Result result = get( path( "rest/application/validate", UrlUtils.encodeUrlComponent( appId ) ) );
-        final String text = result.text();
-        if ( !"OK".equals( text ) )
-        {
-            throw new IOException( text );
-        }
+  public void validateApplicationId(final String appId) throws IOException {
+    final Result result = get(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
+    final String text = result.text();
+    if (!"OK".equals(text)) {
+      throw new IOException(text);
     }
+  }
 
-    public ProprietaryConfig getProprietaryConfiguration()
-        throws IOException
-    {
-        Result result = get( path( "rest/config/proprietary" ) );
-        return JsonUtils.parse( result.text(), ProprietaryConfig.class );
-    }
+  public ProprietaryConfig getProprietaryConfiguration() throws IOException {
+    Result result = get(path("rest/config/proprietary"));
+    return JsonUtils.parse(result.text(), ProprietaryConfig.class);
+  }
 }

@@ -14,32 +14,28 @@ import eu.medsea.mimeutil.detector.ExtensionMimeDetector;
  */
 public final class MediaTypeUtils
 {
-    private static final MimeUtil2 mimeUtil = new MimeUtil2();
+  private static final MimeUtil2 mimeUtil = new MimeUtil2();
 
-    static
-    {
-        mimeUtil.registerMimeDetector( ExtensionMimeDetector.class.getName() );
-    }
+  static {
+    mimeUtil.registerMimeDetector(ExtensionMimeDetector.class.getName());
+  }
 
-    private MediaTypeUtils()
-    {
-        // utility class
-    }
+  private MediaTypeUtils() {
+    // utility class
+  }
 
-    /**
-     * Attempts to detect the media type based on the given name of the resource.
-     * 
-     * @param name The resource name
-     * @return Detected media type
-     */
-    public static String byName( final String name )
-    {
-        final MimeType mimeType = MimeUtil2.getMostSpecificMimeType( mimeUtil.getMimeTypes( name ) );
-        if ( mimeType != null )
-        {
-            final String mediaType = mimeType.toString(); // returns "<mediaType>/<subType>"
-            return mediaType.startsWith( "text" ) ? mediaType + ";charset=UTF-8" : mediaType;
-        }
-        return null;
+  /**
+   * Attempts to detect the media type based on the given name of the resource.
+   * 
+   * @param name The resource name
+   * @return Detected media type
+   */
+  public static String byName(final String name) {
+    final MimeType mimeType = MimeUtil2.getMostSpecificMimeType(mimeUtil.getMimeTypes(name));
+    if (mimeType != null) {
+      final String mediaType = mimeType.toString(); // returns "<mediaType>/<subType>"
+      return mediaType.startsWith("text") ? mediaType + ";charset=UTF-8" : mediaType;
     }
+    return null;
+  }
 }

@@ -12,37 +12,33 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test of {@link HashGAV} model. 
+ * Test of {@link HashGAV} model.
  */
 public class HashGAVTest
 {
-    private final String longHash = "123456789012345678901";
-    
-    /**
-     * 20 characters as currently specified in HashHelper
-     */
-    private final String expectedTruncatedHash = "12345678901234567890";
-    
-    @Before
-    public void preconditions()
-    {
-        assertTrue( longHash.length() > 20 );
-    }
+  private final String longHash = "123456789012345678901";
 
-    @Test
-    public void testLongHashTruncatedWhenObjectCreated()
-    {
-        HashGAV hashGAV =
-            new HashGAV( longHash, null /* groupId */, null /* artifactId */, null /* version */, null /* extension */,
-                         null /* classifier */);
-        assertEquals( expectedTruncatedHash, hashGAV.getHash() );
-    }
+  /**
+   * 20 characters as currently specified in HashHelper
+   */
+  private final String expectedTruncatedHash = "12345678901234567890";
 
-    @Test
-    public void testLongHashTruncatedWhenHashSet()
-    {
-        HashGAV hashGAV = new HashGAV();
-        hashGAV.setHash( longHash );
-        assertEquals( expectedTruncatedHash, hashGAV.getHash() );
-    }
+  @Before
+  public void preconditions() {
+    assertTrue(longHash.length() > 20);
+  }
+
+  @Test
+  public void testLongHashTruncatedWhenObjectCreated() {
+    HashGAV hashGAV = new HashGAV(longHash, null /* groupId */, null /* artifactId */, null /* version */,
+        null /* extension */, null /* classifier */);
+    assertEquals(expectedTruncatedHash, hashGAV.getHash());
+  }
+
+  @Test
+  public void testLongHashTruncatedWhenHashSet() {
+    HashGAV hashGAV = new HashGAV();
+    hashGAV.setHash(longHash);
+    assertEquals(expectedTruncatedHash, hashGAV.getHash());
+  }
 }

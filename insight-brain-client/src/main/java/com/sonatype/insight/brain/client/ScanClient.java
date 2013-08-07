@@ -24,38 +24,30 @@ public class ScanClient
 {
   private static final ContentType GZIP_CONTENT_TYPE = ContentType.create("application/x-gzip");
 
-    private final String appId;
+  private final String appId;
 
-    public ScanClient( final Configuration config, final String appId )
-    {
-        super( config );
+  public ScanClient(final Configuration config, final String appId) {
+    super(config);
 
-        this.appId = UrlUtils.encodeUrlComponent( appId );
-    }
+    this.appId = UrlUtils.encodeUrlComponent(appId);
+  }
 
-    public ScanReceipt uploadCiScan( final File scanFile )
-        throws IOException
-    {
+  public ScanReceipt uploadCiScan(final File scanFile) throws IOException {
     final Result result = path("rest/ci/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
-        return handleUpload( result );
-    }
+    return handleUpload(result);
+  }
 
-    public ScanReceipt uploadRepoManScan( final File scanFile )
-        throws IOException
-    {
+  public ScanReceipt uploadRepoManScan(final File scanFile) throws IOException {
     final Result result = path("rest/rm/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
-        return handleUpload( result );
-    }
+    return handleUpload(result);
+  }
 
-    private ScanReceipt handleUpload( Result result )
-        throws IOException
-    {
-        final int status = result.status();
-        final String text = result.text();
-        if ( status >= 300 )
-        {
-            throw new HttpResponseException( status, text );
-        }
-        return JsonUtils.parse( text, ScanReceipt.class );
+  private ScanReceipt handleUpload(Result result) throws IOException {
+    final int status = result.status();
+    final String text = result.text();
+    if (status >= 300) {
+      throw new HttpResponseException(status, text);
     }
+    return JsonUtils.parse(text, ScanReceipt.class);
+  }
 }

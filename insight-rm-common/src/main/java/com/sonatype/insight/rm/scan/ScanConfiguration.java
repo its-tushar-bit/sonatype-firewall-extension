@@ -15,155 +15,128 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 public class ScanConfiguration
 {
 
-    private File workDir;
+  private File workDir;
 
-    private Properties scanOptions;
+  private Properties scanOptions;
 
-    private String repositoryId;
+  private String repositoryId;
 
-    private String repositoryName;
+  private String repositoryName;
 
-    private String repositoryFormat;
+  private String repositoryFormat;
 
-    private ProprietaryConfig proprietaryConfig;
+  private ProprietaryConfig proprietaryConfig;
 
-    private final List<RepositoryItem> componentItems;
+  private final List<RepositoryItem> componentItems;
 
-    private final List<RepositoryItem> scanItems;
+  private final List<RepositoryItem> scanItems;
 
-    public ScanConfiguration()
-    {
-        workDir = getDefaultWorkDir();
-        scanOptions = new Properties();
-        componentItems = new ArrayList<RepositoryItem>( 128 );
-        scanItems = new ArrayList<RepositoryItem>();
+  public ScanConfiguration() {
+    workDir = getDefaultWorkDir();
+    scanOptions = new Properties();
+    componentItems = new ArrayList<RepositoryItem>(128);
+    scanItems = new ArrayList<RepositoryItem>();
+  }
+
+  private static File getDefaultWorkDir() {
+    return new File(System.getProperty("java.io.tmpdir", "")).getAbsoluteFile();
+  }
+
+  public File getWorkDir() {
+    return workDir;
+  }
+
+  public ScanConfiguration setWorkDir(final File workDir) {
+    this.workDir = (workDir != null) ? workDir : getDefaultWorkDir();
+    return this;
+  }
+
+  public Properties getScanOptions() {
+    return scanOptions;
+  }
+
+  public ScanConfiguration setScanOptions(final Properties scanOptions) {
+    this.scanOptions.clear();
+    if (scanOptions != null) {
+      this.scanOptions.putAll(scanOptions);
     }
+    return this;
+  }
 
-    private static File getDefaultWorkDir()
-    {
-        return new File( System.getProperty( "java.io.tmpdir", "" ) ).getAbsoluteFile();
+  public ScanConfiguration setScanOption(final String key, final String value) {
+    if (value == null) {
+      scanOptions.remove(key);
     }
+    else {
+      scanOptions.setProperty(key, value);
+    }
+    return this;
+  }
 
-    public File getWorkDir()
-    {
-        return workDir;
-    }
+  public String getRepositoryId() {
+    return repositoryId;
+  }
 
-    public ScanConfiguration setWorkDir( final File workDir )
-    {
-        this.workDir = ( workDir != null ) ? workDir : getDefaultWorkDir();
-        return this;
-    }
+  public String getRepositoryName() {
+    return repositoryName;
+  }
 
-    public Properties getScanOptions()
-    {
-        return scanOptions;
-    }
+  public String getRepositoryFormat() {
+    return repositoryFormat;
+  }
 
-    public ScanConfiguration setScanOptions( final Properties scanOptions )
-    {
-        this.scanOptions.clear();
-        if ( scanOptions != null )
-        {
-            this.scanOptions.putAll( scanOptions );
-        }
-        return this;
-    }
+  public ScanConfiguration setRepository(String id, String format, String name) {
+    repositoryId = id;
+    repositoryFormat = format;
+    repositoryName = name;
+    return this;
+  }
 
-    public ScanConfiguration setScanOption( final String key, final String value )
-    {
-        if ( value == null )
-        {
-            scanOptions.remove( key );
-        }
-        else
-        {
-            scanOptions.setProperty( key, value );
-        }
-        return this;
-    }
+  public ScanConfiguration setProprietaryConfig(ProprietaryConfig proprietaryConfig) {
+    this.proprietaryConfig = proprietaryConfig;
+    return this;
+  }
 
-    public String getRepositoryId()
-    {
-        return repositoryId;
-    }
+  public ProprietaryConfig getProprietaryConfig() {
+    return proprietaryConfig;
+  }
 
-    public String getRepositoryName()
-    {
-        return repositoryName;
+  public void addItem(final RepositoryItem item) {
+    if (item != null) {
+      if (isScanItem(item)) {
+        scanItems.add(item);
+      }
+      else if (isComponentItem(item)) {
+        componentItems.add(item);
+      }
     }
+  }
 
-    public String getRepositoryFormat()
-    {
-        return repositoryFormat;
+  private boolean isScanItem(final RepositoryItem item) {
+    final String path = item.getPath();
+    if (path.endsWith("-sonatype-clm-scan.xml.gz")) {
+      return true;
     }
+    return false;
+  }
 
-    public ScanConfiguration setRepository( String id, String format, String name )
-    {
-        repositoryId = id;
-        repositoryFormat = format;
-        repositoryName = name;
-        return this;
+  private boolean isComponentItem(final RepositoryItem item) {
+    String path = item.getPath();
+    if (path.endsWith(".pom") || path.endsWith(".asc") || path.endsWith(".sha1") || path.endsWith(".md5")) {
+      return false;
     }
+    if (path.endsWith("-sources.jar") || path.endsWith("-javadoc.jar") || path.endsWith("-tests.jar")) {
+      return false;
+    }
+    return true;
+  }
 
-    public ScanConfiguration setProprietaryConfig( ProprietaryConfig proprietaryConfig )
-    {
-        this.proprietaryConfig = proprietaryConfig;
-        return this;
-    }
+  List<RepositoryItem> getComponentItems() {
+    return componentItems;
+  }
 
-    public ProprietaryConfig getProprietaryConfig()
-    {
-        return proprietaryConfig;
-    }
-
-    public void addItem( final RepositoryItem item )
-    {
-        if ( item != null )
-        {
-            if ( isScanItem( item ) )
-            {
-                scanItems.add( item );
-            }
-            else if ( isComponentItem( item ) )
-            {
-                componentItems.add( item );
-            }
-        }
-    }
-
-    private boolean isScanItem( final RepositoryItem item )
-    {
-        final String path = item.getPath();
-        if ( path.endsWith( "-sonatype-clm-scan.xml.gz" ) )
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isComponentItem( final RepositoryItem item )
-    {
-        String path = item.getPath();
-        if ( path.endsWith( ".pom" ) || path.endsWith( ".asc" ) || path.endsWith( ".sha1" ) || path.endsWith( ".md5" ) )
-        {
-            return false;
-        }
-        if ( path.endsWith( "-sources.jar" ) || path.endsWith( "-javadoc.jar" ) || path.endsWith( "-tests.jar" ) )
-        {
-            return false;
-        }
-        return true;
-    }
-
-    List<RepositoryItem> getComponentItems()
-    {
-        return componentItems;
-    }
-
-    List<RepositoryItem> getScanItems()
-    {
-        return scanItems;
-    }
+  List<RepositoryItem> getScanItems() {
+    return scanItems;
+  }
 
 }

@@ -11,17 +11,15 @@ import com.sonatype.insight.brain.model.policy.StageType;
 public class ReleaseStageType
     implements StageType
 {
-    public static final String ID = Stage.ID_RELEASE;
+  public static final String ID = Stage.ID_RELEASE;
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getName()
-    {
-        return "Release";
-    }
+  @Override
+  public String getName() {
+    return "Release";
+  }
 }

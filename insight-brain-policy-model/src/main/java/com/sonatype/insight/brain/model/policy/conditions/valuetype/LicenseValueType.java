@@ -14,34 +14,29 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class LicenseValueType
     implements ConditionValueType<License>
 {
-    public static final String ID = "LicenseValueType";
+  public static final String ID = "LicenseValueType";
 
-    public static License getLicenseById( String licenseId )
-    {
-        return new LicenseDAO().getById( licenseId );
-    }
+  public static License getLicenseById(String licenseId) {
+    return new LicenseDAO().getById(licenseId);
+  }
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "License";
-    }
+  @Override
+  public String getDataType() {
+    return "License";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<License> getAvailableValues()
-    {
-        return new LicenseDAO().getAll();
-    }
+  @Override
+  public List<License> getAvailableValues() {
+    return new LicenseDAO().getAll();
+  }
 }

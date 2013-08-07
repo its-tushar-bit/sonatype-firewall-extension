@@ -19,83 +19,70 @@ import ch.qos.logback.classic.Level;
 public class PolicyEvaluatorCli
 {
 
-    static final String PROP_OUTPUT_DIRECTORY = "com.sonatype.insight.scan.outDir";
+  static final String PROP_OUTPUT_DIRECTORY = "com.sonatype.insight.scan.outDir";
 
-    static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
+  static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
 
-    public static void main( String[] args )
-    {
-        Parameters params = new Parameters( args );
+  public static void main(String[] args) {
+    Parameters params = new Parameters(args);
 
-        PolicyEvaluator main = boot( PolicyEvaluator.class, params );
+    PolicyEvaluator main = boot(PolicyEvaluator.class, params);
 
-        try
-        {
-            main.run( params );
-        }
-        catch ( ExitException e )
-        {
-            System.exit( e.getExitCode() );
-        }
+    try {
+      main.run(params);
+    }
+    catch (ExitException e) {
+      System.exit(e.getExitCode());
+    }
+  }
+
+  private static <T> T boot(Class<T> type, Parameters params) {
+    initLogging(params);
+
+    if (params.getError() != null) {
+      params.printUsage();
+
+      // NOTE: Acquire logger after initLogging()
+      Logger log = LoggerFactory.getLogger(PolicyEvaluatorCli.class);
+      log.error(params.getError().getMessage());
+      log.error(confidential(), "Actual arguments were: {}", Arrays.asList(params.getArgs()));
+
+      System.exit(1);
     }
 
-    private static <T> T boot( Class<T> type, Parameters params )
-    {
-        initLogging( params );
-
-        if ( params.getError() != null )
-        {
-            params.printUsage();
-
-            // NOTE: Acquire logger after initLogging()
-            Logger log = LoggerFactory.getLogger( PolicyEvaluatorCli.class );
-            log.error( params.getError().getMessage() );
-            log.error( confidential(), "Actual arguments were: {}", Arrays.asList( params.getArgs() ) );
-
-            System.exit( 1 );
-        }
-
-        if ( params.isHelp() )
-        {
-            params.printUsage();
-            System.exit( 0 );
-        }
-
-        return org.sonatype.guice.bean.containers.Main.boot( type, params.getArgs() );
+    if (params.isHelp()) {
+      params.printUsage();
+      System.exit(0);
     }
 
-    private static void initLogging( Parameters params )
-    {
-        System.setProperty( PROP_OUTPUT_DIRECTORY, params.getOutputDirectory().getAbsolutePath() );
-        System.setProperty( PROP_START_TIME, new SimpleDateFormat( "yyyyMMdd-HHmmss" ).format( new Date() ) );
+    return org.sonatype.guice.bean.containers.Main.boot(type, params.getArgs());
+  }
 
-        if ( params.isDebug() )
-        {
-            setLogLevel( Level.DEBUG );
-        }
-        else if ( params.isQuiet() )
-        {
-            setLogLevel( Level.ERROR );
-        }
-    }
+  private static void initLogging(Parameters params) {
+    System.setProperty(PROP_OUTPUT_DIRECTORY, params.getOutputDirectory().getAbsolutePath());
+    System.setProperty(PROP_START_TIME, new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()));
 
-    private static void setLogLevel( Level level )
-    {
-        setLogLevel( level, org.slf4j.Logger.ROOT_LOGGER_NAME, "com.sonatype.insight.scan" );
+    if (params.isDebug()) {
+      setLogLevel(Level.DEBUG);
     }
+    else if (params.isQuiet()) {
+      setLogLevel(Level.ERROR);
+    }
+  }
 
-    private static void setLogLevel( Level level, String... loggers )
-    {
-        for ( String logger : loggers )
-        {
-            ch.qos.logback.classic.Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger( logger );
-            log.setLevel( level );
-        }
-    }
+  private static void setLogLevel(Level level) {
+    setLogLevel(level, org.slf4j.Logger.ROOT_LOGGER_NAME, "com.sonatype.insight.scan");
+  }
 
-    private static Marker confidential()
-    {
-        return MarkerFactory.getDetachedMarker( "CONFIDENTIAL" );
+  private static void setLogLevel(Level level, String... loggers) {
+    for (String logger : loggers) {
+      ch.qos.logback.classic.Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger);
+      log.setLevel(level);
     }
+  }
+
+  private static Marker confidential() {
+    return MarkerFactory.getDetachedMarker("CONFIDENTIAL");
+  }
 
 }

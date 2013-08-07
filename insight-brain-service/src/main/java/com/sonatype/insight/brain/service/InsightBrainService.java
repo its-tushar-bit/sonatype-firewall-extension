@@ -38,123 +38,110 @@ import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
 public class InsightBrainService
     extends SisuService<InsightConfig>
 {
-    private static final Logger log = LoggerFactory.getLogger( InsightBrainService.class );
+  private static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
-    static
-    {
-        // INSIGHT-4557
-        System.setProperty( "java.awt.headless", "true" );
+  static {
+    // INSIGHT-4557
+    System.setProperty("java.awt.headless", "true");
+  }
+
+  public static final String APPLICATION_ASSET_PATH = "/application-assets/";
+
+  public static final String BRAIN_ASSET_PATH = "/assets/";
+
+  public static final String POLICY_ASSET_PATH = "/policy-assets/";
+
+  public static final String ORGANIZATION_ASSET_PATH = "/organization-assets/";
+
+  public static final String CONFIGURATION_ASSET_PATH = "/configuration-assets/";
+
+  public static final String CIP_ASSET_PATH = "/cip/";
+
+  public static void main(final String[] args) throws Exception {
+    new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
+  }
+
+  @Override
+  public void run(InsightConfig configuration, Environment environment) throws Exception {
+    super.run(configuration, environment);
+
+    LicenseDataUpdater.setUpdater(getInjector().getInstance(DefaultLicenseDataUpdater.class));
+  }
+
+  @Override
+  public void initialize(final Bootstrap<InsightConfig> bootstrap) {
+    bootstrap.addBundle(new AssetsBundle("/assets/application/", APPLICATION_ASSET_PATH, "index.html"));
+    bootstrap.addBundle(new AssetsBundle("/assets/assets/", BRAIN_ASSET_PATH, "index.html"));
+    bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html"));
+    bootstrap.addBundle(new AssetsBundle("/assets/organization/", ORGANIZATION_ASSET_PATH));
+    bootstrap.addBundle(new AssetsBundle("/assets/configuration/", CONFIGURATION_ASSET_PATH));
+    bootstrap.addBundle(new AssetsBundle("/assets/cip/", CIP_ASSET_PATH));
+
+    // workaround to let us set different defaults in the core HTTP configuration
+    bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());
+  }
+
+  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName("org.h2.Driver");
+    databaseConfig.setUrl("jdbc:h2:" + databaseDir.getAbsolutePath() + '/' + databaseName
+        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    databaseConfig.setUsername("sa");
+    databaseConfig.setPassword("");
+    databaseConfig.setMaxConnections(50);
+    return databaseConfig;
+  }
+
+  @Override
+  protected void customize(final InsightConfig config, final Environment env) {
+    replaceGenericExceptionMapper(env);
+
+    config.getSonatypeWork().mkdirs();
+
+    env.enableJerseyFeature(ResourceConfig.FEATURE_CANONICALIZE_URI_PATH);
+    env.enableJerseyFeature(ResourceConfig.FEATURE_NORMALIZE_URI);
+
+    log.info("Server base URL: {}", config.getBaseUrl());
+    log.debug("SaaS address: {}", config.getSaasAddress());
+    log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
+  }
+
+  // Copied from IdeScanService
+  private void replaceGenericExceptionMapper(final Environment environment) {
+    // DW has an exception mapper that turns exceptions into 500. Boo for us.
+    // Remove it so that our mapper will always be used to handle exceptions.
+    final Set<Object> singletons = environment.getJerseyResourceConfig().getSingletons();
+    for (Object candidate : singletons) {
+      if (candidate instanceof LoggingExceptionMapper) {
+        log.debug("Removing LoggingExceptionMapper");
+        singletons.remove(candidate);
+        break;
+      }
     }
 
-    public static final String APPLICATION_ASSET_PATH = "/application-assets/";
+    // Add our own mapper for exceptions.
+    environment.addProvider(new JaxRsExceptionMapper());
+  }
 
-    public static final String BRAIN_ASSET_PATH = "/assets/";
+  @Override
+  protected List<Module> modules(final InsightConfig config) {
+    // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
+    File databaseDir = new File(config.getSonatypeWork(), "data");
+    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm");
+    DatamartProvider.init(dmDatabaseConfig);
+    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods");
+    OperationalDataStoreProvider.init(odsDatabaseConfig);
 
-    public static final String POLICY_ASSET_PATH = "/policy-assets/";
-
-    public static final String ORGANIZATION_ASSET_PATH = "/organization-assets/";
-
-    public static final String CONFIGURATION_ASSET_PATH = "/configuration-assets/";
-
-    public static final String CIP_ASSET_PATH = "/cip/";
-
-    public static void main( final String[] args )
-        throws Exception
+    return Arrays.<Module> asList(new AbstractModule()
     {
-        new InsightBrainService().run( args.length > 0 ? args : new String[] { "server" } );
-    }
-
-    @Override
-    public void run( InsightConfig configuration, Environment environment )
-        throws Exception
-    {
-        super.run( configuration, environment );
-
-        LicenseDataUpdater.setUpdater( getInjector().getInstance( DefaultLicenseDataUpdater.class ) );
-    }
-
-    @Override
-    public void initialize( final Bootstrap<InsightConfig> bootstrap )
-    {
-        bootstrap.addBundle( new AssetsBundle( "/assets/application/", APPLICATION_ASSET_PATH, "index.html" ) );
-        bootstrap.addBundle( new AssetsBundle( "/assets/assets/", BRAIN_ASSET_PATH, "index.html" ) );
-        bootstrap.addBundle( new AssetsBundle( "/assets/policy/", POLICY_ASSET_PATH, "index.html" ) );
-        bootstrap.addBundle( new AssetsBundle( "/assets/organization/", ORGANIZATION_ASSET_PATH ) );
-        bootstrap.addBundle( new AssetsBundle( "/assets/configuration/", CONFIGURATION_ASSET_PATH ) );
-        bootstrap.addBundle( new AssetsBundle( "/assets/cip/", CIP_ASSET_PATH ) );
-
-        // workaround to let us set different defaults in the core HTTP configuration
-        bootstrap.getObjectMapperFactory().registerModule( new HttpConfig.Module() );
-    }
-
-    protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )
-    {
-        DatabaseConfig databaseConfig = new DatabaseConfig();
-        databaseConfig.setDriverClassName( "org.h2.Driver" );
-        databaseConfig.setUrl( "jdbc:h2:" + databaseDir.getAbsolutePath() + '/' + databaseName
-            + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
-        databaseConfig.setUsername( "sa" );
-        databaseConfig.setPassword( "" );
-        databaseConfig.setMaxConnections( 50 );
-        return databaseConfig;
-    }
-
-    @Override
-    protected void customize( final InsightConfig config, final Environment env )
-    {
-        replaceGenericExceptionMapper( env );
-
-        config.getSonatypeWork().mkdirs();
-
-        env.enableJerseyFeature( ResourceConfig.FEATURE_CANONICALIZE_URI_PATH );
-        env.enableJerseyFeature( ResourceConfig.FEATURE_NORMALIZE_URI );
-
-        log.info( "Server base URL: {}", config.getBaseUrl() );
-        log.debug( "SaaS address: {}", config.getSaasAddress() );
-        log.debug( "Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless() );
-    }
-
-    // Copied from IdeScanService
-    private void replaceGenericExceptionMapper( final Environment environment )
-    {
-        // DW has an exception mapper that turns exceptions into 500. Boo for us.
-        // Remove it so that our mapper will always be used to handle exceptions.
-        final Set<Object> singletons = environment.getJerseyResourceConfig().getSingletons();
-        for ( Object candidate : singletons )
+      @Override
+      protected void configure() {
+        final LoadingCache<ReleaseGraphKey, byte[]> cache = CacheBuilder.newBuilder()
+            .maximumSize(config.getReleaseGraphCacheSize()).build(new ReleaseGraphCacheLoader());
+        bind(new TypeLiteral<LoadingCache<ReleaseGraphKey, byte[]>>()
         {
-            if ( candidate instanceof LoggingExceptionMapper )
-            {
-                log.debug( "Removing LoggingExceptionMapper" );
-                singletons.remove( candidate );
-                break;
-            }
-        }
-
-        // Add our own mapper for exceptions.
-        environment.addProvider( new JaxRsExceptionMapper() );
-    }
-
-    @Override
-    protected List<Module> modules( final InsightConfig config )
-    {
-        // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
-        File databaseDir = new File( config.getSonatypeWork(), "data" );
-        DatabaseConfig dmDatabaseConfig = getDatabaseConfig( databaseDir, "dm" );
-        DatamartProvider.init( dmDatabaseConfig );
-        DatabaseConfig odsDatabaseConfig = getDatabaseConfig( databaseDir, "ods" );
-        OperationalDataStoreProvider.init( odsDatabaseConfig );
-
-        return Arrays.<Module> asList( new AbstractModule()
-        {
-            @Override
-            protected void configure()
-            {
-                final LoadingCache<ReleaseGraphKey, byte[]> cache =
-                    CacheBuilder.newBuilder().maximumSize( config.getReleaseGraphCacheSize() ).build( new ReleaseGraphCacheLoader() );
-                bind( new TypeLiteral<LoadingCache<ReleaseGraphKey, byte[]>>()
-                {
-                } ).toInstance( cache );
-            }
-        } );
-    }
+        }).toInstance(cache);
+      }
+    });
+  }
 }

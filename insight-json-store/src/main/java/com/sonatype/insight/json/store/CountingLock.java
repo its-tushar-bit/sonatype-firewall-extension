@@ -12,49 +12,40 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 final class CountingLock
 {
-    private final ReadWriteLock rwl = new ReentrantReadWriteLock();
+  private final ReadWriteLock rwl = new ReentrantReadWriteLock();
 
-    private final AtomicInteger count;
+  private final AtomicInteger count;
 
-    CountingLock( final int initialCount )
-    {
-        count = new AtomicInteger( initialCount );
+  CountingLock(final int initialCount) {
+    count = new AtomicInteger(initialCount);
+  }
+
+  void sharedLock() {
+    rwl.readLock().lock();
+  }
+
+  void sharedUnlock() {
+    rwl.readLock().unlock();
+  }
+
+  void exclusiveLock() {
+    rwl.writeLock().lock();
+  }
+
+  void exclusiveUnlock() {
+    try {
+      count.incrementAndGet();
     }
-
-    void sharedLock()
-    {
-        rwl.readLock().lock();
+    finally {
+      rwl.writeLock().unlock();
     }
+  }
 
-    void sharedUnlock()
-    {
-        rwl.readLock().unlock();
-    }
+  int count() {
+    return count.get();
+  }
 
-    void exclusiveLock()
-    {
-        rwl.writeLock().lock();
-    }
-
-    void exclusiveUnlock()
-    {
-        try
-        {
-            count.incrementAndGet();
-        }
-        finally
-        {
-            rwl.writeLock().unlock();
-        }
-    }
-
-    int count()
-    {
-        return count.get();
-    }
-
-    Lock readLock()
-    {
-        return rwl.readLock();
-    }
+  Lock readLock() {
+    return rwl.readLock();
+  }
 }

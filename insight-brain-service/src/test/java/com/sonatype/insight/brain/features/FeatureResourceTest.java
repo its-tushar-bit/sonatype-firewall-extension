@@ -18,21 +18,18 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class FeatureResourceTest
     extends AbstractResourceTest
 {
-    @Test
-    public void testFeatures()
-        throws Exception
-    {
-        // Get all features
-        Response response = RestAccess.get( getServiceURL() );
-        assertResponseStatus( 200, response );
-        String[] features = JsonHelpers.fromJson( response.getResponseBody(), String[].class );
-        Assert.assertNotNull( features );
-        Assert.assertTrue( Arrays.asList( features ).contains( "policy" ) );
-        Assert.assertTrue( Arrays.asList( features ).contains( "labels" ) );
-    }
+  @Test
+  public void testFeatures() throws Exception {
+    // Get all features
+    Response response = RestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    String[] features = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    Assert.assertNotNull(features);
+    Assert.assertTrue(Arrays.asList(features).contains("policy"));
+    Assert.assertTrue(Arrays.asList(features).contains("labels"));
+  }
 
-    private String getServiceURL()
-    {
-        return getRestBaseUrl() + FeaturesResource.SERVICE_PATH;
-    }
+  private String getServiceURL() {
+    return getRestBaseUrl() + FeaturesResource.SERVICE_PATH;
+  }
 }

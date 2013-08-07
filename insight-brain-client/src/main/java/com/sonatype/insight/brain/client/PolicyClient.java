@@ -30,58 +30,48 @@ import org.slf4j.LoggerFactory;
 public class PolicyClient
     extends AbstractServletClient<PolicyClient>
 {
-    private static final Logger log = LoggerFactory.getLogger( PolicyClient.class );
+  private static final Logger log = LoggerFactory.getLogger(PolicyClient.class);
 
-    private final String appId;
+  private final String appId;
 
-    public PolicyClient( final Configuration config, final String appId )
-    {
-        super( config );
+  public PolicyClient(final Configuration config, final String appId) {
+    super(config);
 
-        this.appId = UrlUtils.encodeUrlComponent( appId );
+    this.appId = UrlUtils.encodeUrlComponent(appId);
+  }
+
+  @Override
+  public ServletResult handle(final String path, final Map<String, String[]> query) throws IOException {
+    if (path == null || path.length() == 0) {
+      // implicit redirect from initial top-level request to the actual management asset
+      final HttpResponse redirect = new BasicHttpResponse(HttpVersion.HTTP_1_1, 302, null);
+      redirect.setHeader(HttpHeaders.LOCATION, "assets/index.html#/management/application/" + appId + "/policies");
+      return result(redirect);
     }
 
-    @Override
-    public ServletResult handle( final String path, final Map<String, String[]> query )
-        throws IOException
-    {
-        if ( path == null || path.length() == 0 )
-        {
-            // implicit redirect from initial top-level request to the actual management asset
-            final HttpResponse redirect = new BasicHttpResponse( HttpVersion.HTTP_1_1, 302, null );
-            redirect.setHeader( HttpHeaders.LOCATION, "assets/index.html#/management/application/" + appId + "/policies" );
-            return result( redirect );
-        }
-
-        // workaround for DropWizard directory->index redirect bug
-        if ( path.contains( "assets/" ) && path.endsWith( "/" ) )
-        {
-            return path( path, "index.html" ).get();
-        }
-
-        return super.handle( path, query );
+    // workaround for DropWizard directory->index redirect bug
+    if (path.contains("assets/") && path.endsWith("/")) {
+      return path(path, "index.html").get();
     }
 
-    public PolicyEvaluationResult evaluate( final String scanId, final Stage stage )
-        throws IOException
-    {
-        final ByteArrayEntity entity = new ByteArrayEntity( JsonUtils.generate( stage ), ContentType.APPLICATION_JSON );
+    return super.handle(path, query);
+  }
 
-        final Result httpResult = path( "rest/policy", appId, "evaluate" ).query( "scanId", scanId ).post( entity );
-        if ( httpResult.status() >= 400 )
-        {
-            throw new ClientException( httpResult );
-        }
+  public PolicyEvaluationResult evaluate(final String scanId, final Stage stage) throws IOException {
+    final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(stage), ContentType.APPLICATION_JSON);
 
-        final String jsonResult = httpResult.text();
-        try
-        {
-            return JsonUtils.parse( jsonResult, PolicyEvaluationResult.class );
-        }
-        catch ( final IOException e )
-        {
-            log.error( "Cannot parse json:" + jsonResult );
-            throw new ClientException( httpResult, e );
-        }
+    final Result httpResult = path("rest/policy", appId, "evaluate").query("scanId", scanId).post(entity);
+    if (httpResult.status() >= 400) {
+      throw new ClientException(httpResult);
     }
+
+    final String jsonResult = httpResult.text();
+    try {
+      return JsonUtils.parse(jsonResult, PolicyEvaluationResult.class);
+    }
+    catch (final IOException e) {
+      log.error("Cannot parse json:" + jsonResult);
+      throw new ClientException(httpResult, e);
+    }
+  }
 }

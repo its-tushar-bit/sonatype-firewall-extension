@@ -15,15 +15,12 @@ public class EnvironmentResourceTest
     extends AbstractResourceTest
 {
 
-    @Test
-    public void testSubmitClientEnvironment()
-        throws Exception
-    {
-        String queryParams = "p=eclipse&version=2.0.1.qualifier";
-        setSaasResponseForURI( "session/environment?" + queryParams, "", 200 );
-        final Response response =
-            RestAccess.get( getRestBaseUrl() + EnvironmentResource.RESOURCE_PATH + "?" + queryParams );
-        assertResponseStatus( 200, response );
-    }
+  @Test
+  public void testSubmitClientEnvironment() throws Exception {
+    String queryParams = "p=eclipse&version=2.0.1.qualifier";
+    setSaasResponseForURI("session/environment?" + queryParams, "", 200);
+    final Response response = RestAccess.get(getRestBaseUrl() + EnvironmentResource.RESOURCE_PATH + "?" + queryParams);
+    assertResponseStatus(200, response);
+  }
 
 }

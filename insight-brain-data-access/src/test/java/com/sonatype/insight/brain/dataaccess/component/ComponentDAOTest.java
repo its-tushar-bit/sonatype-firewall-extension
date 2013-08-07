@@ -33,126 +33,119 @@ public class ComponentDAOTest
     extends AbstractDbDAOTest
 {
 
-    private static final String COMP_HASH = "12345678901234567890";
+  private static final String COMP_HASH = "12345678901234567890";
 
-    private ComponentDAO componentDAO = new ComponentDAO();
+  private ComponentDAO componentDAO = new ComponentDAO();
 
-    private LabelDAO labelDAO = new LabelDAO();
+  private LabelDAO labelDAO = new LabelDAO();
 
-    private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
-    @Before
-    public void before()
-    {
-        createDefaultApplication();
+  @Before
+  public void before() {
+    createDefaultApplication();
+  }
+
+  private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId, String source,
+      Float severity, SecurityVulnerabilityStatus status)
+  {
+    com.sonatype.insight.brain.model.component.SecurityVulnerability sv = new com.sonatype.insight.brain.model.component.SecurityVulnerability(
+        source, refId, severity);
+    sv.setStatus(status);
+    return sv;
+  }
+
+  private void assertSecurityVulnerabilities(
+      List<com.sonatype.insight.brain.model.component.SecurityVulnerability> actual,
+      com.sonatype.insight.brain.model.component.SecurityVulnerability... expected)
+  {
+    assertEquals(expected.length, actual.size());
+    for (int i = 0, n = expected.length; i < n; i++) {
+      assertSecurityVulnerability(expected[i], actual.get(i));
     }
+  }
 
-    private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV( String refId, String source,
-                                                                                    Float severity,
-                                                                                    SecurityVulnerabilityStatus status )
-    {
-        com.sonatype.insight.brain.model.component.SecurityVulnerability sv =
-            new com.sonatype.insight.brain.model.component.SecurityVulnerability( source, refId, severity );
-        sv.setStatus( status );
-        return sv;
+  private void assertSecurityVulnerability(com.sonatype.insight.brain.model.component.SecurityVulnerability expected,
+      com.sonatype.insight.brain.model.component.SecurityVulnerability actual)
+  {
+    assertEquals(expected.getRefId(), actual.getRefId());
+    assertEquals(expected.getSource(), actual.getSource());
+    assertEquals(expected.getSeverity(), actual.getSeverity());
+    assertEquals(expected.getStatus(), actual.getStatus());
+  }
+
+  private void assertLicenseThreatGroups(Set<LicenseThreatGroup> actual, String... expected) {
+    Set<String> actualNames = new TreeSet<String>();
+    for (LicenseThreatGroup group : actual) {
+      actualNames.add(group.getName());
     }
+    assertEquals(new TreeSet<String>(Arrays.asList(expected)), actualNames);
+  }
 
-    private void assertSecurityVulnerabilities( List<com.sonatype.insight.brain.model.component.SecurityVulnerability> actual,
-                                                com.sonatype.insight.brain.model.component.SecurityVulnerability... expected )
-    {
-        assertEquals( expected.length, actual.size() );
-        for ( int i = 0, n = expected.length; i < n; i++ )
-        {
-            assertSecurityVulnerability( expected[i], actual.get( i ) );
-        }
-    }
+  @Test
+  public void testGetComponent() {
+    Label label = new Label(applicationId, "red", null);
+    labelDAO.insert(label);
+    componentLabelDAO.insert(new ComponentLabel(applicationId, label.getId(), COMP_HASH));
 
-    private void assertSecurityVulnerability( com.sonatype.insight.brain.model.component.SecurityVulnerability expected,
-                                              com.sonatype.insight.brain.model.component.SecurityVulnerability actual )
-    {
-        assertEquals( expected.getRefId(), actual.getRefId() );
-        assertEquals( expected.getSource(), actual.getSource() );
-        assertEquals( expected.getSeverity(), actual.getSeverity() );
-        assertEquals( expected.getStatus(), actual.getStatus() );
-    }
+    MatchedComponent info = new MatchedComponent();
+    info.setHash(COMP_HASH);
+    info.setGroupId("gid");
+    info.setArtifactId("aid");
+    info.setVersion("1.2.3");
+    info.setMatchState("similar");
+    info.setCatalogDate(System.currentTimeMillis());
+    info.setRelativePopularity(42);
+    info.addDeclaredLicenseId("Apache-2.0");
+    info.addObservedLicenseId("MIT");
+    info.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
+    Component comp = componentDAO.getComponent(applicationId, info, null, null);
+    assertNotNull(comp);
+    assertEquals(info.getHash(), comp.getHash());
+    assertEquals(info.getGroupId(), comp.getGroupId());
+    assertEquals(info.getArtifactId(), comp.getArtifactId());
+    assertEquals(info.getVersion(), comp.getVersion());
+    assertEquals(info.getMatchState(), comp.getMatchState().getId());
+    assertEquals(info.getCatalogDate(), comp.getCatalogDate());
+    assertEquals(info.getRelativePopularity(), new Integer(comp.getRelativePopularity()));
+    assertEquals(info.getDeclaredLicenseIds(), comp.getDeclaredLicenseIds());
+    assertEquals(info.getObservedLicenseIds(), comp.getObservedLicenseIds());
+    assertEquals(Collections.emptySet(), comp.getOverriddenLicenseIds());
+    assertLicenseThreatGroups(comp.getLicenseThreatGroups(), "Liberal");
+    assertSecurityVulnerabilities(comp.getSecurityVulnerabilities(),
+        newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
+    assertEquals(1, comp.getLabelIds().size());
+  }
 
-    private void assertLicenseThreatGroups( Set<LicenseThreatGroup> actual, String... expected )
-    {
-        Set<String> actualNames = new TreeSet<String>();
-        for ( LicenseThreatGroup group : actual )
-        {
-            actualNames.add( group.getName() );
-        }
-        assertEquals( new TreeSet<String>( Arrays.asList( expected ) ), actualNames );
-    }
+  @Test
+  public void testGetComponent_MultiLicenses_Declared() {
+    MatchedComponent componentInfo = new MatchedComponent();
+    componentInfo.setHash(COMP_HASH);
+    componentInfo.setGroupId("gid");
+    componentInfo.setArtifactId("aid");
+    componentInfo.setVersion("1.2.3");
+    componentInfo.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
+    Component component = componentDAO.getComponent(applicationId, componentInfo, null, null);
+    assertNotNull(component);
+    assertEquals(component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size());
+    assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
+    assertTrue(component.getDeclaredLicenseIds().contains("GPL-2.0"));
+    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal", "Copyleft");
+  }
 
-    @Test
-    public void testGetComponent()
-    {
-        Label label = new Label( applicationId, "red", null );
-        labelDAO.insert( label );
-        componentLabelDAO.insert( new ComponentLabel( applicationId, label.getId(), COMP_HASH ) );
-
-        MatchedComponent info = new MatchedComponent();
-        info.setHash( COMP_HASH );
-        info.setGroupId( "gid" );
-        info.setArtifactId( "aid" );
-        info.setVersion( "1.2.3" );
-        info.setMatchState( "similar" );
-        info.setCatalogDate( System.currentTimeMillis() );
-        info.setRelativePopularity( 42 );
-        info.addDeclaredLicenseId( "Apache-2.0" );
-        info.addObservedLicenseId( "MIT" );
-        info.addSecurityVulnerability( new SecurityVulnerability( "12345", "osvdb", 4f ) );
-        Component comp = componentDAO.getComponent( applicationId, info, null, null );
-        assertNotNull( comp );
-        assertEquals( info.getHash(), comp.getHash() );
-        assertEquals( info.getGroupId(), comp.getGroupId() );
-        assertEquals( info.getArtifactId(), comp.getArtifactId() );
-        assertEquals( info.getVersion(), comp.getVersion() );
-        assertEquals( info.getMatchState(), comp.getMatchState().getId() );
-        assertEquals( info.getCatalogDate(), comp.getCatalogDate() );
-        assertEquals( info.getRelativePopularity(), new Integer( comp.getRelativePopularity() ) );
-        assertEquals( info.getDeclaredLicenseIds(), comp.getDeclaredLicenseIds() );
-        assertEquals( info.getObservedLicenseIds(), comp.getObservedLicenseIds() );
-        assertEquals( Collections.emptySet(), comp.getOverriddenLicenseIds() );
-        assertLicenseThreatGroups( comp.getLicenseThreatGroups(), "Liberal" );
-        assertSecurityVulnerabilities( comp.getSecurityVulnerabilities(),
-                                       newSV( "12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN ) );
-        assertEquals( 1, comp.getLabelIds().size() );
-    }
-
-    @Test
-    public void testGetComponent_MultiLicenses_Declared()
-    {
-        MatchedComponent componentInfo = new MatchedComponent();
-        componentInfo.setHash( COMP_HASH );
-        componentInfo.setGroupId( "gid" );
-        componentInfo.setArtifactId( "aid" );
-        componentInfo.setVersion( "1.2.3" );
-        componentInfo.addDeclaredLicenseId( "Apache-2.0-GPL-2.0" );
-        Component component = componentDAO.getComponent( applicationId, componentInfo, null, null );
-        assertNotNull( component );
-        assertEquals( component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size() );
-        assertTrue( component.getDeclaredLicenseIds().contains( "Apache-2.0" ) );
-        assertTrue( component.getDeclaredLicenseIds().contains( "GPL-2.0" ) );
-        assertLicenseThreatGroups( component.getLicenseThreatGroups(), "Liberal", "Copyleft" );
-    }
-
-    @Test
-    public void testGetComponent_MultiLicenses_Observed()
-    {
-        MatchedComponent componentInfo = new MatchedComponent();
-        componentInfo.setHash( COMP_HASH );
-        componentInfo.setGroupId( "gid" );
-        componentInfo.setArtifactId( "aid" );
-        componentInfo.setVersion( "1.2.3" );
-        componentInfo.addObservedLicenseId( "Apache-2.0-GPL-2.0" );
-        Component component = componentDAO.getComponent( applicationId, componentInfo, null, null );
-        assertNotNull( component );
-        assertEquals( component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size() );
-        assertTrue( component.getObservedLicenseIds().contains( "Apache-2.0" ) );
-        assertTrue( component.getObservedLicenseIds().contains( "GPL-2.0" ) );
-        assertLicenseThreatGroups( component.getLicenseThreatGroups(), "Liberal", "Copyleft" );
-    }
+  @Test
+  public void testGetComponent_MultiLicenses_Observed() {
+    MatchedComponent componentInfo = new MatchedComponent();
+    componentInfo.setHash(COMP_HASH);
+    componentInfo.setGroupId("gid");
+    componentInfo.setArtifactId("aid");
+    componentInfo.setVersion("1.2.3");
+    componentInfo.addObservedLicenseId("Apache-2.0-GPL-2.0");
+    Component component = componentDAO.getComponent(applicationId, componentInfo, null, null);
+    assertNotNull(component);
+    assertEquals(component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size());
+    assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));
+    assertTrue(component.getObservedLicenseIds().contains("GPL-2.0"));
+    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal", "Copyleft");
+  }
 }

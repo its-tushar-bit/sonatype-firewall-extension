@@ -17,133 +17,117 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@Table( name = "label" )
+@Table(name = "label")
 public class Label
     implements HasStringId
 {
-    @Id
-    @Column( name = "label_id" )
-    private String id;
+  @Id
+  @Column(name = "label_id")
+  private String id;
 
-    /**
-     * @since 1.6
-     */
-    @Column( name = "owner_id" )
-    private String ownerId;
+  /**
+   * @since 1.6
+   */
+  @Column(name = "owner_id")
+  private String ownerId;
 
-    @Column( name = "label" )
-    private String label;
+  @Column(name = "label")
+  private String label;
 
-    @Column( name = "label_lowercase" )
-    private String labelLowercase;
+  @Column(name = "label_lowercase")
+  private String labelLowercase;
 
-    @Column ( name = "description")
-    private String description;
+  @Column(name = "description")
+  private String description;
 
-    @Column( name = "color" )
-    @Enumerated( EnumType.STRING )
-    private Color color;
+  @Column(name = "color")
+  @Enumerated(EnumType.STRING)
+  private Color color;
 
-    public Label()
-    {
-    }
+  public Label() {
+  }
 
-    public Label( String ownerId, String label, Color color )
-    {
-        this.ownerId = ownerId;
-        setLabel( label );
-        this.color = color;
-    }
-
-    @Override
-    public String getId()
-    {
-        return id;
-    }
-
-    @Override
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    /**
-     * @since 1.6
-     */
-    public String getOwnerId()
-    {
-        return ownerId;
-    }
-
-    /**
-     * @since 1.6
-     */
-    public void setOwnerId( String ownerId )
-    {
-        this.ownerId = ownerId;
-    }
-
-    public String getLabel()
-    {
-        return label;
-    }
-
-    public void setLabel( String label )
-    {
-        if ( label != null )
-        {
-            label = label.trim();
-            labelLowercase = label.toLowerCase( Locale.ENGLISH );
-        }
-        else
-        {
-            labelLowercase = null;
-        }
-        this.label = label;
-    }
-
-    public String getLabelLowercase()
-    {
-        return labelLowercase;
-    }
-
-    public Color getColor()
-    {
-        return color;
-    }
-
-    public void setColor( Color color )
-    {
-        this.color = color;
-    }
-
-    public String getDescription() {
-      return description;
-    }
-
-    public void setDescription(final String description) {
-      this.description = description;
-    }
+  public Label(String ownerId, String label, Color color) {
+    this.ownerId = ownerId;
+    setLabel(label);
+    this.color = color;
+  }
 
   @Override
-    public String toString()
-    {
-        return "Label=" + label;
-    }
+  public String getId() {
+    return id;
+  }
 
-    /**
-     * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-     * labelLowercase field. If this method is not defined, jackson will set/access the labelLowercase field directly
-     * via reflection, possibly setting it to an incorrect value.
-     * 
-     * @deprecated This method should not be used explicitly.
-     */
-    public void setLabelLowercase( String labelLowercase )
-    {
-    }
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public void fixLabelLowercase()
-    {
-        setLabel( label );
+  /**
+   * @since 1.6
+   */
+  public String getOwnerId() {
+    return ownerId;
+  }
+
+  /**
+   * @since 1.6
+   */
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public void setLabel(String label) {
+    if (label != null) {
+      label = label.trim();
+      labelLowercase = label.toLowerCase(Locale.ENGLISH);
     }
+    else {
+      labelLowercase = null;
+    }
+    this.label = label;
+  }
+
+  public String getLabelLowercase() {
+    return labelLowercase;
+  }
+
+  public Color getColor() {
+    return color;
+  }
+
+  public void setColor(Color color) {
+    this.color = color;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(final String description) {
+    this.description = description;
+  }
+
+  @Override
+  public String toString() {
+    return "Label=" + label;
+  }
+
+  /**
+   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+   * labelLowercase field. If this method is not defined, jackson will set/access the labelLowercase field directly
+   * via reflection, possibly setting it to an incorrect value.
+   * 
+   * @deprecated This method should not be used explicitly.
+   */
+  public void setLabelLowercase(String labelLowercase) {
+  }
+
+  public void fixLabelLowercase() {
+    setLabel(label);
+  }
 }

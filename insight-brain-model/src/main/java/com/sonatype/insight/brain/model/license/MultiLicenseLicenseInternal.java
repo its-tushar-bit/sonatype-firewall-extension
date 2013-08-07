@@ -9,94 +9,81 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
-@IdClass( MultiLicenseLicenseInternal.ID.class )
-@Table( name = "multi_license_license" )
+@IdClass(MultiLicenseLicenseInternal.ID.class)
+@Table(name = "multi_license_license")
 // TODO This class does NOT really have a string id. It implements HasStringId only to make it easier to create a DAO
 // for it.
 public class MultiLicenseLicenseInternal
     implements HasStringId
 {
-    @Id
-    @Column( name = "multi_license_id" )
+  @Id
+  @Column(name = "multi_license_id")
+  private String multiLicenseId;
+
+  @Id
+  @Column(name = "license_id")
+  private String licenseId;
+
+  public MultiLicenseLicenseInternal() {
+  }
+
+  public static class ID
+  {
     private String multiLicenseId;
 
-    @Id
-    @Column( name = "license_id" )
     private String licenseId;
 
-    public MultiLicenseLicenseInternal()
-    {
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || !getClass().equals(obj.getClass())) {
+        return false;
+      }
+      ID that = (ID) obj;
+      return eq(multiLicenseId, that.multiLicenseId) && eq(licenseId, that.licenseId);
     }
 
-    public static class ID
-    {
-        private String multiLicenseId;
-
-        private String licenseId;
-
-        @Override
-        public boolean equals( Object obj )
-        {
-            if ( this == obj )
-            {
-                return true;
-            }
-            if ( obj == null || !getClass().equals( obj.getClass() ) )
-            {
-                return false;
-            }
-            ID that = (ID) obj;
-            return eq( multiLicenseId, that.multiLicenseId ) && eq( licenseId, that.licenseId );
-        }
-
-        private static <T> boolean eq( T obj1, T obj2 )
-        {
-            return ( obj1 == null ) ? obj2 == null : obj1.equals( obj2 );
-        }
-
-        @Override
-        public int hashCode()
-        {
-            int result = 1;
-            result = 31 * result + hash( multiLicenseId );
-            result = 31 * result + hash( licenseId );
-            return result;
-        }
-
-        private static int hash( Object obj )
-        {
-            return ( obj == null ) ? 0 : obj.hashCode();
-        }
-    }
-
-    public String getMultiLicenseId()
-    {
-        return multiLicenseId;
-    }
-
-    public void setMultiLicenseId( String multiLicenseId )
-    {
-        this.multiLicenseId = multiLicenseId;
-    }
-
-    public String getLicenseId()
-    {
-        return licenseId;
-    }
-
-    public void setLicenseId( String licenseId )
-    {
-        this.licenseId = licenseId;
+    private static <T> boolean eq(T obj1, T obj2) {
+      return (obj1 == null) ? obj2 == null : obj1.equals(obj2);
     }
 
     @Override
-    public String getId()
-    {
-        return multiLicenseId + licenseId;
+    public int hashCode() {
+      int result = 1;
+      result = 31 * result + hash(multiLicenseId);
+      result = 31 * result + hash(licenseId);
+      return result;
     }
 
-    @Override
-    public void setId( String id )
-    {
+    private static int hash(Object obj) {
+      return (obj == null) ? 0 : obj.hashCode();
     }
+  }
+
+  public String getMultiLicenseId() {
+    return multiLicenseId;
+  }
+
+  public void setMultiLicenseId(String multiLicenseId) {
+    this.multiLicenseId = multiLicenseId;
+  }
+
+  public String getLicenseId() {
+    return licenseId;
+  }
+
+  public void setLicenseId(String licenseId) {
+    this.licenseId = licenseId;
+  }
+
+  @Override
+  public String getId() {
+    return multiLicenseId + licenseId;
+  }
+
+  @Override
+  public void setId(String id) {
+  }
 }

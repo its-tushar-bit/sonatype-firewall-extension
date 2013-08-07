@@ -13,35 +13,30 @@ import com.sonatype.insight.brain.model.policy.StageType;
 
 public class StageTypes
 {
-    private static final Map<String, StageType> allStageTypes = new LinkedHashMap<String, StageType>();
+  private static final Map<String, StageType> allStageTypes = new LinkedHashMap<String, StageType>();
 
-    static
-    {
-        add( new ProcureStageType() );
-        add( new DevelopStageType() );
-        add( new BuildStageType() );
-        add( new StageReleaseStageType() );
-        add( new ReleaseStageType() );
-        add( new OperateStageType() );
-    }
+  static {
+    add(new ProcureStageType());
+    add(new DevelopStageType());
+    add(new BuildStageType());
+    add(new StageReleaseStageType());
+    add(new ReleaseStageType());
+    add(new OperateStageType());
+  }
 
-    public static Collection<StageType> getAll()
-    {
-        return allStageTypes.values();
-    }
+  public static Collection<StageType> getAll() {
+    return allStageTypes.values();
+  }
 
-    private static void add( final StageType stageType )
-    {
-        if ( allStageTypes.keySet().contains( stageType.getId() ) )
-        {
-            throw new IllegalStateException( "Duplicate stage type id: " + stageType.getId() );
-        }
-        allStageTypes.put( stageType.getId(), stageType );
+  private static void add(final StageType stageType) {
+    if (allStageTypes.keySet().contains(stageType.getId())) {
+      throw new IllegalStateException("Duplicate stage type id: " + stageType.getId());
     }
+    allStageTypes.put(stageType.getId(), stageType);
+  }
 
-    public static StageType getById( final String stageTypeId )
-    {
-        // TODO throw exception if stageTypeId is unknown
-        return allStageTypes.get( stageTypeId );
-    }
+  public static StageType getById(final String stageTypeId) {
+    // TODO throw exception if stageTypeId is unknown
+    return allStageTypes.get(stageTypeId);
+  }
 }

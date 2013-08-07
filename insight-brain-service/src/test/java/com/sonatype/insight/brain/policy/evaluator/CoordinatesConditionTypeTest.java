@@ -26,190 +26,177 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 public class CoordinatesConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-    private Constraint createConstraint( String operator, String value )
-    {
-        return createConstraint( "ConstraintId1", "Constraint Name 1", CoordinatesConditionType.ID, operator, value );
-    }
+  private Constraint createConstraint(String operator, String value) {
+    return createConstraint("ConstraintId1", "Constraint Name 1", CoordinatesConditionType.ID, operator, value);
+  }
 
-    @Test
-    public void testEvaluateMatchExact()
-    {
-        // Create policy constraints
-        Constraint constraint = createConstraint( "match", "g2:a2:v2" );
-        List<Constraint> constraints = new ArrayList<Constraint>();
-        constraints.add( constraint );
+  @Test
+  public void testEvaluateMatchExact() {
+    // Create policy constraints
+    Constraint constraint = createConstraint("match", "g2:a2:v2");
+    List<Constraint> constraints = new ArrayList<Constraint>();
+    constraints.add(constraint);
 
-        // Create policy
-        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
-        policy.setConstraints( constraints );
-        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
-        components.add( component2 );
-        Component component3 = new Component();
-        component3.setMatchState( MatchState.UNKNOWN );
-        components.add( component3 );
+    List<Component> components = new ArrayList<Component>();
+    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
+    Component component2 = new Component("g2", "a2", "v2", MatchState.SIMILAR);
+    components.add(component2);
+    Component component3 = new Component();
+    component3.setMatchState(MatchState.UNKNOWN);
+    components.add(component3);
 
-        // Evaluate the policy
-        List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
-        Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
-        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
-    }
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
+        BuildStageType.ID), Arrays.asList(policy), components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
 
-    @Test
-    public void testEvaluateMatchGavWithSpaces()
-    {
-        // Create policy constraints
-        Constraint constraint = createConstraint( "match", "g1 : a1 : v1" );
-        List<Constraint> constraints = new ArrayList<Constraint>();
-        constraints.add( constraint );
+  @Test
+  public void testEvaluateMatchGavWithSpaces() {
+    // Create policy constraints
+    Constraint constraint = createConstraint("match", "g1 : a1 : v1");
+    List<Constraint> constraints = new ArrayList<Constraint>();
+    constraints.add(constraint);
 
-        // Create policy
-        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
-        policy.setConstraints( constraints );
-        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        components.add( component1 );
+    List<Component> components = new ArrayList<Component>();
+    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
 
-        // Evaluate the policy
-        List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
-        Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
-        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
-    }
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
+        BuildStageType.ID), Arrays.asList(policy), components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
 
-    @Test
-    public void testEvaluateMatchWildcard()
-    {
-        // Create policy constraints
-        Constraint constraint = createConstraint( "match", "g2:a*:v2" );
-        List<Constraint> constraints = new ArrayList<Constraint>();
-        constraints.add( constraint );
+  @Test
+  public void testEvaluateMatchWildcard() {
+    // Create policy constraints
+    Constraint constraint = createConstraint("match", "g2:a*:v2");
+    List<Constraint> constraints = new ArrayList<Constraint>();
+    constraints.add(constraint);
 
-        // Create policy
-        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
-        policy.setConstraints( constraints );
-        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
-        components.add( component2 );
-        Component component3 = new Component();
-        component3.setMatchState( MatchState.UNKNOWN );
-        components.add( component3 );
+    List<Component> components = new ArrayList<Component>();
+    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
+    Component component2 = new Component("g2", "a2", "v2", MatchState.SIMILAR);
+    components.add(component2);
+    Component component3 = new Component();
+    component3.setMatchState(MatchState.UNKNOWN);
+    components.add(component3);
 
-        // Evaluate the policy
-        List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
-        Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
-        assertContainsPolicyAlert( component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
-    }
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
+        BuildStageType.ID), Arrays.asList(policy), components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
 
-    @Test
-    public void testEvaluateDoNotMatchExact()
-    {
-        // Create policy constraints
-        Constraint constraint = createConstraint( "do not match", "g2:a2:v2" );
-        List<Constraint> constraints = new ArrayList<Constraint>();
-        constraints.add( constraint );
+  @Test
+  public void testEvaluateDoNotMatchExact() {
+    // Create policy constraints
+    Constraint constraint = createConstraint("do not match", "g2:a2:v2");
+    List<Constraint> constraints = new ArrayList<Constraint>();
+    constraints.add(constraint);
 
-        // Create policy
-        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
-        policy.setConstraints( constraints );
-        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
-        components.add( component2 );
-        Component component3 = new Component();
-        component3.setMatchState( MatchState.UNKNOWN );
-        components.add( component3 );
+    List<Component> components = new ArrayList<Component>();
+    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
+    Component component2 = new Component("g2", "a2", "v2", MatchState.SIMILAR);
+    components.add(component2);
+    Component component3 = new Component();
+    component3.setMatchState(MatchState.UNKNOWN);
+    components.add(component3);
 
-        // Evaluate the policy
-        List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
-        Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
-        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
-    }
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
+        BuildStageType.ID), Arrays.asList(policy), components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
 
-    @Test
-    public void testEvaluateDoNotMatchWildcard()
-    {
-        // Create policy constraints
-        Constraint constraint = createConstraint( "do not match", "g2:a*:v2" );
-        List<Constraint> constraints = new ArrayList<Constraint>();
-        constraints.add( constraint );
+  @Test
+  public void testEvaluateDoNotMatchWildcard() {
+    // Create policy constraints
+    Constraint constraint = createConstraint("do not match", "g2:a*:v2");
+    List<Constraint> constraints = new ArrayList<Constraint>();
+    constraints.add(constraint);
 
-        // Create policy
-        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
-        policy.setConstraints( constraints );
-        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", "a1", "v1", MatchState.EXACT );
-        components.add( component1 );
-        Component component2 = new Component( "g2", "a2", "v2", MatchState.SIMILAR );
-        components.add( component2 );
-        Component component3 = new Component();
-        component3.setMatchState( MatchState.UNKNOWN );
-        components.add( component3 );
+    List<Component> components = new ArrayList<Component>();
+    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
+    Component component2 = new Component("g2", "a2", "v2", MatchState.SIMILAR);
+    components.add(component2);
+    Component component3 = new Component();
+    component3.setMatchState(MatchState.UNKNOWN);
+    components.add(component3);
 
-        // Evaluate the policy
-        List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
-        Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
-        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
-    }
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
+        BuildStageType.ID), Arrays.asList(policy), components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
 
-    @Test
-    public void testEvaluateEscapeUnsafeCharacter()
-    {
-        String artifactId = "\\\"\r\n\t'";
-        Policy policy = new Policy( "PolicyId1", "Policy Name 1" );
-        policy.addConstraint( createConstraint( "match", "g1:" + artifactId ) );
-        policy.addAction( BuildStageType.ID, new Action( FailActionType.ID ) );
+  @Test
+  public void testEvaluateEscapeUnsafeCharacter() {
+    String artifactId = "\\\"\r\n\t'";
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.addConstraint(createConstraint("match", "g1:" + artifactId));
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-        List<Component> components = new ArrayList<Component>();
-        Component component1 = new Component( "g1", artifactId, "v1", MatchState.EXACT );
-        components.add( component1 );
+    List<Component> components = new ArrayList<Component>();
+    Component component1 = new Component("g1", artifactId, "v1", MatchState.EXACT);
+    components.add(component1);
 
-        List<PolicyAlert> policyAlerts =
-            new PolicyEvaluator().evaluate( null /* applicationId */, new Stage( BuildStageType.ID ),
-                                            Arrays.asList( policy ), components );
-        Assert.assertNotNull( policyAlerts );
-        Assert.assertEquals( 1, policyAlerts.size() );
-        assertFactCounts( 1, 1, policyAlerts.get( 0 ) );
-        assertContainsPolicyAlert( component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-                                   "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts );
-    }
+    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
+        BuildStageType.ID), Arrays.asList(policy), components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
+        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
 }

@@ -14,35 +14,30 @@ public class NotifyActionType
     extends AbstractActionType
     implements ActionType
 {
-    public static final String ID = Action.ID_NOTIFY;
+  public static final String ID = Action.ID_NOTIFY;
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getName()
-    {
-        return "Notify";
-    }
+  @Override
+  public String getName() {
+    return "Notify";
+  }
 
-    @Override
-    public List<String> getAvailableTargets()
-    {
-        return null;
-    }
+  @Override
+  public List<String> getAvailableTargets() {
+    return null;
+  }
 
-    @Override
-    public boolean isRequiresTarget()
-    {
-        return true;
-    }
-    
-    @Override
-    public String getSummary()
-    {
-        return "Notification Sent";
-    }
+  @Override
+  public boolean isRequiresTarget() {
+    return true;
+  }
+
+  @Override
+  public String getSummary() {
+    return "Notification Sent";
+  }
 }

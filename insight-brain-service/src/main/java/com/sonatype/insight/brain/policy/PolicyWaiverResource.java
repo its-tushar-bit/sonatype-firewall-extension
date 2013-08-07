@@ -35,12 +35,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
  * @since 1.6
  */
 @Named
-@Path( PolicyWaiverResource.SERVICE_PATH )
+@Path(PolicyWaiverResource.SERVICE_PATH)
 public class PolicyWaiverResource
 {
-    public static final String SERVICE_BASEPATH = "rest/policyWaiver/";
+  public static final String SERVICE_BASEPATH = "rest/policyWaiver/";
 
-    public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
+  public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
 
   private final InsightWork work;
 
@@ -49,50 +49,48 @@ public class PolicyWaiverResource
     this.work = work;
   }
 
-    @POST
-    @Consumes( MediaType.APPLICATION_JSON )
-    @Produces( MediaType.APPLICATION_JSON )
-    public PolicyWaiver addPolicyWaiver( @PathParam( "ownerType" ) String ownerType,
-                                         @PathParam( "ownerId" ) String ownerId, PolicyWaiver policyWaiver )
-    {
-        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public PolicyWaiver addPolicyWaiver(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+      PolicyWaiver policyWaiver)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-        policyWaiver.setId( null );
-        policyWaiver.setOwnerId( internalOwnerId );
-        new PolicyWaiverDAO().insert( policyWaiver );
-        return policyWaiver;
+    policyWaiver.setId(null);
+    policyWaiver.setOwnerId(internalOwnerId);
+    new PolicyWaiverDAO().insert(policyWaiver);
+    return policyWaiver;
+  }
+
+  @DELETE
+  @Path("{policyWaiverId}")
+  public void deletePolicyWaiver(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+      @PathParam("policyWaiverId") String policyWaiverId)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(policyWaiverId);
+    if (!internalOwnerId.equals(policyWaiver.getOwnerId())) {
+      throw new NotFoundException("Cannot find a policy waiver with id " + policyWaiverId + " for " + ownerType
+          + " id " + ownerId);
     }
 
-    @DELETE
-    @Path( "{policyWaiverId}" )
-    public void deletePolicyWaiver( @PathParam( "ownerType" ) String ownerType, @PathParam( "ownerId" ) String ownerId,
-                                    @PathParam( "policyWaiverId" ) String policyWaiverId )
-    {
-        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
+    policyWaiverDAO.delete(policyWaiver);
+  }
 
-        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-        PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull( policyWaiverId );
-        if ( !internalOwnerId.equals( policyWaiver.getOwnerId() ) )
-        {
-            throw new NotFoundException( "Cannot find a policy waiver with id " + policyWaiverId + " for " + ownerType
-                + " id " + ownerId );
-        }
+  @GET
+  @Path("component/{hash}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<PolicyWaiver> getPolicyWaiversByHash(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-        policyWaiverDAO.delete( policyWaiver );
-    }
-
-    @GET
-    @Path( "component/{hash}" )
-    @Produces( MediaType.APPLICATION_JSON )
-    public List<PolicyWaiver> getPolicyWaiversByHash( @PathParam( "ownerType" ) String ownerType,
-                                                      @PathParam( "ownerId" ) String ownerId,
-                                                      @PathParam( "hash" ) String hash )
-    {
-        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
-
-        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-        return policyWaiverDAO.getByOwnerIdAndHash( internalOwnerId, hash, true /* inherit */);
-    }
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    return policyWaiverDAO.getByOwnerIdAndHash(internalOwnerId, hash, true /* inherit */);
+  }
 
   @GET
   @Path("applicable/context/{policyId}")

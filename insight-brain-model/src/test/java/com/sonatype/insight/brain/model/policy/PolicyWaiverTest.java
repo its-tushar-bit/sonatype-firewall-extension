@@ -13,32 +13,28 @@ import org.junit.Test;
 
 public class PolicyWaiverTest
 {
-    private final String longHash = "123456789012345678901";
-    
-    /**
-     * 20 characters as currently specified in HashHelper
-     */
-    private final String expectedTruncatedHash = "12345678901234567890";
-    
-    @Before
-    public void preconditions()
-    {
-        assertTrue( longHash.length() > 20 );
-    }
+  private final String longHash = "123456789012345678901";
 
-    @Test
-    public void testLongHashTruncatedWhenObjectCreated()
-    {
-        PolicyWaiver policyWaiver =
-            new PolicyWaiver( longHash, null /* policyId */, null /* ownerId */, null /* comment */);
-        assertEquals( expectedTruncatedHash, policyWaiver.getHash() );
-    }
+  /**
+   * 20 characters as currently specified in HashHelper
+   */
+  private final String expectedTruncatedHash = "12345678901234567890";
 
-    @Test
-    public void testLongHashTruncatedWhenHashSet()
-    {
-        PolicyWaiver policyWaiver = new PolicyWaiver();
-        policyWaiver.setHash( longHash );
-        assertEquals( expectedTruncatedHash, policyWaiver.getHash() );
-    }
+  @Before
+  public void preconditions() {
+    assertTrue(longHash.length() > 20);
+  }
+
+  @Test
+  public void testLongHashTruncatedWhenObjectCreated() {
+    PolicyWaiver policyWaiver = new PolicyWaiver(longHash, null /* policyId */, null /* ownerId */, null /* comment */);
+    assertEquals(expectedTruncatedHash, policyWaiver.getHash());
+  }
+
+  @Test
+  public void testLongHashTruncatedWhenHashSet() {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+    policyWaiver.setHash(longHash);
+    assertEquals(expectedTruncatedHash, policyWaiver.getHash());
+  }
 }

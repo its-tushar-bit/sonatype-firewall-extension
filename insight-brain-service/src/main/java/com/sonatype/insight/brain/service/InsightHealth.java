@@ -20,23 +20,19 @@ import com.yammer.metrics.core.HealthCheck;
 public class InsightHealth
     extends HealthCheck
 {
-    private final InsightConfig insightConfig;
+  private final InsightConfig insightConfig;
 
-    @Inject
-    public InsightHealth( final InsightConfig insightConfig )
-    {
-        super( "insight-brain-service" );
-        this.insightConfig = insightConfig;
-    }
+  @Inject
+  public InsightHealth(final InsightConfig insightConfig) {
+    super("insight-brain-service");
+    this.insightConfig = insightConfig;
+  }
 
-    @Override
-    protected Result check()
-        throws Exception
-    {
-        if ( !insightConfig.getSonatypeWork().isDirectory() )
-        {
-            return Result.unhealthy( insightConfig.getSonatypeWork() + " is not a directory" );
-        }
-        return Result.healthy();
+  @Override
+  protected Result check() throws Exception {
+    if (!insightConfig.getSonatypeWork().isDirectory()) {
+      return Result.unhealthy(insightConfig.getSonatypeWork() + " is not a directory");
     }
+    return Result.healthy();
+  }
 }

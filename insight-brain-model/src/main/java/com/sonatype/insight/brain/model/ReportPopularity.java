@@ -4,39 +4,33 @@ import java.util.List;
 
 public class ReportPopularity
 {
-    private long firstCatalog;
+  private long firstCatalog;
 
-    private long lastCatalog;
+  private long lastCatalog;
 
-    private List<GAVPopularity> popularity;
+  private List<GAVPopularity> popularity;
 
-    public long getFirstCatalog()
-    {
-        return firstCatalog;
-    }
+  public long getFirstCatalog() {
+    return firstCatalog;
+  }
 
-    public long getLastCatalog()
-    {
-        return lastCatalog;
-    }
+  public long getLastCatalog() {
+    return lastCatalog;
+  }
 
-    public List<GAVPopularity> getPopularity()
-    {
-        return popularity;
-    }
+  public List<GAVPopularity> getPopularity() {
+    return popularity;
+  }
 
-    public void setFirstCatalog( long firstCatalog )
-    {
-        this.firstCatalog = firstCatalog;
-    }
+  public void setFirstCatalog(long firstCatalog) {
+    this.firstCatalog = firstCatalog;
+  }
 
-    public void setLastCatalog( long lastCatalog )
-    {
-        this.lastCatalog = lastCatalog;
-    }
+  public void setLastCatalog(long lastCatalog) {
+    this.lastCatalog = lastCatalog;
+  }
 
-    public void setPopularity( List<GAVPopularity> popularity )
-    {
-        this.popularity = popularity;
-    }
+  public void setPopularity(List<GAVPopularity> popularity) {
+    this.popularity = popularity;
+  }
 }

@@ -18,15 +18,14 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
  * When the UI runs outside of Hudson, this resource prevents irritating 404 errors in the CLM server log.
  */
 @Named
-@Path( CrumbIssuerStubResource.SERVICE_PATH )
+@Path(CrumbIssuerStubResource.SERVICE_PATH)
 @UnlicensedPath
 public class CrumbIssuerStubResource
 {
-    public static final String SERVICE_PATH = "crumbIssuer/api/xml";
+  public static final String SERVICE_PATH = "crumbIssuer/api/xml";
 
-    @GET
-    public Response get()
-    {
-        return Response.status( Status.NOT_FOUND ).build();
-    }
+  @GET
+  public Response get() {
+    return Response.status(Status.NOT_FOUND).build();
+  }
 }

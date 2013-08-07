@@ -15,36 +15,30 @@ import freemarker.template.Template;
 
 public final class TemplateUtils
 {
-    private TemplateUtils()
-    {
-        // utility class
-    }
+  private TemplateUtils() {
+    // utility class
+  }
 
-    public static Configuration createFreemarkerConfig()
-    {
-        Configuration cfg = new Configuration();
-        cfg.setClassForTemplateLoading( TemplateUtils.class, "/com/sonatype/insight/brain/policy/templates" );
-        cfg.setObjectWrapper( new DefaultObjectWrapper() );
-        cfg.setLocale( java.util.Locale.US ); // Prevent use of commas for radix
-        cfg.setDefaultEncoding( "UTF-8" );
-        cfg.setLocalizedLookup( false );
-        cfg.setNumberFormat( "0.######" );
-        return cfg;
-    }
+  public static Configuration createFreemarkerConfig() {
+    Configuration cfg = new Configuration();
+    cfg.setClassForTemplateLoading(TemplateUtils.class, "/com/sonatype/insight/brain/policy/templates");
+    cfg.setObjectWrapper(new DefaultObjectWrapper());
+    cfg.setLocale(java.util.Locale.US); // Prevent use of commas for radix
+    cfg.setDefaultEncoding("UTF-8");
+    cfg.setLocalizedLookup(false);
+    cfg.setNumberFormat("0.######");
+    return cfg;
+  }
 
-    public static String render( final Template template, final Map<String, Object> model )
-        throws IOException
-    {
-        final StringWriter out = new StringWriter( 1024 * 64 );
-        try
-        {
-            template.process( model, out );
-        }
-        catch ( final Exception e )
-        {
-            // NOTE: And yes, we want to capture all exceptions, e.g. ArithmeticException
-            throw new IOException( "Failed to process template " + template.getName() + ": " + e.getMessage(), e );
-        }
-        return out.toString();
+  public static String render(final Template template, final Map<String, Object> model) throws IOException {
+    final StringWriter out = new StringWriter(1024 * 64);
+    try {
+      template.process(model, out);
     }
+    catch (final Exception e) {
+      // NOTE: And yes, we want to capture all exceptions, e.g. ArithmeticException
+      throw new IOException("Failed to process template " + template.getName() + ": " + e.getMessage(), e);
+    }
+    return out.toString();
+  }
 }

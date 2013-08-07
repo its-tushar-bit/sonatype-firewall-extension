@@ -19,117 +19,101 @@ import com.sonatype.insight.model.HasStringId;
 public class Application
     implements HasStringId
 {
-    @Id
-    @Column(name = "application_id")
-    private String id;
+  @Id
+  @Column(name = "application_id")
+  private String id;
 
-    @Column(name = "public_id")
-    private String publicId;
+  @Column(name = "public_id")
+  private String publicId;
 
-    @Column(name = "public_id_lowercase")
-    private String publicIdLowercase;
+  @Column(name = "public_id_lowercase")
+  private String publicIdLowercase;
 
-    @Column(name = "name")
-    private String name;
+  @Column(name = "name")
+  private String name;
 
-    @Column(name = "name_lowercase_no_whitespace")
-    private String nameLowercaseNoWhitespace;
+  @Column(name = "name_lowercase_no_whitespace")
+  private String nameLowercaseNoWhitespace;
 
-    @Column( name = "organization_id" )
-    private String organizationId;
+  @Column(name = "organization_id")
+  private String organizationId;
 
-    public Application()
-    {
+  public Application() {
+  }
+
+  public Application(String publicId, String name, String organizationId) {
+    setPublicId(publicId);
+    setName(name);
+    this.organizationId = organizationId;
+  }
+
+  @Override
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getPublicId() {
+    return publicId;
+  }
+
+  public void setPublicId(String publicId) {
+    if (publicId != null) {
+      publicId = publicId.trim();
+      publicIdLowercase = publicId.toLowerCase(Locale.ENGLISH);
     }
-
-    public Application( String publicId, String name, String organizationId )
-    {
-        setPublicId( publicId );
-        setName( name );
-        this.organizationId = organizationId;
+    else {
+      publicIdLowercase = null;
     }
+    this.publicId = publicId;
+  }
 
-    @Override
-    public String getId()
-    {
-        return id;
-    }
+  public String getPublicIdLowercase() {
+    return publicIdLowercase;
+  }
 
-    @Override
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getPublicId()
-    {
-        return publicId;
-    }
+  public void setName(String name) {
+    nameLowercaseNoWhitespace = NameHelper.normalize(name);
+    this.name = name;
+  }
 
-    public void setPublicId( String publicId )
-    {
-        if ( publicId != null )
-        {
-            publicId = publicId.trim();
-            publicIdLowercase = publicId.toLowerCase( Locale.ENGLISH );
-        }
-        else
-        {
-            publicIdLowercase = null;
-        }
-        this.publicId = publicId;
-    }
+  public String getNameLowercaseNoWhitespace() {
+    return nameLowercaseNoWhitespace;
+  }
 
-    public String getPublicIdLowercase()
-    {
-        return publicIdLowercase;
-    }
+  /**
+   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+   * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
+   * directly via reflection, possibly setting it to an incorrect value.
+   * 
+   * @deprecated This method should not be used explicitly.
+   */
+  public void setPublicIdLowercase(String publicIdLowercase) {
+  }
 
-    public String getName()
-    {
-        return name;
-    }
+  /**
+   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
+   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
+   * 
+   * @deprecated This method should not be used explicitly.
+   */
+  public void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
+  }
 
-    public void setName( String name )
-    {
-        nameLowercaseNoWhitespace = NameHelper.normalize( name );
-        this.name = name;
-    }
+  public String getOrganizationId() {
+    return organizationId;
+  }
 
-    public String getNameLowercaseNoWhitespace()
-    {
-        return nameLowercaseNoWhitespace;
-    }
-
-    /**
-     * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-     * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
-     * directly via reflection, possibly setting it to an incorrect value.
-     *
-     * @deprecated This method should not be used explicitly.
-     */
-    public void setPublicIdLowercase( String publicIdLowercase )
-    {
-    }
-
-    /**
-     * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-     * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-     * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-     *
-     * @deprecated This method should not be used explicitly.
-     */
-    public void setNameLowercaseNoWhitespace( String nameLowercaseNoWhitespace )
-    {
-    }
-
-    public String getOrganizationId()
-    {
-        return organizationId;
-    }
-
-    public void setOrganizationId( String organizationId )
-    {
-        this.organizationId = organizationId;
-    }
+  public void setOrganizationId(String organizationId) {
+    this.organizationId = organizationId;
+  }
 }

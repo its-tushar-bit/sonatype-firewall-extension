@@ -13,19 +13,17 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 @Named
-@Path( EnvironmentResource.RESOURCE_PATH )
+@Path(EnvironmentResource.RESOURCE_PATH)
 public class EnvironmentResource
 {
-    public static final String RESOURCE_PATH = "rest/session/environment";
+  public static final String RESOURCE_PATH = "rest/session/environment";
 
-    @Context
-    private SaasClient client;
+  @Context
+  private SaasClient client;
 
-    @GET
-    public Response submitClientEnvironment( @Context HttpServletRequest request )
-        throws Exception
-    {
-        return client.doProxy( request, "session/environment" );
-    }
+  @GET
+  public Response submitClientEnvironment(@Context HttpServletRequest request) throws Exception {
+    return client.doProxy(request, "session/environment");
+  }
 
 }

@@ -32,180 +32,141 @@ public class ConfigurationClientTest
     extends AbstractLicenseTest
 {
 
-    private void assertMatch( String pattern, String text )
-    {
-        assertTrue( text + " does not match pattern " + pattern, text != null && text.matches( pattern ) );
+  private void assertMatch(String pattern, String text) {
+    assertTrue(text + " does not match pattern " + pattern, text != null && text.matches(pattern));
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    File configFile = new File(brain.getDataDir(), "proprietary.json");
+    assertTrue(configFile.delete() || !configFile.exists());
+  }
+
+  @Test
+  public void testValidateConfiguration_AllGood() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    new ConfigurationClient(config).validateConfiguration();
+  }
+
+  @Test
+  public void testValidateConfiguration_BadContextRoot() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    config.setServerUrl(config.getServerUrl() + "/bad");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to bad context root");
     }
-
-    @After
-    public void cleanup()
-        throws Exception
-    {
-        File configFile = new File( brain.getDataDir(), "proprietary.json" );
-        assertTrue( configFile.delete() || !configFile.exists() );
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertMatch("(?i).*not found.*", e.getMessage());
     }
+  }
 
-    @Test
-    public void testValidateConfiguration_AllGood()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        new ConfigurationClient( config ).validateConfiguration();
+  @Test
+  public void testValidateConfiguration_BadHost() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    config.setServerUrl("http://1234.bad.host.1234.com/");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to bad host");
     }
-
-    @Test
-    public void testValidateConfiguration_BadContextRoot()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        config.setServerUrl( config.getServerUrl() + "/bad" );
-        try
-        {
-            new ConfigurationClient( config ).validateConfiguration();
-            fail( "Validation should have failed due to bad context root" );
-        }
-        catch ( HttpResponseException e )
-        {
-            assertEquals( 404, e.getStatusCode() );
-            assertMatch( "(?i).*not found.*", e.getMessage() );
-        }
+    catch (IOException e) {
+      assertThat(e.getMessage(), startsWith("Unknown host: 1234.bad.host.1234.com"));
     }
+  }
 
-    @Test
-    public void testValidateConfiguration_BadHost()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        config.setServerUrl( "http://1234.bad.host.1234.com/" );
-        try
-        {
-            new ConfigurationClient( config ).validateConfiguration();
-            fail( "Validation should have failed due to bad host" );
-        }
-        catch ( IOException e )
-        {
-            assertThat( e.getMessage(), startsWith( "Unknown host: 1234.bad.host.1234.com" ) );
-        }
+  @Test
+  public void testValidateConfiguration_BadPort() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    config.setServerUrl("http://localhost:65535/");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to bad port");
     }
-
-    @Test
-    public void testValidateConfiguration_BadPort()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        config.setServerUrl( "http://localhost:65535/" );
-        try
-        {
-            new ConfigurationClient( config ).validateConfiguration();
-            fail( "Validation should have failed due to bad port" );
-        }
-        catch ( IOException e )
-        {
-            assertMatch( "(?i).*Connection.* refused.*", e.getMessage() );
-        }
+    catch (IOException e) {
+      assertMatch("(?i).*Connection.* refused.*", e.getMessage());
     }
+  }
 
-    @Test
-    public void testValidateConfiguration_InvalidPort()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        config.setServerUrl( "http://localhost:NaN/" );
-        try
-        {
-            new ConfigurationClient( config ).validateConfiguration();
-            fail( "Validation should have failed due to invalid port" );
-        }
-        catch ( Exception e )
-        {
-            assertMatch( "(?i).*Illegal .* port.*", e.getMessage() );
-        }
+  @Test
+  public void testValidateConfiguration_InvalidPort() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    config.setServerUrl("http://localhost:NaN/");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to invalid port");
     }
-
-    @Test
-    public void testValidateConfiguration_BadProxyHost()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        config.setProxy( "1234.bad.host.1234.com" );
-        try
-        {
-            new ConfigurationClient( config ).validateConfiguration();
-            fail( "Validation should have failed due to bad proxy host" );
-        }
-        catch ( IOException e )
-        {
-          assertThat( e.getMessage(), startsWith( "Unknown host: 1234.bad.host.1234.com" ) );
-        }
+    catch (Exception e) {
+      assertMatch("(?i).*Illegal .* port.*", e.getMessage());
     }
+  }
 
-    @Test
-    public void testValidateConfiguration_BadProxyPort()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        config.setProxy( "localhost:65535" );
-        try
-        {
-            new ConfigurationClient( config ).validateConfiguration();
-            fail( "Validation should have failed due to bad proxy port" );
-        }
-        catch ( IOException e )
-        {
-            assertMatch( "(?i).*Connection.* refused.*", e.getMessage() );
-        }
+  @Test
+  public void testValidateConfiguration_BadProxyHost() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    config.setProxy("1234.bad.host.1234.com");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to bad proxy host");
     }
-
-    @Test
-    public void testValidateApplicationId_AllGood()
-        throws Exception
-    {
-        Application app = createApplication( "valid-id" );
-
-        new ConfigurationClient( brain.getClientConfiguration() ).validateApplicationId( app.getPublicId() );
+    catch (IOException e) {
+      assertThat(e.getMessage(), startsWith("Unknown host: 1234.bad.host.1234.com"));
     }
+  }
 
-    @Test
-    public void testValidateApplicationId_UnknownId()
-        throws Exception
-    {
-        try
-        {
-            new ConfigurationClient( brain.getClientConfiguration() ).validateApplicationId( "unknown-id" );
-            fail( "Validation should have failed due to bad app id" );
-        }
-        catch ( IOException e )
-        {
-            Assert.assertEquals( "Invalid application id unknown-id", e.getMessage() );
-        }
+  @Test
+  public void testValidateConfiguration_BadProxyPort() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    config.setProxy("localhost:65535");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to bad proxy port");
     }
-
-    @Test
-    public void testGetApplicationIdNameMap()
-        throws Exception
-    {
-        Application app = createApplication( "valid-id" );
-
-        Map<String,String> map = new ConfigurationClient( brain.getClientConfiguration() ).getApplicationIdNameMap();
-
-        assertEquals( 1, map.size() );
-        assertTrue( map.containsKey( "valid-id" ) );
-        assertEquals( app.getName(), map.get( "valid-id" ) );
-        assertEquals( app.getName(), map.get( "VALID-ID" ) );
+    catch (IOException e) {
+      assertMatch("(?i).*Connection.* refused.*", e.getMessage());
     }
+  }
 
-    @Test
-    public void testGetProprietaryConfiguration()
-        throws Exception
-    {
-        List<String> packages = Arrays.asList( "org.sonatype", "com.sonatype" );
-        ProprietaryConfig config = new ProprietaryConfig();
-        config.setPackages( packages );
-        ProprietaryConfigDAO dao = new ProprietaryConfigDAO( brain.getDataDir() );
-        dao.update( config );
+  @Test
+  public void testValidateApplicationId_AllGood() throws Exception {
+    Application app = createApplication("valid-id");
 
-        config = new ConfigurationClient( brain.getClientConfiguration() ).getProprietaryConfiguration();
+    new ConfigurationClient(brain.getClientConfiguration()).validateApplicationId(app.getPublicId());
+  }
 
-        assertEquals( packages, config.getPackages() );
+  @Test
+  public void testValidateApplicationId_UnknownId() throws Exception {
+    try {
+      new ConfigurationClient(brain.getClientConfiguration()).validateApplicationId("unknown-id");
+      fail("Validation should have failed due to bad app id");
     }
+    catch (IOException e) {
+      Assert.assertEquals("Invalid application id unknown-id", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testGetApplicationIdNameMap() throws Exception {
+    Application app = createApplication("valid-id");
+
+    Map<String, String> map = new ConfigurationClient(brain.getClientConfiguration()).getApplicationIdNameMap();
+
+    assertEquals(1, map.size());
+    assertTrue(map.containsKey("valid-id"));
+    assertEquals(app.getName(), map.get("valid-id"));
+    assertEquals(app.getName(), map.get("VALID-ID"));
+  }
+
+  @Test
+  public void testGetProprietaryConfiguration() throws Exception {
+    List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
+    ProprietaryConfig config = new ProprietaryConfig();
+    config.setPackages(packages);
+    ProprietaryConfigDAO dao = new ProprietaryConfigDAO(brain.getDataDir());
+    dao.update(config);
+
+    config = new ConfigurationClient(brain.getClientConfiguration()).getProprietaryConfiguration();
+
+    assertEquals(packages, config.getPackages());
+  }
 }

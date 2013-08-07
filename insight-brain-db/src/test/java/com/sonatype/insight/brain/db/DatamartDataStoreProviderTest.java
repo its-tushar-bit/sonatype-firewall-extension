@@ -14,25 +14,22 @@ import com.sonatype.insight.db.DatabaseConfig;
 public class DatamartDataStoreProviderTest
     extends AbstractDatabaseProviderTest
 {
-    @Test
-    public void verifyDatabaseCreation_InMemory()
-        throws Exception
-    {
-        verifyDatabaseCreation( null /* databaseConfig */);
-    }
+  @Test
+  public void verifyDatabaseCreation_InMemory() throws Exception {
+    verifyDatabaseCreation(null /* databaseConfig */);
+  }
 
-    @Test
-    public void verifyDatabaseCreation_OnDisk()
-        throws Exception
-    {
-        DatabaseConfig databaseConfig = new DatabaseConfig();
-        databaseConfig.setDriverClassName( "org.h2.Driver" );
-        databaseConfig.setUrl( "jdbc:h2:target/DatamartDataStoreProviderTest/test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000" );
-        databaseConfig.setUsername( "sa" );
-        databaseConfig.setPassword( "" );
-        databaseConfig.setMaxConnections( 50 );
-        File databaseDir = new File( "target/DatamartDataStoreProviderTest" );
+  @Test
+  public void verifyDatabaseCreation_OnDisk() throws Exception {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setDriverClassName("org.h2.Driver");
+    databaseConfig
+        .setUrl("jdbc:h2:target/DatamartDataStoreProviderTest/test;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    databaseConfig.setUsername("sa");
+    databaseConfig.setPassword("");
+    databaseConfig.setMaxConnections(50);
+    File databaseDir = new File("target/DatamartDataStoreProviderTest");
 
-        verifyDatabaseCreation_OnDisk( databaseConfig, databaseDir );
-    }
+    verifyDatabaseCreation_OnDisk(databaseConfig, databaseDir);
+  }
 }

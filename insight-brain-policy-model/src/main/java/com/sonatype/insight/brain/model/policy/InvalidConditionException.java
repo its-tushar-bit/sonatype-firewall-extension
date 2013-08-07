@@ -5,12 +5,11 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-@SuppressWarnings( "serial" )
+@SuppressWarnings("serial")
 public class InvalidConditionException
     extends RuntimeException
 {
-    public InvalidConditionException( Condition condition, String message )
-    {
-        super( "Invalid condition '" + condition.toMessageString() + "', " + message );
-    }
+  public InvalidConditionException(Condition condition, String message) {
+    super("Invalid condition '" + condition.toMessageString() + "', " + message);
+  }
 }

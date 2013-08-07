@@ -9,63 +9,53 @@ import com.sonatype.clm.dto.model.policy.Stage;
 
 public class PolicyEvaluation
 {
-    private Stage stage;
+  private Stage stage;
 
-    private String scanId;
+  private String scanId;
 
-    private boolean isReevaluation;
+  private boolean isReevaluation;
 
-    private long time;
+  private long time;
 
-    private String user;
+  private String user;
 
-    public long getTime()
-    {
-        return time;
-    }
+  public long getTime() {
+    return time;
+  }
 
-    public void setTime( long time )
-    {
-        this.time = time;
-    }
+  public void setTime(long time) {
+    this.time = time;
+  }
 
-    public String getUser()
-    {
-        return user;
-    }
+  public String getUser() {
+    return user;
+  }
 
-    public void setUser( String user )
-    {
-        this.user = user;
-    }
+  public void setUser(String user) {
+    this.user = user;
+  }
 
-    public Stage getStage()
-    {
-        return stage;
-    }
+  public Stage getStage() {
+    return stage;
+  }
 
-    public void setStage( Stage stage )
-    {
-        this.stage = stage;
-    }
+  public void setStage(Stage stage) {
+    this.stage = stage;
+  }
 
-    public String getScanId()
-    {
-        return scanId;
-    }
+  public String getScanId() {
+    return scanId;
+  }
 
-    public void setScanId( String scanId )
-    {
-        this.scanId = scanId;
-    }
+  public void setScanId(String scanId) {
+    this.scanId = scanId;
+  }
 
-    public boolean isReevaluation()
-    {
-        return isReevaluation;
-    }
+  public boolean isReevaluation() {
+    return isReevaluation;
+  }
 
-    public void setReevaluation( boolean isReevaluation )
-    {
-        this.isReevaluation = isReevaluation;
-    }
+  public void setReevaluation(boolean isReevaluation) {
+    this.isReevaluation = isReevaluation;
+  }
 }

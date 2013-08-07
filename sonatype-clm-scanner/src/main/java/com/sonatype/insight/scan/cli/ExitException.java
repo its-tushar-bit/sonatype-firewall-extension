@@ -9,24 +9,21 @@ public class ExitException
     extends Exception
 {
 
-    private static final long serialVersionUID = 1860065432528002161L;
+  private static final long serialVersionUID = 1860065432528002161L;
 
-    private final int exitCode;
+  private final int exitCode;
 
-    public ExitException( int exitCode )
-    {
-        this.exitCode = exitCode;
-    }
+  public ExitException(int exitCode) {
+    this.exitCode = exitCode;
+  }
 
-    public ExitException( int exitCode, Throwable cause )
-    {
-        super( cause );
-        this.exitCode = exitCode;
-    }
+  public ExitException(int exitCode, Throwable cause) {
+    super(cause);
+    this.exitCode = exitCode;
+  }
 
-    public int getExitCode()
-    {
-        return exitCode;
-    }
+  public int getExitCode() {
+    return exitCode;
+  }
 
 }

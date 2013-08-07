@@ -15,26 +15,24 @@ import com.yammer.dropwizard.util.Duration;
  * someone chose to customize one of the properties then the newly deserialized class would not include our changes.
  * Setting them in the constructor means they always get applied first. Uses mixin to apply "JsonDeserialize.as".
  */
-@JsonDeserialize( as = HttpConfig.class )
+@JsonDeserialize(as = HttpConfig.class)
 public class HttpConfig
     extends HttpConfiguration
 {
-    public static class Module
-        extends SimpleModule
-    {
-        private static final long serialVersionUID = 7897301364271583290L;
+  public static class Module
+      extends SimpleModule
+  {
+    private static final long serialVersionUID = 7897301364271583290L;
 
-        public Module()
-        {
-            // makes it look like JsonDeserialize.as was on original class
-            setMixInAnnotation( HttpConfiguration.class, HttpConfig.class );
-        }
+    public Module() {
+      // makes it look like JsonDeserialize.as was on original class
+      setMixInAnnotation(HttpConfiguration.class, HttpConfig.class);
     }
+  }
 
-    public HttpConfig()
-    {
-        setPort( 8070 );
-        setAdminPort( 8071 );
-        setMaxIdleTime( Duration.minutes( 15 ) );
-    }
+  public HttpConfig() {
+    setPort(8070);
+    setAdminPort(8071);
+    setMaxIdleTime(Duration.minutes(15));
+  }
 }

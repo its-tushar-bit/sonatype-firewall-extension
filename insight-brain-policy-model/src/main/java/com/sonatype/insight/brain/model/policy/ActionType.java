@@ -11,15 +11,15 @@ import com.sonatype.clm.dto.model.policy.Action;
 
 public interface ActionType
 {
-    String getId();
+  String getId();
 
-    String getName();
+  String getName();
 
-    List<String> getAvailableTargets();
+  List<String> getAvailableTargets();
 
-    boolean isRequiresTarget();
-    
-    String getSummary();
+  boolean isRequiresTarget();
 
-    ValidationResult validateAction( Action action );
+  String getSummary();
+
+  ValidationResult validateAction(Action action);
 }

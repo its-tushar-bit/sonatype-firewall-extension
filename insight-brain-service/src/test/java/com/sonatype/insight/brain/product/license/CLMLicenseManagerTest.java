@@ -24,96 +24,82 @@ import com.sonatype.insight.brain.service.TestInsightBrainService;
 public class CLMLicenseManagerTest
     extends AbstractLicenseTest
 {
-    private static class NegativeFeatureValidator
-        extends DefaultFeatureValidator
-    {
-        @Override
-        public boolean isValid( Feature feature, LicenseKey licenseKey )
-        {
-            return false;
-        }
-    }
-
+  private static class NegativeFeatureValidator
+      extends DefaultFeatureValidator
+  {
     @Override
-    protected void configureBrain( TestInsightBrainService brain )
-    {
-        if ( "testLicenseLacksClmFeature".equals( testName.getMethodName() ) )
-        {
-            brain.addModule( new AbstractModule()
-            {
-                @Override
-                protected void configure()
-                {
-                    bind( FeatureValidator.class ).toInstance( new NegativeFeatureValidator() );
-                }
-            } );
+    public boolean isValid(Feature feature, LicenseKey licenseKey) {
+      return false;
+    }
+  }
+
+  @Override
+  protected void configureBrain(TestInsightBrainService brain) {
+    if ("testLicenseLacksClmFeature".equals(testName.getMethodName())) {
+      brain.addModule(new AbstractModule()
+      {
+        @Override
+        protected void configure() {
+          bind(FeatureValidator.class).toInstance(new NegativeFeatureValidator());
         }
-        else
-        {
-            super.configureBrain( brain );
-        }
+      });
+    }
+    else {
+      super.configureBrain(brain);
+    }
+  }
+
+  @Test
+  public void testLicenseLacksClmFeature() throws Exception {
+    CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance(CLMLicenseManager.class);
+    InputStream licenseStream = this.getClass().getResourceAsStream("/productlicense/license.lic");
+    try {
+      clmLicenseManager.installLicense(licenseStream);
+      fail("Expected LicensingException");
+    }
+    catch (LicensingException expected) {
+      assertEquals("License does not permit use of feature 'SonatypeCLM'", expected.getMessage());
+    }
+    finally {
+      IOUtil.close(licenseStream);
     }
 
-    @Test
-    public void testLicenseLacksClmFeature()
-        throws Exception
-    {
-        CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance( CLMLicenseManager.class );
-        InputStream licenseStream = this.getClass().getResourceAsStream( "/productlicense/license.lic" );
-        try
-        {
-            clmLicenseManager.installLicense( licenseStream );
-            fail( "Expected LicensingException" );
-        }
-        catch ( LicensingException expected )
-        {
-            assertEquals( "License does not permit use of feature 'SonatypeCLM'", expected.getMessage() );
-        }
-        finally
-        {
-            IOUtil.close( licenseStream );
-        }
+    assertNull(clmLicenseManager.getLicenseFingerprint());
+  }
 
-        assertNull( clmLicenseManager.getLicenseFingerprint() );
-    }
+  @Test
+  public void testLicenseCache() throws Exception {
+    TestProductLicenseManager licenseManager = TestProductLicenseManager.class.cast(brain.getInjector().getInstance(
+        ProductLicenseManager.class));
 
-    @Test
-    public void testLicenseCache()
-        throws Exception
-    {
-        TestProductLicenseManager licenseManager =
-            TestProductLicenseManager.class.cast( brain.getInjector().getInstance( ProductLicenseManager.class ) );
+    CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance(CLMLicenseManager.class);
 
-        CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance( CLMLicenseManager.class );
+    assertEquals(true, clmLicenseManager.isValid());
+    assertEquals(100, clmLicenseManager.getApplicationCountLimit());
 
-        assertEquals( true, clmLicenseManager.isValid() );
-        assertEquals( 100, clmLicenseManager.getApplicationCountLimit() );
+    // now change the value and make sure the cache is still stale
+    licenseManager.setApplicationLimit(10);
+    assertEquals(100, clmLicenseManager.getApplicationCountLimit());
 
-        // now change the value and make sure the cache is still stale
-        licenseManager.setApplicationLimit( 10 );
-        assertEquals( 100, clmLicenseManager.getApplicationCountLimit() );
+    // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
+    installLicense();
+    assertEquals(10, clmLicenseManager.getApplicationCountLimit());
+  }
 
-        // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
-        installLicense();
-        assertEquals( 10, clmLicenseManager.getApplicationCountLimit() );
-    }
+  @Test
+  public void testLicenseExpiration() throws Exception {
+    TestProductLicenseManager licenseManager = TestProductLicenseManager.class.cast(brain.getInjector().getInstance(
+        ProductLicenseManager.class));
 
-    @Test
-    public void testLicenseExpiration()
-        throws Exception
-    {
-        TestProductLicenseManager licenseManager =
-            TestProductLicenseManager.class.cast( brain.getInjector().getInstance( ProductLicenseManager.class ) );
+    CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance(CLMLicenseManager.class);
 
-        CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance( CLMLicenseManager.class );
+    licenseManager.setExpirationDate(new Date(System.currentTimeMillis() + 500));
+    installLicense();
 
-        licenseManager.setExpirationDate( new Date( System.currentTimeMillis() + 500 ) );
-        installLicense();
+    assertEquals(true, clmLicenseManager.isValid());
 
-        assertEquals( true, clmLicenseManager.isValid() );
+    Thread.sleep(600);
 
-        Thread.sleep( 600 );
-
-        assertEquals( false, clmLicenseManager.isValid() );
-    }
+    assertEquals(false, clmLicenseManager.isValid());
+  }
 }

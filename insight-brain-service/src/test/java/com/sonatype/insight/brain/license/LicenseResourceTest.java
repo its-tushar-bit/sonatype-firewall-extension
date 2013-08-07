@@ -17,15 +17,13 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class LicenseResourceTest
     extends AbstractResourceTest
 {
-    @Test
-    public void testGet()
-        throws Exception
-    {
-        Response response = RestAccess.get( getRestBaseUrl() + LicenseResource.SERVICE_PATH );
-        assertResponseStatus( 200, response );
+  @Test
+  public void testGet() throws Exception {
+    Response response = RestAccess.get(getRestBaseUrl() + LicenseResource.SERVICE_PATH);
+    assertResponseStatus(200, response);
 
-        License[] licenses = JsonHelpers.fromJson( response.getResponseBody(), License[].class );
-        Assert.assertNotNull( licenses );
-        Assert.assertNotEquals( licenses.length, 0 );
-    }
+    License[] licenses = JsonHelpers.fromJson(response.getResponseBody(), License[].class);
+    Assert.assertNotNull(licenses);
+    Assert.assertNotEquals(licenses.length, 0);
+  }
 }

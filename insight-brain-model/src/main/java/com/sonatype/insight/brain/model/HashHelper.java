@@ -7,23 +7,20 @@ package com.sonatype.insight.brain.model;
 
 public class HashHelper
 {
-    /**
-     * We use only the first 10 bytes of the hashes, so we have to truncate to the first 20 chars in the string
-     * representation of a hash.
-     * 
-     * @param hash a hash that may need truncation
-     * @return a new hash truncated to the correct length, or the original hash if no truncation is needed
-     */
-    public static String truncateHash( final String hash )
-    {
-        int MAX_LENGTH = 20;
-        if ( hash != null && hash.length() > MAX_LENGTH )
-        {
-            return hash.substring( 0, MAX_LENGTH );
-        }
-        else
-        {
-            return hash;
-        }
+  /**
+   * We use only the first 10 bytes of the hashes, so we have to truncate to the first 20 chars in the string
+   * representation of a hash.
+   * 
+   * @param hash a hash that may need truncation
+   * @return a new hash truncated to the correct length, or the original hash if no truncation is needed
+   */
+  public static String truncateHash(final String hash) {
+    int MAX_LENGTH = 20;
+    if (hash != null && hash.length() > MAX_LENGTH) {
+      return hash.substring(0, MAX_LENGTH);
     }
+    else {
+      return hash;
+    }
+  }
 }

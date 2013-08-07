@@ -20,19 +20,18 @@ import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
 @Named
-@Path( ActionTypeResource.SERVICE_PATH )
+@Path(ActionTypeResource.SERVICE_PATH)
 public class ActionTypeResource
 {
-    public static final String SERVICE_PATH = "rest/policy/actionType";
+  public static final String SERVICE_PATH = "rest/policy/actionType";
 
-    private static final Logger log = LoggerFactory.getLogger( ActionTypeResource.class );
+  private static final Logger log = LoggerFactory.getLogger(ActionTypeResource.class);
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    public Collection<ActionType> getActionTypes()
-    {
-        log.debug( "Received request to get all action types" );
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Collection<ActionType> getActionTypes() {
+    log.debug("Received request to get all action types");
 
-        return ActionTypes.getAll();
-    }
+    return ActionTypes.getAll();
+  }
 }

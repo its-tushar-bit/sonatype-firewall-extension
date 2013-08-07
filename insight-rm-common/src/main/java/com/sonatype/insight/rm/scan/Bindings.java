@@ -21,24 +21,20 @@ import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 
 final class Bindings
 {
-    private static Logger logger( Class<?> type )
-    {
-        return LoggerFactory.getLogger( type );
-    }
+  private static Logger logger(Class<?> type) {
+    return LoggerFactory.getLogger(type);
+  }
 
-    static ScanWriterFactory scanWriterFactory()
-    {
-        return new DefaultScanWriterFactory( logger( ScanWriter.class ) );
-    }
+  static ScanWriterFactory scanWriterFactory() {
+    return new DefaultScanWriterFactory(logger(ScanWriter.class));
+  }
 
-    static ClientScanner clientScanner()
-    {
-        return new DefaultClientScanner( logger( DefaultClientScanner.class ) );
-    }
+  static ClientScanner clientScanner() {
+    return new DefaultClientScanner(logger(DefaultClientScanner.class));
+  }
 
-    static FileScanner fileScanner()
-    {
-        return new DefaultFileScanner( new DefaultDigester( new JavaDigester(), logger( DefaultDigester.class ) ),
-                                       new DefaultAnonymizer(), logger( DefaultFileScanner.class ) );
-    }
+  static FileScanner fileScanner() {
+    return new DefaultFileScanner(new DefaultDigester(new JavaDigester(), logger(DefaultDigester.class)),
+        new DefaultAnonymizer(), logger(DefaultFileScanner.class));
+  }
 }

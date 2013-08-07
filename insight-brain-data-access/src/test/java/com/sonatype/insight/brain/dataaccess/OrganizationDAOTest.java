@@ -38,341 +38,292 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 public class OrganizationDAOTest
     extends AbstractDbDAOTest
 {
-    private OrganizationDAO dao = new OrganizationDAO();
+  private OrganizationDAO dao = new OrganizationDAO();
 
-    @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    @Test
-    public void testCreateDefaultLicenseThreatGroups()
-        throws Exception
-    {
-        organization = createOrganization( "OrganizationDAOTest" );
-        List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId( organization.getId() );
-        Assert.assertEquals( LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size() );
+  @Test
+  public void testCreateDefaultLicenseThreatGroups() throws Exception {
+    organization = createOrganization("OrganizationDAOTest");
+    List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(organization.getId());
+    Assert.assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
+  }
+
+  @Test
+  public void testCRUD() throws Exception {
+    // Create
+    organization = createOrganization("OrganizationDAOTest");
+    String organizationId = organization.getId();
+    organization = dao.getById(organizationId);
+    Assert.assertEquals("OrganizationDAOTest", organization.getName());
+
+    // Set an icon for the organization
+    BufferedImage image = new BufferedImage(420, 420, BufferedImage.TYPE_INT_ARGB);
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    ImageIO.write(image, "png", byteArrayOutputStream);
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+    File iconDir = tmpDir.newFolder();
+    File orgIconDir = new File(iconDir, organizationId);
+    Assert.assertFalse(orgIconDir.exists());
+    new IconDAO().setIcon(organizationId, iconDir, byteArrayInputStream);
+    Assert.assertTrue(orgIconDir.isDirectory());
+
+    // Get the icon
+    byte[] iconBytes = new IconDAO().getIcon(organizationId, iconDir);
+    Assert.assertNotNull(iconBytes);
+    Assert.assertTrue(iconBytes.length > 0);
+
+    // Update
+    organization.setName("OrganizationDAOTest New name");
+    dao.update(organization);
+    organization = dao.getById(organizationId);
+    Assert.assertEquals("OrganizationDAOTest New name", organization.getName());
+
+    // Get All
+    List<Organization> organizations = dao.getAll();
+    Assert.assertEquals(1, organizations.size());
+    Assert.assertEquals(organizationId, organizations.get(0).getId());
+
+    // Delete
+    dao.delete(organization);
+    organization = dao.getById(organizationId);
+    Assert.assertNull(organization);
+  }
+
+  @Test
+  public void testValidateNullName_Insert() {
+    Organization organization = new Organization(null /* name */);
+    try {
+      dao.insert(organization);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Name is required.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidateNullName_Update() {
+    organization = createOrganization("testValidateNullName");
+    assertEquals("testvalidatenullname", organization.getNameLowercaseNoWhitespace());
+
+    organization.setName(null);
+    assertNull(organization.getNameLowercaseNoWhitespace());
+    try {
+      dao.update(organization);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Name is required.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidateEmptyName_Insert() {
+    try {
+      createOrganization(" ");
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Name is required.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidateEmptyName_Update() {
+    organization = createOrganization("testValidateEmptyName");
+    assertEquals("testvalidateemptyname", organization.getNameLowercaseNoWhitespace());
+
+    organization.setName(" ");
+    assertEquals("", organization.getNameLowercaseNoWhitespace());
+    try {
+      dao.update(organization);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Name is required.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidateNameInvalidChars_Insert() {
+    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+    for (String name : invalidAlphaNumericNames) {
+      Organization organization = new Organization(name);
+      try {
+        dao.insert(organization);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("Name must be alpha numeric.", expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateNameInvalidChars_Update() {
+    organization = createOrganization("testValidateNameInvalidChars");
+    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+    for (String name : invalidAlphaNumericNames) {
+      organization.setName(name);
+      try {
+        dao.update(organization);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("Name must be alpha numeric.", expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateNameSpaces_Insert() {
+    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
+        "  starts with double space", "ends with double space  " };
+    for (String name : invalidSpacingNames) {
+      try {
+        createOrganization(name);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
+            expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateNameSpaces_Update() {
+    organization = createOrganization("testValidateNameSpaces");
+
+    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
+        "  starts with double space", "ends with double space  " };
+    for (String name : invalidSpacingNames) {
+      organization.setName(name);
+      try {
+        dao.update(organization);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("Name must not have leading or trailing spaces, or have two spaces in a row.",
+            expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testNameIsCaseAndWhitespaceInsensitive() {
+    String name = "test string With Case and Whitespace";
+
+    organization = createOrganization(name);
+
+    assertEquals(name, organization.getName());
+    assertEquals("teststringwithcaseandwhitespace", organization.getNameLowercaseNoWhitespace());
+
+    String name1 = "TEST String      With    cASE and      whitespace";
+    Organization organization1 = dao.getByName(name1);
+    assertNotNull(organization1);
+    assertEquals(organization.getId(), organization1.getId());
+  }
+
+  @Test
+  public void testDuplicateName_Insert() {
+    createOrganization("testDuplicateName");
+
+    try {
+      createOrganization("testDuplicateName");
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("testDuplicateName is already used as a name.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testDuplicateName_Update() {
+    createOrganization("testDuplicateName");
+    Organization organization1 = createOrganization("testDuplicateName1");
+
+    organization1.setName("Test Duplicate Name");
+    try {
+      dao.update(organization1);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Test Duplicate Name is already used as a name.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidateNameLength_Insert() {
+    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
+    try {
+      createOrganization(name + "a");
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    @Test
-    public void testCRUD()
-        throws Exception
-    {
-        // Create
-        organization = createOrganization( "OrganizationDAOTest" );
-        String organizationId = organization.getId();
-        organization = dao.getById( organizationId );
-        Assert.assertEquals( "OrganizationDAOTest", organization.getName() );
+    createOrganization(name);
+  }
 
-        // Set an icon for the organization
-        BufferedImage image = new BufferedImage( 420, 420, BufferedImage.TYPE_INT_ARGB );
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write( image, "png", byteArrayOutputStream );
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( byteArrayOutputStream.toByteArray() );
-        File iconDir = tmpDir.newFolder();
-        File orgIconDir = new File( iconDir, organizationId );
-        Assert.assertFalse( orgIconDir.exists() );
-        new IconDAO().setIcon( organizationId, iconDir, byteArrayInputStream );
-        Assert.assertTrue( orgIconDir.isDirectory() );
+  @Test
+  public void testValidateNameLength_Update() {
+    organization = createOrganization("test name");
 
-        // Get the icon
-        byte[] iconBytes = new IconDAO().getIcon( organizationId, iconDir );
-        Assert.assertNotNull( iconBytes );
-        Assert.assertTrue( iconBytes.length > 0 );
-
-        // Update
-        organization.setName( "OrganizationDAOTest New name" );
-        dao.update( organization );
-        organization = dao.getById( organizationId );
-        Assert.assertEquals( "OrganizationDAOTest New name", organization.getName() );
-
-        // Get All
-        List<Organization> organizations = dao.getAll();
-        Assert.assertEquals( 1, organizations.size() );
-        Assert.assertEquals( organizationId, organizations.get( 0 ).getId() );
-
-        // Delete
-        dao.delete( organization );
-        organization = dao.getById( organizationId );
-        Assert.assertNull( organization );
+    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
+    organization.setName(name + "a");
+    try {
+      dao.update(organization);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    @Test
-    public void testValidateNullName_Insert()
-    {
-        Organization organization = new Organization( null /* name */);
-        try
-        {
-            dao.insert( organization );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Name is required.", expected.getMessage() );
-        }
-    }
+    organization.setName(name);
+    dao.update(organization);
+  }
 
-    @Test
-    public void testValidateNullName_Update()
-    {
-        organization = createOrganization( "testValidateNullName" );
-        assertEquals( "testvalidatenullname", organization.getNameLowercaseNoWhitespace() );
+  @Test
+  public void testCascadeDeleteToLabels() {
+    final LabelDAO labelDAO = new LabelDAO();
 
-        organization.setName( null );
-        assertNull( organization.getNameLowercaseNoWhitespace() );
-        try
-        {
-            dao.update( organization );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Name is required.", expected.getMessage() );
-        }
-    }
+    Organization organization = new Organization("organization");
+    dao.insert(organization);
 
-    @Test
-    public void testValidateEmptyName_Insert()
-    {
-        try
-        {
-            createOrganization( " " );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Name is required.", expected.getMessage() );
-        }
-    }
+    String organizationId = organization.getId();
 
-    @Test
-    public void testValidateEmptyName_Update()
-    {
-        organization = createOrganization( "testValidateEmptyName" );
-        assertEquals( "testvalidateemptyname", organization.getNameLowercaseNoWhitespace() );
+    Label label = new Label();
+    label.setLabel("label");
+    label.setColor(Color.black);
+    label.setOwnerId(organization.getId());
+    labelDAO.insert(label);
 
-        organization.setName( " " );
-        assertEquals( "", organization.getNameLowercaseNoWhitespace() );
-        try
-        {
-            dao.update( organization );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Name is required.", expected.getMessage() );
-        }
-    }
+    // sanity check
+    Assert.assertFalse(labelDAO.getByOwnerId(organizationId).isEmpty());
 
-    @Test
-    public void testValidateNameInvalidChars_Insert()
-    {
-        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-        for ( String name : invalidAlphaNumericNames )
-        {
-            Organization organization = new Organization( name );
-            try
-            {
-                dao.insert( organization );
-                fail( "Expected InvalidNameException" );
-            }
-            catch ( InvalidNameException expected )
-            {
-                assertEquals( "Name must be alpha numeric.", expected.getMessage() );
-            }
-        }
-    }
+    dao.delete(organization);
 
-    @Test
-    public void testValidateNameInvalidChars_Update()
-    {
-        organization = createOrganization( "testValidateNameInvalidChars" );
-        String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-        for ( String name : invalidAlphaNumericNames )
-        {
-            organization.setName( name );
-            try
-            {
-                dao.update( organization );
-                fail( "Expected InvalidNameException" );
-            }
-            catch ( InvalidNameException expected )
-            {
-                assertEquals( "Name must be alpha numeric.", expected.getMessage() );
-            }
-        }
-    }
+    Assert.assertTrue(labelDAO.getByOwnerId(organizationId).isEmpty());
+  }
 
-    @Test
-    public void testValidateNameSpaces_Insert()
-    {
-        String[] invalidSpacingNames =
-            { " leading space", "trailing space ", "double  space", "  starts with double space",
-                "ends with double space  " };
-        for ( String name : invalidSpacingNames )
-        {
-            try
-            {
-                createOrganization( name );
-                fail( "Expected InvalidNameException" );
-            }
-            catch ( InvalidNameException expected )
-            {
-                assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
-                              expected.getMessage() );
-            }
-        }
-    }
+  @Test
+  public void testCascadeDeleteToPolicyWaivers() {
+    Organization organization = new Organization("testCascadeDeleteToPolicyWaivers");
+    dao.insert(organization);
 
-    @Test
-    public void testValidateNameSpaces_Update()
-    {
-        organization = createOrganization( "testValidateNameSpaces" );
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", "MyPolicyId", organization.getId(),
+        "My comment");
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    policyWaiverDAO.insert(policyWaiver);
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
+    assertEquals(1, policyWaivers.size());
 
-        String[] invalidSpacingNames =
-            { " leading space", "trailing space ", "double  space", "  starts with double space",
-                "ends with double space  " };
-        for ( String name : invalidSpacingNames )
-        {
-            organization.setName( name );
-            try
-            {
-                dao.update( organization );
-                fail( "Expected InvalidNameException" );
-            }
-            catch ( InvalidNameException expected )
-            {
-                assertEquals( "Name must not have leading or trailing spaces, or have two spaces in a row.",
-                              expected.getMessage() );
-            }
-        }
-    }
-
-    @Test
-    public void testNameIsCaseAndWhitespaceInsensitive()
-    {
-        String name = "test string With Case and Whitespace";
-
-        organization = createOrganization( name );
-
-        assertEquals( name, organization.getName() );
-        assertEquals( "teststringwithcaseandwhitespace", organization.getNameLowercaseNoWhitespace() );
-
-        String name1 = "TEST String      With    cASE and      whitespace";
-        Organization organization1 = dao.getByName( name1 );
-        assertNotNull( organization1 );
-        assertEquals( organization.getId(), organization1.getId() );
-    }
-
-    @Test
-    public void testDuplicateName_Insert()
-    {
-        createOrganization( "testDuplicateName" );
-
-        try
-        {
-            createOrganization( "testDuplicateName" );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "testDuplicateName is already used as a name.", expected.getMessage() );
-        }
-    }
-
-    @Test
-    public void testDuplicateName_Update()
-    {
-        createOrganization( "testDuplicateName" );
-        Organization organization1 = createOrganization( "testDuplicateName1" );
-
-        organization1.setName( "Test Duplicate Name" );
-        try
-        {
-            dao.update( organization1 );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Test Duplicate Name is already used as a name.", expected.getMessage() );
-        }
-    }
-
-    @Test
-    public void testValidateNameLength_Insert()
-    {
-        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
-        try
-        {
-            createOrganization( name + "a" );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
-        }
-
-        createOrganization( name );
-    }
-
-    @Test
-    public void testValidateNameLength_Update()
-    {
-        organization = createOrganization( "test name" );
-
-        String name = StringUtils.repeat( "a", NameHelper.MAX_NAME_LENGTH );
-        organization.setName( name + "a" );
-        try
-        {
-            dao.update( organization );
-            fail( "Expected InvalidNameException" );
-        }
-        catch ( InvalidNameException expected )
-        {
-            assertEquals( "Name must be 60 characters or less.", expected.getMessage() );
-        }
-
-        organization.setName( name );
-        dao.update( organization );
-    }
-
-    @Test
-    public void testCascadeDeleteToLabels()
-    {
-        final LabelDAO labelDAO = new LabelDAO();
-
-        Organization organization = new Organization( "organization" );
-        dao.insert( organization );
-
-        String organizationId = organization.getId();
-
-        Label label = new Label();
-        label.setLabel( "label" );
-        label.setColor( Color.black );
-        label.setOwnerId( organization.getId() );
-        labelDAO.insert( label );
-
-        // sanity check
-        Assert.assertFalse( labelDAO.getByOwnerId( organizationId ).isEmpty() );
-
-        dao.delete( organization );
-
-        Assert.assertTrue( labelDAO.getByOwnerId( organizationId ).isEmpty() );
-    }
-
-    @Test
-    public void testCascadeDeleteToPolicyWaivers()
-    {
-        Organization organization = new Organization( "testCascadeDeleteToPolicyWaivers" );
-        dao.insert( organization );
-
-        PolicyWaiver policyWaiver =
-            new PolicyWaiver( "12345678901234567890", "MyPolicyId", organization.getId(), "My comment" );
-        PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-        policyWaiverDAO.insert( policyWaiver );
-        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId( organization.getId() );
-        assertEquals( 1, policyWaivers.size() );
-
-        dao.delete( organization );
-        policyWaivers = policyWaiverDAO.getByOwnerId( organization.getId() );
-        assertEquals( 0, policyWaivers.size() );
-    }
+    dao.delete(organization);
+    policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
+    assertEquals(0, policyWaivers.size());
+  }
 }

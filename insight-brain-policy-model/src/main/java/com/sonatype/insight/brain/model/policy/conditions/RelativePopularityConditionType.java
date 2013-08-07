@@ -15,89 +15,72 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageVa
 public class RelativePopularityConditionType
     extends AbstractConditionType<Integer>
 {
-    public static final String ID = "RelativePopularity";
+  public static final String ID = "RelativePopularity";
 
-    @Override
-    public String getId()
-    {
-        return ID;
+  @Override
+  public String getId() {
+    return ID;
+  }
+
+  @Override
+  public String getName() {
+    return "Relative Popularity (Percentage)";
+  }
+
+  @Override
+  public List<String> getSupportedOperators() {
+    return NumericOperators.LIST;
+  }
+
+  @Override
+  public String generateDroolsConditionValue(String value) {
+    return asDroolsInteger(value);
+  }
+
+  @Override
+  public String explainMatch(final Condition condition, final Component component) {
+    return "Relative Popularity was " + component.getRelativePopularity() + "%";
+  }
+
+  @Override
+  public String getValueTypeId() {
+    return PercentageValueType.ID;
+  }
+
+  @Override
+  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
+    super.validateCondition(condition, ownerId);
+
+    try {
+      int value = Integer.parseInt(condition.getValue());
+      if (value < 0 || value > 100) {
+        throw new InvalidConditionException(condition, "Relative popularity must be between 0 and 100");
+      }
     }
-
-    @Override
-    public String getName()
-    {
-        return "Relative Popularity (Percentage)";
+    catch (NumberFormatException e) {
+      throw new InvalidConditionException(condition, "Invalid relative popularity: " + condition.getValue());
     }
+  }
 
-    @Override
-    public List<String> getSupportedOperators()
-    {
-        return NumericOperators.LIST;
+  @Override
+  public String getValueHint() {
+    return "Enter percent value, 1 to 100";
+  }
+
+  @Override
+  protected boolean internalEvaluateCondition(Component component, String operator, Integer value) {
+    if ("=".equals(operator)) {
+      return component.getRelativePopularity() == value;
     }
-
-    @Override
-    public String generateDroolsConditionValue( String value )
-    {
-        return asDroolsInteger( value );
+    if ("<".equals(operator)) {
+      return component.getRelativePopularity() < value;
     }
-
-    @Override
-    public String explainMatch( final Condition condition, final Component component )
-    {
-        return "Relative Popularity was " + component.getRelativePopularity() + "%";
+    if ("<=".equals(operator)) {
+      return component.getRelativePopularity() <= value;
     }
-
-    @Override
-    public String getValueTypeId()
-    {
-        return PercentageValueType.ID;
+    if (">".equals(operator)) {
+      return component.getRelativePopularity() > value;
     }
-
-    @Override
-    public void validateCondition( Condition condition, String ownerId )
-        throws InvalidConditionException
-    {
-        super.validateCondition( condition, ownerId );
-
-        try
-        {
-            int value = Integer.parseInt( condition.getValue() );
-            if ( value < 0 || value > 100 )
-            {
-                throw new InvalidConditionException( condition, "Relative popularity must be between 0 and 100" );
-            }
-        }
-        catch ( NumberFormatException e )
-        {
-            throw new InvalidConditionException( condition, "Invalid relative popularity: " + condition.getValue() );
-        }
-    }
-
-    @Override
-    public String getValueHint()
-    {
-        return "Enter percent value, 1 to 100";
-    }
-
-    @Override
-    protected boolean internalEvaluateCondition( Component component, String operator, Integer value )
-    {
-        if ( "=".equals( operator ) )
-        {
-            return component.getRelativePopularity() == value;
-        }
-        if ( "<".equals( operator ) )
-        {
-            return component.getRelativePopularity() < value;
-        }
-        if ( "<=".equals( operator ) )
-        {
-            return component.getRelativePopularity() <= value;
-        }
-        if ( ">".equals( operator ) )
-        {
-            return component.getRelativePopularity() > value;
-        }
-        return component.getRelativePopularity() >= value;
-    }
+    return component.getRelativePopularity() >= value;
+  }
 }

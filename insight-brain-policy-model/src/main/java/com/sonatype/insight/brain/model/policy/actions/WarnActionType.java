@@ -14,35 +14,30 @@ public class WarnActionType
     extends AbstractActionType
     implements ActionType
 {
-    public static final String ID = Action.ID_WARN;
+  public static final String ID = Action.ID_WARN;
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getName()
-    {
-        return "Warn";
-    }
+  @Override
+  public String getName() {
+    return "Warn";
+  }
 
-    @Override
-    public List<String> getAvailableTargets()
-    {
-        return null;
-    }
+  @Override
+  public List<String> getAvailableTargets() {
+    return null;
+  }
 
-    @Override
-    public boolean isRequiresTarget()
-    {
-        return false;
-    }
-    
-    @Override
-    public String getSummary()
-    {
-        return "Build Warning";
-    }
+  @Override
+  public boolean isRequiresTarget() {
+    return false;
+  }
+
+  @Override
+  public String getSummary() {
+    return "Build Warning";
+  }
 }

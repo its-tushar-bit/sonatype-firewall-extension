@@ -27,177 +27,148 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class MultiLicenseDAO
     extends AbstractDatamartSqlDAO<MultiLicense>
 {
-    private static final Logger log = LoggerFactory.getLogger( MultiLicenseDAO.class );
+  private static final Logger log = LoggerFactory.getLogger(MultiLicenseDAO.class);
 
-    private static volatile Map<String, MultiLicense> multiLicensesById = null;
+  private static volatile Map<String, MultiLicense> multiLicensesById = null;
 
-    private static volatile Map<String, MultiLicense> multiLicensesByName = null;
+  private static volatile Map<String, MultiLicense> multiLicensesByName = null;
 
-    private static volatile Map<String, Set<License>> licenseSetsById = null;
+  private static volatile Map<String, Set<License>> licenseSetsById = null;
 
-    @Override
-    public MultiLicense getById( EntityManager em, String id )
-    {
-        String sQuery = "SELECT entity FROM MultiLicense entity" + //
-            " WHERE entity.id=?1";
-        return get( em, sQuery, id );
+  @Override
+  public MultiLicense getById(EntityManager em, String id) {
+    String sQuery = "SELECT entity FROM MultiLicense entity" + //
+        " WHERE entity.id=?1";
+    return get(em, sQuery, id);
+  }
+
+  public Collection<MultiLicense> getAll() {
+    if (multiLicensesByName == null) {
+      load();
     }
+    return multiLicensesByName.values();
+  }
 
-    public Collection<MultiLicense> getAll()
-    {
-        if ( multiLicensesByName == null )
-        {
-            load();
-        }
-        return multiLicensesByName.values();
+  @Override
+  public MultiLicense getById(String id) {
+    if (multiLicensesById == null) {
+      load();
     }
-
-    @Override
-    public MultiLicense getById( String id )
-    {
-        if ( multiLicensesById == null )
-        {
-            load();
-        }
-        MultiLicense multiLicense = multiLicensesById.get( id );
-        if ( multiLicense == null )
-        {
-            log.info( "Cannot find a multi-license with id '{}'.  Refreshing license data.", id );
-            LicenseDataUpdater.update();
-            multiLicense = multiLicensesById.get( id );
-        }
-        return multiLicense;
+    MultiLicense multiLicense = multiLicensesById.get(id);
+    if (multiLicense == null) {
+      log.info("Cannot find a multi-license with id '{}'.  Refreshing license data.", id);
+      LicenseDataUpdater.update();
+      multiLicense = multiLicensesById.get(id);
     }
+    return multiLicense;
+  }
 
-    public MultiLicense getByIdNotNull( String id )
-    {
-        MultiLicense license = getById( id );
-        if ( license == null )
-        {
-            throw new NotFoundException( "A multi-license with id '" + id + "' does not exist." );
-        }
-        return license;
+  public MultiLicense getByIdNotNull(String id) {
+    MultiLicense license = getById(id);
+    if (license == null) {
+      throw new NotFoundException("A multi-license with id '" + id + "' does not exist.");
     }
+    return license;
+  }
 
-    public MultiLicense getByName( String name )
-    {
-        if ( multiLicensesByName == null )
-        {
-            load();
-        }
-        MultiLicense multiLicense = multiLicensesByName.get( name );
-        if ( multiLicense == null )
-        {
-            log.info( "Cannot find a multi-license with name '{}'.  Refreshing license data.", name );
-            LicenseDataUpdater.update();
-            multiLicense = multiLicensesByName.get( name );
-        }
-        return multiLicense;
+  public MultiLicense getByName(String name) {
+    if (multiLicensesByName == null) {
+      load();
     }
-
-    public MultiLicense getByNameNotNull( String name )
-    {
-        MultiLicense license = getByName( name );
-        if ( license == null )
-        {
-            throw new NotFoundException( "A multi-license with name '" + name + "' does not exist." );
-        }
-        return license;
+    MultiLicense multiLicense = multiLicensesByName.get(name);
+    if (multiLicense == null) {
+      log.info("Cannot find a multi-license with name '{}'.  Refreshing license data.", name);
+      LicenseDataUpdater.update();
+      multiLicense = multiLicensesByName.get(name);
     }
+    return multiLicense;
+  }
 
-    public Set<License> getLicensesByMultiLicenseId( String id )
-    {
-        if ( licenseSetsById == null )
-        {
-            load();
-        }
-        return licenseSetsById.get( id );
+  public MultiLicense getByNameNotNull(String name) {
+    MultiLicense license = getByName(name);
+    if (license == null) {
+      throw new NotFoundException("A multi-license with name '" + name + "' does not exist.");
     }
+    return license;
+  }
 
-    public Integer getLicenseThreatLevelByApplicationIdAndMultiLicenseId( String appId, String multiLicenseId )
-    {
-        final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        Application application = new ApplicationDAO().getByIdNotNull( appId );
-        String organizationId = application.getOrganizationId();
-        final Set<License> licenses = getLicensesByMultiLicenseId( multiLicenseId );
-        Integer threatLevel = null;
-        for ( License license : licenses )
-        {
-            List<LicenseThreatGroup> licenseThreatGroups =
-                licenseThreatGroupDAO.getByOwnerIdAndLicenseId( appId, license.getId() );
-            threatLevel = max( threatLevel, licenseThreatGroups );
-
-            if ( organizationId != null )
-            {
-                licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId( organizationId, license.getId() );
-                threatLevel = max( threatLevel, licenseThreatGroups );
-            }
-        }
-        return threatLevel;
+  public Set<License> getLicensesByMultiLicenseId(String id) {
+    if (licenseSetsById == null) {
+      load();
     }
+    return licenseSetsById.get(id);
+  }
 
-    private Integer max( Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups )
-    {
-        for ( LicenseThreatGroup licenseThreatGroup : licenseThreatGroups )
-        {
-            if ( threatLevel == null )
-            {
-                threatLevel = licenseThreatGroup.getThreatLevel();
-            }
-            else
-            {
-                threatLevel = Math.max( threatLevel, licenseThreatGroup.getThreatLevel() );
-            }
-        }
-        return threatLevel;
+  public Integer getLicenseThreatLevelByApplicationIdAndMultiLicenseId(String appId, String multiLicenseId) {
+    final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+    Application application = new ApplicationDAO().getByIdNotNull(appId);
+    String organizationId = application.getOrganizationId();
+    final Set<License> licenses = getLicensesByMultiLicenseId(multiLicenseId);
+    Integer threatLevel = null;
+    for (License license : licenses) {
+      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(appId,
+          license.getId());
+      threatLevel = max(threatLevel, licenseThreatGroups);
+
+      if (organizationId != null) {
+        licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId, license.getId());
+        threatLevel = max(threatLevel, licenseThreatGroups);
+      }
     }
+    return threatLevel;
+  }
 
-    void load()
-    {
-        synchronized ( this.getClass() )
-        {
-            long start = System.currentTimeMillis();
-
-            String sQuery = "SELECT license FROM MultiLicense license" + //
-                " ORDER BY license.shortDisplayName";
-            List<MultiLicense> multiLicenses = getList( sQuery );
-
-            sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
-            @SuppressWarnings( { "unchecked", "rawtypes" } )
-            List<MultiLicenseLicenseInternal> mappings = (List) getList( sQuery );
-
-            Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<String, Set<License>>();
-
-            Map<String, MultiLicense> _licensesById = new LinkedHashMap<String, MultiLicense>();
-            for ( MultiLicense license : multiLicenses )
-            {
-                _licensesById.put( license.getId(), license );
-                _licenseSetsById.put( license.getId(), new LinkedHashSet<License>() );
-            }
-            multiLicensesById = _licensesById;
-
-            Map<String, MultiLicense> _licensesByName =
-                new TreeMap<String, MultiLicense>( String.CASE_INSENSITIVE_ORDER );
-            for ( MultiLicense license : multiLicenses )
-            {
-                _licensesByName.put( license.getShortDisplayName(), license );
-            }
-            multiLicensesByName = _licensesByName;
-
-            LicenseDAO licenseDAO = new LicenseDAO();
-            for ( MultiLicenseLicenseInternal mapping : mappings )
-            {
-                License license = licenseDAO.getByIdNotNull( mapping.getLicenseId() );
-                _licenseSetsById.get( mapping.getMultiLicenseId() ).add( license );
-            }
-
-            for ( Map.Entry<String, Set<License>> entry : _licenseSetsById.entrySet() )
-            {
-                entry.setValue( Collections.unmodifiableSet( entry.getValue() ) );
-            }
-            licenseSetsById = _licenseSetsById;
-
-            log.debug( "Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start );
-        }
+  private Integer max(Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups) {
+    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+      if (threatLevel == null) {
+        threatLevel = licenseThreatGroup.getThreatLevel();
+      }
+      else {
+        threatLevel = Math.max(threatLevel, licenseThreatGroup.getThreatLevel());
+      }
     }
+    return threatLevel;
+  }
+
+  void load() {
+    synchronized (this.getClass()) {
+      long start = System.currentTimeMillis();
+
+      String sQuery = "SELECT license FROM MultiLicense license" + //
+          " ORDER BY license.shortDisplayName";
+      List<MultiLicense> multiLicenses = getList(sQuery);
+
+      sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
+      @SuppressWarnings({ "unchecked", "rawtypes" })
+      List<MultiLicenseLicenseInternal> mappings = (List) getList(sQuery);
+
+      Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<String, Set<License>>();
+
+      Map<String, MultiLicense> _licensesById = new LinkedHashMap<String, MultiLicense>();
+      for (MultiLicense license : multiLicenses) {
+        _licensesById.put(license.getId(), license);
+        _licenseSetsById.put(license.getId(), new LinkedHashSet<License>());
+      }
+      multiLicensesById = _licensesById;
+
+      Map<String, MultiLicense> _licensesByName = new TreeMap<String, MultiLicense>(String.CASE_INSENSITIVE_ORDER);
+      for (MultiLicense license : multiLicenses) {
+        _licensesByName.put(license.getShortDisplayName(), license);
+      }
+      multiLicensesByName = _licensesByName;
+
+      LicenseDAO licenseDAO = new LicenseDAO();
+      for (MultiLicenseLicenseInternal mapping : mappings) {
+        License license = licenseDAO.getByIdNotNull(mapping.getLicenseId());
+        _licenseSetsById.get(mapping.getMultiLicenseId()).add(license);
+      }
+
+      for (Map.Entry<String, Set<License>> entry : _licenseSetsById.entrySet()) {
+        entry.setValue(Collections.unmodifiableSet(entry.getValue()));
+      }
+      licenseSetsById = _licenseSetsById;
+
+      log.debug("Loaded all multi-licenses in {} ms.", System.currentTimeMillis() - start);
+    }
+  }
 }

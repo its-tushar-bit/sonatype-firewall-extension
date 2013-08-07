@@ -7,5 +7,5 @@ package com.sonatype.insight.brain.model.policy;
 
 public enum LogicalOperator
 {
-    AND, OR
+  AND, OR
 }

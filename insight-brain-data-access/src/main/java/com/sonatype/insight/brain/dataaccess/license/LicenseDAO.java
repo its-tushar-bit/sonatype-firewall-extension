@@ -21,84 +21,73 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseDAO
     extends AbstractDatamartSqlDAO<License>
 {
-    private static final Logger log = LoggerFactory.getLogger( LicenseDAO.class );
+  private static final Logger log = LoggerFactory.getLogger(LicenseDAO.class);
 
-    private static volatile List<License> licenses;
+  private static volatile List<License> licenses;
 
-    private static volatile Map<String, License> licensesById = null;
+  private static volatile Map<String, License> licensesById = null;
 
-    @Override
-    public License getById( EntityManager em, String id )
-    {
-        String sQuery = "SELECT entity FROM License entity" + //
-            " WHERE entity.id=?1";
-        return get( em, sQuery, id );
+  @Override
+  public License getById(EntityManager em, String id) {
+    String sQuery = "SELECT entity FROM License entity" + //
+        " WHERE entity.id=?1";
+    return get(em, sQuery, id);
+  }
+
+  @Override
+  public License getById(String id) {
+    if (licensesById == null) {
+      load();
     }
-
-    @Override
-    public License getById( String id )
-    {
-        if ( licensesById == null )
-        {
-            load();
-        }
-        License license = licensesById.get( id );
-        if ( license == null )
-        {
-            log.info( "Cannot find a license with id '{}'.  Refreshing license data.", id );
-            LicenseDataUpdater.update();
-            license = licensesById.get( id );
-        }
-        return license;
+    License license = licensesById.get(id);
+    if (license == null) {
+      log.info("Cannot find a license with id '{}'.  Refreshing license data.", id);
+      LicenseDataUpdater.update();
+      license = licensesById.get(id);
     }
+    return license;
+  }
 
-    public License getByIdNotNull( String id )
-    {
-        License license = getById( id );
-        if ( license == null )
-        {
-            throw new NotFoundException( "A license with id '" + id + "' does not exist." );
-        }
-        return license;
+  public License getByIdNotNull(String id) {
+    License license = getById(id);
+    if (license == null) {
+      throw new NotFoundException("A license with id '" + id + "' does not exist.");
     }
+    return license;
+  }
 
-    void load()
-    {
-        synchronized ( this.getClass() )
-        {
-            long start = System.currentTimeMillis();
+  void load() {
+    synchronized (this.getClass()) {
+      long start = System.currentTimeMillis();
 
-            String sQuery = "SELECT license FROM License license";
-            List<License> _licenses = new ArrayList<License>();
-            _licenses.addAll( getList( sQuery ) );
-            Collections.sort( _licenses, new Comparator<License>()
-            {
-                @Override
-                public int compare( License license1, License license2 )
-                {
-                    return license1.getShortDisplayName().toLowerCase( Locale.ENGLISH ).compareTo( license2.getShortDisplayName().toLowerCase( Locale.ENGLISH ) );
-                }
-            } );
-
-            Map<String, License> _licensesById = new LinkedHashMap<String, License>();
-            for ( License license : _licenses )
-            {
-                _licensesById.put( license.getId(), license );
-            }
-
-            licenses = Collections.unmodifiableList( _licenses );
-            licensesById = Collections.unmodifiableMap( _licensesById );
-
-            log.debug( "Loaded all licenses in {} ms.", System.currentTimeMillis() - start );
+      String sQuery = "SELECT license FROM License license";
+      List<License> _licenses = new ArrayList<License>();
+      _licenses.addAll(getList(sQuery));
+      Collections.sort(_licenses, new Comparator<License>()
+      {
+        @Override
+        public int compare(License license1, License license2) {
+          return license1.getShortDisplayName().toLowerCase(Locale.ENGLISH)
+              .compareTo(license2.getShortDisplayName().toLowerCase(Locale.ENGLISH));
         }
-    }
+      });
 
-    public List<License> getAll()
-    {
-        if ( licenses == null )
-        {
-            load();
-        }
-        return licenses;
+      Map<String, License> _licensesById = new LinkedHashMap<String, License>();
+      for (License license : _licenses) {
+        _licensesById.put(license.getId(), license);
+      }
+
+      licenses = Collections.unmodifiableList(_licenses);
+      licensesById = Collections.unmodifiableMap(_licensesById);
+
+      log.debug("Loaded all licenses in {} ms.", System.currentTimeMillis() - start);
     }
+  }
+
+  public List<License> getAll() {
+    if (licenses == null) {
+      load();
+    }
+    return licenses;
+  }
 }

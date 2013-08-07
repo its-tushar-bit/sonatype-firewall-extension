@@ -10,19 +10,16 @@ import com.yammer.metrics.core.HealthCheck;
 public class ReleaseGraphHealthCheck
     extends HealthCheck
 {
-    private LoadingCache<ReleaseGraphKey, byte[]> cache;
+  private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-    @Inject
-    public ReleaseGraphHealthCheck( LoadingCache<ReleaseGraphKey, byte[]> cache )
-    {
-        super( "Release Graph" );
-        this.cache = cache;
-    }
+  @Inject
+  public ReleaseGraphHealthCheck(LoadingCache<ReleaseGraphKey, byte[]> cache) {
+    super("Release Graph");
+    this.cache = cache;
+  }
 
-    @Override
-    protected Result check()
-        throws Exception
-    {
-        return Result.healthy( "Cache Size - " + cache.size() );
-    }
+  @Override
+  protected Result check() throws Exception {
+    return Result.healthy("Cache Size - " + cache.size());
+  }
 }

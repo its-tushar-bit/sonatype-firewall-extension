@@ -19,43 +19,37 @@ import javax.ws.rs.core.UriInfo;
 public class BaseUrl
     extends AbstractInjectable<BaseUrl>
 {
-    private final InsightConfig appConfig;
+  private final InsightConfig appConfig;
 
-    @Context
-    private final UriInfo uriInfo;
+  @Context
+  private final UriInfo uriInfo;
 
-    @Inject
-    public BaseUrl( final InsightConfig appConfig )
-    {
-        this.appConfig = appConfig;
-        this.uriInfo = null; // set via reflection by Jersey's dependency injection
+  @Inject
+  public BaseUrl(final InsightConfig appConfig) {
+    this.appConfig = appConfig;
+    this.uriInfo = null; // set via reflection by Jersey's dependency injection
+  }
+
+  BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo) {
+    this.appConfig = appConfig;
+    this.uriInfo = uriInfo;
+  }
+
+  public String get() {
+    String url = appConfig.getBaseUrl();
+    if (url != null && !url.isEmpty()) {
+      return url;
     }
-
-    BaseUrl( final InsightConfig appConfig, final UriInfo uriInfo )
-    {
-        this.appConfig = appConfig;
-        this.uriInfo = uriInfo;
+    url = uriInfo.getBaseUri().toString();
+    if (!url.endsWith("/")) {
+      url += '/';
     }
+    return url;
+  }
 
-    public String get()
-    {
-        String url = appConfig.getBaseUrl();
-        if ( url != null && !url.isEmpty() )
-        {
-            return url;
-        }
-        url = uriInfo.getBaseUri().toString();
-        if ( !url.endsWith( "/" ) )
-        {
-            url += '/';
-        }
-        return url;
-    }
-
-    public UriBuilder redirect()
-    {
-        URI requestUri = uriInfo.getRequestUri();
-        return UriBuilder.fromUri( get() ).replaceQuery( requestUri.getRawQuery() );
-    }
+  public UriBuilder redirect() {
+    URI requestUri = uriInfo.getRequestUri();
+    return UriBuilder.fromUri(get()).replaceQuery(requestUri.getRawQuery());
+  }
 
 }

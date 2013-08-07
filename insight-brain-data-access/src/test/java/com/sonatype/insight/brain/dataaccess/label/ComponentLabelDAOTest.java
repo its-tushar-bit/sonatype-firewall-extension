@@ -23,254 +23,235 @@ import com.sonatype.insight.brain.model.label.Label;
 public class ComponentLabelDAOTest
     extends AbstractDbDAOTest
 {
-    private final String hash = "ababababab";
+  private final String hash = "ababababab";
 
-    @Before
-    public void before()
-    {
-        createDefaultApplication();
+  @Before
+  public void before() {
+    createDefaultApplication();
+  }
+
+  @Test
+  public void testSetComponentLabels_Null() {
+    Set<String> noLabels = null;
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, noLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, toLabelSet("Label1", "Label2"), null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(2, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, noLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+  }
+
+  @Test
+  public void testSetComponentLabels_None() {
+    Set<String> noLabels = Collections.emptySet();
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, noLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, toLabelSet("Label1", "Label2"), null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(2, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, noLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+  }
+
+  @Test
+  public void testSetComponentLabels_One() {
+    Set<String> newLabels = toLabelSet("Label");
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, newLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(newLabels, componentLabels);
+
+    newLabels = toLabelSet("NewLabel");
+    dao.setComponentLabels(applicationId, hash, newLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(newLabels, componentLabels);
+  }
+
+  @Test
+  public void testSetComponentLabels_DefaultColor() {
+    Set<String> newLabels = toLabelSet("Label");
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    // Not null default color
+    dao.setComponentLabels(applicationId, hash, newLabels, Color.orange);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(newLabels, componentLabels);
+
+    LabelDAO labelDAO = new LabelDAO();
+    List<Label> appLabels = labelDAO.getByOwnerId(applicationId);
+    Assert.assertEquals(1, appLabels.size());
+    Label appLabel = appLabels.get(0);
+    Assert.assertEquals(Color.orange, appLabel.getColor());
+
+    // Null default color
+    dao.setComponentLabels(applicationId, hash, newLabels, null /* defaultColor */);
+    appLabels = labelDAO.getByOwnerId(applicationId);
+    Assert.assertEquals(1, appLabels.size());
+    appLabel = appLabels.get(0);
+    Assert.assertEquals(Color.orange, appLabel.getColor());
+  }
+
+  @Test
+  public void testSetComponentLabels_Two() {
+    Set<String> newLabels = toLabelSet("Label1", "Label2");
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, newLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(newLabels, componentLabels);
+
+    newLabels = toLabelSet("NewLabel1", "NewLabel2");
+    dao.setComponentLabels(applicationId, hash, newLabels, null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(newLabels, componentLabels);
+  }
+
+  @Test
+  public void testSetComponentLabels_Duplicate() {
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, toLabelSet("Label", "label"), null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(toLabelSet("Label"), componentLabels);
+  }
+
+  @Test
+  public void testSetComponentLabels_LabelAlreadyExists() {
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    dao.setComponentLabels(applicationId, hash, toLabelSet("Label"), null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(toLabelSet("Label"), componentLabels);
+
+    dao.setComponentLabels(applicationId, hash, toLabelSet("label"), null /* defaultColor */);
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    assertComponentLabels(toLabelSet("Label"), componentLabels);
+  }
+
+  @Test
+  public void testSetComponentLabels_TooLong() throws Exception {
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    Set<String> labels = toLabelSet("A_very_long_label_that_exceeds_our_maximum_label_length_and_cannot_be_added");
+    try {
+      dao.setComponentLabels(applicationId, hash, labels, null /* defaultColor */);
+      Assert.fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException expected) {
+      if (!expected.getMessage().contains("exceeds the maximum length")) {
+        throw expected;
+      }
+    }
+  }
+
+  @Test
+  public void testOrganizationInheritance() {
+    final LabelDAO labelDAO = new LabelDAO();
+    final Label orgLabel = new Label();
+    orgLabel.setColor(Color.white);
+    orgLabel.setLabel("org-label");
+    orgLabel.setOwnerId(organization.getId());
+    labelDAO.insert(orgLabel);
+    final Label appLabel = new Label();
+    appLabel.setColor(Color.white);
+    appLabel.setLabel("app-label");
+    appLabel.setOwnerId(application.getId());
+    labelDAO.insert(appLabel);
+
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+
+    // sanity check
+    List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+    Assert.assertEquals(0, componentLabels.size());
+
+    Set<String> labels = toLabelSet(orgLabel.getLabel(), appLabel.getLabel());
+
+    dao.setComponentLabels(applicationId, hash, labels, null);
+
+    componentLabels = dao.getByOwnerIdAndHash(applicationId, hash);
+    Assert.assertNotNull(componentLabels);
+
+    Assert.assertEquals(orgLabel.getId(), componentLabels.get(0).getLabelId());
+    Assert.assertEquals(orgLabel.getOwnerId(), componentLabels.get(0).getOwnerId());
+
+    Assert.assertEquals(appLabel.getId(), componentLabels.get(1).getLabelId());
+    Assert.assertEquals(appLabel.getOwnerId(), componentLabels.get(1).getOwnerId());
+  }
+
+  private void assertComponentLabels(Set<String> expectedLabels, List<ComponentLabel> actualLabels) {
+    Assert.assertEquals(expectedLabels.size(), actualLabels.size());
+
+    LabelDAO labelDAO = new LabelDAO();
+    Set<String> actualStringLabels = new LinkedHashSet<String>();
+    for (ComponentLabel componentLabel : actualLabels) {
+      Label label = labelDAO.getById(componentLabel.getLabelId());
+      actualStringLabels.add(label.getLabelLowercase());
     }
 
-    @Test
-    public void testSetComponentLabels_Null()
-    {
-        Set<String> noLabels = null;
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 2, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
+    for (String expectedLabel : expectedLabels) {
+      Assert.assertTrue("Expected label " + expectedLabel,
+          actualStringLabels.contains(expectedLabel.toLowerCase(Locale.ENGLISH)));
     }
+  }
 
-    @Test
-    public void testSetComponentLabels_None()
-    {
-        Set<String> noLabels = Collections.emptySet();
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label1", "Label2" ), null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 2, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, noLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
+  private Set<String> toLabelSet(String... labels) {
+    Set<String> labelSet = new LinkedHashSet<String>();
+    for (String label : labels) {
+      labelSet.add(label);
     }
-
-    @Test
-    public void testSetComponentLabels_One()
-    {
-        Set<String> newLabels = toLabelSet( "Label" );
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( newLabels, componentLabels );
-
-        newLabels = toLabelSet( "NewLabel" );
-        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( newLabels, componentLabels );
-    }
-
-    @Test
-    public void testSetComponentLabels_DefaultColor()
-    {
-        Set<String> newLabels = toLabelSet( "Label" );
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        // Not null default color
-        dao.setComponentLabels( applicationId, hash, newLabels, Color.orange );
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( newLabels, componentLabels );
-
-        LabelDAO labelDAO = new LabelDAO();
-        List<Label> appLabels = labelDAO.getByOwnerId( applicationId );
-        Assert.assertEquals( 1, appLabels.size() );
-        Label appLabel = appLabels.get( 0 );
-        Assert.assertEquals( Color.orange, appLabel.getColor() );
-
-        // Null default color
-        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
-        appLabels = labelDAO.getByOwnerId( applicationId );
-        Assert.assertEquals( 1, appLabels.size() );
-        appLabel = appLabels.get( 0 );
-        Assert.assertEquals( Color.orange, appLabel.getColor() );
-    }
-
-    @Test
-    public void testSetComponentLabels_Two()
-    {
-        Set<String> newLabels = toLabelSet( "Label1", "Label2" );
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( newLabels, componentLabels );
-
-        newLabels = toLabelSet( "NewLabel1", "NewLabel2" );
-        dao.setComponentLabels( applicationId, hash, newLabels, null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( newLabels, componentLabels );
-    }
-
-    @Test
-    public void testSetComponentLabels_Duplicate()
-    {
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label", "label" ), null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( toLabelSet( "Label" ), componentLabels );
-    }
-
-    @Test
-    public void testSetComponentLabels_LabelAlreadyExists()
-    {
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "Label" ), null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( toLabelSet( "Label" ), componentLabels );
-
-        dao.setComponentLabels( applicationId, hash, toLabelSet( "label" ), null /* defaultColor */);
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        assertComponentLabels( toLabelSet( "Label" ), componentLabels );
-    }
-
-    @Test
-    public void testSetComponentLabels_TooLong()
-        throws Exception
-    {
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        Set<String> labels = toLabelSet( "A_very_long_label_that_exceeds_our_maximum_label_length_and_cannot_be_added" );
-        try
-        {
-            dao.setComponentLabels( applicationId, hash, labels, null /* defaultColor */);
-            Assert.fail( "Expected InvalidLabelException" );
-        }
-        catch ( InvalidLabelException expected )
-        {
-            if ( !expected.getMessage().contains( "exceeds the maximum length" ) )
-            {
-                throw expected;
-            }
-        }
-    }
-
-    @Test
-    public void testOrganizationInheritance()
-    {
-        final LabelDAO labelDAO = new LabelDAO();
-        final Label orgLabel = new Label();
-        orgLabel.setColor( Color.white );
-        orgLabel.setLabel( "org-label" );
-        orgLabel.setOwnerId( organization.getId() );
-        labelDAO.insert( orgLabel );
-        final Label appLabel = new Label();
-        appLabel.setColor( Color.white );
-        appLabel.setLabel( "app-label" );
-        appLabel.setOwnerId( application.getId() );
-        labelDAO.insert( appLabel );
-
-        ComponentLabelDAO dao = new ComponentLabelDAO();
-
-        // sanity check
-        List<ComponentLabel> componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-        Assert.assertEquals( 0, componentLabels.size() );
-
-        Set<String> labels = toLabelSet( orgLabel.getLabel(), appLabel.getLabel() );
-
-        dao.setComponentLabels( applicationId, hash, labels, null );
-
-        componentLabels = dao.getByOwnerIdAndHash( applicationId, hash );
-        Assert.assertNotNull( componentLabels );
-
-        Assert.assertEquals( orgLabel.getId(), componentLabels.get( 0 ).getLabelId() );
-        Assert.assertEquals( orgLabel.getOwnerId(), componentLabels.get( 0 ).getOwnerId() );
-
-        Assert.assertEquals( appLabel.getId(), componentLabels.get( 1 ).getLabelId() );
-        Assert.assertEquals( appLabel.getOwnerId(), componentLabels.get( 1 ).getOwnerId() );
-    }
-
-    private void assertComponentLabels( Set<String> expectedLabels, List<ComponentLabel> actualLabels )
-    {
-        Assert.assertEquals( expectedLabels.size(), actualLabels.size() );
-
-        LabelDAO labelDAO = new LabelDAO();
-        Set<String> actualStringLabels = new LinkedHashSet<String>();
-        for ( ComponentLabel componentLabel : actualLabels )
-        {
-            Label label = labelDAO.getById( componentLabel.getLabelId() );
-            actualStringLabels.add( label.getLabelLowercase() );
-        }
-
-        for ( String expectedLabel : expectedLabels )
-        {
-            Assert.assertTrue( "Expected label " + expectedLabel,
-                               actualStringLabels.contains( expectedLabel.toLowerCase( Locale.ENGLISH ) ) );
-        }
-    }
-
-    private Set<String> toLabelSet( String... labels )
-    {
-        Set<String> labelSet = new LinkedHashSet<String>();
-        for ( String label : labels )
-        {
-            labelSet.add( label );
-        }
-        return labelSet;
-    }
+    return labelSet;
+  }
 }

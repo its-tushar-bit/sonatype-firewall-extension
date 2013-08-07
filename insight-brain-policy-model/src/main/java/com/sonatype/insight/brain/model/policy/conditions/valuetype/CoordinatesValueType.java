@@ -12,29 +12,25 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class CoordinatesValueType
     implements ConditionValueType<String>
 {
-    public static final String ID = "CoordinatesValueType";
+  public static final String ID = "CoordinatesValueType";
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "String";
-    }
+  @Override
+  public String getDataType() {
+    return "String";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<String> getAvailableValues()
-    {
-        return null;
-    }
+  @Override
+  public List<String> getAvailableValues() {
+    return null;
+  }
 }

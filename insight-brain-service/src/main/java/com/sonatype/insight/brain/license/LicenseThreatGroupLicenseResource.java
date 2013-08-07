@@ -21,29 +21,29 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDA
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
 @Named
-@Path( LicenseThreatGroupLicenseResource.SERVICE_PATH )
+@Path(LicenseThreatGroupLicenseResource.SERVICE_PATH)
 public class LicenseThreatGroupLicenseResource
 {
-    public static final String SERVICE_PATH =
-        "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
+  public static final String SERVICE_PATH = "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
 
-    private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
-    @GET
-    @Produces( { MediaType.APPLICATION_JSON } )
-    public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses( @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId )
-    {
-        return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );
-    }
+  @GET
+  @Produces({ MediaType.APPLICATION_JSON })
+  public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(
+      @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
+  {
+    return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(licenseThreatGroupId);
+  }
 
-    @PUT
-    @Consumes( MediaType.APPLICATION_JSON )
-    @Produces( MediaType.APPLICATION_JSON )
-    public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses( @PathParam( "licenseThreatGroupId" ) String licenseThreatGroupId,
-                                                                          Set<String> licenseIds )
-    {
-        licenseThreatGroupLicenseDAO.setLicenses( licenseThreatGroupId, licenseIds );
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(
+      @PathParam("licenseThreatGroupId") String licenseThreatGroupId, Set<String> licenseIds)
+  {
+    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroupId, licenseIds);
 
-        return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId( licenseThreatGroupId );
-    }
+    return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(licenseThreatGroupId);
+  }
 }

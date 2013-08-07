@@ -25,84 +25,69 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 public class ScanClientTest
     extends AbstractLicenseTest
 {
-    private static final String APP_ID = "ScanClientTest_AppId";
+  private static final String APP_ID = "ScanClientTest_AppId";
 
-    private static Application application;
+  private static Application application;
 
-    @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    @AfterClass
-    public static void afterClass()
-    {
-        if ( application != null )
-        {
-            new ApplicationDAO().delete( application );
-        }
-        DataSourceFactory.clear_ForTestsOnly();
+  @AfterClass
+  public static void afterClass() {
+    if (application != null) {
+      new ApplicationDAO().delete(application);
     }
+    DataSourceFactory.clear_ForTestsOnly();
+  }
 
-    @BeforeClass
-    public static void createApplication()
-    {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        application = new Application();
-        application.setName( "test" );
-        application.setPublicId( APP_ID );
-        applicationDAO.insert( application );
-    }
+  @BeforeClass
+  public static void createApplication() {
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    application = new Application();
+    application.setName("test");
+    application.setPublicId(APP_ID);
+    applicationDAO.insert(application);
+  }
 
-    @Test
-    public void testUploadCiScan_AllGood()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadCiScan( tmpDir.newFile( "scan.xml.gz" ) );
-        assertEquals( "SCAN-ID", receipt.getScanId() );
-    }
+  @Test
+  public void testUploadCiScan_AllGood() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCiScan(tmpDir.newFile("scan.xml.gz"));
+    assertEquals("SCAN-ID", receipt.getScanId());
+  }
 
-    @Test
-    public void testUploaCiScan_InvalidAppId()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        try
-        {
-            new ScanClient( config, "invalid-id" ).uploadCiScan( tmpDir.newFile( "scan.xml.gz" ) );
-            fail( "Upload should have failed due to invalid app ID" );
-        }
-        catch ( HttpResponseException e )
-        {
-            assertEquals( 404, e.getStatusCode() );
-            assertEquals( "Could not find an application with public id invalid-id.", e.getMessage() );
-        }
+  @Test
+  public void testUploaCiScan_InvalidAppId() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    try {
+      new ScanClient(config, "invalid-id").uploadCiScan(tmpDir.newFile("scan.xml.gz"));
+      fail("Upload should have failed due to invalid app ID");
     }
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertEquals("Could not find an application with public id invalid-id.", e.getMessage());
+    }
+  }
 
-    @Test
-    public void testUploadRepoManScan_AllGood()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        ScanReceipt receipt = new ScanClient( config, APP_ID ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
-        assertEquals( "SCAN-ID", receipt.getScanId() );
-        assertEquals( "rest/report/ScanClientTest_AppId/SCAN-ID/embedReport/", receipt.getReportUrl() );
-    }
+  @Test
+  public void testUploadRepoManScan_AllGood() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    ScanReceipt receipt = new ScanClient(config, APP_ID).uploadRepoManScan(tmpDir.newFile("scan.xml.gz"));
+    assertEquals("SCAN-ID", receipt.getScanId());
+    assertEquals("rest/report/ScanClientTest_AppId/SCAN-ID/embedReport/", receipt.getReportUrl());
+  }
 
-    @Test
-    public void testUploadRepoManScan_InvalidAppId()
-        throws Exception
-    {
-        Configuration config = brain.getClientConfiguration();
-        try
-        {
-            new ScanClient( config, "invalid-id" ).uploadRepoManScan( tmpDir.newFile( "scan.xml.gz" ) );
-            fail( "Upload should have failed due to invalid app ID" );
-        }
-        catch ( HttpResponseException e )
-        {
-            assertEquals( 404, e.getStatusCode() );
-            assertEquals( "Could not find an application with public id invalid-id.", e.getMessage() );
-        }
+  @Test
+  public void testUploadRepoManScan_InvalidAppId() throws Exception {
+    Configuration config = brain.getClientConfiguration();
+    try {
+      new ScanClient(config, "invalid-id").uploadRepoManScan(tmpDir.newFile("scan.xml.gz"));
+      fail("Upload should have failed due to invalid app ID");
     }
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertEquals("Could not find an application with public id invalid-id.", e.getMessage());
+    }
+  }
 
 }

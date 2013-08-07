@@ -25,100 +25,81 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 
 public abstract class AbstractPolicyEvaluationTest
 {
-    protected Constraint createConstraint( String constraintId, String constraintName, String conditionTypeId,
-                                           String operator, String value )
-    {
-        Condition condition = new Condition();
-        condition.setConditionTypeId( conditionTypeId );
-        condition.setOperator( operator );
-        condition.setValue( value );
-        Constraint constraint = new Constraint( constraintId, constraintName, LogicalOperator.AND );
-        constraint.addCondition( condition );
-        return constraint;
+  protected Constraint createConstraint(String constraintId, String constraintName, String conditionTypeId,
+      String operator, String value)
+  {
+    Condition condition = new Condition();
+    condition.setConditionTypeId(conditionTypeId);
+    condition.setOperator(operator);
+    condition.setValue(value);
+    Constraint constraint = new Constraint(constraintId, constraintName, LogicalOperator.AND);
+    constraint.addCondition(condition);
+    return constraint;
+  }
+
+  public static void assertFactCounts(int expectedConstraintFactCount, int expectedComponentFactCount,
+      PolicyAlert actualPolicyAlert)
+  {
+    List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
+    Assert.assertEquals("Incorrect number of component facts", expectedComponentFactCount, componentFacts.size());
+
+    int actualConstraintFactCount = 0;
+    Set<String> observeredConstraints = new HashSet<String>();
+    for (ComponentFact componentFact : componentFacts) {
+      for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
+        if (observeredConstraints.add(constraintFact.getConstraintId())) {
+          actualConstraintFactCount++;
+        }
+      }
     }
+    Assert.assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
+  }
 
-    public static void assertFactCounts( int expectedConstraintFactCount, int expectedComponentFactCount,
-                                         PolicyAlert actualPolicyAlert )
-    {
-        List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
-        Assert.assertEquals( "Incorrect number of component facts", expectedComponentFactCount, componentFacts.size() );
-
-        int actualConstraintFactCount = 0;
-        Set<String> observeredConstraints = new HashSet<String>();
-        for ( ComponentFact componentFact : componentFacts )
-        {
-            for ( ConstraintFact constraintFact : componentFact.getConstraintFacts() )
-            {
-                if ( observeredConstraints.add( constraintFact.getConstraintId() ) )
-                {
-                    actualConstraintFactCount++;
+  public static void assertContainsPolicyAlert(Component expectedComponent, String expectedPolicyId,
+      String expectedPolicyName, String actionTypeId, String expectedConstraintId, String expectedConstraintName,
+      String expectedConditionTypeId, List<PolicyAlert> actual)
+  {
+    for (PolicyAlert actualPolicyAlert : actual) {
+      PolicyFact policyFact = actualPolicyAlert.getTrigger();
+      if (expectedPolicyId.equals(policyFact.getPolicyId()) && expectedPolicyName.equals(policyFact.getPolicyName())
+          && policyAlertContainsAction(actualPolicyAlert, actionTypeId)) {
+        for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+          if (StringUtils.equals(expectedComponent.getGroupId(), componentFact.getGroupId())
+              && StringUtils.equals(expectedComponent.getArtifactId(), componentFact.getArtifactId())
+              && StringUtils.equals(expectedComponent.getVersion(), componentFact.getVersion())
+              && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash())) {
+            for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
+              if (expectedConstraintId.equals(constraintFact.getConstraintId())
+                  && expectedConstraintName.equals(constraintFact.getConstraintName())) {
+                for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
+                  if (expectedConditionTypeId.equals(conditionFact.getConditionTypeId())) {
+                    return;
+                  }
                 }
+              }
             }
+          }
         }
-        Assert.assertEquals( "Incorrect number of constraint facts", expectedConstraintFactCount,
-                             actualConstraintFactCount );
+      }
     }
 
-    public static void assertContainsPolicyAlert( Component expectedComponent, String expectedPolicyId,
-                                                  String expectedPolicyName, String actionTypeId,
-                                                  String expectedConstraintId, String expectedConstraintName,
-                                                  String expectedConditionTypeId, List<PolicyAlert> actual )
-    {
-        for ( PolicyAlert actualPolicyAlert : actual )
-        {
-            PolicyFact policyFact = actualPolicyAlert.getTrigger();
-            if ( expectedPolicyId.equals( policyFact.getPolicyId() )
-                && expectedPolicyName.equals( policyFact.getPolicyName() )
-                && policyAlertContainsAction( actualPolicyAlert, actionTypeId ) )
-            {
-                for ( ComponentFact componentFact : policyFact.getComponentFacts() )
-                {
-                    if ( StringUtils.equals( expectedComponent.getGroupId(), componentFact.getGroupId() )
-                        && StringUtils.equals( expectedComponent.getArtifactId(), componentFact.getArtifactId() )
-                        && StringUtils.equals( expectedComponent.getVersion(), componentFact.getVersion() )
-                        && StringUtils.equals( expectedComponent.getHash(), componentFact.getHash() ) )
-                    {
-                        for ( ConstraintFact constraintFact : componentFact.getConstraintFacts() )
-                        {
-                            if ( expectedConstraintId.equals( constraintFact.getConstraintId() )
-                                && expectedConstraintName.equals( constraintFact.getConstraintName() ) )
-                            {
-                                for ( ConditionFact conditionFact : constraintFact.getConditionFacts() )
-                                {
-                                    if ( expectedConditionTypeId.equals( conditionFact.getConditionTypeId() ) )
-                                    {
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    Assert.fail(toString(actual));
+  }
 
-        Assert.fail( toString( actual ) );
+  private static String toString(List<PolicyAlert> policyAlerts) {
+    StringBuilder result = new StringBuilder();
+    for (PolicyAlert policyAlert : policyAlerts) {
+      result.append(policyAlert.getTrigger().toString());
     }
+    return result.toString();
+  }
 
-    private static String toString( List<PolicyAlert> policyAlerts )
-    {
-        StringBuilder result = new StringBuilder();
-        for ( PolicyAlert policyAlert : policyAlerts )
-        {
-            result.append( policyAlert.getTrigger().toString() );
-        }
-        return result.toString();
+  private static boolean policyAlertContainsAction(PolicyAlert actualPolicyAlert, String actionTypeId) {
+    for (Action action : actualPolicyAlert.getActions()) {
+      if (actionTypeId.equals(action.getActionTypeId())) {
+        return true;
+      }
     }
-
-    private static boolean policyAlertContainsAction( PolicyAlert actualPolicyAlert, String actionTypeId )
-    {
-        for ( Action action : actualPolicyAlert.getActions() )
-        {
-            if ( actionTypeId.equals( action.getActionTypeId() ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    return false;
+  }
 }

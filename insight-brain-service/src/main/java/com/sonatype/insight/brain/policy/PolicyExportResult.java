@@ -12,14 +12,13 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
 
-
 public class PolicyExportResult
 {
-    public List<Policy> policies;
+  public List<Policy> policies;
 
-    public List<Label> labels;
+  public List<Label> labels;
 
-    public List<LicenseThreatGroup> licenseThreatGroups;
+  public List<LicenseThreatGroup> licenseThreatGroups;
 
-    public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
+  public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
 }

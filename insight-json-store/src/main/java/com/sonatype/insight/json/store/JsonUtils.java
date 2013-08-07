@@ -28,256 +28,195 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JsonUtils
 {
-    private static final MappingJsonFactory JSON = new MappingJsonFactory();
+  private static final MappingJsonFactory JSON = new MappingJsonFactory();
 
-    static
-    {
-        JSON.getCodec().disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        JSON.disable( Feature.INTERN_FIELD_NAMES );
+  static {
+    JSON.getCodec().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    JSON.disable(Feature.INTERN_FIELD_NAMES);
+  }
+
+  public static JsonStore fileStore(final File folder) {
+    return new JsonFileStore(folder);
+  }
+
+  public static ObjectNode stamp(final String user, final String ip, final String where, final ContainerNode<?> data) {
+    final ObjectNode stampedData = objectNode(data);
+    stampedData.put("time", System.currentTimeMillis());
+    stampedData.put("user", user);
+    stampedData.put("ip", ip);
+    stampedData.put("where", where);
+    stampedData.put("data", data);
+    return stampedData;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends ContainerNode<?>> T read(final File file) throws IOException {
+    final JsonParser parser = JSON.createParser(file);
+    try {
+      return (T) parser.readValueAsTree();
     }
-
-    public static JsonStore fileStore( final File folder )
-    {
-        return new JsonFileStore( folder );
+    finally {
+      parser.close();
     }
+  }
 
-    public static ObjectNode stamp( final String user, final String ip, final String where, final ContainerNode<?> data )
-    {
-        final ObjectNode stampedData = objectNode( data );
-        stampedData.put( "time", System.currentTimeMillis() );
-        stampedData.put( "user", user );
-        stampedData.put( "ip", ip );
-        stampedData.put( "where", where );
-        stampedData.put( "data", data );
-        return stampedData;
+  public static <T> T read(final File file, final Class<? extends T> type) throws IOException {
+    final JsonParser parser = JSON.createParser(file);
+    try {
+      return parser.readValueAs(type);
     }
+    finally {
+      parser.close();
+    }
+  }
 
-    @SuppressWarnings( "unchecked" )
-    public static <T extends ContainerNode<?>> T read( final File file )
-        throws IOException
-    {
-        final JsonParser parser = JSON.createParser( file );
-        try
-        {
-            return (T) parser.readValueAsTree();
+  public static void write(final File file, final JsonNode data) throws IOException {
+    file.getAbsoluteFile().getParentFile().mkdirs();
+    final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8);
+    try {
+      generator.useDefaultPrettyPrinter().writeTree(data);
+    }
+    finally {
+      generator.close();
+    }
+  }
+
+  public static void write(final File file, final Object pojo) throws IOException {
+    file.getAbsoluteFile().getParentFile().mkdirs();
+    final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8);
+    try {
+      generator.useDefaultPrettyPrinter().writeObject(pojo);
+    }
+    finally {
+      generator.close();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends ContainerNode<?>> T parse(final byte[] buf) throws IOException {
+    final JsonParser parser = JSON.createParser(buf);
+    try {
+      return (T) parser.readValueAsTree();
+    }
+    finally {
+      parser.close();
+    }
+  }
+
+  public static <T> T parse(final byte[] buf, final Class<? extends T> type) throws IOException {
+    final JsonParser parser = JSON.createParser(buf);
+    try {
+      try {
+        return parser.readValueAs(type);
+      }
+      catch (final JsonMappingException e) {
+        if (type.isArray()) {
+          try {
+            // handle situation where array is actually wrapped inside root 'aaData' property
+            return JSON.getCodec().reader().withRootName("aaData").readValue(parser, type);
+          }
+          catch (final JsonMappingException ignore) {
+            // no luck, fall-through and throw the original parsing exception
+          }
         }
-        finally
-        {
-            parser.close();
-        }
+        throw e;
+      }
     }
+    finally {
+      parser.close();
+    }
+  }
 
-    public static <T> T read( final File file, final Class<? extends T> type )
-        throws IOException
-    {
-        final JsonParser parser = JSON.createParser( file );
-        try
-        {
-            return parser.readValueAs( type );
-        }
-        finally
-        {
-            parser.close();
-        }
-    }
+  public static <T extends ContainerNode<?>> T parse(final String json) throws IOException {
+    return parse(json.getBytes("UTF-8"));
+  }
 
-    public static void write( final File file, final JsonNode data )
-        throws IOException
-    {
-        file.getAbsoluteFile().getParentFile().mkdirs();
-        final JsonGenerator generator = JSON.createGenerator( file, JsonEncoding.UTF8 );
-        try
-        {
-            generator.useDefaultPrettyPrinter().writeTree( data );
-        }
-        finally
-        {
-            generator.close();
-        }
-    }
+  public static <T> T parse(final String json, final Class<? extends T> type) throws IOException {
+    return parse(json.getBytes("UTF-8"), type);
+  }
 
-    public static void write( final File file, final Object pojo )
-        throws IOException
-    {
-        file.getAbsoluteFile().getParentFile().mkdirs();
-        final JsonGenerator generator = JSON.createGenerator( file, JsonEncoding.UTF8 );
-        try
-        {
-            generator.useDefaultPrettyPrinter().writeObject( pojo );
-        }
-        finally
-        {
-            generator.close();
-        }
+  public static byte[] generate(final JsonNode data) throws IOException {
+    final ByteArrayOutputStream os = new ByteArrayOutputStream();
+    final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8);
+    try {
+      generator.useDefaultPrettyPrinter().writeTree(data);
     }
+    finally {
+      generator.close();
+    }
+    return os.toByteArray();
+  }
 
-    @SuppressWarnings( "unchecked" )
-    public static <T extends ContainerNode<?>> T parse( final byte[] buf )
-        throws IOException
-    {
-        final JsonParser parser = JSON.createParser( buf );
-        try
-        {
-            return (T) parser.readValueAsTree();
-        }
-        finally
-        {
-            parser.close();
-        }
+  public static byte[] generate(final Object pojo) throws IOException {
+    final ByteArrayOutputStream os = new ByteArrayOutputStream();
+    final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8);
+    try {
+      generator.useDefaultPrettyPrinter().writeObject(pojo);
     }
+    finally {
+      generator.close();
+    }
+    return os.toByteArray();
+  }
 
-    public static <T> T parse( final byte[] buf, final Class<? extends T> type )
-        throws IOException
-    {
-        final JsonParser parser = JSON.createParser( buf );
-        try
-        {
-            try
-            {
-                return parser.readValueAs( type );
-            }
-            catch ( final JsonMappingException e )
-            {
-                if ( type.isArray() )
-                {
-                    try
-                    {
-                        // handle situation where array is actually wrapped inside root 'aaData' property
-                        return JSON.getCodec().reader().withRootName( "aaData" ).readValue( parser, type );
-                    }
-                    catch ( final JsonMappingException ignore )
-                    {
-                        // no luck, fall-through and throw the original parsing exception
-                    }
-                }
-                throw e;
-            }
-        }
-        finally
-        {
-            parser.close();
-        }
-    }
+  public static <T extends ContainerNode<?>> T asTree(final Object pojo) {
+    return JSON.getCodec().valueToTree(pojo);
+  }
 
-    public static <T extends ContainerNode<?>> T parse( final String json )
-        throws IOException
-    {
-        return parse( json.getBytes( "UTF-8" ) );
-    }
+  public static <T> T asPojo(final JsonNode tree, final Class<? extends T> type) throws IOException {
+    return JSON.getCodec().treeToValue(tree, type);
+  }
 
-    public static <T> T parse( final String json, final Class<? extends T> type )
-        throws IOException
-    {
-        return parse( json.getBytes( "UTF-8" ), type );
-    }
+  public static ArrayNode arrayNode(final ContainerNode<?> data) {
+    return data != null ? data.arrayNode() : JsonNodeFactory.instance.arrayNode();
+  }
 
-    public static byte[] generate( final JsonNode data )
-        throws IOException
-    {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        final JsonGenerator generator = JSON.createGenerator( os, JsonEncoding.UTF8 );
-        try
-        {
-            generator.useDefaultPrettyPrinter().writeTree( data );
-        }
-        finally
-        {
-            generator.close();
-        }
-        return os.toByteArray();
-    }
+  public static ObjectNode objectNode(final ContainerNode<?> data) {
+    return data != null ? data.objectNode() : JsonNodeFactory.instance.objectNode();
+  }
 
-    public static byte[] generate( final Object pojo )
-        throws IOException
-    {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        final JsonGenerator generator = JSON.createGenerator( os, JsonEncoding.UTF8 );
-        try
-        {
-            generator.useDefaultPrettyPrinter().writeObject( pojo );
-        }
-        finally
-        {
-            generator.close();
-        }
-        return os.toByteArray();
+  public static ObjectNode aaDataNode(final Iterable<JsonNode> data) {
+    final ArrayNode aaData = JsonNodeFactory.instance.arrayNode();
+    for (final JsonNode d : data) {
+      aaData.add(d);
     }
+    return (ObjectNode) aaData.objectNode().set("aaData", aaData);
+  }
 
-    public static <T extends ContainerNode<?>> T asTree( final Object pojo )
-    {
-        return JSON.getCodec().valueToTree( pojo );
-    }
+  public static <T> Object aaData(final Iterable<T> data) {
+    return Collections.singletonMap("aaData", data);
+  }
 
-    public static <T> T asPojo( final JsonNode tree, final Class<? extends T> type )
-        throws IOException
-    {
-        return JSON.getCodec().treeToValue( tree, type );
+  public static Float getNullableFloat(final JsonNode jsonNode) {
+    if (isNull(jsonNode)) {
+      return null;
     }
+    return (float) jsonNode.asDouble();
+  }
 
-    public static ArrayNode arrayNode( final ContainerNode<?> data )
-    {
-        return data != null ? data.arrayNode() : JsonNodeFactory.instance.arrayNode();
+  public static String getNullableString(final JsonNode jsonNode) {
+    if (isNull(jsonNode)) {
+      return null;
     }
+    return jsonNode.asText();
+  }
 
-    public static ObjectNode objectNode( final ContainerNode<?> data )
-    {
-        return data != null ? data.objectNode() : JsonNodeFactory.instance.objectNode();
-    }
+  public static boolean isNull(final JsonNode jsonNode) {
+    return jsonNode == null || jsonNode instanceof NullNode;
+  }
 
-    public static ObjectNode aaDataNode( final Iterable<JsonNode> data )
-    {
-        final ArrayNode aaData = JsonNodeFactory.instance.arrayNode();
-        for ( final JsonNode d : data )
-        {
-            aaData.add( d );
-        }
-        return (ObjectNode) aaData.objectNode().set( "aaData", aaData );
+  public static List<String> getStringListFromArray(final JsonNode jsonNode) {
+    if (JsonUtils.isNull(jsonNode)) {
+      return null;
     }
-
-    public static <T> Object aaData( final Iterable<T> data )
-    {
-        return Collections.singletonMap( "aaData", data );
+    final ArrayNode jsonArray = (ArrayNode) jsonNode;
+    if (jsonArray.size() == 0) {
+      return null;
     }
-
-    public static Float getNullableFloat( final JsonNode jsonNode )
-    {
-        if ( isNull( jsonNode ) )
-        {
-            return null;
-        }
-        return (float) jsonNode.asDouble();
+    final List<String> result = new ArrayList<String>();
+    for (final JsonNode child : jsonArray) {
+      result.add(child.asText());
     }
-
-    public static String getNullableString( final JsonNode jsonNode )
-    {
-        if ( isNull( jsonNode ) )
-        {
-            return null;
-        }
-        return jsonNode.asText();
-    }
-
-    public static boolean isNull( final JsonNode jsonNode )
-    {
-        return jsonNode == null || jsonNode instanceof NullNode;
-    }
-
-    public static List<String> getStringListFromArray( final JsonNode jsonNode )
-    {
-        if ( JsonUtils.isNull( jsonNode ) )
-        {
-            return null;
-        }
-        final ArrayNode jsonArray = (ArrayNode) jsonNode;
-        if ( jsonArray.size() == 0 )
-        {
-            return null;
-        }
-        final List<String> result = new ArrayList<String>();
-        for ( final JsonNode child : jsonArray )
-        {
-            result.add( child.asText() );
-        }
-        return result;
-    }
+    return result;
+  }
 }

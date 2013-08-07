@@ -28,95 +28,76 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 public class InsightWork
     extends AbstractInjectable<InsightWork>
 {
-    private static final Logger log = LoggerFactory.getLogger( InsightWork.class );
+  private static final Logger log = LoggerFactory.getLogger(InsightWork.class);
 
-    private final InsightConfig insightConfig;
+  private final InsightConfig insightConfig;
 
-    @Inject
-    public InsightWork( final InsightConfig insightConfig )
-    {
-        this.insightConfig = insightConfig;
-    }
+  @Inject
+  public InsightWork(final InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
+  }
 
-    public File getWorkDir()
-    {
-        return insightConfig.getSonatypeWork();
-    }
+  public File getWorkDir() {
+    return insightConfig.getSonatypeWork();
+  }
 
-    public File getScanDir( final String appId )
-    {
-        return new File( insightConfig.getSonatypeWork(), "scan/" + appId );
-    }
+  public File getScanDir(final String appId) {
+    return new File(insightConfig.getSonatypeWork(), "scan/" + appId);
+  }
 
-    public File getAuditDir( final String appId )
-    {
-        return new File( insightConfig.getSonatypeWork(), "audit/" + appId );
-    }
+  public File getAuditDir(final String appId) {
+    return new File(insightConfig.getSonatypeWork(), "audit/" + appId);
+  }
 
-    public File getReportDir( final String appId )
-    {
-        return new File( insightConfig.getSonatypeWork(), "report/" + appId );
-    }
+  public File getReportDir(final String appId) {
+    return new File(insightConfig.getSonatypeWork(), "report/" + appId);
+  }
 
-    public File getReportDir( final String appId, final String scanId )
-    {
-        return new File( getReportDir( appId ), scanId );
-    }
+  public File getReportDir(final String appId, final String scanId) {
+    return new File(getReportDir(appId), scanId);
+  }
 
-    public File getReportFile( final String appId, final String scanId )
-    {
-        return new File( getReportDir( appId, scanId ), "report.zip" );
-    }
+  public File getReportFile(final String appId, final String scanId) {
+    return new File(getReportDir(appId, scanId), "report.zip");
+  }
 
-    public File getApplicationIconDir()
-    {
-        return new File( insightConfig.getSonatypeWork(), "data/application" );
-    }
+  public File getApplicationIconDir() {
+    return new File(insightConfig.getSonatypeWork(), "data/application");
+  }
 
-    public File getOrganizationIconDir()
-    {
-        return new File( insightConfig.getSonatypeWork(), "data/organization" );
-    }
+  public File getOrganizationIconDir() {
+    return new File(insightConfig.getSonatypeWork(), "data/organization");
+  }
 
-    public File getDataDir()
-    {
-        return new File( insightConfig.getSonatypeWork(), "data" );
-    }
+  public File getDataDir() {
+    return new File(insightConfig.getSonatypeWork(), "data");
+  }
 
-    public String findOwningAppId( final String scanId )
-    {
-        final File rootDir = new File( insightConfig.getSonatypeWork(), "report" );
-        if ( rootDir.isDirectory() )
-        {
-            try
-            {
-                final List<String> dirs = FileUtils.getDirectoryNames( rootDir, "*/" + scanId, null, false );
-                if ( !dirs.isEmpty() )
-                {
-                    return FileUtils.dirname( dirs.get( 0 ) );
-                }
-            }
-            catch ( final IOException e )
-            {
-                log.error( "Problem scanning directory: {} for scanId: {}", rootDir, scanId, e );
-            }
+  public String findOwningAppId(final String scanId) {
+    final File rootDir = new File(insightConfig.getSonatypeWork(), "report");
+    if (rootDir.isDirectory()) {
+      try {
+        final List<String> dirs = FileUtils.getDirectoryNames(rootDir, "*/" + scanId, null, false);
+        if (!dirs.isEmpty()) {
+          return FileUtils.dirname(dirs.get(0));
         }
-        return null;
+      }
+      catch (final IOException e) {
+        log.error("Problem scanning directory: {} for scanId: {}", rootDir, scanId, e);
+      }
     }
+    return null;
+  }
 
-    public List<PolicyEvaluation> getMostRecentPolicyEvaluations( final String appId )
-        throws IOException
-    {
-        final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
-        PolicyEvaluationLog evalLog = new PolicyEvaluationLog( getAuditDir( appId ) );
-        for ( StageType stageType : StageTypes.getAll() )
-        {
-            PolicyEvaluation eval = evalLog.lastByStage( stageType.getId() );
-            if ( eval != null )
-            {
-                policyEvaluations.add( eval );
-            }
-        }
-        return policyEvaluations;
+  public List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) throws IOException {
+    final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
+    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(getAuditDir(appId));
+    for (StageType stageType : StageTypes.getAll()) {
+      PolicyEvaluation eval = evalLog.lastByStage(stageType.getId());
+      if (eval != null) {
+        policyEvaluations.add(eval);
+      }
     }
+    return policyEvaluations;
+  }
 }

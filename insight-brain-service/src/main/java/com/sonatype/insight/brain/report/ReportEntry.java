@@ -7,16 +7,15 @@ package com.sonatype.insight.brain.report;
 
 public final class ReportEntry
 {
-    public final String name;
+  public final String name;
 
-    public final long time;
+  public final long time;
 
-    public final byte[] buf;
+  public final byte[] buf;
 
-    ReportEntry( final String name, final long time, final byte[] buf )
-    {
-        this.name = name;
-        this.time = time;
-        this.buf = buf;
-    }
+  ReportEntry(final String name, final long time, final byte[] buf) {
+    this.name = name;
+    this.time = time;
+    this.buf = buf;
+  }
 }

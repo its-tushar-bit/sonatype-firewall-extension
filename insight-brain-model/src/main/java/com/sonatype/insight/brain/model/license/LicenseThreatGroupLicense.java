@@ -16,73 +16,63 @@ import com.sonatype.insight.model.HasStringId;
  * Association between license threat groups and licenses.
  */
 @Entity
-@Table( name = "license_threat_group_license" )
+@Table(name = "license_threat_group_license")
 public class LicenseThreatGroupLicense
     implements HasStringId
 {
-    @Id
-    @Column( name = "license_threat_group_license_id" )
-    private String id;
+  @Id
+  @Column(name = "license_threat_group_license_id")
+  private String id;
 
-    @Column( name = "owner_id" )
-    private String ownerId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
-    @Column( name = "license_threat_group_id" )
-    private String licenseThreatGroupId;
+  @Column(name = "license_threat_group_id")
+  private String licenseThreatGroupId;
 
-    @Column( name = "license_id" )
-    private String licenseId;
+  @Column(name = "license_id")
+  private String licenseId;
 
-    public LicenseThreatGroupLicense()
-    {
-    }
+  public LicenseThreatGroupLicense() {
+  }
 
-    public LicenseThreatGroupLicense( String ownerId, String licenseThreatGroupId, String licenseId )
-    {
-        this.ownerId = ownerId;
-        this.licenseThreatGroupId = licenseThreatGroupId;
-        this.licenseId = licenseId;
-    }
+  public LicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId) {
+    this.ownerId = ownerId;
+    this.licenseThreatGroupId = licenseThreatGroupId;
+    this.licenseId = licenseId;
+  }
 
-    @Override
-    public String getId()
-    {
-        return id;
-    }
+  @Override
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public String getOwnerId()
-    {
-        return ownerId;
-    }
+  public String getOwnerId() {
+    return ownerId;
+  }
 
-    public void setOwnerId( String ownerId )
-    {
-        this.ownerId = ownerId;
-    }
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
+  }
 
-    public String getLicenseThreatGroupId()
-    {
-        return licenseThreatGroupId;
-    }
+  public String getLicenseThreatGroupId() {
+    return licenseThreatGroupId;
+  }
 
-    public void setLicenseThreatGroupId( String licenseThreatGroupId )
-    {
-        this.licenseThreatGroupId = licenseThreatGroupId;
-    }
+  public void setLicenseThreatGroupId(String licenseThreatGroupId) {
+    this.licenseThreatGroupId = licenseThreatGroupId;
+  }
 
-    public String getLicenseId()
-    {
-        return licenseId;
-    }
+  public String getLicenseId() {
+    return licenseId;
+  }
 
-    public void setLicenseId( String licenseId )
-    {
-        this.licenseId = licenseId;
-    }
+  public void setLicenseId(String licenseId) {
+    this.licenseId = licenseId;
+  }
 }

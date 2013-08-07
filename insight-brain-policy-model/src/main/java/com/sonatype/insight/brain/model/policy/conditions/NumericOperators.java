@@ -11,20 +11,18 @@ import java.util.List;
 
 public class NumericOperators
 {
-    public static final List<String> LIST;
+  public static final List<String> LIST;
 
-    static
-    {
-        List<String> list = new ArrayList<String>();
-        list.add( "=" );
-        list.add( "<" );
-        list.add( "<=" );
-        list.add( ">" );
-        list.add( ">=" );
-        LIST = Collections.unmodifiableList( list );
-    }
+  static {
+    List<String> list = new ArrayList<String>();
+    list.add("=");
+    list.add("<");
+    list.add("<=");
+    list.add(">");
+    list.add(">=");
+    LIST = Collections.unmodifiableList(list);
+  }
 
-    private NumericOperators()
-    {
-    }
+  private NumericOperators() {
+  }
 }

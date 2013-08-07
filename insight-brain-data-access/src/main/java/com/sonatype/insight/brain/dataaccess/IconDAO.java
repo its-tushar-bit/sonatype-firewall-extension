@@ -19,58 +19,49 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 public class IconDAO
 {
-    private static final String ICON_FILE_NAME = "icon420px.png";
+  private static final String ICON_FILE_NAME = "icon420px.png";
 
-    public byte[] getIcon( String ownerId, File iconDirectory )
-        throws IOException
-    {
-        File applicationIconDirectory = new File( iconDirectory, ownerId );
-        if ( !applicationIconDirectory.exists() )
-        {
-            return null;
-        }
-        File iconFile = new File( applicationIconDirectory, ICON_FILE_NAME );
-        if ( !iconFile.exists() )
-        {
-            return null;
-        }
-
-        BufferedImage image = ImageIO.read( iconFile );
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write( image, "png", byteArrayOutputStream );
-        return byteArrayOutputStream.toByteArray();
+  public byte[] getIcon(String ownerId, File iconDirectory) throws IOException {
+    File applicationIconDirectory = new File(iconDirectory, ownerId);
+    if (!applicationIconDirectory.exists()) {
+      return null;
+    }
+    File iconFile = new File(applicationIconDirectory, ICON_FILE_NAME);
+    if (!iconFile.exists()) {
+      return null;
     }
 
-    public void setIcon( String ownerId, File iconDirectory, InputStream imageStream )
-        throws IOException
-    {
-        final int dimension = 420;
-        Image image = ImageIO.read( imageStream );
+    BufferedImage image = ImageIO.read(iconFile);
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    ImageIO.write(image, "png", byteArrayOutputStream);
+    return byteArrayOutputStream.toByteArray();
+  }
 
-        // Invalid image types do not throw exception on ImageIO.read but instead returns null. Throw exception when
-        // null is returned
-        if ( image == null )
-        {
-            throw new BadRequestException( "Invalid image file." );
-        }
+  public void setIcon(String ownerId, File iconDirectory, InputStream imageStream) throws IOException {
+    final int dimension = 420;
+    Image image = ImageIO.read(imageStream);
 
-        BufferedImage resizedImage = new BufferedImage( dimension, dimension, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage( image, 0, 0, dimension, dimension, null );
-        g.dispose();
-
-        File applicationIconDirectory = new File( iconDirectory, ownerId );
-        if ( !applicationIconDirectory.exists() )
-        {
-            applicationIconDirectory.mkdirs();
-        }
-
-        File iconFile = new File( applicationIconDirectory, ICON_FILE_NAME );
-        if ( !iconFile.exists() )
-        {
-            iconFile.createNewFile();
-        }
-
-        ImageIO.write( resizedImage, "png", iconFile );
+    // Invalid image types do not throw exception on ImageIO.read but instead returns null. Throw exception when
+    // null is returned
+    if (image == null) {
+      throw new BadRequestException("Invalid image file.");
     }
+
+    BufferedImage resizedImage = new BufferedImage(dimension, dimension, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = resizedImage.createGraphics();
+    g.drawImage(image, 0, 0, dimension, dimension, null);
+    g.dispose();
+
+    File applicationIconDirectory = new File(iconDirectory, ownerId);
+    if (!applicationIconDirectory.exists()) {
+      applicationIconDirectory.mkdirs();
+    }
+
+    File iconFile = new File(applicationIconDirectory, ICON_FILE_NAME);
+    if (!iconFile.exists()) {
+      iconFile.createNewFile();
+    }
+
+    ImageIO.write(resizedImage, "png", iconFile);
+  }
 }

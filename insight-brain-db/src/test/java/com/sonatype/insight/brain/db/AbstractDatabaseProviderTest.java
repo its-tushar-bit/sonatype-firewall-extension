@@ -21,79 +21,63 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 public abstract class AbstractDatabaseProviderTest
 {
-    @Before
-    public void setUp()
-        throws Exception
-    {
-        DataSourceFactory.clear_ForTestsOnly();
+  @Before
+  public void setUp() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+  }
+
+  @After
+  public void tearDown() {
+    DataSourceFactory.clear_ForTestsOnly();
+  }
+
+  protected void verifyDatabaseCreation(DatabaseConfig databaseConfig) throws Exception {
+    OperationalDataStoreProvider.init(databaseConfig);
+    DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+    Assert.assertNotNull(dataSource);
+    Connection conn = dataSource.getConnection();
+    try {
+      exec(conn, "SELECT * FROM test_table");
+
+      String databaseURL = conn.getMetaData().getURL();
+      Assert.assertNotNull(databaseURL);
+      if (databaseConfig != null) {
+        Assert.assertTrue(databaseConfig.getUrl().startsWith(databaseURL + ";"));
+      }
+      else {
+        Assert.assertEquals("jdbc:h2:mem:inMemoryDatabase", databaseURL);
+      }
     }
-
-    @After
-    public void tearDown()
-    {
-        DataSourceFactory.clear_ForTestsOnly();
+    finally {
+      conn.close();
     }
+  }
 
-    protected void verifyDatabaseCreation( DatabaseConfig databaseConfig )
-        throws Exception
-    {
-        OperationalDataStoreProvider.init( databaseConfig );
-        DataSource dataSource = OperationalDataStoreProvider.getDataSource();
-        Assert.assertNotNull( dataSource );
-        Connection conn = dataSource.getConnection();
-        try
-        {
-            exec( conn, "SELECT * FROM test_table" );
+  protected void verifyDatabaseCreation_OnDisk(DatabaseConfig databaseConfig, File databaseDir) throws Exception {
+    FileUtils.deleteDirectory(databaseDir);
+    Assert.assertFalse(databaseDir.exists());
 
-            String databaseURL = conn.getMetaData().getURL();
-            Assert.assertNotNull( databaseURL );
-            if ( databaseConfig != null )
-            {
-                Assert.assertTrue( databaseConfig.getUrl().startsWith( databaseURL + ";" ) );
-            }
-            else
-            {
-                Assert.assertEquals( "jdbc:h2:mem:inMemoryDatabase", databaseURL );
-            }
-        }
-        finally
-        {
-            conn.close();
-        }
+    // New database
+    verifyDatabaseCreation(databaseConfig);
+    Assert.assertTrue(databaseDir.exists());
+    Assert.assertTrue(new File(databaseDir, "test.h2.db").exists());
+
+    // Existing database
+    DataSourceFactory.clear_ForTestsOnly();
+    verifyDatabaseCreation(databaseConfig);
+    Assert.assertTrue(databaseDir.exists());
+    Assert.assertTrue(new File(databaseDir, "test.h2.db").exists());
+  }
+
+  private void exec(Connection conn, String sql) throws SQLException {
+    Statement stmt = conn.createStatement();
+    try {
+      stmt.execute(sql);
     }
-
-    protected void verifyDatabaseCreation_OnDisk( DatabaseConfig databaseConfig, File databaseDir )
-        throws Exception
-    {
-        FileUtils.deleteDirectory( databaseDir );
-        Assert.assertFalse( databaseDir.exists() );
-
-        // New database
-        verifyDatabaseCreation( databaseConfig );
-        Assert.assertTrue( databaseDir.exists() );
-        Assert.assertTrue( new File( databaseDir, "test.h2.db" ).exists() );
-
-        // Existing database
-        DataSourceFactory.clear_ForTestsOnly();
-        verifyDatabaseCreation( databaseConfig );
-        Assert.assertTrue( databaseDir.exists() );
-        Assert.assertTrue( new File( databaseDir, "test.h2.db" ).exists() );
+    finally {
+      if (stmt != null) {
+        stmt.close();
+      }
     }
-
-    private void exec( Connection conn, String sql )
-        throws SQLException
-    {
-        Statement stmt = conn.createStatement();
-        try
-        {
-            stmt.execute( sql );
-        }
-        finally
-        {
-            if ( stmt != null )
-            {
-                stmt.close();
-            }
-        }
-    }
+  }
 }

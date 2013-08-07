@@ -24,45 +24,35 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 public class RestClientFactory
 {
 
-    public RestClient newRestClient( Configuration config )
-    {
-        return new RestClient( config );
+  public RestClient newRestClient(Configuration config) {
+    return new RestClient(config);
+  }
+
+  public static class RestClient
+  {
+
+    private final Configuration config;
+
+    RestClient(Configuration config) {
+      this.config = config;
     }
 
-    public static class RestClient
-    {
-
-        private final Configuration config;
-
-        RestClient( Configuration config )
-        {
-            this.config = config;
-        }
-
-        public Map<String, String> getApplications()
-            throws IOException
-        {
-            return new ConfigurationClient( config ).getApplicationIdNameMap();
-        }
-
-        public ProprietaryConfig getProprietaryConfiguration()
-            throws IOException
-        {
-            return new ConfigurationClient( config ).getProprietaryConfiguration();
-        }
-
-        public ScanReceipt uploadScan( String appId, File scanFile )
-            throws IOException
-        {
-            return new ScanClient( config, appId ).uploadCiScan( scanFile );
-        }
-
-        public PolicyEvaluationResult evaluatePolicy( String appId, String scanId, String stageId )
-            throws IOException
-        {
-            return new PolicyClient( config, appId ).evaluate( scanId, new Stage( stageId ) );
-        }
-
+    public Map<String, String> getApplications() throws IOException {
+      return new ConfigurationClient(config).getApplicationIdNameMap();
     }
+
+    public ProprietaryConfig getProprietaryConfiguration() throws IOException {
+      return new ConfigurationClient(config).getProprietaryConfiguration();
+    }
+
+    public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
+      return new ScanClient(config, appId).uploadCiScan(scanFile);
+    }
+
+    public PolicyEvaluationResult evaluatePolicy(String appId, String scanId, String stageId) throws IOException {
+      return new PolicyClient(config, appId).evaluate(scanId, new Stage(stageId));
+    }
+
+  }
 
 }

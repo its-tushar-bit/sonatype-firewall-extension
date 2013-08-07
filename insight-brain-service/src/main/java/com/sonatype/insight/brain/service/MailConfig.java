@@ -13,11 +13,10 @@ package com.sonatype.insight.brain.service;
 public class MailConfig
     extends com.sonatype.insight.portal.mail.MailConfig
 {
-    public MailConfig()
-    {
-        setHostname( "127.0.0.1" );
-        setPort( 587 );
-        setSystemEmail( "SonatypeCLM@localhost" );
-        setSystemPersonal( "Sonatype CLM" );
-    }
+  public MailConfig() {
+    setHostname("127.0.0.1");
+    setPort(587);
+    setSystemEmail("SonatypeCLM@localhost");
+    setSystemPersonal("Sonatype CLM");
+  }
 }

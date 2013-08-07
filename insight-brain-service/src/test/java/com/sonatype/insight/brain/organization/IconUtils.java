@@ -13,30 +13,22 @@ import org.junit.Assert;
 
 class IconUtils
 {
-    private static byte[] loadImage( String resource )
-        throws IOException
-    {
-        InputStream iconStream = IconUtils.class.getResourceAsStream( resource );
-        Assert.assertNotNull( iconStream );
-        try
-        {
-            return IOUtil.toByteArray( iconStream );
-        }
-        finally
-        {
-            IOUtil.close( iconStream );
-        }
+  private static byte[] loadImage(String resource) throws IOException {
+    InputStream iconStream = IconUtils.class.getResourceAsStream(resource);
+    Assert.assertNotNull(iconStream);
+    try {
+      return IOUtil.toByteArray(iconStream);
     }
+    finally {
+      IOUtil.close(iconStream);
+    }
+  }
 
-    public static byte[] loadInvalidIcon()
-        throws IOException
-    {
-        return loadImage( "/assets/assets/util/AngularCommon.js" );
-    }
+  public static byte[] loadInvalidIcon() throws IOException {
+    return loadImage("/assets/assets/util/AngularCommon.js");
+  }
 
-    public static byte[] loadIcon( String name )
-        throws IOException
-    {
-        return loadImage( "/assets/assets/img/" + name );
-    }
+  public static byte[] loadIcon(String name) throws IOException {
+    return loadImage("/assets/assets/img/" + name);
+  }
 }

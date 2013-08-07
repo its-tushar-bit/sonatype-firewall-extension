@@ -13,29 +13,25 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class LicenseStatusValueType
     implements ConditionValueType<LicenseStatus>
 {
-    public static final String ID = "LicenseStatusValueType";
+  public static final String ID = "LicenseStatusValueType";
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "LicenseStatus";
-    }
+  @Override
+  public String getDataType() {
+    return "LicenseStatus";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<LicenseStatus> getAvailableValues()
-    {
-        return LicenseStatus.getAll();
-    }
+  @Override
+  public List<LicenseStatus> getAvailableValues() {
+    return LicenseStatus.getAll();
+  }
 }

@@ -13,17 +13,15 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 public abstract class AbstractLicenseDAOTest
     extends AbstractDbDAOTest
 {
-    private LicenseDataUpdater savedLicenseDataUpdater;
+  private LicenseDataUpdater savedLicenseDataUpdater;
 
-    @Before
-    public void before()
-    {
-        savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
-    }
+  @Before
+  public void before() {
+    savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
+  }
 
-    @After
-    public void after()
-    {
-        LicenseDataUpdater.setUpdater( savedLicenseDataUpdater );
-    }
+  @After
+  public void after() {
+    LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
+  }
 }

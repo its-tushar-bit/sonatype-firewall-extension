@@ -27,99 +27,84 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 public class SaasIdeResourcePerformanceUtils
 {
-    private static int counter = 0;
-    
-    private static class EmptyEnumeration
-        implements Enumeration<String>
-    {
-        private static final EmptyEnumeration instance = new EmptyEnumeration();
+  private static int counter = 0;
 
-        private EmptyEnumeration()
-        {
-        }
+  private static class EmptyEnumeration
+      implements Enumeration<String>
+  {
+    private static final EmptyEnumeration instance = new EmptyEnumeration();
 
-        public static EmptyEnumeration getInstance()
-        {
-            return instance;
-        }
-
-        @Override
-        public boolean hasMoreElements()
-        {
-            return false;
-        }
-
-        @Override
-        public String nextElement()
-        {
-            throw new NoSuchElementException();
-        }
+    private EmptyEnumeration() {
     }
 
-    public static HttpServletRequest createRequest()
-        throws Exception
-    {
-        HttpServletRequest request = Mockito.mock( HttpServletRequest.class );
-        Mockito.when( request.getMethod() ).thenReturn( "GET" );
-        Mockito.when( request.getHeaderNames() ).thenReturn( EmptyEnumeration.getInstance() );
-        return request;
+    public static EmptyEnumeration getInstance() {
+      return instance;
     }
 
-    public static InsightWork setWork( Object o )
-        throws Exception
-    {
-        Field field = o.getClass().getDeclaredField( "work" );
-        field.setAccessible( true );
-        InsightWork work = createInsightWork();
-        field.set( o, work );
-        return work;
+    @Override
+    public boolean hasMoreElements() {
+      return false;
     }
 
-    public static void setClient( Object o, String saasAddress )
-        throws Exception
-    {
-        Field field = o.getClass().getDeclaredField( "client" );
-        field.setAccessible( true );
-        InsightConfig config = new InsightConfig();
-        config.setSaasAddress( saasAddress );
-        SaasClient client = new SaasClient( new InsightProxy( config ), new CLMLicenseManager( new TestProductLicenseManager( true ), new TestLicenseFingerprinter() ) );
-        field.set( o, client );
+    @Override
+    public String nextElement() {
+      throw new NoSuchElementException();
     }
+  }
 
-    public static InsightWork createInsightWork()
-        throws IOException
-    {
-        InsightConfig insightConfig = new InsightConfig();
-        File workDir = File.createTempFile( "saasIde", "tmp" );
-        workDir.delete();
-        workDir.mkdirs();
-        insightConfig.setSonatypeWork( workDir.getAbsolutePath() );
-        InsightWork work = new InsightWork( insightConfig );
-        return work;
+  public static HttpServletRequest createRequest() throws Exception {
+    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    Mockito.when(request.getMethod()).thenReturn("GET");
+    Mockito.when(request.getHeaderNames()).thenReturn(EmptyEnumeration.getInstance());
+    return request;
+  }
+
+  public static InsightWork setWork(Object o) throws Exception {
+    Field field = o.getClass().getDeclaredField("work");
+    field.setAccessible(true);
+    InsightWork work = createInsightWork();
+    field.set(o, work);
+    return work;
+  }
+
+  public static void setClient(Object o, String saasAddress) throws Exception {
+    Field field = o.getClass().getDeclaredField("client");
+    field.setAccessible(true);
+    InsightConfig config = new InsightConfig();
+    config.setSaasAddress(saasAddress);
+    SaasClient client = new SaasClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(
+        true), new TestLicenseFingerprinter()));
+    field.set(o, client);
+  }
+
+  public static InsightWork createInsightWork() throws IOException {
+    InsightConfig insightConfig = new InsightConfig();
+    File workDir = File.createTempFile("saasIde", "tmp");
+    workDir.delete();
+    workDir.mkdirs();
+    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
+    InsightWork work = new InsightWork(insightConfig);
+    return work;
+  }
+
+  public static void addPolicy(Application app, Policy[] policies, InsightWork work) throws Exception {
+    String appId = app.getId();
+    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+
+    for (Policy policy : policies) {
+      policyDAO.insert(appId, policy);
     }
+  }
 
-    public static void addPolicy( Application app, Policy[] policies, InsightWork work )
-        throws Exception
-    {
-        String appId = app.getId();
-        PolicyDAO policyDAO = new PolicyDAO( work.getWorkDir() );
-
-        for ( Policy policy : policies )
-        {
-            policyDAO.insert( appId, policy );
-        }
-    }
-
-    public static Policy createSvPolicy()
-    {
-        Policy policy = new Policy();
-        policy.setEnabled( true );
-        policy.setName( "NoSV" + ( counter++ ) );
-        Constraint constraint = new Constraint();
-        constraint.setName( "NoSV" );
-        policy.setConstraints( Collections.singletonList( constraint ) );
-        Condition condition = new Condition( SecurityVulnerabilityConditionType.ID, "present" );
-        constraint.addCondition( condition );
-        return policy;
-    }
+  public static Policy createSvPolicy() {
+    Policy policy = new Policy();
+    policy.setEnabled(true);
+    policy.setName("NoSV" + (counter++));
+    Constraint constraint = new Constraint();
+    constraint.setName("NoSV");
+    policy.setConstraints(Collections.singletonList(constraint));
+    Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    constraint.addCondition(condition);
+    return policy;
+  }
 }

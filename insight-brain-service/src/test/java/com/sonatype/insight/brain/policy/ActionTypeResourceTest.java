@@ -17,19 +17,16 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ActionTypeResourceTest
     extends AbstractResourceTest
 {
-    @Test
-    public void testGetActionTypes()
-        throws Exception
-    {
-        final Response response = RestAccess.get( getServiceURL() );
-        assertResponseStatus( 200, response );
-        final Object[] actionTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
-        Assert.assertNotNull( actionTypes );
-        Assert.assertTrue( actionTypes.length > 0 );
-    }
+  @Test
+  public void testGetActionTypes() throws Exception {
+    final Response response = RestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    final Object[] actionTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    Assert.assertNotNull(actionTypes);
+    Assert.assertTrue(actionTypes.length > 0);
+  }
 
-    private String getServiceURL()
-    {
-        return getRestBaseUrl() + ActionTypeResource.SERVICE_PATH;
-    }
+  private String getServiceURL() {
+    return getRestBaseUrl() + ActionTypeResource.SERVICE_PATH;
+  }
 }

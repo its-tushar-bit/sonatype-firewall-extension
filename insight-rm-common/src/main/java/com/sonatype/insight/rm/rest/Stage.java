@@ -8,8 +8,8 @@ package com.sonatype.insight.rm.rest;
 public enum Stage
 {
 
-    CLOSE_REPOSITORY,
+  CLOSE_REPOSITORY,
 
-    RELEASE_REPOSITORY,
+  RELEASE_REPOSITORY,
 
 }

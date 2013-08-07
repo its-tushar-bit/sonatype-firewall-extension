@@ -20,57 +20,47 @@ public class MarkerFilter
     extends AbstractMatcherFilter<ILoggingEvent>
 {
 
-    private Marker markerToMatch;
+  private Marker markerToMatch;
 
-    /**
-     * The marker to match in the event.
-     * 
-     * @param markerToMatch
-     */
-    public void setMarker( String markerStr )
-    {
-        if ( markerStr != null )
-        {
-            this.markerToMatch = MarkerFactory.getMarker( markerStr );
-        }
+  /**
+   * The marker to match in the event.
+   * 
+   * @param markerToMatch
+   */
+  public void setMarker(String markerStr) {
+    if (markerStr != null) {
+      this.markerToMatch = MarkerFactory.getMarker(markerStr);
+    }
+  }
+
+  @Override
+  public FilterReply decide(ILoggingEvent event) {
+    if (!isStarted()) {
+      return FilterReply.NEUTRAL;
     }
 
-    @Override
-    public FilterReply decide( ILoggingEvent event )
-    {
-        if ( !isStarted() )
-        {
-            return FilterReply.NEUTRAL;
-        }
+    Marker marker = event.getMarker();
 
-        Marker marker = event.getMarker();
-
-        if ( marker == null )
-        {
-            return onMismatch;
-        }
-
-        if ( markerToMatch.contains( marker ) )
-        {
-            return onMatch;
-        }
-        else
-        {
-            return onMismatch;
-        }
+    if (marker == null) {
+      return onMismatch;
     }
 
-    @Override
-    public void start()
-    {
-        if ( markerToMatch != null )
-        {
-            super.start();
-        }
-        else
-        {
-            addError( "The marker property must be set for [" + getName() + "]" );
-        }
+    if (markerToMatch.contains(marker)) {
+      return onMatch;
     }
+    else {
+      return onMismatch;
+    }
+  }
+
+  @Override
+  public void start() {
+    if (markerToMatch != null) {
+      super.start();
+    }
+    else {
+      addError("The marker property must be set for [" + getName() + "]");
+    }
+  }
 
 }

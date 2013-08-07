@@ -13,89 +13,76 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 public class RestClientConfiguration
 {
 
-    private final Configuration config;
+  private final Configuration config;
 
-    public RestClientConfiguration()
+  public RestClientConfiguration() {
+    config = new Configuration();
+  }
+
+  Configuration getConfig() {
+    return config;
+  }
+
+  public String getServerUrl() {
+    return config.getServerUrl();
+  }
+
+  public RestClientConfiguration setServerUrl(final String serverUrl) {
+    config.setServerUrl(serverUrl);
+    return this;
+  }
+
+  public String getProxyHost() {
+    return config.getProxyHost();
+  }
+
+  public RestClientConfiguration setProxyHost(final String proxyHost) {
+    config.setProxyHost(proxyHost);
+    return this;
+  }
+
+  public int getProxyPort() {
+    return config.getProxyPort();
+  }
+
+  public RestClientConfiguration setProxyPort(final int proxyPort) {
+    config.setProxyPort(proxyPort);
+    return this;
+  }
+
+  public RestClientConfiguration setProxy(final String proxy) {
+    config.setProxy(proxy);
+    return this;
+  }
+
+  public RestClientConfiguration setProxyAuth(final String username, final String password, final String ntlmDomain,
+      final String ntlmWorkstation)
+  {
+    final SimpleAuthentication auth = new SimpleAuthentication();
+    auth.setUsername(username);
+    auth.setPassword(password);
+    auth.setNtlmDomain(ntlmDomain);
+    auth.setNtlmWorkstation(ntlmWorkstation);
+    config.setProxyAuth(auth);
+    return this;
+  }
+
+  public RestClientConfiguration setHttpClientProvider(final HttpClientProvider httpClientProvider) {
+    config.setHttpClientProvider(new HttpClientUtils.HttpClientProvider()
     {
-        config = new Configuration();
-    }
+      @Override
+      public HttpClient createHttpClient(final Configuration config) {
+        return httpClientProvider.createHttpClient(RestClientConfiguration.this);
+      }
+    });
+    return this;
+  }
 
-    Configuration getConfig()
-    {
-        return config;
-    }
+  public static interface HttpClientProvider
+  {
 
-    public String getServerUrl()
-    {
-        return config.getServerUrl();
-    }
+    HttpClient createHttpClient(RestClientConfiguration config);
 
-    public RestClientConfiguration setServerUrl( final String serverUrl )
-    {
-        config.setServerUrl( serverUrl );
-        return this;
-    }
-
-    public String getProxyHost()
-    {
-        return config.getProxyHost();
-    }
-
-    public RestClientConfiguration setProxyHost( final String proxyHost )
-    {
-        config.setProxyHost( proxyHost );
-        return this;
-    }
-
-    public int getProxyPort()
-    {
-        return config.getProxyPort();
-    }
-
-    public RestClientConfiguration setProxyPort( final int proxyPort )
-    {
-        config.setProxyPort( proxyPort );
-        return this;
-    }
-
-    public RestClientConfiguration setProxy( final String proxy )
-    {
-        config.setProxy( proxy );
-        return this;
-    }
-
-    public RestClientConfiguration setProxyAuth( final String username, final String password, final String ntlmDomain,
-                                                 final String ntlmWorkstation )
-    {
-        final SimpleAuthentication auth = new SimpleAuthentication();
-        auth.setUsername( username );
-        auth.setPassword( password );
-        auth.setNtlmDomain( ntlmDomain );
-        auth.setNtlmWorkstation( ntlmWorkstation );
-        config.setProxyAuth( auth );
-        return this;
-    }
-
-    public RestClientConfiguration setHttpClientProvider( final HttpClientProvider httpClientProvider )
-    {
-        config.setHttpClientProvider(
-            new HttpClientUtils.HttpClientProvider()
-            {
-                @Override
-                public HttpClient createHttpClient( final Configuration config )
-                {
-                    return httpClientProvider.createHttpClient( RestClientConfiguration.this );
-                }
-            }
-        );
-        return this;
-    }
-
-    public static interface HttpClientProvider
-    {
-
-        HttpClient createHttpClient( RestClientConfiguration config );
-
-    }
+  }
 
 }

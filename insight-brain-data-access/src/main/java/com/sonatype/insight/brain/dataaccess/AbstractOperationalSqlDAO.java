@@ -14,11 +14,10 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
-    private EntityManagerFactory entityManagerFactory = OperationalDataStoreProvider.getJPAEntityManagerFactory();
+  private EntityManagerFactory entityManagerFactory = OperationalDataStoreProvider.getJPAEntityManagerFactory();
 
-    @Override
-    public EntityManager createEntityManager()
-    {
-        return entityManagerFactory.createEntityManager();
-    }
+  @Override
+  public EntityManager createEntityManager() {
+    return entityManagerFactory.createEntityManager();
+  }
 }

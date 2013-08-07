@@ -23,77 +23,69 @@ public class ComponentLabelResourceTest
     extends AbstractResourceTest
 {
 
-    @Test
-    public void testSetGetApplicationComponentLabels()
-        throws Exception
-    {
-        // Create an application
-        String appPublicId = "ComponentLabelResourceTest_AppId";
-        createApplication( appPublicId );
+  @Test
+  public void testSetGetApplicationComponentLabels() throws Exception {
+    // Create an application
+    String appPublicId = "ComponentLabelResourceTest_AppId";
+    createApplication(appPublicId);
 
-        String hash = "bababababa";
-        Set<String> labels = toLabelSet( "LabelY", "LabelX" );
-        ComponentLabelState state = new ComponentLabelState();
-        state.setLabels( labels );
-        Response response =
-            RestAccess.put( getServiceURLForApplication( appPublicId, hash ), JsonHelpers.asJson( state ) );
-        assertResponseStatus( 200, response );
-        Label[] componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
-        Assert.assertEquals( 2, componentLabels.length );
-        Assert.assertEquals( "LabelX", componentLabels[0].getLabel() );
-        Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
+    String hash = "bababababa";
+    Set<String> labels = toLabelSet("LabelY", "LabelX");
+    ComponentLabelState state = new ComponentLabelState();
+    state.setLabels(labels);
+    Response response = RestAccess.put(getServiceURLForApplication(appPublicId, hash), JsonHelpers.asJson(state));
+    assertResponseStatus(200, response);
+    Label[] componentLabels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
+    Assert.assertEquals(2, componentLabels.length);
+    Assert.assertEquals("LabelX", componentLabels[0].getLabel());
+    Assert.assertEquals("LabelY", componentLabels[1].getLabel());
 
-        response = RestAccess.get( getServiceURLForApplication( appPublicId, hash ) );
-        assertResponseStatus( 200, response );
-        componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
-        Assert.assertEquals( 2, componentLabels.length );
-        Assert.assertEquals( "LabelX", componentLabels[0].getLabel() );
-        Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
-    }
+    response = RestAccess.get(getServiceURLForApplication(appPublicId, hash));
+    assertResponseStatus(200, response);
+    componentLabels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
+    Assert.assertEquals(2, componentLabels.length);
+    Assert.assertEquals("LabelX", componentLabels[0].getLabel());
+    Assert.assertEquals("LabelY", componentLabels[1].getLabel());
+  }
 
-    @Test
-    public void testSetGetOrganizationComponentLabels()
-        throws Exception
-    {
-        // Create an organization
-        String orgName = "ComponentLabelResourceTestOrgName";
-        Organization organization = createOrganization( orgName );
+  @Test
+  public void testSetGetOrganizationComponentLabels() throws Exception {
+    // Create an organization
+    String orgName = "ComponentLabelResourceTestOrgName";
+    Organization organization = createOrganization(orgName);
 
-        String hash = "bababababa";
-        Set<String> labels = toLabelSet( "LabelY", "LabelX" );
-        ComponentLabelState state = new ComponentLabelState();
-        state.setLabels( labels );
-        Response response =
-            RestAccess.put( getServiceURL( "organization", organization.getId(), hash ), JsonHelpers.asJson( state ) );
-        assertResponseStatus( 200, response );
-        Label[] componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
-        Assert.assertEquals( 2, componentLabels.length );
-        Assert.assertEquals( "LabelX", componentLabels[0].getLabel() );
-        Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
+    String hash = "bababababa";
+    Set<String> labels = toLabelSet("LabelY", "LabelX");
+    ComponentLabelState state = new ComponentLabelState();
+    state.setLabels(labels);
+    Response response = RestAccess.put(getServiceURL("organization", organization.getId(), hash),
+        JsonHelpers.asJson(state));
+    assertResponseStatus(200, response);
+    Label[] componentLabels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
+    Assert.assertEquals(2, componentLabels.length);
+    Assert.assertEquals("LabelX", componentLabels[0].getLabel());
+    Assert.assertEquals("LabelY", componentLabels[1].getLabel());
 
-        response = RestAccess.get( getServiceURL( "organization", organization.getId(), hash ) );
-        assertResponseStatus( 200, response );
-        componentLabels = JsonHelpers.fromJson( response.getResponseBody(), Label[].class );
-        Assert.assertEquals( 2, componentLabels.length );
-        Assert.assertEquals( "LabelX", componentLabels[0].getLabel() );
-        Assert.assertEquals( "LabelY", componentLabels[1].getLabel() );
-    }
+    response = RestAccess.get(getServiceURL("organization", organization.getId(), hash));
+    assertResponseStatus(200, response);
+    componentLabels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
+    Assert.assertEquals(2, componentLabels.length);
+    Assert.assertEquals("LabelX", componentLabels[0].getLabel());
+    Assert.assertEquals("LabelY", componentLabels[1].getLabel());
+  }
 
-    private Set<String> toLabelSet( String... labels )
-    {
-        Set<String> labelSet = new LinkedHashSet<String>();
-        Collections.addAll( labelSet, labels );
-        return labelSet;
-    }
+  private Set<String> toLabelSet(String... labels) {
+    Set<String> labelSet = new LinkedHashSet<String>();
+    Collections.addAll(labelSet, labels);
+    return labelSet;
+  }
 
-    private String getServiceURLForApplication( String applicationPublicId, String hash )
-    {
-        return getServiceURL( "application", applicationPublicId, hash );
-    }
+  private String getServiceURLForApplication(String applicationPublicId, String hash) {
+    return getServiceURL("application", applicationPublicId, hash);
+  }
 
-    private String getServiceURL( String ownerType, String ownerId, String hash )
-    {
-        return getRestBaseUrl() + ComponentLabelResource.SERVICE_BASEPATH + ownerType + "/" + ownerId + "/" + hash;
-    }
+  private String getServiceURL(String ownerType, String ownerId, String hash) {
+    return getRestBaseUrl() + ComponentLabelResource.SERVICE_BASEPATH + ownerType + "/" + ownerId + "/" + hash;
+  }
 
 }

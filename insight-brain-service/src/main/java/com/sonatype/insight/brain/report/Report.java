@@ -45,624 +45,525 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 public final class Report
 {
-    private static enum ReportType
-    {
-        FULL, SAMPLE, ERROR
+  private static enum ReportType
+  {
+    FULL, SAMPLE, ERROR
+  }
+
+  public static ReportEntry getEntry(final File reportFile, final String name) throws IOException {
+    final File cacheFile = getCacheFile(reportFile, name);
+    if (cacheFile.canRead()) {
+      return new ReportEntry(name, cacheFile.lastModified(), fetch(cacheFile));
+    }
+    return extractEntry(reportFile, name);
+  }
+
+  public static void putEntry(final File reportFile, final String name, final byte[] buf) throws IOException {
+    cache(getCacheFile(reportFile, name), buf);
+  }
+
+  public static void putEntry(final File reportFile, final String name, final String text) throws IOException {
+    putEntry(reportFile, name, text.getBytes("UTF-8"));
+  }
+
+  public static String toEntryName(final String path) {
+    if (null == path || path.length() == 0) {
+      return "index.html";
+    }
+    boolean seenSlash = true;
+    StringBuilder buf = null;
+    for (int i = 0, len = path.length(); i < len; i++) {
+      final char c = path.charAt(i);
+      final boolean isSlash = '/' == c;
+      if (seenSlash && isSlash) {
+        if (buf == null) {
+          buf = new StringBuilder(path.subSequence(0, i));
+        }
+      }
+      else if (buf != null) {
+        buf.append(c);
+      }
+      seenSlash = isSlash;
+    }
+    if (seenSlash && buf != null) {
+      buf.append("index.html");
+    }
+    return buf != null ? buf.toString() : path;
+  }
+
+  private static void embedApplicationPublicId(String applicationId, File reportFile) throws IOException {
+    Application application = new ApplicationDAO().getByIdNotNull(applicationId);
+    String filename = "index.html";
+    ReportEntry reportEntry = extractEntry(reportFile, filename);
+    String indexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
+    indexHtmlContent = indexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId()
+        + "'");
+    cache(getCacheFile(reportFile, filename), indexHtmlContent.getBytes("UTF-8"));
+  }
+
+  public static int[] applyChanges(final String appId, final File reportFile, final File auditDir) throws IOException {
+    final ReportType reportType = getType(reportFile);
+
+    if (ReportType.ERROR.equals(reportType)) {
+      return new int[] { -1, -1 };
     }
 
-    public static ReportEntry getEntry( final File reportFile, final String name )
-        throws IOException
-    {
-        final File cacheFile = getCacheFile( reportFile, name );
-        if ( cacheFile.canRead() )
-        {
-            return new ReportEntry( name, cacheFile.lastModified(), fetch( cacheFile ) );
-        }
-        return extractEntry( reportFile, name );
+    embedApplicationPublicId(appId, reportFile);
+
+    final JsonStore auditStore = JsonUtils.fileStore(auditDir);
+
+    applyComponentRelatedChanges(reportFile, auditStore);
+
+    // this data item is not in the original report, but is placed in the cache by the policy evaluator
+    final ReportEntry policyReportEntry = getEntry(reportFile, "policythreats.json");
+
+    // these data items have already had changes applied as part of applyComponentIdentifications above
+    final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);
+    final ContainerNode<?> licenses = JsonUtils.parse(getEntry(reportFile, "licenses.json").buf);
+    final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(reportFile, "partialmatched.json").buf);
+
+    for (final String name : auditStore.list()) {
+      // make sure we don't wipe out the earlier component-identification changes
+      if (!"security.json".equals(name) && !"licenses.json".equals(name) && !"partialmatched.json".equals(name)
+          && !"bom.json".equals(name)) {
+        applyChanges(reportFile, name, auditStore);
+      }
     }
 
-    public static void putEntry( final File reportFile, final String name, final byte[] buf )
-        throws IOException
-    {
-        cache( getCacheFile( reportFile, name ), buf );
+    if (ReportType.SAMPLE.equals(reportType)) {
+      return JsonUtils.parse(extractEntry(reportFile, "badges.json").buf, int[].class);
     }
 
-    public static void putEntry( final File reportFile, final String name, final String text )
-        throws IOException
-    {
-        putEntry( reportFile, name, text.getBytes( "UTF-8" ) );
-    }
+    final JsonNode gavDepths = JsonUtils.parse(extractEntry(reportFile, "dependencies.json").buf).get("gavDepths");
 
-    public static String toEntryName( final String path )
-    {
-        if ( null == path || path.length() == 0 )
-        {
-            return "index.html";
-        }
-        boolean seenSlash = true;
-        StringBuilder buf = null;
-        for ( int i = 0, len = path.length(); i < len; i++ )
-        {
-            final char c = path.charAt( i );
-            final boolean isSlash = '/' == c;
-            if ( seenSlash && isSlash )
-            {
-                if ( buf == null )
-                {
-                    buf = new StringBuilder( path.subSequence( 0, i ) );
-                }
-            }
-            else if ( buf != null )
-            {
-                buf.append( c );
-            }
-            seenSlash = isSlash;
-        }
-        if ( seenSlash && buf != null )
-        {
-            buf.append( "index.html" );
-        }
-        return buf != null ? buf.toString() : path;
-    }
-
-    private static void embedApplicationPublicId( String applicationId, File reportFile )
-        throws IOException
-    {
-        Application application = new ApplicationDAO().getByIdNotNull( applicationId );
-        String filename = "index.html";
-        ReportEntry reportEntry = extractEntry( reportFile, filename );
-        String indexHtmlContent = new String( reportEntry.buf, Charset.forName( "UTF-8" ) );
-        indexHtmlContent =
-            indexHtmlContent.replace( "applicationId = ''", "applicationId = '" + application.getPublicId() + "'" );
-        cache( getCacheFile( reportFile, filename ), indexHtmlContent.getBytes( "UTF-8" ) );
-    }
-
-    public static int[] applyChanges( final String appId, final File reportFile, final File auditDir )
-        throws IOException
-    {
-        final ReportType reportType = getType( reportFile );
-
-        if ( ReportType.ERROR.equals( reportType ) )
-        {
-            return new int[] { -1, -1 };
-        }
-
-        embedApplicationPublicId( appId, reportFile );
-
-        final JsonStore auditStore = JsonUtils.fileStore( auditDir );
-
-        applyComponentRelatedChanges( reportFile, auditStore );
-
-        // this data item is not in the original report, but is placed in the cache by the policy evaluator
-        final ReportEntry policyReportEntry = getEntry( reportFile, "policythreats.json" );
-
-        // these data items have already had changes applied as part of applyComponentIdentifications above
-        final ContainerNode<?> security = JsonUtils.parse( getEntry( reportFile, "security.json" ).buf );
-        final ContainerNode<?> licenses = JsonUtils.parse( getEntry( reportFile, "licenses.json" ).buf );
-        final ContainerNode<?> partialMatched = JsonUtils.parse( getEntry( reportFile, "partialmatched.json" ).buf );
-
-        for ( final String name : auditStore.list() )
-        {
-            // make sure we don't wipe out the earlier component-identification changes
-            if ( !"security.json".equals( name ) && !"licenses.json".equals( name )
-                && !"partialmatched.json".equals( name ) && !"bom.json".equals( name ) )
-            {
-                applyChanges( reportFile, name, auditStore );
-            }
-        }
-
-        if ( ReportType.SAMPLE.equals( reportType ) )
-        {
-            return JsonUtils.parse( extractEntry( reportFile, "badges.json" ).buf, int[].class );
-        }
-
-        final JsonNode gavDepths =
-            JsonUtils.parse( extractEntry( reportFile, "dependencies.json" ).buf ).get( "gavDepths" );
-
-        /*
-         * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
-         */
-
-        final int[] policyCounts = new int[11];
-        final int[] securityCounts = new int[10];
-        final int[] licenseCounts = new int[11];
-
-        int policyComponentCount = 0;
-        int insecureArtifactCount = 0;
-
-        int securityAlerts = 0;
-        int licenseAlerts = 0;
-        int buildAlerts = 0;
-
-        final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
-        final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
-
-        if ( policyReportEntry != null )
-        {
-            for ( final JsonNode row : JsonUtils.parse( policyReportEntry.buf ).get( "aaData" ) )
-            {
-                final int level = row.path( "policyThreatLevel" ).asInt();
-                policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
-                if ( level >= 2 )
-                {
-                    policyComponentCount++;
-                }
-            }
-        }
-
-        final Set<String> gavs = new HashSet<String>();
-        for ( final JsonNode row : security.get( "aaData" ) )
-        {
-            final String status = row.path( "status" ).asText();
-            if ( !"Not Applicable".equals( status ) )
-            {
-                final double severity = row.path( "score" ).asDouble();
-                final int threatIndex = 10 - (int) Math.floor( severity );
-
-                securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
-
-                final String gav = gav( row );
-                if ( gavs.add( gav ) )
-                {
-                    insecureArtifactCount++;
-                }
-
-                securityAlerts++;
-                if ( !"Acknowledged".equals( status ) )
-                {
-                    buildAlerts++;
-                }
-
-                final int counter = severity < 4 ? 2 : severity < 8 ? 1 : 0;
-                for ( final JsonNode level : gavDepths.path( gav ) )
-                {
-                    final int index = level.asInt() - 1;
-                    while ( index >= securityPunchCard.size() )
-                    {
-                        securityPunchCard.add( new int[3] );
-                    }
-                    securityPunchCard.get( index )[counter]++;
-                }
-            }
-        }
-
-        ComponentDAO componentDAO = new ComponentDAO();
-        for ( JsonNode licenseJsonNode : licenses.get( "aaData" ) )
-        {
-            final Component component = componentDAO.getComponent( appId, licenseJsonNode );
-            ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
-            Integer threatLevel = component.getLicenseThreatLevel();
-            licenseNode.put( "effectiveLicenseThreat", threatLevel );
-
-            if ( threatLevel != null )
-            {
-                threatLevel = Math.min( 10, Math.max( 0, threatLevel ) );
-                licenseCounts[threatLevel]++;
-                if ( threatLevel > 0 )
-                {
-                    // Punch card expects 0 to be the highest threat with 2 being the lowest
-                    final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
-                    for ( final JsonNode level : gavDepths.path( component.getGAV() ) )
-                    {
-                        final int index = level.asInt() - 1;
-                        while ( index >= licensePunchCard.size() )
-                        {
-                            licensePunchCard.add( new int[3] );
-                        }
-                        licensePunchCard.get( index )[threatDepth]++;
-                    }
-                    licenseAlerts++;
-                }
-            }
-        }
-
-        for ( JsonNode licenseJsonNode : partialMatched.get( "aaData" ) )
-        {
-            final ArrayNode matchedComponentNodes = (ArrayNode) licenseJsonNode.get( "matchDetails" );
-            for ( JsonNode matchedComponentJsonNode : matchedComponentNodes )
-            {
-                final Component matchedComponent = new ComponentDAO().getComponent( appId, matchedComponentJsonNode );
-                ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
-                matchedComponentNode.put( "effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel() );
-            }
-        }
-
-        cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licenses ) );
-        cache( getCacheFile( reportFile, "partialmatched.json" ), JsonUtils.generate( partialMatched ) );
-        writeLicenseThreatsToReportFile( appId, reportFile );
-
-        final ObjectNode data = JsonUtils.parse( extractEntry( reportFile, "data.json" ).buf );
-        fill( data.putArray( "policyCounts" ), policyCounts );
-        data.put( "policyComponentCount", policyComponentCount );
-        fill( data.putArray( "securityCounts" ), securityCounts );
-        data.put( "insecureArtifactCount", insecureArtifactCount );
-        fill( data.putArray( "effectiveLicenseCounts" ), licenseCounts );
-        fill( data.putArray( "securityPunchCard" ), securityPunchCard );
-        fill( data.putArray( "licensePunchCard" ), licensePunchCard );
-        filterKeyFindings( data, security );
-
-        cache( getCacheFile( reportFile, "data.json" ), JsonUtils.generate( data ) );
-
-        final StringBuilder badges = new StringBuilder( "[" );
-        badges.append( securityAlerts ).append( ',' );
-        badges.append( licenseAlerts ).append( ',' );
-        badges.append( buildAlerts ).append( ']' );
-
-        cache( getCacheFile( reportFile, "badges.json" ), badges.toString().getBytes( "UTF-8" ) );
-
-        return new int[] { securityAlerts, licenseAlerts, buildAlerts };
-    }
-
-    /**
-     * Applies changes to component data (bom/license/security/partialmatched) including claiming components
+    /*
+     * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
      */
-    private static void applyComponentRelatedChanges( final File reportFile, final JsonStore auditStore )
-        throws IOException
-    {
-        HashGAVDAO hashGAVDAO = new HashGAVDAO();
 
-        Set<String> claimedHashes = new LinkedHashSet<String>();
-        Set<String> gavs = new LinkedHashSet<String>();
-        ReportEntry bomReportEntry = extractEntry( reportFile, "bom.json" );
-        ContainerNode<?> bomJsonData = JsonUtils.parse( bomReportEntry.buf );
-        for ( JsonNode bomJsonNode : bomJsonData.get( "aaData" ) )
-        {
-            String hash = bomJsonNode.get( "hash" ).asText();
-            HashGAV hashGAV = hashGAVDAO.getByHash( hash );
-            if ( hashGAV != null )
-            {
-                ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
-                bomObjectNode.put( "groupId", hashGAV.getGroupId() );
-                bomObjectNode.put( "artifactId", hashGAV.getArtifactId() );
-                bomObjectNode.put( "version", hashGAV.getVersion() );
-                bomObjectNode.put( "extension", hashGAV.getExtension() );
-                bomObjectNode.put( "classifier", hashGAV.getClassifier() );
-                bomObjectNode.put( "matchState", MatchState.EXACT.getId() );
-                bomObjectNode.put( "createTime", hashGAV.getCreateTimeLong() );
-                bomObjectNode.put( "relativePopularity", 0F );
-                bomObjectNode.put( "identificationSource", IdentificationSource.MANUAL.getId() );
-                claimedHashes.add( hash );
+    final int[] policyCounts = new int[11];
+    final int[] securityCounts = new int[10];
+    final int[] licenseCounts = new int[11];
+
+    int policyComponentCount = 0;
+    int insecureArtifactCount = 0;
+
+    int securityAlerts = 0;
+    int licenseAlerts = 0;
+    int buildAlerts = 0;
+
+    final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
+    final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
+
+    if (policyReportEntry != null) {
+      for (final JsonNode row : JsonUtils.parse(policyReportEntry.buf).get("aaData")) {
+        final int level = row.path("policyThreatLevel").asInt();
+        policyCounts[level < 0 ? 0 : level < 11 ? level : 10]++;
+        if (level >= 2) {
+          policyComponentCount++;
+        }
+      }
+    }
+
+    final Set<String> gavs = new HashSet<String>();
+    for (final JsonNode row : security.get("aaData")) {
+      final String status = row.path("status").asText();
+      if (!"Not Applicable".equals(status)) {
+        final double severity = row.path("score").asDouble();
+        final int threatIndex = 10 - (int) Math.floor(severity);
+
+        securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
+
+        final String gav = gav(row);
+        if (gavs.add(gav)) {
+          insecureArtifactCount++;
+        }
+
+        securityAlerts++;
+        if (!"Acknowledged".equals(status)) {
+          buildAlerts++;
+        }
+
+        final int counter = severity < 4 ? 2 : severity < 8 ? 1 : 0;
+        for (final JsonNode level : gavDepths.path(gav)) {
+          final int index = level.asInt() - 1;
+          while (index >= securityPunchCard.size()) {
+            securityPunchCard.add(new int[3]);
+          }
+          securityPunchCard.get(index)[counter]++;
+        }
+      }
+    }
+
+    ComponentDAO componentDAO = new ComponentDAO();
+    for (JsonNode licenseJsonNode : licenses.get("aaData")) {
+      final Component component = componentDAO.getComponent(appId, licenseJsonNode);
+      ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
+      Integer threatLevel = component.getLicenseThreatLevel();
+      licenseNode.put("effectiveLicenseThreat", threatLevel);
+
+      if (threatLevel != null) {
+        threatLevel = Math.min(10, Math.max(0, threatLevel));
+        licenseCounts[threatLevel]++;
+        if (threatLevel > 0) {
+          // Punch card expects 0 to be the highest threat with 2 being the lowest
+          final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
+          for (final JsonNode level : gavDepths.path(component.getGAV())) {
+            final int index = level.asInt() - 1;
+            while (index >= licensePunchCard.size()) {
+              licensePunchCard.add(new int[3]);
             }
-            gavs.add( bomJsonNode.get( "groupId" ).asText() + ':' + bomJsonNode.get( "artifactId" ).asText() + ':'
-                + bomJsonNode.get( "version" ).asText() );
+            licensePunchCard.get(index)[threatDepth]++;
+          }
+          licenseAlerts++;
         }
+      }
+    }
 
-        // now apply any data edits (e.g. modified flag)
-        auditStore.augment( bomJsonData, "bom.json" );
+    for (JsonNode licenseJsonNode : partialMatched.get("aaData")) {
+      final ArrayNode matchedComponentNodes = (ArrayNode) licenseJsonNode.get("matchDetails");
+      for (JsonNode matchedComponentJsonNode : matchedComponentNodes) {
+        final Component matchedComponent = new ComponentDAO().getComponent(appId, matchedComponentJsonNode);
+        ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
+        matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
+      }
+    }
 
-        // save the claimed changes
-        cache( getCacheFile( reportFile, "bom.json" ), JsonUtils.generate( bomJsonData ) );
+    cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licenses));
+    cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialMatched));
+    writeLicenseThreatsToReportFile(appId, reportFile);
 
-        // Remove all entries from licenses.json that don't have a correspondent record in bom.json
+    final ObjectNode data = JsonUtils.parse(extractEntry(reportFile, "data.json").buf);
+    fill(data.putArray("policyCounts"), policyCounts);
+    data.put("policyComponentCount", policyComponentCount);
+    fill(data.putArray("securityCounts"), securityCounts);
+    data.put("insecureArtifactCount", insecureArtifactCount);
+    fill(data.putArray("effectiveLicenseCounts"), licenseCounts);
+    fill(data.putArray("securityPunchCard"), securityPunchCard);
+    fill(data.putArray("licensePunchCard"), licensePunchCard);
+    filterKeyFindings(data, security);
 
-        // must start from un-edited data
-        ReportEntry licensesReportEntry = extractEntry( reportFile, "licenses.json" );
-        ContainerNode<?> licensesJsonData = JsonUtils.parse( licensesReportEntry.buf );
-        Iterator<JsonNode> iter = licensesJsonData.get( "aaData" ).iterator();
-        while ( iter.hasNext() )
-        {
-            JsonNode jsonNode = iter.next();
-            String gav =
-                jsonNode.get( "groupId" ).asText() + ':' + jsonNode.get( "artifactId" ).asText() + ':'
-                    + jsonNode.get( "version" ).asText();
-            if ( !gavs.contains( gav ) )
-            {
-                iter.remove();
+    cache(getCacheFile(reportFile, "data.json"), JsonUtils.generate(data));
+
+    final StringBuilder badges = new StringBuilder("[");
+    badges.append(securityAlerts).append(',');
+    badges.append(licenseAlerts).append(',');
+    badges.append(buildAlerts).append(']');
+
+    cache(getCacheFile(reportFile, "badges.json"), badges.toString().getBytes("UTF-8"));
+
+    return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+  }
+
+  /**
+   * Applies changes to component data (bom/license/security/partialmatched) including claiming components
+   */
+  private static void applyComponentRelatedChanges(final File reportFile, final JsonStore auditStore)
+      throws IOException
+  {
+    HashGAVDAO hashGAVDAO = new HashGAVDAO();
+
+    Set<String> claimedHashes = new LinkedHashSet<String>();
+    Set<String> gavs = new LinkedHashSet<String>();
+    ReportEntry bomReportEntry = extractEntry(reportFile, "bom.json");
+    ContainerNode<?> bomJsonData = JsonUtils.parse(bomReportEntry.buf);
+    for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
+      String hash = bomJsonNode.get("hash").asText();
+      HashGAV hashGAV = hashGAVDAO.getByHash(hash);
+      if (hashGAV != null) {
+        ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
+        bomObjectNode.put("groupId", hashGAV.getGroupId());
+        bomObjectNode.put("artifactId", hashGAV.getArtifactId());
+        bomObjectNode.put("version", hashGAV.getVersion());
+        bomObjectNode.put("extension", hashGAV.getExtension());
+        bomObjectNode.put("classifier", hashGAV.getClassifier());
+        bomObjectNode.put("matchState", MatchState.EXACT.getId());
+        bomObjectNode.put("createTime", hashGAV.getCreateTimeLong());
+        bomObjectNode.put("relativePopularity", 0F);
+        bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
+        claimedHashes.add(hash);
+      }
+      gavs.add(bomJsonNode.get("groupId").asText() + ':' + bomJsonNode.get("artifactId").asText() + ':'
+          + bomJsonNode.get("version").asText());
+    }
+
+    // now apply any data edits (e.g. modified flag)
+    auditStore.augment(bomJsonData, "bom.json");
+
+    // save the claimed changes
+    cache(getCacheFile(reportFile, "bom.json"), JsonUtils.generate(bomJsonData));
+
+    // Remove all entries from licenses.json that don't have a correspondent record in bom.json
+
+    // must start from un-edited data
+    ReportEntry licensesReportEntry = extractEntry(reportFile, "licenses.json");
+    ContainerNode<?> licensesJsonData = JsonUtils.parse(licensesReportEntry.buf);
+    Iterator<JsonNode> iter = licensesJsonData.get("aaData").iterator();
+    while (iter.hasNext()) {
+      JsonNode jsonNode = iter.next();
+      String gav = jsonNode.get("groupId").asText() + ':' + jsonNode.get("artifactId").asText() + ':'
+          + jsonNode.get("version").asText();
+      if (!gavs.contains(gav)) {
+        iter.remove();
+      }
+    }
+
+    // now apply any data edits
+    auditStore.augment(licensesJsonData, "licenses.json");
+
+    // finally save the changes
+    cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licensesJsonData));
+
+    // Remove all entries from security.json that don't have a correspondent record in bom.json
+
+    // must start from un-edited data
+    ReportEntry securityReportEntry = extractEntry(reportFile, "security.json");
+    ContainerNode<?> securityJsonData = JsonUtils.parse(securityReportEntry.buf);
+    iter = securityJsonData.get("aaData").iterator();
+    while (iter.hasNext()) {
+      JsonNode jsonNode = iter.next();
+      String gav = jsonNode.get("groupId").asText() + ':' + jsonNode.get("artifactId").asText() + ':'
+          + jsonNode.get("version").asText();
+      if (!gavs.contains(gav)) {
+        iter.remove();
+      }
+    }
+
+    // now apply any data edits
+    auditStore.augment(securityJsonData, "security.json");
+
+    // finally save the changes
+    cache(getCacheFile(reportFile, "security.json"), JsonUtils.generate(securityJsonData));
+
+    // Remove all entries from partialmatched.json that were claimed as exact match
+
+    // must start from un-edited data
+    ReportEntry partialmatchedReportEntry = extractEntry(reportFile, "partialmatched.json");
+    ContainerNode<?> partialmatchedJsonData = JsonUtils.parse(partialmatchedReportEntry.buf);
+    iter = partialmatchedJsonData.get("aaData").iterator();
+    while (iter.hasNext()) {
+      JsonNode jsonNode = iter.next();
+      String hash = jsonNode.path("hash").asText();
+      if (claimedHashes.contains(hash)) {
+        iter.remove();
+      }
+    }
+
+    // now apply any data edits
+    auditStore.augment(partialmatchedJsonData, "partialmatched.json");
+
+    // finally save the changes
+    cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialmatchedJsonData));
+  }
+
+  private static void writeLicenseThreatsToReportFile(final String appId, final File reportFile) throws IOException {
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode licenseThreatsJson = mapper.createObjectNode();
+    ObjectNode licenseTable = mapper.createObjectNode();
+    for (MultiLicense multiLicense : multiLicenseDAO.getAll()) {
+      Integer threatLevel = multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId(appId,
+          multiLicense.getId());
+      licenseTable.put(multiLicense.getShortDisplayName(), threatLevel);
+    }
+    licenseThreatsJson.put("aaData", licenseTable);
+    cache(getCacheFile(reportFile, "licensethreats.json"), JsonUtils.generate(licenseThreatsJson));
+  }
+
+  /**
+   * @deprecated As of INSIGHT-4409, key findings are now longer included in the reports.
+   */
+  private static void filterKeyFindings(final ObjectNode data, final ContainerNode<?> security) {
+    final Set<String> textSet = new HashSet<String>();
+
+    ArrayNode sourceFindings = (ArrayNode) data.get("keyFindings");
+    if (sourceFindings == null) {
+      sourceFindings = data.putArray("keyFindings");
+    }
+
+    final Iterator<JsonNode> sourceIter = sourceFindings.elements();
+
+    // simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as
+    // 'Not Applicable'
+    while (sourceIter.hasNext()) {
+      final JsonNode sourceFinding = sourceIter.next();
+
+      final String text = asText(sourceFinding.get("text"));
+
+      // if we already have this keyFinding to be shown, no need to show others
+      if (textSet.contains(text)) {
+        sourceIter.remove();
+      }
+      else {
+        final JsonNode svNode = sourceFinding.get("sv");
+
+        // if svNode is null we are dealing with a freemium report, so simply add the key finding text
+        if (svNode == null) {
+          textSet.add(text);
+        }
+        else {
+          boolean foundMatch = false;
+
+          // need to compare against each row in the security data to find a match, and decide if the match is
+          // applicable
+          for (final JsonNode row : security.get("aaData")) {
+            final Iterator<String> iter = svNode.fieldNames();
+
+            boolean recordMatch = true;
+
+            // simple agnostic means to check the coordinates
+            while (iter.hasNext()) {
+              final String key = iter.next();
+
+              final String sourceVal = asText(svNode.get(key));
+              final String targetVal = asText(row.get(key));
+
+              if (!(sourceVal == null && targetVal == null || sourceVal != null && sourceVal.equals(targetVal))) {
+                recordMatch = false;
+                break;
+              }
             }
-        }
 
-        // now apply any data edits
-        auditStore.augment( licensesJsonData, "licenses.json" );
+            foundMatch = recordMatch;
 
-        // finally save the changes
-        cache( getCacheFile( reportFile, "licenses.json" ), JsonUtils.generate( licensesJsonData ) );
-
-        // Remove all entries from security.json that don't have a correspondent record in bom.json
-
-        // must start from un-edited data
-        ReportEntry securityReportEntry = extractEntry( reportFile, "security.json" );
-        ContainerNode<?> securityJsonData = JsonUtils.parse( securityReportEntry.buf );
-        iter = securityJsonData.get( "aaData" ).iterator();
-        while ( iter.hasNext() )
-        {
-            JsonNode jsonNode = iter.next();
-            String gav =
-                jsonNode.get( "groupId" ).asText() + ':' + jsonNode.get( "artifactId" ).asText() + ':'
-                    + jsonNode.get( "version" ).asText();
-            if ( !gavs.contains( gav ) )
-            {
-                iter.remove();
+            // if we found a match, check the status, if not applicable, junk it
+            if (recordMatch && "Not Applicable".equals(asText(row.get("status")))) {
+              sourceIter.remove();
+              break;
             }
-        }
-
-        // now apply any data edits
-        auditStore.augment( securityJsonData, "security.json" );
-
-        // finally save the changes
-        cache( getCacheFile( reportFile, "security.json" ), JsonUtils.generate( securityJsonData ) );
-
-        // Remove all entries from partialmatched.json that were claimed as exact match
-
-        // must start from un-edited data
-        ReportEntry partialmatchedReportEntry = extractEntry( reportFile, "partialmatched.json" );
-        ContainerNode<?> partialmatchedJsonData = JsonUtils.parse( partialmatchedReportEntry.buf );
-        iter = partialmatchedJsonData.get( "aaData" ).iterator();
-        while ( iter.hasNext() )
-        {
-            JsonNode jsonNode = iter.next();
-            String hash = jsonNode.path( "hash" ).asText();
-            if ( claimedHashes.contains( hash ) )
-            {
-                iter.remove();
+            else if (recordMatch) {
+              textSet.add(text);
+              break;
             }
+          }
+
+          // This is a case that shouldn't be hit besides in dev, if no match
+          // found in the security table, dump it
+          if (!foundMatch) {
+            sourceIter.remove();
+          }
         }
-
-        // now apply any data edits
-        auditStore.augment( partialmatchedJsonData, "partialmatched.json" );
-
-        // finally save the changes
-        cache( getCacheFile( reportFile, "partialmatched.json" ), JsonUtils.generate( partialmatchedJsonData ) );
+      }
     }
+  }
 
-    private static void writeLicenseThreatsToReportFile( final String appId, final File reportFile )
-        throws IOException
-    {
-        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode licenseThreatsJson = mapper.createObjectNode();
-        ObjectNode licenseTable = mapper.createObjectNode();
-        for ( MultiLicense multiLicense : multiLicenseDAO.getAll() )
-        {
-            Integer threatLevel =
-                multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId( appId, multiLicense.getId() );
-            licenseTable.put( multiLicense.getShortDisplayName(), threatLevel );
-        }
-        licenseThreatsJson.put( "aaData", licenseTable );
-        cache( getCacheFile( reportFile, "licensethreats.json" ), JsonUtils.generate( licenseThreatsJson ) );
+  private static String asText(final JsonNode node) {
+    String text;
+    if (node != null) {
+      text = node.asText();
+      // NOTE: asText() turns null into the string "null", cf.
+      // https://github.com/FasterXML/jackson-databind/issues/25
+      if ("null".equals(text)) {
+        text = null;
+      }
     }
-
-    /**
-     * @deprecated As of INSIGHT-4409, key findings are now longer included in the reports.
-     */
-    private static void filterKeyFindings( final ObjectNode data, final ContainerNode<?> security )
-    {
-        final Set<String> textSet = new HashSet<String>();
-
-        ArrayNode sourceFindings = (ArrayNode) data.get( "keyFindings" );
-        if ( sourceFindings == null )
-        {
-            sourceFindings = data.putArray( "keyFindings" );
-        }
-
-        final Iterator<JsonNode> sourceIter = sourceFindings.elements();
-
-        // simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as
-        // 'Not Applicable'
-        while ( sourceIter.hasNext() )
-        {
-            final JsonNode sourceFinding = sourceIter.next();
-
-            final String text = asText( sourceFinding.get( "text" ) );
-
-            // if we already have this keyFinding to be shown, no need to show others
-            if ( textSet.contains( text ) )
-            {
-                sourceIter.remove();
-            }
-            else
-            {
-                final JsonNode svNode = sourceFinding.get( "sv" );
-
-                // if svNode is null we are dealing with a freemium report, so simply add the key finding text
-                if ( svNode == null )
-                {
-                    textSet.add( text );
-                }
-                else
-                {
-                    boolean foundMatch = false;
-
-                    // need to compare against each row in the security data to find a match, and decide if the match is
-                    // applicable
-                    for ( final JsonNode row : security.get( "aaData" ) )
-                    {
-                        final Iterator<String> iter = svNode.fieldNames();
-
-                        boolean recordMatch = true;
-
-                        // simple agnostic means to check the coordinates
-                        while ( iter.hasNext() )
-                        {
-                            final String key = iter.next();
-
-                            final String sourceVal = asText( svNode.get( key ) );
-                            final String targetVal = asText( row.get( key ) );
-
-                            if ( !( sourceVal == null && targetVal == null || sourceVal != null
-                                && sourceVal.equals( targetVal ) ) )
-                            {
-                                recordMatch = false;
-                                break;
-                            }
-                        }
-
-                        foundMatch = recordMatch;
-
-                        // if we found a match, check the status, if not applicable, junk it
-                        if ( recordMatch && "Not Applicable".equals( asText( row.get( "status" ) ) ) )
-                        {
-                            sourceIter.remove();
-                            break;
-                        }
-                        else if ( recordMatch )
-                        {
-                            textSet.add( text );
-                            break;
-                        }
-                    }
-
-                    // This is a case that shouldn't be hit besides in dev, if no match
-                    // found in the security table, dump it
-                    if ( !foundMatch )
-                    {
-                        sourceIter.remove();
-                    }
-                }
-            }
-        }
+    else {
+      text = null;
     }
+    return text;
+  }
 
-    private static String asText( final JsonNode node )
-    {
-        String text;
-        if ( node != null )
-        {
-            text = node.asText();
-            // NOTE: asText() turns null into the string "null", cf.
-            // https://github.com/FasterXML/jackson-databind/issues/25
-            if ( "null".equals( text ) )
-            {
-                text = null;
-            }
-        }
-        else
-        {
-            text = null;
-        }
-        return text;
-    }
+  public static void printPdf(final File reportFile, final String projectName, final int buildNumber,
+      final ResponseBuilder response) throws IOException
+  {
+    Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)), projectName,
+        buildNumber, response);
+  }
 
-    public static void printPdf( final File reportFile, final String projectName, final int buildNumber,
-                                 final ResponseBuilder response )
-        throws IOException
-    {
-        Pdf.generate( reportFile, getCacheDir( reportFile ), ReportType.SAMPLE.equals( getType( reportFile ) ),
-                      projectName, buildNumber, response );
-    }
+  public static void deletePdf(final File reportFile) {
+    Pdf.delete(reportFile);
+  }
 
-    public static void deletePdf( final File reportFile )
-    {
-        Pdf.delete( reportFile );
+  private static ContainerNode<?> applyChanges(final File reportFile, final String name, final JsonStore auditStore)
+      throws IOException
+  {
+    ContainerNode<?> table = null;
+    final ReportEntry entry = extractEntry(reportFile, name); // must start from un-edited data
+    if (entry != null) {
+      table = auditStore.augment(JsonUtils.parse(entry.buf), name);
+      cache(getCacheFile(reportFile, name), JsonUtils.generate(table));
     }
+    return table;
+  }
 
-    private static ContainerNode<?> applyChanges( final File reportFile, final String name, final JsonStore auditStore )
-        throws IOException
-    {
-        ContainerNode<?> table = null;
-        final ReportEntry entry = extractEntry( reportFile, name ); // must start from un-edited data
-        if ( entry != null )
-        {
-            table = auditStore.augment( JsonUtils.parse( entry.buf ), name );
-            cache( getCacheFile( reportFile, name ), JsonUtils.generate( table ) );
-        }
-        return table;
+  private static ReportEntry extractEntry(final File reportFile, final String name) throws IOException {
+    final ZipFile archive = new ZipFile(reportFile);
+    try {
+      final ZipEntry entry = archive.getEntry(name);
+      if (entry != null) {
+        final byte[] buf = IOUtil.toByteArray(archive.getInputStream(entry));
+        return new ReportEntry(entry.getName(), entry.getTime(), buf);
+      }
     }
+    finally {
+      archive.close(); // closes all InputStreams retrieved from this archive
+    }
+    return null;
+  }
 
-    private static ReportEntry extractEntry( final File reportFile, final String name )
-        throws IOException
-    {
-        final ZipFile archive = new ZipFile( reportFile );
-        try
-        {
-            final ZipEntry entry = archive.getEntry( name );
-            if ( entry != null )
-            {
-                final byte[] buf = IOUtil.toByteArray( archive.getInputStream( entry ) );
-                return new ReportEntry( entry.getName(), entry.getTime(), buf );
-            }
-        }
-        finally
-        {
-            archive.close(); // closes all InputStreams retrieved from this archive
-        }
-        return null;
-    }
+  static String gav(final JsonNode row) {
+    final StringBuilder buf = new StringBuilder();
+    buf.append(row.get("groupId").asText()).append(':');
+    buf.append(row.get("artifactId").asText()).append(':');
+    buf.append(row.get("version").asText());
+    return buf.toString();
+  }
 
-    static String gav( final JsonNode row )
-    {
-        final StringBuilder buf = new StringBuilder();
-        buf.append( row.get( "groupId" ).asText() ).append( ':' );
-        buf.append( row.get( "artifactId" ).asText() ).append( ':' );
-        buf.append( row.get( "version" ).asText() );
-        return buf.toString();
+  private static ReportType getType(final File reportFile) throws IOException {
+    final ZipFile archive = new ZipFile(reportFile);
+    try {
+      if (archive.getEntry("sample.txt") != null) {
+        return ReportType.SAMPLE;
+      }
+      if (archive.getEntry("security.json") == null && archive.getEntry("licenses.json") == null
+          && archive.getEntry("badges.json") == null) {
+        return ReportType.ERROR;
+      }
+      return ReportType.FULL;
     }
+    finally {
+      archive.close();
+    }
+  }
 
-    private static ReportType getType( final File reportFile )
-        throws IOException
-    {
-        final ZipFile archive = new ZipFile( reportFile );
-        try
-        {
-            if ( archive.getEntry( "sample.txt" ) != null )
-            {
-                return ReportType.SAMPLE;
-            }
-            if ( archive.getEntry( "security.json" ) == null && archive.getEntry( "licenses.json" ) == null
-                && archive.getEntry( "badges.json" ) == null )
-            {
-                return ReportType.ERROR;
-            }
-            return ReportType.FULL;
-        }
-        finally
-        {
-            archive.close();
-        }
-    }
+  public static File getCacheDir(final File reportFile) {
+    return new File(reportFile.getParentFile(), "report.cache");
+  }
 
-    public static File getCacheDir( final File reportFile )
-    {
-        return new File( reportFile.getParentFile(), "report.cache" );
-    }
+  private static File getCacheFile(final File reportFile, final String name) {
+    return new File(getCacheDir(reportFile), name);
+  }
 
-    private static File getCacheFile( final File reportFile, final String name )
-    {
-        return new File( getCacheDir( reportFile ), name );
+  private static void cache(final File cacheFile, final byte[] buf) throws IOException {
+    cacheFile.getAbsoluteFile().getParentFile().mkdirs();
+    final OutputStream os = new FileOutputStream(cacheFile);
+    try {
+      IOUtil.copy(buf, os);
     }
+    finally {
+      IOUtil.close(os);
+    }
+  }
 
-    private static void cache( final File cacheFile, final byte[] buf )
-        throws IOException
-    {
-        cacheFile.getAbsoluteFile().getParentFile().mkdirs();
-        final OutputStream os = new FileOutputStream( cacheFile );
-        try
-        {
-            IOUtil.copy( buf, os );
-        }
-        finally
-        {
-            IOUtil.close( os );
-        }
+  private static byte[] fetch(final File cacheFile) throws IOException {
+    final InputStream is = new FileInputStream(cacheFile);
+    try {
+      return IOUtil.toByteArray(is);
     }
+    finally {
+      IOUtil.close(is);
+    }
+  }
 
-    private static byte[] fetch( final File cacheFile )
-        throws IOException
-    {
-        final InputStream is = new FileInputStream( cacheFile );
-        try
-        {
-            return IOUtil.toByteArray( is );
-        }
-        finally
-        {
-            IOUtil.close( is );
-        }
+  private static void fill(final ArrayNode node, final int[] data) {
+    for (final int d : data) {
+      node.add(d);
     }
+  }
 
-    private static void fill( final ArrayNode node, final int[] data )
-    {
-        for ( final int d : data )
-        {
-            node.add( d );
-        }
+  private static void fill(final ArrayNode node, final List<int[]> datas) {
+    for (final int[] data : datas) {
+      fill(node.addArray(), data);
     }
-
-    private static void fill( final ArrayNode node, final List<int[]> datas )
-    {
-        for ( final int[] data : datas )
-        {
-            fill( node.addArray(), data );
-        }
-    }
+  }
 }

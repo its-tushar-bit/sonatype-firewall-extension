@@ -12,29 +12,25 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class FloatValueType
     implements ConditionValueType<Float>
 {
-    public static final String ID = "FloatValueType";
+  public static final String ID = "FloatValueType";
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "Float";
-    }
+  @Override
+  public String getDataType() {
+    return "Float";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<Float> getAvailableValues()
-    {
-        return null;
-    }
+  @Override
+  public List<Float> getAvailableValues() {
+    return null;
+  }
 }

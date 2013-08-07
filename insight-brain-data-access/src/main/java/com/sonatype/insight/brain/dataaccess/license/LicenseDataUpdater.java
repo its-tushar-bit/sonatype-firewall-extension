@@ -10,33 +10,29 @@ import org.slf4j.LoggerFactory;
 
 public abstract class LicenseDataUpdater
 {
-    private static final Logger log = LoggerFactory.getLogger( LicenseDataUpdater.class );
+  private static final Logger log = LoggerFactory.getLogger(LicenseDataUpdater.class);
 
-    private static LicenseDataUpdater updater;
+  private static LicenseDataUpdater updater;
 
-    public static LicenseDataUpdater getUpdater()
-    {
-        return updater;
+  public static LicenseDataUpdater getUpdater() {
+    return updater;
+  }
+
+  public static synchronized void setUpdater(LicenseDataUpdater updater) {
+    LicenseDataUpdater.updater = updater;
+  }
+
+  public final synchronized static void update() {
+    if (updater == null) {
+      log.warn("Cannot update license data because there is no license updater.");
+      return;
     }
 
-    public static synchronized void setUpdater( LicenseDataUpdater updater )
-    {
-        LicenseDataUpdater.updater = updater;
-    }
+    updater.doUpdate();
+    new LicenseCategoryDAO().load();
+    new LicenseDAO().load();
+    new MultiLicenseDAO().load();
+  }
 
-    public final synchronized static void update()
-    {
-        if ( updater == null )
-        {
-            log.warn( "Cannot update license data because there is no license updater." );
-            return;
-        }
-
-        updater.doUpdate();
-        new LicenseCategoryDAO().load();
-        new LicenseDAO().load();
-        new MultiLicenseDAO().load();
-    }
-
-    public abstract void doUpdate();
+  public abstract void doUpdate();
 }

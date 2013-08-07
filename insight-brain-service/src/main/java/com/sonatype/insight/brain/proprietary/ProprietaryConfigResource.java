@@ -26,37 +26,35 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.AuditUtils;
 
 @Named
-@Path( ProprietaryConfigResource.SERVICE_PATH )
+@Path(ProprietaryConfigResource.SERVICE_PATH)
 public class ProprietaryConfigResource
 {
-    public static final String SERVICE_PATH = "rest/config/proprietary";
+  public static final String SERVICE_PATH = "rest/config/proprietary";
 
-    private static final Logger log = LoggerFactory.getLogger( PolicyResource.class );
+  private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
-    @Context
-    private InsightWork work;
+  @Context
+  private InsightWork work;
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    public ProprietaryConfig get()
-    {
-        return newDAO().get();
-    }
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public ProprietaryConfig get() {
+    return newDAO().get();
+  }
 
-    @PUT
-    @Consumes( MediaType.APPLICATION_JSON )
-    @Produces( MediaType.APPLICATION_JSON )
-    public void update( @QueryParam( "user" ) final String user, @QueryParam( "where" ) final String where,
-                        @Context final HttpServletRequest request, final ProprietaryConfig config )
-    {
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public void update(@QueryParam("user") final String user, @QueryParam("where") final String where,
+      @Context final HttpServletRequest request, final ProprietaryConfig config)
+  {
 
-        log.debug( "Received request to update proprietary component configuration" );
+    log.debug("Received request to update proprietary component configuration");
 
-        newDAO().session( user, AuditUtils.findIP( request ), where ).update( config );
-    }
+    newDAO().session(user, AuditUtils.findIP(request), where).update(config);
+  }
 
-    private ProprietaryConfigDAO newDAO()
-    {
-        return new ProprietaryConfigDAO( work.getDataDir() );
-    }
+  private ProprietaryConfigDAO newDAO() {
+    return new ProprietaryConfigDAO(work.getDataDir());
+  }
 }

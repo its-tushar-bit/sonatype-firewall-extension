@@ -16,41 +16,35 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 public interface RestClient
 {
 
-    interface Base
-    {
+  interface Base
+  {
 
-        void validateConfiguration()
-            throws IOException;
+    void validateConfiguration() throws IOException;
 
-        Map<String, String> getApplications()
-            throws IOException;
+    Map<String, String> getApplications() throws IOException;
 
-        ProprietaryConfig getProprietaryConfiguration()
-            throws IOException;
+    ProprietaryConfig getProprietaryConfiguration() throws IOException;
 
-        App forApplication( String appId );
+    App forApplication(String appId);
 
-    }
+  }
 
-    interface App
-    {
+  interface App
+  {
 
-        void validateApplicationId()
-            throws IOException;
+    void validateApplicationId() throws IOException;
 
-        ScanReceipt uploadScan( File scanFile )
-            throws IOException;
+    ScanReceipt uploadScan(File scanFile) throws IOException;
 
-        Scan forScan( String scanId );
+    Scan forScan(String scanId);
 
-    }
+  }
 
-    interface Scan
-    {
+  interface Scan
+  {
 
-        PolicyEvaluationResult evaluatePolicies( Stage stage )
-            throws IOException;
+    PolicyEvaluationResult evaluatePolicies(Stage stage) throws IOException;
 
-    }
+  }
 
 }

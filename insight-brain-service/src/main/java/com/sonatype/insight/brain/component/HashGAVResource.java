@@ -33,61 +33,54 @@ import org.codehaus.plexus.util.StringUtils;
  * @since 1.4.1
  */
 @Named
-@Path( HashGAVResource.SERVICE_PATH )
+@Path(HashGAVResource.SERVICE_PATH)
 public class HashGAVResource
 {
-    public static final String SERVICE_PATH = "rest/component/identified";
+  public static final String SERVICE_PATH = "rest/component/identified";
 
-    private SaasClient client;
+  private SaasClient client;
 
-    @Inject
-    public HashGAVResource( SaasClient saasClient )
-    {
-        this.client = saasClient;
+  @Inject
+  public HashGAVResource(SaasClient saasClient) {
+    this.client = saasClient;
+  }
+
+  /**
+   * @since 1.4.1
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public HashGAV setHashGAV(HashGAV hashGAV) throws IOException {
+    ComponentSummary componentSummary = getComponentSummary(hashGAV.getCoordinates());
+
+    if (componentSummary.isKnown()) {
+      throw new BadRequestException("The '" + hashGAV.getGAVECString() + "' coordinates are already in use");
     }
 
-    /**
-     * @since 1.4.1
-     */
-    @POST
-    @Consumes( MediaType.APPLICATION_JSON )
-    @Produces( MediaType.APPLICATION_JSON )
-    public HashGAV setHashGAV( HashGAV hashGAV )
-        throws IOException
-    {
-        ComponentSummary componentSummary = getComponentSummary( hashGAV.getCoordinates() );
+    hashGAV.setId(null);
+    new HashGAVDAO().insert(hashGAV);
 
-        if ( componentSummary.isKnown() )
-        {
-            throw new BadRequestException( "The '" + hashGAV.getGAVECString() + "' coordinates are already in use" );
-        }
-        
-        hashGAV.setId( null );
-        new HashGAVDAO().insert( hashGAV );
+    ReportResource.flushReportChanges();
 
-        ReportResource.flushReportChanges();
+    return hashGAV;
+  }
 
-        return hashGAV;
+  private ComponentSummary getComponentSummary(MavenCoordinates coordinates) throws IOException {
+    Map<String, String> queryParams = new LinkedHashMap<String, String>();
+    queryParams.put("groupId", coordinates.getGroupId());
+    queryParams.put("artifactId", coordinates.getArtifactId());
+    queryParams.put("version", coordinates.getVersion());
+
+    // optional fields
+    if (StringUtils.isNotBlank(coordinates.getExtension())) {
+      queryParams.put("extension", coordinates.getExtension());
     }
-    
-    private ComponentSummary getComponentSummary( MavenCoordinates coordinates ) throws IOException
-    {
-        Map<String, String> queryParams = new LinkedHashMap<String, String>();
-        queryParams.put( "groupId", coordinates.getGroupId() );
-        queryParams.put( "artifactId", coordinates.getArtifactId() );
-        queryParams.put( "version", coordinates.getVersion() );
-        
-        //optional fields
-        if (StringUtils.isNotBlank( coordinates.getExtension() ) )
-        {
-            queryParams.put( "extension", coordinates.getExtension() );
-        }
-        
-        if (StringUtils.isNotBlank( coordinates.getClassifier() ) )
-        {
-            queryParams.put( "classifier", coordinates.getClassifier() );
-        }
-        
-        return client.get( ComponentSummary.class, "rest/ide/component", queryParams );
+
+    if (StringUtils.isNotBlank(coordinates.getClassifier())) {
+      queryParams.put("classifier", coordinates.getClassifier());
     }
+
+    return client.get(ComponentSummary.class, "rest/ide/component", queryParams);
+  }
 }

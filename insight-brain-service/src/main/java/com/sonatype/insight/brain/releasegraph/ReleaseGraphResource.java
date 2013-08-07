@@ -22,64 +22,53 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.HttpStatusCode;
 
 @Named
-@Path( "rest/report/{applicationId}/{scanId}/releaseGraph" )
+@Path("rest/report/{applicationId}/{scanId}/releaseGraph")
 public class ReleaseGraphResource
 {
-    private static final Logger log = LoggerFactory.getLogger( ReleaseGraphResource.class );
+  private static final Logger log = LoggerFactory.getLogger(ReleaseGraphResource.class);
 
-    @Context
-    private InsightWork work;
+  @Context
+  private InsightWork work;
 
-    private final LoadingCache<ReleaseGraphKey, byte[]> cache;
+  private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-    private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
-    
-    @Inject
-    private ReportDownloader reportDownloader;
-    
-    @Inject
-    private CLMLicenseManager licenseManager;
+  private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
 
-    @Inject
-    public ReleaseGraphResource( LoadingCache<ReleaseGraphKey, byte[]> cache )
-    {
-        this.cache = cache;
+  @Inject
+  private ReportDownloader reportDownloader;
+
+  @Inject
+  private CLMLicenseManager licenseManager;
+
+  @Inject
+  public ReleaseGraphResource(LoadingCache<ReleaseGraphKey, byte[]> cache) {
+    this.cache = cache;
+  }
+
+  @GET
+  public Response getImage(@PathParam("applicationId") final String applicationPublicId,
+      @PathParam("scanId") final String scanId, @QueryParam("groupId") String groupId,
+      @QueryParam("artifactId") String artifactId, @QueryParam("version") String version)
+  {
+    log.debug("Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId);
+    try {
+      return Response
+          .ok(cache.get(new ReleaseGraphKey(groupId, artifactId, version, new ReportItemKey(reportDownloader,
+              licenseManager.getLicenseFingerprint(), applicationPublicId, scanId, work))), "image/png")
+          .expires(new Date(System.currentTimeMillis() + YEAR)).build();
     }
-
-    @GET
-    public Response getImage( @PathParam( "applicationId" ) final String applicationPublicId,
-                              @PathParam( "scanId" ) final String scanId, @QueryParam( "groupId" ) String groupId,
-                              @QueryParam( "artifactId" ) String artifactId, @QueryParam( "version" ) String version )
-    {
-        log.debug( "Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId );
-        try
-        {
-            return Response.ok( cache.get( new ReleaseGraphKey(
-                                                                groupId,
-                                                                artifactId,
-                                                                version,
-                                                                new ReportItemKey(
-                                                                                   reportDownloader,
-                                                                                   licenseManager.getLicenseFingerprint(),
-                                                                                   applicationPublicId, scanId, work) ) ), "image/png" ).expires( new Date(
-                                                                                                                                 System.currentTimeMillis()
-                                                                                                                                     + YEAR ) ).build();
+    catch (Exception e) {
+      // undo any wrapping of resource exceptions introduced by Guava caches
+      for (Throwable t = e; t instanceof RuntimeException; t = t.getCause()) {
+        if (t.getClass().isAnnotationPresent(HttpStatusCode.class) || t instanceof WebApplicationException) {
+          // Log the original exception so we don't lose error details
+          log.error(e.getMessage(), e);
+          throw (RuntimeException) t;
         }
-        catch ( Exception e )
-        {
-            // undo any wrapping of resource exceptions introduced by Guava caches
-            for ( Throwable t = e; t instanceof RuntimeException; t = t.getCause() )
-            {
-                if ( t.getClass().isAnnotationPresent( HttpStatusCode.class ) || t instanceof WebApplicationException )
-                {
-                    // Log the original exception so we don't lose error details
-                    log.error( e.getMessage(), e );
-                    throw (RuntimeException) t;
-                }
-            }
+      }
 
-            throw new RuntimeException( "Error creating popularity graph for " + groupId + ":" + artifactId + ":"
-                + version + " for report " + scanId, e );
-        }
+      throw new RuntimeException("Error creating popularity graph for " + groupId + ":" + artifactId + ":" + version
+          + " for report " + scanId, e);
     }
+  }
 }

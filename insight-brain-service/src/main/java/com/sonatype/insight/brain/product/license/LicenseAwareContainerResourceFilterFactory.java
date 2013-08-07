@@ -29,97 +29,87 @@ import com.sun.jersey.spi.container.ResourceFilterFactory;
 public class LicenseAwareContainerResourceFilterFactory
     implements ResourceFilterFactory
 {
-    @Inject
-    private CLMLicenseManager licenseManager;
+  @Inject
+  private CLMLicenseManager licenseManager;
 
-    private class Filter
-        implements ResourceFilter, ContainerRequestFilter
-    {
-        private final Set<CLMEnforcementPoint> enforcementPoints;
+  private class Filter
+      implements ResourceFilter, ContainerRequestFilter
+  {
+    private final Set<CLMEnforcementPoint> enforcementPoints;
 
-        private final Logger log = LoggerFactory.getLogger( Filter.class );
+    private final Logger log = LoggerFactory.getLogger(Filter.class);
 
-        @Context
-        private BaseUrl baseUrl;
+    @Context
+    private BaseUrl baseUrl;
 
-        public Filter( Set<CLMEnforcementPoint> enforcementPoints )
-        {
-            this.enforcementPoints = enforcementPoints;
-        }
-
-        @Override
-        public ContainerRequest filter( ContainerRequest request )
-        {
-            String path = request.getPath();
-
-            try
-            {
-                licenseManager.validate();
-                licenseManager.validateAnyEnforcementPoint( enforcementPoints );
-            }
-            catch ( InvalidLicenseException e )
-            {
-                log.error( e.getMessage(), e );
-
-                //we want to redirect if going to an html page when unlicensed, unless of course they are going to the main html page
-                if ( path.endsWith( "index.html" ) && !path.equals( InsightBrainService.BRAIN_ASSET_PATH + "index.html" ) )
-                {
-                    throw new WebApplicationException(
-                                                       Response.seeOther( baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "index.html" ).build() ).build() );
-                }
-                else
-                {
-                    throw e;
-                }
-            }
-
-            return request;
-        }
-
-        @Override
-        public ContainerRequestFilter getRequestFilter()
-        {
-            return this;
-        }
-
-        @Override
-        public ContainerResponseFilter getResponseFilter()
-        {
-            return null;
-        }
+    public Filter(Set<CLMEnforcementPoint> enforcementPoints) {
+      this.enforcementPoints = enforcementPoints;
     }
 
     @Override
-    public List<ResourceFilter> create( AbstractMethod am )
-    {
-        //If the method is unlicensed, simply return null, no filter
-        //If the resource is unlicensed, make sure the method isn't looking for enforcement points, if not, return null, no filter
-        if ( am.isAnnotationPresent( UnlicensedPath.class )
-            || ( am.getResource().isAnnotationPresent( UnlicensedPath.class ) && !am.isAnnotationPresent( ProductLicenseEnforcementPoint.class ) ) )
-        {
-            return null;
+    public ContainerRequest filter(ContainerRequest request) {
+      String path = request.getPath();
+
+      try {
+        licenseManager.validate();
+        licenseManager.validateAnyEnforcementPoint(enforcementPoints);
+      }
+      catch (InvalidLicenseException e) {
+        log.error(e.getMessage(), e);
+
+        // we want to redirect if going to an html page when unlicensed, unless of course they are going to the main
+        // html page
+        if (path.endsWith("index.html") && !path.equals(InsightBrainService.BRAIN_ASSET_PATH + "index.html")) {
+          throw new WebApplicationException(Response.seeOther(
+              baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html").build()).build());
         }
-
-        Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
-
-        ProductLicenseEnforcementPoint ep = am.getAnnotation( ProductLicenseEnforcementPoint.class );
-
-        if ( ep != null )
-        {
-            enforcementPoints.addAll( Arrays.asList( ep.value() ) );
+        else {
+          throw e;
         }
-        
-        //method level enforcement annos will override whatever is in the resource, so dont check unless necessary
-        if ( enforcementPoints.isEmpty() )
-        {
-            ep = am.getResource().getAnnotation( ProductLicenseEnforcementPoint.class );
-    
-            if ( ep != null )
-            {
-                enforcementPoints.addAll( Arrays.asList( ep.value() ) );
-            }
-        }
+      }
 
-        return Collections.<ResourceFilter> singletonList( new Filter( enforcementPoints ) );
+      return request;
     }
+
+    @Override
+    public ContainerRequestFilter getRequestFilter() {
+      return this;
+    }
+
+    @Override
+    public ContainerResponseFilter getResponseFilter() {
+      return null;
+    }
+  }
+
+  @Override
+  public List<ResourceFilter> create(AbstractMethod am) {
+    // If the method is unlicensed, simply return null, no filter
+    // If the resource is unlicensed, make sure the method isn't looking for enforcement points, if not, return null, no
+    // filter
+    if (am.isAnnotationPresent(UnlicensedPath.class)
+        || (am.getResource().isAnnotationPresent(UnlicensedPath.class) && !am
+            .isAnnotationPresent(ProductLicenseEnforcementPoint.class))) {
+      return null;
+    }
+
+    Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+
+    ProductLicenseEnforcementPoint ep = am.getAnnotation(ProductLicenseEnforcementPoint.class);
+
+    if (ep != null) {
+      enforcementPoints.addAll(Arrays.asList(ep.value()));
+    }
+
+    // method level enforcement annos will override whatever is in the resource, so dont check unless necessary
+    if (enforcementPoints.isEmpty()) {
+      ep = am.getResource().getAnnotation(ProductLicenseEnforcementPoint.class);
+
+      if (ep != null) {
+        enforcementPoints.addAll(Arrays.asList(ep.value()));
+      }
+    }
+
+    return Collections.<ResourceFilter> singletonList(new Filter(enforcementPoints));
+  }
 }

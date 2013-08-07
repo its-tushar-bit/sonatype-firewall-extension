@@ -22,170 +22,143 @@ import com.yammer.dropwizard.validation.ValidationMethod;
 public class InsightConfig
     extends Configuration
 {
-    private static final Logger log = LoggerFactory.getLogger( InsightConfig.class );
+  private static final Logger log = LoggerFactory.getLogger(InsightConfig.class);
 
-    {
-        setHttpConfiguration( new HttpConfig() );
+  {
+    setHttpConfiguration(new HttpConfig());
+  }
+
+  @Valid
+  @NotNull
+  @JsonProperty
+  private ProxyConfig proxy = new ProxyConfig();
+
+  @NotNull
+  @JsonProperty
+  private MailConfig mail = new MailConfig();
+
+  @JsonProperty
+  private String baseUrl;
+
+  @NotNull
+  @JsonProperty
+  private String saasAddress = "https://clm.sonatype.com/";
+
+  @NotNull
+  @JsonProperty
+  private String cdnUrl = "http://cdn.sonatype.com/";
+
+  @NotNull
+  @JsonProperty
+  private String sonatypeWork = "sonatype-work/clm-server";
+
+  @NotNull
+  @JsonProperty
+  private int releaseGraphCacheSize = 1000;
+
+  public ProxyConfig getProxyConfig() {
+    return proxy;
+  }
+
+  public MailConfig getMailConfig() {
+    return mail;
+  }
+
+  public int getReleaseGraphCacheSize() {
+    return releaseGraphCacheSize;
+  }
+
+  public String getSaasAddress() {
+    return saasAddress;
+  }
+
+  public File getSonatypeWork() {
+    return new File(sonatypeWork);
+  }
+
+  public File getConfigDir() {
+    return new File(sonatypeWork, "config");
+  }
+
+  public void setProxyConfig(ProxyConfig proxyConfig) {
+    this.proxy = proxyConfig;
+  }
+
+  public void setMailConfig(final MailConfig mailConfig) {
+    this.mail = mailConfig;
+  }
+
+  public void setReleaseGraphCacheSize(int releaseGraphCacheSize) {
+    this.releaseGraphCacheSize = releaseGraphCacheSize;
+  }
+
+  public void setSaasAddress(final String saasAddress) {
+    this.saasAddress = saasAddress;
+  }
+
+  public void setSonatypeWork(final String sonatypeWork) {
+    this.sonatypeWork = sonatypeWork;
+  }
+
+  public String getBaseUrl() {
+    return baseUrl;
+  }
+
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = baseUrl;
+    if (baseUrl != null && !baseUrl.endsWith("/")) {
+      this.baseUrl += '/';
     }
+  }
 
-    @Valid
-    @NotNull
-    @JsonProperty
-    private ProxyConfig proxy = new ProxyConfig();
-
-    @NotNull
-    @JsonProperty
-    private MailConfig mail = new MailConfig();
-
-    @JsonProperty
-    private String baseUrl;
-
-    @NotNull
-    @JsonProperty
-    private String saasAddress = "https://clm.sonatype.com/";
-
-    @NotNull
-    @JsonProperty
-    private String cdnUrl = "http://cdn.sonatype.com/";
-
-    @NotNull
-    @JsonProperty
-    private String sonatypeWork = "sonatype-work/clm-server";
-
-    @NotNull
-    @JsonProperty
-    private int releaseGraphCacheSize = 1000;
-
-    public ProxyConfig getProxyConfig()
-    {
-        return proxy;
+  @ValidationMethod(message = "baseUrl is invalid")
+  public boolean isValidBaseUrl() {
+    try {
+      String url = getBaseUrl();
+      if (url != null) {
+        new URL(url);
+      }
+      return true;
     }
-
-    public MailConfig getMailConfig()
-    {
-        return mail;
+    catch (Exception e) {
+      log.error("Invalid baseUrl: {}", e.getMessage());
+      return false;
     }
+  }
 
-    public int getReleaseGraphCacheSize()
-    {
-        return releaseGraphCacheSize;
+  @ValidationMethod(message = "mail.systemEmail is invalid")
+  public boolean isValidSystemMailAddress() {
+    try {
+      new InternetAddress(getMailConfig().getSystemEmail());
+      return true;
     }
+    catch (Exception e) {
+      log.error("Invalid mail.systemEmail: {}", e.getMessage());
+      return false;
+    }
+  }
 
-    public String getSaasAddress()
-    {
-        return saasAddress;
-    }
+  public String getCdnUrl() {
+    return cdnUrl;
+  }
 
-    public File getSonatypeWork()
-    {
-        return new File( sonatypeWork );
+  public void setCdnUrl(String cdnUrl) {
+    this.cdnUrl = cdnUrl;
+    if (cdnUrl != null && !cdnUrl.endsWith("/")) {
+      this.cdnUrl += '/';
     }
+  }
 
-    public File getConfigDir()
-    {
-        return new File( sonatypeWork, "config" );
+  @ValidationMethod(message = "cdnUrl is invalid")
+  public boolean isValidCdnUrl() {
+    try {
+      String url = getCdnUrl();
+      new URL(url);
+      return true;
     }
-
-    public void setProxyConfig( ProxyConfig proxyConfig )
-    {
-        this.proxy = proxyConfig;
+    catch (Exception e) {
+      log.error("Invalid cndUrl: {}", e.getMessage());
+      return false;
     }
-
-    public void setMailConfig( final MailConfig mailConfig )
-    {
-        this.mail = mailConfig;
-    }
-
-    public void setReleaseGraphCacheSize( int releaseGraphCacheSize )
-    {
-        this.releaseGraphCacheSize = releaseGraphCacheSize;
-    }
-
-    public void setSaasAddress( final String saasAddress )
-    {
-        this.saasAddress = saasAddress;
-    }
-
-    public void setSonatypeWork( final String sonatypeWork )
-    {
-        this.sonatypeWork = sonatypeWork;
-    }
-
-    public String getBaseUrl()
-    {
-        return baseUrl;
-    }
-
-    public void setBaseUrl( String baseUrl )
-    {
-        this.baseUrl = baseUrl;
-        if ( baseUrl != null && !baseUrl.endsWith( "/" ) )
-        {
-            this.baseUrl += '/';
-        }
-    }
-
-    @ValidationMethod( message = "baseUrl is invalid" )
-    public boolean isValidBaseUrl()
-    {
-        try
-        {
-            String url = getBaseUrl();
-            if ( url != null )
-            {
-                new URL( url );
-            }
-            return true;
-        }
-        catch ( Exception e )
-        {
-            log.error( "Invalid baseUrl: {}", e.getMessage() );
-            return false;
-        }
-    }
-
-    @ValidationMethod( message = "mail.systemEmail is invalid" )
-    public boolean isValidSystemMailAddress()
-    {
-        try
-        {
-            new InternetAddress( getMailConfig().getSystemEmail() );
-            return true;
-        }
-        catch ( Exception e )
-        {
-            log.error( "Invalid mail.systemEmail: {}", e.getMessage() );
-            return false;
-        }
-    }
-
-    public String getCdnUrl()
-    {
-        return cdnUrl;
-    }
-
-    public void setCdnUrl( String cdnUrl )
-    {
-        this.cdnUrl = cdnUrl;
-        if ( cdnUrl != null && !cdnUrl.endsWith( "/" ) )
-        {
-            this.cdnUrl += '/';
-        }
-    }
-
-    @ValidationMethod( message = "cdnUrl is invalid" )
-    public boolean isValidCdnUrl()
-    {
-        try
-        {
-            String url = getCdnUrl();
-            new URL( url );
-            return true;
-        }
-        catch ( Exception e )
-        {
-            log.error( "Invalid cndUrl: {}", e.getMessage() );
-            return false;
-        }
-    }
+  }
 }

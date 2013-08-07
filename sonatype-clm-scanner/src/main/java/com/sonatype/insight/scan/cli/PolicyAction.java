@@ -8,26 +8,23 @@ package com.sonatype.insight.scan.cli;
 public enum PolicyAction
 {
 
-    NONE, WARN, FAIL;
+  NONE, WARN, FAIL;
 
-    @Override
-    public String toString()
-    {
-        switch ( this )
-        {
-            case NONE:
-                return "None";
-            case WARN:
-                return "Warning";
-            case FAIL:
-                return "Failure";
-        }
-        return super.toString();
+  @Override
+  public String toString() {
+    switch (this) {
+      case NONE:
+        return "None";
+      case WARN:
+        return "Warning";
+      case FAIL:
+        return "Failure";
     }
+    return super.toString();
+  }
 
-    public PolicyAction combine( PolicyAction that )
-    {
-        return ( this.ordinal() < that.ordinal() ) ? that : this;
-    }
+  public PolicyAction combine(PolicyAction that) {
+    return (this.ordinal() < that.ordinal()) ? that : this;
+  }
 
 }

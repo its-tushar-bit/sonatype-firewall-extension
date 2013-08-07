@@ -49,230 +49,195 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
 public class PolicyEvaluator
 {
-    private static final Logger log = LoggerFactory.getLogger( PolicyEvaluator.class );
+  private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
-    static final Comparator<MatchFact> MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION = new Comparator<MatchFact>()
-    {
-        @Override
-        public int compare( final MatchFact lhs, final MatchFact rhs )
-        {
-            return index( lhs ).compareTo( index( rhs ) );
-        }
-
-        private String index( final MatchFact fact )
-        {
-            // doesn't have to be lexically correct, just need to impose consistent ordering
-            return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getGAV() + '|'
-                + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionNumber() : "";
-        }
-    };
-
-    public List<PolicyAlert> evaluate( String applicationId, Stage stage, PolicyDAO policyDAO,
-                                       List<Component> components )
-    {
-        List<Policy> policies = policyDAO.getApplicableByOwnerId( applicationId );
-        return evaluate( applicationId, stage, policies, components );
+  static final Comparator<MatchFact> MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION = new Comparator<MatchFact>()
+  {
+    @Override
+    public int compare(final MatchFact lhs, final MatchFact rhs) {
+      return index(lhs).compareTo(index(rhs));
     }
 
-    // Package visibility for tests only
-    List<PolicyAlert> evaluate( final String applicationId, final Stage stage, final List<Policy> policies,
-                                final List<Component> components )
-    {
-        final long start = System.currentTimeMillis();
+    private String index(final MatchFact fact) {
+      // doesn't have to be lexically correct, just need to impose consistent ordering
+      return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getGAV() + '|'
+          + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionNumber() : "";
+    }
+  };
 
-        List<MatchFact> facts = evaluateFacts( applicationId, policies, components );
-        facts = applyWaivers( applicationId, facts );
-        final List<PolicyAlert> alerts = createAlerts( policies, facts, stage );
+  public List<PolicyAlert> evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components)
+  {
+    List<Policy> policies = policyDAO.getApplicableByOwnerId(applicationId);
+    return evaluate(applicationId, stage, policies, components);
+  }
 
-        log.debug( "Evaluated policies in {} millisecs", System.currentTimeMillis() - start );
+  // Package visibility for tests only
+  List<PolicyAlert> evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
+      final List<Component> components)
+  {
+    final long start = System.currentTimeMillis();
 
-        return alerts;
+    List<MatchFact> facts = evaluateFacts(applicationId, policies, components);
+    facts = applyWaivers(applicationId, facts);
+    final List<PolicyAlert> alerts = createAlerts(policies, facts, stage);
+
+    log.debug("Evaluated policies in {} millisecs", System.currentTimeMillis() - start);
+
+    return alerts;
+  }
+
+  private List<MatchFact> applyWaivers(String applicationId, List<MatchFact> facts) {
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(applicationId, true /* inherit */);
+    Set<String> policyWaiverKeys = new LinkedHashSet<String>();
+    for (PolicyWaiver policyWaiver : policyWaivers) {
+      policyWaiverKeys.add(policyWaiver.getPolicyId() + "_" + policyWaiver.getHash());
     }
 
-    private List<MatchFact> applyWaivers( String applicationId, List<MatchFact> facts )
-    {
-        List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId( applicationId, true /* inherit */);
-        Set<String> policyWaiverKeys = new LinkedHashSet<String>();
-        for ( PolicyWaiver policyWaiver : policyWaivers )
-        {
-            policyWaiverKeys.add( policyWaiver.getPolicyId() + "_" + policyWaiver.getHash() );
-        }
+    List<MatchFact> result = new ArrayList<MatchFact>();
+    for (MatchFact fact : facts) {
+      if (!policyWaiverKeys.contains(fact.getPolicyId() + "_" + fact.getComponent().getHash())) {
+        result.add(fact);
+      }
+    }
 
-        List<MatchFact> result = new ArrayList<MatchFact>();
-        for ( MatchFact fact : facts )
-        {
-            if ( !policyWaiverKeys.contains( fact.getPolicyId() + "_" + fact.getComponent().getHash() ) )
-            {
-                result.add( fact );
+    return result;
+  }
+
+  static List<PolicyAlert> createAlerts(final List<Policy> policies, final List<MatchFact> facts, final Stage stage) {
+    // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
+    Collections.sort(facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
+
+    final List<PolicyAlert> alerts = new ArrayList<PolicyAlert>();
+    for (final Entry<Policy, List<MatchFact>> byPolicy : byPolicy(policies, facts).entrySet()) {
+      final Policy policy = byPolicy.getKey();
+      final PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
+      for (final Entry<Component, List<MatchFact>> byComponent : byComponent(byPolicy.getValue()).entrySet()) {
+        final Component component = byComponent.getKey();
+        final ComponentFact componentFact = new ComponentFact(component.getGroupId(), component.getArtifactId(),
+            component.getVersion(), component.getHash());
+        for (final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint(policy.getConstraints(),
+            byComponent.getValue()).entrySet()) {
+          final Constraint constraint = byConstraints.getKey();
+          final ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
+              .getOperator().name());
+          for (final MatchFact fact : byConstraints.getValue()) {
+            final List<Condition> conditions = constraint.getConditions();
+            final int num = fact.getConditionNumber();
+            if (num >= 0) {
+              constraintFact.addConditionFact(createConditionFact(conditions.get(num), component));
             }
-        }
-
-        return result;
-    }
-
-    static List<PolicyAlert> createAlerts( final List<Policy> policies, final List<MatchFact> facts, final Stage stage )
-    {
-        // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
-        Collections.sort( facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION );
-
-        final List<PolicyAlert> alerts = new ArrayList<PolicyAlert>();
-        for ( final Entry<Policy, List<MatchFact>> byPolicy : byPolicy( policies, facts ).entrySet() )
-        {
-            final Policy policy = byPolicy.getKey();
-            final PolicyFact policyFact = new PolicyFact( policy.getId(), policy.getName(), policy.getThreatLevel() );
-            for ( final Entry<Component, List<MatchFact>> byComponent : byComponent( byPolicy.getValue() ).entrySet() )
-            {
-                final Component component = byComponent.getKey();
-                final ComponentFact componentFact =
-                    new ComponentFact( component.getGroupId(), component.getArtifactId(), component.getVersion(),
-                                       component.getHash() );
-                for ( final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint( policy.getConstraints(),
-                                                                                             byComponent.getValue() ).entrySet() )
-                {
-                    final Constraint constraint = byConstraints.getKey();
-                    final ConstraintFact constraintFact =
-                        new ConstraintFact( constraint.getId(), constraint.getName(), constraint.getOperator().name() );
-                    for ( final MatchFact fact : byConstraints.getValue() )
-                    {
-                        final List<Condition> conditions = constraint.getConditions();
-                        final int num = fact.getConditionNumber();
-                        if ( num >= 0 )
-                        {
-                            constraintFact.addConditionFact( createConditionFact( conditions.get( num ), component ) );
-                        }
-                        else
-                        {
-                            for ( final Condition condition : conditions )
-                            {
-                                constraintFact.addConditionFact( createConditionFact( condition, component ) );
-                            }
-                        }
-                    }
-                    if ( !constraintFact.getConditionFacts().isEmpty() )
-                    {
-                        componentFact.addConstraintFact( constraintFact );
-                    }
-                }
-                if ( !componentFact.getConstraintFacts().isEmpty() )
-                {
-                    policyFact.addComponentFact( componentFact );
-                }
+            else {
+              for (final Condition condition : conditions) {
+                constraintFact.addConditionFact(createConditionFact(condition, component));
+              }
             }
-            if ( !policyFact.getComponentFacts().isEmpty() )
-            {
-                alerts.add( new PolicyAlert( policyFact, policy.getActions( stage.getStageTypeId() ) ) );
-            }
+          }
+          if (!constraintFact.getConditionFacts().isEmpty()) {
+            componentFact.addConstraintFact(constraintFact);
+          }
         }
-        return alerts;
+        if (!componentFact.getConstraintFacts().isEmpty()) {
+          policyFact.addComponentFact(componentFact);
+        }
+      }
+      if (!policyFact.getComponentFacts().isEmpty()) {
+        alerts.add(new PolicyAlert(policyFact, policy.getActions(stage.getStageTypeId())));
+      }
+    }
+    return alerts;
+  }
+
+  public static ConditionFact createConditionFact(Condition condition, Component component) {
+    final ConditionType<?> conditionType = ConditionTypes.getById(condition.getConditionTypeId());
+
+    String summary = conditionType.explainCondition(condition);
+    String reason = conditionType.explainMatch(condition, component);
+
+    return new ConditionFact(condition.getConditionTypeId(), summary, reason);
+  }
+
+  private static Map<Policy, List<MatchFact>> byPolicy(final List<Policy> policies, final List<MatchFact> facts) {
+    final Map<String, Policy> policiesById = new HashMap<String, Policy>();
+    for (final Policy policy : policies) {
+      policiesById.put(policy.getId(), policy);
+    }
+    final Map<Policy, List<MatchFact>> byPolicy = new LinkedHashMap<Policy, List<MatchFact>>();
+    for (final MatchFact fact : facts) {
+      final Policy policy = policiesById.get(fact.getPolicyId());
+      List<MatchFact> partition = byPolicy.get(policy);
+      if (partition == null) {
+        byPolicy.put(policy, partition = new ArrayList<MatchFact>());
+      }
+      partition.add(fact);
+    }
+    return byPolicy;
+  }
+
+  private static Map<Constraint, List<MatchFact>> byConstraint(final List<Constraint> constraints,
+      final List<MatchFact> facts)
+  {
+    final Map<String, Constraint> constraintsById = new HashMap<String, Constraint>();
+    for (final Constraint constraint : constraints) {
+      constraintsById.put(constraint.getId(), constraint);
+    }
+    final Map<Constraint, List<MatchFact>> byConstraint = new LinkedHashMap<Constraint, List<MatchFact>>();
+    for (final MatchFact fact : facts) {
+      final Constraint constraint = constraintsById.get(fact.getConstraintId());
+      List<MatchFact> partition = byConstraint.get(constraint);
+      if (partition == null) {
+        byConstraint.put(constraint, partition = new ArrayList<MatchFact>());
+      }
+      partition.add(fact);
+    }
+    return byConstraint;
+  }
+
+  private static Map<Component, List<MatchFact>> byComponent(final List<MatchFact> facts) {
+    final Map<Component, List<MatchFact>> byComponent = new LinkedHashMap<Component, List<MatchFact>>();
+    for (final MatchFact fact : facts) {
+      List<MatchFact> partition = byComponent.get(fact.getComponent());
+      if (partition == null) {
+        byComponent.put(fact.getComponent(), partition = new ArrayList<MatchFact>());
+      }
+      partition.add(fact);
+    }
+    return byComponent;
+  }
+
+  static List<MatchFact> evaluateFacts(final String applicationId, final List<Policy> policies,
+      final List<Component> components)
+  {
+    final String droolsCode = new DroolsGenerator().generate(applicationId, policies);
+    // Most probably this is too much logging, but it's good for debugging for now
+    log.debug("Generated drools code:\n{}", droolsCode);
+
+    final KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+    droolsKnowledgeBuilder.add(ResourceFactory.newReaderResource(new StringReader(droolsCode)), ResourceType.DRL);
+    if (droolsKnowledgeBuilder.hasErrors()) {
+      throw new RuntimeException("Failed to load the policies: " + droolsKnowledgeBuilder.getErrors().toString());
+    }
+    final Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
+    final KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
+    droolsKnowledgeBase.addKnowledgePackages(droolsKnowledgePackages);
+    final StatefulKnowledgeSession droolsSession = droolsKnowledgeBase.newStatefulKnowledgeSession();
+
+    for (final Component component : components) {
+      droolsSession.insert(component);
     }
 
-    public static ConditionFact createConditionFact( Condition condition, Component component )
+    droolsSession.fireAllRules();
+
+    return getMatchFacts(droolsSession);
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private static List<MatchFact> getMatchFacts(StatefulKnowledgeSession droolsSession) {
+    return new ArrayList<MatchFact>((Collection) droolsSession.getObjects(new ObjectFilter()
     {
-        final ConditionType<?> conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
-
-        String summary = conditionType.explainCondition( condition );
-        String reason = conditionType.explainMatch( condition, component );
-
-        return new ConditionFact( condition.getConditionTypeId(), summary, reason );
-    }
-
-    private static Map<Policy, List<MatchFact>> byPolicy( final List<Policy> policies, final List<MatchFact> facts )
-    {
-        final Map<String, Policy> policiesById = new HashMap<String, Policy>();
-        for ( final Policy policy : policies )
-        {
-            policiesById.put( policy.getId(), policy );
-        }
-        final Map<Policy, List<MatchFact>> byPolicy = new LinkedHashMap<Policy, List<MatchFact>>();
-        for ( final MatchFact fact : facts )
-        {
-            final Policy policy = policiesById.get( fact.getPolicyId() );
-            List<MatchFact> partition = byPolicy.get( policy );
-            if ( partition == null )
-            {
-                byPolicy.put( policy, partition = new ArrayList<MatchFact>() );
-            }
-            partition.add( fact );
-        }
-        return byPolicy;
-    }
-
-    private static Map<Constraint, List<MatchFact>> byConstraint( final List<Constraint> constraints,
-                                                                  final List<MatchFact> facts )
-    {
-        final Map<String, Constraint> constraintsById = new HashMap<String, Constraint>();
-        for ( final Constraint constraint : constraints )
-        {
-            constraintsById.put( constraint.getId(), constraint );
-        }
-        final Map<Constraint, List<MatchFact>> byConstraint = new LinkedHashMap<Constraint, List<MatchFact>>();
-        for ( final MatchFact fact : facts )
-        {
-            final Constraint constraint = constraintsById.get( fact.getConstraintId() );
-            List<MatchFact> partition = byConstraint.get( constraint );
-            if ( partition == null )
-            {
-                byConstraint.put( constraint, partition = new ArrayList<MatchFact>() );
-            }
-            partition.add( fact );
-        }
-        return byConstraint;
-    }
-
-    private static Map<Component, List<MatchFact>> byComponent( final List<MatchFact> facts )
-    {
-        final Map<Component, List<MatchFact>> byComponent = new LinkedHashMap<Component, List<MatchFact>>();
-        for ( final MatchFact fact : facts )
-        {
-            List<MatchFact> partition = byComponent.get( fact.getComponent() );
-            if ( partition == null )
-            {
-                byComponent.put( fact.getComponent(), partition = new ArrayList<MatchFact>() );
-            }
-            partition.add( fact );
-        }
-        return byComponent;
-    }
-
-    static List<MatchFact> evaluateFacts( final String applicationId, final List<Policy> policies,
-                                          final List<Component> components )
-    {
-        final String droolsCode = new DroolsGenerator().generate( applicationId, policies );
-        // Most probably this is too much logging, but it's good for debugging for now
-        log.debug( "Generated drools code:\n{}", droolsCode );
-
-        final KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        droolsKnowledgeBuilder.add( ResourceFactory.newReaderResource( new StringReader( droolsCode ) ),
-                                    ResourceType.DRL );
-        if ( droolsKnowledgeBuilder.hasErrors() )
-        {
-            throw new RuntimeException( "Failed to load the policies: " + droolsKnowledgeBuilder.getErrors().toString() );
-        }
-        final Collection<KnowledgePackage> droolsKnowledgePackages = droolsKnowledgeBuilder.getKnowledgePackages();
-        final KnowledgeBase droolsKnowledgeBase = KnowledgeBaseFactory.newKnowledgeBase();
-        droolsKnowledgeBase.addKnowledgePackages( droolsKnowledgePackages );
-        final StatefulKnowledgeSession droolsSession = droolsKnowledgeBase.newStatefulKnowledgeSession();
-
-        for ( final Component component : components )
-        {
-            droolsSession.insert( component );
-        }
-
-        droolsSession.fireAllRules();
-
-        return getMatchFacts( droolsSession );
-    }
-
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static List<MatchFact> getMatchFacts( StatefulKnowledgeSession droolsSession )
-    {
-        return new ArrayList<MatchFact>( (Collection) droolsSession.getObjects( new ObjectFilter()
-        {
-            @Override
-            public boolean accept( final Object object )
-            {
-                return object instanceof MatchFact;
-            }
-        } ) );
-    }
+      @Override
+      public boolean accept(final Object object) {
+        return object instanceof MatchFact;
+      }
+    }));
+  }
 }

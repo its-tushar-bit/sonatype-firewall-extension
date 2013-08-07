@@ -15,57 +15,49 @@ import com.sonatype.insight.brain.model.Organization;
 
 public abstract class AbstractDbDAOTest
 {
-    protected Application application;
+  protected Application application;
 
-    protected String applicationId;
+  protected String applicationId;
 
-    protected Organization organization;
+  protected Organization organization;
 
-    protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
+  protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
 
-    protected Set<Organization> organizationsToDelete = new LinkedHashSet<Organization>();
+  protected Set<Organization> organizationsToDelete = new LinkedHashSet<Organization>();
 
-    protected Organization createOrganization( String name )
-    {
-        Organization organization = new Organization( name );
-        new OrganizationDAO().insert( organization );
-        organizationsToDelete.add( organization );
-        return organization;
+  protected Organization createOrganization(String name) {
+    Organization organization = new Organization(name);
+    new OrganizationDAO().insert(organization);
+    organizationsToDelete.add(organization);
+    return organization;
+  }
+
+  protected void createDefaultApplication() {
+    // Create an organization
+    organization = createOrganization("AbstractDbDAOTest");
+
+    application = new Application("AbstractDbDAOTest_AppPublicId", "AbstractDbDAOTest-AppName", organization.getId());
+    new ApplicationDAO().insert(application);
+    applicationsToDelete.add(application);
+    applicationId = application.getId();
+  }
+
+  @After
+  public void tearDown() {
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    for (Application application : applicationsToDelete) {
+      application = applicationDAO.getById(application.getId());
+      if (application != null) {
+        applicationDAO.delete(application);
+      }
     }
 
-    protected void createDefaultApplication()
-    {
-        // Create an organization
-        organization = createOrganization( "AbstractDbDAOTest" );
-
-        application =
-            new Application( "AbstractDbDAOTest_AppPublicId", "AbstractDbDAOTest-AppName", organization.getId() );
-        new ApplicationDAO().insert( application );
-        applicationsToDelete.add( application );
-        applicationId = application.getId();
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    for (Organization organization : organizationsToDelete) {
+      organization = organizationDAO.getById(organization.getId());
+      if (organization != null) {
+        organizationDAO.delete(organization);
+      }
     }
-
-    @After
-    public void tearDown()
-    {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        for ( Application application : applicationsToDelete )
-        {
-            application = applicationDAO.getById( application.getId() );
-            if ( application != null )
-            {
-                applicationDAO.delete( application );
-            }
-        }
-
-        OrganizationDAO organizationDAO = new OrganizationDAO();
-        for ( Organization organization : organizationsToDelete )
-        {
-            organization = organizationDAO.getById( organization.getId() );
-            if ( organization != null )
-            {
-                organizationDAO.delete( organization );
-            }
-        }
-    }
+  }
 }

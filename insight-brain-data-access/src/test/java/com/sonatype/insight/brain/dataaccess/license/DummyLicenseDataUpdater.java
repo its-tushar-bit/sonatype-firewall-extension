@@ -8,8 +8,7 @@ package com.sonatype.insight.brain.dataaccess.license;
 class DummyLicenseDataUpdater
     extends LicenseDataUpdater
 {
-    @Override
-    public void doUpdate()
-    {
-    }
+  @Override
+  public void doUpdate() {
+  }
 }

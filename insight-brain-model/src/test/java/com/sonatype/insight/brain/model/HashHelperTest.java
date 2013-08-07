@@ -13,22 +13,20 @@ import org.junit.Test;
 
 public class HashHelperTest
 {
-    private final String longHash = "123456789012345678901";
+  private final String longHash = "123456789012345678901";
 
-    /**
-     * 20 characters as currently specified in HashHelper
-     */
-    private final String expectedTruncatedHash = "12345678901234567890";
+  /**
+   * 20 characters as currently specified in HashHelper
+   */
+  private final String expectedTruncatedHash = "12345678901234567890";
 
-    @Before
-    public void preconditions()
-    {
-        assertTrue( longHash.length() > 20 );
-    }
+  @Before
+  public void preconditions() {
+    assertTrue(longHash.length() > 20);
+  }
 
-    @Test
-    public void testTruncateHash()
-    {
-        assertEquals( expectedTruncatedHash, HashHelper.truncateHash( longHash ) );
-    }
+  @Test
+  public void testTruncateHash() {
+    assertEquals(expectedTruncatedHash, HashHelper.truncateHash(longHash));
+  }
 }

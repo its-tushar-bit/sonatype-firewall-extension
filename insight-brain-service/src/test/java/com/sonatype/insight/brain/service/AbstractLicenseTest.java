@@ -24,114 +24,90 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 public abstract class AbstractLicenseTest
     extends AbstractBrainServiceTest
 {
-    // by default license is always valid, to override, simply uninstall the license
-    private final TestProductLicenseManager licenseManager = new TestProductLicenseManager( true );
+  // by default license is always valid, to override, simply uninstall the license
+  private final TestProductLicenseManager licenseManager = new TestProductLicenseManager(true);
 
-    private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
+  private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
-    @Override
-    protected void configureBrain( TestInsightBrainService brain )
+  @Override
+  protected void configureBrain(TestInsightBrainService brain) {
+    brain.addModule(new AbstractModule()
     {
-        brain.addModule( new AbstractModule()
-        {
-            @Override
-            protected void configure()
-            {
-                bind( ProductLicenseManager.class ).toInstance( licenseManager );
-                bind( LicenseFingerprinter.class ).toInstance( licenseFingerprinter );
-            }
-        } );
-    }
-    
-    protected String installLicenseAsIE()
-        throws Exception
-    {
+      @Override
+      protected void configure() {
+        bind(ProductLicenseManager.class).toInstance(licenseManager);
+        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+      }
+    });
+  }
 
-        Map<String,String> queryParams = new LinkedHashMap<String,String>();
-        queryParams.put( "isIE", "true" );
-        return doInstallLicense( queryParams );
-    }
-    
-    protected String installLicense()
-        throws Exception
-    {
-        return doInstallLicense( null );
-    }
+  protected String installLicenseAsIE() throws Exception {
 
-    private String doInstallLicense( Map<String,String> queryParams )
-        throws Exception
-    {
-        InputStream license = AbstractLicenseTest.class.getResourceAsStream( "/productlicense/license.lic" );
-        try
-        {
-            FormDataMultiPart form = new FormDataMultiPart();
-            form.bodyPart( new FormDataBodyPart( "file", license,
-                                                 MediaType.APPLICATION_OCTET_STREAM_TYPE ) );
+    Map<String, String> queryParams = new LinkedHashMap<String, String>();
+    queryParams.put("isIE", "true");
+    return doInstallLicense(queryParams);
+  }
 
-            WebResource resource = Client.create().resource( getServiceURL() );
-            if ( queryParams != null )
-            {
-                for (String key : queryParams.keySet())
-                {
-                    resource = resource.queryParam( key, queryParams.get( key ) );
-                }
-            }
-            
-            String result = resource.type( MediaType.MULTIPART_FORM_DATA ).post( String.class, form );
+  protected String installLicense() throws Exception {
+    return doInstallLicense(null);
+  }
 
-            Assert.assertTrue( licenseManager.isValid() );
-            
-            return result;
+  private String doInstallLicense(Map<String, String> queryParams) throws Exception {
+    InputStream license = AbstractLicenseTest.class.getResourceAsStream("/productlicense/license.lic");
+    try {
+      FormDataMultiPart form = new FormDataMultiPart();
+      form.bodyPart(new FormDataBodyPart("file", license, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+
+      WebResource resource = Client.create().resource(getServiceURL());
+      if (queryParams != null) {
+        for (String key : queryParams.keySet()) {
+          resource = resource.queryParam(key, queryParams.get(key));
         }
-        finally
-        {
-            IOUtil.close( license );
-        }
-    }
+      }
 
-    protected void uninstallLicense()
-        throws Exception
-    {
-        WebResource resource = Client.create().resource( getServiceURL() );
+      String result = resource.type(MediaType.MULTIPART_FORM_DATA).post(String.class, form);
 
-        resource.delete();
+      Assert.assertTrue(licenseManager.isValid());
 
-        Assert.assertFalse( licenseManager.isValid() );
+      return result;
     }
+    finally {
+      IOUtil.close(license);
+    }
+  }
 
-    private String getServiceURL()
-    {
-        return getRestBaseUrl() + ProductLicenseResource.SERVICE_PATH;
-    }
+  protected void uninstallLicense() throws Exception {
+    WebResource resource = Client.create().resource(getServiceURL());
 
-    protected void setEnforcementPoints( CLMEnforcementPoint... enforcementPoints )
-        throws Exception
-    {
-        licenseManager.setEnforcementPoints( enforcementPoints );
-        installLicense();
-    }
+    resource.delete();
 
-    protected void setApplicationLimit( int applicationLimit )
-        throws Exception
-    {
-        licenseManager.setApplicationLimit( applicationLimit );
-        installLicense();
-    }
-    
-    protected void setLicenseFingerprint( String licenseFingerprint )
-        throws Exception
-    {
-        licenseFingerprinter.setDummyLicenseFingerprint( licenseFingerprint );
-        installLicense();
-    }
+    Assert.assertFalse(licenseManager.isValid());
+  }
 
-    protected String getLicenseFingerprint()
-    {
-        return licenseFingerprinter.calculate();
-    }
-    
-    protected TestProductLicenseManager getLicenseManager()
-    {
-        return licenseManager;
-    }
+  private String getServiceURL() {
+    return getRestBaseUrl() + ProductLicenseResource.SERVICE_PATH;
+  }
+
+  protected void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) throws Exception {
+    licenseManager.setEnforcementPoints(enforcementPoints);
+    installLicense();
+  }
+
+  protected void setApplicationLimit(int applicationLimit) throws Exception {
+    licenseManager.setApplicationLimit(applicationLimit);
+    installLicense();
+  }
+
+  protected void setLicenseFingerprint(String licenseFingerprint) throws Exception {
+    licenseFingerprinter.setDummyLicenseFingerprint(licenseFingerprint);
+    installLicense();
+  }
+
+  protected String getLicenseFingerprint() {
+    return licenseFingerprinter.calculate();
+  }
+
+  protected TestProductLicenseManager getLicenseManager() {
+    return licenseManager;
+  }
 }

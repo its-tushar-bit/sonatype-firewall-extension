@@ -24,30 +24,27 @@ import com.sonatype.insight.portal.mail.InsightMailer;
 public class InsightMail
     extends AbstractInjectable<InsightMail>
 {
-    private final InsightMailer insightMailer;
+  private final InsightMailer insightMailer;
 
-    private final InsightConfig config;
+  private final InsightConfig config;
 
-    @Inject
-    public InsightMail( final InsightConfig config, final EMailer mailer )
-    {
-        this.config = config;
-        insightMailer = new InsightMailer( mailer, config.getMailConfig() );
-    }
+  @Inject
+  public InsightMail(final InsightConfig config, final EMailer mailer) {
+    this.config = config;
+    insightMailer = new InsightMailer(mailer, config.getMailConfig());
+  }
 
-    public String getCdnUrl()
-    {
-        return config.getCdnUrl();
-    }
+  public String getCdnUrl() {
+    return config.getCdnUrl();
+  }
 
-    public void sendHtml( final String mailId, final List<Address> to, final String subject, final String body )
-    {
-        final MailRequest message = new MailRequest( mailId, HtmlMailType.HTML_TYPE_ID );
+  public void sendHtml(final String mailId, final List<Address> to, final String subject, final String body) {
+    final MailRequest message = new MailRequest(mailId, HtmlMailType.HTML_TYPE_ID);
 
-        message.setToAddresses( to );
-        message.setExpandedSubject( subject );
-        message.setExpandedBody( body );
+    message.setToAddresses(to);
+    message.setExpandedSubject(subject);
+    message.setExpandedBody(body);
 
-        EmailUtil.waitForMailStatus( insightMailer.sendMail( message ) );
-    }
+    EmailUtil.waitForMailStatus(insightMailer.sendMail(message));
+  }
 }

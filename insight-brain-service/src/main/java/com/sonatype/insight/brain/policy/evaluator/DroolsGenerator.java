@@ -21,108 +21,101 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class DroolsGenerator
 {
-    private static final Logger log = LoggerFactory.getLogger( DroolsGenerator.class );
+  private static final Logger log = LoggerFactory.getLogger(DroolsGenerator.class);
 
-    private static final String INDENT = "    ";
+  private static final String INDENT = "    ";
 
-    public String generate( final String applicationId, final List<Policy> policies )
-    {
-        long start = System.currentTimeMillis();
+  public String generate(final String applicationId, final List<Policy> policies) {
+    long start = System.currentTimeMillis();
 
-        final StringBuilder droolsCode = new StringBuilder();
+    final StringBuilder droolsCode = new StringBuilder();
 
-        droolsCode.append( "import com.sonatype.insight.brain.model.component.Component\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.facts.MatchFact\n" );
-        droolsCode.append( "import com.sonatype.insight.brain.model.policy.conditions.*\n" );
+    droolsCode.append("import com.sonatype.insight.brain.model.component.Component\n");
+    droolsCode.append("import com.sonatype.insight.brain.model.policy.facts.MatchFact\n");
+    droolsCode.append("import com.sonatype.insight.brain.model.policy.conditions.*\n");
 
-        for ( final Policy policy : policies )
-        {
-            if ( !policy.isEnabled() )
-            {
-                continue;
-            }
+    for (final Policy policy : policies) {
+      if (!policy.isEnabled()) {
+        continue;
+      }
 
-            ValidationResult validationResult = policy.validate( applicationId, true );
-            if ( validationResult != null && !validationResult.isValid() )
-            {
-                throw new InvalidPolicyException( validationResult );
-            }
+      ValidationResult validationResult = policy.validate(applicationId, true);
+      if (validationResult != null && !validationResult.isValid()) {
+        throw new InvalidPolicyException(validationResult);
+      }
 
-            droolsCode.append( '\n' );
-            droolsCode.append( "// Begin policy: " ).append( policy.getName() ).append( " (Id=" ).append( policy.getId() ).append( ")\n" );
+      droolsCode.append('\n');
+      droolsCode.append("// Begin policy: ").append(policy.getName()).append(" (Id=").append(policy.getId())
+          .append(")\n");
 
-            for ( final Constraint constraint : policy.getConstraints() )
-            {
-                if ( !constraint.isEnabled() )
-                {
-                    continue;
-                }
-
-                droolsCode.append( "// Begin constraint: " ).append( constraint.getName() ).append( " (Id=" ).append( constraint.getId() ).append( ")\n" );
-
-                if ( constraint.getOperator() == LogicalOperator.AND )
-                {
-                    droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "\"\n" );
-                    droolsCode.append( "when\n" );
-                    droolsCode.append( INDENT ).append( "$component : Component\n" );
-                    droolsCode.append( INDENT ).append( "(\n" );
-
-                    int conditionIndex = 0;
-                    for ( final Condition condition : constraint.getConditions() )
-                    {
-                        if ( conditionIndex > 0 )
-                        {
-                            droolsCode.append( INDENT ).append( INDENT ).append( "&&\n" );
-                        }
-
-                        droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                        final ConditionType<?> conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
-                        droolsCode.append( conditionType.generateDroolsCode( condition ) );
-                        droolsCode.append( " )\n" );
-
-                        conditionIndex++;
-                    }
-
-                    droolsCode.append( INDENT ).append( ")\n" );
-                    droolsCode.append( "then\n" );
-                    droolsCode.append( INDENT ).append( "insert( new MatchFact( $component, \"" ).append( policy.getId() ).append( "\", \"" );
-                    droolsCode.append( constraint.getId() ).append( "\" ) );\n" );
-                    droolsCode.append( "end\n" );
-                }
-                else
-                {
-                    int conditionIndex = 0;
-                    for ( final Condition condition : constraint.getConditions() )
-                    {
-                        droolsCode.append( "rule \"" ).append( constraint.getId() ).append( "#" ).append( conditionIndex ).append( "\"\n" );
-                        droolsCode.append( "when\n" );
-                        droolsCode.append( INDENT ).append( "$component : Component\n" );
-                        droolsCode.append( INDENT ).append( "(\n" );
-
-                        droolsCode.append( INDENT ).append( INDENT ).append( "( " );
-                        final ConditionType<?> conditionType = ConditionTypes.getById( condition.getConditionTypeId() );
-                        droolsCode.append( conditionType.generateDroolsCode( condition ) );
-                        droolsCode.append( " )\n" );
-
-                        droolsCode.append( INDENT ).append( ")\n" );
-                        droolsCode.append( "then\n" );
-                        droolsCode.append( INDENT ).append( "insert( new MatchFact( $component, \"" ).append( policy.getId() ).append( "\", \"" );
-                        droolsCode.append( constraint.getId() ).append( "\", " ).append( conditionIndex ).append( " ) );\n" );
-                        droolsCode.append( "end\n" );
-
-                        conditionIndex++;
-                    }
-                }
-
-                droolsCode.append( "// End constraint: " ).append( constraint.getName() ).append( '\n' );
-            }
-
-            droolsCode.append( "// End policy: " ).append( policy.getName() ).append( '\n' );
+      for (final Constraint constraint : policy.getConstraints()) {
+        if (!constraint.isEnabled()) {
+          continue;
         }
 
-        String result = droolsCode.toString();
-        log.debug( "Generated drools code in {} millisecs", System.currentTimeMillis() - start );
+        droolsCode.append("// Begin constraint: ").append(constraint.getName()).append(" (Id=")
+            .append(constraint.getId()).append(")\n");
 
-        return result;
+        if (constraint.getOperator() == LogicalOperator.AND) {
+          droolsCode.append("rule \"").append(constraint.getId()).append("\"\n");
+          droolsCode.append("when\n");
+          droolsCode.append(INDENT).append("$component : Component\n");
+          droolsCode.append(INDENT).append("(\n");
+
+          int conditionIndex = 0;
+          for (final Condition condition : constraint.getConditions()) {
+            if (conditionIndex > 0) {
+              droolsCode.append(INDENT).append(INDENT).append("&&\n");
+            }
+
+            droolsCode.append(INDENT).append(INDENT).append("( ");
+            final ConditionType<?> conditionType = ConditionTypes.getById(condition.getConditionTypeId());
+            droolsCode.append(conditionType.generateDroolsCode(condition));
+            droolsCode.append(" )\n");
+
+            conditionIndex++;
+          }
+
+          droolsCode.append(INDENT).append(")\n");
+          droolsCode.append("then\n");
+          droolsCode.append(INDENT).append("insert( new MatchFact( $component, \"").append(policy.getId())
+              .append("\", \"");
+          droolsCode.append(constraint.getId()).append("\" ) );\n");
+          droolsCode.append("end\n");
+        }
+        else {
+          int conditionIndex = 0;
+          for (final Condition condition : constraint.getConditions()) {
+            droolsCode.append("rule \"").append(constraint.getId()).append("#").append(conditionIndex).append("\"\n");
+            droolsCode.append("when\n");
+            droolsCode.append(INDENT).append("$component : Component\n");
+            droolsCode.append(INDENT).append("(\n");
+
+            droolsCode.append(INDENT).append(INDENT).append("( ");
+            final ConditionType<?> conditionType = ConditionTypes.getById(condition.getConditionTypeId());
+            droolsCode.append(conditionType.generateDroolsCode(condition));
+            droolsCode.append(" )\n");
+
+            droolsCode.append(INDENT).append(")\n");
+            droolsCode.append("then\n");
+            droolsCode.append(INDENT).append("insert( new MatchFact( $component, \"").append(policy.getId())
+                .append("\", \"");
+            droolsCode.append(constraint.getId()).append("\", ").append(conditionIndex).append(" ) );\n");
+            droolsCode.append("end\n");
+
+            conditionIndex++;
+          }
+        }
+
+        droolsCode.append("// End constraint: ").append(constraint.getName()).append('\n');
+      }
+
+      droolsCode.append("// End policy: ").append(policy.getName()).append('\n');
     }
+
+    String result = droolsCode.toString();
+    log.debug("Generated drools code in {} millisecs", System.currentTimeMillis() - start);
+
+    return result;
+  }
 }

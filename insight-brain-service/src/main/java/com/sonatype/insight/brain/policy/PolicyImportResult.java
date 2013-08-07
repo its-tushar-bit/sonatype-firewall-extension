@@ -5,10 +5,9 @@
  */
 package com.sonatype.insight.brain.policy;
 
-
 public class PolicyImportResult
 {
-    public String applicationName;
+  public String applicationName;
 
-    public String applicationURL;
+  public String applicationURL;
 }

@@ -26,172 +26,140 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 public class TestProductLicenseManager
     implements ProductLicenseManager
 {
-    private boolean valid;
+  private boolean valid;
 
-    private ProductLicenseKey key;
+  private ProductLicenseKey key;
 
-    private int appCount = 100;
+  private int appCount = 100;
 
-    private Date expirationDate = new Date( System.currentTimeMillis() + 600 * 1000 );
-    
-    private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
-    
-    private boolean forceInstallFailure = false;
+  private Date expirationDate = new Date(System.currentTimeMillis() + 600 * 1000);
 
-    public TestProductLicenseManager()
-    {
-        this( false );
+  private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+
+  private boolean forceInstallFailure = false;
+
+  public TestProductLicenseManager() {
+    this(false);
+  }
+
+  public TestProductLicenseManager(boolean valid) {
+    enforcementPoints.add(CLMEnforcementPoint.Build);
+    enforcementPoints.add(CLMEnforcementPoint.Develop);
+    enforcementPoints.add(CLMEnforcementPoint.Procure);
+    enforcementPoints.add(CLMEnforcementPoint.Release);
+    enforcementPoints.add(CLMEnforcementPoint.StageRelease);
+
+    this.valid = valid;
+
+    if (this.valid) {
+      createKey();
+    }
+  }
+
+  @Override
+  public void installLicense(final InputStream licenseFile) throws IOException, LicensingException {
+    if (forceInstallFailure) {
+      throw new LicensingException("An error occurred");
     }
 
-    public TestProductLicenseManager( boolean valid )
-    {
-        enforcementPoints.add( CLMEnforcementPoint.Build );
-        enforcementPoints.add( CLMEnforcementPoint.Develop );
-        enforcementPoints.add( CLMEnforcementPoint.Procure );
-        enforcementPoints.add( CLMEnforcementPoint.Release );
-        enforcementPoints.add( CLMEnforcementPoint.StageRelease );
+    valid = true;
+    createKey();
+  }
 
-        this.valid = valid;
+  private void createKey() {
+    Map<String, Feature> featureMap = new HashMap<String, Feature>();
+    featureMap.put(CLMFeature.ID, new CLMFeature());
+    Properties properties = new Properties();
 
-        if ( this.valid )
-        {
-            createKey();
-        }
+    StringBuffer sb = new StringBuffer();
+
+    for (CLMEnforcementPoint ep : enforcementPoints) {
+      sb.append(ep.name()).append(",");
     }
 
-    @Override
-    public void installLicense( final InputStream licenseFile )
-        throws IOException, LicensingException
-    {
-        if ( forceInstallFailure )
-        {
-            throw new LicensingException( "An error occurred" );
-        }
-        
-        valid = true;
-        createKey();
+    if (sb.length() > 0) {
+      sb.setLength(sb.length() - 1);
     }
 
-    private void createKey()
-    {
-        Map<String, Feature> featureMap = new HashMap<String, Feature>();
-        featureMap.put( CLMFeature.ID, new CLMFeature() );
-        Properties properties = new Properties();
+    properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
+    properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
+    key = new DefaultLicenseKey(new Features(featureMap));
+    key.setEffectiveDate(new Date(System.currentTimeMillis() - 10000));
+    key.setExpirationDate(expirationDate);
+    key.setProperties(properties);
+  }
 
-        StringBuffer sb = new StringBuffer();
+  @Override
+  public void uninstallLicense() throws LicensingException {
+    valid = false;
+    key = null;
+  }
 
-        for ( CLMEnforcementPoint ep : enforcementPoints )
-        {
-            sb.append( ep.name() ).append( "," );
-        }
-
-        if ( sb.length() > 0 )
-        {
-            sb.setLength( sb.length() - 1 );
-        }
-
-        properties.put( ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString() );
-        properties.put( ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString( appCount ) );
-        key = new DefaultLicenseKey( new Features( featureMap ) );
-        key.setEffectiveDate( new Date( System.currentTimeMillis() - 10000 ) );
-        key.setExpirationDate( expirationDate );
-        key.setProperties( properties );
+  @Override
+  public ProductLicenseKey getLicenseDetails() throws LicensingException {
+    if (!valid) {
+      throw new LicensingException("Not licensed");
     }
+    return key;
+  }
 
-    @Override
-    public void uninstallLicense()
-        throws LicensingException
-    {
-        valid = false;
-        key = null;
+  @Override
+  public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException, LicensingException {
+    if (!valid) {
+      throw new LicensingException("Not licensed");
     }
+    return key;
+  }
 
-    @Override
-    public ProductLicenseKey getLicenseDetails()
-        throws LicensingException
-    {
-        if ( !valid )
-        {
-            throw new LicensingException( "Not licensed" );
-        }
-        return key;
-    }
+  @Override
+  public void verifyLicenseAndFeature(final Feature feature) throws LicensingException {
+    // TODO
+  }
 
-    @Override
-    public ProductLicenseKey getLicenseDetails( final InputStream licenseFile )
-        throws IOException, LicensingException
-    {
-        if ( !valid )
-        {
-            throw new LicensingException( "Not licensed" );
-        }
-        return key;
-    }
+  @Override
+  public void verifyFeature(final ProductLicenseKey key, final Feature feature) throws LicensingException {
+    // TODO
+  }
 
-    @Override
-    public void verifyLicenseAndFeature( final Feature feature )
-        throws LicensingException
-    {
-        // TODO
-    }
+  public boolean isValid() {
+    return valid;
+  }
 
-    @Override
-    public void verifyFeature( final ProductLicenseKey key, final Feature feature )
-        throws LicensingException
-    {
-        // TODO
-    }
+  public ProductLicenseKey getKey() {
+    return key;
+  }
 
-    public boolean isValid()
-    {
-        return valid;
-    }
+  public void setKey(final ProductLicenseKey key) {
+    this.key = key;
+  }
 
-    public ProductLicenseKey getKey()
-    {
-        return key;
-    }
+  public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
+    if (valid) {
+      this.enforcementPoints.clear();
 
-    public void setKey( final ProductLicenseKey key )
-    {
-        this.key = key;
-    }
+      for (CLMEnforcementPoint enforcementPoint : enforcementPoints) {
+        this.enforcementPoints.add(enforcementPoint);
+      }
 
-    public void setEnforcementPoints( CLMEnforcementPoint... enforcementPoints )
-    {
-        if ( valid )
-        {
-            this.enforcementPoints.clear();
+      createKey();
+    }
+  }
 
-            for ( CLMEnforcementPoint enforcementPoint : enforcementPoints )
-            {
-                this.enforcementPoints.add( enforcementPoint );
-            }
+  public void setApplicationLimit(int applicationLimit) {
+    if (valid) {
+      this.appCount = applicationLimit;
+      createKey();
+    }
+  }
 
-            createKey();
-        }
+  public void setExpirationDate(Date date) {
+    if (valid) {
+      this.expirationDate = date;
+      createKey();
     }
+  }
 
-    public void setApplicationLimit( int applicationLimit )
-    {
-        if ( valid )
-        {
-            this.appCount = applicationLimit;
-            createKey();
-        }
-    }
-    
-    public void setExpirationDate( Date date )
-    {
-        if ( valid )
-        {
-            this.expirationDate = date;
-            createKey();
-        }
-    }
-    
-    public void forceInstallFailure( boolean forceInstallFailure )
-    {
-        this.forceInstallFailure = forceInstallFailure;
-    }
+  public void forceInstallFailure(boolean forceInstallFailure) {
+    this.forceInstallFailure = forceInstallFailure;
+  }
 }

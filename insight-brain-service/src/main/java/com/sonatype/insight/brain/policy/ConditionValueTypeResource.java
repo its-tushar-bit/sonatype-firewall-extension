@@ -22,22 +22,22 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionVal
 import com.sonatype.insight.brain.utils.IdUtils;
 
 @Named
-@Path( ConditionValueTypeResource.SERVICE_PATH )
+@Path(ConditionValueTypeResource.SERVICE_PATH)
 public class ConditionValueTypeResource
 {
-    public static final String SERVICE_PATH = "rest/conditionValueType/{ownerType: application|organization}/{ownerId}";
+  public static final String SERVICE_PATH = "rest/conditionValueType/{ownerType: application|organization}/{ownerId}";
 
-    private static final Logger log = LoggerFactory.getLogger( ConditionValueTypeResource.class );
+  private static final Logger log = LoggerFactory.getLogger(ConditionValueTypeResource.class);
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public Collection<ConditionValueType> getConditionValueTypes( @PathParam( "ownerType" ) String ownerType,
-                                                                  @PathParam( "ownerId" ) String ownerId )
-    {
-        log.debug( "Received request to get all {} condition value types for policyOwnerId ID {}", ownerType, ownerId );
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public Collection<ConditionValueType> getConditionValueTypes(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    log.debug("Received request to get all {} condition value types for policyOwnerId ID {}", ownerType, ownerId);
 
-        String internalOwnerId = IdUtils.getInternalOwnerId( ownerType, ownerId );
-        return (Collection) ConditionValueTypes.getAll( internalOwnerId );
-    }
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return (Collection) ConditionValueTypes.getAll(internalOwnerId);
+  }
 }

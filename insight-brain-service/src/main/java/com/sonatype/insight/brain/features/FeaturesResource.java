@@ -15,17 +15,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Named
-@Path( FeaturesResource.SERVICE_PATH )
+@Path(FeaturesResource.SERVICE_PATH)
 public class FeaturesResource
 {
-    public static final String SERVICE_PATH = "rest/features";
+  public static final String SERVICE_PATH = "rest/features";
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    public List<String> getFeatures()
-    {
-        // Changes to this list should be replicated in brain.client.js
-        return Arrays.asList( "policy", "labels", "release-graph", "policy-violations", "notification",
-                              "reevaluate-policy" );
-    }
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<String> getFeatures() {
+    // Changes to this list should be replicated in brain.client.js
+    return Arrays.asList("policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy");
+  }
 }

@@ -14,35 +14,30 @@ public class FailActionType
     extends AbstractActionType
     implements ActionType
 {
-    public static final String ID = Action.ID_FAIL;
+  public static final String ID = Action.ID_FAIL;
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getName()
-    {
-        return "Fail";
-    }
+  @Override
+  public String getName() {
+    return "Fail";
+  }
 
-    @Override
-    public List<String> getAvailableTargets()
-    {
-        return null;
-    }
+  @Override
+  public List<String> getAvailableTargets() {
+    return null;
+  }
 
-    @Override
-    public boolean isRequiresTarget()
-    {
-        return false;
-    }
-    
-    @Override
-    public String getSummary()
-    {
-        return "Build Failed";
-    }
+  @Override
+  public boolean isRequiresTarget() {
+    return false;
+  }
+
+  @Override
+  public String getSummary() {
+    return "Build Failed";
+  }
 }

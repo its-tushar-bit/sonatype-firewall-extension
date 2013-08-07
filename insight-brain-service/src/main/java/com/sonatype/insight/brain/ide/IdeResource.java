@@ -47,170 +47,151 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 @Named
-@Path( IdeResource.SERVICE_PATH )
-@ProductLicenseEnforcementPoint( CLMEnforcementPoint.Develop )
+@Path(IdeResource.SERVICE_PATH)
+@ProductLicenseEnforcementPoint(CLMEnforcementPoint.Develop)
 public class IdeResource
 {
-    public static final String SERVICE_PATH = "rest/ide";
+  public static final String SERVICE_PATH = "rest/ide";
 
-    @Context
-    private SaasClient client;
+  @Context
+  private SaasClient client;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private PolicyEvaluator evaluator = new PolicyEvaluator();
+  private PolicyEvaluator evaluator = new PolicyEvaluator();
 
-    @Context
-    private InsightWork work;
+  @Context
+  private InsightWork work;
 
-    @Context
-    private BaseUrl baseUrl;
+  @Context
+  private BaseUrl baseUrl;
 
-    /**
-     * Requests an asset from the SaaS
-     *
-     * @return the response from the SaaS
-     * @since 1.2
-     */
-    @GET
-    @Path( "asset/{path:.*}" )
-    public Response getAsset( @PathParam( "path" ) String path, @Context HttpServletRequest req )
-        throws IOException
-    {
-        return client.doProxy( req, "ide/{path}", path );
+  /**
+   * Requests an asset from the SaaS
+   * 
+   * @return the response from the SaaS
+   * @since 1.2
+   */
+  @GET
+  @Path("asset/{path:.*}")
+  public Response getAsset(@PathParam("path") String path, @Context HttpServletRequest req) throws IOException {
+    return client.doProxy(req, "ide/{path}", path);
+  }
+
+  /**
+   * Get the result from a scan request, or a wait delta
+   * 
+   * @param scanType simple or enhanced though we do not enforce that in the Brain
+   * @param applicationPublicId the public application id
+   * @return the result of the scan or a wait delta
+   * @since 1.2
+   */
+  @GET
+  @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public IdeMatchedComponent doScan(@PathParam("scanType") String scanType,
+      @PathParam("applicationPublicId") String applicationPublicId, @PathParam("path") String path,
+      @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req) throws IOException
+  {
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    String applicationId = app.getId();
+
+    MatchedComponent matchedComponent = client.get(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",
+        scanType, path);
+    // Is this a manually claimed component?
+    HashGAV hashGAV = new HashGAVDAO().getByHash(matchedComponent.getHash());
+    if (hashGAV != null) {
+      matchedComponent.setGroupId(hashGAV.getGroupId());
+      matchedComponent.setArtifactId(hashGAV.getArtifactId());
+      matchedComponent.setVersion(hashGAV.getVersion());
+      matchedComponent.setCatalogDate(hashGAV.getCreateTimeLong());
+      matchedComponent.setMatchState(MatchState.EXACT.getId());
+      matchedComponent.setIdentificationSource(IdentificationSource.MANUAL.getId());
+      matchedComponent.setSecurityVulnerabilities(null);
+      matchedComponent.setWaitDelta(null);
+      matchedComponent.setSimpleMatch(true);
+    }
+    else {
+      matchedComponent.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
 
-    /**
-     * Get the result from a scan request, or a wait delta
-     *
-     * @param scanType simple or enhanced though we do not enforce that in the Brain
-     * @param applicationPublicId the public application id
-     * @return the result of the scan or a wait delta
-     * @since 1.2
-     */
-    @GET
-    @Path( "scan/{scanType}/{applicationPublicId}/{path:.*}" )
-    @Produces( MediaType.APPLICATION_JSON )
-    public IdeMatchedComponent doScan( @PathParam( "scanType" ) String scanType,
-                                       @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                       @PathParam( "path" ) String path,
-                                       @QueryParam( "proprietary" ) boolean proprietary, @Context HttpServletRequest req )
-        throws IOException
-    {
-        Application app = applicationDAO.getByPublicIdNotNull( applicationPublicId );
-        String applicationId = app.getId();
+    IdeMatchedComponent ideComponent = getComponent(matchedComponent);
+    if (ideComponent.getWaitDelta() == null
+        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
+      ObjectNode licenseData = AugmentUtil.getLicenseData(work, applicationId, matchedComponent.getGroupId(),
+          matchedComponent.getArtifactId(), matchedComponent.getVersion());
+      ArrayNode svData = AugmentUtil.getSVData(work, applicationId, matchedComponent.getGroupId(),
+          matchedComponent.getArtifactId(), matchedComponent.getVersion(),
+          matchedComponent.getSecurityVulnerabilities());
 
-        MatchedComponent matchedComponent =
-            client.get( req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}", scanType,
-                        path );
-        // Is this a manually claimed component?
-        HashGAV hashGAV = new HashGAVDAO().getByHash( matchedComponent.getHash() );
-        if ( hashGAV != null )
-        {
-            matchedComponent.setGroupId( hashGAV.getGroupId() );
-            matchedComponent.setArtifactId( hashGAV.getArtifactId() );
-            matchedComponent.setVersion( hashGAV.getVersion() );
-            matchedComponent.setCatalogDate( hashGAV.getCreateTimeLong() );
-            matchedComponent.setMatchState( MatchState.EXACT.getId() );
-            matchedComponent.setIdentificationSource( IdentificationSource.MANUAL.getId() );
-            matchedComponent.setSecurityVulnerabilities( null );
-            matchedComponent.setWaitDelta( null );
-            matchedComponent.setSimpleMatch( true );
-        }
-        else
-        {
-            matchedComponent.setIdentificationSource( IdentificationSource.SONATYPE.getId() );
-        }
-
-        IdeMatchedComponent ideComponent = getComponent( matchedComponent );
-        if ( ideComponent.getWaitDelta() == null
-            && ( !"unknown".equals( ideComponent.getMatchState() ) || !ideComponent.isSimpleMatch() ) )
-        {
-            ObjectNode licenseData =
-                AugmentUtil.getLicenseData( work, applicationId, matchedComponent.getGroupId(),
-                                            matchedComponent.getArtifactId(), matchedComponent.getVersion() );
-            ArrayNode svData =
-                AugmentUtil.getSVData( work, applicationId, matchedComponent.getGroupId(),
-                                       matchedComponent.getArtifactId(), matchedComponent.getVersion(),
-                                       matchedComponent.getSecurityVulnerabilities() );
-
-            ComponentDAO componentDAO = new ComponentDAO();
-            Component component = componentDAO.getComponent( applicationId, matchedComponent, licenseData, svData );
-            component.setProprietary( proprietary );
-            List<PolicyAlert> policyAlerts =
-                evaluator.evaluate( applicationId, new Stage( DevelopStageType.ID ), policyDAO(),
-                                    Collections.singletonList( component ) );
-            ideComponent.setAlerts( policyAlerts );
-        }
-        return ideComponent;
+      ComponentDAO componentDAO = new ComponentDAO();
+      Component component = componentDAO.getComponent(applicationId, matchedComponent, licenseData, svData);
+      component.setProprietary(proprietary);
+      List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), policyDAO(),
+          Collections.singletonList(component));
+      ideComponent.setAlerts(policyAlerts);
     }
+    return ideComponent;
+  }
 
-    /**
-     * Submit a scan request, may return the result or a wait delta.
-     *
-     * @param scanType simple or enhanced though we do not enforce that in the Brain
-     * @param applicationPublicId the public applicationId
-     * @return the result of the scan or a wait delta
-     * @since 1.2
-     */
-    @POST
-    @Path( "scan/{scanType}/{applicationPublicId}/{path:.*}" )
-    @Produces( MediaType.APPLICATION_JSON )
-    public IdeMatchedComponent postScan( @PathParam( "scanType" ) String scanType,
-                                         @PathParam( "applicationPublicId" ) String applicationPublicId,
-                                         @PathParam( "path" ) String path,
-                                         @QueryParam( "proprietary" ) boolean proprietary,
-                                         @Context HttpServletRequest req )
-        throws IOException
-    {
-        return doScan( scanType, applicationPublicId, path, proprietary, req );
-    }
+  /**
+   * Submit a scan request, may return the result or a wait delta.
+   * 
+   * @param scanType simple or enhanced though we do not enforce that in the Brain
+   * @param applicationPublicId the public applicationId
+   * @return the result of the scan or a wait delta
+   * @since 1.2
+   */
+  @POST
+  @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public IdeMatchedComponent postScan(@PathParam("scanType") String scanType,
+      @PathParam("applicationPublicId") String applicationPublicId, @PathParam("path") String path,
+      @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req) throws IOException
+  {
+    return doScan(scanType, applicationPublicId, path, proprietary, req);
+  }
 
-    private PolicyDAO policyDAO()
-    {
-        return new PolicyDAO( work.getWorkDir() );
-    }
+  private PolicyDAO policyDAO() {
+    return new PolicyDAO(work.getWorkDir());
+  }
 
-    private IdeMatchedComponent getComponent( MatchedComponent mComponent )
-    {
-        IdeMatchedComponent ide = new IdeMatchedComponent();
-        ide.setArtifactId( mComponent.getArtifactId() );
-        ide.setGroupId( mComponent.getGroupId() );
-        ide.setVersion( mComponent.getVersion() );
-        ide.setHash( mComponent.getHash() );
-        ide.setMatchState( mComponent.getMatchState() );
-        ide.setIdentificationSource( mComponent.getIdentificationSource() );
-        ide.setSimpleMatch( mComponent.isSimpleMatch() );
-        ide.setWaitDelta( mComponent.getWaitDelta() );
-        return ide;
-    }
+  private IdeMatchedComponent getComponent(MatchedComponent mComponent) {
+    IdeMatchedComponent ide = new IdeMatchedComponent();
+    ide.setArtifactId(mComponent.getArtifactId());
+    ide.setGroupId(mComponent.getGroupId());
+    ide.setVersion(mComponent.getVersion());
+    ide.setHash(mComponent.getHash());
+    ide.setMatchState(mComponent.getMatchState());
+    ide.setIdentificationSource(mComponent.getIdentificationSource());
+    ide.setSimpleMatch(mComponent.isSimpleMatch());
+    ide.setWaitDelta(mComponent.getWaitDelta());
+    return ide;
+  }
 
-    /**
-     * Gets the list of available versions for a given GA from the SaaS. (e.g. for use by migration wizard)
-     *
-     * @return the SaaS response
-     * @since 1.3
-     */
-    @GET
-    @Path( "component/versions" )
-    public Response getVersions( @Context HttpServletRequest req )
-        throws IOException
-    {
-        return client.doProxy( req, "rest/ide/artifact/versions" );
-    }
+  /**
+   * Gets the list of available versions for a given GA from the SaaS. (e.g. for use by migration wizard)
+   * 
+   * @return the SaaS response
+   * @since 1.3
+   */
+  @GET
+  @Path("component/versions")
+  public Response getVersions(@Context HttpServletRequest req) throws IOException {
+    return client.doProxy(req, "rest/ide/artifact/versions");
+  }
 
-    /**
-     * Access a Brain resource
-     *
-     * @param path the path from the brain root
-     * @since 1.3
-     */
-    @GET
-    @Path( "brain/{path:.*}" )
-    public Response brainGet( final @PathParam( "path" ) String path )
-    {
-        UriBuilder uriBuilder = baseUrl.redirect().path( path );
+  /**
+   * Access a Brain resource
+   * 
+   * @param path the path from the brain root
+   * @since 1.3
+   */
+  @GET
+  @Path("brain/{path:.*}")
+  public Response brainGet(final @PathParam("path") String path) {
+    UriBuilder uriBuilder = baseUrl.redirect().path(path);
 
-        return Response.temporaryRedirect( uriBuilder.build() ).build();
-    }
+    return Response.temporaryRedirect(uriBuilder.build()).build();
+  }
 }

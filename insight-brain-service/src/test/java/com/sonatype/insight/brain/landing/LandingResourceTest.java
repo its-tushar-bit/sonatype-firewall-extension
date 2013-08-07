@@ -19,35 +19,29 @@ public class LandingResourceTest
     extends AbstractResourceTest
 {
 
-    @Override
-    protected void configureBrain( TestInsightBrainService brain )
-    {
-        super.configureBrain( brain );
-        
-        if ( testName.getMethodName().endsWith( "ConfiguredBaseUrl" ) )
-        {
-            brain.setBaseUrl( "http://clm.sonatype.com/test" );
-        }
-    }
+  @Override
+  protected void configureBrain(TestInsightBrainService brain) {
+    super.configureBrain(brain);
 
-    @Test
-    public void testHome_RequestBaseUrl()
-        throws Exception
-    {
-        Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
-        assertResponseStatus( 303, response );
-        assertEquals( getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring( 1 )
-            + "index.html?x=y&a=b", response.getHeader( "Location" ) );
+    if (testName.getMethodName().endsWith("ConfiguredBaseUrl")) {
+      brain.setBaseUrl("http://clm.sonatype.com/test");
     }
+  }
 
-    @Test
-    public void testHome_ConfiguredBaseUrl()
-        throws Exception
-    {
-        Response response = RestAccess.get( getRestBaseUrl() + "?x=y&a=b" );
-        assertResponseStatus( 303, response );
-        assertEquals( "http://clm.sonatype.com/test/" + InsightBrainService.BRAIN_ASSET_PATH.substring( 1 )
-            + "index.html?x=y&a=b", response.getHeader( "Location" ) );
-    }
+  @Test
+  public void testHome_RequestBaseUrl() throws Exception {
+    Response response = RestAccess.get(getRestBaseUrl() + "?x=y&a=b");
+    assertResponseStatus(303, response);
+    assertEquals(getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html?x=y&a=b",
+        response.getHeader("Location"));
+  }
+
+  @Test
+  public void testHome_ConfiguredBaseUrl() throws Exception {
+    Response response = RestAccess.get(getRestBaseUrl() + "?x=y&a=b");
+    assertResponseStatus(303, response);
+    assertEquals("http://clm.sonatype.com/test/" + InsightBrainService.BRAIN_ASSET_PATH.substring(1)
+        + "index.html?x=y&a=b", response.getHeader("Location"));
+  }
 
 }

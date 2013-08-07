@@ -13,27 +13,26 @@ import com.sonatype.insight.brain.model.license.LicenseCategory;
 public class LicenseCategoryDAOTest
     extends AbstractLicenseDAOTest
 {
-    @Test
-    public void testLicenseDataRefresh()
-    {
-        String newId = "new category id";
-        LicenseCategoryDAO dao = new LicenseCategoryDAO();
-        Assert.assertNull( dao.getById( newId ) );
-        int count = dao.getAll().size();
+  @Test
+  public void testLicenseDataRefresh() {
+    String newId = "new category id";
+    LicenseCategoryDAO dao = new LicenseCategoryDAO();
+    Assert.assertNull(dao.getById(newId));
+    int count = dao.getAll().size();
 
-        LicenseCategory newLicenseCategory = new LicenseCategory();
-        newLicenseCategory.setId( newId );
-        newLicenseCategory.setName( "New name" );
-        newLicenseCategory.setSeverity( 4 );
-        dao.insert( newLicenseCategory );
-        Assert.assertNull( dao.getById( newId ) );
+    LicenseCategory newLicenseCategory = new LicenseCategory();
+    newLicenseCategory.setId(newId);
+    newLicenseCategory.setName("New name");
+    newLicenseCategory.setSeverity(4);
+    dao.insert(newLicenseCategory);
+    Assert.assertNull(dao.getById(newId));
 
-        LicenseDataUpdater.setUpdater( new DummyLicenseDataUpdater() );
+    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
 
-        Assert.assertNotNull( dao.getById( newId ) );
-        Assert.assertEquals( count + 1, dao.getAll().size() );
+    Assert.assertNotNull(dao.getById(newId));
+    Assert.assertEquals(count + 1, dao.getAll().size());
 
-        dao.delete( newLicenseCategory );
-        dao.load();
-    }
+    dao.delete(newLicenseCategory);
+    dao.load();
+  }
 }

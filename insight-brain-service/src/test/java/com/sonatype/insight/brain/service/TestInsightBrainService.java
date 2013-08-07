@@ -31,269 +31,227 @@ import com.yammer.dropwizard.util.Duration;
 public class TestInsightBrainService
     extends InsightBrainService
 {
-    private static final Logger log = LoggerFactory.getLogger( TestInsightBrainService.class );
+  private static final Logger log = LoggerFactory.getLogger(TestInsightBrainService.class);
 
-    private int testPort;
+  private int testPort;
 
-    private int testAdminPort;
+  private int testAdminPort;
 
-    private String testKeystore;
+  private String testKeystore;
 
-    private String testKeystorePassword;
+  private String testKeystorePassword;
 
-    private String testSaasAddress;
+  private String testSaasAddress;
 
-    private String testBaseUrl;
+  private String testBaseUrl;
 
-    private ProxyConfig testProxyConfig;
+  private ProxyConfig testProxyConfig;
 
-    private Server testBrainServer;
+  private Server testBrainServer;
 
-    private Exception brainFault;
+  private Exception brainFault;
 
-    private LicenseDataUpdater savedLicenseDataUpdater;
+  private LicenseDataUpdater savedLicenseDataUpdater;
 
-    public void setHttpPort( final int port )
-    {
-        testPort = port;
+  public void setHttpPort(final int port) {
+    testPort = port;
+  }
+
+  public void setHttpAdminPort(final int port) {
+    testAdminPort = port;
+  }
+
+  public void setKeyStore(final String path, final String password) {
+    testKeystore = path;
+    testKeystorePassword = password;
+  }
+
+  public void setSaasAddress(final String saasAddress) {
+    testSaasAddress = saasAddress;
+  }
+
+  public void setBaseUrl(final String baseUrl) {
+    this.testBaseUrl = baseUrl;
+  }
+
+  public void setProxyConfig(final String host, final int port, final String user, final String pass) {
+    testProxyConfig = new ProxyConfig();
+    testProxyConfig.setHostname(host);
+    testProxyConfig.setPort(port);
+    testProxyConfig.setUsername(user);
+    testProxyConfig.setPassword(pass);
+  }
+
+  public File getWorkDir() {
+    return new File("target/test-brain-work");
+  }
+
+  public Configuration getClientConfiguration() {
+    final Configuration configuration = new Configuration();
+    String protocol = "http";
+    if (testKeystore != null) {
+      protocol = "https";
+    }
+    String adminProtocol = "http";
+    if (testAdminPort == testPort) {
+      adminProtocol = protocol;
+    }
+    configuration.setServerUrl(protocol + "://localhost:" + testPort);
+    configuration.setServerAdminUrl(adminProtocol + "://localhost:" + testAdminPort
+        + (testAdminPort != testPort ? "" : "/admin"));
+    return configuration;
+  }
+
+  public Application createApplication(String applicationPublicId) {
+    Application application = new Application();
+    application.setName("DUMMY-NAME-" + UUID.randomUUID().toString());
+    application.setPublicId(applicationPublicId);
+    new ApplicationDAO().insert(application);
+    return application;
+  }
+
+  @Override
+  protected BeanScanning scanning(InsightConfig configuration) {
+    return BeanScanning.CACHE;
+  }
+
+  public void start() throws Exception {
+    if (testBrainServer != null) {
+      throw new IllegalStateException("Brain server already started");
     }
 
-    public void setHttpAdminPort( final int port )
-    {
-        testAdminPort = port;
-    }
+    // The brain server will set up a license updater on startup
+    savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
 
-    public void setKeyStore( final String path, final String password )
+    new Thread("TestInsightBrainService")
     {
-        testKeystore = path;
-        testKeystorePassword = password;
-    }
+      @Override
+      public void run() {
+        brainFault = null;
+        try {
+          String[] args;
+          File dropWizardConfigFile = new File("target/test-classes/config-test.yml");
+          if (dropWizardConfigFile.exists()) {
+            // I have no idea why, but INFO level is not enabled at this point
+            log.warn("Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
+            args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
+          }
+          else {
+            log.warn("Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
+            args = new String[] { "server" };
+          }
 
-    public void setSaasAddress( final String saasAddress )
-    {
-        testSaasAddress = saasAddress;
-    }
-
-    public void setBaseUrl( final String baseUrl )
-    {
-        this.testBaseUrl = baseUrl;
-    }
-
-    public void setProxyConfig( final String host, final int port, final String user, final String pass )
-    {
-        testProxyConfig = new ProxyConfig();
-        testProxyConfig.setHostname( host );
-        testProxyConfig.setPort( port );
-        testProxyConfig.setUsername( user );
-        testProxyConfig.setPassword( pass );
-    }
-
-    public File getWorkDir()
-    {
-        return new File( "target/test-brain-work" );
-    }
-
-    public Configuration getClientConfiguration()
-    {
-        final Configuration configuration = new Configuration();
-        String protocol = "http";
-        if ( testKeystore != null )
-        {
-            protocol = "https";
+          // this method will only return when the service is stopped...
+          TestInsightBrainService.this.run(args);
         }
-        String adminProtocol = "http";
-        if ( testAdminPort == testPort )
-        {
-            adminProtocol = protocol;
+        catch (final Exception e) {
+          log.error(e.getMessage(), e);
+          brainFault = e;
         }
-        configuration.setServerUrl( protocol + "://localhost:" + testPort );
-        configuration.setServerAdminUrl( adminProtocol + "://localhost:" + testAdminPort
-            + ( testAdminPort != testPort ? "" : "/admin" ) );
-        return configuration;
-    }
+      }
+    }.start();
 
-    public Application createApplication( String applicationPublicId )
-    {
-        Application application = new Application();
-        application.setName( "DUMMY-NAME-" + UUID.randomUUID().toString() );
-        application.setPublicId( applicationPublicId );
-        new ApplicationDAO().insert( application );
-        return application;
-    }
+    final Configuration configuration = getClientConfiguration();
+    final StatusClient client = new StatusClient(configuration);
 
-    @Override
-    protected BeanScanning scanning( InsightConfig configuration )
-    {
-        return BeanScanning.CACHE;
-    }
-
-    public void start()
-        throws Exception
-    {
-        if ( testBrainServer != null )
-        {
-            throw new IllegalStateException( "Brain server already started" );
+    final long start = System.currentTimeMillis();
+    Exception serverStartException = null;
+    for (int retries = 0; retries < 60 * 20; retries++) {
+      if (brainFault != null) {
+        throw brainFault;
+      }
+      try {
+        Thread.sleep(50);
+        if (client.check()) {
+          serverStartException = null;
+          break;
         }
+      }
+      catch (final Exception e) {
+        // server is still booting...
+        serverStartException = e;
+      }
+    }
+    if (serverStartException != null) {
+      log.error(serverStartException.getMessage(), serverStartException);
+      throw serverStartException;
+    }
+    log.debug("Detected server started in {}", System.currentTimeMillis() - start);
+  }
 
-        // The brain server will set up a license updater on startup
-        savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
+  @Override
+  public void run(final InsightConfig config, final Environment env) throws Exception {
+    config.getHttpConfiguration().setPort(testPort);
+    config.getHttpConfiguration().setAdminPort(testAdminPort);
+    config.getHttpConfiguration().setShutdownGracePeriod(Duration.milliseconds(1));
+    if (testKeystore != null) {
+      final SslConfiguration sslConfiguration = new SslConfiguration();
+      sslConfiguration.setKeyStore(Optional.of(new File(testKeystore).getAbsoluteFile()));
+      sslConfiguration.setKeyStorePassword(Optional.of(testKeystorePassword));
 
-        new Thread( "TestInsightBrainService" )
-        {
-            @Override
-            public void run()
-            {
-                brainFault = null;
-                try
-                {
-                    String[] args;
-                    File dropWizardConfigFile = new File( "target/test-classes/config-test.yml" );
-                    if ( dropWizardConfigFile.exists() )
-                    {
-                        // I have no idea why, but INFO level is not enabled at this point
-                        log.warn( "Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath() );
-                        args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
-                    }
-                    else
-                    {
-                        log.warn( "Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath() );
-                        args = new String[] { "server" };
-                    }
+      config.getHttpConfiguration().setConnectorType(HttpConfiguration.ConnectorType.NONBLOCKING_SSL);
+      config.getHttpConfiguration().setSslConfiguration(sslConfiguration);
+    }
+    config.setSonatypeWork(getWorkDir().getPath());
+    config.setSaasAddress(testSaasAddress);
+    config.setBaseUrl(testBaseUrl);
 
-                    // this method will only return when the service is stopped...
-                    TestInsightBrainService.this.run( args );
-                }
-                catch ( final Exception e )
-                {
-                    log.error( e.getMessage(), e );
-                    brainFault = e;
-                }
-            }
-        }.start();
-
-        final Configuration configuration = getClientConfiguration();
-        final StatusClient client = new StatusClient( configuration );
-
-        final long start = System.currentTimeMillis();
-        Exception serverStartException = null;
-        for ( int retries = 0; retries < 60 * 20; retries++ )
-        {
-            if ( brainFault != null )
-            {
-                throw brainFault;
-            }
-            try
-            {
-                Thread.sleep( 50 );
-                if ( client.check() )
-                {
-                    serverStartException = null;
-                    break;
-                }
-            }
-            catch ( final Exception e )
-            {
-                // server is still booting...
-                serverStartException = e;
-            }
-        }
-        if ( serverStartException != null )
-        {
-            log.error( serverStartException.getMessage(), serverStartException );
-            throw serverStartException;
-        }
-        log.debug( "Detected server started in {}", System.currentTimeMillis() - start );
+    if (testProxyConfig != null) {
+      config.setProxyConfig(testProxyConfig);
     }
 
-    @Override
-    public void run( final InsightConfig config, final Environment env )
-        throws Exception
+    FileUtils.deleteDirectory(config.getSonatypeWork());
+
+    env.addServerLifecycleListener(new ServerLifecycleListener()
     {
-        config.getHttpConfiguration().setPort( testPort );
-        config.getHttpConfiguration().setAdminPort( testAdminPort );
-        config.getHttpConfiguration().setShutdownGracePeriod( Duration.milliseconds( 1 ) );
-        if ( testKeystore != null )
-        {
-            final SslConfiguration sslConfiguration = new SslConfiguration();
-            sslConfiguration.setKeyStore( Optional.of( new File( testKeystore ).getAbsoluteFile() ) );
-            sslConfiguration.setKeyStorePassword( Optional.of( testKeystorePassword ) );
+      @Override
+      public void serverStarted(final Server server) {
+        testBrainServer = server;
+      }
+    });
+    super.run(config, env);
+  }
 
-            config.getHttpConfiguration().setConnectorType( HttpConfiguration.ConnectorType.NONBLOCKING_SSL );
-            config.getHttpConfiguration().setSslConfiguration( sslConfiguration );
-        }
-        config.setSonatypeWork( getWorkDir().getPath() );
-        config.setSaasAddress( testSaasAddress );
-        config.setBaseUrl( testBaseUrl );
+  public void stop() throws Exception {
+    if (testBrainServer != null) {
+      testBrainServer.stop();
+      testBrainServer = null;
 
-        if ( testProxyConfig != null )
-        {
-            config.setProxyConfig( testProxyConfig );
-        }
+      LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
+    }
+    if (brainFault != null) {
+      throw brainFault;
+    }
+  }
 
-        FileUtils.deleteDirectory( config.getSonatypeWork() );
-
-        env.addServerLifecycleListener( new ServerLifecycleListener()
-        {
-            @Override
-            public void serverStarted( final Server server )
-            {
-                testBrainServer = server;
-            }
-        } );
-        super.run( config, env );
+  private static class StatusClient
+      extends AbstractClient
+  {
+    StatusClient(final Configuration configuration) {
+      super(configuration);
     }
 
-    public void stop()
-        throws Exception
-    {
-        if ( testBrainServer != null )
-        {
-            testBrainServer.stop();
-            testBrainServer = null;
-
-            LicenseDataUpdater.setUpdater( savedLicenseDataUpdater );
-        }
-        if ( brainFault != null )
-        {
-            throw brainFault;
-        }
+    public boolean check() throws Exception {
+      Result result = adminPath("healthcheck").timeout(5000).get();
+      return result.status() == 200;
     }
+  }
 
-    private static class StatusClient
-        extends AbstractClient
-    {
-        StatusClient( final Configuration configuration )
-        {
-            super( configuration );
-        }
+  @Override
+  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
+    // Use in memory db
+    return null;
+  }
 
-        public boolean check()
-            throws Exception
-        {
-            Result result = adminPath( "healthcheck" ).timeout( 5000 ).get();
-            return result.status() == 200;
-        }
-    }
+  public File getAuditDir(String applicationId) {
+    return new File(new File(getWorkDir(), "audit"), applicationId);
+  }
 
-    @Override
-    protected DatabaseConfig getDatabaseConfig( File databaseDir, String databaseName )
-    {
-        // Use in memory db
-        return null;
-    }
+  public File getDataDir() {
+    return new File(getWorkDir(), "data");
+  }
 
-    public File getAuditDir( String applicationId )
-    {
-        return new File( new File( getWorkDir(), "audit" ), applicationId );
-    }
-
-    public File getDataDir()
-    {
-        return new File( getWorkDir(), "data" );
-    }
-
-    public File getReportDir( String applicationId, String scanId )
-    {
-        return new File( new File( new File( getWorkDir(), "report" ), applicationId ), scanId );
-    }
+  public File getReportDir(String applicationId, String scanId) {
+    return new File(new File(new File(getWorkDir(), "report"), applicationId), scanId);
+  }
 }

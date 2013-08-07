@@ -20,19 +20,18 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 @Named
-@Path( StageTypeResource.SERVICE_PATH )
+@Path(StageTypeResource.SERVICE_PATH)
 public class StageTypeResource
 {
-    public static final String SERVICE_PATH = "rest/policy/stageType";
+  public static final String SERVICE_PATH = "rest/policy/stageType";
 
-    private static final Logger log = LoggerFactory.getLogger( StageTypeResource.class );
+  private static final Logger log = LoggerFactory.getLogger(StageTypeResource.class);
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    public Collection<StageType> getStageTypes()
-    {
-        log.debug( "Received request to get all stage types" );
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Collection<StageType> getStageTypes() {
+    log.debug("Received request to get all stage types");
 
-        return StageTypes.getAll();
-    }
+    return StageTypes.getAll();
+  }
 }

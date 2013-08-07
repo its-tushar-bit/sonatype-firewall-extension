@@ -35,148 +35,121 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 
 abstract class AbstractResourceWithIcon
 {
-    public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
+  public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
 
-    public static final String ICON_PATH = "icon";
+  public static final String ICON_PATH = "icon";
 
-    public static final String ICON_PATH_SYNC = ICON_PATH + "/sync";
+  public static final String ICON_PATH_SYNC = ICON_PATH + "/sync";
 
-    private static final Logger log = LoggerFactory.getLogger( AbstractResourceWithIcon.class );
+  private static final Logger log = LoggerFactory.getLogger(AbstractResourceWithIcon.class);
 
-    @Inject
-    private SaasClient client;
+  @Inject
+  private SaasClient client;
 
-    @Context
-    private BaseUrl baseUrl;
+  @Context
+  private BaseUrl baseUrl;
 
-    private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator( false );
+  private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
 
-    protected void setIcon( String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
-                            InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
-        throws IOException
-    {
-        if ( hasRobotSource )
-        {
-            try
-            {
-                HttpResponse iconResponse =
-                    client.getResponse( null, "rest/application/icon/generate/" + robotHash, null, (String) null );
-                uploadedInputStream = iconResponse.getEntity().getContent();
-            }
-            catch ( Exception e )
-            {
-                log.error( e.getMessage(), e );
-                if ( uploadedInputStream != null )
-                {
-                    uploadedInputStream.close();
-                    uploadedInputStream = null;
-                }
-            }
+  protected void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
+      InputStream uploadedInputStream, FormDataContentDisposition fileDetail) throws IOException
+  {
+    if (hasRobotSource) {
+      try {
+        HttpResponse iconResponse = client.getResponse(null, "rest/application/icon/generate/" + robotHash, null,
+            (String) null);
+        uploadedInputStream = iconResponse.getEntity().getContent();
+      }
+      catch (Exception e) {
+        log.error(e.getMessage(), e);
+        if (uploadedInputStream != null) {
+          uploadedInputStream.close();
+          uploadedInputStream = null;
         }
-
-        byte[] imageByteArray = null;
-        if ( uploadedInputStream != null )
-        {
-            // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
-            ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-            try
-            {
-                for ( int b = 0; ( b = uploadedInputStream.read() ) != -1; )
-                {
-                    if ( imageOutputStream.size() > 5242880 )
-                    {
-                        throw new BadRequestException( "Icon file size must be smaller than 5 MB." );
-                    }
-                    imageOutputStream.write( b );
-                }
-                imageByteArray = imageOutputStream.toByteArray();
-            }
-            finally
-            {
-                imageOutputStream.close();
-                uploadedInputStream.close();
-            }
-
-            if ( imageByteArray != null && imageByteArray.length > 0 )
-            {
-                InputStream sizeCheckedInputStream = new ByteArrayInputStream( imageByteArray );
-                try
-                {
-                    new IconDAO().setIcon( ownerId, iconDir, sizeCheckedInputStream );
-                }
-                catch ( IllegalArgumentException e )
-                {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
-                }
-                catch ( IOException e )
-                {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
-                }
-                catch ( BadRequestException e )
-                {
-                    throw new BadRequestException( fileDetail.getFileName() + " is not a valid image.", e );
-                }
-                finally
-                {
-                    sizeCheckedInputStream.close();
-                }
-            }
-        }
+      }
     }
 
-    protected String setIconSync( String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
-                                    InputStream uploadedInputStream, FormDataContentDisposition fileDetail )
-    {
-        String errorMessage = "";
-        try
-        {
-            setIcon( ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail );
+    byte[] imageByteArray = null;
+    if (uploadedInputStream != null) {
+      // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
+      ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+      try {
+        for (int b = 0; (b = uploadedInputStream.read()) != -1;) {
+          if (imageOutputStream.size() > 5242880) {
+            throw new BadRequestException("Icon file size must be smaller than 5 MB.");
+          }
+          imageOutputStream.write(b);
         }
-        catch ( Exception e )
-        {
-            log.error( e.getMessage(), e );
-            errorMessage = errorResponseGenerator.mapException( e ).getMessageBody();
-        }
+        imageByteArray = imageOutputStream.toByteArray();
+      }
+      finally {
+        imageOutputStream.close();
+        uploadedInputStream.close();
+      }
 
-        return errorMessage;
+      if (imageByteArray != null && imageByteArray.length > 0) {
+        InputStream sizeCheckedInputStream = new ByteArrayInputStream(imageByteArray);
+        try {
+          new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
+        }
+        catch (IllegalArgumentException e) {
+          throw new BadRequestException(fileDetail.getFileName() + " is not a valid image.", e);
+        }
+        catch (IOException e) {
+          throw new BadRequestException(fileDetail.getFileName() + " is not a valid image.", e);
+        }
+        catch (BadRequestException e) {
+          throw new BadRequestException(fileDetail.getFileName() + " is not a valid image.", e);
+        }
+        finally {
+          sizeCheckedInputStream.close();
+        }
+      }
+    }
+  }
+
+  protected String setIconSync(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
+      InputStream uploadedInputStream, FormDataContentDisposition fileDetail)
+  {
+    String errorMessage = "";
+    try {
+      setIcon(ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+      errorMessage = errorResponseGenerator.mapException(e).getMessageBody();
     }
 
-    protected Response generateIcon( final String hashcode, final HttpServletRequest req )
-        throws IOException
-    {
-        if ( hashcode == null || hashcode.isEmpty() )
-        {
-            throw new NotFoundException( "Null or empty hashcode." );
-        }
-        return client.doProxy( req, "rest/application/icon/generate/" + hashcode );
-    }
+    return errorMessage;
+  }
 
-    protected Response getIcon( final String ownerId, File iconDir )
-        throws IOException
-    {
-        byte[] imageBytes = null;
-        if ( ownerId != null )
-        {
-            imageBytes = new IconDAO().getIcon( ownerId, iconDir );
-        }
-        if ( imageBytes == null )
-        {
-            UriBuilder defaultIconUriBuilder =
-                baseUrl.redirect().path( InsightBrainService.BRAIN_ASSET_PATH ).path( "img/" + getDefaultIconFilename() );
-            return Response.temporaryRedirect( defaultIconUriBuilder.build() ).build();
-        }
-        final byte[] imageOutputBytes = imageBytes;
-        StreamingOutput stream = new StreamingOutput()
-        {
-            @Override
-            public void write( OutputStream output )
-                throws IOException, WebApplicationException
-            {
-                output.write( imageOutputBytes );
-            }
-        };
-        return Response.ok( stream ).build();
+  protected Response generateIcon(final String hashcode, final HttpServletRequest req) throws IOException {
+    if (hashcode == null || hashcode.isEmpty()) {
+      throw new NotFoundException("Null or empty hashcode.");
     }
+    return client.doProxy(req, "rest/application/icon/generate/" + hashcode);
+  }
 
-    protected abstract String getDefaultIconFilename();
+  protected Response getIcon(final String ownerId, File iconDir) throws IOException {
+    byte[] imageBytes = null;
+    if (ownerId != null) {
+      imageBytes = new IconDAO().getIcon(ownerId, iconDir);
+    }
+    if (imageBytes == null) {
+      UriBuilder defaultIconUriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH)
+          .path("img/" + getDefaultIconFilename());
+      return Response.temporaryRedirect(defaultIconUriBuilder.build()).build();
+    }
+    final byte[] imageOutputBytes = imageBytes;
+    StreamingOutput stream = new StreamingOutput()
+    {
+      @Override
+      public void write(OutputStream output) throws IOException, WebApplicationException {
+        output.write(imageOutputBytes);
+      }
+    };
+    return Response.ok(stream).build();
+  }
+
+  protected abstract String getDefaultIconFilename();
 }

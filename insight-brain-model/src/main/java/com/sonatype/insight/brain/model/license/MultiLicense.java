@@ -13,153 +13,131 @@ import com.sonatype.insight.model.HasStringId;
 
 // Copied from com.sonatype.insight.model.datamart.dto.MultiLicense
 @Entity
-@Table( name = "multi_license" )
+@Table(name = "multi_license")
 public class MultiLicense
     implements HasStringId
 {
 
-    @Id
-    @Column( name = "multi_license_id" )
-    private String id;
+  @Id
+  @Column(name = "multi_license_id")
+  private String id;
 
-    @Column( name = "shortDisplayName" )
-    private String shortDisplayName;
+  @Column(name = "shortDisplayName")
+  private String shortDisplayName;
 
-    @Column( name = "longDisplayName" )
-    private String longDisplayName;
+  @Column(name = "longDisplayName")
+  private String longDisplayName;
 
-    @Column( name = "description" )
-    private String description;
+  @Column(name = "description")
+  private String description;
 
-    @Column( name = "licenseUrl" )
-    private String licenseUrl;
+  @Column(name = "licenseUrl")
+  private String licenseUrl;
 
-    @Override
-    public String getId()
-    {
-        return id;
+  @Override
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getShortDisplayName() {
+    return shortDisplayName;
+  }
+
+  public void setShortDisplayName(String shortDisplayName) {
+    this.shortDisplayName = shortDisplayName;
+  }
+
+  public String getLongDisplayName() {
+    return longDisplayName;
+  }
+
+  public void setLongDisplayName(String longDisplayName) {
+    this.longDisplayName = longDisplayName;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getLicenseUrl() {
+    return licenseUrl;
+  }
+
+  public void setLicenseUrl(String licenseUrl) {
+    this.licenseUrl = licenseUrl;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    MultiLicense other = (MultiLicense) obj;
+    if (id == null) {
+      if (other.id != null)
+        return false;
     }
+    else if (!id.equals(other.id))
+      return false;
+    return true;
+  }
 
-    @Override
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public boolean isUnspecified() {
+    return License.UNSPECIFIED_ID.equals(id);
+  }
 
-    public String getShortDisplayName()
-    {
-        return shortDisplayName;
-    }
+  public boolean isUnknown() {
+    return License.UNKNOWN_ID.equals(id);
+  }
 
-    public void setShortDisplayName( String shortDisplayName )
-    {
-        this.shortDisplayName = shortDisplayName;
-    }
+  @Override
+  public String toString() {
+    return id;
+  }
 
-    public String getLongDisplayName()
-    {
-        return longDisplayName;
-    }
-
-    public void setLongDisplayName( String longDisplayName )
-    {
-        this.longDisplayName = longDisplayName;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    public String getLicenseUrl()
-    {
-        return licenseUrl;
-    }
-
-    public void setLicenseUrl( String licenseUrl )
-    {
-        this.licenseUrl = licenseUrl;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ( ( id == null ) ? 0 : id.hashCode() );
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-            return true;
-        if ( obj == null )
-            return false;
-        if ( getClass() != obj.getClass() )
-            return false;
-        MultiLicense other = (MultiLicense) obj;
-        if ( id == null )
-        {
-            if ( other.id != null )
-                return false;
+  public static void prunePreciseLicenses(Set<MultiLicense> licenses) {
+    for (Iterator<MultiLicense> it = licenses.iterator(); it.hasNext();) {
+      String licenseId = it.next().getId();
+      for (MultiLicense license : licenses) {
+        String id = license.getId();
+        if (id.equals(licenseId)) {
+          // keep current
         }
-        else if ( !id.equals( other.id ) )
-            return false;
-        return true;
+        else if (id.endsWith("-UNSPECIFIED") && licenseId.regionMatches(true, 0, id, 0, id.length() - 12)) {
+          it.remove();
+          break;
+        }
+      }
     }
+  }
 
-    public boolean isUnspecified()
-    {
-        return License.UNSPECIFIED_ID.equals( id );
-    }
-
-    public boolean isUnknown()
-    {
-        return License.UNKNOWN_ID.equals( id );
-    }
-
+  public static class ByNameComparator
+      implements Comparator<MultiLicense>
+  {
     @Override
-    public String toString()
-    {
-        return id;
+    public int compare(MultiLicense l1, MultiLicense l2) {
+      return l1.getShortDisplayName().compareTo(l2.getShortDisplayName());
     }
-
-    public static void prunePreciseLicenses( Set<MultiLicense> licenses )
-    {
-        for ( Iterator<MultiLicense> it = licenses.iterator(); it.hasNext(); )
-        {
-            String licenseId = it.next().getId();
-            for ( MultiLicense license : licenses )
-            {
-                String id = license.getId();
-                if ( id.equals( licenseId ) )
-                {
-                    // keep current
-                }
-                else if ( id.endsWith( "-UNSPECIFIED" ) && licenseId.regionMatches( true, 0, id, 0, id.length() - 12 ) )
-                {
-                    it.remove();
-                    break;
-                }
-            }
-        }
-    }
-
-    public static class ByNameComparator
-        implements Comparator<MultiLicense>
-    {
-        @Override
-        public int compare( MultiLicense l1, MultiLicense l2 )
-        {
-            return l1.getShortDisplayName().compareTo( l2.getShortDisplayName() );
-        }
-    }
+  }
 
 }

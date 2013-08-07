@@ -11,30 +11,29 @@ import com.sonatype.insight.brain.model.component.Component;
 
 public interface ConditionType<T>
 {
-    String getId();
+  String getId();
 
-    String getName();
+  String getName();
 
-    List<String> getSupportedOperators();
+  List<String> getSupportedOperators();
 
-    /**
-     * @return The ID of a ConditionValueType that defines the value type for this condition type or null if the
-     *         condition type does not require or support values.
-     */
-    String getValueTypeId();
+  /**
+   * @return The ID of a ConditionValueType that defines the value type for this condition type or null if the
+   *         condition type does not require or support values.
+   */
+  String getValueTypeId();
 
-    String getValueHint();
+  String getValueHint();
 
-    String generateDroolsConditionValue( String value );
+  String generateDroolsConditionValue(String value);
 
-    String generateDroolsCode( Condition condition );
+  String generateDroolsCode(Condition condition);
 
-    String explainCondition( Condition condition );
+  String explainCondition(Condition condition);
 
-    String explainMatch( Condition condition, Component component );
+  String explainMatch(Condition condition, Component component);
 
-    void validateCondition( Condition condition, String ownerId )
-        throws InvalidConditionException;
+  void validateCondition(Condition condition, String ownerId) throws InvalidConditionException;
 
-    boolean evaluateCondition( Component component, String operator, T value );
+  boolean evaluateCondition(Component component, String operator, T value);
 }

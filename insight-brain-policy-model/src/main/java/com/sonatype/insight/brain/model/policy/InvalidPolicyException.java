@@ -7,18 +7,16 @@ package com.sonatype.insight.brain.model.policy;
 
 import com.sonatype.insight.error.HttpStatusCode;
 
-@HttpStatusCode( 400 /* HttpServletResponse.SC_BAD_REQUEST */)
-@SuppressWarnings( "serial" )
+@HttpStatusCode(400 /* HttpServletResponse.SC_BAD_REQUEST */)
+@SuppressWarnings("serial")
 public class InvalidPolicyException
     extends RuntimeException
 {
-    public InvalidPolicyException( String message )
-    {
-        super( message );
-    }
+  public InvalidPolicyException(String message) {
+    super(message);
+  }
 
-    public InvalidPolicyException( ValidationResult validationResult )
-    {
-        super( validationResult.toMessageString() );
-    }
+  public InvalidPolicyException(ValidationResult validationResult) {
+    super(validationResult.toMessageString());
+  }
 }

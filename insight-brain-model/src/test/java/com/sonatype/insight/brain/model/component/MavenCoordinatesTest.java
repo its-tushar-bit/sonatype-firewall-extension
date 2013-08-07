@@ -11,18 +11,15 @@ import org.junit.Test;
 
 public class MavenCoordinatesTest
 {
-    @Test
-    public void testgetGAVECString()
-    {
-        MavenCoordinates mavenCoordinates = new MavenCoordinates( "gg", "aa", "vv", "ee", "cc" );
-        assertEquals( "gg:aa:vv:ee:cc", mavenCoordinates.getGAVECString() );
-    }
+  @Test
+  public void testgetGAVECString() {
+    MavenCoordinates mavenCoordinates = new MavenCoordinates("gg", "aa", "vv", "ee", "cc");
+    assertEquals("gg:aa:vv:ee:cc", mavenCoordinates.getGAVECString());
+  }
 
-    @Test
-    public void testgetGAVECString_OptionalCoordinates()
-    {
-        MavenCoordinates mavenCoordinates =
-            new MavenCoordinates( "gg", "aa", "vv", null /* extension */, null /* classifier */);
-        assertEquals( "gg:aa:vv", mavenCoordinates.getGAVECString() );
-    }
+  @Test
+  public void testgetGAVECString_OptionalCoordinates() {
+    MavenCoordinates mavenCoordinates = new MavenCoordinates("gg", "aa", "vv", null /* extension */, null /* classifier */);
+    assertEquals("gg:aa:vv", mavenCoordinates.getGAVECString());
+  }
 }

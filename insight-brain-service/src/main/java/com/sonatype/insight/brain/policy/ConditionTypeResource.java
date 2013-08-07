@@ -19,21 +19,20 @@ import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 @Named
-@Path( ConditionTypeResource.SERVICE_PATH )
+@Path(ConditionTypeResource.SERVICE_PATH)
 public class ConditionTypeResource
 {
-    public static final String SERVICE_PATH = "rest/policy/conditionType";
+  public static final String SERVICE_PATH = "rest/policy/conditionType";
 
-    private static final Logger log = LoggerFactory.getLogger( ConditionTypeResource.class );
+  private static final Logger log = LoggerFactory.getLogger(ConditionTypeResource.class);
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    // NOTE: We don't use generics in the return type to suppress an annoying warning from Jersey in the log
-    @SuppressWarnings( "rawtypes" )
-    public Collection getConditionTypes()
-    {
-        log.debug( "Received request to get all condition types" );
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  // NOTE: We don't use generics in the return type to suppress an annoying warning from Jersey in the log
+  @SuppressWarnings("rawtypes")
+  public Collection getConditionTypes() {
+    log.debug("Received request to get all condition types");
 
-        return ConditionTypes.getAll();
-    }
+    return ConditionTypes.getAll();
+  }
 }

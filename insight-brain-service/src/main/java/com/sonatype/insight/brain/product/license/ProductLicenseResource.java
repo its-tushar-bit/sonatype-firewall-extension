@@ -22,65 +22,59 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSumma
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sun.jersey.multipart.FormDataParam;
 
-@Path( ProductLicenseResource.SERVICE_PATH )
+@Path(ProductLicenseResource.SERVICE_PATH)
 @Named
 public class ProductLicenseResource
 {
-    public static final String SERVICE_PATH = "rest/product/license";
+  public static final String SERVICE_PATH = "rest/product/license";
 
-    private final CLMLicenseManager licenseManager;
+  private final CLMLicenseManager licenseManager;
 
-    private final Logger log = LoggerFactory.getLogger( ProductLicenseResource.class );
+  private final Logger log = LoggerFactory.getLogger(ProductLicenseResource.class);
 
-    @Inject
-    public ProductLicenseResource( CLMLicenseManager licenseManager )
-    {
-        this.licenseManager = licenseManager;
+  @Inject
+  public ProductLicenseResource(CLMLicenseManager licenseManager) {
+    this.licenseManager = licenseManager;
+  }
+
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.TEXT_PLAIN)
+  @UnlicensedPath
+  public String installLicense(@FormDataParam("file") InputStream is, @QueryParam("isIE") boolean isIE)
+      throws IOException
+  {
+    try {
+      licenseManager.installLicense(is);
+      log.info("CLM License successfully installed");
+      // Note an empty string triggers success in the UI
+      return "";
     }
+    catch (LicensingException e) {
+      // IE will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
+      // error page
+      // which then fails to load because of cross site scripting probs
+      if (isIE) {
+        log.debug("Unable to install license", e);
+        return e.getMessage();
+      }
 
-    @POST
-    @Consumes( MediaType.MULTIPART_FORM_DATA )
-    @Produces( MediaType.TEXT_PLAIN )
-    @UnlicensedPath
-    public String installLicense( @FormDataParam( "file" ) InputStream is, @QueryParam( "isIE" ) boolean isIE ) 
-        throws IOException
-    {
-        try
-        {
-            licenseManager.installLicense( is );
-            log.info( "CLM License successfully installed" );
-            //Note an empty string triggers success in the UI
-            return "";
-        }
-        catch ( LicensingException e )
-        {
-            //IE will only work in case of a 200 response, otherwise the response gets junked and replaced with some local error page
-            //which then fails to load because of cross site scripting probs
-            if (isIE)
-            {
-                log.debug( "Unable to install license", e );
-                return e.getMessage();
-            }
-            
-            throw new BadRequestException( e.getMessage(), e );
-        }
+      throw new BadRequestException(e.getMessage(), e);
     }
+  }
 
-    @DELETE
-    public void uninstallLicense() 
-        throws LicensingException
-    {
-        licenseManager.uninstallLicense();
-        log.info( "CLM License successfully uninstalled" );
-    }
+  @DELETE
+  public void uninstallLicense() throws LicensingException {
+    licenseManager.uninstallLicense();
+    log.info("CLM License successfully uninstalled");
+  }
 
-    @GET
-    @UnlicensedPath
-    @Produces( MediaType.APPLICATION_JSON )
-    public LicenseSummary validate()
-    {
-        licenseManager.validate();
-        return licenseManager.getLicenseSummary();
-    }
+  @GET
+  @UnlicensedPath
+  @Produces(MediaType.APPLICATION_JSON)
+  public LicenseSummary validate() {
+    licenseManager.validate();
+    return licenseManager.getLicenseSummary();
+  }
 
 }

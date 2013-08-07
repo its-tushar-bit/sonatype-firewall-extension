@@ -17,33 +17,29 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 public class InsightProxy
     extends AbstractInjectable<InsightProxy>
 {
-    private final InsightConfig insightConfig;
+  private final InsightConfig insightConfig;
 
-    @Inject
-    public InsightProxy( final InsightConfig insightConfig )
-    {
-        this.insightConfig = insightConfig;
+  @Inject
+  public InsightProxy(final InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
+  }
+
+  public <T extends HttpClientUtils.Configuration> T contextualize(final T httpConfig) {
+    httpConfig.setServerUrl(insightConfig.getSaasAddress());
+
+    final ProxyConfig proxyConfig = insightConfig.getProxyConfig();
+    if (proxyConfig.getHostname() != null) {
+      httpConfig.setProxyHost(proxyConfig.getHostname());
+      httpConfig.setProxyPort(proxyConfig.getPort());
+      if (proxyConfig.getUsername() != null) {
+        final SimpleAuthentication proxyAuth = new SimpleAuthentication();
+        proxyAuth.setUsername(proxyConfig.getUsername());
+        proxyAuth.setPassword(proxyConfig.getPassword());
+        // TODO: do we need to support NTLM?
+        httpConfig.setProxyAuth(proxyAuth);
+      }
     }
 
-    public <T extends HttpClientUtils.Configuration> T contextualize( final T httpConfig )
-    {
-        httpConfig.setServerUrl( insightConfig.getSaasAddress() );
-
-        final ProxyConfig proxyConfig = insightConfig.getProxyConfig();
-        if ( proxyConfig.getHostname() != null )
-        {
-            httpConfig.setProxyHost( proxyConfig.getHostname() );
-            httpConfig.setProxyPort( proxyConfig.getPort() );
-            if ( proxyConfig.getUsername() != null )
-            {
-                final SimpleAuthentication proxyAuth = new SimpleAuthentication();
-                proxyAuth.setUsername( proxyConfig.getUsername() );
-                proxyAuth.setPassword( proxyConfig.getPassword() );
-                // TODO: do we need to support NTLM?
-                httpConfig.setProxyAuth( proxyAuth );
-            }
-        }
-
-        return httpConfig;
-    }
+    return httpConfig;
+  }
 }

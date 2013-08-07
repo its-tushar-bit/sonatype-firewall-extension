@@ -5,14 +5,13 @@ import com.sonatype.insight.error.HttpStatusCode;
 /**
  * Create an HTTP 402 (Payment Required) exception
  */
-@HttpStatusCode( 402 )
+@HttpStatusCode(402)
 public class InvalidLicenseException
     extends RuntimeException
 {
-    private static final long serialVersionUID = 1308434983601088106L;
+  private static final long serialVersionUID = 1308434983601088106L;
 
-    public InvalidLicenseException( String msg )
-    {
-        super( msg );
-    }
+  public InvalidLicenseException(String msg) {
+    super(msg);
+  }
 }

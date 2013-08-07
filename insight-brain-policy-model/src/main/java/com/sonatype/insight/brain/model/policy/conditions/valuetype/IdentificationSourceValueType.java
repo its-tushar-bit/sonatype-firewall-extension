@@ -13,29 +13,25 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class IdentificationSourceValueType
     implements ConditionValueType<IdentificationSource>
 {
-    public static final String ID = "IdentificationSourceValueType";
+  public static final String ID = "IdentificationSourceValueType";
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getDataType()
-    {
-        return "IdentificationSource";
-    }
+  @Override
+  public String getDataType() {
+    return "IdentificationSource";
+  }
 
-    @Override
-    public boolean isAllowMultiple()
-    {
-        return false;
-    }
+  @Override
+  public boolean isAllowMultiple() {
+    return false;
+  }
 
-    @Override
-    public List<IdentificationSource> getAvailableValues()
-    {
-        return IdentificationSource.getAll();
-    }
+  @Override
+  public List<IdentificationSource> getAvailableValues() {
+    return IdentificationSource.getAll();
+  }
 }

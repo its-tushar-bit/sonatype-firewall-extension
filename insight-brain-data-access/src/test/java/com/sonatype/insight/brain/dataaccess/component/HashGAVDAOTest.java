@@ -22,214 +22,196 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class HashGAVDAOTest
     extends AbstractDbDAOTest
 {
-    @Test
-    public void testCRUD()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
+  @Test
+  public void testCRUD() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
 
-        String hash = "123456789012345678901";
-        assertTrue( hash.length() > 20 );
-        String truncatedHash = hash.substring( 0, 20 );
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = "HashGAVDAOTest_E";
-        String classifier = "HashGAVDAOTest_C";
-        Date createTime = new Date();
+    String hash = "123456789012345678901";
+    assertTrue(hash.length() > 20);
+    String truncatedHash = hash.substring(0, 20);
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = "HashGAVDAOTest_E";
+    String classifier = "HashGAVDAOTest_C";
+    Date createTime = new Date();
 
-        // Create
-        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        hashGAV.setCreateTime( createTime );
-        assertNull( hashGAV.getId() );
-        dao.insert( hashGAV );
-        assertNotNull( hashGAV.getId() );
+    // Create
+    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    hashGAV.setCreateTime(createTime);
+    assertNull(hashGAV.getId());
+    dao.insert(hashGAV);
+    assertNotNull(hashGAV.getId());
 
-        // Read
-        hashGAV = dao.getById( hashGAV.getId() );
-        assertNotNull( hashGAV );
-        assertHashGAV( truncatedHash, groupId, artifactId, version, extension, classifier, createTime, hashGAV );
+    // Read
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNotNull(hashGAV);
+    assertHashGAV(truncatedHash, groupId, artifactId, version, extension, classifier, createTime, hashGAV);
 
-        // Update is not allowed
-        try
-        {
-            dao.update( hashGAV );
-            fail( "Expected UnsupportedOperationException, updates to HashGAV are not allowed" );
-        }
-        catch ( UnsupportedOperationException expected )
-        {
-        }
-
-        // Delete
-        dao.delete( hashGAV );
-
-        hashGAV = dao.getById( hashGAV.getId() );
-        assertNull( hashGAV );
+    // Update is not allowed
+    try {
+      dao.update(hashGAV);
+      fail("Expected UnsupportedOperationException, updates to HashGAV are not allowed");
+    }
+    catch (UnsupportedOperationException expected) {
     }
 
-    @Test
-    public void testExtensionNotRequired_Null()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
+    // Delete
+    dao.delete(hashGAV);
 
-        String hash = "ab1234ab1234ab";
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = null;
-        String classifier = "HashGAVDAOTest_C";
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNull(hashGAV);
+  }
 
-        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        dao.insert( hashGAV );
-        assertNotNull( hashGAV.getId() );
-        hashGAV = dao.getById( hashGAV.getId() );
-        assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, null, hashGAV );
+  @Test
+  public void testExtensionNotRequired_Null() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
 
-        dao.delete( hashGAV );
+    String hash = "ab1234ab1234ab";
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = null;
+    String classifier = "HashGAVDAOTest_C";
+
+    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    dao.insert(hashGAV);
+    assertNotNull(hashGAV.getId());
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNotNull(hashGAV);
+    assertHashGAV(hash, groupId, artifactId, version, extension, classifier, null, hashGAV);
+
+    dao.delete(hashGAV);
+  }
+
+  @Test
+  public void testExtensionNotRequired_Empty() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
+
+    String hash = "ab1234ab1234ab";
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = " ";
+    String classifier = "HashGAVDAOTest_C";
+
+    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    dao.insert(hashGAV);
+    assertNotNull(hashGAV.getId());
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNotNull(hashGAV);
+    assertHashGAV(hash, groupId, artifactId, version, null /* extension */, classifier, null, hashGAV);
+
+    dao.delete(hashGAV);
+  }
+
+  @Test
+  public void testClassifierNotRequired_Null() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
+
+    String hash = "ab1234ab1234ab";
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = "HashGAVDAOTest_E";
+    String classifier = null;
+
+    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    dao.insert(hashGAV);
+    assertNotNull(hashGAV.getId());
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNotNull(hashGAV);
+    assertHashGAV(hash, groupId, artifactId, version, extension, classifier, null, hashGAV);
+
+    dao.delete(hashGAV);
+  }
+
+  @Test
+  public void testClassifierNotRequired_Empty() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
+
+    String hash = "ab1234ab1234ab";
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = "HashGAVDAOTest_E";
+    String classifier = " ";
+
+    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    dao.insert(hashGAV);
+    assertNotNull(hashGAV.getId());
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNotNull(hashGAV);
+    assertHashGAV(hash, groupId, artifactId, version, extension, null /* classifier */, null, hashGAV);
+
+    dao.delete(hashGAV);
+  }
+
+  private void assertHashGAV(String hash, String groupId, String artifactId, String version, String extension,
+      String classifier, Date createTime, HashGAV hashGAV)
+  {
+    assertEquals(hash, hashGAV.getHash());
+    assertEquals(groupId, hashGAV.getGroupId());
+    assertEquals(artifactId, hashGAV.getArtifactId());
+    assertEquals(version, hashGAV.getVersion());
+    assertEquals(extension, hashGAV.getExtension());
+    assertEquals(classifier, hashGAV.getClassifier());
+    assertEquals(createTime, hashGAV.getCreateTime());
+  }
+
+  @Test
+  public void testAddDuplicateByHash() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
+
+    String hash = "ab1234ab1234ab";
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = "HashGAVDAOTest_E";
+    String classifier = "HashGAVDAOTest_C";
+
+    HashGAV hashGAV1 = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    dao.insert(hashGAV1);
+
+    HashGAV hashGAV2 = new HashGAV(hash, groupId + "New", artifactId, version, extension, classifier);
+    try {
+      dao.insert(hashGAV2);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals(
+          "This component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'",
+          expected.getMessage());
     }
 
-    @Test
-    public void testExtensionNotRequired_Empty()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
+    dao.delete(hashGAV1);
+  }
 
-        String hash = "ab1234ab1234ab";
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = " ";
-        String classifier = "HashGAVDAOTest_C";
+  @Test
+  public void testAddDuplicateByGAVEC() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
 
-        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        dao.insert( hashGAV );
-        assertNotNull( hashGAV.getId() );
-        hashGAV = dao.getById( hashGAV.getId() );
-        assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, null /* extension */, classifier, null, hashGAV );
+    String hash = "ab1234ab1234ab";
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+    String extension = "HashGAVDAOTest_E";
+    String classifier = "HashGAVDAOTest_C";
 
-        dao.delete( hashGAV );
+    HashGAV hashGAV1 = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    dao.insert(hashGAV1);
+
+    HashGAV hashGAV2 = new HashGAV(hash + "1", groupId, artifactId, version, extension, classifier);
+    try {
+      dao.insert(hashGAV2);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals(
+          "Another component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'",
+          expected.getMessage());
     }
 
-    @Test
-    public void testClassifierNotRequired_Null()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
-
-        String hash = "ab1234ab1234ab";
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = "HashGAVDAOTest_E";
-        String classifier = null;
-
-        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        dao.insert( hashGAV );
-        assertNotNull( hashGAV.getId() );
-        hashGAV = dao.getById( hashGAV.getId() );
-        assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, classifier, null, hashGAV );
-
-        dao.delete( hashGAV );
-    }
-
-    @Test
-    public void testClassifierNotRequired_Empty()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
-
-        String hash = "ab1234ab1234ab";
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = "HashGAVDAOTest_E";
-        String classifier = " ";
-
-        HashGAV hashGAV = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        dao.insert( hashGAV );
-        assertNotNull( hashGAV.getId() );
-        hashGAV = dao.getById( hashGAV.getId() );
-        assertNotNull( hashGAV );
-        assertHashGAV( hash, groupId, artifactId, version, extension, null /* classifier */, null, hashGAV );
-
-        dao.delete( hashGAV );
-    }
-
-    private void assertHashGAV( String hash, String groupId, String artifactId, String version, String extension,
-                                String classifier, Date createTime, HashGAV hashGAV )
-    {
-        assertEquals( hash, hashGAV.getHash() );
-        assertEquals( groupId, hashGAV.getGroupId() );
-        assertEquals( artifactId, hashGAV.getArtifactId() );
-        assertEquals( version, hashGAV.getVersion() );
-        assertEquals( extension, hashGAV.getExtension() );
-        assertEquals( classifier, hashGAV.getClassifier() );
-        assertEquals( createTime, hashGAV.getCreateTime() );
-    }
-
-    @Test
-    public void testAddDuplicateByHash()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
-
-        String hash = "ab1234ab1234ab";
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = "HashGAVDAOTest_E";
-        String classifier = "HashGAVDAOTest_C";
-
-        HashGAV hashGAV1 = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        dao.insert( hashGAV1 );
-
-        HashGAV hashGAV2 = new HashGAV( hash, groupId + "New", artifactId, version, extension, classifier );
-        try
-        {
-            dao.insert( hashGAV2 );
-            fail( "Expected BadRequestException" );
-        }
-        catch ( BadRequestException expected )
-        {
-            assertEquals( "This component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'",
-                          expected.getMessage() );
-        }
-
-        dao.delete( hashGAV1 );
-    }
-
-    @Test
-    public void testAddDuplicateByGAVEC()
-        throws Exception
-    {
-        HashGAVDAO dao = new HashGAVDAO();
-
-        String hash = "ab1234ab1234ab";
-        String groupId = "HashGAVDAOTest_G";
-        String artifactId = "HashGAVDAOTest_A";
-        String version = "HashGAVDAOTest_V";
-        String extension = "HashGAVDAOTest_E";
-        String classifier = "HashGAVDAOTest_C";
-
-        HashGAV hashGAV1 = new HashGAV( hash, groupId, artifactId, version, extension, classifier );
-        dao.insert( hashGAV1 );
-
-        HashGAV hashGAV2 = new HashGAV( hash + "1", groupId, artifactId, version, extension, classifier );
-        try
-        {
-            dao.insert( hashGAV2 );
-            fail( "Expected BadRequestException" );
-        }
-        catch ( BadRequestException expected )
-        {
-            assertEquals( "Another component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'",
-                          expected.getMessage() );
-        }
-
-        dao.delete( hashGAV1 );
-    }
+    dao.delete(hashGAV1);
+  }
 }

@@ -12,22 +12,17 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 
 public interface JsonStore
 {
-    void commit( String path, ContainerNode<?> data )
-        throws IOException;
+  void commit(String path, ContainerNode<?> data) throws IOException;
 
-    ContainerNode<?> restore( String path )
-        throws IOException;
+  ContainerNode<?> restore(String path) throws IOException;
 
-    Iterable<String> list()
-        throws IOException;
+  Iterable<String> list() throws IOException;
 
-    int modificationCount();
+  int modificationCount();
 
-    ContainerNode<?> history( ContainerNode<?> key, String... paths )
-        throws IOException;
+  ContainerNode<?> history(ContainerNode<?> key, String... paths) throws IOException;
 
-    <T extends ContainerNode<?>> T augment( T key, String... paths )
-        throws IOException;
+  <T extends ContainerNode<?>> T augment(T key, String... paths) throws IOException;
 
-    Lock readLock();
+  Lock readLock();
 }

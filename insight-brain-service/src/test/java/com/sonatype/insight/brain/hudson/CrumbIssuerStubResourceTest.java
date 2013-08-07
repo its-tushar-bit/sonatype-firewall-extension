@@ -15,13 +15,11 @@ public class CrumbIssuerStubResourceTest
     extends AbstractResourceTest
 {
 
-    @Test
-    public void testGet()
-        throws Exception
-    {
-        uninstallLicense();
-        Response response = RestAccess.get( getRestBaseUrl() + CrumbIssuerStubResource.SERVICE_PATH );
-        assertResponseStatus( 404, response );
-    }
+  @Test
+  public void testGet() throws Exception {
+    uninstallLicense();
+    Response response = RestAccess.get(getRestBaseUrl() + CrumbIssuerStubResource.SERVICE_PATH);
+    assertResponseStatus(404, response);
+  }
 
 }

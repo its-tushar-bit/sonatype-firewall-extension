@@ -21,29 +21,26 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-@Path( RepoManResource.SERVICE_PATH )
-@ProductLicenseEnforcementPoint( { CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release } )
+@Path(RepoManResource.SERVICE_PATH)
+@ProductLicenseEnforcementPoint({ CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release })
 @Named
 public class RepoManResource
 {
-    public static final String SERVICE_PATH = "rest/rm";
+  public static final String SERVICE_PATH = "rest/rm";
 
-    private final ScanUploader uploader;
+  private final ScanUploader uploader;
 
-    @Inject
-    public RepoManResource( final ScanUploader uploader )
-    {
-        this.uploader = uploader;
-    }
+  @Inject
+  public RepoManResource(final ScanUploader uploader) {
+    this.uploader = uploader;
+  }
 
-    @PUT
-    @Path( "scan/{applicationPublicId}" )
-    @Produces( MediaType.APPLICATION_JSON )
-    public ScanReceipt uploadScan( @PathParam( "applicationPublicId" )
-    final String applicationPublicId, @Context
-    HttpServletRequest req )
-        throws IOException
-    {
-        return uploader.upload( req, applicationPublicId, "rest/rm/scan" );
-    }
+  @PUT
+  @Path("scan/{applicationPublicId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public ScanReceipt uploadScan(@PathParam("applicationPublicId") final String applicationPublicId,
+      @Context HttpServletRequest req) throws IOException
+  {
+    return uploader.upload(req, applicationPublicId, "rest/rm/scan");
+  }
 }

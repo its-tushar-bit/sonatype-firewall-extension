@@ -11,17 +11,15 @@ import com.sonatype.insight.brain.model.policy.StageType;
 public class ProcureStageType
     implements StageType
 {
-    public static final String ID = Stage.ID_PROCURE;
+  public static final String ID = Stage.ID_PROCURE;
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
+  @Override
+  public String getId() {
+    return ID;
+  }
 
-    @Override
-    public String getName()
-    {
-        return "Procure";
-    }
+  @Override
+  public String getName() {
+    return "Procure";
+  }
 }

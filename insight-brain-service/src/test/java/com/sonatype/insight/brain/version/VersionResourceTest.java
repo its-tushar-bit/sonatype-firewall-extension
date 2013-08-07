@@ -20,31 +20,25 @@ public class VersionResourceTest
     extends AbstractResourceTest
 {
 
-    private String getServiceURL()
-    {
-        return getRestBaseUrl() + VersionResource.SERVICE_PATH;
-    }
+  private String getServiceURL() {
+    return getRestBaseUrl() + VersionResource.SERVICE_PATH;
+  }
 
-    @Test
-    public void testGetVersionInfo_Licensed()
-        throws Exception
-    {
-        Response response = RestAccess.get( getServiceURL() );
-        assertResponseStatus( 200, response );
-        Map<?, ?> versionInfo = JsonHelpers.fromJson( response.getResponseBody(), Map.class );
-        assertNotNull( versionInfo );
-        for ( String key : new String[] { "name", "version", "timestamp", "tag" } )
-        {
-            assertTrue( key, versionInfo.get( key ).toString().length() > 0 );
-        }
+  @Test
+  public void testGetVersionInfo_Licensed() throws Exception {
+    Response response = RestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    Map<?, ?> versionInfo = JsonHelpers.fromJson(response.getResponseBody(), Map.class);
+    assertNotNull(versionInfo);
+    for (String key : new String[] { "name", "version", "timestamp", "tag" }) {
+      assertTrue(key, versionInfo.get(key).toString().length() > 0);
     }
+  }
 
-    @Test
-    public void testGetVersionInfo_Unlicensed()
-        throws Exception
-    {
-        uninstallLicense();
-        testGetVersionInfo_Licensed();
-    }
+  @Test
+  public void testGetVersionInfo_Unlicensed() throws Exception {
+    uninstallLicense();
+    testGetVersionInfo_Licensed();
+  }
 
 }

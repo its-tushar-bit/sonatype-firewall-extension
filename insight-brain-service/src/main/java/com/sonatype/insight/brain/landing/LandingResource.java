@@ -17,20 +17,19 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
 @Named
-@Path( LandingResource.SERVICE_PATH )
+@Path(LandingResource.SERVICE_PATH)
 @UnlicensedPath
 public class LandingResource
 {
-    public static final String SERVICE_PATH = "";
+  public static final String SERVICE_PATH = "";
 
-    @Context
-    private BaseUrl baseUrl;
+  @Context
+  private BaseUrl baseUrl;
 
-    @GET
-    public Response home()
-    {
-        UriBuilder uriBuilder = baseUrl.redirect();
-        uriBuilder.path( InsightBrainService.BRAIN_ASSET_PATH.substring( 1 ) + "index.html" );
-        return Response.seeOther( uriBuilder.build() ).build();
-    }
+  @GET
+  public Response home() {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html");
+    return Response.seeOther(uriBuilder.build()).build();
+  }
 }

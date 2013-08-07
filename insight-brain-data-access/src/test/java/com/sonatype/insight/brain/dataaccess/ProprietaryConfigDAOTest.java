@@ -20,35 +20,31 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 public class ProprietaryConfigDAOTest
 {
 
-    @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private ProprietaryConfigDAO dao;
+  private ProprietaryConfigDAO dao;
 
-    @Before
-    public void init()
-        throws Exception
-    {
-        dao = new ProprietaryConfigDAO( tmpDir.newFolder() );
-    }
+  @Before
+  public void init() throws Exception {
+    dao = new ProprietaryConfigDAO(tmpDir.newFolder());
+  }
 
-    @Test
-    public void testGet_NoConfigPersisted()
-    {
-        ProprietaryConfig config = dao.get();
-        assertNotNull( config );
-        assertEquals( 0, config.getPackages().size() );
-    }
+  @Test
+  public void testGet_NoConfigPersisted() {
+    ProprietaryConfig config = dao.get();
+    assertNotNull(config);
+    assertEquals(0, config.getPackages().size());
+  }
 
-    @Test
-    public void testUpdate()
-    {
-        List<String> packages = Arrays.asList( "org.sonatype", "com.sonatype" );
-        ProprietaryConfig config = new ProprietaryConfig();
-        config.setPackages( packages );
-        dao.update( config );
-        config = dao.get();
-        assertEquals( packages, config.getPackages() );
-    }
+  @Test
+  public void testUpdate() {
+    List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
+    ProprietaryConfig config = new ProprietaryConfig();
+    config.setPackages(packages);
+    dao.update(config);
+    config = dao.get();
+    assertEquals(packages, config.getPackages());
+  }
 
 }

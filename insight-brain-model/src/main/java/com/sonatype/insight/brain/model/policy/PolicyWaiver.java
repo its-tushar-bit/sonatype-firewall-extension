@@ -19,113 +19,97 @@ import com.sonatype.insight.model.HasStringId;
  * @since 1.6
  */
 @Entity
-@Table( name = "policy_waiver" )
+@Table(name = "policy_waiver")
 public class PolicyWaiver
     implements HasStringId
 {
-    @Id
-    @Column( name = "policy_waiver_id" )
-    private String id;
+  @Id
+  @Column(name = "policy_waiver_id")
+  private String id;
 
-    @Column( name = "hash" )
-    private String hash;
+  @Column(name = "hash")
+  private String hash;
 
-    @Column( name = "policy_id" )
-    private String policyId;
+  @Column(name = "policy_id")
+  private String policyId;
 
-    @Column( name = "constraint_id" )
-    private String constraintId;
+  @Column(name = "constraint_id")
+  private String constraintId;
 
-    @Column( name = "owner_id" )
-    private String ownerId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
-    @Column( name = "comment" )
-    private String comment;
+  @Column(name = "comment")
+  private String comment;
 
-    @Column( name = "create_time" )
-    private Date createTime;
+  @Column(name = "create_time")
+  private Date createTime;
 
-    public PolicyWaiver()
-    {
-    }
+  public PolicyWaiver() {
+  }
 
-    public PolicyWaiver( String hash, String policyId, String ownerId, String comment )
-    {
-        setHash( hash );
-        this.policyId = policyId;
-        this.ownerId = ownerId;
-        this.comment = comment;
-    }
+  public PolicyWaiver(String hash, String policyId, String ownerId, String comment) {
+    setHash(hash);
+    this.policyId = policyId;
+    this.ownerId = ownerId;
+    this.comment = comment;
+  }
 
-    @Override
-    public String getId()
-    {
-        return id;
-    }
+  @Override
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public String getHash()
-    {
-        return hash;
-    }
+  public String getHash() {
+    return hash;
+  }
 
-    public void setHash( String hash )
-    {
-        this.hash = HashHelper.truncateHash( hash );
-    }
+  public void setHash(String hash) {
+    this.hash = HashHelper.truncateHash(hash);
+  }
 
-    public String getPolicyId()
-    {
-        return policyId;
-    }
+  public String getPolicyId() {
+    return policyId;
+  }
 
-    public void setPolicyId( String policyId )
-    {
-        this.policyId = policyId;
-    }
+  public void setPolicyId(String policyId) {
+    this.policyId = policyId;
+  }
 
-    public String getConstraintId()
-    {
-        return constraintId;
-    }
+  public String getConstraintId() {
+    return constraintId;
+  }
 
-    public void setConstraintId( String constraintId )
-    {
-        this.constraintId = constraintId;
-    }
+  public void setConstraintId(String constraintId) {
+    this.constraintId = constraintId;
+  }
 
-    public String getOwnerId()
-    {
-        return ownerId;
-    }
+  public String getOwnerId() {
+    return ownerId;
+  }
 
-    public void setOwnerId( String ownerId )
-    {
-        this.ownerId = ownerId;
-    }
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
+  }
 
-    public String getComment()
-    {
-        return comment;
-    }
+  public String getComment() {
+    return comment;
+  }
 
-    public void setComment( String comment )
-    {
-        this.comment = comment;
-    }
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
 
-    public Date getCreateTime()
-    {
-        return createTime;
-    }
+  public Date getCreateTime() {
+    return createTime;
+  }
 
-    public void setCreateTime( Date createTime )
-    {
-        this.createTime = createTime;
-    }
+  public void setCreateTime(Date createTime) {
+    this.createTime = createTime;
+  }
 }

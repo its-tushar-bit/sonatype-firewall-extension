@@ -20,34 +20,28 @@ import org.codehaus.plexus.util.IOUtil;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 @Named
-@Path( VersionResource.SERVICE_PATH )
+@Path(VersionResource.SERVICE_PATH)
 @UnlicensedPath
 public class VersionResource
 {
-    public static final String SERVICE_PATH = "rest/version";
+  public static final String SERVICE_PATH = "rest/version";
 
-    @GET
-    @Produces( MediaType.APPLICATION_JSON )
-    public Properties getVersionInfo()
-        throws Exception
-    {
-        return get();
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Properties getVersionInfo() throws Exception {
+    return get();
+  }
+
+  public static Properties get() throws IOException {
+    Properties props = new Properties();
+    InputStream is = VersionResource.class.getResourceAsStream("version.properties");
+    try {
+      props.load(is);
     }
-
-    public static Properties get()
-        throws IOException
-    {
-        Properties props = new Properties();
-        InputStream is = VersionResource.class.getResourceAsStream( "version.properties" );
-        try
-        {
-            props.load( is );
-        }
-        finally
-        {
-            IOUtil.close( is );
-        }
-        return props;
-
+    finally {
+      IOUtil.close(is);
     }
+    return props;
+
+  }
 }

@@ -22,56 +22,48 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 public class LicenseThreatGroupValueTypeTest
 {
-    private Organization org;
+  private Organization org;
 
-    private Application app;
+  private Application app;
 
-    @Before
-    public void setUp()
-        throws Exception
-    {
-        org = new Organization( "orgName" );
-        new OrganizationDAO().insert( org );
-        app = new Application();
-        app.setName( "appName" );
-        app.setPublicId( "appId" );
-        app.setOrganizationId( org.getId() );
-        new ApplicationDAO().insert( app );
-        LicenseThreatGroup ltg = new LicenseThreatGroup( app.getId(), "ltgName", 5 );
-        new LicenseThreatGroupDAO().insert( ltg );
+  @Before
+  public void setUp() throws Exception {
+    org = new Organization("orgName");
+    new OrganizationDAO().insert(org);
+    app = new Application();
+    app.setName("appName");
+    app.setPublicId("appId");
+    app.setOrganizationId(org.getId());
+    new ApplicationDAO().insert(app);
+    LicenseThreatGroup ltg = new LicenseThreatGroup(app.getId(), "ltgName", 5);
+    new LicenseThreatGroupDAO().insert(ltg);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    ApplicationDAO appDAO = new ApplicationDAO();
+    for (Application app : appDAO.getAll()) {
+      appDAO.delete(app);
     }
-
-    @After
-    public void tearDown()
-        throws Exception
-    {
-        ApplicationDAO appDAO = new ApplicationDAO();
-        for ( Application app : appDAO.getAll() )
-        {
-            appDAO.delete( app );
-        }
-        OrganizationDAO orgDAO = new OrganizationDAO();
-        for ( Organization org : orgDAO.getAll() )
-        {
-            orgDAO.delete( org );
-        }
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    for (Organization org : orgDAO.getAll()) {
+      orgDAO.delete(org);
     }
+  }
 
-    @Test
-    public void testGetAvailableValues_AppLevel()
-    {
-        LicenseThreatGroupValueType type = new LicenseThreatGroupValueType( app.getId() );
-        List<LicenseThreatGroup> ltgs = type.getAvailableValues();
-        assertNotNull( ltgs );
-        assertEquals( 5, ltgs.size() );
-    }
+  @Test
+  public void testGetAvailableValues_AppLevel() {
+    LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(app.getId());
+    List<LicenseThreatGroup> ltgs = type.getAvailableValues();
+    assertNotNull(ltgs);
+    assertEquals(5, ltgs.size());
+  }
 
-    @Test
-    public void testGetAvailableValues_OrgLevel()
-    {
-        LicenseThreatGroupValueType type = new LicenseThreatGroupValueType( org.getId() );
-        List<LicenseThreatGroup> ltgs = type.getAvailableValues();
-        assertNotNull( ltgs );
-        assertEquals( 4, ltgs.size() );
-    }
+  @Test
+  public void testGetAvailableValues_OrgLevel() {
+    LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(org.getId());
+    List<LicenseThreatGroup> ltgs = type.getAvailableValues();
+    assertNotNull(ltgs);
+    assertEquals(4, ltgs.size());
+  }
 }

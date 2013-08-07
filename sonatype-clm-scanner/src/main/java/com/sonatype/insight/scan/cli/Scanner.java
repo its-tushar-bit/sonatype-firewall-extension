@@ -29,68 +29,60 @@ import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 public class Scanner
 {
 
-    private final Logger log;
+  private final Logger log;
 
-    private final ScanPropertiesLoader configLoader;
+  private final ScanPropertiesLoader configLoader;
 
-    private final ClientScanner clientScanner;
+  private final ClientScanner clientScanner;
 
-    private final FileScanner fileScanner;
+  private final FileScanner fileScanner;
 
-    private final ScanWriterFactory writerFactory;
+  private final ScanWriterFactory writerFactory;
 
-    @Inject
-    public Scanner( ScanPropertiesLoader configLoader, ClientScanner clientScanner, FileScanner fileScanner,
-                    ScanWriterFactory writerFactory, Logger log )
-    {
-        this.configLoader = configLoader;
-        this.clientScanner = clientScanner;
-        this.fileScanner = fileScanner;
-        this.writerFactory = writerFactory;
-        this.log = log;
+  @Inject
+  public Scanner(ScanPropertiesLoader configLoader, ClientScanner clientScanner, FileScanner fileScanner,
+      ScanWriterFactory writerFactory, Logger log)
+  {
+    this.configLoader = configLoader;
+    this.clientScanner = clientScanner;
+    this.fileScanner = fileScanner;
+    this.writerFactory = writerFactory;
+    this.log = log;
+  }
+
+  public void scan(File scanFile, List<File> targets, Properties config) throws IOException {
+    log.info("Starting scan...");
+
+    Scan scan = new Scan();
+    scan.setConfiguration(new ScanConfiguration(getScanConfigProps(config)));
+    ScanWriter writer = writerFactory.newWriter(scanFile);
+    try {
+      writer.openScan(scan);
+      writer.writeConfiguration(scan.getConfiguration());
+      scan.getSummary().setStartTime();
+      clientScanner.scan(new ClientScanRequest(scan));
+      fileScanner.scan(new FileScanRequest(scan, null, targets, writer));
+      scan.getSummary().setEndTime();
+      writer.writeSummary(scan.getSummary());
+      writer.closeScan();
+      writer.close();
     }
-
-    public void scan( File scanFile, List<File> targets, Properties config )
-        throws IOException
-    {
-        log.info( "Starting scan..." );
-
-        Scan scan = new Scan();
-        scan.setConfiguration( new ScanConfiguration( getScanConfigProps( config ) ) );
-        ScanWriter writer = writerFactory.newWriter( scanFile );
-        try
-        {
-            writer.openScan( scan );
-            writer.writeConfiguration( scan.getConfiguration() );
-            scan.getSummary().setStartTime();
-            clientScanner.scan( new ClientScanRequest( scan ) );
-            fileScanner.scan( new FileScanRequest( scan, null, targets, writer ) );
-            scan.getSummary().setEndTime();
-            writer.writeSummary( scan.getSummary() );
-            writer.closeScan();
-            writer.close();
-        }
-        finally
-        {
-            try
-            {
-                writer.close();
-            }
-            catch ( IOException e )
-            {
-                // don't suppress primary exception
-            }
-        }
+    finally {
+      try {
+        writer.close();
+      }
+      catch (IOException e) {
+        // don't suppress primary exception
+      }
     }
+  }
 
-    private Properties getScanConfigProps( Properties properties )
-        throws IOException
-    {
-        Properties props = new Properties();
-        props.putAll( properties );
-        configLoader.loadDefaults( props, "configuration.properties" );
-        configLoader.resolveAliases( props );
-        return props;
-    }
+  private Properties getScanConfigProps(Properties properties) throws IOException {
+    Properties props = new Properties();
+    props.putAll(properties);
+    configLoader.loadDefaults(props, "configuration.properties");
+    configLoader.resolveAliases(props);
+    return props;
+  }
 
 }

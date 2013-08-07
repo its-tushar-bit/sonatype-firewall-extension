@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.dataaccess.label;
 
 import com.sonatype.insight.error.HttpStatusCode;
 
-@SuppressWarnings( "serial" )
-@HttpStatusCode( 400 )
+@SuppressWarnings("serial")
+@HttpStatusCode(400)
 public class InvalidLabelException
     extends RuntimeException
 {
-    public InvalidLabelException( String message )
-    {
-        super( message );
-    }
+  public InvalidLabelException(String message) {
+    super(message);
+  }
 }

@@ -16,35 +16,30 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
 {
-    @Test
-    public void testGetConditionValueTypes_Application()
-        throws Exception
-    {
-        String appPublicId = "ConditionValueTypeResourceTest_AppId";
-        createApplication( appPublicId );
+  @Test
+  public void testGetConditionValueTypes_Application() throws Exception {
+    String appPublicId = "ConditionValueTypeResourceTest_AppId";
+    createApplication(appPublicId);
 
-        final Response response = RestAccess.get( getServiceURL( "application", appPublicId ) );
-        assertResponseStatus( 200, response );
-        final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
-        Assert.assertNotNull( conditionValueTypes );
-        Assert.assertTrue( conditionValueTypes.length > 0 );
-    }
+    final Response response = RestAccess.get(getServiceURL("application", appPublicId));
+    assertResponseStatus(200, response);
+    final Object[] conditionValueTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    Assert.assertNotNull(conditionValueTypes);
+    Assert.assertTrue(conditionValueTypes.length > 0);
+  }
 
-    @Test
-    public void testGetConditionValueTypes_Organization()
-        throws Exception
-    {
-        String orgId = createOrganization( "test" ).getId();
+  @Test
+  public void testGetConditionValueTypes_Organization() throws Exception {
+    String orgId = createOrganization("test").getId();
 
-        final Response response = RestAccess.get( getServiceURL( "organization", orgId ) );
-        assertResponseStatus( 200, response );
-        final Object[] conditionValueTypes = JsonHelpers.fromJson( response.getResponseBody(), Object[].class );
-        Assert.assertNotNull( conditionValueTypes );
-        Assert.assertTrue( conditionValueTypes.length > 0 );
-    }
+    final Response response = RestAccess.get(getServiceURL("organization", orgId));
+    assertResponseStatus(200, response);
+    final Object[] conditionValueTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    Assert.assertNotNull(conditionValueTypes);
+    Assert.assertTrue(conditionValueTypes.length > 0);
+  }
 
-    private String getServiceURL( String ownerType, String ownerId )
-    {
-        return getRestBaseUrl() + expandRestUrl( ConditionValueTypeResource.SERVICE_PATH, ownerType, ownerId );
-    }
+  private String getServiceURL(String ownerType, String ownerId) {
+    return getRestBaseUrl() + expandRestUrl(ConditionValueTypeResource.SERVICE_PATH, ownerType, ownerId);
+  }
 }

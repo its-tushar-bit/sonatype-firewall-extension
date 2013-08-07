@@ -9,11 +9,11 @@ import java.util.List;
 
 public interface ConditionValueType<T>
 {
-    String getId();
+  String getId();
 
-    String getDataType();
+  String getDataType();
 
-    boolean isAllowMultiple();
+  boolean isAllowMultiple();
 
-    List<T> getAvailableValues();
+  List<T> getAvailableValues();
 }

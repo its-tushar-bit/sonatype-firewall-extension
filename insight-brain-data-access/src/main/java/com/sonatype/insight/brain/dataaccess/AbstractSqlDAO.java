@@ -15,19 +15,16 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractSqlDAO<T extends HasStringId>
     extends AbstractDAO<T>
 {
-    private String newUUID()
-    {
-        return UUID.randomUUID().toString().replace( "-", "" );
-    }
+  private String newUUID() {
+    return UUID.randomUUID().toString().replace("-", "");
+  }
 
-    @Override
-    public void insert( EntityManager em, T entity )
-    {
-        String id = entity.getId();
-        if ( id == null || id.trim().isEmpty() )
-        {
-            entity.setId( newUUID() );
-        }
-        super.insert( em, entity );
+  @Override
+  public void insert(EntityManager em, T entity) {
+    String id = entity.getId();
+    if (id == null || id.trim().isEmpty()) {
+      entity.setId(newUUID());
     }
+    super.insert(em, entity);
+  }
 }

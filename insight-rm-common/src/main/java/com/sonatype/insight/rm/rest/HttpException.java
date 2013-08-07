@@ -11,27 +11,24 @@ public class HttpException
     extends IOException
 {
 
-    private static final long serialVersionUID = 3630192531900782143L;
+  private static final long serialVersionUID = 3630192531900782143L;
 
-    private final int status;
+  private final int status;
 
-    private final String reason;
+  private final String reason;
 
-    public HttpException( int status, String reason, Throwable cause )
-    {
-        super( "Error code " + status + ": " + reason, cause );
-        this.status = status;
-        this.reason = reason;
-    }
+  public HttpException(int status, String reason, Throwable cause) {
+    super("Error code " + status + ": " + reason, cause);
+    this.status = status;
+    this.reason = reason;
+  }
 
-    public int getStatus()
-    {
-        return status;
-    }
+  public int getStatus() {
+    return status;
+  }
 
-    public String getReason()
-    {
-        return reason;
-    }
+  public String getReason() {
+    return reason;
+  }
 
 }

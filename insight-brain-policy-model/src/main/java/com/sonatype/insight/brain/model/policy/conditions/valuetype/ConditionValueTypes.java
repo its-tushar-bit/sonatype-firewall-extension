@@ -13,21 +13,20 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class ConditionValueTypes
 {
-    public static Collection<ConditionValueType<?>> getAll( String ownerId )
-    {
-        List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<ConditionValueType<?>>();
-        allConditionValueTypes.add( new AgeInDaysValueType() );
-        allConditionValueTypes.add( new CoordinatesValueType() );
-        allConditionValueTypes.add( new FloatValueType() );
-        allConditionValueTypes.add( new IntegerValueType() );
-        allConditionValueTypes.add( new IdentificationSourceValueType() );
-        allConditionValueTypes.add( new LabelValueType( ownerId ) );
-        allConditionValueTypes.add( new LicenseStatusValueType() );
-        allConditionValueTypes.add( new LicenseThreatGroupValueType( ownerId ) );
-        allConditionValueTypes.add( new LicenseValueType() );
-        allConditionValueTypes.add( new MatchStateValueType() );
-        allConditionValueTypes.add( new PercentageValueType() );
-        allConditionValueTypes.add( new SecurityVulnerabilityStatusValueType() );
-        return allConditionValueTypes;
-    }
+  public static Collection<ConditionValueType<?>> getAll(String ownerId) {
+    List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<ConditionValueType<?>>();
+    allConditionValueTypes.add(new AgeInDaysValueType());
+    allConditionValueTypes.add(new CoordinatesValueType());
+    allConditionValueTypes.add(new FloatValueType());
+    allConditionValueTypes.add(new IntegerValueType());
+    allConditionValueTypes.add(new IdentificationSourceValueType());
+    allConditionValueTypes.add(new LabelValueType(ownerId));
+    allConditionValueTypes.add(new LicenseStatusValueType());
+    allConditionValueTypes.add(new LicenseThreatGroupValueType(ownerId));
+    allConditionValueTypes.add(new LicenseValueType());
+    allConditionValueTypes.add(new MatchStateValueType());
+    allConditionValueTypes.add(new PercentageValueType());
+    allConditionValueTypes.add(new SecurityVulnerabilityStatusValueType());
+    return allConditionValueTypes;
+  }
 }

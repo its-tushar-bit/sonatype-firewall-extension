@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import com.sonatype.insight.error.HttpStatusCode;
 
-@SuppressWarnings( "serial" )
-@HttpStatusCode( 400 )
+@SuppressWarnings("serial")
+@HttpStatusCode(400)
 public class InvalidLicenseThreatGroupLicenseException
     extends RuntimeException
 {
-    public InvalidLicenseThreatGroupLicenseException( String message )
-    {
-        super( message );
-    }
+  public InvalidLicenseThreatGroupLicenseException(String message) {
+    super(message);
+  }
 }

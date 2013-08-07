@@ -12,24 +12,19 @@ import com.sonatype.insight.brain.model.policy.ValidationResult;
 abstract class AbstractActionType
     implements ActionType
 {
-    @Override
-    public ValidationResult validateAction( Action action )
-    {
-        if ( isRequiresTarget() )
-        {
-            if ( action.getTarget() == null || action.getTarget().trim().isEmpty() )
-            {
-                return new ValidationResult( "Invalid action '" + getName() + "': A target is required" );
-            }
-        }
-        else
-        {
-            if ( action.getTarget() != null )
-            {
-                return new ValidationResult( "Invalid action '" + getName() + "': This action does not support targets" );
-            }
-        }
-
-        return null;
+  @Override
+  public ValidationResult validateAction(Action action) {
+    if (isRequiresTarget()) {
+      if (action.getTarget() == null || action.getTarget().trim().isEmpty()) {
+        return new ValidationResult("Invalid action '" + getName() + "': A target is required");
+      }
     }
+    else {
+      if (action.getTarget() != null) {
+        return new ValidationResult("Invalid action '" + getName() + "': This action does not support targets");
+      }
+    }
+
+    return null;
+  }
 }

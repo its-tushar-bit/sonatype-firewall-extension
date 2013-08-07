@@ -32,126 +32,113 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 public class DefaultLicenseDataUpdaterTest
     extends AbstractBrainServiceTest
 {
-    @After
-    public void after()
-    {
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, null, 404 );
+  @After
+  public void after() {
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, null, 404);
+  }
+
+  @Test
+  public void testLicenseCategory() throws Exception {
+    LicenseData licenseData = createLicenseData();
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    String newId = "New license category id";
+    LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
+    assertNull(licenseCategoryDAO.getById(newId));
+
+    LicenseCategory newLicenseCategory = new LicenseCategory();
+    newLicenseCategory.setId(newId);
+    newLicenseCategory.setName("New name");
+    newLicenseCategory.setSeverity(4);
+    licenseData.categories.add(newLicenseCategory);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    assertNotNull(licenseCategoryDAO.getById(newId));
+  }
+
+  @Test
+  public void testLicense() throws Exception {
+    LicenseData licenseData = createLicenseData();
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    String newId = "New license id";
+    LicenseDAO licenseDAO = new LicenseDAO();
+    assertNull(licenseDAO.getById(newId));
+
+    License newLicense = new License();
+    newLicense.setId(newId);
+    newLicense.setShortDisplayName("New short name");
+    newLicense.setLongDisplayName("New long name");
+    newLicense.setDescription("New description");
+    newLicense.setLicenseCategoryId("COPYLEFT");
+    licenseData.licenses.add(newLicense);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    assertNotNull(licenseDAO.getById(newId));
+  }
+
+  @Test
+  public void testMultiLicense_ById() throws Exception {
+    LicenseData licenseData = createLicenseData();
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    String newId = "New license id1";
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    assertNull(multiLicenseDAO.getById(newId));
+
+    MultiLicense newMultiLicense = new MultiLicense();
+    newMultiLicense.setId(newId);
+    newMultiLicense.setShortDisplayName("New short name1");
+    newMultiLicense.setLongDisplayName("New long name");
+    newMultiLicense.setDescription("New description");
+    licenseData.multiLicenses.add(newMultiLicense);
+    Set<String> multiLicenseMappings = new LinkedHashSet<String>();
+    multiLicenseMappings.add("GPL-2.0");
+    licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    assertNotNull(multiLicenseDAO.getById(newId));
+    assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId(newId).iterator().next().getId());
+  }
+
+  @Test
+  public void testMultiLicense_ByName() throws Exception {
+    LicenseData licenseData = createLicenseData();
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    String newId = "New license id2";
+    String newName = "New short name2";
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    assertNull(multiLicenseDAO.getByName(newName));
+
+    MultiLicense newMultiLicense = new MultiLicense();
+    newMultiLicense.setId(newId);
+    newMultiLicense.setShortDisplayName(newName);
+    newMultiLicense.setLongDisplayName("New long name");
+    newMultiLicense.setDescription("New description");
+    licenseData.multiLicenses.add(newMultiLicense);
+    Set<String> multiLicenseMappings = new LinkedHashSet<String>();
+    multiLicenseMappings.add("GPL-2.0");
+    licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
+    assertNotNull(multiLicenseDAO.getByName(newName));
+    assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId(newId).iterator().next().getId());
+  }
+
+  @Test
+  public void testNoSaaSServer() {
+    saas.stop();
+
+    String newId = "New license id";
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    try {
+      multiLicenseDAO.getById(newId);
+      fail("Expected RuntimeException");
     }
-
-    @Test
-    public void testLicenseCategory()
-        throws Exception
-    {
-        LicenseData licenseData = createLicenseData();
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        String newId = "New license category id";
-        LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
-        assertNull( licenseCategoryDAO.getById( newId ) );
-
-        LicenseCategory newLicenseCategory = new LicenseCategory();
-        newLicenseCategory.setId( newId );
-        newLicenseCategory.setName( "New name" );
-        newLicenseCategory.setSeverity( 4 );
-        licenseData.categories.add( newLicenseCategory );
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        assertNotNull( licenseCategoryDAO.getById( newId ) );
+    catch (RuntimeException e) {
+      assertTrue(e.getMessage(), e.getMessage().startsWith("Could not retrieve license data from SaaS:"));
     }
+  }
 
-    @Test
-    public void testLicense()
-        throws Exception
-    {
-        LicenseData licenseData = createLicenseData();
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        String newId = "New license id";
-        LicenseDAO licenseDAO = new LicenseDAO();
-        assertNull( licenseDAO.getById( newId ) );
-
-        License newLicense = new License();
-        newLicense.setId( newId );
-        newLicense.setShortDisplayName( "New short name" );
-        newLicense.setLongDisplayName( "New long name" );
-        newLicense.setDescription( "New description" );
-        newLicense.setLicenseCategoryId( "COPYLEFT" );
-        licenseData.licenses.add( newLicense );
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        assertNotNull( licenseDAO.getById( newId ) );
-    }
-
-    @Test
-    public void testMultiLicense_ById()
-        throws Exception
-    {
-        LicenseData licenseData = createLicenseData();
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        String newId = "New license id1";
-        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-        assertNull( multiLicenseDAO.getById( newId ) );
-
-        MultiLicense newMultiLicense = new MultiLicense();
-        newMultiLicense.setId( newId );
-        newMultiLicense.setShortDisplayName( "New short name1" );
-        newMultiLicense.setLongDisplayName( "New long name" );
-        newMultiLicense.setDescription( "New description" );
-        licenseData.multiLicenses.add( newMultiLicense );
-        Set<String> multiLicenseMappings = new LinkedHashSet<String>();
-        multiLicenseMappings.add( "GPL-2.0" );
-        licenseData.multiLicenseMappings.put( newId, multiLicenseMappings );
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        assertNotNull( multiLicenseDAO.getById( newId ) );
-        assertEquals( "GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId( newId ).iterator().next().getId() );
-    }
-
-    @Test
-    public void testMultiLicense_ByName()
-        throws Exception
-    {
-        LicenseData licenseData = createLicenseData();
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        String newId = "New license id2";
-        String newName = "New short name2";
-        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-        assertNull( multiLicenseDAO.getByName( newName ) );
-
-        MultiLicense newMultiLicense = new MultiLicense();
-        newMultiLicense.setId( newId );
-        newMultiLicense.setShortDisplayName( newName );
-        newMultiLicense.setLongDisplayName( "New long name" );
-        newMultiLicense.setDescription( "New description" );
-        licenseData.multiLicenses.add( newMultiLicense );
-        Set<String> multiLicenseMappings = new LinkedHashSet<String>();
-        multiLicenseMappings.add( "GPL-2.0" );
-        licenseData.multiLicenseMappings.put( newId, multiLicenseMappings );
-        setSaasResponseForURI( DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson( licenseData ), 200 );
-        assertNotNull( multiLicenseDAO.getByName( newName ) );
-        assertEquals( "GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId( newId ).iterator().next().getId() );
-    }
-
-    @Test
-    public void testNoSaaSServer()
-    {
-        saas.stop();
-
-        String newId = "New license id";
-        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-        try
-        {
-            multiLicenseDAO.getById( newId );
-            fail( "Expected RuntimeException" );
-        }
-        catch ( RuntimeException e )
-        {
-            assertTrue( e.getMessage(), e.getMessage().startsWith( "Could not retrieve license data from SaaS:" ) );
-        }
-    }
-
-    private LicenseData createLicenseData()
-    {
-        LicenseData licenseData = new LicenseData();
-        licenseData.categories = new ArrayList<LicenseCategory>();
-        licenseData.licenses = new ArrayList<License>();
-        licenseData.multiLicenses = new ArrayList<MultiLicense>();
-        licenseData.multiLicenseMappings = new LinkedHashMap<String, Set<String>>();
-        return licenseData;
-    }
+  private LicenseData createLicenseData() {
+    LicenseData licenseData = new LicenseData();
+    licenseData.categories = new ArrayList<LicenseCategory>();
+    licenseData.licenses = new ArrayList<License>();
+    licenseData.multiLicenses = new ArrayList<MultiLicense>();
+    licenseData.multiLicenseMappings = new LinkedHashMap<String, Set<String>>();
+    return licenseData;
+  }
 }

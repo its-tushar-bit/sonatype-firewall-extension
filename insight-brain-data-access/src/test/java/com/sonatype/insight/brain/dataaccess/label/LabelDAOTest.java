@@ -200,6 +200,35 @@ public class LabelDAOTest
         }
     }
 
+  @Test
+  public void testLabelWithTooLongName() throws Exception {
+    LabelDAO dao = new LabelDAO();
+    Label label = new Label();
+    label.setOwnerId(applicationId);
+    label.setLabel(StringUtils.repeat("X", LabelDAO.MAX_NAME_SIZE + 1));
+
+    // Insert
+    try {
+      dao.insert(label);
+      fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      assertEquals("The label text must not exceed 50 characters", e.getMessage());
+    }
+
+    // Update
+    label.setLabel("MyLabel");
+    dao.insert(label);
+    label.setLabel(StringUtils.repeat("X", LabelDAO.MAX_NAME_SIZE + 1));
+    try {
+      dao.update(label);
+      fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      assertEquals("The label text must not exceed 50 characters", e.getMessage());
+    }
+  }
+
     @Test
     public void testSetColorBackToNull()
         throws Exception
@@ -529,6 +558,16 @@ public class LabelDAOTest
     label.setDescription(StringUtils.leftPad("", LabelDAO.MAX_DESC_SIZE + 1, "a"));
     try {
       labelDAO.insert(label);
+      fail("Should have thrown InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      assertThat(e.getMessage(), startsWith("The label description can't be longer than"));
+    }
+    label.setDescription("valid");
+    labelDAO.insert(label);
+    label.setDescription(StringUtils.leftPad("", LabelDAO.MAX_DESC_SIZE + 1, "a"));
+    try {
+      labelDAO.update(label);
       fail("Should have thrown InvalidLabelException");
     }
     catch (InvalidLabelException e) {

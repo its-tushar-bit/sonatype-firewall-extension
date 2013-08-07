@@ -23,6 +23,8 @@ public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
 {
 
+  public static final int MAX_NAME_SIZE = 50;
+
   public static final int MAX_DESC_SIZE = 255;
 
   public List<Label> getByOwnerId( String ownerId )
@@ -200,6 +202,10 @@ public class LabelDAO
         {
             throw new InvalidLabelException( "The label text cannot contain tabs" );
         }
+        if ( label.length() > MAX_NAME_SIZE )
+        {
+            throw new InvalidLabelException( "The label text must not exceed 50 characters" );
+        }
     }
 
     @Override
@@ -286,6 +292,7 @@ public class LabelDAO
     {
         validateLabelText( label.getLabel() );
         validateLabelUnique( em, label, true );
+        validateLabelDescription(label.getDescription());
         super.update( em, label );
     }
 }

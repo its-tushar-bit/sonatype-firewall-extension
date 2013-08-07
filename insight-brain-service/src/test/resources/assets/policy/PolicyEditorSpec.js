@@ -79,7 +79,7 @@ describe('PolicyEditor.js', function() {
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
 			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html?").respond(quickAddTemplate);
-			$httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html").respond(conditionTemplate);
+			$httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
 			$compile(node)(scope);
 			$httpBackend.flush();
 		}));
@@ -228,8 +228,8 @@ describe('PolicyEditor.js', function() {
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
             $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
             $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html?").respond(template);
-            $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html").respond(constraintEditorTemplate);
-            $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html").respond(conditionEditorTemplate);
+            $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
+            $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionEditorTemplate);
 
             parentScope = testScope.$new();
             parentScope.policyEditMap = {};

@@ -153,6 +153,7 @@
           $('#componentExistingWaiverModal').modal('hide');
         };
         $scope.remove = function(waiver) {
+          $scope.appError = null;
           $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function(){
             $scope.waivers.splice($scope.waivers.indexOf(waiver),1);
           }).error(handleHttpError);

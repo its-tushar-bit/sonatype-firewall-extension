@@ -531,37 +531,34 @@
 
 	angularCommon.directive('clmInclude', ['$templateCache', '$http', '$compile', function ($templateCache, $http, $compile) {
 		return {
-			compile : function (element, attrs) {
+			link : function(scope, element, attrs) {
 				var counter = 0,
 					childScope;
-
-				return function(scope, element) {
-					attrs.$observe('clmInclude', function (val) {
-						if (val) {
-							var changeCounter = ++counter;
-							val = scope.$eval(val) + '?' + clmBuildTimestamp;
-							$http.get(val, { cache : $templateCache }).success(function (response) {
-								if (changeCounter  === counter) {
-									if (childScope) {
-										childScope.$destroy();
-									}
-									childScope = scope.$new();
-									element.html(response);
-									$compile(element.contents())(childScope);
-									childScope.$emit('$includeContentLoaded');
+				attrs.$observe('clmInclude', function (val) {
+					if (val) {
+						var changeCounter = ++counter;
+						val = scope.$eval(val) + '?' + clmBuildTimestamp;
+						$http.get(val, { cache : $templateCache }).success(function (response) {
+							if (changeCounter  === counter) {
+								if (childScope) {
+									childScope.$destroy();
 								}
-							}).error(function () {
-								if (changeCounter  === counter) {
-									if (childScope) {
-										childScope.$destroy();
-									}
-									childScope = null;
-									element.html('');
+								childScope = scope.$new();
+								element.html(response);
+								$compile(element.contents())(childScope);
+								childScope.$emit('$includeContentLoaded');
+							}
+						}).error(function () {
+							if (changeCounter  === counter) {
+								if (childScope) {
+									childScope.$destroy();
 								}
-							});
-						}
-					});
-				};
+								childScope = null;
+								element.html('');
+							}
+						});
+					}
+				});
 			}
 		}
 	}]);

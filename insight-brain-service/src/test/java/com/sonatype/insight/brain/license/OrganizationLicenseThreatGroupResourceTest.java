@@ -5,14 +5,15 @@
  */
 package com.sonatype.insight.brain.license;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
-
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.utils.IdUtils;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class OrganizationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest

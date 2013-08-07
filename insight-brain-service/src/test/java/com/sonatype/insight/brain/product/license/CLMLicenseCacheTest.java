@@ -1,12 +1,13 @@
 package com.sonatype.insight.brain.product.license;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-import org.sonatype.licensing.product.ProductLicenseManager;
-
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.service.AbstractLicenseTest;
+
+import org.sonatype.licensing.product.ProductLicenseManager;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class CLMLicenseCacheTest
     extends AbstractLicenseTest

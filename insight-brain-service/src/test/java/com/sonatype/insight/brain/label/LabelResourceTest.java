@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
@@ -30,7 +26,11 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class LabelResourceTest
     extends AbstractResourceTest

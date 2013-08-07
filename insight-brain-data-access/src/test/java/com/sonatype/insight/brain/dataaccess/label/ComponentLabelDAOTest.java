@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ComponentLabelDAOTest
     extends AbstractDbDAOTest

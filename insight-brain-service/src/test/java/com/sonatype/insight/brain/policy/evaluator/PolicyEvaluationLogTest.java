@@ -5,22 +5,22 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
+
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class PolicyEvaluationLogTest
 {

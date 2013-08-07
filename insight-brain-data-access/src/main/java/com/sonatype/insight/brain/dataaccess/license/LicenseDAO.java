@@ -10,12 +10,12 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // Copied from com.sonatype.insight.datamart.dao.LicenseDAO
 public class LicenseDAO

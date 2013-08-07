@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.db;
 
 import java.io.File;
 
-import org.junit.Test;
-
 import com.sonatype.insight.db.DatabaseConfig;
+
+import org.junit.Test;
 
 public class DatamartDataStoreProviderTest
     extends AbstractDatabaseProviderTest

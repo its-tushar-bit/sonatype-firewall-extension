@@ -9,10 +9,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
@@ -44,7 +40,11 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class IdeResourceTest
     extends AbstractResourceTest

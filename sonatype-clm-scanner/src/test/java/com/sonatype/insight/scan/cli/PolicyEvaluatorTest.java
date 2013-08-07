@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.scan.cli;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Arrays;
@@ -16,25 +13,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.apache.http.client.HttpResponseException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestName;
-import org.mockito.ArgumentCaptor;
-import org.slf4j.LoggerFactory;
-import org.sonatype.guice.bean.containers.InjectedTest;
-
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.util.ContextInitializer;
-import ch.qos.logback.core.OutputStreamAppender;
-import ch.qos.logback.core.util.StatusPrinter;
-
-import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -49,6 +27,35 @@ import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanReader;
+
+import org.sonatype.guice.bean.containers.InjectedTest;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.util.ContextInitializer;
+import ch.qos.logback.core.OutputStreamAppender;
+import ch.qos.logback.core.util.StatusPrinter;
+import com.google.inject.Binder;
+import org.apache.http.client.HttpResponseException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
+import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PolicyEvaluatorTest
     extends InjectedTest

@@ -5,17 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 import java.util.List;
+
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.sonatype.clm.dto.model.ProprietaryConfig;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class ProprietaryConfigDAOTest
 {

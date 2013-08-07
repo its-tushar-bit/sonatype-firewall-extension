@@ -10,11 +10,6 @@ import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
@@ -44,7 +39,12 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class IDEComponentInfoResourceTest
     extends AbstractResourceTest

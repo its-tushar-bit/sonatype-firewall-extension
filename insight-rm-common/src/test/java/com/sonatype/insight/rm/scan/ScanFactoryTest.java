@@ -5,17 +5,10 @@
  */
 package com.sonatype.insight.rm.scan;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.slf4j.LoggerFactory;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.Repository;
@@ -24,6 +17,15 @@ import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanItemProvider;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.DefaultScanReader;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.LoggerFactory;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ScanFactoryTest
 {

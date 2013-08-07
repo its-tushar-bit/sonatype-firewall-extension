@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.AfterClass;
@@ -15,12 +19,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class ScanClientTest
     extends AbstractLicenseTest

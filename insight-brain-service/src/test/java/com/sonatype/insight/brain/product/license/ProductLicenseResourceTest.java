@@ -1,10 +1,10 @@
 package com.sonatype.insight.brain.product.license;
 
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+
+import com.sun.jersey.api.client.UniformInterfaceException;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 public class ProductLicenseResourceTest
     extends AbstractResourceTest

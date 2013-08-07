@@ -10,14 +10,14 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.http.client.HttpResponseException;
-
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.http.client.HttpResponseException;
 
 public class ConfigurationClient
     extends AbstractClient

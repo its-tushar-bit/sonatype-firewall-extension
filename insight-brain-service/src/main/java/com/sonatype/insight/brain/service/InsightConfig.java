@@ -12,12 +12,11 @@ import javax.mail.internet.InternetAddress;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.validation.ValidationMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InsightConfig
     extends Configuration

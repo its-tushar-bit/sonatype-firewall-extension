@@ -14,9 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sonatype.insight.brain.model.license.LicenseStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Component
 {

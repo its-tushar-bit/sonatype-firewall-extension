@@ -5,12 +5,11 @@
  */
 package com.sonatype.insight.scan.cli;
 
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
-
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.AbstractMatcherFilter;
 import ch.qos.logback.core.spi.FilterReply;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * A marker filter that can be applied to individual appenders as opposed to the global turbo filter shipped with

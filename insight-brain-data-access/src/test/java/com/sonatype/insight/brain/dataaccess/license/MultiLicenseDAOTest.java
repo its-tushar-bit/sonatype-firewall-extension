@@ -2,11 +2,11 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 public class MultiLicenseDAOTest
     extends AbstractLicenseDAOTest

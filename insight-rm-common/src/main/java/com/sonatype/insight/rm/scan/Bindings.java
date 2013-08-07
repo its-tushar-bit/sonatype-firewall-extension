@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.rm.scan;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.insight.scan.anon.DefaultAnonymizer;
 import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.client.DefaultClientScanner;
@@ -18,6 +15,9 @@ import com.sonatype.insight.scan.hash.internal.JavaDigester;
 import com.sonatype.insight.scan.model.io.DefaultScanWriterFactory;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class Bindings
 {

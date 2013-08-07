@@ -5,19 +5,10 @@
  */
 package com.sonatype.insight.brain.saas;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.junit.After;
-import org.junit.Test;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -27,7 +18,16 @@ import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater.LicenseData;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.After;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DefaultLicenseDataUpdaterTest
     extends AbstractBrainServiceTest

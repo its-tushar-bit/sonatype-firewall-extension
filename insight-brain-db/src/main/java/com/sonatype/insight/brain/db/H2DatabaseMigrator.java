@@ -14,14 +14,14 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.db.DatabaseConfig;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-
-import com.sonatype.insight.db.DatabaseConfig;
 
 public class H2DatabaseMigrator
 {

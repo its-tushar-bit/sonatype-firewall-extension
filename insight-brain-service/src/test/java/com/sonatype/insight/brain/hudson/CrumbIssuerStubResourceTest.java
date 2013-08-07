@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.hudson;
 
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
+import org.junit.Test;
 
 public class CrumbIssuerStubResourceTest
     extends AbstractResourceTest

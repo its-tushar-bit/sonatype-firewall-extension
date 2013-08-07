@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.Date;
+
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.Date;
-
-import org.junit.Test;
-
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.model.component.HashGAV;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 public class HashGAVDAOTest
     extends AbstractDbDAOTest

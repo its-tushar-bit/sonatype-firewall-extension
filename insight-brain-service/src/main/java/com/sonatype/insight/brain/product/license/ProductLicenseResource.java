@@ -14,13 +14,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonatype.licensing.LicensingException;
-
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.sonatype.licensing.LicensingException;
+
 import com.sun.jersey.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path(ProductLicenseResource.SERVICE_PATH)
 @Named

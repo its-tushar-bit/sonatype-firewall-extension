@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.codehaus.plexus.util.FileUtils;
-
 import com.sonatype.insight.brain.model.GAVPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+
+import org.codehaus.plexus.util.FileUtils;
 
 public class ReleaseGraphPerformanceUtils
 {

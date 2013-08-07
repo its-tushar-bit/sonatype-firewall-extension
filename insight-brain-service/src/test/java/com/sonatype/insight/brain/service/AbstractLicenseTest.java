@@ -6,20 +6,21 @@ import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.plexus.util.IOUtil;
-import org.junit.Assert;
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
-
-import com.google.inject.AbstractModule;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
+
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+
+import com.google.inject.AbstractModule;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
+import org.codehaus.plexus.util.IOUtil;
+import org.junit.Assert;
 
 public abstract class AbstractLicenseTest
     extends AbstractBrainServiceTest

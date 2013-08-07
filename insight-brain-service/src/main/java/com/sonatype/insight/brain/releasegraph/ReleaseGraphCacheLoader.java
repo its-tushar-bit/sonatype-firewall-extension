@@ -2,14 +2,14 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.model.GAVPopularity;
+import com.sonatype.insight.brain.model.ReportPopularity;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.sonatype.insight.brain.model.GAVPopularity;
-import com.sonatype.insight.brain.model.ReportPopularity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReleaseGraphCacheLoader
     extends CacheLoader<ReleaseGraphKey, byte[]>

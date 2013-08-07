@@ -2,7 +2,6 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.io.File;
 
-import com.google.common.cache.CacheLoader;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ReportPopularity;
@@ -10,6 +9,8 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import com.google.common.cache.CacheLoader;
 
 public class ReportItemCacheLoader
     extends CacheLoader<ReportItemKey, ReportPopularity>

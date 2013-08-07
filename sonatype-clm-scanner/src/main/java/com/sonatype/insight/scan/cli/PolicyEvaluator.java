@@ -14,10 +14,6 @@ import java.util.Properties;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.http.client.HttpResponseException;
-import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -25,10 +21,14 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.ClientException;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.cli.RestClientFactory.RestClient;
+
+import org.apache.http.client.HttpResponseException;
+import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
 
 @Named
 public class PolicyEvaluator

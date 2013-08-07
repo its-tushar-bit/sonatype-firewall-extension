@@ -11,13 +11,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.portal.mail.EmailUtil;
+import com.sonatype.insight.portal.mail.InsightMailer;
+
 import org.sonatype.micromailer.Address;
 import org.sonatype.micromailer.EMailer;
 import org.sonatype.micromailer.MailRequest;
 import org.sonatype.micromailer.imp.HtmlMailType;
-
-import com.sonatype.insight.portal.mail.EmailUtil;
-import com.sonatype.insight.portal.mail.InsightMailer;
 
 @Named
 @Singleton

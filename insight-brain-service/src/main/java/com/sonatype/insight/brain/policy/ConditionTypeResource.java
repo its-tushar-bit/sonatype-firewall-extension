@@ -13,10 +13,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 @Named
 @Path(ConditionTypeResource.SERVICE_PATH)

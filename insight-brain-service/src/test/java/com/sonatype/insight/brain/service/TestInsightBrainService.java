@@ -8,13 +8,6 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.util.UUID;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonatype.inject.BeanScanning;
-
-import com.google.common.base.Optional;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.Application;
@@ -22,11 +15,19 @@ import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.db.DatabaseConfig;
+
+import org.sonatype.inject.BeanScanning;
+
+import com.google.common.base.Optional;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.HttpConfiguration;
 import com.yammer.dropwizard.config.SslConfiguration;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 import com.yammer.dropwizard.util.Duration;
+import org.codehaus.plexus.util.FileUtils;
+import org.eclipse.jetty.server.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestInsightBrainService
     extends InsightBrainService

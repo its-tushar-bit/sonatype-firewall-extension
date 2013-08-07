@@ -11,15 +11,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton

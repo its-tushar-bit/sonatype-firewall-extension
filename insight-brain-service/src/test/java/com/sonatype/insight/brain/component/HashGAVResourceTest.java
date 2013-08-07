@@ -5,20 +5,19 @@
  */
 package com.sonatype.insight.brain.component;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Date;
-
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class HashGAVResourceTest
     extends AbstractResourceTest

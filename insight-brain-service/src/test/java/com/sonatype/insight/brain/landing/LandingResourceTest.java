@@ -5,15 +5,15 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LandingResourceTest
     extends AbstractResourceTest

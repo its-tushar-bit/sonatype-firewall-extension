@@ -16,14 +16,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.AuditUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Path(ProprietaryConfigResource.SERVICE_PATH)

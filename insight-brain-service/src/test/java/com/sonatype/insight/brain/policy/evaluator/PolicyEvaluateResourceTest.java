@@ -14,13 +14,6 @@ import java.util.Map;
 
 import javax.mail.Message;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.ning.http.client.Response;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -50,7 +43,14 @@ import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.codehaus.plexus.util.FileUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
 
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest

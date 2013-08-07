@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
 
 // Copied from com.sonatype.nexus.procurement.ArtifactCoordinateTest
 public class ArtifactCoordinateTest

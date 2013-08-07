@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import com.sonatype.insight.brain.model.license.LicenseCategory;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.sonatype.insight.brain.model.license.LicenseCategory;
 
 public class LicenseCategoryDAOTest
     extends AbstractLicenseDAOTest

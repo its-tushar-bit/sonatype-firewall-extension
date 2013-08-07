@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.sonatype.insight.brain.product.license.CLMFeature;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.feature.Feature;
 import org.sonatype.licensing.feature.Features;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultLicenseKey;
-
-import com.sonatype.insight.brain.product.license.CLMFeature;
-import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 /**
  * Simple replacement for a ProductLicenseManager.

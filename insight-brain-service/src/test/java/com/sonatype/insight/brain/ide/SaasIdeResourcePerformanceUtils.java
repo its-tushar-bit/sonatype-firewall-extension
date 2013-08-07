@@ -9,8 +9,6 @@ import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.mockito.Mockito;
-
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -24,6 +22,8 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+
+import org.mockito.Mockito;
 
 public class SaasIdeResourcePerformanceUtils
 {

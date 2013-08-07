@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.features;
 
 import java.util.Arrays;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.ning.http.client.Response;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class FeatureResourceTest
     extends AbstractResourceTest

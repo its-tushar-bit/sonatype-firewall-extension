@@ -8,17 +8,17 @@ package com.sonatype.insight.brain.client;
 import java.io.File;
 import java.net.URL;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractLicenseTest;
 import com.sonatype.insight.client.utils.ServletResult;
+
+import org.codehaus.plexus.util.FileUtils;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class ReportClientTest
     extends AbstractLicenseTest

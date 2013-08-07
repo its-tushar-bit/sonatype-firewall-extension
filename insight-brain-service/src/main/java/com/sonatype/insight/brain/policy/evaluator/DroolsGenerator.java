@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -18,6 +15,9 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DroolsGenerator
 {

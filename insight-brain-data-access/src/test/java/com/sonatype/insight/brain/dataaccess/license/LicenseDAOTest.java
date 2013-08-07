@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.util.List;
 import java.util.Locale;
 
+import com.sonatype.insight.brain.model.license.License;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.sonatype.insight.brain.model.license.License;
 
 public class LicenseDAOTest
     extends AbstractLicenseDAOTest

@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 
-import org.junit.Assert;
-
 import com.ning.http.client.Response;
+import org.junit.Assert;
 
 public abstract class AbstractResourceTest
     extends AbstractLicenseTest

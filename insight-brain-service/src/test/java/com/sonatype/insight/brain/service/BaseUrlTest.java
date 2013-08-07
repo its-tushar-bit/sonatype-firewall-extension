@@ -5,14 +5,15 @@
  */
 package com.sonatype.insight.brain.service;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 import java.net.URI;
 
 import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class BaseUrlTest
 {

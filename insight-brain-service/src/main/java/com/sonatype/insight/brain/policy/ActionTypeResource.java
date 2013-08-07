@@ -13,11 +13,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Path(ActionTypeResource.SERVICE_PATH)

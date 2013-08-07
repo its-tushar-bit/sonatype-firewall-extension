@@ -12,12 +12,12 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.db.DatabaseConfig;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-
-import com.sonatype.insight.db.DatabaseConfig;
 
 public abstract class AbstractDatabaseProviderTest
 {

@@ -1,14 +1,12 @@
 package com.sonatype.insight.brain.product.license;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
 import java.io.InputStream;
 import java.util.Date;
 
-import org.codehaus.plexus.util.IOUtil;
-import org.junit.Test;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.TestInsightBrainService;
+
 import org.sonatype.licensing.LicenseKey;
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.feature.Feature;
@@ -17,9 +15,12 @@ import org.sonatype.licensing.internal.DefaultFeatureValidator;
 import org.sonatype.licensing.product.ProductLicenseManager;
 
 import com.google.inject.AbstractModule;
-import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
-import com.sonatype.insight.brain.service.TestInsightBrainService;
+import org.codehaus.plexus.util.IOUtil;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class CLMLicenseManagerTest
     extends AbstractLicenseTest

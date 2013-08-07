@@ -14,6 +14,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.error.exception.NotFoundException;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -21,9 +24,6 @@ import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sonatype.insight.brain.saas.SaasClient;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 @Named
 @Singleton

@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+
 import org.junit.After;
 import org.junit.Before;
-
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 
 public abstract class AbstractLicenseDAOTest
     extends AbstractDbDAOTest

@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.rm.rest;
 
-import org.apache.http.client.HttpClient;
 import com.sonatype.insight.client.utils.HttpClientUtils;
-import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.SimpleAuthentication;
+
+import org.apache.http.client.HttpClient;
 
 public class RestClientConfiguration
 {

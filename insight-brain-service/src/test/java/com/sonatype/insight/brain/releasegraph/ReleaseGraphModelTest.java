@@ -1,11 +1,11 @@
 package com.sonatype.insight.brain.releasegraph;
 
-import static com.sonatype.insight.brain.releasegraph.ReleaseGraphModel.SLOTS;
+import com.sonatype.insight.brain.model.GAVPopularity;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sonatype.insight.brain.model.GAVPopularity;
+import static com.sonatype.insight.brain.releasegraph.ReleaseGraphModel.SLOTS;
 
 public class ReleaseGraphModelTest
 {

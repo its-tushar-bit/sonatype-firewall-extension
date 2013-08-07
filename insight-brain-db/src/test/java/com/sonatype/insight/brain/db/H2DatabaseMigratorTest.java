@@ -5,16 +5,16 @@
  */
 package com.sonatype.insight.brain.db;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
+
+import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Test;
 
-import com.sonatype.insight.db.DatabaseConfig;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class H2DatabaseMigratorTest
 {

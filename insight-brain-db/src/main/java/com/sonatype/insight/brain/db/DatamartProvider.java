@@ -12,10 +12,10 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.db.DatabaseConfig;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sonatype.insight.db.DatabaseConfig;
 
 public class DatamartProvider
 {

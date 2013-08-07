@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.junit.After;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+
+import org.junit.After;
 
 public abstract class AbstractDbDAOTest
 {

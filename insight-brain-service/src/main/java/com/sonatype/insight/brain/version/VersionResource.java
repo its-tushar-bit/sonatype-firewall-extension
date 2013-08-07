@@ -15,9 +15,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.plexus.util.IOUtil;
-
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+
+import org.codehaus.plexus.util.IOUtil;
 
 @Named
 @Path(VersionResource.SERVICE_PATH)

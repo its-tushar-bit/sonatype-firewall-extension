@@ -5,14 +5,13 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.ning.http.client.Response;
-import com.sonatype.insight.brain.policy.ActionTypeResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ActionTypeResourceTest
     extends AbstractResourceTest

@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.http.client.HttpResponseException;
-
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -21,6 +19,8 @@ import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
+
+import org.apache.http.client.HttpResponseException;
 
 public class RestClientFactory
 {

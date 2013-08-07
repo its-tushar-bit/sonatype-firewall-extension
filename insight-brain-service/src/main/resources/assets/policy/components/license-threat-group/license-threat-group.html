@@ -23,7 +23,6 @@
 	<div class='control-group halfSize'
 			ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty ||
 			licenseGroupEditor.name.$error.alphaNumeric || licenseGroupEditor.name.$error.spaces}'>
-		<label class='control-label' for='licenseGroupEditorName'>Name:</label>
 		<div class='controls'>
 			<input id='licenseGroupEditorName' name='name' type='text'
 				class='input' maxlength='60' ng-model='selectedGroup.name'
@@ -36,7 +35,6 @@
 		</div>
 	</div>
 	<div class='control-group halfSize'>
-		<label class='control-label'>Threat Level:</label>
 		<div class='controls'>
 			<span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
 		</div>

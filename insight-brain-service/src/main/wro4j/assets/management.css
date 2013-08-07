@@ -48,7 +48,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 h4 {
 	font-family: Helvetica, Arial, sans-serif;
-	font-size: 13px;
+	font-size: 14.5px;
 	margin-bottom: 0;
 	color: #36424e;
 }
@@ -225,11 +225,11 @@ body {
 }
 .new-entity-button a {
 	margin: 5px 5px auto;
-	font-size: 12px;
+	font-size: 85%;
+	font-weight: bold;
 	width: 127px;
 	text-align: left;
 	padding: 4px 6px;
-	font-weight: bold;
 }
 .new-entity-button i {
 	margin-bottom: 4px;
@@ -278,14 +278,13 @@ body {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .content-section {
-	border-top: 1px solid rgba(255, 255, 255, .6);
 	padding-right: 25px;
 }
 .content-section h3 {
 	display: inline-block;
 	margin: 0 0 0 5px;
 	line-height: 20px;
-	font-size: 14px;	
+	font-size: 14.5px;	
 }
 .content-section h3 span {
 	font-weight:normal;
@@ -538,9 +537,8 @@ ul.tri-pane {
 	text-decoration: none;
 	padding: 0 12px 8px;
 	display: block;
-	margin-right: 2px;
-	font-size: 13px;
 	font-weight: bold;
+	font-size: 14.5px;
 	color: #36424e;
 	text-transform: uppercase;
 	line-height: 20px;
@@ -602,6 +600,8 @@ ul.tri-pane {
 .add-section .add-new {
 	text-align: left;
 	padding: 4px 15px 4px 6px;
+	font-size: 85%;
+	font-weight: bold;
 }
 #applicationEditor, #organizationEditor {
 	margin: 0 15px;

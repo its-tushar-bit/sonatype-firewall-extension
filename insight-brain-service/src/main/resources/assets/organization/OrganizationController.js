@@ -236,6 +236,7 @@
           }
         });
       }, function (error) {
+        $scope.submitActive = false;
         $scope.alerts.push({
           type: 'error',
           msg: 'An error occurred while saving the organization. (' + messages.getHttpErrorMessage(error) + ')'

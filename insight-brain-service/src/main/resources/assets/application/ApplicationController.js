@@ -296,6 +296,7 @@
           }
         });
       }, function(error) {
+        $scope.submitActive = false;
         $scope.alerts.push({
           type : 'error',
           msg : 'An error occurred while saving the application. (' + Messages.getHttpErrorMessage(error) + ')'

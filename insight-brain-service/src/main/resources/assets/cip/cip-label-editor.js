@@ -167,7 +167,7 @@
    */
   labelsApp.directive('tip', function () {
     return function (scope, element, attrs) {
-      $(element).tipsy({fade: true, gravity: 'n', html: true, opacity: 1.0, delayOut: 0});
+      $(element).tipsy({fade: true, gravity: $.fn.tipsy.autoWE, html: true, opacity: 1.0, delayOut: 0});
     };
   });
 

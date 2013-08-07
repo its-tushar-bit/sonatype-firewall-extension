@@ -9,7 +9,7 @@
       <form name='inlineLabelEditor' class='form-horizontal' style='margin-bottom:0'>
         <div class="control-group" ng-class='{ error : inlineLabelEditor.labelName.$error.duplicate || inlineLabelEditor.labelName.$error.empty || inlineLabelEditor.labelName.$error.invalid }'>
           <div class="controls" style="margin-left: 0;">
-            <input ng-click='click()' id="labelName" name='labelName' type='text' placeholder='Enter Label Name'
+            <input ng-click='click()' id="labelName" name='labelName' type='text' maxlength='50' placeholder='Enter Label Name'
                  ng-model='label.label' style='margin-bottom:0px' item-label>
             <span ng-show='inlineLabelEditor.labelName.$error.empty' class="help-inline">Required</span>
             <span ng-show='inlineLabelEditor.labelName.$error.duplicate' class="help-inline">Duplicate Label</span>

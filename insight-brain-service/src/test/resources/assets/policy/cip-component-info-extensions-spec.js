@@ -77,13 +77,12 @@ describe('CIP Component info extensions tests', function() {
     $scope.$digest();
   }));
 
-  afterEach(function() {
-    $('#infoPanelArtifactTable').remove();
-    $('#componentExistingWaiverModal').remove();
-  });
-
   afterEach(inject(function($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();
+    $scope.$destroy();
+
+    $('#infoPanelArtifactTable').remove();
+    $('#componentExistingWaiverModal').remove();
   }));
 
   it('Validate button and modal injected and function', function() {
@@ -109,9 +108,13 @@ describe('CIP Component info extensions tests', function() {
 
   it('Validate delete waiver', inject(function($httpBackend) {
     $httpBackend.expectDELETE(CLM.path + 'rest/policyWaiver/application/appId/id').respond(200);
-    $('#componentExistingWaiverModal').find('table').find('button').trigger('click');
-    $httpBackend.flush();
 
-    expect($('#componentExistingWaiverModal').find('td').length).toEqual(0);
+    $scope.remove($scope.waivers[0]);
+    expect($scope.confirmDelete).toEqual($scope.waivers[0]);
+
+    $scope.removeWaiver();
+    $httpBackend.flush();
+    expect($scope.confirmDelete).toEqual(null);
+    expect($scope.waivers.length).toEqual(0);
   }));
 });

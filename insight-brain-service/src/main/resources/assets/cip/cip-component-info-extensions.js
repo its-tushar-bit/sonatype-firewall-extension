@@ -51,7 +51,7 @@
 					'<h3>Remove Waiver</h3>' +
 				'</div>' +
 				'<div class="modal-body" >' +
-					'Removing the waiver for {{waver.policyName}} will reinstate violations for this component if applicable.' +
+					'Removing the waiver for {{confirmDelete.policyName}} will reinstate violations for this component if applicable.' +
 				'</div>' +
 				'<div class="modal-footer">' +
 					'<button type="button" class="btn" ng-click="confirmDelete = null">Cancel</button>' +

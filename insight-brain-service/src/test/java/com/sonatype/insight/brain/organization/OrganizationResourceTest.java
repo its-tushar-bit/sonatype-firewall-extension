@@ -145,7 +145,7 @@ public class OrganizationResourceTest
     policy.addConstraint(constraint1);
     policy.setOwnerId(organizationId);
     policyDAO.insert(organizationId, policy);
-    // note that other related objects (labels, license thread groups, etc) are deleted by DAO and tested at DAO level
+    // note that other related objects (labels, license threat groups, etc) are deleted by DAO and tested at DAO level
 
     // Delete
     response = RestAccess.delete(getServiceURL() + "/" + organizationId);

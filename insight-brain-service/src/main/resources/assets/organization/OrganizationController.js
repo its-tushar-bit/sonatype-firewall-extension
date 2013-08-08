@@ -105,7 +105,7 @@
     $scope.doLoad();
   } ]);
 
-  organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', '$http', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', 'CLMAppLocations', function ($scope, $state, $location, $http, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages, CLMAppLocations) {
+  organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', '$http', '$rootScope', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', 'CLMAppLocations', function ($scope, $state, $location, $http, $rootScope, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages, CLMAppLocations) {
     var me = this;
     angular.extend(me, editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'), angular.element('#iconUploadForm')));
 
@@ -258,6 +258,7 @@
         angular.forEach($scope.organizations, function (organizationCandidate, key) {
           if (organizationCandidate.id === $scope.selectedOrganization.id) {
             $scope.organizations.splice(key, 1);
+            $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
             return false;
           }
         });

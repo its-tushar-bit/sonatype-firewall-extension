@@ -47,15 +47,16 @@
   labelModule.controller('LabelController', ['$scope', '$http', '$dialog', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
                                              function ($scope, $http, $dialog, $q, clmAppLocations, messages, clmResource, LabelStore) {
       function deselect() {
-        if($scope.selectedLabel)
-        {
+        if ($scope.selectedLabel) {
           $scope.selectedLabel.$revert();
         }
-        delete $scope.selectedLabel;
-        delete $scope.label;
-        $scope.editorUrl = '';
+        $scope.selectedLabel = null;
         $scope.submitActive = false;
         $scope.alerts.length = 0;
+      }
+
+      function isDirty() {
+        return $scope.selectedLabel && $scope.selectedLabel.isDirty();
       }
 
       $scope.deselect = deselect;
@@ -83,9 +84,27 @@
         if (!isEditable) {
           return;
         }
-        deselect();
-        $scope.selectedLabel = angular.copy(label || labelTemplate);
-        $scope.editorUrl = '../policy-assets/components/label-editor/label-editor.html?' + clmBuildTimestamp;
+        if (isDirty()) {
+          $scope.alerts.push({
+            type: 'error',
+            msg: 'Please finish editing before trying to modify another label.'
+          });
+        } else {
+          deselect();
+          $scope.selectedLabel = label.$clone();
+        }
+      };
+
+      $scope.createNew = function () {
+        if (isDirty()) {
+          $scope.alerts.push({
+            type: 'error',
+            msg: 'Please finish editing before trying to create a label.'
+          });
+        } else {
+          $scope.label = LabelStore.create();
+          $scope.selectedLabel = $scope.label;
+        }
       };
 
       $scope.deleteLabel = function (label) {
@@ -146,19 +165,6 @@
             }
         });
 
-      $scope.click = function () {
-        if (!$scope.selectedLabel) {
-          $scope.label = LabelStore.create();
-          $scope.selectedLabel = $scope.label;
-        }
-        else if($scope.selectedLabel && $scope.selectedLabel.id){
-          $scope.alerts.push({
-            type: 'error',
-            msg: 'Please finish editing before trying to create a new label.'
-          });
-        }
-      };
-
       $scope.saveLabel = function () {
         $scope.submitActive = true;
         $scope.selectedLabel.$save().then(function (label) {
@@ -187,14 +193,7 @@
 
           return (notEmpty && unique && notInvalid) ? newValue : undefined;
         });
-            }
-        };
-    });
-
-  labelModule.directive('inlineLabelCreator', function () {
-    return {
-      templateUrl : '../policy-assets/components/label-editor/label-inline-editor.html?' + clmBuildTimestamp,
-      controller: 'LabelEditorController'
+      }
     };
   });
 }());

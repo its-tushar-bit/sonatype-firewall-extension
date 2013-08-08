@@ -5,13 +5,16 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -22,10 +25,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightWork;
-
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -38,8 +47,21 @@ public class OrganizationResource
 
   public static final String GET_ICON_PATH = ICON_PATH + "/{organizationId}";
 
-  @Context
-  private InsightWork work;
+  public static final String GET_ORGANIZATION_PATH = "{organizationId}";
+
+  private static final Logger log = LoggerFactory.getLogger(OrganizationResource.class);
+
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private final InsightWork work;
+
+  private final ApplicationResource applicationResource;
+
+  @Inject
+  public OrganizationResource(InsightWork work, ApplicationResource applicationResource) {
+    this.work = work;
+    this.applicationResource = applicationResource;
+  }
 
   /**
    * @since 1.6
@@ -47,7 +69,7 @@ public class OrganizationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<Organization> getAll() {
-    return new OrganizationDAO().getAll();
+    return organizationDAO.getAll();
   }
 
   /**
@@ -57,7 +79,7 @@ public class OrganizationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Organization addOrganization(Organization organization) {
-    new OrganizationDAO().insert(organization);
+    organizationDAO.insert(organization);
 
     return organization;
   }
@@ -69,7 +91,7 @@ public class OrganizationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Organization updateOrganization(Organization organization) {
-    new OrganizationDAO().update(organization);
+    organizationDAO.update(organization);
 
     return organization;
   }
@@ -137,4 +159,39 @@ public class OrganizationResource
     return super.setIconSync(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash,
         uploadedInputStream, fileDetail);
   }
+
+  /**
+   * Deletes an organization and associated policies, license thread groups, labels and waivers. Also deletes all
+   * applications under the organization.
+   * 
+   * @since 1.6
+   */
+  @DELETE
+  @Path(GET_ORGANIZATION_PATH)
+  public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
+    // TODO why do we not use the same entity manager for all delete operations here?
+
+    Organization organization = organizationDAO.getByIdNotNull(organizationId);
+
+    // cascade to applications first
+    for (Application application : new ApplicationDAO().getByOrganizationId(organizationId)) {
+      applicationResource.deleteApplication(application.getPublicId());
+    }
+
+    // oddly orgDAO.delete does not cascade to policies, but cascades to labels, license thread groups and waivers
+    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    policyDAO.deleteByOwnerId(organization.getId());
+
+    File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
+    try {
+      FileUtils.deleteDirectory(organizationIconDirectory);
+    }
+    catch (IOException e) {
+      log.error("Could not delete organization icons: {}" + organizationIconDirectory, e);
+    }
+
+    // delete organization last, this way the operation can be retried later if anything goes wrong
+    organizationDAO.delete(organization);
+  }
+
 }

@@ -161,7 +161,7 @@ public class OrganizationResource
   }
 
   /**
-   * Deletes an organization and associated policies, license thread groups, labels and waivers. Also deletes all
+   * Deletes an organization and associated policies, license threat groups, labels and waivers. Also deletes all
    * applications under the organization.
    * 
    * @since 1.6

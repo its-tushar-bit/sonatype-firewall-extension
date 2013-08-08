@@ -42,8 +42,9 @@
 
 			me.generateIcon = function(name) {
 				var hash = 0;
-				if (!name) {
-					hash = Math.floor(Math.random() * 100);
+        // Once the user has already generated a robot by hashing the name, continue to provide random robots
+				if (!name || $scope.hasRobotSource) {
+					hash = Math.floor(Math.random() * 10000);
 				} else {
 					for (var i = 0; i < name.length; i++) {
 						var charAtI = name.charCodeAt(i);

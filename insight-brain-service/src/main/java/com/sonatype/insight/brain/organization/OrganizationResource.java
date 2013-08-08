@@ -178,7 +178,7 @@ public class OrganizationResource
       applicationResource.deleteApplication(application.getPublicId());
     }
 
-    // oddly orgDAO.delete does not cascade to policies, but cascades to labels, license thread groups and waivers
+    // oddly orgDAO.delete does not cascade to policies, but cascades to labels, license threat groups and waivers
     PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
     policyDAO.deleteByOwnerId(organization.getId());
 

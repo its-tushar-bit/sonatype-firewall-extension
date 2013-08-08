@@ -32,7 +32,7 @@
                 <h1><span id='organizationName' name='organizationName' ng-model='selectedOrganization.name' xeditable href='javascript:;' data-emptytext='Enter Organization Name'
                           data-placeholder='Enter Organization Name' data-type='text'
                           ng-class="{ error: organizationEditor.organizationName.$error.duplicate || organizationEditor.organizationName.$error.alphaNumeric || organizationEditor.organizationName.$error.spaces}"
-                          alpha-numeric has-whitespace='suggestedName'
+                          required alpha-numeric has-whitespace='suggestedName'
                           is-Duplicate is-Duplicate-Array='organizations' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'></span></h1>
                 <div class='errors'>
                     <span ng-show="organizationEditor.organizationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>

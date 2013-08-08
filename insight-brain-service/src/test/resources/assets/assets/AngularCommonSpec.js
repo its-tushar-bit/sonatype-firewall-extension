@@ -103,6 +103,54 @@ describe('AngularCommon', function () {
     expect(element.data('editable').input.$input.width()).toBeGreaterThan(90);
   });
 
+  it('X-editable with required attribute updates backing model on keyup', function () {
+    var element = angular.element("<a ng-model='mockModel.name' xeditable required href='javascript:;' />");
+    compile(element)(scope);
+    scope.$digest();
+
+    timeout.flush();
+
+    element.click();
+    expect(element.data('editable').input.$input).not.toBeUndefined();
+    element.data('editable').input.$input.val('Some typed string');
+
+    expect(scope.mockModel.name).toBe(null);
+
+    element.data('editable').input.$input.keyup();
+    element.data('editable').input.$input.val('Some more editing');
+
+    expect(scope.mockModel.name).toBe('Some typed string');
+
+    element.data('editable').input.$input.val('Even more editing');
+    element.data('editable').input.$input.keyup();
+
+    expect(scope.mockModel.name).toBe('Even more editing');
+  });
+
+  it('X-editable without required attribute does not update model on keyup', function () {
+    var element = angular.element("<a ng-model='mockModel.name' xeditable href='javascript:;' />");
+    compile(element)(scope);
+    scope.$digest();
+
+    timeout.flush();
+
+    element.click();
+    expect(element.data('editable').input.$input).not.toBeUndefined();
+    element.data('editable').input.$input.val('Some typed string');
+
+    expect(scope.mockModel.name).toBe(null);
+
+    element.data('editable').input.$input.keyup();
+    element.data('editable').input.$input.val('Some more editing');
+
+    expect(scope.mockModel.name).toBe(null);
+
+    element.data('editable').input.$input.val('Even more editing');
+    element.data('editable').input.$input.keyup();
+
+    expect(scope.mockModel.name).toBe(null);
+  });
+
   it('isDuplicate should respect casesensitive param', function () {
     var elm = angular.element(
         "<form name='form'>" +

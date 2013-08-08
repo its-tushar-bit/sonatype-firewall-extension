@@ -211,6 +211,15 @@
 							});
 						}
 
+						if (attrs.required) {
+							// Trigger validation while typing
+							inputElement.keyup(function() {
+								scope.$apply(function () {
+									$parse(attrs.ngModel).assign(scope, inputElement.val());
+								});
+							});
+						}
+
 						// Enable tabbing through editables
 						inputElement.on('keydown', function(e) {
 							var keyCode = e.keyCode || e.which;

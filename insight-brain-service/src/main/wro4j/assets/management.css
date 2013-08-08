@@ -354,11 +354,11 @@ body {
 	float: left;
 	margin-right: 15px;
 	text-align: center;
-	height: 120px;
+	height: 200px;
 }
 .editor-image img {
-	height: 80px;
-	width: 80px;
+	height: 160px;
+	width: 160px;
 	margin: 0;
 	border: 0;
 }
@@ -372,7 +372,8 @@ body {
 }
 .edit-image label {
 	display: block;
-	width: 80px;
+	margin-left: 25px;
+	margin-right: 25px;
 	opacity: 0.8;
 	filter: alpha(opacity=80);
 	background-color: #17558E;
@@ -517,6 +518,20 @@ body {
 	font-weight: bold;
 }
 /**
+ * Report summary grid
+ */
+.report-summary {
+	display: inline-block;
+	vertical-align: top;
+	width: 150px;
+	height: 50px;
+	margin-right: 10px;
+	font-weight: bold;
+}
+.report-summary.bordered {
+	border-right: solid gray 1px;
+}
+/**
  * Triangular tabs used by app/org
  */
 ul.tri-pane:before, ul.tri-pane:after {
@@ -605,7 +620,7 @@ ul.tri-pane {
 }
 #applicationEditor, #organizationEditor {
 	margin: 0 15px;
-	height: 130px;
+	height: 200px;
 }
 .master-modal-backdrop {
 	z-index: 2040;

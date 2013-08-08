@@ -72,10 +72,37 @@
             </div>
             <span ng-show="applicationEditor.applicationPublicId.$error.duplicate" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>
           </div>
-            <div ng-show='isFormDirty() || !selectedApplication.id' style='margin-top: 5px;'>
-                <button class='btn' type='button' ng-click='cancel()'>Cancel</button>
-                <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
+          <div ng-show='selectedApplication.stageCount'>
+            <div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary" ng-class="{ bordered : !$last }">
+              {{stage.name}}
+              <span show-if='selectedApplication.policyEvaluationsResults[stage.id]'>
+                <a title="Re-evaluate Policy"
+                   ng-click='reEvaluatePolicy(selectedApplication.policyEvaluations[stage.id])'>
+                  <i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
+                  <i ng-show='reEvaluatingPolicy' class='icon-time'></i>
+                </a>
+              </span>
+              <div show-if='selectedApplication.policyEvaluationsResults[stage.id]'>
+                <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{selectedApplication.policyEvaluations[stage.id].time | ago}}'
+                   ng-href='reports.html#/reports/{{encodeURIComponent(selectedApplication.publicId)}}/{{stage.id}}'>
+								<span ng-show='selectedApplication.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
+									{{selectedApplication.policyEvaluationsResults[stage.id].criticalComponentCount}}
+								</span>
+								<span ng-show='selectedApplication.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
+									{{selectedApplication.policyEvaluationsResults[stage.id].severeComponentCount}}
+								</span>
+								<span ng-show='selectedApplication.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
+									{{selectedApplication.policyEvaluationsResults[stage.id].moderateComponentCount}}
+								</span>
+                  <span ng-show='!(selectedApplication.policyEvaluationsResults[stage.id].criticalComponentCount + selectedApplication.policyEvaluationsResults[stage.id].severeComponentCount + selectedApplication.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+                </a>
+              </div>
             </div>
+          </div>
+          <div ng-show='isFormDirty() || !selectedApplication.id' style='margin-top: 5px;'>
+              <button class='btn' type='button' ng-click='cancel()'>Cancel</button>
+              <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
+          </div>
         </form>
     </div>
 	<div ng-switch on='selectedApplication.id'>

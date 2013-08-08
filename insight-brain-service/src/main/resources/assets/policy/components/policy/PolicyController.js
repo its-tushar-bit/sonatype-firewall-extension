@@ -10,7 +10,7 @@
 
 	var policyModule = angular.module('Policy', ['Hudson', 'PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices']);
 
-	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', 'CLMLocations', 'Messages', 'policyEvaluator', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, clmLocations, messages, policyEvaluator) {
+	policyModule.controller('PolicyController', ['$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'CLMAppLocations', function ($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations) {
 
 		function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
 			$scope.state.confirm = {
@@ -47,51 +47,20 @@
 				}, angular.noop);
 		};
 
-		$scope.reEvaluatePolicy = function(application, policyEvaluation) {
-			if (!$scope.reEvaluatingPolicy) {
-				$scope.reEvaluatingPolicy = true;
-				policyEvaluator.evaluate(application, policyEvaluation).then(function(data) {
-					$scope.reEvaluatingPolicy = false;
-				}, function(error) {
-					$scope.reEvaluatingPolicy = false;
-                    $scope.alerts.push({
-                        type : 'error',
-                        msg : 'An error occurred attempting to re-evaluate the policy. (' + messages.getHttpErrorMessage(error) + ')'
-                    });
-				});
-			}
-		};
-
 		$scope.doLoad = function () {
 			$scope.error = null;
-			var promises = [policyStore.get().get(), actionStore.get(), $http.get(clmAppLocations.getApplicablePolicies(), {
+			var promises = [policyStore.get().get(), $http.get(clmAppLocations.getApplicablePolicies(), {
                 params: { timestamp: new Date().getTime() }
             })];
-			if (clmAppLocations.isApplication()) {
-				promises.push($http.get(clmAppLocations.getEntityUrl(), {
-					params: { timestamp: new Date().getTime() }
-				}));
-			}
 
 			$q.all(promises).then(function (results) {
-				$scope.state = {
-					actionStageList : results[1][1]
-				};
-				$scope.applicablePolicies = results[2].data.policiesByOwner;
+				$scope.applicablePolicies = results[1].data.policiesByOwner;
 				angular.forEach($scope.applicablePolicies, function (applicablePolicy, index) {
 					applicablePolicy.editable = index === 0;
 					if (index === 0) {
 						applicablePolicy.policies = results[0];
 					}
 				});
-				if (results.length === 4) {
-					$scope.application = results[3].data;
-					$scope.application.stageCount = 0;
-				    angular.forEach($scope.application.policyEvaluations,function(policyEvaluation,stage){
-                        policyEvaluation.reportUrl = clmLocations.getReportUrl($scope.application.publicId, policyEvaluation.scanId);
-                        $scope.application.stageCount++;
-                    });
-				}
 			}, function (errors) {
 				$scope.error = angular.isArray(errors) ? errors[0] : errors;
 			});
@@ -170,26 +139,4 @@
 			}
 		};
 	}]);
-
-	policyModule.service('policyEvaluator', function ($q, hudson, CLMLocations) {
-		return {
-			evaluate: function(application, policyEvaluation) {
-				var deferred = $q.defer();
-				var stage = policyEvaluation.stage;
-				hudson.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
-					policyEvaluation.time = new Date();
-					for (var stageTypeId in application.policyEvaluationsResults) {
-						if (stageTypeId === stage.stageTypeId) {
-							application.policyEvaluationsResults[stageTypeId] = data;
-							break;
-						}
-					}
-					deferred.resolve(data);
-				}).error(function (data, status, headers, config) {
-					deferred.reject({ data: data, status : status, headers : headers, config : config });
-				});
-				return deferred.promise;
-			}
-		};
-	});
 }());

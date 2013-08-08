@@ -42,7 +42,7 @@
     });
   }]);
 
-  applicationModule.controller('applicationController', ['$scope', '$state', '$timeout', '$location', 'applicationStore', function ($scope, $state, $timeout, $location, applicationStore) {
+  applicationModule.controller('applicationController', ['$scope', '$state', '$timeout', '$location', 'applicationStore', 'CLMLocations', function ($scope, $state, $timeout, $location, applicationStore, CLMLocations) {
     function switchApplication() {
       $scope.selectedApplication = null;
       $scope.userIconSource = null;
@@ -56,6 +56,11 @@
           if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
             $timeout(function () {
               $scope.selectedApplication = $scope.applications[i].$clone();
+              $scope.selectedApplication.stageCount = 0;
+              angular.forEach($scope.selectedApplication.policyEvaluations,function(policyEvaluation, stage){
+                policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.selectedApplication.publicId, policyEvaluation.scanId);
+                $scope.selectedApplication.stageCount++;
+              });
               $scope.$broadcast('setApplicationIcon');
             }, 100);
             return;
@@ -95,7 +100,7 @@
     $scope.doLoad();
   }]);
 
-  applicationModule.controller('applicationEditorController', function ($scope, $state, applicationStore, OrganizationStore, CLMAppLocations, Messages, $http, hudson, editorTools) {
+  applicationModule.controller('applicationEditorController', function ($scope, $state, $q, applicationStore, OrganizationStore, CLMAppLocations, Messages, $http, hudson, editorTools, ActionStore, policyEvaluator) {
     var me = this;
     angular.extend(me, editorTools.getEditorController($scope, 'selectedApplication.id', angular.element('[name=applicationId]'), angular.element('#iconUploadForm')));
 
@@ -127,8 +132,13 @@
     $scope.$state = $state;
     $scope.submitActive = false;
 
-    OrganizationStore.get().then(function (results) {
-      $scope.organizations = results;
+    var promises = [ OrganizationStore.get(), ActionStore.get() ];
+
+    $q.all(promises).then(function (results) {
+      $scope.organizations = results[0];
+      $scope.state = {
+        actionStageList : results[1][1]
+      };
     });
 
     $scope.getOrganizationName = function (organizationId) {
@@ -305,6 +315,21 @@
 
       return false;
     };
+
+    $scope.reEvaluatePolicy = function(policyEvaluation) {
+      if (!$scope.reEvaluatingPolicy) {
+        $scope.reEvaluatingPolicy = true;
+        policyEvaluator.evaluate($scope.selectedApplication, policyEvaluation).then(function(data) {
+          $scope.reEvaluatingPolicy = false;
+        }, function(error) {
+          $scope.reEvaluatingPolicy = false;
+          $scope.alerts.push({
+            type : 'error',
+            msg : 'An error occurred attempting to re-evaluate the policy. (' + Messages.getHttpErrorMessage(error) + ')'
+          });
+        });
+      }
+    };
   });
 
   applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
@@ -328,4 +353,26 @@
       }
     };
   }]);
+
+  applicationModule.service('policyEvaluator', function ($q, hudson, CLMLocations) {
+    return {
+      evaluate: function(application, policyEvaluation) {
+        var deferred = $q.defer();
+        var stage = policyEvaluation.stage;
+        hudson.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId), stage).success(function (data) {
+          policyEvaluation.time = new Date();
+          for (var stageTypeId in application.policyEvaluationsResults) {
+            if (stageTypeId === stage.stageTypeId) {
+              application.policyEvaluationsResults[stageTypeId] = data;
+              break;
+            }
+          }
+          deferred.resolve(data);
+        }).error(function (data, status, headers, config) {
+              deferred.reject({ data: data, status : status, headers : headers, config : config });
+            });
+        return deferred.promise;
+      }
+    };
+  });
 }());

@@ -47,7 +47,7 @@ public class OrganizationResource
 
   public static final String GET_ICON_PATH = ICON_PATH + "/{organizationId}";
 
-  public static final String GET_ORGANIZATION_PATH = "{organizationId}";
+  public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
 
   private static final Logger log = LoggerFactory.getLogger(OrganizationResource.class);
 
@@ -167,7 +167,7 @@ public class OrganizationResource
    * @since 1.6
    */
   @DELETE
-  @Path(GET_ORGANIZATION_PATH)
+  @Path(DELETE_ORGANIZATION_PATH)
   public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
     // TODO why do we not use the same entity manager for all delete operations here?
 

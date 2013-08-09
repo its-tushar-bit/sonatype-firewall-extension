@@ -11,11 +11,23 @@
 						<div clm-alerts='alerts' style='clear:both;'></div>
 						<div style='text-align:right'>
 							<button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-							<button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
+							<button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
 						</div>
 					</form>
 				</div>
 			</div>
+		</div>
+	</script>
+	<script type='text/ng-template' id='ltgInlineEditor'>
+		<div style='width:530px'>
+			<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+				<div ng-include='"ltgeditor"'></div>
+				<div clm-alerts='alerts' style='clear:both;'></div>
+				<div style='text-align:right'>
+					<button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
+					<button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
+				</div>
+			</form>
 		</div>
 	</script>
 	<script type='text/ng-template' id='ltgeditor'>
@@ -94,42 +106,31 @@
 				<div class="accordion-group" ng-repeat='licenseGroup in applicableLicenseGroup.licenseThreatGroups | orderBy: "threatLevel" : true'>
 					<div class="accordion-heading">
 						<div class='btn-group hover-buttons floatRight' ng-show='applicableLicenseGroup.editable'>
-						   <a class="btn btn-mini" title="Edit License Threat Group" ng-click='editLicenseGroup(licenseGroup)' type="button"><i class='icon-pencil'></i></a>
-						   <a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
+							<button class="btn btn-mini" title="Edit License Threat Group" ng-click='showEditor(licenseGroup)' ng-disabled='ltgEditorMap[licenseGroup.id]' type="button">
+								<i class='icon-pencil'></i>
+							</button>
+							<a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
 						</div>
 						<a class="accordion-toggle licenseGroup-top collapsed" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" href="#collapse{{licenseGroup.id}}">
 							<span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
 							<h3>{{licenseGroup.name}}</h3>
 						</a>
 					</div>
-					<div id="collapse{{licenseGroup.id}}" class="accordion-body collapse">
+					<div id="collapse{{licenseGroup.id}}" class="accordion-body collapse" ng-class='{ in : isExpanded(applicableLicenseGroup) }'>
 						<div class="accordion-inner">
-							<b>Licenses</b>
-							<ul class="unstyled max-height-scrollable">
-								<li ng-repeat='l in licenseGroup.licenses | orderBy: getDisplayName'>
-									{{getDisplayName(l)}}</li>
-							</ul>
+							<div show-if='ltgEditorMap[licenseGroup.id]'>
+								<div ltg-editor='licenseGroup' hide='ltgEditorMap[licenseGroup.id] = false'></div>
+							</div>
+							<div show-if='!ltgEditorMap[licenseGroup.id]'>
+								<b>Licenses</b>
+								<ul class="unstyled max-height-scrollable">
+									<li ng-repeat='l in licenseGroup.licenses | orderBy: getDisplayName'>
+										{{getDisplayName(l)}}</li>
+								</ul>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
-		<div id='licenseModal' data-backdrop='static' class='modal hide fade'>
-			<div class='modal-header'>
-				<h3 ng-show='selectedGroup.id == null'>Add License Threat Group</h3>
-				<h3 ng-show='selectedGroup.id != null'>Edit License Threat Group</h3>
-			</div>
-			<div ng-controller='LicenseThreatGroupEditorController'>
-				<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
-					<div class='modal-body'>
-						<div ng-include='"ltgeditor"'></div>
-					</div>
-					<div clm-alerts='alerts'></div>
-					<div class='modal-footer'>
-						<button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-						<button class='btn btn-primary' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-					</div>
-				</form>
 			</div>
 		</div>
 		<div id='deleteLicenseGroupModal' data-backdrop='static' class='modal hide fade'>

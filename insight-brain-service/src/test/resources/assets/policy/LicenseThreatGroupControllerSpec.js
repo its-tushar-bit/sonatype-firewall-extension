@@ -65,9 +65,7 @@ describe('LicenseThreatGroup', function() {
 		});
 		it('loads the group editor.', function() {
 			scope.editLicenseGroup(mockGroup);
-			expect(scope.selectedGroup).not.toBeUndefined();
-			expect(scope.selectedGroup.licenses).not.toBeUndefined();
-			expect(scope.selectedGroup.licenses.length).toEqual(2);
+			expect(scope.ltgEditorMap[mockGroup.id]).toEqual(true);
 		});
 		it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, hudson, CLMAppLocations) {
 			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
@@ -105,12 +103,17 @@ describe('LicenseThreatGroup', function() {
 			});
 			return selectedLicenses;
 		}
-		beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
-			editorScope = scope.$new();
-			$controller('LicenseThreatGroupEditorController', {$scope: editorScope});
-			scope.$apply(function () {
-				scope.editLicenseGroup(mockGroup);
+		beforeEach(inject(function($compile, $httpBackend) {
+			var element = angular.element('<div id="LicenseThreatGroupEditorController" ltg-editor="licenseGroup"></div>'),
+				parentScope = scope.$new();
+
+			$httpBackend.expectGET('ltgInlineEditor').respond('');
+			$compile(element)(parentScope);
+			$httpBackend.flush();
+			parentScope.$apply(function () {
+				parentScope.licenseGroup = mockGroup;
 			});
+			editorScope = parentScope.$$childHead;
 		}));
 		it('Selected', function () {
 			expect(getSelectedGroupLicenses().length).toEqual(2);

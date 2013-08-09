@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.AbstractDAO;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -169,18 +171,26 @@ public class OrganizationResource
   @DELETE
   @Path(DELETE_ORGANIZATION_PATH)
   public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
-    // TODO why do we not use the same entity manager for all delete operations here?
+    EntityManager em = organizationDAO.createEntityManager();
+    try {
+      deleteOrganization(em, organizationId);
+    }
+    finally {
+      AbstractDAO.close(em);
+    }
+  }
 
-    Organization organization = organizationDAO.getByIdNotNull(organizationId);
+  public void deleteOrganization(final EntityManager em, final String organizationId) throws IOException {
+    Organization organization = organizationDAO.getByIdNotNull(em, organizationId);
 
     // cascade to applications first
-    for (Application application : new ApplicationDAO().getByOrganizationId(organizationId)) {
-      applicationResource.deleteApplication(application.getPublicId());
+    for (Application application : new ApplicationDAO().getByOrganizationId(em, organizationId)) {
+      applicationResource.deleteApplication(em, application.getPublicId());
     }
 
     // oddly orgDAO.delete does not cascade to policies, but cascades to labels, license threat groups and waivers
     PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-    policyDAO.deleteByOwnerId(organization.getId());
+    policyDAO.deleteByOwnerId(organization.getId()); // not stored in database as of 1.6
 
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
     try {
@@ -191,7 +201,7 @@ public class OrganizationResource
     }
 
     // delete organization last, this way the operation can be retried later if anything goes wrong
-    organizationDAO.delete(organization);
+    organizationDAO.delete(em, organization);
   }
 
 }

@@ -31,7 +31,17 @@ public class OrganizationDAO
   }
 
   public Organization getByIdNotNull(String id) {
-    Organization organization = getById(id);
+    EntityManager em = createEntityManager();
+    try {
+      return getById(em, id);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public Organization getByIdNotNull(EntityManager em, String id) {
+    Organization organization = getById(em, id);
     if (organization == null) {
       throw new NotFoundException("Cannot find organization with id " + id + ".");
     }

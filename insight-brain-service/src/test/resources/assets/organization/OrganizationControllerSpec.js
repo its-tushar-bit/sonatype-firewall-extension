@@ -184,7 +184,7 @@ describe('OrganizationEditorController', function () {
     };
     scope.selectedOrganization = {
       "id": "4",
-      "name": "org4",
+      "name": "org4"
     };
 
     expect(scope.validateName('org1')).toEqual('Name is already in use');
@@ -227,5 +227,53 @@ describe('OrganizationEditorController', function () {
     httpBackend.flush();
 
     window.FormData = hasFormData;
+  }));
+
+  it('Can delete an organization and broadcast that it has happened', inject(function (CLMAppLocations) {
+    var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
+
+    scope.organizations = [mockOrganization];
+    httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockOrganization.id)).respond({});
+    httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+    httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
+
+    expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
+
+    scope.confirmDeleteOrganization(mockOrganization);
+
+    expect(scope.deletedEnabled).toBeTruthy();
+    expect(angular.element('#deleteOrganizationModel').css('display')).not.toBe('none');
+
+    scope.deleteOrganization();
+
+    httpBackend.flush();
+
+    expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('organizations.delete', mockOrganization.id);
+    expect(scope.organizations.length).toEqual(0);
+    expect(scope.deletedEnabled).toBeFalsy();
+  }));
+
+  it('Can respond to errors when trying to delete an organization', inject(function (CLMAppLocations) {
+    var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
+
+    scope.organizations = [mockOrganization];
+    httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockOrganization.id)).respond(400);
+
+    expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
+
+    scope.confirmDeleteOrganization(mockOrganization);
+
+    expect(scope.deletedEnabled).toBeTruthy();
+    expect(angular.element('#deleteOrganizationModel').css('display')).not.toBe('none');
+
+    scope.deleteOrganization();
+
+    httpBackend.flush();
+
+    expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
+    expect(scope.organizations.length).toEqual(1);
+    expect(scope.deletedEnabled).toBeFalsy();
   }));
 });

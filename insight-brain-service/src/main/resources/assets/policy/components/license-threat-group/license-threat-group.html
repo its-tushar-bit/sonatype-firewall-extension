@@ -4,7 +4,7 @@
 			<div ng-hide='selectedGroup'>
 				<button type="button" class="btn add-new"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
 			</div>
-			<div show-if="selectedGroup" style='width:530px;margin-bottom:5px;padding:5px;border-radius:4px;border:1px solid #e5e5e5'>
+			<div show-if="selectedGroup" class='border-box' style='width:530px;margin-bottom:5px'>
 				<div ng-controller='LicenseThreatGroupEditorController'>
 					<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
 						<div ng-include="'ltgeditor'"></div>

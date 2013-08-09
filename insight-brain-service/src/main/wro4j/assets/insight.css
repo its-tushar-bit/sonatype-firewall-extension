@@ -175,3 +175,8 @@ a {
 .selectList .icon-plus-sign, .selectList .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
     cursor: pointer
 }
+.border-box {
+	border:1px solid #e5e5e5;
+	border-radius:4px;
+	padding:5px
+}

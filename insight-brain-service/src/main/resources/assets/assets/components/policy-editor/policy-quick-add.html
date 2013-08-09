@@ -4,7 +4,7 @@
 			<i class='icon icon-plus'></i> New Policy
 		</button>
 	</div>
-	<div show-if='policy' style='border:1px solid #e5e5e5;border-radius:4px;padding:5px'>
+	<div show-if='policy' class='border-box'>
 		<div ng-controller='PolicyEditorController' style='width:840px'>
 			<form style='margin-bottom:0px' name='quickAddPolicyEditor'>
 				<div class="control-group" ng-class='{ error : quickAddPolicyEditor.name.$error.alphaNumeric || quickAddPolicyEditor.name.$error.spaces }'>

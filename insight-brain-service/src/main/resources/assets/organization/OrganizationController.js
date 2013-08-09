@@ -254,25 +254,17 @@
 
     $scope.deleteOrganization = function() {
       $scope.deletedEnabled = false;
-      $http['delete'](CLMAppLocations.getEntityUrl()).success(function () {
-        angular.forEach($scope.organizations, function (organizationCandidate, key) {
-          if (organizationCandidate.id === $scope.selectedOrganization.id) {
-            $scope.organizations.splice(key, 1);
-            $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
-            return false;
-          }
-        });
-        $('#deleteOrganizationModal').modal('hide');
+      $('#deleteOrganizationModal').modal('hide');
+      $scope.selectedOrganization.$delete().then(function(){
+        $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
         $state.transitionTo('management.organization');
-      }).error(function () {
-        $('#deleteOrganizationModal').modal('hide');
-        $scope.$broadcast('showServerError', arguments);
+      },function(){
+        $scope.$broadcast('showServerError', arguments)
       });
     };
-
   } ]);
 
-  organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function (CLMLocations, clmResource, $q) {
+  organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', function (CLMLocations, clmResource) {
     return clmResource.getStore({
       id: 'id',
       url: CLMLocations.getOrganizationsUrl(),

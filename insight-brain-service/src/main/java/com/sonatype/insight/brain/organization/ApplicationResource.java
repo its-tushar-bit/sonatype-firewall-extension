@@ -240,7 +240,9 @@ public class ApplicationResource
   public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
     EntityManager em = applicationDAO.createEntityManager();
     try {
+      em.getTransaction().begin();
       deleteApplication(em, applicationPublicId);
+      em.getTransaction().commit();
     }
     finally {
       AbstractDAO.close(em);

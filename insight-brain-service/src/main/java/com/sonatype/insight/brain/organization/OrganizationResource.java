@@ -173,7 +173,9 @@ public class OrganizationResource
   public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
     EntityManager em = organizationDAO.createEntityManager();
     try {
+      em.getTransaction().begin();
       deleteOrganization(em, organizationId);
+      em.getTransaction().commit();
     }
     finally {
       AbstractDAO.close(em);

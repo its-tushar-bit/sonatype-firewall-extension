@@ -33,7 +33,7 @@ public class OrganizationDAO
   public Organization getByIdNotNull(String id) {
     EntityManager em = createEntityManager();
     try {
-      return getById(em, id);
+      return getByIdNotNull(em, id);
     }
     finally {
       close(em);

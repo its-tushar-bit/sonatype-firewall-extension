@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -223,7 +224,9 @@ public class ApplicationDAO
   public void deleteWithIcon(Application application, File iconDirectory) {
     EntityManager em = createEntityManager();
     try {
+      em.getTransaction().begin();
       deleteWithIcon(em, application, iconDirectory);
+      em.getTransaction().commit();
     }
     finally {
       close(em);

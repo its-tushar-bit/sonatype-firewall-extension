@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
@@ -48,7 +48,7 @@ public class LicenseStatusConditionType
 
   @Override
   public String explainMatch(final Condition condition, final Component component) {
-    return "License Status was " + component.getLicenseStatus().getId();
+    return "License Status was " + component.getLicenseOverrideStatus().toString();
   }
 
   @Override
@@ -60,14 +60,17 @@ public class LicenseStatusConditionType
   public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
     super.validateCondition(condition, ownerId);
 
-    if (LicenseStatus.getById(condition.getValue()) == null) {
+    try {
+      LicenseOverrideStatus.valueOf(condition.getValue());
+    }
+    catch (IllegalArgumentException e) {
       throw new InvalidConditionException(condition, "Value not supported: " + condition.getValue());
     }
   }
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
-    boolean result = component.getLicenseStatus().getId().equals(value);
+    boolean result = component.getLicenseOverrideStatus().toString().equals(value);
     return "is".equals(operator) ? result : !result;
   }
 }

@@ -36,7 +36,11 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
@@ -180,6 +184,7 @@ public class ReportResource
   /**
    * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
    */
+  @Deprecated
   @GET
   @Path("artifactDetails{ignore:.*}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -249,8 +254,41 @@ public class ReportResource
       finally {
         IOUtil.close(stream);
       }
+
+      // Save the data in the audit log
       final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
       store.commit(path, JsonUtils.stamp(user, AuditUtils.findIP(request), where, data));
+
+      if ("licenses.json".equals(path)) {
+        // Save the data as license override
+        JsonNode licenseData = data.get(0);
+        String groupId = licenseData.get("groupId").asText();
+        String artifactId = licenseData.get("artifactId").asText();
+        String version = licenseData.get("version").asText();
+        String statusDisplayName = licenseData.get("status").asText();
+        String licenseOverrideId = null;
+        LicenseOverrideStatus status = LicenseOverrideStatus.getByDisplayName(statusDisplayName);
+        if (LicenseOverrideStatus.OVERRIDDEN.equals(status)) {
+          String licenseOverrideName = licenseData.get("overriddenLicenses").get(0).asText();
+          licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
+        }
+        String comment = JsonUtils.getNullableString(licenseData.get("comment"));
+
+        LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+        LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
+        if (licenseOverride == null) {
+          licenseOverride = new LicenseOverride(appId, groupId, artifactId, version, status, licenseOverrideId,
+              comment);
+          licenseOverrideDAO.insert(licenseOverride);
+        }
+        else {
+          licenseOverride.setStatus(status);
+          licenseOverride.setLicenseId(licenseOverrideId);
+          licenseOverride.setComment(comment);
+          licenseOverrideDAO.update(licenseOverride);
+        }
+      }
+
       return Response.ok().build();
     }
     return Response.status(Status.BAD_REQUEST).build();
@@ -366,6 +404,10 @@ public class ReportResource
     MODIFICATION_COUNTS.clear();
   }
 
+  /**
+   * @deprecated As of Brain 1.2 (and corresponding SaaS)
+   */
+  @Deprecated
   private static byte[] augmentArtifactDetails(final byte[] detailData, final byte[] licenseData) throws IOException {
     byte[] augmentedDetailData = detailData;
 

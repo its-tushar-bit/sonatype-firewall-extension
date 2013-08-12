@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
@@ -26,6 +27,8 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -118,7 +121,9 @@ public class IDEComponentInfoResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = createApplication(applicationPublicId);
 
-    setLicenseAuditLog(application.getId(), "/IdeResourceTest/LicenseOverride_abababababababababab.json");
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
+    new LicenseOverrideDAO().insert(licenseOverride);
 
     String groupId = "g1";
     String artifactId = "a1";

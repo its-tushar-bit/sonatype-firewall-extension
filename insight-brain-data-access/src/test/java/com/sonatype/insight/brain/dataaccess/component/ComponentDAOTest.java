@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.component;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -28,6 +27,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -115,10 +116,12 @@ public class ComponentDAOTest
     assertEquals(info.getRelativePopularity(), new Integer(comp.getRelativePopularity()));
     assertEquals(info.getDeclaredLicenseIds(), comp.getDeclaredLicenseIds());
     assertEquals(info.getObservedLicenseIds(), comp.getObservedLicenseIds());
-    assertEquals(Collections.emptySet(), comp.getOverriddenLicenseIds());
+
+    assertNull(comp.getLicenseOverrideId());
     assertLicenseThreatGroups(comp.getLicenseThreatGroups(), "Liberal");
     assertSecurityVulnerabilities(comp.getSecurityVulnerabilities(),
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
+
     assertEquals(2, comp.getLabelIds().size());
     assertThat(comp.getLabelIds(), IsCollectionContaining.hasItems(appLabel.getId(), orgLabel.getId()));
   }

@@ -16,6 +16,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -25,7 +26,7 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -38,17 +39,17 @@ public class ComponentDAO
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
-  private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
-    final String statusString = JsonUtils.getNullableString(jsonLicenseData.get("status"));
-    final LicenseStatus status = LicenseStatus.getByName(statusString);
-    component.setLicenseStatus(status);
+  private void processJsonLicenseData(Component component, String ownerId, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
     component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
     List<String> observedLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("observedLicenses"));
     component.setObservedLicenseIds(multiLicenseNamesToLicenseIds(observedLicenseNames));
-    List<String> overriddenLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("overriddenLicenses"));
-    component.setOverriddenLicenseIds(multiLicenseNamesToLicenseIds(overriddenLicenseNames));
-    // TODO Load effective license data too?
+    LicenseOverride licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(ownerId, component.getGroupId(),
+        component.getArtifactId(), component.getVersion());
+    if (licenseOverride != null) {
+      component.setLicenseOverrideStatus(licenseOverride.getStatus());
+      component.setLicenseOverrideId(licenseOverride.getLicenseId());
+    }
   }
 
   public List<Component> getAll(String applicationId, final byte[] licenseData, final byte[] securityData,
@@ -110,8 +111,7 @@ public class ComponentDAO
       }
     }
 
-    // Load license data. This is a little bit misleading since license data contains data that is not related to
-    // licenses.
+    // Load license data
     JsonNode licenseJson = loadJson(licenseData);
     if (licenseJson != null) {
       licenseJson = licenseJson.get("aaData");
@@ -127,7 +127,7 @@ public class ComponentDAO
           List<Component> components = componentsByGAV.get(key);
           if (components != null) {
             for (Component component : components) {
-              processJsonLicenseData(component, jsonLicenseNode);
+              processJsonLicenseData(component, applicationId, jsonLicenseNode);
             }
           }
         }
@@ -206,7 +206,7 @@ public class ComponentDAO
     }
 
     if (jsonLicenseNode != null) {
-      processJsonLicenseData(component, jsonLicenseNode);
+      processJsonLicenseData(component, applicationId, jsonLicenseNode);
     }
     component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
     component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
@@ -225,7 +225,7 @@ public class ComponentDAO
     component.setGroupId(jsonLicenseNode.get("groupId").asText());
     component.setVersion(jsonLicenseNode.get("version").asText());
 
-    processJsonLicenseData(component, jsonLicenseNode);
+    processJsonLicenseData(component, applicationId, jsonLicenseNode);
 
     loadLicenseThreatGroups(applicationId, component);
 
@@ -277,8 +277,10 @@ public class ComponentDAO
   public void loadLicenseThreatGroups(String applicationId, Component component) {
     // Gather all license ids
     Set<String> licenseIds = new LinkedHashSet<String>();
-    licenseIds.addAll(component.getOverriddenLicenseIds());
-    if (licenseIds.isEmpty()) {
+    if (component.getLicenseOverrideId() != null) {
+      licenseIds.add(component.getLicenseOverrideId());
+    }
+    else {
       licenseIds.addAll(component.getDeclaredLicenseIds());
       licenseIds.addAll(component.getObservedLicenseIds());
     }

@@ -191,9 +191,9 @@ public abstract class AbstractComponentInfoResource
     Component component = componentDAO.getComponent(applicationId, componentDetails, licenseData, svData);
 
     // Use CLM data to populate the component details
-    for (String overriddenLicenseId : component.getOverriddenLicenseIds()) {
-      com.sonatype.insight.brain.model.license.License overriddenLicense = licenseDAO
-          .getByIdNotNull(overriddenLicenseId);
+    if (component.getLicenseOverrideId() != null) {
+      com.sonatype.insight.brain.model.license.License overriddenLicense = licenseDAO.getByIdNotNull(component
+          .getLicenseOverrideId());
       componentDetails.getOverriddenLicenses().add(
           new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
     }

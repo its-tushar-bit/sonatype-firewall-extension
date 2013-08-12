@@ -187,10 +187,6 @@ public abstract class AbstractBrainServiceTest
     setSaasResponseForURI(uri, toString(bodyResource), status);
   }
 
-  protected void setLicenseAuditLog(String appId, String jsonResource) {
-    setAuditLog(appId, "licenses.json", jsonResource);
-  }
-
   protected void setSecurityAuditLog(String appId, String jsonResource) {
     setAuditLog(appId, "security.json", jsonResource);
   }

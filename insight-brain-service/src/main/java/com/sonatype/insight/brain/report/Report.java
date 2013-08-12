@@ -337,9 +337,6 @@ public final class Report
       }
     }
 
-    // now apply any license overrides
-    auditStore.augment(licensesJsonData, "licenses.json");
-
     // finally save the changes
     cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licensesJsonData));
 

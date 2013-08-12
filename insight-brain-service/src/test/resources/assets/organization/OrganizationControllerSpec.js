@@ -91,7 +91,7 @@ describe('OrganizationController', function () {
 });
 
 describe('OrganizationEditorController', function () {
-  var scope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization, mockOrganization;
+  var scope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization;
 
   beforeEach(module('OrganizationModule'));
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, OrganizationStore) {
@@ -127,6 +127,11 @@ describe('OrganizationEditorController', function () {
     expect(scope.robotHash).not.toBeUndefined();
     expect(scope.robotHash).not.toEqual('');
     expect(scope.hasRobotSource).toBeTruthy();
+
+    // After first robohash is generated using the name, a random should be created next
+    var robotHash = scope.robotHash;
+    scope.generateIcon();
+    expect(scope.robotHash).not.toEqual(robotHash);
   });
 
   it('checks if the form is dirty', function () {
@@ -151,12 +156,17 @@ describe('OrganizationEditorController', function () {
     scope.selectedOrganization.name = "newName";
     scope.generateIcon();
 
+    expect(scope.hasRobotSource).toBeTruthy();
+    expect(scope.iconChanged).toBeTruthy();
+
     httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
 
     scope.cancelClick();
 
     expect(angular.equals(scope.selectedOrganization, originalMockOrganization)).toBeTruthy();
+    expect(scope.hasRobotSource).not.toBeTruthy();
+    expect(scope.iconChanged).not.toBeTruthy();
   });
 
   it('saves an organization', inject(function (CLMAppLocations) {

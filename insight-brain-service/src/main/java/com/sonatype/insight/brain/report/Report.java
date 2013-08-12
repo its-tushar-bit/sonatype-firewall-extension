@@ -325,7 +325,7 @@ public final class Report
       else {
         LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
         if (licenseOverride != null) {
-          licenseJsonNode.put("status", licenseOverride.getStatus().getDisplayName());
+          licenseJsonNode.put("status", licenseOverride.getStatus().getName());
           if (licenseOverride.getLicenseId() != null) {
             License license = licenseDAO.getByIdNotNull(licenseOverride.getLicenseId());
             licenseJsonNode.putArray("overriddenLicenses").add(license.getShortDisplayName());

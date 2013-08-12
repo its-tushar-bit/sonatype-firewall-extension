@@ -36,7 +36,7 @@ public class LicenseStatusConditionTypeTest
   @Test
   public void testEvaluateIs() {
     // Create policy constraints
-    Constraint constraint = createConstraint("is", LicenseOverrideStatus.OPEN.toString());
+    Constraint constraint = createConstraint("is", LicenseOverrideStatus.OPEN.getId());
     List<Constraint> constraints = new ArrayList<Constraint>();
     constraints.add(constraint);
 
@@ -67,7 +67,7 @@ public class LicenseStatusConditionTypeTest
   @Test
   public void testEvaluateIsNot() {
     // Create policy constraints
-    Constraint constraint = createConstraint("is not", LicenseOverrideStatus.OPEN.toString());
+    Constraint constraint = createConstraint("is not", LicenseOverrideStatus.OPEN.getId());
     List<Constraint> constraints = new ArrayList<Constraint>();
     constraints.add(constraint);
 

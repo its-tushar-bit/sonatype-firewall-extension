@@ -660,7 +660,7 @@ public class ReportResourceTest
         int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
         Assert.assertEquals(9, overriddenLicenseThreat);
         String status = licenseJsonNode.get("status").asText();
-        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getDisplayName(), status);
+        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
         String comment = licenseJsonNode.get("comment").asText();
         Assert.assertEquals("My comment", comment);
         found = true;
@@ -701,7 +701,7 @@ public class ReportResourceTest
         int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
         Assert.assertEquals(0, overriddenLicenseThreat);
         String status = licenseJsonNode.get("status").asText();
-        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getDisplayName(), status);
+        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
         String comment = licenseJsonNode.get("comment").asText();
         Assert.assertEquals("My comment1", comment);
         found = true;

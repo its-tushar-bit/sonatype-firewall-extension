@@ -45,9 +45,6 @@ public class LicenseOverride
   @Enumerated(EnumType.STRING)
   private LicenseOverrideStatus status;
 
-  /**
-   * The id of the license override. It is not null only if the status is Overridden.
-   */
   @Column(name = "license_id")
   private String licenseId;
 

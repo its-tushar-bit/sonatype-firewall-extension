@@ -48,7 +48,7 @@ public class LicenseStatusConditionType
 
   @Override
   public String explainMatch(final Condition condition, final Component component) {
-    return "License Status was " + component.getLicenseOverrideStatus().toString();
+    return "License Status was " + component.getLicenseOverrideStatus().getId();
   }
 
   @Override
@@ -70,7 +70,7 @@ public class LicenseStatusConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
-    boolean result = component.getLicenseOverrideStatus().toString().equals(value);
+    boolean result = component.getLicenseOverrideStatus().getId().equals(value);
     return "is".equals(operator) ? result : !result;
   }
 }

@@ -265,12 +265,17 @@ public class ReportResource
         String groupId = licenseData.get("groupId").asText();
         String artifactId = licenseData.get("artifactId").asText();
         String version = licenseData.get("version").asText();
-        String statusDisplayName = licenseData.get("status").asText();
+        String statusName = licenseData.get("status").asText();
+
         String licenseOverrideId = null;
-        LicenseOverrideStatus status = LicenseOverrideStatus.getByDisplayName(statusDisplayName);
-        if (LicenseOverrideStatus.OVERRIDDEN.equals(status)) {
-          String licenseOverrideName = licenseData.get("overriddenLicenses").get(0).asText();
-          licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
+        LicenseOverrideStatus status = LicenseOverrideStatus.getByName(statusName);
+        JsonNode licenseOverrideJsonNode = licenseData.get("overriddenLicenses");
+        if (licenseOverrideJsonNode != null) {
+          licenseOverrideJsonNode = licenseOverrideJsonNode.get(0);
+          if (licenseOverrideJsonNode != null) {
+            String licenseOverrideName = licenseOverrideJsonNode.asText();
+            licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
+          }
         }
         String comment = JsonUtils.getNullableString(licenseData.get("comment"));
 

@@ -17,25 +17,25 @@ import static org.junit.Assert.fail;
 public class LicenseOverrideStatusTest
 {
   @Test
-  public void testGetByDisplayName() {
+  public void testGetByName() {
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      assertEquals(status, LicenseOverrideStatus.getByDisplayName(status.getDisplayName()));
+      assertEquals(status, LicenseOverrideStatus.getByName(status.getName()));
     }
   }
 
   @Test
-  public void testGetByDisplayName_Null() {
-    assertNull(LicenseOverrideStatus.getByDisplayName(null));
+  public void testGetByName_Null() {
+    assertNull(LicenseOverrideStatus.getByName(null));
   }
 
   @Test
-  public void testGetByDisplayName_Invalid() {
+  public void testGetByName_Invalid() {
     try {
-      LicenseOverrideStatus.getByDisplayName("Yeti");
+      LicenseOverrideStatus.getByName("Yeti");
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
-      assertEquals("Unknown license override status with display name: Yeti", expected.getMessage());
+      assertEquals("Unknown license override status with name: Yeti", expected.getMessage());
     }
   }
 }

@@ -199,9 +199,6 @@ public class IdeResourceTest
     Application application = createApplication(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-
-    Condition condition1 = new Condition(LicenseStatusConditionType.ID, "is",
-        LicenseOverrideStatus.OVERRIDDEN.toString());
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);

@@ -36,6 +36,7 @@ describe('Tests for the OrganizationController', function() {
     afterEach(function() {
       httpBackend.verifyNoOutstandingExpectation();
       httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
     });
 
     it('loads organizations.', function() {
@@ -127,6 +128,7 @@ describe('Tests for the OrganizationController', function() {
     afterEach(function() {
       httpBackend.verifyNoOutstandingExpectation();
       httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
     });
 
     it('generates an icon', function() {

@@ -17,9 +17,11 @@
           </h4>
         </div>
         <div class="label-list">
-          <button type='button' class='btn add-new' ng-click='createNew()' focus-input-on-click='labelName'>
-            <i class='icon icon-plus'></i> New Label
-          </button>
+          <span show-if='applicableLabel.editable'>
+            <button type='button' class='btn add-new' ng-click='createNew()' focus-input-on-click='labelName'>
+              <i class='icon icon-plus'></i> New Label
+            </button>
+          </span>
           <div ng-repeat='label in applicableLabel.labels | orderBy:"label"' style='display:inline-block;'
                ng-click='editLabel(applicableLabel.editable, label)'>
             <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">

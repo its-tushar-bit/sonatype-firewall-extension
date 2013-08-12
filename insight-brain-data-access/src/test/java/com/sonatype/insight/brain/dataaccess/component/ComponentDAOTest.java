@@ -22,11 +22,13 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
+import org.hamcrest.core.IsCollectionContaining;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ComponentDAOTest
@@ -84,9 +86,12 @@ public class ComponentDAOTest
 
   @Test
   public void testGetComponent() {
-    Label label = new Label(applicationId, "red", null);
-    labelDAO.insert(label);
-    componentLabelDAO.insert(new ComponentLabel(applicationId, label.getId(), COMP_HASH));
+    Label appLabel = new Label(applicationId, "red", null);
+    labelDAO.insert(appLabel);
+    Label orgLabel = new Label(application.getOrganizationId(), "blue", null);
+    labelDAO.insert(orgLabel);
+    componentLabelDAO.insert(new ComponentLabel(applicationId, appLabel.getId(), COMP_HASH));
+    componentLabelDAO.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), COMP_HASH));
 
     MatchedComponent info = new MatchedComponent();
     info.setHash(COMP_HASH);
@@ -114,7 +119,8 @@ public class ComponentDAOTest
     assertLicenseThreatGroups(comp.getLicenseThreatGroups(), "Liberal");
     assertSecurityVulnerabilities(comp.getSecurityVulnerabilities(),
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
-    assertEquals(1, comp.getLabelIds().size());
+    assertEquals(2, comp.getLabelIds().size());
+    assertThat(comp.getLabelIds(), IsCollectionContaining.hasItems(appLabel.getId(), orgLabel.getId()));
   }
 
   @Test

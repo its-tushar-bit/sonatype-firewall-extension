@@ -25,8 +25,8 @@
 		<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="PercentageValueType" ng-pattern='/^((\d{1,2})|(100))$/' required>
 		<span ng-switch-default ng-switch on='conditionTypes[condition.conditionTypeId].valueType.dataType'>
 			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="String" required>
-			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" ng-pattern='/^(\d|10)$/' required>
-			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Float" ng-pattern='/^\d+(\.\d+)?$/' required>
+			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Integer" ng-pattern='/^(\d|10)$/' title="Please enter a whole number" required>
+			<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="Float" ng-pattern='/^\d+(\.\d+)?$/' title="Please enter a decimal number" required>
 		</span>
 	</span>
 </span>

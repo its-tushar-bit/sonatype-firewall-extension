@@ -332,18 +332,15 @@
     $scope.createConditionValidationMessage = function(dataType, constraintName, index) {
       var msg = 'Please enter ';
       switch (dataType){
-        case 'String':
-          msg += 'a value';
-          break;
         case 'Integer':
-          msg += 'a valid number';
+          msg += 'a whole number';
           break;
         case 'Float':
-          msg += 'a valid number(decimals allowed)';
+          msg += 'a decimal number';
           break;
+        case 'String':
         default :
           msg += 'a value';
-
       }
       msg += ' for condition #' + index + ' in constraint "' + constraintName + '"';
       return msg;

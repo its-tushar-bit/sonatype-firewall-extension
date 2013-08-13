@@ -366,12 +366,12 @@ public final class Report
     // must start from un-edited data
     ReportEntry partialmatchedReportEntry = extractEntry(reportFile, "partialmatched.json");
     ContainerNode<?> partialmatchedJsonData = JsonUtils.parse(partialmatchedReportEntry.buf);
-    iterSecurityData = partialmatchedJsonData.get("aaData").iterator();
-    while (iterSecurityData.hasNext()) {
-      JsonNode jsonNode = iterSecurityData.next();
+    Iterator<JsonNode> iterPartialMatchData = partialmatchedJsonData.get("aaData").iterator();
+    while (iterPartialMatchData.hasNext()) {
+      JsonNode jsonNode = iterPartialMatchData.next();
       String hash = jsonNode.path("hash").asText();
       if (claimedHashes.contains(hash)) {
-        iterSecurityData.remove();
+        iterPartialMatchData.remove();
       }
     }
 

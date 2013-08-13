@@ -1,6 +1,6 @@
 /*global window*/
 describe('ComponentLabelEditor tests', function() {
-	var scope, $http;
+	var scope, addScope, removeScope, $http;
 
 	angular.module('TestGavProvider', []).service('ComponentLabelEditorGAV', function () {
 		return {
@@ -15,12 +15,16 @@ describe('ComponentLabelEditor tests', function() {
 		$http = $httpBackend;
 
 		$httpBackend.expectGET(new RegExp('\\.\\./brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00\\?timestamp=[0-9]+')).
-			respond([{ "label" : "foo", "color" : "black"}]);
-		$httpBackend.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).
-			respond([{ "label" : "foo", "color" : "black"}]);
+			respond({"labelsByOwner":[{"ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization","labels":[{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red"}]}]});
+		$httpBackend.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678/applicable\\?timestamp=[0-9]+')).
+			respond({"labelsByOwner":[{"ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization","labels":[{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red"}]},{"ownerId":"appOwnerId","ownerName":"appName","ownerType":"application","labels":[{"id":"two","ownerId":"appOwnerId","label":"two","labelLowercase":"two","description":"two","color":"blue"}]}]});
 
 		scope = $rootScope.$new();
 		$controller('LabelsController', {$scope: scope, global: {}});
+		addScope = scope.$new();
+		$controller('LabelAddController', {$scope: addScope, global: {}});
+		removeScope = scope.$new();
+		$controller('LabelRemoveController', {$scope: removeScope, global: {}});
 		$httpBackend.flush();
 	}));
 	
@@ -29,58 +33,34 @@ describe('ComponentLabelEditor tests', function() {
     $httpBackend.verifyNoOutstandingRequest();
 	}));
 
-	it('Test Add Label', function () {
-		$http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00',{ "labels" : ["foo","bar"]}).respond([{ "label" : "foo", "color" : "black"},{ "label" : "bar", "color" : "yellow"}]);
-		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
+	it('Test Add Application scoped Label', function () {
+	  $http.expectPOST('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00',{"id":"two","ownerId":"appId","label":"two","labelLowercase":"two","description":"two","color":"blue","ownerType":"application","ownerName":"test"}).respond([]);
+	  $http.expectGET(new RegExp('\\.\\./brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00\\?timestamp=[0-9]+')).
+      respond({"labelsByOwner":[{"ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization","labels":[{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red"}]},{"ownerId":"appOwnerId","ownerName":"appName","ownerType":"application","labels":[{"id":"two","ownerId":"appOwnerId","label":"two","labelLowercase":"two","description":"two","color":"blue"}]}]});
+	  $http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678/applicable\\?timestamp=[0-9]+')).
+      respond({"labelsByOwner":[{"ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization","labels":[{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red"}]},{"ownerId":"appOwnerId","ownerName":"appName","ownerType":"application","labels":[{"id":"two","ownerId":"appOwnerId","label":"two","labelLowercase":"two","description":"two","color":"blue"}]}]});
 
-    scope.addLabel({
-      label: 'bar'
-    });
+    scope.addLabel({"id":"two","ownerId":"appId","label":"two","labelLowercase":"two","description":"two","color":"blue","ownerType":"application","ownerName":"test"});
 		$http.flush();
 		expect(scope.itemLabels.length).toEqual(2);
-
-    $http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00',{ "labels" : ["foo","bar","asdf"]}).respond([{ "label" : "foo", "color" : "black"},{ "label" : "bar", "color" : "yellow"},{ "label" : "asdf"}]);
-    $http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"},{ "label" : "asdf"}]);
-
-    scope.addLabel({
-      label: 'asdf'
-    });
-    $http.flush();
-    expect(scope.itemLabels.length).toEqual(3);
-    
-		var barLabel = null;
-		angular.forEach(scope.itemLabels, function(item, key){
-			if (item.label === 'bar') {
-				barLabel = item;
-			}
-		});
-		expect(barLabel).toNotEqual(null);
-		expect(barLabel.color).toEqual('yellow');
 	});
 	
-	it('Test Duplicate Ignored', function () {
-    $http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00',{ "labels" : ["foo","bar"]}).respond([{ "label" : "foo", "color" : "black"},{ "label" : "bar", "color" : "yellow"}]);
-    $http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
-
-    scope.addLabel({
-      label: 'bar'
-    });
+	it('Test Add Organization scoped Label', function(){
+	  $http.expectPOST('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00',{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red","ownerType":"organization","ownerName":"orgName"}).respond([]);
+    
+    scope.addLabel({"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red","ownerType":"organization","ownerName":"orgName"});
+    addScope.label = {
+      selectedOwner: 'orgOwnerId$$organization'
+    }
+    addScope.accept();
     $http.flush();
-    expect(scope.itemLabels.length).toEqual(2);
-
-    scope.addLabel({
-      label: 'bar'
-    });
-    
-    //note that i am using the afterEach to validate noRequests/expectations to finish this test
-    
-    expect(scope.itemLabels.length).toEqual(2);
 	});
-
+	
 	it('Test Remove', function () {
-		$http.expectPUT('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00').respond([]);
-		$http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678\\?inherit=true&timestamp=[0-9]+')).respond([{ "label" : "foo", "color" : "black"}, { "label" : "asdf"}, { "label" : "bar"}]);
-		scope.removeLabel( scope.itemLabels[0] );
+	  expect( scope.itemLabels.length ).toEqual(1);
+	  $http.expectDELETE('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00').respond([]);
+	  scope.removeLabel([{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red","ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization"});
+	  removeScope.accept();
 		$http.flush();
 		expect( scope.itemLabels.length ).toEqual(0);
 	});

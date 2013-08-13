@@ -1,0 +1,65 @@
+[ {
+  "time" : 1376426375716,
+  "user" : "anonymous",
+  "ip" : "127.0.0.1",
+  "where" : "test2/184",
+  "data" : [ {
+    "groupId" : "commons-pool",
+    "artifactId" : "commons-pool",
+    "version" : "1.4",
+    "status" : "Overridden",
+    "overriddenLicenses" : [ "GPL-3.0" ],
+    "overriddenLicenseThreat" : 9,
+    "comment" : "Comment 4"
+  }, {
+    "groupId" : "commons-dbcp",
+    "artifactId" : "commons-dbcp",
+    "version" : "1.4",
+    "status" : "Overridden",
+    "overriddenLicenses" : [ "GPL-3.0" ],
+    "overriddenLicenseThreat" : 9,
+    "comment" : "Comment 4"
+  } ]
+}, {
+  "time" : 1376426299324,
+  "user" : "anonymous",
+  "ip" : "127.0.0.1",
+  "where" : "test2/184",
+  "data" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "status" : "Acknowledged",
+    "overriddenLicenses" : null,
+    "overriddenLicenseThreat" : null,
+    "comment" : "Comment 3"
+  } ]
+}, {
+  "time" : 1376426278913,
+  "user" : "anonymous",
+  "ip" : "127.0.0.1",
+  "where" : "test2/184",
+  "data" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "status" : "Overridden",
+    "overriddenLicenses" : [ "GPL-2.0" ],
+    "overriddenLicenseThreat" : 9,
+    "comment" : "Comment 2"
+  } ]
+}, {
+  "time" : 1376426246188,
+  "user" : "anonymous",
+  "ip" : "127.0.0.1",
+  "where" : "test2/184",
+  "data" : [ {
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.2",
+    "status" : "Overridden",
+    "overriddenLicenses" : [ "Apache-2.0" ],
+    "overriddenLicenseThreat" : 0,
+    "comment" : "Comment 1"
+  } ]
+} ]

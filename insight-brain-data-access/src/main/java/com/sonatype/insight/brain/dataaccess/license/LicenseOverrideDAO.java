@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 
@@ -25,5 +27,12 @@ public class LicenseOverrideDAO
     String sQuery = "SELECT entity FROM LicenseOverride entity" + //
         " WHERE entity.ownerId=?1 AND entity.groupId=?2 AND entity.artifactId=?3 AND entity.version=?4";
     return get(sQuery, ownerId, groupId, artifactId, version);
+  }
+
+  public List<LicenseOverride> getByOwnerId(String ownerId) {
+    String sQuery = "SELECT entity FROM LicenseOverride entity" + //
+        " WHERE entity.ownerId=?1" + //
+        " ORDER BY entity.groupId, entity.artifactId, entity.version";
+    return getList(sQuery, ownerId);
   }
 }

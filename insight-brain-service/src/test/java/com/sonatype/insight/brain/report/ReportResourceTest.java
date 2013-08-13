@@ -560,7 +560,7 @@ public class ReportResourceTest
   @Test
   public void testAugmentDataAndAuditLog() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    createApplication(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -623,93 +623,6 @@ public class ReportResourceTest
 
     assertThat(response.getResponseBody().replaceAll("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
-    LicenseOverride licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getId(), "commons-pool",
-        "commons-pool", "1.4");
-    assertNull(licenseOverride);
-
-    // edit the license
-    String licenseEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"GPL-3.0\"],\"overriddenLicenseThreat\":10,\"comment\":\"My comment\"}]:";
-    final String licenseQuery = "licenses.json?user=test&where=ReportResourceTest";
-    response = RestAccess.post(resourcePrefix + "/augmentData/" + licenseQuery, licenseEdit);
-    assertResponseStatus(200, response);
-
-    // verify that the license was saved in the database
-    licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool",
-        "1.4");
-    assertNotNull(licenseOverride);
-    assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
-    assertEquals("GPL-3.0", licenseOverride.getLicenseId());
-    assertEquals("My comment", licenseOverride.getComment());
-
-    // verify the license change has processed
-    response = RestAccess.get(resourcePrefix + "/embedReport/licenses.json");
-    assertResponseStatus(200, response);
-
-    // verify that the license is overridden correctly
-    boolean found = false;
-    String licenseJsonString = response.getResponseBody();
-    JsonNode licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
-    for (JsonNode licenseJsonNode : licenseJsonData) {
-      if ("commons-pool".equals(licenseJsonNode.get("groupId").asText())
-          && "commons-pool".equals(licenseJsonNode.get("artifactId").asText())
-          && "1.4".equals(licenseJsonNode.get("version").asText())) {
-        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        Assert.assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
-        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        Assert.assertEquals(9, effectiveLicenseThreat);
-        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        Assert.assertEquals(9, overriddenLicenseThreat);
-        String status = licenseJsonNode.get("status").asText();
-        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
-        String comment = licenseJsonNode.get("comment").asText();
-        Assert.assertEquals("My comment", comment);
-        found = true;
-        break;
-      }
-    }
-    Assert.assertTrue("Did not find expected overridden license", found);
-
-    // edit the license again
-    licenseEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"Apache-2.0\"],\"overriddenLicenseThreat\":1,\"comment\":\"My comment1\"}]:";
-    response = RestAccess.post(resourcePrefix + "/augmentData/" + licenseQuery, licenseEdit);
-    assertResponseStatus(200, response);
-
-    // verify that the license was saved in the database
-    licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool",
-        "1.4");
-    assertNotNull(licenseOverride);
-    assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
-    assertEquals("Apache-2.0", licenseOverride.getLicenseId());
-    assertEquals("My comment1", licenseOverride.getComment());
-
-    // verify the license change has processed
-    response = RestAccess.get(resourcePrefix + "/embedReport/licenses.json");
-    assertResponseStatus(200, response);
-
-    // verify that the license is overridden correctly
-    found = false;
-    licenseJsonString = response.getResponseBody();
-    licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
-    for (JsonNode licenseJsonNode : licenseJsonData) {
-      if ("commons-pool".equals(licenseJsonNode.get("groupId").asText())
-          && "commons-pool".equals(licenseJsonNode.get("artifactId").asText())
-          && "1.4".equals(licenseJsonNode.get("version").asText())) {
-        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        Assert.assertEquals("[\"Apache-2.0\"]", overridenLicenseNamesStr);
-        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        Assert.assertEquals(0, effectiveLicenseThreat);
-        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        Assert.assertEquals(0, overriddenLicenseThreat);
-        String status = licenseJsonNode.get("status").asText();
-        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
-        String comment = licenseJsonNode.get("comment").asText();
-        Assert.assertEquals("My comment1", comment);
-        found = true;
-        break;
-      }
-    }
-    Assert.assertTrue("Did not find expected overridden license", found);
-
     // edit the BoM
     final String bomEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
     final String bomQuery = "bom.json?user=test&where=ReportResourceTest";
@@ -720,7 +633,7 @@ public class ReportResourceTest
     // verify the BoM change has been applied
     response = RestAccess.get(resourcePrefix + "/embedReport/bom.json");
     assertResponseStatus(200, response);
-    found = false;
+    boolean found = false;
     final String bomJsonString = response.getResponseBody();
     final JsonNode bomJsonData = JsonUtils.parse(bomJsonString).get("aaData");
     for (JsonNode bomJsonNode : bomJsonData) {
@@ -733,6 +646,130 @@ public class ReportResourceTest
       }
     }
     Assert.assertTrue("Did not find augmented record in BoM", found);
+  }
+
+  @Test
+  public void testAugmentDataAndAuditLog_LicenseOverrides() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    Application application = createApplication(applicationPublicId);
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat",
+        "tomcat-util", "5.5.23");
+    assertNull(licenseOverride);
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    assertNull(licenseOverride);
+
+    // edit the license
+    String licenseEdit = "["
+        + "{\"groupId\":\"tomcat\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"GPL-3.0\"],\"overriddenLicenseThreat\":10,\"comment\":\"My comment\"},"
+        + "{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"GPL-3.0\"],\"overriddenLicenseThreat\":10,\"comment\":\"My comment\"}"
+        + "]:";
+    final String licenseQuery = "licenses.json?user=test&where=ReportResourceTest";
+    Response response = RestAccess.post(resourcePrefix + "/augmentData/" + licenseQuery, licenseEdit);
+    assertResponseStatus(200, response);
+
+    // verify that the license overrides were saved in the database
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat", "tomcat-util", "5.5.23");
+    assertNotNull(licenseOverride);
+    assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
+    assertEquals("GPL-3.0", licenseOverride.getLicenseId());
+    assertEquals("My comment", licenseOverride.getComment());
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    assertNotNull(licenseOverride);
+    assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
+    assertEquals("GPL-3.0", licenseOverride.getLicenseId());
+    assertEquals("My comment", licenseOverride.getComment());
+
+    // verify the license overrides were applied to the license.json file
+    response = RestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    assertResponseStatus(200, response);
+    int found = 0;
+    String licenseJsonString = response.getResponseBody();
+    JsonNode licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
+    for (JsonNode licenseJsonNode : licenseJsonData) {
+      String groupId = licenseJsonNode.get("groupId").asText();
+      String artifactId = licenseJsonNode.get("artifactId").asText();
+      String version = licenseJsonNode.get("version").asText();
+      if (("tomcat".equals(groupId) && "tomcat-util".equals(artifactId) && "5.5.23".equals(version))
+          || ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version))) {
+        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
+        Assert.assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
+        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
+        Assert.assertEquals(9, effectiveLicenseThreat);
+        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
+        Assert.assertEquals(9, overriddenLicenseThreat);
+        String status = licenseJsonNode.get("status").asText();
+        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        String comment = licenseJsonNode.get("comment").asText();
+        Assert.assertEquals("My comment", comment);
+        found++;
+      }
+    }
+    Assert.assertEquals("Did not find expected overridden license", 2, found);
+
+    // edit the license again
+    licenseEdit = "["
+        + "{\"groupId\":\"tomcat\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"Apache-2.0\"],\"overriddenLicenseThreat\":1,\"comment\":\"My comment1\"},"
+        + "{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"status\":\"Overridden\",\"overriddenLicenses\":[\"Apache-2.0\"],\"overriddenLicenseThreat\":1,\"comment\":\"My comment1\"}"
+        + "]:";
+    response = RestAccess.post(resourcePrefix + "/augmentData/" + licenseQuery, licenseEdit);
+    assertResponseStatus(200, response);
+
+    // verify that the license overrides were saved in the database
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat", "tomcat-util", "5.5.23");
+    assertNotNull(licenseOverride);
+    assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
+    assertEquals("Apache-2.0", licenseOverride.getLicenseId());
+    assertEquals("My comment1", licenseOverride.getComment());
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    assertNotNull(licenseOverride);
+    assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
+    assertEquals("Apache-2.0", licenseOverride.getLicenseId());
+    assertEquals("My comment1", licenseOverride.getComment());
+
+    // verify the license overrides were applied to the license.json file
+    response = RestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    assertResponseStatus(200, response);
+    found = 0;
+    licenseJsonString = response.getResponseBody();
+    licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
+    for (JsonNode licenseJsonNode : licenseJsonData) {
+      String groupId = licenseJsonNode.get("groupId").asText();
+      String artifactId = licenseJsonNode.get("artifactId").asText();
+      String version = licenseJsonNode.get("version").asText();
+      if (("tomcat".equals(groupId) && "tomcat-util".equals(artifactId) && "5.5.23".equals(version))
+          || ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version))) {
+        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
+        Assert.assertEquals("[\"Apache-2.0\"]", overridenLicenseNamesStr);
+        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
+        Assert.assertEquals(0, effectiveLicenseThreat);
+        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
+        Assert.assertEquals(0, overriddenLicenseThreat);
+        String status = licenseJsonNode.get("status").asText();
+        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        String comment = licenseJsonNode.get("comment").asText();
+        Assert.assertEquals("My comment1", comment);
+        found++;
+      }
+    }
+    Assert.assertEquals("Did not find expected overridden license", 2, found);
+
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat", "tomcat-util", "5.5.23");
+    licenseOverrideDAO.delete(licenseOverride);
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    licenseOverrideDAO.delete(licenseOverride);
   }
 
   @Test

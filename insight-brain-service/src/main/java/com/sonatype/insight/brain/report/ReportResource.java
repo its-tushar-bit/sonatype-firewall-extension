@@ -260,43 +260,47 @@ public class ReportResource
       store.commit(path, JsonUtils.stamp(user, AuditUtils.findIP(request), where, data));
 
       if ("licenses.json".equals(path)) {
-        // Save the data as license override
-        JsonNode licenseData = data.get(0);
-        String groupId = licenseData.get("groupId").asText();
-        String artifactId = licenseData.get("artifactId").asText();
-        String version = licenseData.get("version").asText();
-        String statusName = licenseData.get("status").asText();
-
-        String licenseOverrideId = null;
-        LicenseOverrideStatus status = LicenseOverrideStatus.getByName(statusName);
-        JsonNode licenseOverrideJsonNode = licenseData.get("overriddenLicenses");
-        if (licenseOverrideJsonNode != null) {
-          licenseOverrideJsonNode = licenseOverrideJsonNode.get(0);
-          if (licenseOverrideJsonNode != null) {
-            String licenseOverrideName = licenseOverrideJsonNode.asText();
-            licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
-          }
-        }
-        String comment = JsonUtils.getNullableString(licenseData.get("comment"));
-
-        LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-        LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
-        if (licenseOverride == null) {
-          licenseOverride = new LicenseOverride(appId, groupId, artifactId, version, status, licenseOverrideId,
-              comment);
-          licenseOverrideDAO.insert(licenseOverride);
-        }
-        else {
-          licenseOverride.setStatus(status);
-          licenseOverride.setLicenseId(licenseOverrideId);
-          licenseOverride.setComment(comment);
-          licenseOverrideDAO.update(licenseOverride);
+        // Save the data as license overrides
+        for (int i = 0; i < data.size(); i++) {
+          saveLicenseOverride(appId, data.get(i));
         }
       }
 
       return Response.ok().build();
     }
     return Response.status(Status.BAD_REQUEST).build();
+  }
+
+  private void saveLicenseOverride(String appId, JsonNode licenseData) {
+    String groupId = licenseData.get("groupId").asText();
+    String artifactId = licenseData.get("artifactId").asText();
+    String version = licenseData.get("version").asText();
+    String statusName = licenseData.get("status").asText();
+
+    String licenseOverrideId = null;
+    LicenseOverrideStatus status = LicenseOverrideStatus.getByName(statusName);
+    JsonNode licenseOverrideJsonNode = licenseData.get("overriddenLicenses");
+    if (licenseOverrideJsonNode != null) {
+      licenseOverrideJsonNode = licenseOverrideJsonNode.get(0);
+      if (licenseOverrideJsonNode != null) {
+        String licenseOverrideName = licenseOverrideJsonNode.asText();
+        licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
+      }
+    }
+    String comment = JsonUtils.getNullableString(licenseData.get("comment"));
+
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
+    if (licenseOverride == null) {
+      licenseOverride = new LicenseOverride(appId, groupId, artifactId, version, status, licenseOverrideId, comment);
+      licenseOverrideDAO.insert(licenseOverride);
+    }
+    else {
+      licenseOverride.setStatus(status);
+      licenseOverride.setLicenseId(licenseOverrideId);
+      licenseOverride.setComment(comment);
+      licenseOverrideDAO.update(licenseOverride);
+    }
   }
 
   @GET

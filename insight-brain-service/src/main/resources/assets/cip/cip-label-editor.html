@@ -25,7 +25,7 @@
 		</div>
 		<div class="modal-body">
 			<div ng-repeat="labelOwner in labelOwners">
-				<input type="radio" ng-model="selectedOwner" name="selectedOwner" value="{{labelOwner.ownerId + '$$' + labelOwner.ownerType}}">{{'Assign label to ' + labelOwner.ownerType + ' ' + labelOwner.ownerName}}
+				<input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.ownerId + '$$' + labelOwner.ownerType}}">{{'Assign label to ' + labelOwner.ownerType + ' ' + labelOwner.ownerName}}
 			</div>
 		</div>
 		<div class="modal-footer">

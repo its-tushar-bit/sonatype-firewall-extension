@@ -53,7 +53,7 @@
     $scope.accept = function() {
       $scope.labelSaving = true;
       $scope.labelAddError = null;
-      var parts = $scope.selectedOwner.split('$$');
+      var parts = $scope.label.selectedOwner.split('$$');
       hudson.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' + componentLabelEditorGAV.hash, currentLabelData.get()).success(function(responseData){
         $scope.labelSaving = false;
         $('#labelAssignScopeModal').modal('hide');
@@ -66,7 +66,9 @@
     $('#labelAssignScopeModal').on('shown',function(){
         $scope.$apply(function(){
           var label = currentLabelData.get();
-          $scope.selectedOwner = componentLabelEditorGAV.applicationId + '$$application';
+          $scope.label = {
+            selectedOwner: componentLabelEditorGAV.applicationId + '$$application'
+          };
           //if label is owned by an app, simply do the add with no further input from user
           $scope.labelOwners = [{
             ownerId: componentLabelEditorGAV.applicationId,

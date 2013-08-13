@@ -214,9 +214,21 @@
 						if (attrs.required) {
 							// Trigger validation while typing
 							inputElement.keyup(function() {
-								scope.$apply(function () {
-									$parse(attrs.ngModel).assign(scope, inputElement.val());
-								});
+								var newValue = inputElement.val();
+								if (/\S\s$/.test(newValue)) {
+									return; // skip single trailing space validation (distracting when typing)
+								}
+								var modelParser = $parse(attrs.ngModel);
+								if (newValue !== modelParser(scope)) {
+									var caret = inputElement[0].selectionStart;
+									scope.$apply(function () {
+										modelParser.assign(scope, newValue);
+									});
+									if (caret >= 0) {
+										// maintain caret cursor position when editing
+										inputElement[0].setSelectionRange(caret, caret);
+									}
+								}
 							});
 						}
 

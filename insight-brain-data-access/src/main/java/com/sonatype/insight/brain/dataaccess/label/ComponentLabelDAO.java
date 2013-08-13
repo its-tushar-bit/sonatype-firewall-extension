@@ -6,24 +6,27 @@
 package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 public class ComponentLabelDAO
     extends AbstractOperationalSqlDAO<ComponentLabel>
 {
+  @Override
+  protected ComponentLabel getById(EntityManager em, String id) {
+    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
+        " WHERE entity.id=?1";
+    return get(em, sQuery, id);
+  }
+
   public List<ComponentLabel> getByLabelId(EntityManager em, String labelId) {
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.labelId=?1";
@@ -53,83 +56,62 @@ public class ComponentLabelDAO
     return labels;
   }
 
-  public void setComponentLabels(String ownerId, String hash, Set<String> stringLabels, Color defaultColor) {
-    if (stringLabels == null) {
-      stringLabels = new LinkedHashSet<String>();
-    }
-
-    for (String label : stringLabels) {
-      if (label.length() > 50) {
-        throw new InvalidLabelException("The label '" + label + "' exceeds the maximum length of 50 characters");
-      }
-    }
-
-    // Check labels are unique case insensitive
-    Set<String> labelsLowercase = new LinkedHashSet<String>();
-    Iterator<String> stringLabelsIter = stringLabels.iterator();
-    while (stringLabelsIter.hasNext()) {
-      String labelLowercase = stringLabelsIter.next().toLowerCase(Locale.ENGLISH);
-      if (labelsLowercase.contains(labelLowercase)) {
-        stringLabelsIter.remove();
-      }
-      else {
-        labelsLowercase.add(labelLowercase);
-      }
-    }
-
-    LabelDAO labelDAO = new LabelDAO();
+  /**
+   * Gets the component label applied to a given component and context (org/app) using the specified label.
+   * 
+   * @since 1.6
+   */
+  public ComponentLabel getByOwnerIdAndHashAndLabelId(String ownerId, String hash, String labelId) {
     EntityManager em = createEntityManager();
     try {
-      em.getTransaction().begin();
-
-      // Remove obsolete labels
-      List<ComponentLabel> oldComponentLabels = new ArrayList<ComponentLabel>();
-      oldComponentLabels.addAll(getByOwnerIdAndHash(em, ownerId, hash));
-      Iterator<ComponentLabel> iterOldComponentLabel = oldComponentLabels.iterator();
-      while (iterOldComponentLabel.hasNext()) {
-        boolean deleteOldLabel = true;
-        ComponentLabel oldComponentLabel = iterOldComponentLabel.next();
-        Label oldLabel = labelDAO.getById(em, oldComponentLabel.getLabelId());
-        Iterator<String> iterStringLabels = stringLabels.iterator();
-        while (iterStringLabels.hasNext()) {
-          String stringLabel = iterStringLabels.next();
-          if (oldLabel.getLabelLowercase().equals(stringLabel.toLowerCase(Locale.ENGLISH))) {
-            // This label already exists
-            iterStringLabels.remove();
-            deleteOldLabel = false;
-            break;
-          }
-        }
-
-        if (deleteOldLabel) {
-          delete(em, oldComponentLabel);
-          iterOldComponentLabel.remove();
-        }
-      }
-
-      // Add new labels
-      // stringLabels contains only new labels now
-      for (String stringLabel : stringLabels) {
-        String labelLowercase = stringLabel.toLowerCase(Locale.ENGLISH);
-        Label label = labelDAO.getByOwnerIdAndLowercaseLabel(em, ownerId, labelLowercase, true);
-        if (label == null) {
-          label = new Label();
-          label.setOwnerId(ownerId);
-          label.setLabel(stringLabel);
-          label.setColor(defaultColor);
-          labelDAO.insert(em, label);
-        }
-        ComponentLabel componentLabel = new ComponentLabel();
-        componentLabel.setOwnerId(label.getOwnerId());
-        componentLabel.setHash(hash);
-        componentLabel.setLabelId(label.getId());
-        insert(em, componentLabel);
-      }
-
-      em.getTransaction().commit();
+      return getByOwnerIdAndHashAndLabelId(em, ownerId, hash, labelId);
     }
     finally {
       close(em);
     }
+  }
+
+  private ComponentLabel getByOwnerIdAndHashAndLabelId(EntityManager em, String ownerId, String hash, String labelId) {
+    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
+        " WHERE entity.ownerId=?1 AND entity.hash=?2 AND entity.labelId=?3";
+    return get(em, sQuery, ownerId, hash, labelId);
+  }
+
+  @Override
+  public void insert(EntityManager em, ComponentLabel entity) {
+    validate(em, entity);
+    super.insert(em, entity);
+  }
+
+  @Override
+  public void update(EntityManager em, ComponentLabel entity) {
+    validate(em, entity);
+    super.update(em, entity);
+  }
+
+  private void validate(EntityManager em, ComponentLabel entity) {
+    LabelDAO labelDAO = new LabelDAO();
+    Label label = labelDAO.getByIdNotNull(entity.getLabelId());
+    ComponentLabel other = getByOwnerIdAndHashAndLabelId(em, entity.getOwnerId(), entity.getHash(), entity.getLabelId());
+    if (other != null && !other.getId().equals(entity.getId())) {
+      throw new BadRequestException("The label '" + label.getLabel() + "' is already applied to the component "
+          + entity.getHash());
+    }
+    if (!isLabelApplicable(em, label, entity.getOwnerId(), labelDAO)) {
+      throw new BadRequestException("The label '" + label.getLabel() + "' is not applicable for the selected context "
+          + entity.getOwnerId());
+    }
+  }
+
+  private boolean isLabelApplicable(EntityManager em, Label label, String ownerId, LabelDAO labelDAO) {
+    if (label.getOwnerId().equals(ownerId)) {
+      return true;
+    }
+    for (Label applicable : labelDAO.getByOwnerId(em, ownerId, true)) {
+      if (applicable.getId().equals(label.getId())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

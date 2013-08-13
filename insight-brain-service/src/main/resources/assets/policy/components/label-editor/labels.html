@@ -1,7 +1,4 @@
 <div>
-  <div class='add-section'>
-    <div inline-label-creator></div>
-  </div>
   <div class="content-section">
     <div load-error='error' reload='doLoad()'></div>
     <div class='content-container' style='text-align:center;width:370px;margin:25px auto'
@@ -20,6 +17,11 @@
           </h4>
         </div>
         <div class="label-list">
+          <span show-if='applicableLabel.editable'>
+            <button type='button' class='btn add-new' ng-click='createNew()' focus-input-on-click='labelName'>
+              <i class='icon icon-plus'></i> New Label
+            </button>
+          </span>
           <div ng-repeat='label in applicableLabel.labels | orderBy:"label"' style='display:inline-block;'
                ng-click='editLabel(applicableLabel.editable, label)'>
             <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
@@ -37,12 +39,36 @@
               </span>
             </div>
           </div>
-          <em ng-show='labels.length == 0'>No labels available</em></div>
-        <span ng-switch='applicableLabel.editable'>
-          <span ng-switch-when='true'>
-            <div ng-include='editorUrl' style="margin-left: 25px;"></div>
-          </span>
-        </span>
+          <em ng-show='labels.length == 0'>No labels available</em>
+        </div>
+        <div show-if='applicableLabel.editable && selectedLabel' style='margin-left:25px'>
+          <div class='fade in' style='width:830px' ng-controller='LabelEditorController'>
+            <form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
+              <div class="modal-body" style="padding: 15px 0;">
+                <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
+                  <div class="controls" style="margin-left: 0;">
+                    <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" item-label>
+                    <span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
+                    <span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
+                    <span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <textarea maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter Description"></textarea>
+                </div>
+                <div>
+                  <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
+                    <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{selectedLabel.label}}</span>
+                  </div>
+                </div>
+                <div class="pull-right">
+                  <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
+                  <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>

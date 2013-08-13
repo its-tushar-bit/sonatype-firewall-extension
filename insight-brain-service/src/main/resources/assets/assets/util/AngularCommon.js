@@ -621,7 +621,7 @@
 				val = diff / (60 * 1000);
 				unit = 'Minute';
 			} else {
-				return 'Some Seconds';
+				return 'Seconds Ago';
 			}
 			val = Math.floor(val);
 			if (val > 1) {

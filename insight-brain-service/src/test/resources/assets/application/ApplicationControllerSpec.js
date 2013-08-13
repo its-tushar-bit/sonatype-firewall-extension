@@ -133,6 +133,11 @@ describe('ApplicationEditorController', function () {
     expect(scope.robotHash).not.toBeUndefined();
     expect(scope.robotHash).not.toEqual('');
     expect(scope.hasRobotSource).toBeTruthy();
+
+    // After first robohash is generated using the name, a random should be created next
+    var robotHash = scope.robotHash;
+    scope.generateIcon();
+    expect(scope.robotHash).not.toEqual(robotHash);
   });
 
   it('gets org name from id', function () {
@@ -189,6 +194,9 @@ describe('ApplicationEditorController', function () {
     scope.selectedApplication.name = "newName";
     scope.generateIcon();
 
+    expect(scope.hasRobotSource).toBeTruthy();
+    expect(scope.iconChanged).toBeTruthy();
+
     $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
@@ -197,6 +205,8 @@ describe('ApplicationEditorController', function () {
     expect(revertSpy).toHaveBeenCalled();
 
     expect(angular.equals(scope.selectedApplication, originalMockApplication)).toBeTruthy();
+    expect(scope.hasRobotSource).not.toBeTruthy();
+    expect(scope.iconChanged).not.toBeTruthy();
   }));
 
   it('saves an application', inject(function ($httpBackend, CLMAppLocations) {

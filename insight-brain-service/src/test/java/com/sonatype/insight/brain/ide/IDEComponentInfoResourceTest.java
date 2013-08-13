@@ -46,6 +46,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
 public class IDEComponentInfoResourceTest
     extends AbstractResourceTest
 {
@@ -356,6 +359,60 @@ public class IDEComponentInfoResourceTest
     policyAlerts = componentDetails.getPolicyAlerts();
     Assert.assertEquals(1, policyAlerts.size());
     Assert.assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
+  }
+
+  @Test
+  public void testGetComponentDetails_Label_DefinedAtAppLevel() throws Exception {
+    testGetComponentDetails_Label(false, false);
+  }
+
+  @Test
+  public void testGetComponentDetails_Label_DefinedAtOrgLevel_AppliedAtOrgLevel() throws Exception {
+    testGetComponentDetails_Label(true, true);
+  }
+
+  @Test
+  public void testGetComponentDetails_Label_DefinedAtOrgLevel_AppliedAtAppLevel() throws Exception {
+    testGetComponentDetails_Label(true, false);
+  }
+
+  private void testGetComponentDetails_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
+    String hash = "01234567890123456789";
+    String applicationPublicId = "IdeResourceTest_AppId";
+    Application app = createApplication(applicationPublicId);
+    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
+    new LabelDAO().insert(label);
+    new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
+        .getId(), hash));
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    Action failAction = new Action(FailActionType.ID);
+    policy1.addAction(BuildStageType.ID, failAction);
+    addPolicy(applicationPublicId, policy1);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+    String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, hash,
+        MatchState.SIMILAR.getId(), "false" /* proprietary */);
+    Response response = RestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+
+    ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
+    Assert.assertThat(componentDetails, is(notNullValue()));
+    Assert.assertThat(componentDetails.getHash(), is(hash));
+    Assert.assertThat(componentDetails.getGroupId(), is(groupId));
+    Assert.assertThat(componentDetails.getArtifactId(), is(artifactId));
+    Assert.assertThat(componentDetails.getVersion(), is(version));
+    Assert.assertThat(componentDetails.getMatchState(), is(MatchState.SIMILAR.getId()));
+    Assert.assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    Assert.assertThat(policyAlerts, is(notNullValue()));
+    Assert.assertThat(policyAlerts.size(), is(1));
   }
 
   private String getServiceURL() {

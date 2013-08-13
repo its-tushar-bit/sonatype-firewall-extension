@@ -229,6 +229,7 @@
         $scope.selectedApplication.$revert();
         if ($scope.iconChanged) {
           $scope.userIconSource = $scope.origUserIconSource;
+          $scope.hasRobotSource = false;
           $scope.iconChanged = false;
         }
       }

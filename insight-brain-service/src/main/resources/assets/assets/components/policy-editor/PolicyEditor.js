@@ -327,7 +327,29 @@
                 });
             }
         };
-        $scope.validate = function() {
+
+
+    $scope.createConditionValidationMessage = function(dataType, constraintName, index) {
+      var msg = 'Please enter ';
+      switch (dataType){
+        case 'String':
+          msg += 'a value';
+          break;
+        case 'Integer':
+          msg += 'a valid number';
+          break;
+        case 'Float':
+          msg += 'a valid number(decimals allowed)';
+          break;
+        default :
+          msg += 'a value';
+
+      }
+      msg += ' for condition #' + index + ' in constraint "' + constraintName + '"';
+      return msg;
+    }
+
+    $scope.validate = function() {
             var msg = null;
             $scope.alerts = [];
             if ($scope.policy) {
@@ -355,10 +377,12 @@
                                     $.each(constraint.conditions, function(conditionIndex, condition) {
                                         var conditionType = policyStore.getConditionTypes()[condition.conditionTypeId];
                                         if (!conditionType) {
-                                            msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
+                                            msg = 'Please select a valid condition type for condition #' +
+                                                (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
                                             return false;
                                         } else if (conditionType.valueTypeId && !condition.value) {
-                                            msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
+                                            msg = $scope.createConditionValidationMessage(conditionType.valueType.dataType,
+                                                constraint.name, conditionIndex + 1);
                                             return false;
                                         }
                                     });

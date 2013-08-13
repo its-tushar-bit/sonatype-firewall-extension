@@ -293,8 +293,14 @@ describe('PolicyEditor.js', function() {
             validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'AgeInDays';
+            validateValidation(scope,'Please enter a valid number for condition #1 in constraint "name"');
+
+            scope.policy.constraints[0].conditions[0].conditionTypeId = 'SecurityVulnerabilitySeverity';
+            validateValidation(scope,'Please enter a valid number(decimals allowed) for condition #1 in constraint "name"');
+
+            scope.policy.constraints[0].conditions[0].conditionTypeId = 'SecurityVulnerabilityStatus';
             validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
-            
+
             scope.policy.constraints[0].conditions[0].value = '300';
             scope.policy.constraints.push({});
             validateValidation(scope,'Enter a valid name for constraint #2');
@@ -309,14 +315,14 @@ describe('PolicyEditor.js', function() {
             validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
+            validateValidation(scope,'Please enter a valid number for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].value = '300';
             scope.policy.constraints[1].conditions.push({});
             validateValidation(scope,'Please select a valid condition type for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #2 in constraint "name"');
+            validateValidation(scope,'Please enter a valid number for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].value = '300';
             scope.validate();

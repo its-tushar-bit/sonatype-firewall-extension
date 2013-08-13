@@ -61,6 +61,10 @@ public class ApplicationResource
 
   public static final String GET_APPLICATION_NAMES = "services/names";
 
+  public static final String Get_APPLICATION_MANAGEMENT_SUMMARIES = "service/summary";
+
+  public static final String Get_APPLICATION_MANAGEMENT_SUMMARY = Get_APPLICATION_MANAGEMENT_SUMMARIES + "/{applicationPublicId}";
+
   public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
   public static final String GET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationPublicId}";
@@ -93,9 +97,25 @@ public class ApplicationResource
     return validateApplicationPublicIdInternal(applicationPublicId);
   }
 
+  /**
+   * @since 1.6
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationManagementSummary> getApplications() throws IOException {
+  public List<Application> getApplications() {
+    final List<Application> applications = applicationDAO.getAll();
+    return applications;
+  }
+
+  /**
+   * @since 1.4
+   *
+   * @Path changed in 1.6 from SERVICE_PATH to Get_APPLICATION_MANAGEMENT_SUMMARIES
+   */
+  @GET
+  @Path(Get_APPLICATION_MANAGEMENT_SUMMARIES)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApplicationManagementSummary> getApplicationManagementSummaries() throws IOException {
     final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
     final List<Application> applications = applicationDAO.getAll();
     for (Application application : applications) {
@@ -120,10 +140,26 @@ public class ApplicationResource
     return applicationPublicIDNamePairs;
   }
 
+  /**
+   * @since 1.6
+   */
   @GET
   @Path(GET_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummary getApplication(@PathParam("applicationPublicId") final String applicationPublicId)
+  public Application getApplication(@PathParam("applicationPublicId") final String applicationPublicId) {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    return application;
+  }
+
+  /**
+   * @since 1.4
+   *
+   * @Path changed in 1.6 from GET_APPLICATION_PATH to Get_APPLICATION_MANAGEMENT_SUMMARY
+   */
+  @GET
+  @Path(Get_APPLICATION_MANAGEMENT_SUMMARY)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApplicationManagementSummary getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId)
       throws IOException
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -192,7 +228,7 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummary addApplication(Application application) throws IOException {
+  public Application addApplication(Application application) throws IOException {
     int appLimit = licenseManager.getApplicationCountLimit();
 
     if (applicationDAO.getAll().size() >= appLimit) {
@@ -205,13 +241,13 @@ public class ApplicationResource
 
     applicationDAO.insert(application);
 
-    return getApplicationManagementSummary(application);
+    return application;
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummary updateApplication(Application application) throws IOException {
+  public Application updateApplication(Application application) throws IOException {
     if (application.getOrganizationId() == null) {
       throw new InvalidApplicationException("Applications must have a parent organization.");
     }
@@ -230,7 +266,7 @@ public class ApplicationResource
       PolicyDAO.unlock(readLocks);
     }
 
-    return getApplicationManagementSummary(application);
+    return application;
   }
 
   @DELETE

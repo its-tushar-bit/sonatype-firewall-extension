@@ -34,6 +34,7 @@
 
 		$scope.alerts = [];
 		$scope.location = $location;
+    $scope.state = {};
 
 		$scope.viewRemovePolicy = function (policy) {
 			viewConfirmation("Delete Policy?",

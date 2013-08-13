@@ -76,29 +76,29 @@
             <button class='btn' type='button' ng-click='cancel()'>Cancel</button>
             <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
           </div>
-          <div ng-show='selectedApplication.stageCount'>
+          <div ng-show='applicationSummary.stageCount'>
             <div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary" ng-class="{ bordered : !$last }">
               {{stage.name}}
-              <span show-if='selectedApplication.policyEvaluationsResults[stage.id]'>
+              <span show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
                 <a title="Re-evaluate Policy"
-                   ng-click='reEvaluatePolicy(selectedApplication.policyEvaluations[stage.id])'>
+                   ng-click='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])'>
                   <i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
                   <i ng-show='reEvaluatingPolicy' class='icon-time'></i>
                 </a>
               </span>
-              <div show-if='selectedApplication.policyEvaluationsResults[stage.id]'>
-                <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{selectedApplication.policyEvaluations[stage.id].time | ago}}'
-                   ng-href='reports.html#/reports/{{encodeURIComponent(selectedApplication.publicId)}}/{{stage.id}}'>
-								<span ng-show='selectedApplication.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
-									{{selectedApplication.policyEvaluationsResults[stage.id].criticalComponentCount}}
+              <div show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
+                <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
+                   ng-href='reports.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{stage.id}}'>
+								<span ng-show='applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
+									{{applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount}}
 								</span>
-								<span ng-show='selectedApplication.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
-									{{selectedApplication.policyEvaluationsResults[stage.id].severeComponentCount}}
+								<span ng-show='applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
+									{{applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount}}
 								</span>
-								<span ng-show='selectedApplication.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
-									{{selectedApplication.policyEvaluationsResults[stage.id].moderateComponentCount}}
+								<span ng-show='applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
+									{{applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount}}
 								</span>
-                  <span ng-show='!(selectedApplication.policyEvaluationsResults[stage.id].criticalComponentCount + selectedApplication.policyEvaluationsResults[stage.id].severeComponentCount + selectedApplication.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+                  <span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
                 </a>
               </div>
             </div>

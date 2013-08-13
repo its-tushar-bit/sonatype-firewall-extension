@@ -1,5 +1,15 @@
 ApplicationMockData = {
-    getApplicationsData: function () {
+  getApplicationsData: function () {
+    return [
+      {
+        "id": "78c1d44c07584e57945f04890c672e82",
+        "name": "applicationName",
+        "publicId": "bom1-12345678",
+        "organizationId": "organizationId"
+      }
+    ];
+  },
+    getApplicationSummaryData: function () {
         return [
             {
                 "id": "78c1d44c07584e57945f04890c672e82",
@@ -114,5 +124,14 @@ ApplicationMockData = {
                   }]
             }]
         };
+    },
+  getPolicyEvaluationData: function() {
+    return {
+      "alerts": [],
+      "affectedComponentCount": 5,
+      "criticalComponentCount": 5,
+      "severeComponentCount": 0,
+      "moderateComponentCount": 0
     }
+  }
 };

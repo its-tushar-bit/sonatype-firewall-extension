@@ -29,7 +29,6 @@ describe('PolicyController tests', function() {
         $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getEntityUrl())).respond(ApplicationMockData.getApplicationsData()[0]);
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
         // inject the controller
@@ -43,7 +42,6 @@ describe('PolicyController tests', function() {
     }));
 
     it('Test initial data state', function() {
-        expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
         expect(scope.applicablePolicies[0].policies.length).toEqual(PolicyMockData.getPolicyData().length);
     });
 
@@ -97,33 +95,4 @@ describe('PolicyController tests', function() {
         expect(scope.applicablePolicies[0].editable).toEqual(true);
         expect(scope.applicablePolicies[1].editable).toEqual(false);
 	});
-
-	it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
-		var policyResponse = PolicyMockData.getPolicyEvaluationData();
-		var mockApplication = {
-				publicId: 'publicId',
-				policyEvaluations: {
-					build: {
-						scanId: 'scanId',
-						stage: {
-	                		stageTypeId: 'build'
-	                	}
-					}
-				},
-				policyEvaluationsResults: {
-					build: {}
-				}
-		};
-		
-		$httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
-		
-		scope.reEvaluatePolicy(mockApplication, mockApplication.policyEvaluations.build);
-		
-		$httpBackend.flush();
-		
-		expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
-		expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
-		expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
-		expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
-	}));
 });

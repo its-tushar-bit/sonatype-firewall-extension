@@ -97,9 +97,15 @@ describe('ApplicationEditorController', function () {
     mockApplication = applicationsData[0];
     httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
+    httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+    httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+
     var organizationData = OrganizationMockData.getGETResponse();
     mockOrganization = organizationData[0];
     httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
+
+    var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
+    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
 
     scope = $rootScope.$new();
     state = $state;
@@ -224,5 +230,39 @@ describe('ApplicationEditorController', function () {
 
     scope.confirmDeleteApplication(mockApplication);
     scope.deleteApplication();
+  }));
+
+  it('shows report summary.', function() {
+    expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
+  });
+
+  it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
+    var policyResponse = ApplicationMockData.getPolicyEvaluationData();
+    var mockApplication = {
+      publicId: 'publicId',
+      policyEvaluations: {
+        build: {
+          scanId: 'scanId',
+          stage: {
+            stageTypeId: 'build'
+          }
+        }
+      },
+      policyEvaluationsResults: {
+        build: {}
+      }
+    };
+    scope.applicationSummary = mockApplication;
+
+    $httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
+
+    scope.reEvaluatePolicy(mockApplication.policyEvaluations.build);
+
+    $httpBackend.flush();
+
+    expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
+    expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
+    expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
+    expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
   }));
 });

@@ -96,17 +96,16 @@ public class ApplicationResourceTest
 
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummary applicationManagementSummary = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicationManagementSummary.class);
+    Application applicationResult = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     Assert.assertNotNull(application);
-    Assert.assertEquals(application.getId(), applicationManagementSummary.getId());
-    Assert.assertEquals(applicationPublicId, applicationManagementSummary.getPublicId());
-    Assert.assertEquals(applicationName, applicationManagementSummary.getName());
-    Assert.assertEquals(application.getOrganizationId(), applicationManagementSummary.getOrganizationId());
+    Assert.assertEquals(application.getId(), applicationResult.getId());
+    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
+    Assert.assertEquals(applicationName, applicationResult.getName());
+    Assert.assertEquals(application.getOrganizationId(), applicationResult.getOrganizationId());
 
     // Test Add Invalid Icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
@@ -146,10 +145,10 @@ public class ApplicationResourceTest
     application.setName(applicationName + "updated");
     response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(200, response);
-    applicationManagementSummary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummary.class);
-    Assert.assertEquals(application.getId(), applicationManagementSummary.getId());
-    Assert.assertEquals(applicationPublicId, applicationManagementSummary.getPublicId());
-    Assert.assertEquals(applicationName + "updated", applicationManagementSummary.getName());
+    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
+    Assert.assertEquals(application.getId(), applicationResult.getId());
+    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
+    Assert.assertEquals(applicationName + "updated", applicationResult.getName());
 
     // Test icon update
     builder = RestAccess.getClient().preparePost(getSetIconServiceUrl());
@@ -180,7 +179,7 @@ public class ApplicationResourceTest
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
-    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationManagementSummary.getId()).size());
+    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.getId()).size());
 
     // Default icon redirect should be returned
     iconResponse = RestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
@@ -342,6 +341,36 @@ public class ApplicationResourceTest
     Application application = createApplication(applicationPublicId, applicationName);
     setLicenseFingerprint(licenseFingerprint);
 
+    Response response = RestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+
+    Application[] applications = JsonHelpers.fromJson(response.getResponseBody(), Application[].class);
+    Assert.assertNotNull(applications);
+
+    Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
+    Assert.assertEquals(application.getId(), applications[0].getId());
+    Assert.assertEquals(application.getName(), applications[0].getName());
+
+    // Test GetApplication
+    response = RestAccess.get(getApplicationServiceUrl(applicationPublicId));
+    assertResponseStatus(200, response);
+
+    Application applicationSummary = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
+    Assert.assertNotNull(applicationSummary);
+    Assert.assertEquals(application.getId(), applicationSummary.getId());
+    Assert.assertEquals(application.getName(), applicationSummary.getName());
+  }
+
+  @Test
+  public void testGetApplicationSummaries() throws Exception {
+    // Create an application
+    final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
+    final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
+    final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
+
+    Application application = createApplication(applicationPublicId, applicationName);
+    setLicenseFingerprint(licenseFingerprint);
+
     // Create policy
     PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
     Policy policy1 = new Policy();
@@ -365,7 +394,7 @@ public class ApplicationResourceTest
     response = RestAccess.post(getEvalURL(applicationPublicId, scanId2), JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
 
-    response = RestAccess.get(getServiceURL());
+    response = RestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
     ApplicationManagementSummary[] applications = JsonHelpers.fromJson(response.getResponseBody(),
@@ -414,7 +443,7 @@ public class ApplicationResourceTest
 
     RestAccess.put(getScanURL(applicationPublicId), "");
 
-    response = RestAccess.get(getServiceURL());
+    response = RestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
     applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummary[].class);
@@ -422,7 +451,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(1, applications[0].getScansCount());
 
     // Test GetApplication
-    response = RestAccess.get(getApplicationServiceUrl(applicationPublicId));
+    response = RestAccess.get(getSummaryURL(applicationPublicId));
     assertResponseStatus(200, response);
 
     ApplicationManagementSummary applicationSummary = JsonHelpers.fromJson(response.getResponseBody(),
@@ -634,6 +663,14 @@ public class ApplicationResourceTest
 
   private String getServiceURL() {
     return getRestBaseUrl() + ApplicationResource.SERVICE_PATH;
+  }
+
+  private String getSummariesURL() {
+    return getServiceURL() + "/" + ApplicationResource.Get_APPLICATION_MANAGEMENT_SUMMARIES;
+  }
+
+  private String getSummaryURL(String applicationPublicId) {
+    return getServiceURL() + "/" + ApplicationResource.Get_APPLICATION_MANAGEMENT_SUMMARY.replace("{applicationPublicId}", applicationPublicId);
   }
 
   private String getEvalURL(final String appId, final String scanId) {

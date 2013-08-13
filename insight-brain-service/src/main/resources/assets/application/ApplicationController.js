@@ -56,11 +56,6 @@
           if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
             $timeout(function () {
               $scope.selectedApplication = $scope.applications[i].$clone();
-              $scope.selectedApplication.stageCount = 0;
-              angular.forEach($scope.selectedApplication.policyEvaluations,function(policyEvaluation, stage){
-                policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.selectedApplication.publicId, policyEvaluation.scanId);
-                $scope.selectedApplication.stageCount++;
-              });
               $scope.$broadcast('setApplicationIcon');
             }, 100);
             return;
@@ -100,7 +95,7 @@
     $scope.doLoad();
   }]);
 
-  applicationModule.controller('applicationEditorController', function ($scope, $state, $q, applicationStore, OrganizationStore, CLMAppLocations, Messages, $http, hudson, editorTools, ActionStore, policyEvaluator) {
+  applicationModule.controller('applicationEditorController', function ($scope, $state, $q, applicationStore, OrganizationStore, CLMLocations, CLMAppLocations, Messages, $http, hudson, editorTools, ActionStore, policyEvaluator) {
     var me = this;
     angular.extend(me, editorTools.getEditorController($scope, 'selectedApplication.id', angular.element('[name=applicationId]'), angular.element('#iconUploadForm')));
 
@@ -133,12 +128,26 @@
     $scope.submitActive = false;
 
     var promises = [ OrganizationStore.get(), ActionStore.get() ];
-
     $q.all(promises).then(function (results) {
       $scope.organizations = results[0];
       $scope.state = {
         actionStageList : results[1][1]
       };
+    });
+
+    $scope.$watch('selectedApplication', function() {
+      if ($scope.selectedApplication) {
+        $http.get(CLMLocations.getApplicationSummaryUrl($scope.selectedApplication.publicId), {
+          params: { timestamp: new Date().getTime() }
+        }).then(function (summary) {
+          $scope.applicationSummary = summary.data;
+          $scope.applicationSummary.stageCount = 0;
+          angular.forEach($scope.applicationSummary.policyEvaluations,function(policyEvaluation, stage){
+            policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId, policyEvaluation.scanId);
+            $scope.applicationSummary.stageCount++;
+          });
+        });
+      }
     });
 
     $scope.getOrganizationName = function (organizationId) {
@@ -319,7 +328,7 @@
     $scope.reEvaluatePolicy = function(policyEvaluation) {
       if (!$scope.reEvaluatingPolicy) {
         $scope.reEvaluatingPolicy = true;
-        policyEvaluator.evaluate($scope.selectedApplication, policyEvaluation).then(function(data) {
+        policyEvaluator.evaluate($scope.applicationSummary, policyEvaluation).then(function(data) {
           $scope.reEvaluatingPolicy = false;
         }, function(error) {
           $scope.reEvaluatingPolicy = false;

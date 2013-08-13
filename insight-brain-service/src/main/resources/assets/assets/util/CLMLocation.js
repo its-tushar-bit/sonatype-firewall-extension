@@ -33,6 +33,14 @@
 				return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationId);
 			},
 
+      getApplicationSummariesUrl: function() {
+        return baseUrl.get() + '/rest/application/service/summary';
+      },
+
+      getApplicationSummaryUrl: function(applicationId) {
+        return baseUrl.get() + '/rest/application/service/summary/' + encodeURIComponent(applicationId);
+      },
+
 			getOrganizationsUrl: function() {
 				return baseUrl.get() + '/rest/organization';
 			},

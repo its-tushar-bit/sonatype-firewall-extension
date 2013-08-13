@@ -66,6 +66,9 @@ public class InsightBrainService
     super.run(configuration, environment);
 
     LicenseDataUpdater.setUpdater(getInjector().getInstance(DefaultLicenseDataUpdater.class));
+
+    LicenseOverrideMigrator LicenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
+    LicenseOverrideMigrator.migrate();
   }
 
   @Override

@@ -25,7 +25,13 @@
 			}
 		}
 	});
+	
+	function relocateModal(selector) {
+	  $("body > " + selector).remove();
+    $(selector).appendTo("body");
+	}
 
+	//create the app, and a service we can use to transfer data between our controllers
 	var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'Hudson']).service('CurrentLabelData', function() {
 	  var currentLabel = null;
 	  var currentError = null;
@@ -45,11 +51,14 @@
 	  }
 	});
 	
+	//the add controller, controlling the add modal 
 	labelsApp.controller('LabelAddController', ['$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages){
+	  //decline to add, just dump the modal and move on
 	  $scope.decline = function() {
       $('#labelAssignScopeModal').modal('hide');
     };
     
+    //they accept, update the server
     $scope.accept = function() {
       $scope.labelSaving = true;
       $scope.labelAddError = null;
@@ -63,6 +72,7 @@
       });
     };
     
+    //after dialog is shown, make sure to apply the angular stuff
     $('#labelAssignScopeModal').on('shown',function(){
         $scope.$apply(function(){
           var label = currentLabelData.get();
@@ -82,15 +92,18 @@
         });
     });
     
-    $("body > #labelAssignScopeModal").remove();
-    $("#labelAssignScopeModal").appendTo("body");
+    //move the dialog onto the body in the dom, so the backdrop shows properly
+    relocateModal('#labelAssignScopeModal');
 	}]);
 	
+	//the remove controller, controlling the remove modal
 	labelsApp.controller('LabelRemoveController', ['$scope', '$http', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages', function($scope, $http, currentLabelData, componentLabelEditorGAV, messages){
-    $scope.decline = function() {
+    //decline to remove, just dump the dialog
+	  $scope.decline = function() {
       $('#labelRemoveModal').modal('hide');
     };
     
+    //accept, send delete request to server
     $scope.accept = function() {
       $scope.labelDeleting = true;
       $scope.labelRemoveError = null;
@@ -106,10 +119,11 @@
       });
     };
     
-    $("body > #labelRemoveModal").remove();
-    $("#labelRemoveModal").appendTo("body");
+    //move the dialog onto the body in the dom, so the backdrop shows properly
+    relocateModal('#labelRemoveModal');
 	}]);
 
+	//main label controller handling the main view, and launching the other modals when necessary
 	labelsApp.controller('LabelsController', ['$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', function ($http, $scope, currentLabelData, componentLabelEditorGAV, hudson, messages) {
 		function errorFn(data, status, headersFn, config) {
 			$scope.alerts.push({
@@ -147,6 +161,7 @@
 		  $('#labelRemoveModal').modal('show');
 		};
 
+		//for labels owned by the app, we simply do the add here, as there is no need to view the dialog to select the owner, app is the only option
 		$scope.addLabel = function (label) { 
 		  if (label.ownerType === 'application') {
 		    hudson.post(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' + componentLabelEditorGAV.hash, label).success(function(responseData){
@@ -176,6 +191,7 @@
     $scope.reloadLabels(); // do initial load
     $scope.reloadAppLabels(); // do initial load
     
+    //when either of the modals go away, refresh the content
     $('#labelAssignScopeModal').on('hide',function(){
       $scope.reloadLabels();
       $scope.reloadAppLabels();

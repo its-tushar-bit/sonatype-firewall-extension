@@ -15,7 +15,7 @@
 				template : function () {
 					var o = {
 						threatLevel : 5,
-						constraints : [{ conditions: [], operator: 'OR' }],
+						constraints : [{ conditions: [], operator: 'OR', id : '' + new Date().getTime() }],
 						actions : {}
 					};
 					if (conditionTypes) {
@@ -572,7 +572,7 @@
 	module.directive('inlinePolicyCreator', ['PolicyStore', function (policyStore) {
 		return {
 			restrict : 'A',
-			templateUrl : '../assets/components/policy-editor/policy-quick-add.html?' + clmBuildTimestamp,
+			templateUrl : 'policy-quick-add',
 			scope : {},
 			controller : 'PolicyEditorController',
 			link : function (scope) {

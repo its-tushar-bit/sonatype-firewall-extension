@@ -1,7 +1,7 @@
 <div ng-controller="LabelsController" style='padding:5px' class='labelEditor'>
 	<div style='float:right;width:49.5%;margin-bottom:10px'>
 		<h5>Available <i class='icon-refresh' ng-click='reloadAppLabels()' spinner></i></h5>
-		<div class='availableContainer'>
+		<div class='labelContainer'>
 			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
               <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
               <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
@@ -10,25 +10,12 @@
 	</div>
 	<div style='width:49.5%;margin-bottom:10px'>
 		<h5>Applied <i class='icon-refresh' ng-click='reloadLabels()' spinner></i></h5>
-		<div class='appliedContainer'>
+		<div class='labelContainer'>
 			<span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
               <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
               <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
             </span>
 		</div>
-		<div>
-			<form class='form-inline' ng-submit='addLabels($event);' name='cipFormEditor'>
-				<input type='text' style='width:64%' ng-model='labelInput' ng-change='checkLength()' placeholder='Space separated list of labels' disablenav entersubmit />&nbsp;
-				<select style='width:20%' class='clmLabel {{color}}Label' ng-model='color' ng-options='c.color as c.text for c in colors' disablenav />
-				<button class='btn btn-small btn-inverse'> Add </button>
-			</form>
-		</div>
 	</div>
 	<div clm-alerts='alerts'></div>
-	<ul>
-		<li>Labels are like tags, add them to a component for easier identification or categorization.</li>
-		<li>Check the label before adding...typos can create labels as well.</li>
-		<li>Type a label name, optionally pick the color (or pick a label from the those available), then click add.</li>
-		<li>Labels are case insensitive; for example: Allowed, ALLOWED, and allowed - only one of these could be created.</li>
-	</ul>
 </div>

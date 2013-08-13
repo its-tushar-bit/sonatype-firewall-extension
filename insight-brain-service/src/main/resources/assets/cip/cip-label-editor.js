@@ -82,46 +82,6 @@
 			persist(updatedLabels);
 		};
 
-		$scope.addLabels = function () {
-			var newLabels = $scope.labelInput.split(' '),
-				updatedLabels = [],
-				bigLabels = [],
-				hasNewLabel = false;
-
-			if (newLabels.length === 0) {
-				return;
-			}
-			
-			$scope.alerts = [];
-
-			$scope.labelInput = '';
-
-			angular.forEach($scope.itemLabels, function (candidate, key) {
-				updatedLabels.push(candidate.label);
-			});
-
-			angular.forEach(newLabels, function (label, key) {
-				label = $.trim(label);
-				if (label.length > 50) {
-					bigLabels.push(label);
-				} else if (label.length > 0) {
-					updatedLabels.push(label);
-					hasNewLabel = true;
-				}
-			});
-
-			if (hasNewLabel) {
-				persist(updatedLabels, $scope.color);
-			}
-			if (bigLabels.length > 0) {
-				angular.forEach(bigLabels, function (candidate, key) {
-					$scope.labelInput += candidate + ' ';
-				});
-				$scope.labelInput = $.trim($scope.labelInput);
-				$scope.editErrorResponse = '';
-			}
-		};
-
 		$scope.addLabel = function (label) {
 			var updatedLabels = [],
 				duplicate = false;
@@ -151,15 +111,6 @@
 			});
 			return !duplicate;
 		};
-
-		$scope.checkLength = function () {
-			$scope.oversize = false;
-			angular.forEach($scope.labelInput.split(' '), function (label, key) {
-				if (label.length > 50) {
-					$scope.oversize = true;
-				}
-			});
-		};
 	}]);
 
   /**
@@ -170,27 +121,6 @@
       $(element).tipsy({fade: true, gravity: $.fn.tipsy.autoWE, html: true, opacity: 1.0, delayOut: 0});
     };
   });
-
-	labelsApp.directive('disablenav', function () {
-		return function (scope, element, attrs) {
-			element.bind("keydown.nav", function (e) {
-				if (e.keyCode >= 37 && e.keyCode <= 40) {
-					e.stopImmediatePropagation();
-				}
-			});
-		};
-	});
-
-	labelsApp.directive('entersubmit', function () {
-		return function(scope, element, attrs) {
-			element.bind('keydown', function(e) {
-				if (e.keyCode === 13) { // Enter
-					e.preventDefault();
-					element.trigger('submit');
-				}
-			});
-		};
-	});
 
 	labelsApp.directive('spinner', function () {
 		var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];

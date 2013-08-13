@@ -51,6 +51,7 @@ public class LicenseOverrideDAOTest
     dao.update(licenseOverride);
     licenseOverride = dao.getById(licenseOverride.getId());
     assertNotNull(licenseOverride);
+    assertLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment, licenseOverride);
 
     // Delete
     dao.delete(licenseOverride);

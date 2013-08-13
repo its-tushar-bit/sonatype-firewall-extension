@@ -18,4 +18,34 @@
 		</div>
 	</div>
 	<div clm-alerts='alerts'></div>
+	<div id="labelAssignScopeModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelAddController">
+		<div class="modal-header">
+			<button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>
+			<h3>Label Assignment</h3>
+		</div>
+		<div class="modal-body">
+			<div ng-repeat="labelOwner in labelOwners">
+				<input type="radio" ng-model="selectedOwner" name="selectedOwner" value="{{labelOwner.ownerId + '$$' + labelOwner.ownerType}}">{{'Assign label to ' + labelOwner.ownerType + ' ' + labelOwner.ownerName}}
+			</div>
+		</div>
+		<div class="modal-footer">
+			<span class="alert alert-error" ng-show="labelAddError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelAddError}}</span>
+			<button type='button' class="btn" ng-click="decline()" ng-disabled="labelSaving">Cancel</button>
+			<button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">Save</button>
+		</div>
+	</div>
+	<div id="labelRemoveModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelRemoveController">
+		<div class="modal-header">
+			<button type="button" class="close" ng-click="declineRemoveLabel()" aria-hidden="true">&times;</button>
+			<h3>Label Removal</h3>
+		</div>
+		<div class="modal-body">
+			Are you sure you want to remove this label?
+		</div>
+		<div class="modal-footer">
+			<span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
+			<button type='button' class="btn" ng-click="decline()" ng-disabled="labelDeleting">Cancel</button>
+			<button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelDeleting">Save</button>
+		</div>
+	</div>
 </div>

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -39,20 +40,26 @@ public class ComponentDAO
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
-  private void processJsonLicenseData(Component component, String ownerId, JsonNode jsonLicenseData) {
-    List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
-    component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
-    List<String> observedLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("observedLicenses"));
-    component.setObservedLicenseIds(multiLicenseNamesToLicenseIds(observedLicenseNames));
-    LicenseOverride licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(ownerId, component.getGroupId(),
-        component.getArtifactId(), component.getVersion());
+  private void processJsonLicenseData(Component component, Application application, JsonNode jsonLicenseData) {
+    if (jsonLicenseData != null) {
+      List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
+      component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
+      List<String> observedLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("observedLicenses"));
+      component.setObservedLicenseIds(multiLicenseNamesToLicenseIds(observedLicenseNames));
+    }
+    LicenseOverride licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getId(),
+        component.getGroupId(), component.getArtifactId(), component.getVersion());
+    if (licenseOverride == null && application.getOrganizationId() != null) {
+      licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getOrganizationId(),
+          component.getGroupId(), component.getArtifactId(), component.getVersion());
+    }
     if (licenseOverride != null) {
       component.setLicenseOverrideStatus(licenseOverride.getStatus());
       component.setLicenseOverrideId(licenseOverride.getLicenseId());
     }
   }
 
-  public List<Component> getAll(String applicationId, final byte[] licenseData, final byte[] securityData,
+  public List<Component> getAll(Application application, final byte[] licenseData, final byte[] securityData,
       final byte[] bomData)
   {
     final Map<String, List<Component>> componentsByGAV = new LinkedHashMap<String, List<Component>>();
@@ -127,7 +134,7 @@ public class ComponentDAO
           List<Component> components = componentsByGAV.get(key);
           if (components != null) {
             for (Component component : components) {
-              processJsonLicenseData(component, applicationId, jsonLicenseNode);
+              processJsonLicenseData(component, application, jsonLicenseNode);
             }
           }
         }
@@ -174,18 +181,18 @@ public class ComponentDAO
 
     // Load license threat group data
     for (Component component : result) {
-      loadLicenseThreatGroups(applicationId, component);
+      loadLicenseThreatGroups(application.getId(), component);
     }
 
     // Load label data
     ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
     for (Component component : result) {
-      loadComponentLabels(applicationId, component, componentLabelDAO);
+      loadComponentLabels(application.getId(), component, componentLabelDAO);
     }
     return result;
   }
 
-  public Component getComponent(String applicationId, ComponentInfo componentInfo, JsonNode jsonLicenseNode,
+  public Component getComponent(Application application, ComponentInfo componentInfo, JsonNode jsonLicenseNode,
       ArrayNode jsonSVNode)
   {
     Component component = new Component();
@@ -205,29 +212,27 @@ public class ComponentDAO
       component.setRelativePopularity(componentInfo.getRelativePopularity());
     }
 
-    if (jsonLicenseNode != null) {
-      processJsonLicenseData(component, applicationId, jsonLicenseNode);
-    }
+    processJsonLicenseData(component, application, jsonLicenseNode);
     component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
     component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
-    loadLicenseThreatGroups(applicationId, component);
+    loadLicenseThreatGroups(application.getId(), component);
 
     addSecurityVulnerabilities(component, componentInfo.getSecurityVulnerabilities(), jsonSVNode);
 
-    loadComponentLabels(applicationId, component, new ComponentLabelDAO());
+    loadComponentLabels(application.getId(), component, new ComponentLabelDAO());
 
     return component;
   }
 
-  public Component getComponent(String applicationId, JsonNode jsonLicenseNode) {
+  public Component getComponent(Application application, JsonNode jsonLicenseNode) {
     Component component = new Component();
     component.setArtifactId(jsonLicenseNode.get("artifactId").asText());
     component.setGroupId(jsonLicenseNode.get("groupId").asText());
     component.setVersion(jsonLicenseNode.get("version").asText());
 
-    processJsonLicenseData(component, applicationId, jsonLicenseNode);
+    processJsonLicenseData(component, application, jsonLicenseNode);
 
-    loadLicenseThreatGroups(applicationId, component);
+    loadLicenseThreatGroups(application.getId(), component);
 
     return component;
   }

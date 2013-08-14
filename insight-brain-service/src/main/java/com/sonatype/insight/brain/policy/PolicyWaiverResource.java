@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -178,33 +179,6 @@ public class PolicyWaiverResource
 
   private PolicyDAO policyDAO() {
     return new PolicyDAO(work.getWorkDir());
-  }
-
-  /**
-   * Waivers can be applied in the context of an application or an organization. This class contains the hierarchy of
-   * organizations and applications for which a waiver can be applied.
-   */
-  public static class ApplicableContext
-  {
-    public String id;
-
-    public String name;
-
-    /**
-     * "application" or "organization"
-     */
-    public String type;
-
-    public List<ApplicableContext> children;
-
-    public ApplicableContext() {
-    }
-
-    public ApplicableContext(String id, String name, String type) {
-      this.id = id;
-      this.name = name;
-      this.type = type;
-    }
   }
 
   /**

@@ -126,7 +126,7 @@ public class IdeResource
           matchedComponent.getSecurityVulnerabilities());
 
       ComponentDAO componentDAO = new ComponentDAO();
-      Component component = componentDAO.getComponent(applicationId, matchedComponent, licenseData, svData);
+      Component component = componentDAO.getComponent(app, matchedComponent, licenseData, svData);
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), policyDAO(),
           Collections.singletonList(component));

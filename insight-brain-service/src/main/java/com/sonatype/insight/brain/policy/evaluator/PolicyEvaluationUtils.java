@@ -80,7 +80,7 @@ public class PolicyEvaluationUtils
     boolean isReevaluation = (evalLog.lastByScan(scanId) != null);
     evalLog.add(stage, scanId, isReevaluation, "anonymous", "127.0.0.1");
 
-    final List<Component> components = new ComponentDAO().getAll(appId, licenseReportEntry.buf,
+    final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
 
     final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components);

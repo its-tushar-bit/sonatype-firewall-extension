@@ -66,7 +66,7 @@ public class LicenseOverrideMigrator
     }
 
     if (markerFile.exists()) {
-      log.info("License overrides already migrated.");
+      log.debug("License overrides already migrated.");
       return;
     }
 

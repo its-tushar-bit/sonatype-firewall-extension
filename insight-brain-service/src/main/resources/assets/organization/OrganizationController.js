@@ -176,10 +176,14 @@
       return !$scope.organizationEditor.$invalid && !$scope.submitActive;
     };
 
+    function isExternalDestination(destination) {
+      var organization = $scope.selectedOrganization;
+      return !destination || (organization && destination.indexOf('organization/' + organization.id) === -1);
+    }
+
     //make sure user is aware they are about to lose changes
     $scope.$on('pageChangeStarted', function (event, destination) {
-      var organization = $scope.selectedOrganization;
-      if (!destination || (organization && destination.indexOf('organization/' + organization.id) === -1)) {
+      if (isExternalDestination(destination)) {
         if ($scope.isFormDirty() && !$scope.isPostingIcon) {
           event.preventDefault();
         }
@@ -187,8 +191,7 @@
     });
 
     $scope.$on('pageChangeAccepted', function (event, destination) {
-      var organization = $scope.selectedOrganization;
-      if (!destination || (organization && destination.indexOf('organization/' + organization.id) === -1)) {
+      if (isExternalDestination(destination)) {
         $scope.cancelClick();
       }
     });

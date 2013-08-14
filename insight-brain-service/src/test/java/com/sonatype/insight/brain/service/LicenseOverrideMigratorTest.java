@@ -78,6 +78,41 @@ public class LicenseOverrideMigratorTest
     orgDAO.delete(organization);
   }
 
+  @Test
+  public void testMigrate_UnknownLicense() throws Exception {
+    // Create an organization
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    Organization organization = new Organization("LicenseOverrideMigratorTest");
+    orgDAO.insert(organization);
+
+    // Create an application
+    ApplicationDAO appDAO = new ApplicationDAO();
+    Application application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
+        organization.getId());
+    appDAO.insert(application);
+
+    InsightWork insightWork = createInsightWork();
+    File auditDir = insightWork.getAuditDir("");
+    File appAuditDir = new File(auditDir, application.getId());
+    appAuditDir.mkdirs();
+    assertTrue(appAuditDir.isDirectory());
+    URL testAuditFileUrl = getClass().getResource("/LicenseOverrideMigratorTest/licenses_unknown_license.json");
+    FileUtils.copyFile(new File(testAuditFileUrl.getFile()), new File(appAuditDir, "licenses.json"));
+
+    LicenseOverrideMigrator migrator = new LicenseOverrideMigrator(insightWork);
+    migrator.migrate();
+
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    assertThat(licenseOverrideDAO.getByOwnerId(application.getId()), hasSize(1));
+
+    assertLicenseOverride(application.getId(), "commons-pool", "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN,
+        "GPL-3.0", "Comment 4");
+
+    // Cleanup
+    appDAO.delete(application);
+    orgDAO.delete(organization);
+  }
+
   private void assertLicenseOverride(String ownerId, String groupId, String artifactId, String version,
       LicenseOverrideStatus status, String licenseId, String comment)
   {

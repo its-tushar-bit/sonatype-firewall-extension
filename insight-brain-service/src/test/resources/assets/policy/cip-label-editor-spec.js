@@ -58,11 +58,10 @@ describe('ComponentLabelEditor tests', function() {
 	
 	it('Test Remove', function () {
 	  expect( scope.itemLabels.length ).toEqual(1);
-	  $http.expectDELETE('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00').respond([]);
-	  scope.removeLabel([{"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red","ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization"});
+	  $http.expectDELETE('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one').respond([]);
+	  scope.removeLabel({"id":"one","ownerId":"orgOwnerId","label":"one","labelLowercase":"one","description":"one","color":"red","ownerId":"orgOwnerId","ownerName":"orgName","ownerType":"organization"});
 	  removeScope.accept();
 		$http.flush();
-		expect( scope.itemLabels.length ).toEqual(0);
 	});
 
 	it('Test Filter', function () {

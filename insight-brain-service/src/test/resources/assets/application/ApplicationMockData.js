@@ -128,10 +128,10 @@ ApplicationMockData = {
   getPolicyEvaluationData: function() {
     return {
       "alerts": [],
-      "affectedComponentCount": 5,
+      "affectedComponentCount": 10,
       "criticalComponentCount": 5,
-      "severeComponentCount": 0,
-      "moderateComponentCount": 0
+      "severeComponentCount": 3,
+      "moderateComponentCount": 2
     }
   }
 };

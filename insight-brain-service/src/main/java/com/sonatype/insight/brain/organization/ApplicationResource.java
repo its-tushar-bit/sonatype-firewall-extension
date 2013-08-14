@@ -61,9 +61,9 @@ public class ApplicationResource
 
   public static final String GET_APPLICATION_NAMES = "services/names";
 
-  public static final String Get_APPLICATION_MANAGEMENT_SUMMARIES = "service/summary";
+  public static final String GET_APPLICATION_MANAGEMENT_SUMMARIES = "service/summary";
 
-  public static final String Get_APPLICATION_MANAGEMENT_SUMMARY = Get_APPLICATION_MANAGEMENT_SUMMARIES + "/{applicationPublicId}";
+  public static final String GET_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES + "/{applicationPublicId}";
 
   public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
@@ -110,10 +110,10 @@ public class ApplicationResource
   /**
    * @since 1.4
    *
-   * @Path changed in 1.6 from SERVICE_PATH to Get_APPLICATION_MANAGEMENT_SUMMARIES
+   * @Path changed in 1.6 from SERVICE_PATH to GET_APPLICATION_MANAGEMENT_SUMMARIES
    */
   @GET
-  @Path(Get_APPLICATION_MANAGEMENT_SUMMARIES)
+  @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummary> getApplicationManagementSummaries() throws IOException {
     final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
@@ -154,10 +154,10 @@ public class ApplicationResource
   /**
    * @since 1.4
    *
-   * @Path changed in 1.6 from GET_APPLICATION_PATH to Get_APPLICATION_MANAGEMENT_SUMMARY
+   * @Path changed in 1.6 from GET_APPLICATION_PATH to GET_APPLICATION_MANAGEMENT_SUMMARY
    */
   @GET
-  @Path(Get_APPLICATION_MANAGEMENT_SUMMARY)
+  @Path(GET_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationManagementSummary getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId)
       throws IOException

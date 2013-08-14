@@ -136,7 +136,7 @@
     });
 
     $scope.$watch('selectedApplication', function() {
-      if ($scope.selectedApplication) {
+      if ($scope.selectedApplication && $scope.selectedApplication.publicId) {
         $http.get(CLMLocations.getApplicationSummaryUrl($scope.selectedApplication.publicId), {
           params: { timestamp: new Date().getTime() }
         }).then(function (summary) {
@@ -146,6 +146,9 @@
             policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId, policyEvaluation.scanId);
             $scope.applicationSummary.stageCount++;
           });
+        }, function(error) {
+          $scope.pushAlert({ type: 'error', msg: 'An error occurred while loading the report summary. (' +
+              Messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')' });
         });
       }
     });

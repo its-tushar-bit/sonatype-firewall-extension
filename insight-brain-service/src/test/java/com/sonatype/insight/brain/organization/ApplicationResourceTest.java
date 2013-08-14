@@ -666,11 +666,11 @@ public class ApplicationResourceTest
   }
 
   private String getSummariesURL() {
-    return getServiceURL() + "/" + ApplicationResource.Get_APPLICATION_MANAGEMENT_SUMMARIES;
+    return getServiceURL() + "/" + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES;
   }
 
   private String getSummaryURL(String applicationPublicId) {
-    return getServiceURL() + "/" + ApplicationResource.Get_APPLICATION_MANAGEMENT_SUMMARY.replace("{applicationPublicId}", applicationPublicId);
+    return getServiceURL() + "/" + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY.replace("{applicationPublicId}", applicationPublicId);
   }
 
   private String getEvalURL(final String appId, final String scanId) {

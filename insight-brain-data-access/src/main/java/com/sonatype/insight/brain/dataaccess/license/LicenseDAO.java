@@ -103,7 +103,7 @@ public class LicenseDAO
   /**
    * @since 1.6
    */
-  private License getByName(String name) {
+  public License getByName(String name) {
     if (licensesByName == null) {
       load();
     }

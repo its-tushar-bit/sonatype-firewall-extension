@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.dataaccess.AbstractDAO;
@@ -138,6 +139,7 @@ public class LicenseOverrideMigrator
 
           String statusName = licenseAuditChange.get("status").asText();
 
+          boolean isValid = true;
           String licenseOverrideId = null;
           LicenseOverrideStatus status = LicenseOverrideStatus.getByName(statusName);
           JsonNode licenseOverrideJsonNode = licenseAuditChange.get("overriddenLicenses");
@@ -145,13 +147,22 @@ public class LicenseOverrideMigrator
             licenseOverrideJsonNode = licenseOverrideJsonNode.get(0);
             if (licenseOverrideJsonNode != null) {
               String licenseOverrideName = licenseOverrideJsonNode.asText();
-              licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
+              License license = new LicenseDAO().getByName(licenseOverrideName);
+              if (license != null) {
+                licenseOverrideId = license.getId();
+              }
+              else {
+                isValid = false;
+                log.warn("Found license override for unknown license name '{}'.", licenseOverrideName);
+              }
             }
           }
-          String comment = JsonUtils.getNullableString(licenseAuditChange.get("comment"));
-          LicenseOverride licenseOverride = new LicenseOverride(applicationId, groupId, artifactId, version, status,
-              licenseOverrideId, comment);
-          licenseOverrideDAO.insert(licenseOverride);
+          if (isValid) {
+            String comment = JsonUtils.getNullableString(licenseAuditChange.get("comment"));
+            LicenseOverride licenseOverride = new LicenseOverride(applicationId, groupId, artifactId, version, status,
+                licenseOverrideId, comment);
+            licenseOverrideDAO.insert(licenseOverride);
+          }
         }
         log.info("Migrated {} license overrides for application {} (id {}).", seenGavs.size(), application.getName(),
             applicationId);

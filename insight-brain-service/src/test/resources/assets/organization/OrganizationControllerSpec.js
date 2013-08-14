@@ -293,7 +293,7 @@ describe('Tests for the OrganizationController', function() {
       expect(scope.deletedEnabled).toBeFalsy();
     }));
 
-    it('displays confirmation dialog', function() {
+    it('displays confirmation dialog when navigating away from edited data', function() {
       scope.selectedOrganization.name = 'new_name';
       var e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).toBeTruthy();

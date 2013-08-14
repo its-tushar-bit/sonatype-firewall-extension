@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -37,16 +38,30 @@ public class LicenseOverrideMigratorTest
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
+  private Organization organization;
+
+  private Application application;
+
+  @After
+  public void after() {
+    if (application != null) {
+      new ApplicationDAO().delete(application);
+    }
+    if (organization != null) {
+      new OrganizationDAO().delete(organization);
+    }
+  }
+
   @Test
   public void testMigrate() throws Exception {
     // Create an organization
     OrganizationDAO orgDAO = new OrganizationDAO();
-    Organization organization = new Organization("LicenseOverrideMigratorTest");
+    organization = new Organization("LicenseOverrideMigratorTest");
     orgDAO.insert(organization);
 
     // Create an application
     ApplicationDAO appDAO = new ApplicationDAO();
-    Application application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
+    application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
         organization.getId());
     appDAO.insert(application);
 
@@ -72,22 +87,18 @@ public class LicenseOverrideMigratorTest
         "GPL-3.0", "Comment 4");
     assertLicenseOverride(application.getId(), "commons-pool", "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN,
         "GPL-3.0", "Comment 4");
-
-    // Cleanup
-    appDAO.delete(application);
-    orgDAO.delete(organization);
   }
 
   @Test
   public void testMigrate_UnknownLicense() throws Exception {
     // Create an organization
     OrganizationDAO orgDAO = new OrganizationDAO();
-    Organization organization = new Organization("LicenseOverrideMigratorTest");
+    organization = new Organization("LicenseOverrideMigratorTest");
     orgDAO.insert(organization);
 
     // Create an application
     ApplicationDAO appDAO = new ApplicationDAO();
-    Application application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
+    application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
         organization.getId());
     appDAO.insert(application);
 
@@ -107,10 +118,6 @@ public class LicenseOverrideMigratorTest
 
     assertLicenseOverride(application.getId(), "commons-pool", "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN,
         "GPL-3.0", "Comment 4");
-
-    // Cleanup
-    appDAO.delete(application);
-    orgDAO.delete(organization);
   }
 
   private void assertLicenseOverride(String ownerId, String groupId, String artifactId, String version,

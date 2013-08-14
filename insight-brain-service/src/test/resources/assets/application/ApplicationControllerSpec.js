@@ -235,4 +235,36 @@ describe('ApplicationEditorController', function () {
     scope.confirmDeleteApplication(mockApplication);
     scope.deleteApplication();
   }));
+
+
+  it('displays confirmation dialog', function() {
+    scope.selectedApplication.name = 'new_name';
+    var e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).toBeTruthy();
+
+    scope.selectedApplication.name = originalMockApplication.name;
+    e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).not.toBeTruthy();
+
+    scope.generateIcon();
+    var e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).toBeTruthy();
+
+    scope.cancel();
+    e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).not.toBeTruthy();
+
+    scope.selectedApplication.name = 'new_name';
+    e = scope.$broadcast('pageChangeStarted', 'application/' + scope.selectedApplication.publicId);
+    expect(e.defaultPrevented).not.toBeTruthy();
+  });
+
+  it('does not cancel edits when changing between tabs', function() {
+    scope.selectedApplication.name = 'new_name';
+    e = scope.$broadcast('pageChangeAccepted', 'application/' + scope.selectedApplication.publicId);
+    expect(scope.selectedApplication.name).toEqual('new_name');
+
+    e = scope.$broadcast('pageChangeAccepted', 'organization/');
+    expect(scope.selectedApplication.name).toEqual(originalMockApplication.name);
+  });
 });

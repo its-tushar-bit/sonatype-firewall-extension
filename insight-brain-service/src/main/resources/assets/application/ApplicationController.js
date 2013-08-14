@@ -206,10 +206,14 @@
       || currentApplication.organizationId != originalApplication.organizationId || $scope.iconChanged;
     };
 
+    function isExternalDestination(destination) {
+      var application = $scope.selectedApplication;
+      return !destination || (application && destination.indexOf('application/' + application.publicId) === -1);
+    }
+
     //make sure user is aware they are about to lose changes
     $scope.$on('pageChangeStarted', function (event, destination) {
-      var application = $scope.selectedApplication;
-      if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
+      if (isExternalDestination(destination)) {
         if ($scope.isFormDirty() && !$scope.isPostingIcon) {
           event.preventDefault();
         }
@@ -217,8 +221,7 @@
     });
 
     $scope.$on('pageChangeAccepted', function (event, destination) {
-      var application = $scope.selectedApplication;
-      if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
+      if (isExternalDestination(destination)) {
         $scope.cancel();
       }
     });

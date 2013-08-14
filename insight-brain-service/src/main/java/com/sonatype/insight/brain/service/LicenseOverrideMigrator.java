@@ -153,7 +153,7 @@ public class LicenseOverrideMigrator
               }
               else {
                 isValid = false;
-                log.warn("Found license override for unknown license name '{}'.", licenseOverrideName);
+                log.warn("Found license override with unknown license name '{}' for GAV {}.", licenseOverrideName, gav);
               }
             }
           }

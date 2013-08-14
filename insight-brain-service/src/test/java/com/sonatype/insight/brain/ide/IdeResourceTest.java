@@ -17,22 +17,19 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -199,6 +196,9 @@ public class IdeResourceTest
     Application application = createApplication(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+
+    Condition condition1 = new Condition(LicenseStatusConditionType.ID, "is",
+        LicenseOverrideStatus.OVERRIDDEN.toString());
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);

@@ -176,6 +176,23 @@
       return !$scope.organizationEditor.$invalid && !$scope.submitActive;
     };
 
+    //make sure user is aware they are about to lose changes
+    $scope.$on('pageChangeStarted', function (event, destination) {
+      var organization = $scope.selectedOrganization;
+      if (!destination || (organization && destination.indexOf('organization/' + organization.id) === -1)) {
+        if ($scope.isFormDirty() && !$scope.isPostingIcon) {
+          event.preventDefault();
+        }
+      }
+    });
+
+    $scope.$on('pageChangeAccepted', function (event, destination) {
+      var organization = $scope.selectedOrganization;
+      if (!destination || (organization && destination.indexOf('organization/' + organization.id) === -1)) {
+        $scope.cancelClick();
+      }
+    });
+
     $scope.cancelClick = function () {
       $scope.selectedOrganization.$revert();
       if ($scope.iconChanged) {

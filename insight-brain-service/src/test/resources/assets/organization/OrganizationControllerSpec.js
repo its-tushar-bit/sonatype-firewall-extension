@@ -292,5 +292,36 @@ describe('Tests for the OrganizationController', function() {
       expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
       expect(scope.deletedEnabled).toBeFalsy();
     }));
+
+    it('displays confirmation dialog', function() {
+      scope.selectedOrganization.name = 'new_name';
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.selectedOrganization.name = originalMockOrganization.name;
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+
+      scope.generateIcon();
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.cancelClick();
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+
+      scope.selectedOrganization.name = 'new_name';
+      e = scope.$broadcast('pageChangeStarted', 'organization/' + scope.selectedOrganization.id);
+      expect(e.defaultPrevented).not.toBeTruthy();
+    });
+
+    it('does not cancel edits when changing between tabs', function() {
+      scope.selectedOrganization.name = 'new_name';
+      e = scope.$broadcast('pageChangeAccepted', 'organization/' + scope.selectedOrganization.id);
+      expect(scope.selectedOrganization.name).toEqual('new_name');
+
+      e = scope.$broadcast('pageChangeAccepted', 'organization/');
+      expect(scope.selectedOrganization.name).toEqual(originalMockOrganization.name);
+    });
   });
 });

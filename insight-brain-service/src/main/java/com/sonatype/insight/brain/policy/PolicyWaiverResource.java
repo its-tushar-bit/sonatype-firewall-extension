@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -80,16 +82,57 @@ public class PolicyWaiverResource
     policyWaiverDAO.delete(policyWaiver);
   }
 
+  /**
+   * Supports the "View Waivers" functionality of the UI. Most notably, the returned DTO holds the names of relevant
+   * entities and public IDs as opposed to internal IDs to facilitate follow-up REST requests like deletion.
+   */
   @GET
   @Path("component/{hash}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<PolicyWaiver> getPolicyWaiversByHash(@PathParam("ownerType") String ownerType,
+  public AppliedWaivers getPolicyWaiversByHash(@PathParam("ownerType") String ownerType,
       @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    return policyWaiverDAO.getByOwnerIdAndHash(internalOwnerId, hash, true /* inherit */);
+    AppliedWaivers result = new AppliedWaivers();
+
+    String organizationId;
+    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
+      Application app = new ApplicationDAO().getByIdNotNull(ownerId);
+      result.add(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION, getAppliedWaivers(app.getId(), hash));
+      organizationId = app.getOrganizationId();
+    }
+    else {
+      organizationId = ownerId;
+    }
+    if (organizationId != null) {
+      Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
+      result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, getAppliedWaivers(org.getId(), hash));
+    }
+
+    return result;
+  }
+
+  private List<PolicyWaiverDTO> getAppliedWaivers(String ownerId, String hash) {
+    List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash, false);
+    Map<String, String> policyNamesById = new HashMap<String, String>();
+    for (Policy policy : policyDAO().getApplicableByOwnerId(ownerId)) {
+      policyNamesById.put(policy.getId(), policy.getName());
+    }
+    List<PolicyWaiverDTO> dtos = new ArrayList<PolicyWaiverDTO>(waivers.size());
+    for (PolicyWaiver waiver : waivers) {
+      PolicyWaiverDTO dto = new PolicyWaiverDTO();
+      dto.setComment(waiver.getComment());
+      dto.setConstraintId(waiver.getConstraintId());
+      dto.setCreateTime(waiver.getCreateTime());
+      dto.setHash(waiver.getHash());
+      dto.setId(waiver.getId());
+      dto.setOwnerId(waiver.getOwnerId());
+      dto.setPolicyId(waiver.getPolicyId());
+      dto.policyName = policyNamesById.get(dto.getPolicyId());
+      dtos.add(dto);
+    }
+    return dtos;
   }
 
   @GET
@@ -162,5 +205,54 @@ public class PolicyWaiverResource
       this.name = name;
       this.type = type;
     }
+  }
+
+  /**
+   * Enumerates the waivers applied to a given component in a way that allows to clients to identify at which point in
+   * the organizational hierarchy the waiver has been defined.
+   */
+  public static class AppliedWaivers
+  {
+    public List<WaiversByOwner> waiversByOwner = new ArrayList<WaiversByOwner>();
+
+    void add(String ownerId, String ownerName, String ownerType, List<PolicyWaiverDTO> waivers) {
+      if (waivers == null || waivers.isEmpty()) {
+        return;
+      }
+      for (PolicyWaiver waiver : waivers) {
+        waiver.setOwnerId(ownerId);
+      }
+      WaiversByOwner wbo = new WaiversByOwner();
+      wbo.ownerId = ownerId;
+      wbo.ownerName = ownerName;
+      wbo.ownerType = ownerType;
+      wbo.waivers = waivers;
+      waiversByOwner.add(wbo);
+    }
+  }
+
+  /**
+   * Enumerates the waivers contributed from a given context (app/org) along with basic identifying info about the
+   * context itself, suitable for future REST requests to manage the waivers.
+   */
+  public static class WaiversByOwner
+  {
+    public String ownerId;
+
+    public String ownerName;
+
+    public String ownerType;
+
+    public List<PolicyWaiverDTO> waivers;
+  }
+
+  /**
+   * Describes a waiver in a REST-friendly way. Besides including the the name of the waived policy, the ownerId holds
+   * the public ID as expected for REST requests and not the internal ID.
+   */
+  public static class PolicyWaiverDTO
+      extends PolicyWaiver
+  {
+    public String policyName;
   }
 }

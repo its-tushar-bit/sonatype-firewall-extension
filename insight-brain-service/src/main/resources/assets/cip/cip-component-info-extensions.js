@@ -120,39 +120,21 @@
           $scope.waiversLoading = true;
           function processResults(results) {
             $scope.waiversLoading = false;
-            $scope.waivers = results[0].data;
+            $scope.waivers = [];
 
-            // process the results to add policy name and owner name
-            $.each($scope.waivers, function(waiverIndex, waiver) {
-              $.each(results[1].data.policiesByOwner, function(policyOwnerIndex, policyOwner) {
-                if (waiver.ownerId === policyOwner.ownerId) {
-                  waiver.type = policyOwner.ownerType;
-                  waiver.ownerName = policyOwner.ownerName;
-                  //for apps, we need to find the publicId and set that as the ownerId
-                  if (waiver.type === 'application') {
-                    $.each(results[2].data, function(applicationIndex, application){
-                      if (application.id === waiver.ownerId) {
-                        waiver.ownerId = application.publicId;
-                        return false;
-                      }
-                    });
-                  }
-                }
-                $.each(policyOwner.policies, function(policyIndex, policy) {
-                  if (waiver.policyId === policy.id) {
-                    waiver.policyName = policy.name;
-                    return false;
-                  }
-                });
+            $.each(results[0].data.waiversByOwner, function(ownerIndex, waiversByOwner) {
+              $.each(waiversByOwner.waivers, function(waiverIndex, waiver) {
+                waiver.type = waiversByOwner.ownerType;
+                waiver.ownerName = waiversByOwner.ownerName;
+                $scope.waivers.push(waiver);
               });
             });
           }
-          // get the waivers and policies from the server
+          // get the waivers from the server
           var policyWaiverPromise = $http.get(CLM.path + 'rest/policyWaiver/application/' + $scope.applicationId
-                  + '/component/' + $scope.hash + '?timestamp=' + new Date().getTime()), policyPromise = $http.get(CLM.path + 'rest/policy/application/'
-                  + $scope.applicationId + '/applicable?timestamp=' + new Date().getTime()), applicationPromise = $http.get(CLM.path + 'rest/application');
+                  + '/component/' + $scope.hash + '?timestamp=' + new Date().getTime());
 
-          $q.all([policyWaiverPromise, policyPromise, applicationPromise]).then(function(results) {
+          $q.all([policyWaiverPromise]).then(function(results) {
             processResults(results);
           }, function() {
             handleHttpError(arguments[0].data, arguments[0].status, arguments[0].headers, arguments[0].config);

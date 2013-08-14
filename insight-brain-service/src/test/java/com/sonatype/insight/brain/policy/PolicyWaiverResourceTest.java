@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -22,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.ApplicableContext;
+import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.test.RestAccess;
@@ -64,9 +64,12 @@ public class PolicyWaiverResourceTest
     // Get
     response = RestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    PolicyWaiver[] policyWaivers = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver[].class);
-    assertEquals(1, policyWaivers.length);
-    assertPolicyWaiver("MyPolicyId", ownerId, "My comment", policyWaivers[0]);
+    AppliedWaivers policyWaivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    assertNotNull(policyWaivers);
+    assertNotNull(policyWaivers.waiversByOwner);
+    assertEquals(1, policyWaivers.waiversByOwner.size());
+    assertEquals(1, policyWaivers.waiversByOwner.get(0).waivers.size());
+    assertPolicyWaiver("MyPolicyId", ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
 
     // Delete
     response = RestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + policyWaiver.getId());
@@ -75,8 +78,10 @@ public class PolicyWaiverResourceTest
     // Get
     response = RestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    policyWaivers = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver[].class);
-    assertEquals(0, policyWaivers.length);
+    policyWaivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    assertNotNull(policyWaivers);
+    assertNotNull(policyWaivers.waiversByOwner);
+    assertEquals(0, policyWaivers.waiversByOwner.size());
   }
 
   @Test
@@ -103,8 +108,9 @@ public class PolicyWaiverResourceTest
     Organization organization = createOrganization("PolicyWaiverResourceTest1");
     String appPublicId = "PolicyWaiverResourceTest_AppId1";
     Application application = createApplication(appPublicId, "PolicyWaiverResourceTest AppId1", organization);
+    Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, organization.getId());
 
-    PolicyWaiver waiver1 = new PolicyWaiver("12345678901234567890", "MyPolicyId", application.getId(), "My comment");
+    PolicyWaiver waiver1 = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(), "My comment");
 
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(waiver1);
@@ -112,27 +118,45 @@ public class PolicyWaiverResourceTest
     Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
         + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    PolicyWaiver[] waivers = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver[].class);
-    assertEquals(1, waivers.length);
-    assertPolicyWaiver("MyPolicyId", application.getId(), "My comment", waivers[0]);
+    AppliedWaivers waivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    assertNotNull(waivers);
+    assertNotNull(waivers.waiversByOwner);
+    assertEquals(1, waivers.waiversByOwner.size());
+    assertEquals(appPublicId, waivers.waiversByOwner.get(0).ownerId);
+    assertEquals(application.getName(), waivers.waiversByOwner.get(0).ownerName);
+    assertEquals(IdUtils.TYPE_APPLICATION, waivers.waiversByOwner.get(0).ownerType);
+    assertEquals(1, waivers.waiversByOwner.get(0).waivers.size());
+    assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment", waivers.waiversByOwner.get(0).waivers.get(0));
 
-    PolicyWaiver waiver2 = new PolicyWaiver("12345678901234567890", "MyPolicyId", organization.getId(), "My comment");
+    PolicyWaiver waiver2 = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(), "My comment");
     policyWaiverDAO.insert(waiver2);
 
     response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
         + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    waivers = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver[].class);
-    assertEquals(2, waivers.length);
-    assertPolicyWaiver("MyPolicyId", organization.getId(), "My comment", waivers[0]);
-    assertPolicyWaiver("MyPolicyId", application.getId(), "My comment", waivers[1]);
+    waivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    assertNotNull(waivers);
+    assertNotNull(waivers.waiversByOwner);
+    assertEquals(2, waivers.waiversByOwner.size());
+    assertEquals(appPublicId, waivers.waiversByOwner.get(0).ownerId);
+    assertEquals(application.getName(), waivers.waiversByOwner.get(0).ownerName);
+    assertEquals(IdUtils.TYPE_APPLICATION, waivers.waiversByOwner.get(0).ownerType);
+    assertEquals(1, waivers.waiversByOwner.get(0).waivers.size());
+    assertEquals(organization.getId(), waivers.waiversByOwner.get(1).ownerId);
+    assertEquals(organization.getName(), waivers.waiversByOwner.get(1).ownerName);
+    assertEquals(IdUtils.TYPE_ORGANIZATION, waivers.waiversByOwner.get(1).ownerType);
+    assertEquals(1, waivers.waiversByOwner.get(1).waivers.size());
+    assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment", waivers.waiversByOwner.get(0).waivers.get(0));
+    assertPolicyWaiver(policy.getId(), organization.getId(), "My comment", waivers.waiversByOwner.get(1).waivers.get(0));
 
     response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId())
         + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    waivers = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver[].class);
-    assertEquals(1, waivers.length);
-    assertPolicyWaiver("MyPolicyId", organization.getId(), "My comment", waivers[0]);
+    waivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    assertNotNull(waivers);
+    assertNotNull(waivers.waiversByOwner);
+    assertEquals(1, waivers.waiversByOwner.size());
+    assertPolicyWaiver(policy.getId(), organization.getId(), "My comment", waivers.waiversByOwner.get(0).waivers.get(0));
   }
 
   private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1, String ownerId1,
@@ -189,21 +213,10 @@ public class PolicyWaiverResourceTest
     Application application = createApplication(appPublicId);
 
     // Create a policy for the application
-    Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
-    Constraint constraint = new Constraint(null, "Constraint name 1", LogicalOperator.AND);
-    constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<Constraint>();
-    constraints.add(constraint);
-    Policy policy = new Policy(null, "Policy Name 1");
-    policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = RestAccess.post(
-        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
-        JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
-    policy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    Policy policy = createPolicy(IdUtils.TYPE_APPLICATION, appPublicId);
 
-    response = RestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/" + policy.getId());
+    Response response = RestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/"
+        + policy.getId());
     assertResponseStatus(200, response);
     ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
     assertApplicableContext(application.getId(), application.getName(), "application", result);
@@ -216,21 +229,9 @@ public class PolicyWaiverResourceTest
     Organization organization = new OrganizationDAO().getByIdNotNull(application.getOrganizationId());
 
     // Create a policy for the organization
-    Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
-    Constraint constraint = new Constraint(null, "Constraint name 1", LogicalOperator.AND);
-    constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<Constraint>();
-    constraints.add(constraint);
-    Policy policy = new Policy(null, "Policy Name 1");
-    policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = RestAccess.post(
-        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "organization", application.getOrganizationId()),
-        JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
-    policy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId());
 
-    response = RestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/" + policy.getId());
+    Response response = RestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/" + policy.getId());
     assertResponseStatus(200, response);
     ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
@@ -246,5 +247,18 @@ public class PolicyWaiverResourceTest
     assertEquals(id, actual.id);
     assertEquals(name, actual.name);
     assertEquals(type, actual.type);
+  }
+
+  private Policy createPolicy(String ownerType, String ownerId) throws Exception {
+    Constraint constraint = new Constraint(null, "Constraint name 1", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    Policy policy = new Policy(null, "Policy Name 1");
+    policy.addConstraint(constraint);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    Response response = RestAccess.post(
+        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId), JsonHelpers.asJson(policy));
+    assertResponseStatus(200, response);
+    policy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    return policy;
   }
 }

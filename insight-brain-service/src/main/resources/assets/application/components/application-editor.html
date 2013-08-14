@@ -49,7 +49,7 @@
                     <div ng-switch-when='null'>
                           <span id='applicationPublicId' name='applicationPublicId  ' ng-model='selectedApplication.publicId' xeditable
                              adjustable="true" href='javascript:;' data-emptytext='Enter ID' data-placeholder='Enter ID' data-type='text'
-                             is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='publicId' is-Duplicate-Case-Sensitive='false'></span>
+                             required is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='publicId' is-Duplicate-Case-Sensitive='false'></span>
                     </div>
                     <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
                 </div>

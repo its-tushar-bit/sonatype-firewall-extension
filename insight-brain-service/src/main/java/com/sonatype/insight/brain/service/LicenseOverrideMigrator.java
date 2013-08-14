@@ -161,7 +161,7 @@ public class LicenseOverrideMigrator
             String comment = JsonUtils.getNullableString(licenseAuditChange.get("comment"));
             LicenseOverride licenseOverride = new LicenseOverride(applicationId, groupId, artifactId, version, status,
                 licenseOverrideId, comment);
-            licenseOverrideDAO.insert(licenseOverride);
+            licenseOverrideDAO.insert(em, licenseOverride);
           }
         }
         log.info("Migrated {} license overrides for application {} (id {}).", seenGavs.size(), application.getName(),

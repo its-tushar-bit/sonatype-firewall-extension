@@ -216,8 +216,11 @@
       }
     });
 
-    $scope.$on('pageChangeAccepted', function () {
-      $scope.cancel();
+    $scope.$on('pageChangeAccepted', function (event, destination) {
+      var application = $scope.selectedApplication;
+      if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
+        $scope.cancel();
+      }
     });
 
     $scope.canSaveEdit = function () {

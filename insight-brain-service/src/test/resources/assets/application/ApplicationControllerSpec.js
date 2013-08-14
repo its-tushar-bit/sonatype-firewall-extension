@@ -229,10 +229,52 @@ describe('ApplicationEditorController', function () {
     window.FormData = hasFormData;
   }));
 
-  it('deletes an application', inject(function (CLMAppLocations) {
+  it('Can delete an application', inject(function (CLMAppLocations) {
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
+    httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+    httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
 
     scope.confirmDeleteApplication(mockApplication);
+
+    expect(scope.deletedEnabled).toBeTruthy();
+    expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
     scope.deleteApplication();
+
+    httpBackend.flush();
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+    expect(scope.applications.length).toEqual(0);
+    expect(scope.deletedEnabled).toBeFalsy();
+  }));
+
+  it('Can respond to errors when trying to delete an application', inject(function (CLMAppLocations) {
+    var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
+
+    httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+
+    scope.confirmDeleteApplication(mockApplication);
+
+    expect(scope.deletedEnabled).toBeTruthy();
+    expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
+    scope.deleteApplication();
+
+    httpBackend.flush();
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
+    expect(scope.applications.length).toEqual(1);
+    expect(scope.deletedEnabled).toBeFalsy();
+  }));
+
+  it('Refreshes the list of applications when informed that an organization has been deleted', inject(function (CLMAppLocations, applicationStore) {
+    var applicationStoreSpy = spyOn(applicationStore, 'refresh');
+    rootScope.$broadcast('organizations.delete');
+    expect(applicationStoreSpy).toHaveBeenCalled()
   }));
 });

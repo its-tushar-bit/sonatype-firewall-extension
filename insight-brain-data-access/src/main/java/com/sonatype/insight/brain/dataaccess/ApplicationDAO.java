@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -71,7 +72,17 @@ public class ApplicationDAO
   }
 
   public Application getByPublicIdNotNull(String publicId) {
-    Application application = getByPublicId(publicId);
+    EntityManager em = createEntityManager();
+    try {
+      return getByPublicIdNotNull(em, publicId);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public Application getByPublicIdNotNull(EntityManager em, String publicId) {
+    Application application = getByPublicId(em, publicId);
     if (application == null) {
       throw new NotFoundException("Could not find an application with public id " + publicId + ".");
     }
@@ -211,6 +222,18 @@ public class ApplicationDAO
   }
 
   public void deleteWithIcon(Application application, File iconDirectory) {
+    EntityManager em = createEntityManager();
+    try {
+      em.getTransaction().begin();
+      deleteWithIcon(em, application, iconDirectory);
+      em.getTransaction().commit();
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public void deleteWithIcon(EntityManager em, Application application, File iconDirectory) {
     File applicationIconDirectory = new File(iconDirectory, application.getId());
     try {
       FileUtils.deleteDirectory(applicationIconDirectory);
@@ -219,7 +242,7 @@ public class ApplicationDAO
       log.error("Could not delete application icons: {}" + applicationIconDirectory, e);
     }
 
-    delete(application);
+    delete(em, application);
   }
 
   @Override

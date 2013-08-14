@@ -12,8 +12,16 @@ import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -119,11 +127,38 @@ public class OrganizationResourceTest
     response = futureResponse.get();
     assertResponseStatus(204, response);
 
+    // now create related objects to test delete cascades
+
+    // application
+    final ApplicationDAO applicationDAO = new ApplicationDAO();
+    final Application application = new Application();
+    application.setName("testapp");
+    application.setPublicId("testapp");
+    application.setOrganizationId(organization.getId());
+    applicationDAO.insert(application);
+    // policy
+    final PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
+    final Policy policy = new Policy();
+    policy.setName("testpolicy");
+    final Constraint constraint1 = new Constraint(null, "testconstraint", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint1);
+    policy.setOwnerId(organizationId);
+    policyDAO.insert(organizationId, policy);
+    // note that other related objects (labels, license threat groups, etc) are deleted by DAO and tested at DAO level
+
     // Delete
     response = RestAccess.delete(getServiceURL() + "/" + organizationId);
-    assertResponseStatus(404, response);
-
-    new OrganizationDAO().delete(organization);
+    assertResponseStatus(204, response);
+    Assert.assertNull(new OrganizationDAO().getById(organizationId));
+    // Default icon redirect should be returned
+    iconResponse = RestAccess.get(getServiceURL() + "/icon/" + organizationId);
+    assertResponseStatus(307, iconResponse);
+    Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png",
+        iconResponse.getHeader("Location"));
+    // assert related objects were deleted
+    Assert.assertNull(applicationDAO.getById(application.getId()));
+    Assert.assertNull(policyDAO.getByOwnerIdAndPolicyId(organizationId, policy.getId()));
   }
 
   @Test

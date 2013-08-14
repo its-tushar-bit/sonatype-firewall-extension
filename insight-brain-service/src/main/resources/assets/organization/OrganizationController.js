@@ -105,7 +105,7 @@
     $scope.doLoad();
   } ]);
 
-  organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', function ($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages) {
+  organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', '$http', '$rootScope', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', 'CLMAppLocations', function ($scope, $state, $location, $http, $rootScope, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages, CLMAppLocations) {
     var me = this;
     angular.extend(me, editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'), angular.element('#iconUploadForm')));
 
@@ -246,9 +246,26 @@
 
       return false;
     };
+
+    $scope.confirmDeleteOrganization = function (Organization) {
+      $scope.selectedOrganization = Organization;
+      $scope.deletedEnabled = true;
+      $('#deleteOrganizationModal').modal('show');
+    };
+
+    $scope.deleteOrganization = function() {
+      $scope.deletedEnabled = false;
+      $('#deleteOrganizationModal').modal('hide');
+      $scope.selectedOrganization.$delete().then(function(){
+        $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
+        $state.transitionTo('management.organization');
+      },function(){
+        $scope.$broadcast('showServerError', arguments)
+      });
+    };
   } ]);
 
-  organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function (CLMLocations, clmResource, $q) {
+  organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', function (CLMLocations, clmResource) {
     return clmResource.getStore({
       id: 'id',
       url: CLMLocations.getOrganizationsUrl(),

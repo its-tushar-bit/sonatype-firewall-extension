@@ -308,7 +308,7 @@
     };
   });
 
-  applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
+  applicationModule.service('applicationStore', ['$rootScope', 'CLMLocations', 'CLMResource', function ($rootScope, clmLocations, clmResource) {
     var applicationStore = clmResource.getStore({
       id: 'id',
       url: clmLocations.getApplicationsUrl(),
@@ -316,6 +316,9 @@
       params: {
         timestamp: new Date().getTime()
       }
+    });
+    $rootScope.$on('organizations.delete', function(event, organizationId) {
+      applicationStore.refresh();
     });
     return applicationStore;
   }]);

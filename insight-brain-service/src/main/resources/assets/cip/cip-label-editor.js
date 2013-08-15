@@ -92,23 +92,27 @@
     
     //after dialog is shown, make sure to apply the angular stuff
     $('#labelAssignScopeModal').on('shown',function(){
-        $scope.$apply(function(){
-          var label = currentLabelData.get();
-          $scope.label = {
-            selectedOwner: componentLabelEditorGAV.applicationId + '$$application'
-          };
-          $scope.labelOwners = [{
-            ownerId: componentLabelEditorGAV.applicationId,
-            ownerName: componentLabelEditorGAV.applicationId,
-            ownerType: 'application',
-            ownerText: getOwnerText('application', componentLabelEditorGAV.applicationId)
-          },{
-            ownerId: label.ownerId,
-            ownerName: label.ownerName,
-            ownerType: label.ownerType,
-            ownerText: getOwnerText(label.ownerType, label.ownerName)
-          }];  
-        });
+      $scope.labelAddError = null;
+      var label = currentLabelData.get();
+      $scope.label = {
+        selectedOwner: componentLabelEditorGAV.applicationId + '$$application'
+      };
+      $scope.labelOwners = [{
+        ownerId: componentLabelEditorGAV.applicationId,
+        ownerName: componentLabelEditorGAV.applicationId,
+        ownerType: 'application',
+        ownerText: getOwnerText('application', componentLabelEditorGAV.applicationId)
+      },{
+        ownerId: label.ownerId,
+        ownerName: label.ownerName,
+        ownerType: label.ownerType,
+        ownerText: getOwnerText(label.ownerType, label.ownerName)
+      }];
+      
+      //purposefully not wrapping the above changes in $apply so that i can check if its already running first
+      if(!$scope.$$phase) {
+        $scope.$apply();
+      }
     });
     
     //move the dialog onto the body in the dom, so the backdrop shows properly
@@ -137,6 +141,15 @@
         $scope.labelRemoveError = messages.getHttpErrorMessage({ status: status,  data: data });
       });
     };
+    
+    $('#labelAssignScopeModal').on('shown',function(){
+      $scope.labelRemoveError = null;
+      
+      //purposefully not wrapping the above changes in $apply so that i can check if its already running first
+      if(!$scope.$$phase) {
+        $scope.$apply();
+      }
+    });
     
     //move the dialog onto the body in the dom, so the backdrop shows properly
     relocateModal('#labelRemoveModal');

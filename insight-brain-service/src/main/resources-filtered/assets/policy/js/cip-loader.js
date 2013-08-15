@@ -17,7 +17,7 @@
     function loadScript(key, scriptSrc, onLoad) {
 		var script = document.createElement('script');
 		script.type = 'text/javascript';
-		script.src = CLM.path + scriptSrc;
+		script.src = CLM.path + scriptSrc + '?' + clmBuildTimestamp;
 		$('head')[0].appendChild(script);
 		if (onLoad) {
 			script.onload = script.onreadystatechange = function () {
@@ -31,7 +31,8 @@
 
     var head = $('head'),
         scripts = [ 'assets/lib/datepicker/bootstrap-datepicker.js', 'cip/cip-label-editor.js', 'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-component-info-extensions.js', 'assets/js/Hudson.js', 'assets/util/AngularCommon.js' ],
-        styles = [ 'assets/lib/datepicker/datepicker.css', 'cip/cip-label-editor.css', 'cip/cip-policy-violations.css', 'cip/cip-claim-component.css' ];
+        styles = [ 'assets/lib/datepicker/datepicker.css', 'cip/cip-label-editor.css', 'cip/cip-policy-violations.css', 'cip/cip-claim-component.css' ],
+        clmBuildTimestamp = '${build.timestamp}';
 
 	if (!window.angular) {
 		loadScript(null, 'assets/lib/angular/angular-${angularjs.version}.min.js', function () {
@@ -42,6 +43,6 @@
 	}
 
     $.each(styles, function(key, style) {
-        $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', CLM.path + style).appendTo(head);
+        $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', CLM.path + style + '?' + clmBuildTimestamp).appendTo(head);
     });
 }());

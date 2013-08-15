@@ -133,37 +133,16 @@
 			};
 		}
 
-        return {
-            messages: {
-              required: 'Name is required',
-              alphanumeric: 'Must be alpha numeric',
-              spaces: 'No leading, trailing or double spaces or tabs',
-              duplicate: 'Name is already in use'
-            },
-            validateName : function(name, currentItem, existingItems) {
-                // field is required, alphanumeric, and no unnecessary spaces
-                if (!name) {
-                    return this.messages.required;
-                } else if (name.match(new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'))) {
-                    return this.messages.alphanumeric;
-                } else if (name.match(/^ | {2,}|\t| $/)) {
-                    return this.messages.spaces;
-                }
-
-                // check for uniqueness
-                for ( var i = 0; i < existingItems.length; i++) {
-                    if (existingItems[i].name.toLowerCase() === name.toLowerCase()
-                          && existingItems[i].id !== currentItem.id) {
-                        return this.messages.duplicate;
-                    }
-                }
-
-                return true;
-            },
-
-			getEditorController : function($scope, idSelector, hiddenId, form) {
-				return new EditorController($scope, idSelector, hiddenId, form);
-			}
+      return {
+        messages: {
+          required: 'Name is required',
+          alphanumeric: 'Must be alpha numeric',
+          spaces: 'No leading, trailing or double spaces or tabs',
+          duplicate: 'Name is already in use'
+        },
+        getEditorController: function($scope, idSelector, hiddenId, form) {
+          return new EditorController($scope, idSelector, hiddenId, form);
+        }
         };
     });
 }());

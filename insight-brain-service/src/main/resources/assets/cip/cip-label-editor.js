@@ -6,10 +6,9 @@
 /*global angular, $, window, CLM, setTimeout */
 (function () {
     'use strict';
-
 	$.extend(true, window, {
 		'Insight' : {
-			'LabelEditor' : function (node, applicationId, hash) {
+			'LabelEditor' : function (node, applicationId, gav) {
 				var timestamp = (new Date()).getTime(),
 					container = $('<div clm-include="\'' + CLM.path + 'cip/cip-label-editor.html\'"></div>');
 				node.empty();
@@ -18,7 +17,10 @@
 				angular.module('labelEditor' + timestamp, []).service('ComponentLabelEditorGAV', function () {
 					return {
 						applicationId : applicationId,
-						hash : hash
+						hash : gav.hash,
+						groupId : gav.groupId,
+						artifactId : gav.artifactId,
+						version : gav.version
 					};
 				});
 				angular.bootstrap(container[0], ['ComponentLabelEditor', 'labelEditor' + timestamp, 'AngularCommon']);
@@ -53,6 +55,15 @@
 	
 	//the add controller, controlling the add modal 
 	labelsApp.controller('LabelAddController', ['$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages){
+	  function getOwnerText(ownerType, ownerName) {
+	    var prefix = 'Assign label to component ' + componentLabelEditorGAV.groupId + ':' + componentLabelEditorGAV.artifactId + ':' + componentLabelEditorGAV.version + ' for ';
+	    var suffix = '';
+	    if (ownerType === 'application') {
+	      return prefix + ownerType + ' ' + ownerName;
+	    } else {
+	      return prefix + 'all of organization ' + ownerName;
+	    }
+	  }
 	  //decline to add, just dump the modal and move on
 	  $scope.decline = function() {
       $('#labelAssignScopeModal').modal('hide');
@@ -79,15 +90,16 @@
           $scope.label = {
             selectedOwner: componentLabelEditorGAV.applicationId + '$$application'
           };
-          //if label is owned by an app, simply do the add with no further input from user
           $scope.labelOwners = [{
             ownerId: componentLabelEditorGAV.applicationId,
             ownerName: componentLabelEditorGAV.applicationId,
-            ownerType: 'application'
+            ownerType: 'application',
+            ownerText: getOwnerText('application', componentLabelEditorGAV.applicationId)
           },{
             ownerId: label.ownerId,
             ownerName: label.ownerName,
-            ownerType: label.ownerType
+            ownerType: label.ownerType,
+            ownerText: getOwnerText(label.ownerType, label.ownerName)
           }];  
         });
     });
@@ -232,4 +244,55 @@
 			});
 		};
 	});
+}());
+
+/* add claim component tab as an information panel plugin */
+(function() {
+    "use strict";
+
+    function doLoad() {
+        function LabelTab(node, options) {
+            this.node = node;
+            this.options = options;
+        }
+
+        LabelTab.prototype = new Insight.InformationPanelPlugin({priority:7});
+
+        LabelTab.prototype.isVisible = function() {
+          return !((freemium && !this.options.sampleData) || this.gav.matchState === 'unknown') && Brain.hasFeature('labels');
+        };
+
+        LabelTab.prototype.create = function() {
+            var timestamp = (new Date()).getTime(), container = $('<div id="labels-' + timestamp + '"></div>'), me = this, retry = function() {
+                if (Insight.LabelEditor) {
+                    Insight.LabelEditor(container, applicationId, me.gav);
+                } else {
+                    setTimeout(retry, 1000);
+                }
+            };
+            this.node.empty();
+            container.appendTo(this.node);
+
+            retry();
+        };
+
+        LabelTab.prototype.destroy = function() {
+            this.node.empty();
+        };
+
+        LabelTab.prototype.getTitle = function() {
+            return 'Labels';
+        };
+        Insight.InformationPanelPlugins.push(LabelTab);
+    }
+
+    function check() {
+        if (window.Insight && window.Insight.InformationPanelPlugin) {
+            doLoad();
+        } else {
+            setTimeout(check, 100);
+        }
+    }
+
+    setTimeout(check, 0);
 }());

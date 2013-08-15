@@ -34,11 +34,11 @@
 			},
 
       getApplicationSummariesUrl: function() {
-        return baseUrl.get() + '/rest/application/service/summary';
+        return baseUrl.get() + '/rest/application/services/summary';
       },
 
       getApplicationSummaryUrl: function(applicationId) {
-        return baseUrl.get() + '/rest/application/service/summary/' + encodeURIComponent(applicationId);
+        return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId);
       },
 
 			getOrganizationsUrl: function() {

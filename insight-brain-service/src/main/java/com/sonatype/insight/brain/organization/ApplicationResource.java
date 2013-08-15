@@ -61,7 +61,7 @@ public class ApplicationResource
 
   public static final String GET_APPLICATION_NAMES = "services/names";
 
-  public static final String GET_APPLICATION_MANAGEMENT_SUMMARIES = "service/summary";
+  public static final String GET_APPLICATION_MANAGEMENT_SUMMARIES = "services/summary";
 
   public static final String GET_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES + "/{applicationPublicId}";
 

@@ -143,17 +143,6 @@
       });
     }
 
-    $scope.validateName = function (value) {
-      $scope.organizationEditor.$invalid = false;
-
-      var result = editorTools.validateName(value, $scope.selectedOrganization, $scope.organizations);
-
-      if (result !== true) {
-        $scope.organizationEditor.$invalid = true;
-        return result;
-      }
-    };
-
     $scope.closeAlert = function (index) {
       $scope.alerts.splice(index, 1);
     };

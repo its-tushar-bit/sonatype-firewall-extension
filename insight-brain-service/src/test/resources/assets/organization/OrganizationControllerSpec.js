@@ -196,31 +196,6 @@ describe('Tests for the OrganizationController', function() {
       window.FormData = hasFormData;
     }));
 
-    it('validates organization name', inject(function() {
-      scope.organizationEditor = {
-        $valid: true
-      };
-      scope.selectedOrganization = {
-        "id": "4",
-        "name": "org4"
-      };
-
-      expect(scope.validateName('org1')).toEqual('Name is already in use');
-      expect(scope.organizationEditor.$invalid).toBeTruthy();
-
-      expect(scope.validateName('new name')).toBeUndefined();
-      expect(scope.organizationEditor.$invalid).toBeFalsy();
-
-      expect(scope.validateName('new  name')).toBeDefined();
-      expect(scope.organizationEditor.$invalid).toBeTruthy();
-
-      expect(scope.validateName(' new name')).toBeDefined();
-      expect(scope.organizationEditor.$invalid).toBeTruthy();
-
-      expect(scope.validateName('new name ')).toBeDefined();
-      expect(scope.organizationEditor.$invalid).toBeTruthy();
-    }));
-
     it('adds an organization', inject(function(CLMLocations, OrganizationStore) {
       scope.$state.params.organizationId = '_new_';
       //create a new Organization so that we're not updating the existing one

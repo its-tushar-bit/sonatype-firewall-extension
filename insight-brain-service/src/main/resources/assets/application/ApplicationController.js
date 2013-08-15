@@ -150,8 +150,6 @@
       $scope.selectedApplication.organizationId = organization.id;
     };
 
-    $scope.messages = editorTools.messages;
-
     if ($state.current.data && $state.current.data.passThroughAlerts) {
       angular.forEach($state.current.data.passThroughAlerts, function(alert) {
         $scope.pushAlert(alert);

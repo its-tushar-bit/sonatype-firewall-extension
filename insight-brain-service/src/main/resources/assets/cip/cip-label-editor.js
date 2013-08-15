@@ -56,12 +56,12 @@
 	//the add controller, controlling the add modal 
 	labelsApp.controller('LabelAddController', ['$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages){
 	  function getOwnerText(ownerType, ownerName) {
-	    var prefix = 'Assign label to component ' + componentLabelEditorGAV.groupId + ':' + componentLabelEditorGAV.artifactId + ':' + componentLabelEditorGAV.version + ' for ';
+	    var prefix = 'Assign label to component <i>' + componentLabelEditorGAV.groupId + ':' + componentLabelEditorGAV.artifactId + ':' + componentLabelEditorGAV.version + '</i> for ';
 	    var suffix = '';
 	    if (ownerType === 'application') {
-	      return prefix + ownerType + ' ' + ownerName;
+	      return prefix + ownerType + ' <b>' + ownerName + '</b>';
 	    } else {
-	      return prefix + 'all of organization ' + ownerName;
+	      return prefix + 'all of organization <b>' + ownerName + '</b>';
 	    }
 	  }
 	  //decline to add, just dump the modal and move on

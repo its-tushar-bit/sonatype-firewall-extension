@@ -1,7 +1,5 @@
 /*global window*/
-var CLM = {
-    path : '../brain/'
-}, InsightDatatable = {
+var InsightDatatable = {
     getActiveTable : function() {
         return {
             dataView : {
@@ -18,9 +16,11 @@ describe('CIP Policy Waiver tests', function() {
 
     beforeEach(module('PolicyViolations'));
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend,$location) {
         $http = $httpBackend;
         scope = $rootScope.$new();
+        //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
+        $location.url('/sonatype-clm-report/');
         $http.whenGET(SpecUtil.toRegExp('policyalerts.json')).respond({
             aaData : [ {
                 trigger : {

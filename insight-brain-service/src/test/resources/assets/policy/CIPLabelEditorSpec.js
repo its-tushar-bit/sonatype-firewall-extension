@@ -1,6 +1,4 @@
 /*global window*/
-var CLM = { path : '../brain/' };
-
 describe('ComponentLabelEditor tests', function() {
 	var scope, $http;
 

@@ -1,3 +1,7 @@
+window.skipCrumbTest = true;
+window.CLM = {
+  path: '../brain/'
+}
 var SpecUtil = {
 	getTemplate : function (url) {
 		url = url.split('/');

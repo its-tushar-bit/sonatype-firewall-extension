@@ -91,8 +91,10 @@
 	}
 
 	angular.module('Hudson', ['CommonServices']).service('hudson', ['$http', 'BaseUrl', '$location', function ($http, baseUrl, $location) {
-		if (tested === null) {
+		if (tested === null && window.skipCrumbTest === undefined) {
 			startTest($http, baseUrl);
+		} else if (window.skipCrumbTest) {
+		  tested = true;
 		}
 		return {
 			post: function () {

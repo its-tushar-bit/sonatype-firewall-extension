@@ -16,10 +16,6 @@ var CLM = {
 describe('CIP Policy Waiver tests', function() {
     var scope, $http;
 
-    angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
-        return $http;
-    } ]);
-
     beforeEach(module('PolicyViolations'));
     // setup our http backend to return what we want
     beforeEach(inject(function($rootScope, $controller, $httpBackend) {

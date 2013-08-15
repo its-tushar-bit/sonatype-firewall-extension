@@ -3,10 +3,6 @@ var clmTimestamp = '';
 describe('LicenseThreatGroup', function() {
 	var scope, mockGroup;
 
-	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
-		return $http;
-	}]);
-
 	beforeEach(module('LicenseThreatGroup', 'CLMLocation'));
 	beforeEach(module(function($provide) {
 		$provide.value('ApplicationId', {

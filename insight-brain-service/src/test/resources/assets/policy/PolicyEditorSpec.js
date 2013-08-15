@@ -40,12 +40,7 @@ describe('PolicyEditor.js', function() {
 		return policy;
 	}
 
-	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-				return $http;
-			}]
-		);
-	}));
+	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation'));
 
 	beforeEach(inject(function ($rootScope) {
 		testScope = $rootScope.$new();

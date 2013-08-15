@@ -3,10 +3,6 @@ var clmBuildTimestamp = '';
 describe('PolicyController tests', function() {
     var scope;
 
-	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
-		return $http;
-	}]);
-
     beforeEach(module('Policy'));
 
 	beforeEach(module(function($provide) {

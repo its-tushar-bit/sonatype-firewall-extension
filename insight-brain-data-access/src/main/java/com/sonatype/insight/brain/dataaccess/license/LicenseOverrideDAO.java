@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 
@@ -29,10 +31,20 @@ public class LicenseOverrideDAO
     return get(sQuery, ownerId, groupId, artifactId, version);
   }
 
-  public List<LicenseOverride> getByOwnerId(String ownerId) {
+  public List<LicenseOverride> getByOwnerId(EntityManager em, String ownerId) {
     String sQuery = "SELECT entity FROM LicenseOverride entity" + //
         " WHERE entity.ownerId=?1" + //
         " ORDER BY entity.groupId, entity.artifactId, entity.version";
-    return getList(sQuery, ownerId);
+    return getList(em, sQuery, ownerId);
+  }
+
+  public List<LicenseOverride> getByOwnerId(String ownerId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByOwnerId(em, ownerId);
+    }
+    finally {
+      close(em);
+    }
   }
 }

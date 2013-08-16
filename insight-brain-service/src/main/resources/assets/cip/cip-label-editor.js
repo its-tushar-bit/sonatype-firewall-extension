@@ -90,6 +90,7 @@
       
       $scope.labelOwners = [];
       
+      //purposefully not wrapping the changes in $apply so that i can check if its already running first
       $http.get(CLM.path + 'rest/label/' + label.ownerType + '/' + label.ownerId + '/applicable/context/' + label.id).success(function(data){
         $scope.labelLoading = false;
         
@@ -111,7 +112,6 @@
         $scope.labelAddError = messages.getHttpErrorMessage({ status: status,  data: data });
       });
       
-      //purposefully not wrapping the above changes in $apply so that i can check if its already running first
       if(!$scope.$$phase) {
         $scope.$apply();
       }

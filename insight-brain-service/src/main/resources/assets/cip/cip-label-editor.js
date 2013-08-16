@@ -56,21 +56,10 @@
 	
 	//the add controller, controlling the add modal 
 	labelsApp.controller('LabelAddController', ['$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', '$http', function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages, $http){
-	  function getOwnerText(ownerType, ownerName) {
-	    var prefix = '';
-	    
-	    if (componentLabelEditorGAV.groupId) {
-	      prefix = 'Assign label to component <i>' + componentLabelEditorGAV.groupId + ':' + componentLabelEditorGAV.artifactId + ':' + componentLabelEditorGAV.version + '</i> for ';  
-	    } else {
-	      prefix = 'Assign label for ';
-	    }
-	    
-	    if (ownerType === 'application') {
-	      return prefix + ownerType + ' <b>' + ownerName + '</b>';
-	    } else {
-	      return prefix + 'all of organization <b>' + ownerName + '</b>';
-	    }
-	  }
+	  $scope.groupId = componentLabelEditorGAV.groupId;
+	  $scope.artifactId = componentLabelEditorGAV.artifactId;
+	  $scope.version = componentLabelEditorGAV.version;
+	  
 	  //decline to add, just dump the modal and move on
 	  $scope.decline = function() {
       $('#labelAssignScopeModal').modal('hide');
@@ -106,19 +95,9 @@
         
         function processItem(item) {
           if (item.type === 'application' && item.id === componentLabelEditorGAV.applicationId) {
-            $scope.labelOwners.splice(0,0, {
-              id: item.id,
-              name: item.name,
-              type: item.type,
-              text: getOwnerText(item.type, item.name)
-            });    
+            $scope.labelOwners.splice(0,0, item);    
           } else if (item.type === 'organization') {
-            $scope.labelOwners.push({
-              id: item.id,
-              name: item.name,
-              type: item.type,
-              text: getOwnerText(item.type, item.name)
-            });
+            $scope.labelOwners.push(item);
             
             angular.forEach(item.children, function(child, childIndex){
               processItem(child);

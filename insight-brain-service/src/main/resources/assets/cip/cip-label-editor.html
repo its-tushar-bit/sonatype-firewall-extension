@@ -30,7 +30,11 @@
 			<div ng-repeat="labelOwner in labelOwners">
 				<label class="radio">
 				  <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
-				  <span ng-bind-html-unsafe="labelOwner.text"></span>
+				  <span>Assign label </span><span ng-show="groupId">to component <em>{{groupId + ':' + artifactId + ':' + version}}</em> </span><span>for </span>
+				  <span ng-switch on="labelOwner.type">
+			          <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
+			          <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
+			      </span>
 				</label>
 			</div>
 		</div>

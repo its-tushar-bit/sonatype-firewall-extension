@@ -476,6 +476,7 @@
                 <include>assets/lib/jquery/jquery-*.min.js</include>
                 <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
                 <include>assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>assets/js/Hudson.js</include>
                 <include>cip/*.js</include>
                 <include>assets/util/AngularCommon.js</include>
               </sourceIncludes>
@@ -624,6 +625,7 @@
                 <include>**/AbstractBrainServiceTest*</include>
                 <include>**/TestInsightBrainService*</include>
                 <include>**/AbstractLicenseTest*</include>
+                <include>**/AbstractResourceTest*</include>
                 <include>**/TestLicenseFingerprinter*</include>
                 <include>**/TestProductLicenseManager*</include>
                 <include>**/productlicense/license.lic</include>

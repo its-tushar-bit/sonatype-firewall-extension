@@ -41,12 +41,11 @@ describe('PolicyEditor.js', function() {
 	}
 
 	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
-		$provide.value('Hudson', ['$http', function($http) {
-				return $http;
-			}]
-		);
-	}));
-
+	  $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
+  }));
+	
 	beforeEach(inject(function ($rootScope) {
 		testScope = $rootScope.$new();
 	}));
@@ -68,8 +67,9 @@ describe('PolicyEditor.js', function() {
 		    return getController('ConstraintEditorController');
 		}
 
-		var quickAddTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/policy-quick-add.html"),
-		    conditionTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/condition-editor.html"),
+		var conditionTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/condition-editor.html"),
+			template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
+			constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/constraint-editor.html"),
 			scope = null;
 
 		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
@@ -78,7 +78,7 @@ describe('PolicyEditor.js', function() {
 			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
-			$httpBackend.whenGET("../assets/components/policy-editor/policy-quick-add.html?").respond(quickAddTemplate);
+			$httpBackend.whenGET("policy-quick-add").respond('<div show-if="policy">' + template + '</div>');
 			$httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
 			$compile(node)(scope);
 			$httpBackend.flush();
@@ -94,7 +94,7 @@ describe('PolicyEditor.js', function() {
 			createScope.click();
 			expect(createScope.policy).not.toBeUndefined();
 
-			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toBeDefined();
+			expect(angular.element('#testInlinePolicyCreator').scope().policy).toBeDefined();
 		});
 
 		//TODO: check validation
@@ -116,7 +116,7 @@ describe('PolicyEditor.js', function() {
 			createScope.savePolicy();
 			$httpBackend.flush();
 
-			expect(angular.element('#testInlinePolicyCreator > div').scope().policy).toEqual(null);
+			expect(angular.element('#testInlinePolicyCreator').scope().policy).toEqual(null);
 		}));
 
 		it('Cancel', function () {
@@ -128,18 +128,19 @@ describe('PolicyEditor.js', function() {
 			createScope.cancel();
 		});
 		
-		it('Operator hidden when one condition', function() {
-		    var createScope = angular.element('#testInlinePolicyCreator > div').scope();
+		it('Operator hidden when one condition', inject(function ($httpBackend) {
+		    var createScope = angular.element('#testInlinePolicyCreator').scope();
             scope.createPolicy = function () {
                 return createNewPolicy();
             };
-            
-            createScope.click();
+
+            $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
+            createScope.$apply(function () {
+                createScope.click();
+            });
+            $httpBackend.flush();
             expect(createScope.policy).toBeDefined();
 
-            //digest changes that occurred on the click event
-            createScope.$digest();
-            
             //by default the operator field should be hidden, as there is only 1 condition initially
             var operator = $('#testInlinePolicyCreator').find('select[ng-model="constraint.operator"]')[0];
             expect($(operator).is(":visible")).toEqual(false);
@@ -161,7 +162,7 @@ describe('PolicyEditor.js', function() {
             
             operator = $('#testInlinePolicyCreator').find('select[ng-model="constraint.operator"]')[0];
             expect($(operator).is(":visible")).toEqual(false);
-		});
+		}));
 
 		describe('isDirty', function () {
 			it('Unchanged', function () {
@@ -293,8 +294,14 @@ describe('PolicyEditor.js', function() {
             validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'AgeInDays';
+            validateValidation(scope,'Please enter a whole number for condition #1 in constraint "name"');
+
+            scope.policy.constraints[0].conditions[0].conditionTypeId = 'SecurityVulnerabilitySeverity';
+            validateValidation(scope,'Please enter a decimal number for condition #1 in constraint "name"');
+
+            scope.policy.constraints[0].conditions[0].conditionTypeId = 'SecurityVulnerabilityStatus';
             validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
-            
+
             scope.policy.constraints[0].conditions[0].value = '300';
             scope.policy.constraints.push({});
             validateValidation(scope,'Enter a valid name for constraint #2');
@@ -309,14 +316,14 @@ describe('PolicyEditor.js', function() {
             validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
+            validateValidation(scope,'Please enter a whole number for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].value = '300';
             scope.policy.constraints[1].conditions.push({});
             validateValidation(scope,'Please select a valid condition type for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a value for condition #2 in constraint "name"');
+            validateValidation(scope,'Please enter a whole number for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].value = '300';
             scope.validate();
@@ -332,8 +339,9 @@ describe('PolicyEditor.js', function() {
 				policyScope.policy = policyStoreContents[0];
 			});
 			$httpBackend.flush();
-			parentScope.policyEditMap[policyScope.policy.id] = true;
-			parentScope.$digest();
+			parentScope.$apply(function () {
+				parentScope.policyEditMap[policyScope.policy.id] = true;
+			});
 
 			policyScope.policy.name = 'asdflkasdfkljasfdklj';
 			expect(policyScope.policy.isDirty()).toEqual(true);
@@ -651,7 +659,7 @@ describe('PolicyEditor.js', function() {
 		it('Default Values', inject(function (PolicyStore) {
 			var newPolicy = createNewPolicy();
 			expect(newPolicy.threatLevel).toEqual(5);
-			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : 'OR' }]);
+			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : 'OR', id : jasmine.any(String) }]);
 		}));
 	});
 

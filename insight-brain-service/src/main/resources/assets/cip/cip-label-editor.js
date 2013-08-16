@@ -11,7 +11,7 @@
 		'Insight' : {
 			'LabelEditor' : function (node, applicationId, hash) {
 				var timestamp = (new Date()).getTime(),
-					container = $('<div ng-include src="\'' + CLM.path + 'cip/cip-label-editor.html\'"></div>');
+					container = $('<div clm-include="\'' + CLM.path + 'cip/cip-label-editor.html\'"></div>');
 				node.empty();
 				container.appendTo(node);
 
@@ -21,7 +21,7 @@
 						hash : hash
 					};
 				});
-				angular.bootstrap(container[0], ['ComponentLabelEditor', 'labelEditor' + timestamp]);
+				angular.bootstrap(container[0], ['ComponentLabelEditor', 'labelEditor' + timestamp, 'AngularCommon']);
 			}
 		}
 	});

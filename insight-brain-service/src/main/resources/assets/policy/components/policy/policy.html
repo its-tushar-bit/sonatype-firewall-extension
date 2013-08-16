@@ -1,7 +1,16 @@
 <div id="policy" style='min-width:955px'>
-	<div class='add-section'>
-		<div inline-policy-creator></div>
+	<script type='text/ng-template' id='policy-quick-add'>
+<div>
+	<div show-if='!policy'>
+		<button type='button' class='btn add-new' ng-click='click()' focus-input-on-click='policyName'>
+			<i class='icon icon-plus'></i> New Policy
+		</button>
 	</div>
+	<div show-if='policy' class='border-box'>
+		<div clm-include='"../assets/components/policy-editor/policy-inline-editor.html"'></div>
+	</div>
+</div>
+	</script>
 	<div class="content-section">
 		<div load-error='error' reload='doLoad()'></div>
 		<div style='text-align:center;margin:30px' ng-show='!state && !error'>
@@ -22,6 +31,9 @@
                             <a ng-switch-when="true" ng-click='toggleAll(applicablePolicy)'><i class="glyphicons-halflings-sonatype collapse"></i></a>
                         </div>
                     </h4>
+				</div>
+				<div show-if='applicablePolicy.editable' class='policies' style='margin-bottom:5px'>
+					<div inline-policy-creator></div>
 				</div>
 				<div ng-switch='applicablePolicy.policies.length'>
 					<div ng-switch-when='0'><em style="margin-left:25px;">No policies defined</em></div>

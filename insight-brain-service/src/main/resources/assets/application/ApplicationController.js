@@ -172,8 +172,6 @@
       $scope.selectedApplication.organizationId = organization.id;
     };
 
-    $scope.messages = editorTools.messages;
-
     if ($state.current.data && $state.current.data.passThroughAlerts) {
       angular.forEach($state.current.data.passThroughAlerts, function(alert) {
         $scope.pushAlert(alert);
@@ -228,18 +226,24 @@
       || currentApplication.organizationId != originalApplication.organizationId || $scope.iconChanged;
     };
 
+    function isExternalDestination(destination) {
+      var application = $scope.selectedApplication;
+      return !destination || (application && destination.indexOf('application/' + application.publicId) === -1);
+    }
+
     //make sure user is aware they are about to lose changes
     $scope.$on('pageChangeStarted', function (event, destination) {
-      var application = $scope.selectedApplication;
-      if (!destination || (application && destination.indexOf('application/' + application.publicId) === -1)) {
+      if (isExternalDestination(destination)) {
         if ($scope.isFormDirty() && !$scope.isPostingIcon) {
           event.preventDefault();
         }
       }
     });
 
-    $scope.$on('pageChangeAccepted', function () {
-      $scope.cancel();
+    $scope.$on('pageChangeAccepted', function (event, destination) {
+      if (isExternalDestination(destination)) {
+        $scope.cancel();
+      }
     });
 
     $scope.canSaveEdit = function () {
@@ -251,6 +255,7 @@
         $scope.selectedApplication.$revert();
         if ($scope.iconChanged) {
           $scope.userIconSource = $scope.origUserIconSource;
+          $scope.hasRobotSource = false;
           $scope.iconChanged = false;
         }
       }
@@ -344,7 +349,7 @@
     };
   });
 
-  applicationModule.service('applicationStore', ['CLMLocations', 'CLMResource', function (clmLocations, clmResource) {
+  applicationModule.service('applicationStore', ['$rootScope', 'CLMLocations', 'CLMResource', function ($rootScope, clmLocations, clmResource) {
     var applicationStore = clmResource.getStore({
       id: 'id',
       url: clmLocations.getApplicationsUrl(),
@@ -352,6 +357,9 @@
       params: {
         timestamp: new Date().getTime()
       }
+    });
+    $rootScope.$on('organizations.delete', function(event, organizationId) {
+      applicationStore.refresh();
     });
     return applicationStore;
   }]);

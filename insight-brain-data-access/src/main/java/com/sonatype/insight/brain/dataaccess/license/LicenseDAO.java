@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 
@@ -26,6 +27,8 @@ public class LicenseDAO
   private static volatile List<License> licenses;
 
   private static volatile Map<String, License> licensesById = null;
+
+  private static volatile Map<String, License> licensesByName = null;
 
   @Override
   public License getById(EntityManager em, String id) {
@@ -77,8 +80,14 @@ public class LicenseDAO
         _licensesById.put(license.getId(), license);
       }
 
+      Map<String, License> _licensesByName = new TreeMap<String, License>(String.CASE_INSENSITIVE_ORDER);
+      for (License license : _licenses) {
+        _licensesByName.put(license.getShortDisplayName(), license);
+      }
+
       licenses = Collections.unmodifiableList(_licenses);
       licensesById = Collections.unmodifiableMap(_licensesById);
+      licensesByName = _licensesByName;
 
       log.debug("Loaded all licenses in {} ms.", System.currentTimeMillis() - start);
     }
@@ -89,5 +98,32 @@ public class LicenseDAO
       load();
     }
     return licenses;
+  }
+
+  /**
+   * @since 1.6
+   */
+  public License getByName(String name) {
+    if (licensesByName == null) {
+      load();
+    }
+    License license = licensesByName.get(name);
+    if (license == null) {
+      log.info("Cannot find a license with name '{}'.  Refreshing license data.", name);
+      LicenseDataUpdater.update();
+      license = licensesByName.get(name);
+    }
+    return license;
+  }
+
+  /**
+   * @since 1.6
+   */
+  public License getByNameNotNull(String name) {
+    License license = getByName(name);
+    if (license == null) {
+      throw new NotFoundException("A license with name '" + name + "' does not exist.");
+    }
+    return license;
   }
 }

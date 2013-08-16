@@ -10,12 +10,14 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -31,7 +33,17 @@ public class OrganizationDAO
   }
 
   public Organization getByIdNotNull(String id) {
-    Organization organization = getById(id);
+    EntityManager em = createEntityManager();
+    try {
+      return getByIdNotNull(em, id);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public Organization getByIdNotNull(EntityManager em, String id) {
+    Organization organization = getById(em, id);
     if (organization == null) {
       throw new NotFoundException("Cannot find organization with id " + id + ".");
     }
@@ -133,6 +145,13 @@ public class OrganizationDAO
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(em, organization.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
       policyWaiverDAO.delete(em, policyWaiver);
+    }
+
+    // Cascade to license overrides
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(em, organization.getId());
+    for (LicenseOverride licenseOverride : licenseOverrides) {
+      licenseOverrideDAO.delete(em, licenseOverride);
     }
 
     super.delete(em, organization);

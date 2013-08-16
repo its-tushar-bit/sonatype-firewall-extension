@@ -1,16 +1,18 @@
 var clmTimestamp = '';
 
 describe('ApplicationController', function () {
-  var scope, httpBackend, rootScope, state, mockApplication;
+  var scope, httpBackend, rootScope, state, mockApplication, _provide;
 
-  beforeEach(module('ApplicationModule'));
-  beforeEach(module(function ($provide) {
+  beforeEach(module('ApplicationModule', function($provide) {
     $provide.value('ApplicationId', {
       encoded: function () {
         return 'bom1-12345678';
       }
     }
     );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
 
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
@@ -85,8 +87,13 @@ describe('ApplicationController', function () {
 
 describe('ApplicationEditorController', function () {
   var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
-
-  beforeEach(module('ApplicationModule', 'OrganizationModule'));
+  
+  beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
+  }));
+  
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;
@@ -139,6 +146,11 @@ describe('ApplicationEditorController', function () {
     expect(scope.robotHash).not.toBeUndefined();
     expect(scope.robotHash).not.toEqual('');
     expect(scope.hasRobotSource).toBeTruthy();
+
+    // After first robohash is generated using the name, a random should be created next
+    var robotHash = scope.robotHash;
+    scope.generateIcon();
+    expect(scope.robotHash).not.toEqual(robotHash);
   });
 
   it('gets org name from id', function () {
@@ -195,6 +207,9 @@ describe('ApplicationEditorController', function () {
     scope.selectedApplication.name = "newName";
     scope.generateIcon();
 
+    expect(scope.hasRobotSource).toBeTruthy();
+    expect(scope.iconChanged).toBeTruthy();
+
     $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
@@ -203,6 +218,8 @@ describe('ApplicationEditorController', function () {
     expect(revertSpy).toHaveBeenCalled();
 
     expect(angular.equals(scope.selectedApplication, originalMockApplication)).toBeTruthy();
+    expect(scope.hasRobotSource).not.toBeTruthy();
+    expect(scope.iconChanged).not.toBeTruthy();
   }));
 
   it('saves an application', inject(function ($httpBackend, CLMAppLocations) {
@@ -225,11 +242,25 @@ describe('ApplicationEditorController', function () {
     window.FormData = hasFormData;
   }));
 
-  it('deletes an application', inject(function (CLMAppLocations) {
+  it('Can delete an application', inject(function (CLMAppLocations) {
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
+    httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+    httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
 
     scope.confirmDeleteApplication(mockApplication);
+
+    expect(scope.deletedEnabled).toBeTruthy();
+    expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
     scope.deleteApplication();
+
+    httpBackend.flush();
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+    expect(scope.applications.length).toEqual(0);
+    expect(scope.deletedEnabled).toBeFalsy();
   }));
 
   it('shows report summary.', function() {
@@ -265,4 +296,64 @@ describe('ApplicationEditorController', function () {
     expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
     expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
   }));
+
+  it('Can respond to errors when trying to delete an application', inject(function (CLMAppLocations) {
+    var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
+
+    httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+
+    scope.confirmDeleteApplication(mockApplication);
+
+    expect(scope.deletedEnabled).toBeTruthy();
+    expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
+    scope.deleteApplication();
+
+    httpBackend.flush();
+
+    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
+    expect(scope.applications.length).toEqual(1);
+    expect(scope.deletedEnabled).toBeFalsy();
+  }));
+
+  it('Refreshes the list of applications when informed that an organization has been deleted', inject(function (CLMAppLocations, applicationStore) {
+    var applicationStoreSpy = spyOn(applicationStore, 'refresh');
+    rootScope.$broadcast('organizations.delete');
+    expect(applicationStoreSpy).toHaveBeenCalled()
+  }));
+
+
+  it('displays confirmation dialog', function() {
+    scope.selectedApplication.name = 'new_name';
+    var e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).toBeTruthy();
+
+    scope.selectedApplication.name = originalMockApplication.name;
+    e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).not.toBeTruthy();
+
+    scope.generateIcon();
+    var e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).toBeTruthy();
+
+    scope.cancel();
+    e = scope.$broadcast('pageChangeStarted');
+    expect(e.defaultPrevented).not.toBeTruthy();
+
+    scope.selectedApplication.name = 'new_name';
+    e = scope.$broadcast('pageChangeStarted', 'application/' + scope.selectedApplication.publicId);
+    expect(e.defaultPrevented).not.toBeTruthy();
+  });
+
+  it('does not cancel edits when changing between tabs', function() {
+    scope.selectedApplication.name = 'new_name';
+    e = scope.$broadcast('pageChangeAccepted', 'application/' + scope.selectedApplication.publicId);
+    expect(scope.selectedApplication.name).toEqual('new_name');
+
+    e = scope.$broadcast('pageChangeAccepted', 'organization/');
+    expect(scope.selectedApplication.name).toEqual(originalMockApplication.name);
+  });
 });

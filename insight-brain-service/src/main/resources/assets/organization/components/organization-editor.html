@@ -1,5 +1,8 @@
 <div class='fade' ng-class='{ in : selectedOrganization != null}'>
 	<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
+  <div style="float:right; margin:10px;" class='btn-group'>
+    <a class="btn btn-mini" title="Remove Organization" ng-click="confirmDeleteOrganization(selectedOrganization)"><i class='glyphicons-sonatype bin'></i></a>
+  </div>
        	<div ng-show='isUploadingIcon'>
             <div class="alert alert-info">
                 <strong>Uploading Icon...</strong>
@@ -32,7 +35,7 @@
                 <h1><span id='organizationName' name='organizationName' ng-model='selectedOrganization.name' xeditable href='javascript:;' data-emptytext='Enter Organization Name'
                           data-placeholder='Enter Organization Name' data-type='text'
                           ng-class="{ error: organizationEditor.organizationName.$error.duplicate || organizationEditor.organizationName.$error.alphaNumeric || organizationEditor.organizationName.$error.spaces}"
-                          alpha-numeric has-whitespace='suggestedName'
+                          required alpha-numeric has-whitespace='suggestedName'
                           is-Duplicate is-Duplicate-Array='organizations' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'></span></h1>
                 <div class='errors'>
                     <span ng-show="organizationEditor.organizationName.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>
@@ -60,6 +63,20 @@
             </li>
           </ul>
             <div ui-view></div>
+        </div>
+    </div>
+    <div id='deleteOrganizationModal' data-backdrop='static' class='modal hide'>
+        <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal'>&times;</button>
+            <h3>Delete Organization</h3>
+        </div>
+        <div class='modal-body'>
+            <p>Are you sure you want to delete the organization <strong>{{selectedOrganization.name}}</strong>? This will delete all
+                policies, license groups and applications associated with this organization.</p>
+        </div>
+        <div class='modal-footer'>
+            <button class='btn' data-dismiss='modal'>Cancel</button>
+            <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='deleteOrganization();'>Delete</button>
         </div>
     </div>
 </div>

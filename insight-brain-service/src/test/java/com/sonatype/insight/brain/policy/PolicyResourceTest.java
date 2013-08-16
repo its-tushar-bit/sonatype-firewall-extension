@@ -12,16 +12,16 @@ import java.util.Locale;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.label.ComponentLabelResource;
-import com.sonatype.insight.brain.label.ComponentLabelState;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -43,7 +43,6 @@ import com.sonatype.insight.test.RestAccess;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
@@ -701,14 +700,8 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
 
     // label a (fake)component with our app label
-    ComponentLabelState state = new ComponentLabelState();
-    state.setLabels(Sets.newHashSet(label.getLabel()));
-    state.setColor(label.getColor());
     String hash = "componenthash";
-    response = RestAccess.put(
-        getRestBaseUrl() + expandRestUrl(ComponentLabelResource.SERVICE_PATH, APP, application.getPublicId(), hash),
-        JsonHelpers.asJson(state));
-    assertResponseStatus(200, response);
+    labelComponent(application.getId(), hash, label.getId());
 
     // export policy from app
     response = RestAccess.get(getServiceURL(APP, application.getPublicId() + "/export"));
@@ -748,12 +741,10 @@ public class PolicyResourceTest
     assertThat(licenseThreatGroups.get(0).getName(), is(licenseThreatGroup.getName()));
 
     // verify ComponentLabels
-    response = RestAccess.get(getRestBaseUrl()
-        + expandRestUrl(ComponentLabelResource.SERVICE_PATH, ORG, org.getId(), hash));
-    assertResponseStatus(200, response);
-    Label[] orgComponentLabels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
-    assertThat(orgComponentLabels.length, is(1));
-    assertThat(orgComponentLabels[0].getLabel(), is(label.getLabel()));
+    List<ComponentLabel> labels = new ComponentLabelDAO().getByOwnerIdAndHash(org.getId(), hash);
+    assertThat(labels.size(), is(1));
+    assertThat(labels.get(0).getLabelId(), is(label.getId()));
+    assertThat(labels.get(0).getOwnerId(), is(org.getId()));
   }
 
   /**
@@ -781,6 +772,10 @@ public class PolicyResourceTest
     Label label = new Label(ownerId, name, color);
     labelDAO.insert(label);
     return label;
+  }
+
+  private void labelComponent(final String ownerId, final String hash, final String labelId) {
+    new ComponentLabelDAO().insert(new ComponentLabel(ownerId, labelId, hash));
   }
 
   private PolicyExportResult createPolicyExportResult() {

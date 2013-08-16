@@ -105,7 +105,7 @@
     $scope.doLoad();
   } ]);
 
-  organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', function ($scope, $state, $location, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages) {
+  organizationModule.controller('OrganizationEditorController', [ '$scope', '$state', '$location', '$http', '$rootScope', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools', 'CLMAppLocations', 'Messages', 'CLMAppLocations', function ($scope, $state, $location, $http, $rootScope, regexFactory, CLMLocations, hudson, editorTools, clmAppLocations, messages, CLMAppLocations) {
     var me = this;
     angular.extend(me, editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'), angular.element('#iconUploadForm')));
 
@@ -143,17 +143,6 @@
       });
     }
 
-    $scope.validateName = function (value) {
-      $scope.organizationEditor.$invalid = false;
-
-      var result = editorTools.validateName(value, $scope.selectedOrganization, $scope.organizations);
-
-      if (result !== true) {
-        $scope.organizationEditor.$invalid = true;
-        return result;
-      }
-    };
-
     $scope.closeAlert = function (index) {
       $scope.alerts.splice(index, 1);
     };
@@ -176,10 +165,31 @@
       return !$scope.organizationEditor.$invalid && !$scope.submitActive;
     };
 
+    function isExternalDestination(destination) {
+      var organization = $scope.selectedOrganization;
+      return !destination || (organization && destination.indexOf('organization/' + organization.id) === -1);
+    }
+
+    //make sure user is aware they are about to lose changes
+    $scope.$on('pageChangeStarted', function (event, destination) {
+      if (isExternalDestination(destination)) {
+        if ($scope.isFormDirty() && !$scope.isPostingIcon) {
+          event.preventDefault();
+        }
+      }
+    });
+
+    $scope.$on('pageChangeAccepted', function (event, destination) {
+      if (isExternalDestination(destination)) {
+        $scope.cancelClick();
+      }
+    });
+
     $scope.cancelClick = function () {
       $scope.selectedOrganization.$revert();
       if ($scope.iconChanged) {
         $scope.userIconSource = $scope.origUserIconSource;
+        $scope.hasRobotSource = false;
         $scope.iconChanged = false;
       }
     };
@@ -245,9 +255,26 @@
 
       return false;
     };
+
+    $scope.confirmDeleteOrganization = function (Organization) {
+      $scope.selectedOrganization = Organization;
+      $scope.deletedEnabled = true;
+      $('#deleteOrganizationModal').modal('show');
+    };
+
+    $scope.deleteOrganization = function() {
+      $scope.deletedEnabled = false;
+      $('#deleteOrganizationModal').modal('hide');
+      $scope.selectedOrganization.$delete().then(function(){
+        $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
+        $state.transitionTo('management.organization');
+      },function(){
+        $scope.$broadcast('showServerError', arguments)
+      });
+    };
   } ]);
 
-  organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', '$q', function (CLMLocations, clmResource, $q) {
+  organizationModule.service('OrganizationStore', [ 'CLMLocations', 'CLMResource', function (CLMLocations, clmResource) {
     return clmResource.getStore({
       id: 'id',
       url: CLMLocations.getOrganizationsUrl(),

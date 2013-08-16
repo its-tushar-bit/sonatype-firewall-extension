@@ -14,6 +14,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -21,6 +22,8 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
@@ -308,6 +311,24 @@ public class OrganizationDAOTest
     dao.delete(organization);
 
     Assert.assertTrue(labelDAO.getByOwnerId(organizationId).isEmpty());
+  }
+
+  @Test
+  public void testCascadeDeleteToLicenseOverrides() {
+    Organization organization = new Organization("testCascadeDeleteToLicenseOverrides");
+    dao.insert(organization);
+    String organizationId = organization.getId();
+
+    LicenseOverride licenseOverride = new LicenseOverride(organizationId, "groupId", "artifactId", "version",
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    licenseOverrideDAO.insert(licenseOverride);
+    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(organizationId);
+    assertEquals(1, licenseOverrides.size());
+
+    dao.delete(organization);
+    licenseOverrides = licenseOverrideDAO.getByOwnerId(organizationId);
+    assertEquals(0, licenseOverrides.size());
   }
 
   @Test

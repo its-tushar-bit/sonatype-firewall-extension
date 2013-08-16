@@ -90,17 +90,15 @@ public class LicenseThreatGroupConditionTypeTest
 
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId());
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
-    Assert.assertEquals("Found no License Threat Groups",
-        new LicenseThreatGroupConditionType().explainMatch(condition, component1));
+
+    // Component has licenses in both the 'Liberal' and 'Copyleft' license threat groups,
+    // but only 'Copyleft' should be reported as that's what the condition is matching on.
 
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
-    Assert.assertEquals("Found 'Liberal' License Threat Group",
-        new LicenseThreatGroupConditionType().explainMatch(condition, component1));
-
     component1.addDeclaredLicenseId("GPL-2.0");
     componentDAO.loadLicenseThreatGroups(applicationId, component1);
-    Assert.assertEquals("Found 'Liberal' and 'Copyleft' License Threat Groups",
+
+    Assert.assertEquals("Found a License in the 'Copyleft' License Threat Group",
         new LicenseThreatGroupConditionType().explainMatch(condition, component1));
   }
 
@@ -292,13 +290,13 @@ public class LicenseThreatGroupConditionTypeTest
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
-    component1.addOverriddenLicenseId("GPL-2.0");
+    component1.setLicenseOverrideId("GPL-2.0");
     componentDAO.loadLicenseThreatGroups(applicationId, component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
-    component2.addOverriddenLicenseId("Apache-2.0");
+    component2.setLicenseOverrideId("Apache-2.0");
     componentDAO.loadLicenseThreatGroups(applicationId, component2);
     components.add(component2);
 
@@ -333,13 +331,13 @@ public class LicenseThreatGroupConditionTypeTest
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
-    component1.addOverriddenLicenseId("GPL-2.0");
+    component1.setLicenseOverrideId("GPL-2.0");
     componentDAO.loadLicenseThreatGroups(applicationId, component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
-    component2.addOverriddenLicenseId("Apache-2.0");
+    component2.setLicenseOverrideId("Apache-2.0");
     componentDAO.loadLicenseThreatGroups(applicationId, component2);
     components.add(component2);
 

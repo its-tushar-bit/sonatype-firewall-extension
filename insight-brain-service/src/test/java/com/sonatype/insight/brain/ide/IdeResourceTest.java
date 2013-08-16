@@ -17,19 +17,26 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
-import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -45,6 +52,9 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class IdeResourceTest
     extends AbstractResourceTest
@@ -162,7 +172,10 @@ public class IdeResourceTest
     Assert.assertEquals(0, policyAlerts.size());
 
     // Override the license and evaluate the policy again
-    setLicenseAuditLog(application.getId(), "/IdeResourceTest/LicenseOverride_abababababababababab.json");
+
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
+    new LicenseOverrideDAO().insert(licenseOverride);
     response = RestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
@@ -183,7 +196,9 @@ public class IdeResourceTest
     Application application = createApplication(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(LicenseStatusConditionType.ID, "is", LicenseStatus.OVERRIDDEN.getId());
+
+    Condition condition1 = new Condition(LicenseStatusConditionType.ID, "is",
+        LicenseOverrideStatus.OVERRIDDEN.toString());
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
@@ -210,7 +225,10 @@ public class IdeResourceTest
     Assert.assertEquals(0, policyAlerts.size());
 
     // Override the license and evaluate the policy again
-    setLicenseAuditLog(application.getId(), "/IdeResourceTest/LicenseOverride_abababababababababab.json");
+
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
+    new LicenseOverrideDAO().insert(licenseOverride);
     response = RestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
@@ -547,6 +565,58 @@ public class IdeResourceTest
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
+  }
+
+  @Test
+  public void testDoScan_Label_DefinedAtAppLevel() throws Exception {
+    testDoScan_Label(false, false);
+  }
+
+  @Test
+  public void testDoScan_Label_DefinedAtOrgLevel_AppliedAtOrgLevel() throws Exception {
+    testDoScan_Label(true, true);
+  }
+
+  @Test
+  public void testDoScan_Label_DefinedAtOrgLevel_AppliedAtAppLevel() throws Exception {
+    testDoScan_Label(true, false);
+  }
+
+  private void testDoScan_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
+    String hash = "abababababababababab";
+    String applicationPublicId = "IdeResourceTest_AppId";
+    Application app = createApplication(applicationPublicId);
+    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
+    new LabelDAO().insert(label);
+    new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
+        .getId(), hash));
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    Action failAction = new Action(FailActionType.ID);
+    policy1.addAction(BuildStageType.ID, failAction);
+    addPolicy(applicationPublicId, policy1);
+
+    String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
+    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
+    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
+    Response response = RestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
+        IdeMatchedComponent.class);
+    Assert.assertThat(ideMatchedComponent.getGroupId(), is("g1"));
+    Assert.assertThat(ideMatchedComponent.getArtifactId(), is("a1"));
+    Assert.assertThat(ideMatchedComponent.getVersion(), is("v1"));
+    Assert.assertThat(ideMatchedComponent.getHash(), is(hash));
+    Assert.assertThat(ideMatchedComponent.getMatchState(), is("exact"));
+    Assert.assertThat(ideMatchedComponent.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+    Assert.assertThat(ideMatchedComponent.isSimpleMatch(), is(true));
+    List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+    Assert.assertThat(policyAlerts, is(notNullValue()));
+    Assert.assertThat(policyAlerts.size(), is(1));
   }
 
   @Test

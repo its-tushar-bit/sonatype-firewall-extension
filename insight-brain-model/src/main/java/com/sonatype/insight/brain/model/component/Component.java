@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,11 +33,11 @@ public class Component
 
   private Set<String> observedLicenseIds = new LinkedHashSet<String>();
 
-  private Set<String> overriddenLicenseIds = new LinkedHashSet<String>();
+  private String licenseOverrideId;
 
   private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<String, LicenseThreatGroup>();
 
-  private LicenseStatus licenseStatus;
+  private LicenseOverrideStatus licenseOverrideStatus;
 
   private List<SecurityVulnerability> securityVulnerabilities;
 
@@ -161,27 +161,9 @@ public class Component
     observedLicenseIds.add(licenseId);
   }
 
-  public Set<String> getOverriddenLicenseIds() {
-    return overriddenLicenseIds;
-  }
-
-  public void setOverriddenLicenseIds(Set<String> overriddenLicenseIds) {
-    this.overriddenLicenseIds.clear();
-
-    if (overriddenLicenseIds == null) {
-      return;
-    }
-
-    this.overriddenLicenseIds.addAll(overriddenLicenseIds);
-  }
-
-  public void addOverriddenLicenseId(String licenseId) {
-    overriddenLicenseIds.add(licenseId);
-  }
-
   public boolean hasLicenseId(String licenseId) {
-    if (!overriddenLicenseIds.isEmpty()) {
-      return overriddenLicenseIds.contains(licenseId);
+    if (licenseOverrideId != null) {
+      return licenseOverrideId.equals(licenseId);
     }
     if (declaredLicenseIds.contains(licenseId)) {
       return true;
@@ -190,13 +172,14 @@ public class Component
   }
 
   public Set<String> getLicenseIds() {
-    if (!overriddenLicenseIds.isEmpty()) {
-      return overriddenLicenseIds;
-    }
-
     final Set<String> licenseIds = new HashSet<String>();
-    licenseIds.addAll(declaredLicenseIds);
-    licenseIds.addAll(observedLicenseIds);
+    if (licenseOverrideId != null) {
+      licenseIds.add(licenseOverrideId);
+    }
+    else {
+      licenseIds.addAll(declaredLicenseIds);
+      licenseIds.addAll(observedLicenseIds);
+    }
     return licenseIds;
   }
 
@@ -208,15 +191,15 @@ public class Component
     this.relativePopularity = relativePopularity;
   }
 
-  public LicenseStatus getLicenseStatus() {
-    if (licenseStatus == null) {
-      licenseStatus = LicenseStatus.OPEN;
+  public LicenseOverrideStatus getLicenseOverrideStatus() {
+    if (licenseOverrideStatus == null) {
+      licenseOverrideStatus = LicenseOverrideStatus.OPEN;
     }
-    return licenseStatus;
+    return licenseOverrideStatus;
   }
 
-  public void setLicenseStatus(LicenseStatus licenseStatus) {
-    this.licenseStatus = licenseStatus;
+  public void setLicenseOverrideStatus(LicenseOverrideStatus licenseOverrideStatus) {
+    this.licenseOverrideStatus = licenseOverrideStatus;
   }
 
   public MatchState getMatchState() {
@@ -304,5 +287,13 @@ public class Component
 
   public void setIdentificationSource(IdentificationSource identificationSource) {
     this.identificationSource = identificationSource;
+  }
+
+  public void setLicenseOverrideId(String licenseOverrideId) {
+    this.licenseOverrideId = licenseOverrideId;
+  }
+
+  public String getLicenseOverrideId() {
+    return licenseOverrideId;
   }
 }

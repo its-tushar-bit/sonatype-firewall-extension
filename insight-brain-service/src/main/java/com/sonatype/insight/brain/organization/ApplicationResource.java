@@ -17,6 +17,7 @@ import java.util.concurrent.locks.Lock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
@@ -272,17 +274,29 @@ public class ApplicationResource
   @DELETE
   @Path(GET_APPLICATION_PATH)
   public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    EntityManager em = applicationDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      deleteApplication(em, applicationPublicId);
+      em.getTransaction().commit();
+    }
+    finally {
+      AbstractDAO.close(em);
+    }
+  }
+
+  public void deleteApplication(final EntityManager em, final String applicationPublicId) throws IOException {
+    Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
 
     PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-    policyDAO.deleteByOwnerId(application.getId());
+    policyDAO.deleteByOwnerId(application.getId()); // as of 1.6, not stored in database
 
     FileUtils.deleteDirectory(work.getScanDir(application.getId()));
     FileUtils.deleteDirectory(work.getAuditDir(application.getId()));
     FileUtils.deleteDirectory(work.getReportDir(application.getId()));
 
     // delete application last, this way the operation can be retried later if anything goes wrong
-    applicationDAO.deleteWithIcon(application, work.getApplicationIconDir());
+    applicationDAO.deleteWithIcon(em, application, work.getApplicationIconDir());
   }
 
   private ApplicationManagementSummary getApplicationManagementSummary(final Application application)

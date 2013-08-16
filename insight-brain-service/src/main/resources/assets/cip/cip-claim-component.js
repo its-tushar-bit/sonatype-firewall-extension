@@ -45,7 +45,7 @@
 
                     setTimeout(applyFocus, 100);
                 }
-                var timestamp = (new Date()).getTime(), container = $('<div ng-include src="\'' + CLM.path + 'cip/cip-claim-component.html\'"></div>');
+                var timestamp = (new Date()).getTime(), container = $('<div clm-include="\'' + CLM.path + 'cip/cip-claim-component.html\'"></div>');
                 node.empty();
                 container.appendTo(node);
 
@@ -55,7 +55,7 @@
                         createTime : component.lastModifiedEntryTime ? component.lastModifiedEntryTime : component.lastModifiedTime
                     };
                 });
-                angular.bootstrap(container[0], [ 'ClaimComponent', 'claimComponent' + timestamp ]);
+                angular.bootstrap(container[0], [ 'ClaimComponent', 'claimComponent' + timestamp, 'AngularCommon' ]);
 
                 applyFocus();
             }

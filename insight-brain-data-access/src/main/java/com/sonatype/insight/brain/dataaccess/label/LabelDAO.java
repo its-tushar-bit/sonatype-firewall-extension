@@ -66,31 +66,18 @@ public class LabelDAO
   }
 
   /**
-   * @param ownerId String application or organization id
-   * @param hash component hash
-   * @param inherit if labels inherited from organization hierarchy should be included or not
+   * Gets the labels applied to a component in a given context (org/app), inheritance is not considered. Note that the
+   * supplied ownerId denotes the owner/scope of the component label, not the owner of the label definition (an
+   * org-level label can be used for app-level component labels).
+   * 
+   * @since 1.6
    */
-  public List<Label> getByOwnerIdAndHash(String ownerId, String hash, boolean inherit) {
-    EntityManager em = createEntityManager();
-    try {
-      final String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
-          " WHERE label.id=componentLabel.labelId AND label.ownerId=componentLabel.ownerId" + //
-          " AND label.ownerId=?1 AND componentLabel.hash=?2" + //
-          " ORDER BY label.labelLowercase";
-      List<Label> labels = new ArrayList<Label>();
-      if (inherit) {
-        final ApplicationDAO applicationDAO = new ApplicationDAO();
-        final Application application = applicationDAO.getById(em, ownerId);
-        if (application != null && application.getOrganizationId() != null) {
-          labels.addAll(getList(em, sQuery, application.getOrganizationId(), hash));
-        }
-      }
-      labels.addAll(getList(em, sQuery, ownerId, hash));
-      return labels;
-    }
-    finally {
-      close(em);
-    }
+  public List<Label> getByOwnerIdAndHash(String ownerId, String hash) {
+    final String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
+        " WHERE label.id=componentLabel.labelId" + //
+        " AND componentLabel.ownerId=?1 AND componentLabel.hash=?2" + //
+        " ORDER BY label.labelLowercase";
+    return getList(sQuery, ownerId, hash);
   }
 
   public Label getByOwnerIdAndLowercaseLabel(String ownerId, String labelLowercase, boolean inherit) {

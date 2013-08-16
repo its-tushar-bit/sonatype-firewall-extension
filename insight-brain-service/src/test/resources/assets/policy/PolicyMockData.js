@@ -5,19 +5,28 @@ PolicyMockData = {
           "id" : "Label",
           "supportedOperators" : ["is", "is not"],
           "valueTypeId" : "LabelValueType",
-          "valueHint" : null
+          "valueHint" : null,
+          "valueType" : {
+            "dataType": "String"
+          }
         }, {
           "name" : "License",
           "id" : "License",
           "supportedOperators" : ["is", "is not"],
           "valueTypeId" : "LicenseValueType",
-          "valueHint" : null
+          "valueHint" : null,
+          "valueType" : {
+            "dataType": "String"
+          }
         }, {
           "name" : "License Status",
           "id" : "LicenseStatus",
           "supportedOperators" : ["is", "is not"],
           "valueTypeId" : "LicenseStatusValueType",
-          "valueHint" : null
+          "valueHint" : null,
+          "valueType" : {
+            "dataType": "String"
+          }
         }, {
           "name" : "Security Vulnerability",
           "id" : "SecurityVulnerability",
@@ -29,37 +38,55 @@ PolicyMockData = {
           "id" : "SecurityVulnerabilitySeverity",
           "supportedOperators" : ["=", "<", "<=", ">", ">="],
           "valueTypeId" : "FloatValueType",
-          "valueHint" : "Enter value 1 to 10"
+          "valueHint" : "Enter value 1 to 10",
+          "valueType" : {
+            "dataType": "Float"
+          }
         }, {
           "name" : "Security Vulnerability Status",
           "id" : "SecurityVulnerabilityStatus",
           "supportedOperators" : ["is", "is not"],
           "valueTypeId" : "SecurityVulnerabilityStatusValueType",
-          "valueHint" : null
+          "valueHint" : null,
+          "valueType" : {
+            "dataType": "String"
+          }
         }, {
           "name" : "Relative Popularity (Percentage)",
           "id" : "RelativePopularity",
           "supportedOperators" : ["=", "<", "<=", ">", ">="],
           "valueTypeId" : "FloatValueType",
-          "valueHint" : "Enter percent value, 1 to 100"
+          "valueHint" : "Enter percent value, 1 to 100",
+          "valueType" : {
+            "dataType": "Integer"
+          }
         }, {
           "name" : "Age",
           "id" : "AgeInDays",
           "supportedOperators" : ["older than", "younger than"],
           "valueTypeId" : "AgeInDaysValueType",
-          "valueHint" : "Enter term"
+          "valueHint" : "Enter term",
+          "valueType" : {
+            "dataType": "Integer"
+          }
         }, {
           "name" : "Identification Source",
           "id" : "IdentificationSource",
           "supportedOperators" : ["is", "is not"],
           "valueTypeId" : "IdentificationSourceValueType",
-          "valueHint" : null
+          "valueHint" : null,
+          "valueType" : {
+            "dataType": "String"
+          }
         }, {
           "name" : "Match State",
           "id" : "MatchState",
           "supportedOperators" : ["is", "is not"],
           "valueTypeId" : "MatchStateValueType",
-          "valueHint" : null
+          "valueHint" : null,
+          "valueType" : {
+            "dataType": "String"
+          }
         }, {
           "name" : "Coordinates (GAV)",
           "id" : "Coordinates",
@@ -211,10 +238,6 @@ PolicyMockData = {
                       "conditionTypeId" : "SecurityVulnerabilitySeverity",
                       "operator" : "=",
                       "value" : "44"
-                    }, {
-                        "conditionTypeId" : "DependencyDepth",
-                        "operator" : "is direct dependency",
-                        "value" : null
                     }]
               }, {
                 "id" : "6c2755ee5ef6400e935e913fdeda4e6b",

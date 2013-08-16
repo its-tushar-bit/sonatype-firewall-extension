@@ -107,13 +107,15 @@
         $scope.error = null;
         $scope.$broadcast('reload');
       }
+      $scope.ltgEditorMap = {};
 
       $q.all(promises).then(function (results) {
         var licenses = results[0];
+        promises = [];
 
         $scope.allLicenses = licenses.sort(sortLicense);
         $scope.applicableLicenseGroups = results[1].data.licenseThreatGroupsByOwner;
-        promises = [];
+
         angular.forEach($scope.applicableLicenseGroups, function (applicableLicenseGroup, index) {
           applicableLicenseGroup.editable = index === 0;
           if (index === 0) {
@@ -122,6 +124,7 @@
             promises.push(licenseGroupStore.store(applicableLicenseGroup.ownerId, applicableLicenseGroup.ownerType).get());
           }
         });
+
         $q.all(promises).then(function (results) {
           angular.forEach(results, function (licenseGroups, index) {
             $scope.applicableLicenseGroups[index].licenseThreatGroups = licenseGroups;
@@ -149,13 +152,8 @@
     };
 
     $scope.editLicenseGroup = function (group) {
-      if (group) {
-        $scope.selectedGroup = group.$clone();
-      } else {
-        $scope.selectedGroup = licenseGroupStore.create();
-      }
-
-      angular.element('#licenseModal').modal('show');
+      $scope.ltgEditorMap[group.id] = true;
+      $scope.allExpanded[group.ownerId] = true;
     };
 
     $scope.toggleAll = function (applicableLicenseGroup) {
@@ -169,6 +167,12 @@
 
     $scope.isExpanded = function(applicableLicenseGroup) {
       return $scope.allExpanded[applicableLicenseGroup.ownerId] || false;
+    };
+    $scope.showEditor = function (licenseGroup) {
+        $('#collapse' + licenseGroup.id).collapse('show');
+        $("a[href='#collapse" + licenseGroup.id + "']").removeClass('collapsed');
+
+        $scope.ltgEditorMap[licenseGroup.id] = true;
     };
 
     $scope.confirmDeleteLicenseGroup = function (group) {
@@ -194,13 +198,6 @@
       });
     };
 
-    $scope.$on('license.cancelLicenseGroupEdit', function (event, licenseGroup) {
-      event.stopPropagation();
-      deselect();
-      delete $scope.newGroupName;
-      $('#licenseModal').modal('hide');
-    });
-
     $scope.$on('pageChangeStarted', function (event) {
       var dirty = false;
       angular.forEach($scope.licenseGroups, function (group, index) {
@@ -212,9 +209,28 @@
     });
   }]);
 
-  licenseGroupModule.controller('LicenseThreatGroupEditorController', ['$scope', '$filter', '$http', 'hudson', 'CLMAppLocations', 'licenseGroupStore', 'Messages', function ($scope, $filter, $http, hudson, CLMAppLocations, licenseGroupStore, Messages) {
+  licenseGroupModule.controller('LicenseThreatGroupEditorController',
+					['$scope', '$filter', '$http', '$q', 'hudson', 'CLMAppLocations', 'licenseGroupStore', 'licenseStore', 'Messages',
+					function ($scope, $filter, $http, $q, hudson, CLMAppLocations, licenseGroupStore, licenseStore, Messages) {
     $scope.alerts = [];
     $scope.licenseSearch = '';
+
+	function load() {
+		$scope.licenseGroups = null;
+		$scope.allLicenses = null;
+		$q.all([licenseGroupStore.get(), licenseStore.get()]).then(function (results) {
+			$scope.licenseGroups = results[0];
+			$scope.allLicenses = results[1];
+		}, function () {
+			/* Errors are handled above this point */
+		});
+		$filter('toLicense'); // Trigger loading licenses
+	}
+
+	$scope.$on('reload', function () {
+		load();
+	});
+	load();
 
     $scope.searchEnter = function () {
       var filter = $filter('filterLicenses');
@@ -254,38 +270,17 @@
         return;
       }
 
-      (function (licenseGroup) {
-        $scope.submitActive = true;
-
-        licenseGroup.$save().then(function (licenseGroup) {
-          for (var i = 0; i < $scope.licenseGroups.length; i++) {
-            var licenseGroupIter = $scope.licenseGroups[i];
-            if (licenseGroup.id === licenseGroupIter.id) {
-              $scope.licenseGroups[i] = licenseGroup;
-            }
-          }
-
-          $scope.alerts = [];
-          $scope.$emit('license.cancelLicenseGroupEdit');
-        }, function (rejection) {
-          $scope.alerts.push({
-            type: 'error',
-            msg: 'An error occurred while saving the license threat group. (' + Messages.getHttpErrorMessage(rejection) + ')'
-          });
-        });
-
+      $scope.submitActive = true;
+      $scope.selectedGroup.$save().then(function () {
+        $scope.hide();
+      }, function (rejection) {
         $scope.submitActive = false;
-      })($scope.selectedGroup);
+        $scope.alerts.push({
+          type: 'error',
+          msg: 'An error occurred while saving the license threat group. (' + Messages.getHttpErrorMessage(rejection) + ')'
+        });
+      });
     };
-
-    $scope.cancelLicenseGroupEdit = function () {
-      $scope.alerts = [];
-      $scope.selectedGroup.$revert();
-      $scope.$emit('license.cancelLicenseGroupEdit');
-    };
-    $scope.$on('$destroy', function () {
-      angular.element('.modal-backdrop').remove(); // Bootstrap modal creates elements at the document root
-    });
 
     $scope.$on('pageChangeStarted', function (event) {
       if ($scope.selectedGroup) {
@@ -367,7 +362,64 @@
     };
   });
 
-	licenseGroupModule.directive('ltgCreator', ['$q', 'licenseGroupStore', 'licenseStore', function ($q, licenseGroupStore, licenseStore) {
+	licenseGroupModule.service('cancelModal', ['$dialog', function ($dialog) {
+		function wrap(dialog, fn) {
+			return function () {
+				dialog.close();
+				fn();
+			};
+		}
+		return {
+			open : function (confirmFn, cancelFn) {
+				$dialog.dialog({
+					backdrop : true,
+					backdropClick : false,
+					backdropFade : true,
+					dialogFade : true,
+					template : '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
+								'<div class="modal-body">There are unsaved changes, continuing will discard any unsaved changes.</div>' +
+								'<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button><button class="btn btn-danger" ng-click="confirm()">Confirm</button></div>',
+					controller : ['$scope', 'dialog', function ($scope, dialog) {
+						$scope.cancel = wrap(dialog, cancelFn);
+						$scope.confirm = wrap(dialog, confirmFn);
+					}]
+				}).open();
+			}
+		};
+	}]);
+
+	licenseGroupModule.directive('ltgEditor', ['cancelModal', function (cancelModal) {
+		return {
+			restrict : 'A',
+			templateUrl : 'ltgInlineEditor',
+			scope : {
+				ltgEditor : '=',
+				hide : '&'
+			},
+			controller : 'LicenseThreatGroupEditorController',
+			link : function (scope, element, attrs) {
+				scope.$watch('ltgEditor', function (val) {
+					if (val) {
+						scope.selectedGroup = val.$clone();
+					} else {
+						scope.selectedGroup = null;
+					}
+				});
+				scope.alerts = [];
+				scope.cancelLicenseGroupEdit = function () {
+					if (scope.selectedGroup && scope.selectedGroup.isDirty()) {
+						cancelModal.open(function () {
+							scope.hide();
+						}, angular.noop);
+					} else {
+						scope.hide();
+					}
+				};
+			}
+		};
+	}]);
+
+	licenseGroupModule.directive('ltgCreator', ['licenseGroupStore', 'cancelModal', function (licenseGroupStore, cancelModal) {
 		return {
 			restrict : 'A',
 			templateUrl : 'ltgcreator',
@@ -376,25 +428,18 @@
 				scope.createNew = function () {
 					scope.selectedGroup = licenseGroupStore.create();
 				};
-				function load() {
-					scope.licenseGroups = null;
-					scope.allLicenses = null;
-					$q.all([licenseGroupStore.get(), licenseStore.get()]).then(function (results) {
-						scope.licenseGroups = results[0];
-						scope.allLicenses = results[1];
-					}, function () {
-						/* Errors are handled above this point */
-					});
-				}
-				load();
-				scope.$on('license.cancelLicenseGroupEdit', function (e) {
-					e.stopPropagation();
-					// TODO confirmation
+				scope.hide = function () {
 					scope.selectedGroup = null;
-				});
-				scope.$on('reload', function () {
-					load();
-				});
+				};
+				scope.cancelLicenseGroupEdit = function () {
+					if (scope.selectedGroup && scope.selectedGroup.isDirty()) {
+						cancelModal.open(function () {
+							scope.hide();
+						}, angular.noop);
+					} else {
+						scope.hide();
+					}
+				};
 			}
 		};
 	}]);

@@ -78,6 +78,15 @@ public class LicenseThreatGroupConditionType
   public String explainMatch(final Condition condition, final Component component) {
     final StringBuilder buf = new StringBuilder();
     final Set<LicenseThreatGroup> licenseThreatGroups = component.getLicenseThreatGroups();
+    if ("is".equals(condition.getOperator())) {
+      final String groupId = condition.getValue();
+      for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+        if (groupId.equals(licenseThreatGroup.getId())) {
+          return "Found a License in the '" + licenseThreatGroup.getName() + "' License Threat Group";
+        }
+      }
+      throw new IllegalStateException("Cannot explainMatch when there was no match");
+    }
     if (licenseThreatGroups.isEmpty()) {
       buf.append("no");
     }

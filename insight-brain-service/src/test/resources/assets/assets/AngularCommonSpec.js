@@ -103,6 +103,54 @@ describe('AngularCommon', function () {
     expect(element.data('editable').input.$input.width()).toBeGreaterThan(90);
   });
 
+  it('X-editable with required attribute updates backing model on keyup', function () {
+    var element = angular.element("<a ng-model='mockModel.name' xeditable required href='javascript:;' />");
+    compile(element)(scope);
+    scope.$digest();
+
+    timeout.flush();
+
+    element.click();
+    expect(element.data('editable').input.$input).not.toBeUndefined();
+    element.data('editable').input.$input.val('Some typed string');
+
+    expect(scope.mockModel.name).toBe(null);
+
+    element.data('editable').input.$input.keyup();
+    element.data('editable').input.$input.val('Some more editing');
+
+    expect(scope.mockModel.name).toBe('Some typed string');
+
+    element.data('editable').input.$input.val('Even more editing');
+    element.data('editable').input.$input.keyup();
+
+    expect(scope.mockModel.name).toBe('Even more editing');
+  });
+
+  it('X-editable without required attribute does not update model on keyup', function () {
+    var element = angular.element("<a ng-model='mockModel.name' xeditable href='javascript:;' />");
+    compile(element)(scope);
+    scope.$digest();
+
+    timeout.flush();
+
+    element.click();
+    expect(element.data('editable').input.$input).not.toBeUndefined();
+    element.data('editable').input.$input.val('Some typed string');
+
+    expect(scope.mockModel.name).toBe(null);
+
+    element.data('editable').input.$input.keyup();
+    element.data('editable').input.$input.val('Some more editing');
+
+    expect(scope.mockModel.name).toBe(null);
+
+    element.data('editable').input.$input.val('Even more editing');
+    element.data('editable').input.$input.keyup();
+
+    expect(scope.mockModel.name).toBe(null);
+  });
+
   it('isDuplicate should respect casesensitive param', function () {
     var elm = angular.element(
         "<form name='form'>" +
@@ -126,5 +174,44 @@ describe('AngularCommon', function () {
 
     scope.form.name.$setViewValue('b');
     expect(scope.form.name.$valid).toBe(true);
+  });
+
+  describe('"ago" filter', function() {
+    var ago;
+    beforeEach(inject(function($filter) {
+      ago = $filter('ago');
+    }));
+    var today = new Date();
+    var twoYearsAgo = new Date(today.getFullYear() - 2, today.getMonth(), today.getDay());
+    var threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 3, today.getDay());
+    var tenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
+    var twentyThreeHoursAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 23);
+    var fiftyEightMinutesAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+        today.getMinutes() - 58);
+    var oneMinuteAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+        today.getMinutes() - 1);
+    var theFuture = new Date(today.getFullYear() + 100, today.getMonth(), today.getDay());
+    var testCases = [
+      { input: today, expected: 'Seconds Ago' },
+      { input: today.getTime(), expected: 'Seconds Ago' },
+      { input: twoYearsAgo, expected: '2 Years Ago' },
+      { input: threeMonthsAgo, expected: '3 Months Ago' },
+      { input: tenDaysAgo, expected: '10 Days Ago' },
+      { input: twentyThreeHoursAgo, expected: '23 Hours Ago' },
+      { input: fiftyEightMinutesAgo, expected: '^5[8|9]{1} Minutes Ago$' },
+      { input: oneMinuteAgo, expected: '^[1|2]{1} Minute[s]? Ago$' },
+      { input: theFuture, expected: 'Seconds Ago' },
+      { input: null, expected: '' },
+      { input: undefined, expected: '' },
+      { input: '', expected: '' }
+    ]
+    for (var i = 0; i < testCases.length; i++) {
+      var testCase = testCases[i];
+      (function(input, expected) {
+        it('should filter the value: ' + input + ' to: ' + expected, function() {
+          expect(ago(input)).toMatch(expected);
+        });
+      })(testCase['input'], testCase['expected']);
+    }
   });
 });

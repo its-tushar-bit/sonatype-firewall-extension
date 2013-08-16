@@ -1,8 +1,5 @@
 /*global window*/
-var CLM = {
-        path : '../brain/'
-    },
-    InsightDatatable = {
+var InsightDatatable = {
         getActiveTable : function () {
             return {
                 dataView : {
@@ -17,15 +14,17 @@ var CLM = {
 describe('CIP Claim Component tests', function() {
     var scope, $http;
 
-	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
-		return $http;
-	}]);
-
-    beforeEach(module('ClaimComponent'));
+    beforeEach(module('ClaimComponent', function($provide) {
+      $provide.factory('hudson', ['$http', function($http){
+        return $http;
+      }]);
+    }));
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
         $http = $httpBackend;
         scope = $rootScope.$new();
+        //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
+        $location.url('/sonatype-clm-report/');
         $controller('ClaimComponentController', {
             $scope : scope,
             global : {},

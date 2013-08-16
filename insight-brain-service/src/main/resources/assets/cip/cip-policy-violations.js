@@ -11,7 +11,7 @@
 	$.extend(true, window, {
 		'Insight' : {
 			'PolicyViolations' : function(node, appId, hash) {
-				var timestamp = (new Date()).getTime(), container = $('<div ng-include src="\'' + CLM.path + 'cip/cip-policy-violations.html\'"></div>');
+				var timestamp = (new Date()).getTime(), container = $('<div clm-include="\'' + CLM.path + 'cip/cip-policy-violations.html\'"></div>');
 				node.empty();
 				container.appendTo(node);
 
@@ -22,7 +22,7 @@
 					};
 				});
 
-				angular.bootstrap(container[0], [ 'PolicyViolations', 'policyViolations' + timestamp ]);
+				angular.bootstrap(container[0], [ 'PolicyViolations', 'policyViolations' + timestamp, 'AngularCommon' ]);
 			}
 		}
 	});

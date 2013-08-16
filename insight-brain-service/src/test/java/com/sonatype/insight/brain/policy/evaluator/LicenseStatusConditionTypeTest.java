@@ -14,7 +14,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.license.LicenseStatus;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
@@ -36,7 +36,7 @@ public class LicenseStatusConditionTypeTest
   @Test
   public void testEvaluateIs() {
     // Create policy constraints
-    Constraint constraint = createConstraint("is", LicenseStatus.OPEN.getId());
+    Constraint constraint = createConstraint("is", LicenseOverrideStatus.OPEN.getId());
     List<Constraint> constraints = new ArrayList<Constraint>();
     constraints.add(constraint);
 
@@ -51,7 +51,7 @@ public class LicenseStatusConditionTypeTest
     components.add(component1);
     // A component with license status CONFIRMED
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
-    component2.setLicenseStatus(LicenseStatus.CONFIRMED);
+    component2.setLicenseOverrideStatus(LicenseOverrideStatus.CONFIRMED);
     components.add(component2);
 
     // Evaluate the policy
@@ -67,7 +67,7 @@ public class LicenseStatusConditionTypeTest
   @Test
   public void testEvaluateIsNot() {
     // Create policy constraints
-    Constraint constraint = createConstraint("is not", LicenseStatus.OPEN.getId());
+    Constraint constraint = createConstraint("is not", LicenseOverrideStatus.OPEN.getId());
     List<Constraint> constraints = new ArrayList<Constraint>();
     constraints.add(constraint);
 
@@ -82,7 +82,7 @@ public class LicenseStatusConditionTypeTest
     components.add(component1);
     // A component with license status CONFIRMED
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
-    component2.setLicenseStatus(LicenseStatus.CONFIRMED);
+    component2.setLicenseOverrideStatus(LicenseOverrideStatus.CONFIRMED);
     components.add(component2);
 
     // Evaluate the policy

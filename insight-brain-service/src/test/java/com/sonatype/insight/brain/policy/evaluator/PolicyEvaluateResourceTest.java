@@ -19,10 +19,14 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -32,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -51,6 +56,9 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
@@ -203,6 +211,73 @@ public class PolicyEvaluateResourceTest
     expectedComponentExact.setHash(hash);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
         FailActionType.ID, constraint1.getId(), "Constraint 1", MatchStateConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Label_DefinedAtAppLevel() throws Exception {
+    testEvaluate_Label(false, false);
+  }
+
+  @Test
+  public void testEvaluate_Label_DefinedAtOrgLevel_AppliedAtOrgLevel() throws Exception {
+    testEvaluate_Label(true, true);
+  }
+
+  @Test
+  public void testEvaluate_Label_DefinedAtOrgLevel_AppliedAtAppLevel() throws Exception {
+    testEvaluate_Label(true, false);
+  }
+
+  private void testEvaluate_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
+    String hash = "1249e25aebb15358bedd";
+    String applicationPublicId = "testEvaluate_Label";
+    Application app = createApplication(applicationPublicId);
+    String scanId = "testEvaluate_Label_ScanId";
+    String licenseFingerprint = "testEvaluate_Label_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
+    new LabelDAO().insert(label);
+    new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
+        .getId(), hash));
+
+    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Action action = new Action(FailActionType.ID);
+    Policy policy1 = new Policy(null /* policyId */, "Policy 1");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.addAction(BuildStageType.ID, action);
+    Response response = addPolicy(applicationPublicId, policy1);
+    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    constraint1 = policy1.getConstraints().get(0);
+
+    Stage stage = new Stage(BuildStageType.ID);
+
+    String groupId = "tomcat";
+    String artifactId = "tomcat-util";
+    String version = "5.5.23";
+
+    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
+    Assert.assertThat(policyEval, is(notNullValue()));
+    Assert.assertThat(policyEval.getAffectedComponentCount(), is(1));
+    Assert.assertThat(policyEval.getCriticalComponentCount(), is(0));
+    Assert.assertThat(policyEval.getSevereComponentCount(), is(1));
+    Assert.assertThat(policyEval.getModerateComponentCount(), is(0));
+    List<PolicyAlert> policyAlerts = policyEval.getAlerts();
+    Assert.assertThat(policyAlerts, is(notNullValue()));
+    Assert.assertThat(policyAlerts.size(), is(1));
+    AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
+    Component expectedComponentExact = new Component(groupId, artifactId, version, MatchState.EXACT);
+    expectedComponentExact.setHash(hash);
+    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
+        FailActionType.ID, constraint1.getId(), "Constraint 1", LabelConditionType.ID, policyAlerts);
   }
 
   private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) throws IOException {

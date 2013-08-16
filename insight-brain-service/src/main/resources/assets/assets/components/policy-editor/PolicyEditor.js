@@ -15,7 +15,7 @@
 				template : function () {
 					var o = {
 						threatLevel : 5,
-						constraints : [{ conditions: [], operator: 'OR' }],
+						constraints : [{ conditions: [], operator: 'OR', id : '' + new Date().getTime() }],
 						actions : {}
 					};
 					if (conditionTypes) {
@@ -327,7 +327,26 @@
                 });
             }
         };
-        $scope.validate = function() {
+
+
+    $scope.createConditionValidationMessage = function(dataType, constraintName, index) {
+      var msg = 'Please enter ';
+      switch (dataType){
+        case 'Integer':
+          msg += 'a whole number';
+          break;
+        case 'Float':
+          msg += 'a decimal number';
+          break;
+        case 'String':
+        default :
+          msg += 'a value';
+      }
+      msg += ' for condition #' + index + ' in constraint "' + constraintName + '"';
+      return msg;
+    }
+
+    $scope.validate = function() {
             var msg = null;
             $scope.alerts = [];
             if ($scope.policy) {
@@ -355,10 +374,12 @@
                                     $.each(constraint.conditions, function(conditionIndex, condition) {
                                         var conditionType = policyStore.getConditionTypes()[condition.conditionTypeId];
                                         if (!conditionType) {
-                                            msg = 'Please select a valid condition type for condition #' + (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
+                                            msg = 'Please select a valid condition type for condition #' +
+                                                (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
                                             return false;
                                         } else if (conditionType.valueTypeId && !condition.value) {
-                                            msg = 'Please enter a value for condition #' + (conditionIndex + 1) + ' in constraint "' + constraint.name + '"';
+                                            msg = $scope.createConditionValidationMessage(conditionType.valueType.dataType,
+                                                constraint.name, conditionIndex + 1);
                                             return false;
                                         }
                                     });
@@ -551,7 +572,7 @@
 	module.directive('inlinePolicyCreator', ['PolicyStore', function (policyStore) {
 		return {
 			restrict : 'A',
-			templateUrl : '../assets/components/policy-editor/policy-quick-add.html?' + clmBuildTimestamp,
+			templateUrl : 'policy-quick-add',
 			scope : {},
 			controller : 'PolicyEditorController',
 			link : function (scope) {
@@ -562,7 +583,7 @@
 					return policyStore.get().create();
 				};
 				scope.getFormName = function() {
-				    return 'quickAddPolicyEditor';
+				    return 'inlinePolicyForm';
 				};
 			}
 		};

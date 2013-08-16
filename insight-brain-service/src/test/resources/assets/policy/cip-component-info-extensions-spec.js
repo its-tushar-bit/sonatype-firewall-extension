@@ -1,7 +1,5 @@
 /* global window */
-var CLM = {
-  path: '../brain/'
-}, applicationId = 'appId';
+var applicationId = 'appId';
 
 describe('CIP Component info extensions tests', function() {
   var $scope;
@@ -30,46 +28,23 @@ describe('CIP Component info extensions tests', function() {
     expect($('button[data-target="#componentExistingWaiverModal"]').length).toEqual(1);
     expect($('#componentExistingWaiverModal').length).toEqual(0);
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1234')).respond([{
-      id: "id",
-      hash: "1234",
-      policyId: "policyId",
-      constraintId: null,
-      ownerId: "ownerId",
-      comment: "some comment",
-      createTime: 1375366539817
-    }]);
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policy/application/appId/applicable')).respond({
-      "policiesByOwner": [{
-        "ownerId": "ownerId",
-        "ownerName": "ownerName",
-        "ownerType": "application",
-        "policies": [{
-          "id": "policyId",
-          "name": "policyName",
-          "ownerId": "ownerId",
-          "enabled": true,
-          "threatLevel": 5,
-          "constraints": [{
-            "id": "constraintId",
-            "name": "constraintName",
-            "enabled": true,
-            "operator": "AND",
-            "conditions": [{
-              "conditionTypeId": "AgeInDays",
-              "operator": "older than",
-              "value": "1825"
-            }]
-          }],
-          "actions": {}
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1234')).respond({
+      waiversByOwner: [{
+        ownerId: "appId",
+        ownerName: "ownerName",
+        ownerType: "application",
+        waivers: [{
+          id: "id",
+          hash: "1234",
+          policyId: "policyId",
+          policyName: "policyName",
+          constraintId: null,
+          ownerId: "appId",
+          comment: "some comment",
+          createTime: 1375366539817
         }]
       }]
     });
-    $httpBackend.expectGET(CLM.path + 'rest/application').respond([{
-      "id": "ownerId",
-      "publicId": "appId",
-      "name": "test"
-    }]);
     $('button[data-target="#componentExistingWaiverModal"]').trigger('click');
     $compile($('#componentExistingWaiverModal'))($scope);
     

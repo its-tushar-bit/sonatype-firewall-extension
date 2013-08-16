@@ -23,11 +23,14 @@
 			<button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>
 			<h3>Label Assignment</h3>
 		</div>
-		<div class="modal-body">
+		<div class="modal-body" ng-show="labelLoading">
+		    <span>Loading data...</span>
+		</div>
+		<div class="modal-body" ng-show="!labelLoading">
 			<div ng-repeat="labelOwner in labelOwners">
 				<label class="radio">
-				  <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.ownerId + '$$' + labelOwner.ownerType}}">
-				  <span ng-bind-html-unsafe="labelOwner.ownerText"></span>
+				  <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
+				  <span ng-bind-html-unsafe="labelOwner.text"></span>
 				</label>
 			</div>
 		</div>

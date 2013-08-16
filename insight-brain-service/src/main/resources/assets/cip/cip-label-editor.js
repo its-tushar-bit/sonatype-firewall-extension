@@ -55,7 +55,7 @@
 	});
 	
 	//the add controller, controlling the add modal 
-	labelsApp.controller('LabelAddController', ['$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages){
+	labelsApp.controller('LabelAddController', ['$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', '$http', function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages, $http){
 	  function getOwnerText(ownerType, ownerName) {
 	    var prefix = '';
 	    
@@ -92,22 +92,45 @@
     
     //after dialog is shown, make sure to apply the angular stuff
     $('#labelAssignScopeModal').on('shown',function(){
+      $scope.labelLoading = true;
       $scope.labelAddError = null;
       var label = currentLabelData.get();
       $scope.label = {
         selectedOwner: componentLabelEditorGAV.applicationId + '$$application'
       };
-      $scope.labelOwners = [{
-        ownerId: componentLabelEditorGAV.applicationId,
-        ownerName: componentLabelEditorGAV.applicationId,
-        ownerType: 'application',
-        ownerText: getOwnerText('application', componentLabelEditorGAV.applicationId)
-      },{
-        ownerId: label.ownerId,
-        ownerName: label.ownerName,
-        ownerType: label.ownerType,
-        ownerText: getOwnerText(label.ownerType, label.ownerName)
-      }];
+      
+      $scope.labelOwners = [];
+      
+      $http.get(CLM.path + 'rest/label/' + label.ownerType + '/' + label.ownerId + '/applicable/context/' + label.id).success(function(data){
+        $scope.labelLoading = false;
+        
+        function processItem(item) {
+          if (item.type === 'application' && item.id === componentLabelEditorGAV.applicationId) {
+            $scope.labelOwners.splice(0,0, {
+              id: item.id,
+              name: item.name,
+              type: item.type,
+              text: getOwnerText(item.type, item.name)
+            });    
+          } else if (item.type === 'organization') {
+            $scope.labelOwners.push({
+              id: item.id,
+              name: item.name,
+              type: item.type,
+              text: getOwnerText(item.type, item.name)
+            });
+            
+            angular.forEach(item.children, function(child, childIndex){
+              processItem(child);
+            });
+          }
+        }
+        
+        processItem(data)
+      }).error(function(data, status){
+        $scope.labelLoading = false;
+        $scope.labelAddError = messages.getHttpErrorMessage({ status: status,  data: data });
+      });
       
       //purposefully not wrapping the above changes in $apply so that i can check if its already running first
       if(!$scope.$$phase) {

@@ -17,7 +17,7 @@
 
 	reportModule.controller('ReportController', ['$scope', '$state', '$http', '$q', 'CLMLocations', function ($scope, $state, $http, $q, clmLocations) {
 		$scope.doLoad = function () {
-			var appListPromise = $http.get(clmLocations.getApplicationUrl($state.params.publicId), {
+			var appListPromise = $http.get(clmLocations.getApplicationSummaryUrl($state.params.publicId), {
 					params: { timestamp: new Date().getTime() }
 				}),
 				actionStagePromise = $http.get(clmLocations.getActionStageUrl(), {

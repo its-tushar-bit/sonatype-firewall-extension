@@ -106,7 +106,7 @@
 				var resource = new Resource(config.template());
 				for (var property in config.relationalConfigs) {
 					if (config.relationalConfigs.hasOwnProperty(property)) {
-						var relationalConfig = config.relationalConfigs[property];
+						relationalConfig = config.relationalConfigs[property];
 						$parse(property).assign(resource, new LinkedResource([], angular.copy(relationalConfig)));
 					}
 				}
@@ -248,25 +248,40 @@
 				} else {
 					// Update to existing object
 					$http.put(config.url, this, { params : config.params }).success(function (data) {
-						for (var relationalProperty in config.relationalConfigs) {
-							if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
-								var relationalResource = $parse(relationalProperty)(me);
-								relationalResource.$save().then(function() {
-									relationsToSave--;
-									checkDeferredResolve(deferred, me, relationsToSave);
-								}, function(rejection) {
-									deferred.reject(rejection);
-								});
-							}
-						}
+						var properties = [],
+							promises = [],
+							resourcesToUpdate = [me];
+
+						angular.forEach(config.relationalConfigs, function (descriptor, relationalProperty) {
+							properties.push(relationalProperty);
+							promises.push($parse(relationalProperty)(me).$save());
+						});
 
 						me.$updateOriginal(data);
+
+						// The current resource might be a clone, find & update the original too
 						angular.forEach(store, function (storeEntry) {
-							if (storeEntry[config.id] === me[config.id]) {
+							if (storeEntry[config.id] === me[config.id] && storeEntry !== me) {
 								storeEntry.$updateOriginal(data);
+								resourcesToUpdate.push(storeEntry);
 							}
 						});
-						checkDeferredResolve(deferred, me, relationsToSave);
+
+						if (promises.length > 0) {
+							$q.all(promises).then(function (results) {
+								angular.forEach(results, function (response, index) {
+									angular.forEach(resourcesToUpdate, function (rsrc) {
+										rsrc[properties[index]] = response;
+									});
+								});
+								deferred.resolve(me);
+							}, function (reject) {
+								deferred.reject(reject);
+							});
+						} else {
+							deferred.resolve(me);
+						}
+
 					}).error(getErrorFn(deferred));
 				}
 				return deferred.promise;
@@ -358,7 +373,7 @@
 				}
 				$http.put(me.config.url, relationalIDs, { params : me.config.params }).success(function(data) {
 					me.$updateOriginal(data);
-					deferred.resolve(data);
+					deferred.resolve(me);
 				}).error(getErrorFn(deferred));
 
 				return deferred.promise;

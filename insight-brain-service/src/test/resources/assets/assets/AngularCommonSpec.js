@@ -186,8 +186,8 @@ describe('AngularCommon', function () {
     var threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 3, today.getDay());
     var tenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
     var twentyThreeHoursAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 23);
-    var fiftyNineMinutesAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-        today.getMinutes() - 59);
+    var fiftyEightMinutesAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+        today.getMinutes() - 58);
     var oneMinuteAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
         today.getMinutes() - 1);
     var theFuture = new Date(today.getFullYear() + 100, today.getMonth(), today.getDay());
@@ -198,7 +198,7 @@ describe('AngularCommon', function () {
       { input: threeMonthsAgo, expected: '3 Months Ago' },
       { input: tenDaysAgo, expected: '10 Days Ago' },
       { input: twentyThreeHoursAgo, expected: '23 Hours Ago' },
-      { input: fiftyNineMinutesAgo, expected: '59 Minutes Ago' },
+      { input: fiftyEightMinutesAgo, expected: '^5[8|9]{1} Minutes Ago$' },
       { input: oneMinuteAgo, expected: '^[1|2]{1} Minute[s]? Ago$' },
       { input: theFuture, expected: 'Seconds Ago' },
       { input: null, expected: '' },

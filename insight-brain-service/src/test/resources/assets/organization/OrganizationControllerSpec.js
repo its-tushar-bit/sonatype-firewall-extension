@@ -1,12 +1,15 @@
 describe('Tests for the OrganizationController', function() {
-  beforeEach(module('OrganizationModule'));
-  //provide the OrganizationId used for constructing urls
-  beforeEach(module(function($provide) {
+  
+  beforeEach(module('OrganizationModule', function($provide) {
     $provide.value('OrganizationId', {
       encoded: function() {
         return '1';
       }
     });
+    $provide.value('hudson', ['$http', function($http) {
+        return $http;
+      }]
+    );
   }));
 
   describe('OrganizationController', function() {

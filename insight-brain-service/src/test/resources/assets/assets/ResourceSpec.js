@@ -5,7 +5,12 @@ describe('Resource', function () {
 		return 'http://localhost:8234/related/' + result.id;
 	};
 	
-	beforeEach(module('ResourceModule', 'Hudson'));
+  beforeEach(module('ResourceModule', 'Hudson', function($provide) {
+    $provide.value('hudson', ['$http', function($http) {
+        return $http;
+      }]
+    );
+  }));
 	
 	it('Get', inject(function (CLMResource, $httpBackend) {
 		var store = CLMResource.getStore({

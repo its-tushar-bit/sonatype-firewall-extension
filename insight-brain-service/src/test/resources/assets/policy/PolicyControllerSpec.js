@@ -3,16 +3,19 @@ var clmBuildTimestamp = '';
 describe('PolicyController tests', function() {
     var scope;
 
-    beforeEach(module('Policy'));
-
-	beforeEach(module(function($provide) {
-		$provide.value('ApplicationId', {
-				encoded : function () {
-					return 'bom1-12345678';
-				}
-			}
-		);
-	}));
+	 beforeEach(module('Policy', function($provide) {
+	   $provide.value('ApplicationId', {
+       encoded : function () {
+         return 'bom1-12345678';
+       }
+     }
+   ); 
+	   $provide.value('hudson', ['$http', function($http) {
+	        return $http;
+	      }]
+	    );
+	  }));
+	
 	afterEach(function () {
 	    scope.$destroy();
 	});

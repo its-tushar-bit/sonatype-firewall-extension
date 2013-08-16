@@ -12,18 +12,19 @@ var InsightDatatable = {
     };
 
 describe('CIP Claim Component tests', function() {
-    var scope, $http;
+    var scope, _http;
 
     beforeEach(module('ClaimComponent'));
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
-        $http = $httpBackend;
+    beforeEach(inject(function($rootScope, $controller, $http, $httpBackend, $location) {
+        _http = $httpBackend;
         scope = $rootScope.$new();
         //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
         $location.url('/sonatype-clm-report/');
         $controller('ClaimComponentController', {
             $scope : scope,
             global : {},
+            hudson : $http,
             CurrentData : function() {
                 return {
                     hash : "1",
@@ -50,8 +51,8 @@ describe('CIP Claim Component tests', function() {
             $valid: true
         };
 
-        $http.expectPOST('../brain/rest/component/identified').respond({});
+        _http.expectPOST('../brain/rest/component/identified').respond({});
         scope.claimSubmit();
-        $http.flush();
+        _http.flush();
     });
 });

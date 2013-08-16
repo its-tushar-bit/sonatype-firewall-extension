@@ -2,16 +2,19 @@ var clmTimestamp = '';
 
 describe('LicenseThreatGroup', function() {
 	var scope, mockGroup;
-
-	beforeEach(module('LicenseThreatGroup', 'CLMLocation'));
-	beforeEach(module(function($provide) {
-		$provide.value('ApplicationId', {
-				encoded : function () {
-					return 'bom1-12345678';
-				}
-			}
-		);
-	}));
+	
+  beforeEach(module('LicenseThreatGroup', 'CLMLocation', function($provide) {
+    $provide.value('ApplicationId', {
+      encoded : function () {
+        return 'bom1-12345678';
+      }
+    }
+  );
+    $provide.value('hudson', ['$http', function($http) {
+        return $http;
+      }]
+    );
+  }));
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());

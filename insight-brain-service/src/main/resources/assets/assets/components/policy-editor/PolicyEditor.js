@@ -583,7 +583,7 @@
 					return policyStore.get().create();
 				};
 				scope.getFormName = function() {
-				    return 'quickAddPolicyEditor';
+				    return 'inlinePolicyForm';
 				};
 			}
 		};

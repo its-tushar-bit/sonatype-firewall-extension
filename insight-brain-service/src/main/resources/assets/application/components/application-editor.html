@@ -74,17 +74,17 @@
           </div>
           <div ng-show='isFormDirty() || !selectedApplication.id' class="application-save">
             <button class='btn' type='button' ng-click='cancel()'>Cancel</button>
-            <button class='btn btn-primary' ng-disabled='!canSaveEdit()'>Save</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit()' type="submit">Save</button>
           </div>
           <div ng-show='applicationSummary.stageCount'>
             <div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary" ng-class="{ bordered : !$last }">
               {{stage.name}}
               <span show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
-                <a title="Re-evaluate Policy"
+                <a title='Re-evaluate Policy' ng-show='!reEvaluatingPolicy'
                    ng-click='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])'>
-                  <i ng-show='!reEvaluatingPolicy' class='icon-refresh'></i>
-                  <i ng-show='reEvaluatingPolicy' class='icon-time'></i>
+                  <i class='icon-refresh'></i>
                 </a>
+                <i ng-show='reEvaluatingPolicy' class='icon-time'></i>
               </span>
               <div show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
                 <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'

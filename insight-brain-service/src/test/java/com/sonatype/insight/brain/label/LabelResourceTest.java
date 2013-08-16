@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Locale;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.label.LabelResource.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
@@ -31,6 +33,11 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 public class LabelResourceTest
     extends AbstractResourceTest
@@ -433,6 +440,46 @@ public class LabelResourceTest
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
   }
 
+  @Test
+  public void testGetApplicableContexts() throws Exception {
+    Organization org = createOrganization("orgName");
+    Application app = createApplication("appPublicId", "appName", org);
+    Label orgLabel = new Label(org.getId(), "orgLabel", null);
+    new LabelDAO().insert(orgLabel);
+    Label appLabel = new Label(app.getId(), "appLabel", null);
+    new LabelDAO().insert(appLabel);
+
+    Response response = RestAccess.get(getContextsURL(APP, app.getPublicId(), appLabel.getId()));
+    assertResponseStatus(200, response);
+    ApplicableContext context = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.id, is(app.getPublicId()));
+    Assert.assertThat(context.name, is(app.getName()));
+    Assert.assertThat(context.type, is(APP));
+    Assert.assertThat(context.children, is(nullValue()));
+
+    response = RestAccess.get(getContextsURL(ORG, org.getId(), orgLabel.getId()));
+    assertResponseStatus(200, response);
+    context = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.id, is(org.getId()));
+    Assert.assertThat(context.name, is(org.getName()));
+    Assert.assertThat(context.type, is(ORG));
+    Assert.assertThat(context.children, is(notNullValue()));
+    Assert.assertThat(context.children, hasSize(1));
+    context = context.children.get(0);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.id, is(app.getPublicId()));
+    Assert.assertThat(context.name, is(app.getName()));
+    Assert.assertThat(context.type, is(APP));
+    Assert.assertThat(context.children, is(nullValue()));
+
+    response = RestAccess.get(getContextsURL(ORG, org.getId(), appLabel.getId()));
+    assertResponseStatus(404, response);
+    Assert.assertThat(response.getResponseBody(), is("Cannot find a label with id " + appLabel.getId()
+        + " for organization id " + org.getId()));
+  }
+
   private void assertLabel(String ownerId, String label, Color color, Label actual) {
     Assert.assertEquals(ownerId, actual.getOwnerId());
     Assert.assertEquals(label, actual.getLabel());
@@ -459,5 +506,9 @@ public class LabelResourceTest
 
   private String getServiceURL(final String ownerType, final String ownerId) {
     return getRestBaseUrl() + LabelResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
+  }
+
+  private String getContextsURL(final String ownerType, final String ownerId, final String labelId) {
+    return getServiceURL(ownerType, ownerId) + "/applicable/context/" + labelId;
   }
 }

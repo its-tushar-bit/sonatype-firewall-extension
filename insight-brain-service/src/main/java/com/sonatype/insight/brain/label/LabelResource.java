@@ -118,6 +118,41 @@ public class LabelResource
   }
 
   /**
+   * Enumerates the contexts (org/app) in which the given label could be applied.
+   * 
+   * @since 1.6
+   */
+  @GET
+  @Produces({ MediaType.APPLICATION_JSON })
+  @Path("applicable/context/{labelId}")
+  public ApplicableContext getApplicableContexts(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId, @PathParam("labelId") String labelId)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    Label label = labelDAO.getByIdNotNull(labelId);
+    if (!internalOwnerId.equals(label.getOwnerId())) {
+      throw new NotFoundException("Cannot find a label with id " + labelId + " for " + ownerType + " id " + ownerId);
+    }
+
+    ApplicableContext context;
+
+    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
+      Application app = new ApplicationDAO().getByIdNotNull(label.getOwnerId());
+      context = new ApplicableContext(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION);
+    }
+    else {
+      Organization org = new OrganizationDAO().getByIdNotNull(label.getOwnerId());
+      context = new ApplicableContext(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION);
+      context.children = new ArrayList<ApplicableContext>();
+      for (Application app : new ApplicationDAO().getByOrganizationId(org.getId())) {
+        context.children.add(new ApplicableContext(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION));
+      }
+    }
+
+    return context;
+  }
+
+  /**
    * @since 1.6
    */
   @POST
@@ -222,5 +257,29 @@ public class LabelResource
       }
     }
     return false;
+  }
+
+  /**
+   * TEMPORARY until CLM-695 gets merged which moves this class into a shared location, will drop this inner class once
+   * both these branches meet.
+   */
+  public static class ApplicableContext
+  {
+    public String id;
+
+    public String name;
+
+    public String type;
+
+    public List<ApplicableContext> children;
+
+    public ApplicableContext() {
+    }
+
+    public ApplicableContext(String id, String name, String type) {
+      this.id = id;
+      this.name = name;
+      this.type = type;
+    }
   }
 }

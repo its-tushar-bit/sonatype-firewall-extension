@@ -10,10 +10,9 @@ describe('ApplicationController', function () {
       }
     }
     );
-    $provide.value('hudson', ['$http', function($http) {
-        return $http;
-      }]
-    );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
 
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
@@ -90,10 +89,9 @@ describe('ApplicationEditorController', function () {
   var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
   
   beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
-    $provide.value('hudson', ['$http', function($http) {
-        return $http;
-      }]
-    );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
   
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {

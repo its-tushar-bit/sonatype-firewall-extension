@@ -6,12 +6,11 @@ describe('Tests for the OrganizationController', function() {
         return '1';
       }
     });
-    $provide.value('hudson', ['$http', function($http) {
-        return $http;
-      }]
-    );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
-
+  
   describe('OrganizationController', function() {
     var scope, httpBackend, rootScope, state, mockOrganization;
 

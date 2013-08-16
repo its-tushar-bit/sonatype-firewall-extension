@@ -41,10 +41,9 @@ describe('PolicyEditor.js', function() {
 	}
 
 	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
-    $provide.value('hudson', ['$http', function($http) {
-        return $http;
-      }]
-    );
+	  $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
 	
 	beforeEach(inject(function ($rootScope) {

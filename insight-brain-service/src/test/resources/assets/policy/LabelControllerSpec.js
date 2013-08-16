@@ -44,10 +44,9 @@ describe('LabelController.js', function() {
   };
 
   beforeEach(module('Labels', function($provide) {
-    $provide.value('hudson', ['$http', function($http) {
-        return $http;
-      }]
-    );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
 
   beforeEach(inject(function ($rootScope) {

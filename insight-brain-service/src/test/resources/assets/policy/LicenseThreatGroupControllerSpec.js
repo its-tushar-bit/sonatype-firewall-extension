@@ -10,10 +10,9 @@ describe('LicenseThreatGroup', function() {
       }
     }
   );
-    $provide.value('hudson', ['$http', function($http) {
-        return $http;
-      }]
-    );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
@@ -68,13 +67,13 @@ describe('LicenseThreatGroup', function() {
 			expect(scope.selectedGroup.licenses).not.toBeUndefined();
 			expect(scope.selectedGroup.licenses.length).toEqual(2);
 		});
-		it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, hudson, CLMAppLocations) {
+		it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, CLMAppLocations) {
 			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
 			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup)).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 
 			scope.editLicenseGroup(mockGroup);
 
-			$controller('LicenseThreatGroupEditorController', {$scope: scope, hudson: hudson});
+			$controller('LicenseThreatGroupEditorController', {$scope: scope});
 
 			scope.licenseGroupEditor = { $isValid: true };
 

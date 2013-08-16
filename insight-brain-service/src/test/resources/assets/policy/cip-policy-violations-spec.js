@@ -12,16 +12,20 @@ var InsightDatatable = {
 };
 
 describe('CIP Policy Waiver tests', function() {
-    var scope, _http;
+    var scope, $http;
 
-    beforeEach(module('PolicyViolations'));
+    beforeEach(module('PolicyViolations', function($provide) {
+      $provide.factory('hudson', ['$http', function($http){
+        return $http;
+      }]);
+    }));
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $http, $httpBackend,$location) {
-        _http = $httpBackend;
+    beforeEach(inject(function($rootScope, $controller, $httpBackend,$location) {
+        $http = $httpBackend;
         scope = $rootScope.$new();
         //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
         $location.url('/sonatype-clm-report/');
-        _http.whenGET(SpecUtil.toRegExp('policyalerts.json')).respond({
+        $http.whenGET(SpecUtil.toRegExp('policyalerts.json')).respond({
             aaData : [ {
                 trigger : {
                     policyId : "policyId",
@@ -51,17 +55,16 @@ describe('CIP Policy Waiver tests', function() {
                 actions : []
             } ]
         });
-        _http.whenGET('../brain/rest/policy/actionType').respond({});
+        $http.whenGET('../brain/rest/policy/actionType').respond({});
         $controller('PolicyViolationsController', {
             $scope : scope,
             global : {},
-            hudson : $http,
             PolicyViolationData : {
                 hash : "1",
                 appId : "appId"
             }
         });
-        _http.flush();
+        $http.flush();
     }));
 
     afterEach(inject(function($httpBackend) {
@@ -69,7 +72,7 @@ describe('CIP Policy Waiver tests', function() {
     }));
 
     it('Test waive policy at org level', function() {
-      _http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+      $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',
@@ -85,12 +88,12 @@ describe('CIP Policy Waiver tests', function() {
             id : 'policyId'
         });
 
-        _http.flush();
+        $http.flush();
 
         scope.waiver.selectedTarget = 'orgId$$organization';
         scope.waiverComment = 'this is my comment!';
 
-        _http.whenPOST('../brain/rest/policyWaiver/organization/orgId', {
+        $http.whenPOST('../brain/rest/policyWaiver/organization/orgId', {
             hash : "1",
             policyId : "policyId",
             comment : "this is my comment!"
@@ -98,11 +101,11 @@ describe('CIP Policy Waiver tests', function() {
 
         scope.acceptWaiveComponent();
 
-        _http.flush();
+        $http.flush();
     });
 
     it('Test waive policy at app level', function() {
-      _http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+      $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',
@@ -118,12 +121,12 @@ describe('CIP Policy Waiver tests', function() {
             id : 'policyId'
         });
 
-        _http.flush();
+        $http.flush();
 
         scope.waiver.selectedTarget = 'appId$$application';
         scope.waiverComment = 'this is my comment!';
 
-        _http.whenPOST('../brain/rest/policyWaiver/application/appId', {
+        $http.whenPOST('../brain/rest/policyWaiver/application/appId', {
             hash : "1",
             policyId : "policyId",
             comment : "this is my comment!"
@@ -131,6 +134,6 @@ describe('CIP Policy Waiver tests', function() {
 
         scope.acceptWaiveComponent();
 
-        _http.flush();
+        $http.flush();
     });
 });

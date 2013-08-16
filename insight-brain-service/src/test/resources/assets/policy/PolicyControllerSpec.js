@@ -10,10 +10,9 @@ describe('PolicyController tests', function() {
        }
      }
    ); 
-	   $provide.value('hudson', ['$http', function($http) {
-	        return $http;
-	      }]
-	    );
+	   $provide.factory('hudson', ['$http', function($http){
+	      return $http;
+	    }]);
 	  }));
 	
 	afterEach(function () {

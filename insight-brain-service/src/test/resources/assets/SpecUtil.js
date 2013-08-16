@@ -1,4 +1,3 @@
-window.skipCrumbTest = true;
 window.CLM = {
   path: '../brain/'
 }

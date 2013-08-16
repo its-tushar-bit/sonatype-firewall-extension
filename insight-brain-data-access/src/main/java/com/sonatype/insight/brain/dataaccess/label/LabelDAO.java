@@ -118,7 +118,7 @@ public class LabelDAO
     return get(em, sQuery, id);
   }
 
-  private Label getByIdNotNull(EntityManager em, String id) {
+  Label getByIdNotNull(EntityManager em, String id) {
     Label label = getById(em, id);
     if (label == null) {
       throw new NotFoundException("Cannot find a label with id " + id);

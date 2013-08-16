@@ -91,7 +91,7 @@ public class ComponentLabelDAO
 
   private void validate(EntityManager em, ComponentLabel entity) {
     LabelDAO labelDAO = new LabelDAO();
-    Label label = labelDAO.getByIdNotNull(entity.getLabelId());
+    Label label = labelDAO.getByIdNotNull(em, entity.getLabelId());
     ComponentLabel other = getByOwnerIdAndHashAndLabelId(em, entity.getOwnerId(), entity.getHash(), entity.getLabelId());
     if (other != null && !other.getId().equals(entity.getId())) {
       throw new BadRequestException("The label '" + label.getLabel() + "' is already applied to the component "

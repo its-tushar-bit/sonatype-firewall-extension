@@ -90,7 +90,7 @@
 		return result;
 	}
 
-	angular.module('Hudson', ['CommonServices']).service('hudson', ['$http', 'BaseUrl', function ($http, baseUrl) {
+	angular.module('Hudson', ['CommonServices']).service('hudson', ['$http', 'BaseUrl', '$location', function ($http, baseUrl, $location) {
 		if (tested === null) {
 			startTest($http, baseUrl);
 		}
@@ -101,7 +101,13 @@
 				for (i = 0; i < arguments.length; i++) {
 					argArray.push(arguments[i]);
 				}
-				if (!hudson && tested === true) {
+				
+				var absUrl = $location.absUrl();
+				//not being run from within the report via hudson, so fix the path so we don't have needless redirects
+				if (absUrl.indexOf('/sonatype-clm-report/') < 0) {
+				  argArray[0] = argArray[0].replace(CLM.path,'../../../../../');
+				}
+			  if (!hudson && tested === true) {  
 					return $http.post.apply($http, argArray);
 				}
 				return wrap($http, $http.post, argArray, baseUrl);

@@ -4,12 +4,12 @@ describe('Resource', function () {
 	var relatedStoreUrl = function(result) {
 		return 'http://localhost:8234/related/' + result.id;
 	};
-
-	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
-		return $http;
-	}]);
 	
-	beforeEach(module('ResourceModule', 'Hudson'));
+  beforeEach(module('ResourceModule', 'Hudson', function($provide) {
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
+  }));
 	
 	it('Get', inject(function (CLMResource, $httpBackend) {
 		var store = CLMResource.getStore({

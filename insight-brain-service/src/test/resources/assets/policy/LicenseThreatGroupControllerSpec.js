@@ -2,20 +2,18 @@ var clmTimestamp = '';
 
 describe('LicenseThreatGroup', function() {
 	var scope, mockGroup;
-
-	angular.module('Hudson', []).factory('hudson', ['$http', function($http){
-		return $http;
-	}]);
-
-	beforeEach(module('LicenseThreatGroup', 'CLMLocation'));
-	beforeEach(module(function($provide) {
-		$provide.value('ApplicationId', {
-				encoded : function () {
-					return 'bom1-12345678';
-				}
-			}
-		);
-	}));
+	
+  beforeEach(module('LicenseThreatGroup', 'CLMLocation', function($provide) {
+    $provide.value('ApplicationId', {
+      encoded : function () {
+        return 'bom1-12345678';
+      }
+    }
+  );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
+  }));
 
 	beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {
 		$httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
@@ -67,13 +65,13 @@ describe('LicenseThreatGroup', function() {
 			scope.editLicenseGroup(mockGroup);
 			expect(scope.ltgEditorMap[mockGroup.id]).toEqual(true);
 		});
-		it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, hudson, CLMAppLocations) {
+		it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, CLMAppLocations) {
 			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
 			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup)).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 
 			scope.editLicenseGroup(mockGroup);
 
-			$controller('LicenseThreatGroupEditorController', {$scope: scope, hudson: hudson});
+			$controller('LicenseThreatGroupEditorController', {$scope: scope});
 
 			scope.licenseGroupEditor = { $isValid: true };
 

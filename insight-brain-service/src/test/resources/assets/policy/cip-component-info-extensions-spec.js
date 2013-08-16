@@ -1,7 +1,5 @@
 /* global window */
-var CLM = {
-  path: '../brain/'
-}, applicationId = 'appId';
+var applicationId = 'appId';
 
 describe('CIP Component info extensions tests', function() {
   var $scope;

@@ -1,16 +1,18 @@
 var clmTimestamp = '';
 
 describe('ApplicationController', function () {
-  var scope, httpBackend, rootScope, state, mockApplication;
+  var scope, httpBackend, rootScope, state, mockApplication, _provide;
 
-  beforeEach(module('ApplicationModule'));
-  beforeEach(module(function ($provide) {
+  beforeEach(module('ApplicationModule', function($provide) {
     $provide.value('ApplicationId', {
       encoded: function () {
         return 'bom1-12345678';
       }
     }
     );
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
   }));
 
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
@@ -85,8 +87,13 @@ describe('ApplicationController', function () {
 
 describe('ApplicationEditorController', function () {
   var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
-
-  beforeEach(module('ApplicationModule', 'OrganizationModule'));
+  
+  beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
+    $provide.factory('hudson', ['$http', function($http){
+      return $http;
+    }]);
+  }));
+  
   beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;

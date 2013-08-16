@@ -1,7 +1,5 @@
 /*global window*/
-var CLM = {
-    path : '../brain/'
-}, InsightDatatable = {
+var InsightDatatable = {
     getActiveTable : function() {
         return {
             dataView : {
@@ -16,15 +14,17 @@ var CLM = {
 describe('CIP Policy Waiver tests', function() {
     var scope, $http;
 
-    angular.module('Hudson', []).factory('hudson', [ '$http', function($http) {
+    beforeEach(module('PolicyViolations', function($provide) {
+      $provide.factory('hudson', ['$http', function($http){
         return $http;
-    } ]);
-
-    beforeEach(module('PolicyViolations'));
+      }]);
+    }));
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend,$location) {
         $http = $httpBackend;
         scope = $rootScope.$new();
+        //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
+        $location.url('/sonatype-clm-report/');
         $http.whenGET(SpecUtil.toRegExp('policyalerts.json')).respond({
             aaData : [ {
                 trigger : {
@@ -72,7 +72,7 @@ describe('CIP Policy Waiver tests', function() {
     }));
 
     it('Test waive policy at org level', function() {
-        $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+      $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',
@@ -105,7 +105,7 @@ describe('CIP Policy Waiver tests', function() {
     });
 
     it('Test waive policy at app level', function() {
-        $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+      $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',

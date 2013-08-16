@@ -199,7 +199,7 @@ describe('AngularCommon', function () {
       { input: tenDaysAgo, expected: '10 Days Ago' },
       { input: twentyThreeHoursAgo, expected: '23 Hours Ago' },
       { input: fiftyNineMinutesAgo, expected: '59 Minutes Ago' },
-      { input: oneMinuteAgo, expected: '1 Minute Ago' },
+      { input: oneMinuteAgo, expected: '^[1|2]{1} Minute[s]? Ago$' },
       { input: theFuture, expected: 'Seconds Ago' },
       { input: null, expected: '' },
       { input: undefined, expected: '' },
@@ -209,7 +209,7 @@ describe('AngularCommon', function () {
       var testCase = testCases[i];
       (function(input, expected) {
         it('should filter the value: ' + input + ' to: ' + expected, function() {
-          expect(ago(input)).toBe(expected);
+          expect(ago(input)).toMatch(expected);
         });
       })(testCase['input'], testCase['expected']);
     }

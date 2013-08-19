@@ -9,10 +9,11 @@ import java.io.File;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
-import com.sonatype.insight.brain.license.LicenseOverrideResource.ApplicableLicenseOverrides;
-import com.sonatype.insight.brain.license.LicenseOverrideResource.LicenseOverridesByOwner;
+import com.sonatype.insight.brain.license.LicenseOverrideResource.AppliedLicenseOverrides;
+import com.sonatype.insight.brain.license.LicenseOverrideResource.LicenseOverrideByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.License;
@@ -154,36 +155,35 @@ public class LicenseOverrideResourceTest
   }
 
   @Test
-  public void testGetApplicableLicenseOverrides() throws Exception {
+  public void testGetAppliedLicenseOverrides() throws Exception {
     // Create an organization and an application
-    String orgName = "testGetApplicableLicenseOverrides";
+    String orgName = "testGetAppliedLicenseOverrides";
     Organization organization = createOrganization(orgName);
     String orgId = organization.getId();
-    String appName = "testGetApplicableLicenseOverrides";
-    String appPublicId = "testGetApplicableLicenseOverrides";
-    Application app = super.createApplication(appPublicId, appPublicId, organization);
-    String appId = app.getId();
+    String appName = "testGetAppliedLicenseOverrides";
+    String appPublicId = "testGetAppliedLicenseOverrides";
+    createApplication(appPublicId, appPublicId, organization);
 
-    // Verify the applicable license overrides for the application
-    Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applicable/g1/a1/v1");
+    // Verify the applied license overrides for the application
+    Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
-    ApplicableLicenseOverrides applicableLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicableLicenseOverrides.class);
-    assertNotNull(applicableLicenseOverrides);
-    assertThat(applicableLicenseOverrides.licenseOverridesByOwner, hasSize(2));
-    assertLicenseOverridesByOwner(appId, appName, "application", 0,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(0));
-    assertLicenseOverridesByOwner(orgId, orgName, "organization", 0,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(1));
+    AppliedLicenseOverrides appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(),
+        AppliedLicenseOverrides.class);
+    assertNotNull(appliedLicenseOverrides);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(2));
+    assertLicenseOverrideByOwner(appPublicId, appName, "application", false,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(orgId, orgName, "organization", false,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
 
-    // Verify the applicable license overrides for the organization
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applicable/g1/a1/v1");
+    // Verify the applied license overrides for the organization
+    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
-    applicableLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseOverrides.class);
-    assertNotNull(applicableLicenseOverrides);
-    assertThat(applicableLicenseOverrides.licenseOverridesByOwner, hasSize(1));
-    assertLicenseOverridesByOwner(orgId, orgName, "organization", 0,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(0));
+    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    assertNotNull(appliedLicenseOverrides);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(1));
+    assertLicenseOverrideByOwner(orgId, orgName, "organization", false,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0));
 
     // Create a license override for the application
     LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
@@ -192,27 +192,27 @@ public class LicenseOverrideResourceTest
         JsonHelpers.asJson(appLicenseOverride));
     appLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
-    // Verify the applicable license overrides for the application
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applicable/g1/a1/v1");
+    // Verify the applied license overrides for the application
+    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
-    applicableLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseOverrides.class);
-    assertNotNull(applicableLicenseOverrides);
-    assertThat(applicableLicenseOverrides.licenseOverridesByOwner, hasSize(2));
-    assertLicenseOverridesByOwner(appId, appName, "application", 1,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(0));
-    assertLicenseOverridesByOwner(orgId, orgName, "organization", 0,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(1));
-    assertEquals(appLicenseOverride.getId(), applicableLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverrides
-        .get(0).getId());
+    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    assertNotNull(appliedLicenseOverrides);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(2));
+    assertLicenseOverrideByOwner(appPublicId, appName, "application", true,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(orgId, orgName, "organization", false,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
+    assertEquals(appLicenseOverride.getId(),
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverride.getId());
 
-    // Verify the applicable license overrides for the organization
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applicable/g1/a1/v1");
+    // Verify the applied license overrides for the organization
+    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
-    applicableLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseOverrides.class);
-    assertNotNull(applicableLicenseOverrides);
-    assertThat(applicableLicenseOverrides.licenseOverridesByOwner, hasSize(1));
-    assertLicenseOverridesByOwner(orgId, orgName, "organization", 0,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(0));
+    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    assertNotNull(appliedLicenseOverrides);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(1));
+    assertLicenseOverrideByOwner(orgId, orgName, "organization", false,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0));
 
     // Create a license override for the organization
     LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
@@ -220,31 +220,31 @@ public class LicenseOverrideResourceTest
     response = RestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), JsonHelpers.asJson(orgLicenseOverride));
     orgLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
-    // Verify the applicable license overrides for the application
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applicable/g1/a1/v1");
+    // Verify the applied license overrides for the application
+    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
-    applicableLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseOverrides.class);
-    assertNotNull(applicableLicenseOverrides);
-    assertThat(applicableLicenseOverrides.licenseOverridesByOwner, hasSize(2));
-    assertLicenseOverridesByOwner(appId, appName, "application", 1,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(0));
-    assertLicenseOverridesByOwner(orgId, orgName, "organization", 1,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(1));
-    assertEquals(appLicenseOverride.getId(), applicableLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverrides
-        .get(0).getId());
-    assertEquals(orgLicenseOverride.getId(), applicableLicenseOverrides.licenseOverridesByOwner.get(1).licenseOverrides
-        .get(0).getId());
+    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    assertNotNull(appliedLicenseOverrides);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(2));
+    assertLicenseOverrideByOwner(appPublicId, appName, "application", true,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(orgId, orgName, "organization", true,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
+    assertEquals(appLicenseOverride.getId(),
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverride.getId());
+    assertEquals(orgLicenseOverride.getId(),
+        appliedLicenseOverrides.licenseOverridesByOwner.get(1).licenseOverride.getId());
 
-    // Verify the applicable license overrides for the organization
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applicable/g1/a1/v1");
+    // Verify the applied license overrides for the organization
+    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
-    applicableLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseOverrides.class);
-    assertNotNull(applicableLicenseOverrides);
-    assertThat(applicableLicenseOverrides.licenseOverridesByOwner, hasSize(1));
-    assertLicenseOverridesByOwner(orgId, orgName, "organization", 1,
-        applicableLicenseOverrides.licenseOverridesByOwner.get(0));
-    assertEquals(orgLicenseOverride.getId(), applicableLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverrides
-        .get(0).getId());
+    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    assertNotNull(appliedLicenseOverrides);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(1));
+    assertLicenseOverrideByOwner(orgId, orgName, "organization", true,
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertEquals(orgLicenseOverride.getId(),
+        appliedLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverride.getId());
   }
 
   @Test
@@ -284,13 +284,44 @@ public class LicenseOverrideResourceTest
     licenseOverride = licenseOverrideDAO.getById(licenseOverride.getId());
   }
 
-  private void assertLicenseOverridesByOwner(String ownerId, String ownerName, String ownerType,
-      int licenseOverridesCount, LicenseOverridesByOwner actual)
+  @Test
+  public void testGetApplicableContexts() throws Exception {
+    // Create an organization and an application
+    String orgName = "testGetApplicableContexts";
+    Organization organization = createOrganization(orgName);
+    String orgId = organization.getId();
+    String appName = "testGetApplicableContexts";
+    String appPublicId = "testGetApplicableContexts";
+    createApplication(appPublicId, appPublicId, organization);
+
+    Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applicable/context/");
+    assertResponseStatus(200, response);
+    ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
+    assertApplicableContext(appPublicId, appName, IdUtils.TYPE_APPLICATION, result);
+    assertNull(result.children);
+
+    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applicable/context/");
+    assertResponseStatus(200, response);
+    result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
+    assertApplicableContext(orgId, orgName, IdUtils.TYPE_ORGANIZATION, result);
+    assertThat(result.children, hasSize(1));
+    result = result.children.get(0);
+    assertApplicableContext(appPublicId, appName, IdUtils.TYPE_APPLICATION, result);
+    assertNull(result.children);
+  }
+
+  private void assertLicenseOverrideByOwner(String ownerId, String ownerName, String ownerType,
+      boolean hasLicenseOverride, LicenseOverrideByOwner actual)
   {
     assertEquals(ownerId, actual.ownerId);
     assertEquals(ownerName, actual.ownerName);
     assertEquals(ownerType, actual.ownerType);
-    assertThat(actual.licenseOverrides, hasSize(licenseOverridesCount));
+    if (hasLicenseOverride) {
+      assertNotNull(actual.licenseOverride);
+    }
+    else {
+      assertNull(actual.licenseOverride);
+    }
   }
 
   private String getServiceURL(final String ownerType, final String ownerId) {
@@ -307,5 +338,12 @@ public class LicenseOverrideResourceTest
     assertEquals(status, actual.getStatus());
     assertEquals(licenseId, actual.getLicenseId());
     assertEquals(comment, actual.getComment());
+  }
+
+  private void assertApplicableContext(String id, String name, String type, ApplicableContext actual) {
+    assertNotNull(actual);
+    assertEquals(id, actual.id);
+    assertEquals(name, actual.name);
+    assertEquals(type, actual.type);
   }
 }

@@ -116,30 +116,27 @@ public class LicenseOverrideResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  @Path("applicable/{groupId}/{artifactId}/{version}")
-  public ApplicableLicenseOverrides getApplicableLicenseOverrides(@PathParam("ownerType") String ownerType,
+  @Path("applied/{groupId}/{artifactId}/{version}")
+  public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") String ownerType,
       @PathParam("ownerId") String ownerId, @PathParam("groupId") String groupId,
       @PathParam("artifactId") String artifactId, @PathParam("version") String version)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    ApplicableLicenseOverrides result = new ApplicableLicenseOverrides();
+    AppliedLicenseOverrides result = new AppliedLicenseOverrides();
 
-    result.licenseOverridesByOwner = new ArrayList<LicenseOverridesByOwner>();
+    result.licenseOverridesByOwner = new ArrayList<LicenseOverrideByOwner>();
     String organizationId;
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
-      LicenseOverridesByOwner licenseOverridesByOwner = new LicenseOverridesByOwner();
-      licenseOverridesByOwner.ownerId = application.getId();
-      licenseOverridesByOwner.ownerName = application.getName();
-      licenseOverridesByOwner.ownerType = IdUtils.TYPE_APPLICATION;
-      LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId, artifactId,
-          version);
-      if (licenseOverride != null) {
-        licenseOverridesByOwner.licenseOverrides.add(licenseOverride);
-      }
-      result.licenseOverridesByOwner.add(licenseOverridesByOwner);
+      LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
+      licenseOverrideByOwner.ownerId = application.getPublicId();
+      licenseOverrideByOwner.ownerName = application.getName();
+      licenseOverrideByOwner.ownerType = IdUtils.TYPE_APPLICATION;
+      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId,
+          artifactId, version);
+      result.licenseOverridesByOwner.add(licenseOverrideByOwner);
       organizationId = application.getOrganizationId();
     }
     else {
@@ -147,16 +144,13 @@ public class LicenseOverrideResource
     }
     if (organizationId != null) {
       Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
-      LicenseOverridesByOwner licenseOverridesByOwner = new LicenseOverridesByOwner();
-      licenseOverridesByOwner.ownerId = organization.getId();
-      licenseOverridesByOwner.ownerName = organization.getName();
-      licenseOverridesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-      LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(organization.getId(), groupId,
+      LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
+      licenseOverrideByOwner.ownerId = organization.getId();
+      licenseOverrideByOwner.ownerName = organization.getName();
+      licenseOverrideByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
+      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(organization.getId(), groupId,
           artifactId, version);
-      if (licenseOverride != null) {
-        licenseOverridesByOwner.licenseOverrides.add(licenseOverride);
-      }
-      result.licenseOverridesByOwner.add(licenseOverridesByOwner);
+      result.licenseOverridesByOwner.add(licenseOverrideByOwner);
     }
 
     return result;
@@ -171,7 +165,7 @@ public class LicenseOverrideResource
     ApplicationDAO applicationDAO = new ApplicationDAO();
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application application = applicationDAO.getByPublicIdNotNull(ownerId);
-      return new ApplicableContext(application.getId(), application.getName(), IdUtils.TYPE_APPLICATION);
+      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
     Organization organization = new OrganizationDAO().getByIdNotNull(ownerId);
@@ -179,17 +173,18 @@ public class LicenseOverrideResource
         IdUtils.TYPE_ORGANIZATION);
     result.children = new ArrayList<ApplicableContext>();
     for (Application application : applicationDAO.getByOrganizationId(organization.getId())) {
-      result.children.add(new ApplicableContext(application.getId(), application.getName(), IdUtils.TYPE_APPLICATION));
+      result.children.add(new ApplicableContext(application.getPublicId(), application.getName(),
+          IdUtils.TYPE_APPLICATION));
     }
     return result;
   }
 
-  public static class ApplicableLicenseOverrides
+  public static class AppliedLicenseOverrides
   {
-    public List<LicenseOverridesByOwner> licenseOverridesByOwner;
+    public List<LicenseOverrideByOwner> licenseOverridesByOwner;
   }
 
-  public static class LicenseOverridesByOwner
+  public static class LicenseOverrideByOwner
   {
     public String ownerId;
 
@@ -197,6 +192,6 @@ public class LicenseOverrideResource
 
     public String ownerType;
 
-    public List<LicenseOverride> licenseOverrides = new ArrayList<LicenseOverride>();
+    public LicenseOverride licenseOverride;
   }
 }

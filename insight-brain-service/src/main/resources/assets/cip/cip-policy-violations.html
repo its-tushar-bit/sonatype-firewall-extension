@@ -1,4 +1,7 @@
 <div ng-controller="PolicyViolationsController" class='policyViolations'>
+    <div style="width:100%;text-align:right;margin-bottom:5px;">
+    	<button type="none" class="btn btn-primary" data-toggle="modal" data-target="#componentExistingWaiverModal" ng-click="viewWaivers">View Existing Waivers</button>
+	</div>
 	<table class="table table-condensed table-striped cip-policy-table" border="0" cellpadding="0" cellspacing="0">
 		<thead>
 			<th class="cip-policy-table-header"><div>
@@ -38,7 +41,10 @@
 		</tr>
 	</table>
 	<div clm-alerts='alerts'></div>
-	<div id="componentAddWaiverModal" class="modal hide fade">
+	<div ng-show='policyAlerts.length == 0'>
+		<b>No Policy Violations</b>
+	</div>
+	<div id="componentAddWaiverModal" ng-controller="AddWaiverController" data-keyboard="false" data-backdrop="static" class="modal hide fade">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 			<h3>Component Waiver</h3>
@@ -63,7 +69,53 @@
 			<button type='button' class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Yes</button>
 		</div>
 	</div>
-	<div ng-show='policyAlerts.length == 0'>
-		<b>No Policy Violations</b>
+	<div id="componentExistingWaiverModal" ng-controller="ViewWaiverController" data-keyboard="false" data-backdrop="static" class="modal hide fade">
+		<div ng-hide="confirmDelete">
+			<div class="modal-header">
+				<button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>
+				<h3>Component Waivers</h3>
+			</div>
+			<div class="modal-body" ng-show="waiversLoading">
+				<span>Loading data...</span>
+			</div>
+			<div class="modal-body" ng-show="!waiversLoading">
+				<div ng-show="!waivers.length"><em style="margin-left:25px;">No waivers assigned</em></div>
+				<table ng-show="waivers.length" class="table table-condensed">
+					<thead>
+						<tr>
+							<th>Policy</th>
+							<th>Created</th>
+							<th>Owner</th>
+							<th>Comment</th>
+						</tr>
+					</thead>
+					<tr ng-repeat="waiver in waivers">
+						<td>{{waiver.policyName}}</td>
+						<td>{{waiver.createTime | date:"yyyy-MM-dd"}}</td>
+						<td>{{waiver.ownerName}}</td>
+						<td>{{waiver.comment}}</td>
+						<td>
+							<button class="btn btn-mini" ng-click="remove(waiver)" title="Remove {{placeHolder}}"><i class="icon-minus-sign"></i></button>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>
+				<button type="button" class="btn btn-primary" ng-click="close()">Close</button>
+			</div>
+		</div>
+		<div ng-show="confirmDelete">
+			<div class="modal-header">
+				<h3>Remove Waiver</h3>
+			</div>
+			<div class="modal-body" >
+				Removing the waiver for {{confirmDelete.policyName}} will reinstate violations for this component if applicable.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn" ng-click="confirmDelete = null">Cancel</button>
+				<button type="button" class="btn btn-danger" ng-click="removeWaiver()">Continue</button>
+			</div>
+		</div>
 	</div>
 </div>

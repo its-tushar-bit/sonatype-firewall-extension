@@ -119,12 +119,7 @@
 	policyViolationApp.controller('AddWaiverController', [ 'hudson', '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData', function(hudson, $http, $scope, policyViolationData, messages, currentPolicyData) {
     //after dialog is shown, make sure to apply the angular stuff
     $('#componentAddWaiverModal').on('shown',function(){
-      $scope.setupModal();
-      //purposefully not wrapping the above changes in $apply so that i can check if its already running first
-      //seems to be some issues with IE throwing error here saying apply is already running
-      if(!$scope.$$phase) {
-        $scope.$apply();
-      }
+      AngularCommon.safeApply($scope, $scope.setupModal);
     });
     
     $scope.setupModal = function() {

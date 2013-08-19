@@ -8,13 +8,16 @@ package com.sonatype.insight.brain.dataaccess.license;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * @since 1.6
@@ -79,5 +82,29 @@ public class LicenseOverrideDAOTest
   @Test
   public void testCRUD_Organization() throws Exception {
     testCRUD(organization.getId());
+  }
+
+  @Test
+  public void testCommentTooLong() throws Exception {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.OPEN,
+        null, StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
+    try {
+      dao.insert(override);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+    }
+    override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE));
+    dao.insert(override);
+    override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
+    try {
+      dao.update(override);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+    }
   }
 }

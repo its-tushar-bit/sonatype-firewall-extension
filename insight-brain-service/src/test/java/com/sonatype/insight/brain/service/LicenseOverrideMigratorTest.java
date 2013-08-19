@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -177,6 +178,35 @@ public class LicenseOverrideMigratorTest
     migrator.migrate();
 
     assertTrue(markerFile.exists());
+  }
+
+  @Test
+  public void testMigrate_ExcessiveComment() throws Exception {
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    organization = new Organization("LicenseOverrideMigratorTest");
+    orgDAO.insert(organization);
+
+    ApplicationDAO appDAO = new ApplicationDAO();
+    application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
+        organization.getId());
+    appDAO.insert(application);
+
+    InsightWork insightWork = createInsightWork();
+    File auditDir = insightWork.getAuditDir("");
+    File appAuditDir = new File(auditDir, application.getId());
+    appAuditDir.mkdirs();
+    assertTrue(appAuditDir.isDirectory());
+    FileUtils.copyURLToFile(getClass().getResource("/LicenseOverrideMigratorTest/licenses_excessive_comment.json"),
+        new File(appAuditDir, "licenses.json"));
+
+    LicenseOverrideMigrator migrator = new LicenseOverrideMigrator(insightWork);
+    migrator.migrate();
+
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    assertThat(licenseOverrideDAO.getByOwnerId(application.getId()), hasSize(1));
+
+    assertLicenseOverride(application.getId(), "commons-pool", "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN,
+        "GPL-3.0", StringUtils.repeat("123456789_", 100));
   }
 
   private InsightWork createInsightWork() throws IOException {

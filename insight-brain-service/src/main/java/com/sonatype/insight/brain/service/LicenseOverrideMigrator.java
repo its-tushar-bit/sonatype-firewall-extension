@@ -159,6 +159,11 @@ public class LicenseOverrideMigrator
           }
           if (isValid) {
             String comment = JsonUtils.getNullableString(licenseAuditChange.get("comment"));
+            if (comment != null && comment.length() > LicenseOverrideDAO.MAX_COMMENT_SIZE) {
+              log.warn("Comment for license override of component {} exceeds maximum length and was truncated: {}",
+                  gav, comment);
+              comment = comment.substring(0, LicenseOverrideDAO.MAX_COMMENT_SIZE);
+            }
             LicenseOverride licenseOverride = new LicenseOverride(applicationId, groupId, artifactId, version, status,
                 licenseOverrideId, comment);
             licenseOverrideDAO.insert(em, licenseOverride);

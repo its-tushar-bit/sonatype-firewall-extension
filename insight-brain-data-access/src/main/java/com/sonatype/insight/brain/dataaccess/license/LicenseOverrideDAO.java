@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.6
@@ -18,6 +19,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 public class LicenseOverrideDAO
     extends AbstractOperationalSqlDAO<LicenseOverride>
 {
+  public static final int MAX_COMMENT_SIZE = 1000;
+
   @Override
   public LicenseOverride getById(String id) {
     String sQuery = "SELECT entity FROM LicenseOverride entity" + //
@@ -45,6 +48,24 @@ public class LicenseOverrideDAO
     }
     finally {
       close(em);
+    }
+  }
+
+  @Override
+  public void insert(EntityManager em, LicenseOverride entity) {
+    validate(entity);
+    super.insert(em, entity);
+  }
+
+  @Override
+  public void update(EntityManager em, LicenseOverride entity) {
+    validate(entity);
+    super.update(em, entity);
+  }
+
+  private void validate(LicenseOverride entity) {
+    if (entity.getComment() != null && entity.getComment().length() > MAX_COMMENT_SIZE) {
+      throw new BadRequestException("Comment length must not exceed " + MAX_COMMENT_SIZE + " characters");
     }
   }
 }

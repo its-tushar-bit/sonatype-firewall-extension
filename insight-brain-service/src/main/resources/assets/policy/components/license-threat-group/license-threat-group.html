@@ -38,7 +38,7 @@
 		<div class='controls'>
 			<input id='licenseGroupEditorName' name='name' type='text'
 				class='input' maxlength='60' ng-model='selectedGroup.name'
-				required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='name'
+				required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
 				placeholder="Enter Name" style='width:248px;'>
 		 <div>
 			<span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>

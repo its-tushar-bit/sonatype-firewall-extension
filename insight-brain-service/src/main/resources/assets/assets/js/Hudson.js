@@ -104,7 +104,7 @@
 				
 				var absUrl = $location.absUrl();
 				//not being run from within the report via hudson, so fix the path so we don't have needless redirects
-				if (absUrl.indexOf('/sonatype-clm-report/') < 0) {
+				if (typeof CLM !== "undefined" && absUrl.indexOf('/sonatype-clm-report/') < 0) { 
 				  argArray[0] = argArray[0].replace(CLM.path,'../../../../../');
 				}
 			  if (!hudson && tested === true) {  

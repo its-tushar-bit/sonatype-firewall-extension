@@ -81,7 +81,6 @@ public class LicenseOverrideResourceTest
     assertResponseStatus(204, response);
 
     // Get
-    response = RestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/applicable/g1/a1/v1");
     licenseOverride = licenseOverrideDAO.getById(licenseOverride.getId());
     assertNull(licenseOverride);
   }

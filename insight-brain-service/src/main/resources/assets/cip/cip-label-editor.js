@@ -90,7 +90,12 @@
       
       $scope.labelOwners = [];
       
-      //purposefully not wrapping the changes in $apply so that i can check if its already running first
+      //purposefully not wrapping the above changes in $apply so that i can check if its already running first
+      //seems to be some issues with IE throwing error here saying apply is already running
+      if(!$scope.$$phase) {
+        $scope.$apply();
+      }
+      
       $http.get(CLM.path + 'rest/label/' + label.ownerType + '/' + label.ownerId + '/applicable/context/' + label.id).success(function(data){
         $scope.labelLoading = false;
         
@@ -111,10 +116,6 @@
         $scope.labelLoading = false;
         $scope.labelAddError = messages.getHttpErrorMessage({ status: status,  data: data });
       });
-      
-      if(!$scope.$$phase) {
-        $scope.$apply();
-      }
     });
     
     //move the dialog onto the body in the dom, so the backdrop shows properly

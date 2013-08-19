@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.policy.conditions.valuetype;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Thin wrapper over the {@link com.sonatype.insight.brain.model.license.LicenseOverrideStatus} enumeration to be able
+ * to serialize it into json as key-value pairs (like: {"id":"OVERRIDDEN","name":"Overridden"}), as expected by the
+ * policy UI.
+ * We could use the @JsonFormat(shape = JsonFormat.Shape.OBJECT) annotation on the enumeration to get the same json
+ * serialization, but that does not allow json de-serialization and the @JsonCreator annotation does not work with
+ * enumerations.
+ * 
+ * @since 1.6
+ */
+public class LicenseOverrideStatus
+{
+  private final static List<LicenseOverrideStatus> all = new ArrayList<LicenseOverrideStatus>();
+
+  static {
+    for (com.sonatype.insight.brain.model.license.LicenseOverrideStatus licenseOverrideStatus : com.sonatype.insight.brain.model.license.LicenseOverrideStatus
+        .values()) {
+      all.add(new LicenseOverrideStatus(licenseOverrideStatus.getId(), licenseOverrideStatus.getName()));
+    }
+  }
+
+  private final String id;
+
+  private final String name;
+
+  private LicenseOverrideStatus(String id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
+  public static List<LicenseOverrideStatus> getAll() {
+    return Collections.unmodifiableList(all);
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String toString() {
+    return id;
+  }
+}

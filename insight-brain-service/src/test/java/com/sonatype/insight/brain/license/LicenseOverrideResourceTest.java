@@ -67,6 +67,7 @@ public class LicenseOverrideResourceTest
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
     assertLicenseOverride(ownerId, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
+    assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
 
     // Get
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
@@ -74,24 +75,26 @@ public class LicenseOverrideResourceTest
     assertLicenseOverride(ownerId, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
 
-    assertAuditLog(ownerId, user, where, licenseOverride);
-
     // Delete
-    response = RestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId());
+    response = RestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId() + "?user="
+        + user + "&where=" + where);
     assertResponseStatus(204, response);
+    assertAuditLog(ownerId, user, where, true /* isDelete */, licenseOverride);
 
     // Get
     licenseOverride = licenseOverrideDAO.getById(licenseOverride.getId());
     assertNull(licenseOverride);
   }
 
-  private void assertAuditLog(String ownerId, String user, String where, LicenseOverride expected) throws Exception {
+  private void assertAuditLog(String ownerId, String user, String where, boolean isDelete, LicenseOverride expected)
+      throws Exception
+  {
     // Verify the license override audit
     File logFile = new File(brain.getAuditDir(ownerId), "licenses.json");
     assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
 
     ArrayNode allLogJsonData = (ArrayNode) JsonUtils.read(logFile);
-    assertEquals(1, allLogJsonData.size());
+    assertTrue(allLogJsonData.size() > 0);
     JsonNode logJsonData = allLogJsonData.get(0);
     assertNotNull(logJsonData);
     assertEquals(user, logJsonData.get("user").asText());
@@ -101,18 +104,24 @@ public class LicenseOverrideResourceTest
     assertEquals(expected.getGroupId(), licenseOverrideAudit.getGroupId());
     assertEquals(expected.getArtifactId(), licenseOverrideAudit.getArtifactId());
     assertEquals(expected.getVersion(), licenseOverrideAudit.getVersion());
-    assertEquals(expected.getStatus().getName(), licenseOverrideAudit.getStatus());
+    if (isDelete) {
+      assertEquals("Deleted", licenseOverrideAudit.getStatus());
+      assertNull(licenseOverrideAudit.getComment());
+    }
+    else {
+      assertEquals(expected.getStatus().getName(), licenseOverrideAudit.getStatus());
+      assertEquals(expected.getComment(), licenseOverrideAudit.getComment());
+    }
     String licenseName = licenseOverrideAudit.getOverriddenLicenses().get(0);
     License license = new LicenseDAO().getByNameNotNull(licenseName);
     assertEquals(expected.getLicenseId(), license.getId());
-    assertEquals(expected.getComment(), licenseOverrideAudit.getComment());
 
     // Verify the BOM audit
     logFile = new File(brain.getAuditDir(ownerId), "bom.json");
     assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
 
     allLogJsonData = (ArrayNode) JsonUtils.read(logFile);
-    assertEquals(1, allLogJsonData.size());
+    assertTrue(allLogJsonData.size() > 0);
     logJsonData = allLogJsonData.get(0);
     assertNotNull(logJsonData);
     assertEquals(user, logJsonData.get("user").asText());
@@ -122,7 +131,7 @@ public class LicenseOverrideResourceTest
     assertEquals(expected.getGroupId(), bomAudit.getGroupId());
     assertEquals(expected.getArtifactId(), bomAudit.getArtifactId());
     assertEquals(expected.getVersion(), bomAudit.getVersion());
-    assertTrue(bomAudit.isModified());
+    assertEquals(!isDelete, bomAudit.isModified());
   }
 
   @Test

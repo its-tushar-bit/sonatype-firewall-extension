@@ -71,28 +71,33 @@ public class LicenseOverrideResource
     new LicenseOverrideDAO().insert(licenseOverride);
 
     String ipAddress = AuditUtils.findIP(request);
-    auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress);
+    auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, false /* isDelete */);
 
     return licenseOverride;
   }
 
   private void auditLicenseOverride(String ownerId, LicenseOverride licenseOverride, String user, String where,
-      String ipAddress) throws IOException
+      String ipAddress, boolean isDelete) throws IOException
   {
     JsonStore store = JsonUtils.fileStore(work.getAuditDir(ownerId));
 
     LicenseOverrideAudit licenseOverrideAudit = new LicenseOverrideAudit(licenseOverride);
+    if (isDelete) {
+      licenseOverrideAudit.setStatus("Deleted");
+      licenseOverrideAudit.setComment(null);
+    }
     store.commit("licenses.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(licenseOverrideAudit)));
 
     BomAudit bomAudit = new BomAudit(licenseOverride.getGroupId(), licenseOverride.getArtifactId(),
-        licenseOverride.getVersion());
+        licenseOverride.getVersion(), !isDelete /* modified */);
     store.commit("bom.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(bomAudit)));
   }
 
   @DELETE
   @Path("{licenseOverrideId}")
   public void deleteLicenseOverride(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("licenseOverrideId") String licenseOverrideId)
+      @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("user") String user,
+      @QueryParam("where") String where, @Context final HttpServletRequest request) throws IOException
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -103,7 +108,8 @@ public class LicenseOverrideResource
           + " id " + ownerId);
     }
 
-    // As of 1.6, the audit cannot record deletions
+    String ipAddress = AuditUtils.findIP(request);
+    auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, true /* isDelete */);
 
     licenseOverrideDAO.delete(licenseOverride);
   }

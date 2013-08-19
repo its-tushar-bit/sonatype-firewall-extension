@@ -17,15 +17,16 @@ public class BomAudit
   private String artifactId;
   private String version;
   private String hash;
-  private boolean modified = true;
+  private boolean modified;
 
   public BomAudit() {
   }
 
-  public BomAudit(String groupId, String artifactId, String version) {
+  public BomAudit(String groupId, String artifactId, String version, boolean modified) {
     this.groupId = groupId;
     this.artifactId = artifactId;
     this.version = version;
+    this.modified = modified;
   }
 
   public String getGroupId() {

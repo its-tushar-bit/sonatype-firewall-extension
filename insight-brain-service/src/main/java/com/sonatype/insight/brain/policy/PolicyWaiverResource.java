@@ -170,10 +170,10 @@ public class PolicyWaiverResource
     Organization organization = new OrganizationDAO().getById(application.getOrganizationId());
     ApplicableContext result = new ApplicableContext(organization.getId(), organization.getName(),
         IdUtils.TYPE_ORGANIZATION);
-    result.children = new ArrayList<ApplicableContext>();
+    result.setChildren(new ArrayList<ApplicableContext>());
     // Currently we need only the application specified by the applicationPublicId. In the future we might need to
     // return all the applications for this organization.
-    result.children.add(new ApplicableContext(applicationId, application.getName(), IdUtils.TYPE_APPLICATION));
+    result.getChildren().add(new ApplicableContext(applicationId, application.getName(), IdUtils.TYPE_APPLICATION));
     return result;
   }
 

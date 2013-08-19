@@ -298,16 +298,16 @@ public class LicenseOverrideResourceTest
     assertResponseStatus(200, response);
     ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
     assertApplicableContext(appPublicId, appName, IdUtils.TYPE_APPLICATION, result);
-    assertNull(result.children);
+    assertNull(result.getChildren());
 
     response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applicable/context/");
     assertResponseStatus(200, response);
     result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
     assertApplicableContext(orgId, orgName, IdUtils.TYPE_ORGANIZATION, result);
-    assertThat(result.children, hasSize(1));
-    result = result.children.get(0);
+    assertThat(result.getChildren(), hasSize(1));
+    result = result.getChildren().get(0);
     assertApplicableContext(appPublicId, appName, IdUtils.TYPE_APPLICATION, result);
-    assertNull(result.children);
+    assertNull(result.getChildren());
   }
 
   private void assertLicenseOverrideByOwner(String ownerId, String ownerName, String ownerType,
@@ -342,8 +342,8 @@ public class LicenseOverrideResourceTest
 
   private void assertApplicableContext(String id, String name, String type, ApplicableContext actual) {
     assertNotNull(actual);
-    assertEquals(id, actual.id);
-    assertEquals(name, actual.name);
-    assertEquals(type, actual.type);
+    assertEquals(id, actual.getId());
+    assertEquals(name, actual.getName());
+    assertEquals(type, actual.getType());
   }
 }

@@ -238,18 +238,18 @@ public class PolicyWaiverResourceTest
     assertResponseStatus(200, response);
     ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
-    assertNotNull(result.children);
-    assertEquals(1, result.children.size());
-    ApplicableContext childContext = result.children.get(0);
+    assertNotNull(result.getChildren());
+    assertEquals(1, result.getChildren().size());
+    ApplicableContext childContext = result.getChildren().get(0);
     assertApplicableContext(application.getId(), application.getName(), "application", childContext);
-    assertNull(childContext.children);
+    assertNull(childContext.getChildren());
   }
 
   private void assertApplicableContext(String id, String name, String type, ApplicableContext actual) {
     assertNotNull(actual);
-    assertEquals(id, actual.id);
-    assertEquals(name, actual.name);
-    assertEquals(type, actual.type);
+    assertEquals(id, actual.getId());
+    assertEquals(name, actual.getName());
+    assertEquals(type, actual.getType());
   }
 
   private Policy createPolicy(String ownerType, String ownerId) throws Exception {

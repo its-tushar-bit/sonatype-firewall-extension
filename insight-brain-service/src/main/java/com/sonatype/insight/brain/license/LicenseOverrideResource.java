@@ -171,10 +171,10 @@ public class LicenseOverrideResource
     Organization organization = new OrganizationDAO().getByIdNotNull(ownerId);
     ApplicableContext result = new ApplicableContext(organization.getId(), organization.getName(),
         IdUtils.TYPE_ORGANIZATION);
-    result.children = new ArrayList<ApplicableContext>();
+    result.setChildren(new ArrayList<ApplicableContext>());
     for (Application application : applicationDAO.getByOrganizationId(organization.getId())) {
-      result.children.add(new ApplicableContext(application.getPublicId(), application.getName(),
-          IdUtils.TYPE_APPLICATION));
+      result.getChildren().add(
+          new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION));
     }
     return result;
   }

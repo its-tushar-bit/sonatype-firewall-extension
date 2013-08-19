@@ -29,7 +29,7 @@ public class LandingResource
   @GET
   public Response home() {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html");
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html");
     return Response.seeOther(uriBuilder.build()).build();
   }
 }

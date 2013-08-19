@@ -8,9 +8,9 @@
 (function () {
     'use strict';
 
-    var module = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation' ]);
+    var module = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation', 'Hudson' ]);
 
-    module.controller('ProductLicenseController', [ '$http', '$scope', 'CLMLocations', function ($http, $scope, clmLocations) {
+    module.controller('ProductLicenseController', [ '$http', 'hudson', '$scope', 'CLMLocations', function ($http, hudson, $scope, clmLocations) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -101,7 +101,7 @@
         };
         
         $scope.uninstallLicense = function () {
-            $http['delete']($scope.uploadUrl).success(function (data) {
+            hudson['delete']($scope.uploadUrl).success(function (data) {
                 $('#licenseUninstallConfirmationModal').modal('hide');
                 $('#licenseUninstalledModal').modal('show');
                 setTimeout($scope.reload, 5000);

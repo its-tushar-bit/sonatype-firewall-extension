@@ -123,7 +123,7 @@
 	}]);
 	
 	//the remove controller, controlling the remove modal
-	labelsApp.controller('LabelRemoveController', ['$scope', '$http', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages', function($scope, $http, currentLabelData, componentLabelEditorGAV, messages){
+	labelsApp.controller('LabelRemoveController', ['$scope', '$http', 'hudson', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages', function($scope, $http, hudson, currentLabelData, componentLabelEditorGAV, messages){
     //decline to remove, just dump the dialog
 	  $scope.decline = function() {
       $('#labelRemoveModal').modal('hide');
@@ -136,7 +136,7 @@
       
       var label = currentLabelData.get();
       
-      $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' + componentLabelEditorGAV.hash + '/' + label.id).success(function(responseData){
+      hudson['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' + componentLabelEditorGAV.hash + '/' + label.id).success(function(responseData){
         $scope.labelDeleting = false;
         $('#labelRemoveModal').modal('hide');
       }).error(function(data, status, headersFn, config){

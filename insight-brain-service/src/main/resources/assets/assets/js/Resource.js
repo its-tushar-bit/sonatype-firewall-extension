@@ -247,7 +247,7 @@
 					}).error(getErrorFn(deferred));
 				} else {
 					// Update to existing object
-					$http.put(config.url, this, { params : config.params }).success(function (data) {
+					hudson.put(config.url, this, { params : config.params }).success(function (data) {
 						var properties = [],
 							promises = [],
 							resourcesToUpdate = [me];
@@ -295,7 +295,7 @@
 				index = -1;
 
 				if (id !== null && angular.isDefined(id)) {
-					$http['delete'](url, this, { params : config.params }).success(function () {
+					hudson['delete'](url, this, { params : config.params }).success(function () {
 						// remove from store
 						angular.forEach(store, function (candidate, candidateIndex) {
 							if (candidate[config.id] === id) {
@@ -371,7 +371,7 @@
 					var relationalIDValue = $parse(me.config.id)(me[i]);
 					relationalIDs.push(relationalIDValue);
 				}
-				$http.put(me.config.url, relationalIDs, { params : me.config.params }).success(function(data) {
+				hudson.put(me.config.url, relationalIDs, { params : me.config.params }).success(function(data) {
 					me.$updateOriginal(data);
 					deferred.resolve(me);
 				}).error(getErrorFn(deferred));

@@ -17,7 +17,7 @@
         }
     }
 
-    var module = angular.module('Configuration', ['ListEditor','ui.compat', 'ManagementModule', 'ProductLicense'], ['$stateProvider', function ($stateProvider) {
+    var module = angular.module('Configuration', ['ListEditor','ui.compat', 'ManagementModule', 'ProductLicense', 'Hudson'], ['$stateProvider', function ($stateProvider) {
       $stateProvider.state('management.configuration', {
         parent : 'management',
         url : '/configuration',
@@ -73,7 +73,7 @@
       }
     }]);
 
-    module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, clmLocations) {
+    module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
         var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$'); 
 
         $scope.doLoad = function () {
@@ -90,7 +90,7 @@
 
             $scope.saving = true;
 
-            $http.put(clmLocations.getProprietaryConfig(), proprietary).success(function () {
+            hudson.put(clmLocations.getProprietaryConfig(), proprietary).success(function () {
                 $scope.saving = false;
                 $scope.proprietary = proprietary;
                 $scope.reset();

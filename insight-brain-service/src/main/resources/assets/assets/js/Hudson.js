@@ -30,8 +30,16 @@
 				complete();
 			});
 	}
+	
+	function swapBasePath(path, $location) {
+    //not being run from within the report via hudson, so fix the path so we don't have needless redirects
+    if (typeof CLM !== "undefined" && $location.absUrl().indexOf('/sonatype-clm-report/') < 0) { 
+      return path.replace(CLM.path,'../../../../../');
+    }
+    return path;
+  }
 
-	function wrap($http, method, args, baseUrl) {
+	function wrap($http, method, args, baseUrl, $location) {
 		var success = [],
 			error = [],
 			result = {
@@ -61,6 +69,8 @@
 				} else {
 					args[2] = angular.extend(config, args[2]);
 				}
+				
+				args[0] = swapBasePath(args[0], $location);
 
 				method(args[0], args[1], args[2]).success(function () {
 					iter(success, this, arguments);
@@ -94,7 +104,26 @@
 		if (tested === null) {
 			startTest($http, baseUrl);
 		}
+		function passThrough(args, method) {
+		  //note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
+      var argArray = [], i;
+      for (i = 0; i < args.length; i++) {
+        argArray.push(args[i]);
+      }
+      
+      argArray[0] = swapBasePath(argArray[0], $location);
+      return $http[method].apply($http, argArray);
+		}
 		return {
+		  put: function () {
+		    return passThrough(arguments, 'put');
+		  },
+		  'delete': function () {
+		    return passThrough(arguments, 'delete');
+		  },
+		  'get': function () {
+		    return passThrough(arguments, 'get');
+		  },
 			post: function () {
 				//note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
 				var argArray = [], i;
@@ -102,15 +131,11 @@
 					argArray.push(arguments[i]);
 				}
 				
-				var absUrl = $location.absUrl();
-				//not being run from within the report via hudson, so fix the path so we don't have needless redirects
-				if (typeof CLM !== "undefined" && absUrl.indexOf('/sonatype-clm-report/') < 0) { 
-				  argArray[0] = argArray[0].replace(CLM.path,'../../../../../');
-				}
 			  if (!hudson && tested === true) {  
+			    argArray[0] = swapBasePath(argArray[0], $location);
 					return $http.post.apply($http, argArray);
 				}
-				return wrap($http, $http.post, argArray, baseUrl);
+				return wrap($http, $http.post, argArray, baseUrl, $location);
 			},
 			xhrPost: function () {
 				var xhr = new XMLHttpRequest();
@@ -122,9 +147,10 @@
 							argArray.push(arguments[i]);
 						}
 						if (!hudson && tested === true) {
+						  argArray[0] = swapBasePath(argArray[0], $location);
 							return xhr.send.apply(xhr, argArray);
 						}
-						return wrap($http, xhr.send, argArray, baseUrl);
+						return wrap($http, xhr.send, argArray, baseUrl, $location);
 					}
 				};
 			},
@@ -134,6 +160,7 @@
 					// apply necessary multi form properties
 					if (i === 0) {
 						var argument = arguments[i];
+						argument.url = swapBasePath(argument.url, $location);
 						argument.cache = false;
 						argument.contentType = false;
 						argument.processData = false;
@@ -144,7 +171,7 @@
 				if (!hudson && tested === true) {
 					return jQuery.ajax.apply(jQuery, argArray);
 				}
-				return wrap($http, jQuery.ajax, argArray, baseUrl);
+				return wrap($http, jQuery.ajax, argArray, baseUrl, $location);
 			}
 		};
 	}]);

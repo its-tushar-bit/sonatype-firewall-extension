@@ -26,7 +26,6 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.model.Application;
@@ -153,29 +152,6 @@ public class LicenseOverrideResource
       result.licenseOverridesByOwner.add(licenseOverrideByOwner);
     }
 
-    return result;
-  }
-
-  @GET
-  @Path("applicable/context")
-  @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableContext getApplicableContexts(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId)
-  {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application application = applicationDAO.getByPublicIdNotNull(ownerId);
-      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
-    }
-
-    Organization organization = new OrganizationDAO().getByIdNotNull(ownerId);
-    ApplicableContext result = new ApplicableContext(organization.getId(), organization.getName(),
-        IdUtils.TYPE_ORGANIZATION);
-    result.setChildren(new ArrayList<ApplicableContext>());
-    for (Application application : applicationDAO.getByOrganizationId(organization.getId())) {
-      result.getChildren().add(
-          new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION));
-    }
     return result;
   }
 

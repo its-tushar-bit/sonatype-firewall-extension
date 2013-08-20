@@ -9,7 +9,6 @@ import java.io.File;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.license.LicenseOverrideResource.AppliedLicenseOverrides;
@@ -284,32 +283,6 @@ public class LicenseOverrideResourceTest
     licenseOverride = licenseOverrideDAO.getById(licenseOverride.getId());
   }
 
-  @Test
-  public void testGetApplicableContexts() throws Exception {
-    // Create an organization and an application
-    String orgName = "testGetApplicableContexts";
-    Organization organization = createOrganization(orgName);
-    String orgId = organization.getId();
-    String appName = "testGetApplicableContexts";
-    String appPublicId = "testGetApplicableContexts";
-    createApplication(appPublicId, appPublicId, organization);
-
-    Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applicable/context/");
-    assertResponseStatus(200, response);
-    ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
-    assertApplicableContext(appPublicId, appName, IdUtils.TYPE_APPLICATION, result);
-    assertNull(result.getChildren());
-
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applicable/context/");
-    assertResponseStatus(200, response);
-    result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
-    assertApplicableContext(orgId, orgName, IdUtils.TYPE_ORGANIZATION, result);
-    assertThat(result.getChildren(), hasSize(1));
-    result = result.getChildren().get(0);
-    assertApplicableContext(appPublicId, appName, IdUtils.TYPE_APPLICATION, result);
-    assertNull(result.getChildren());
-  }
-
   private void assertLicenseOverrideByOwner(String ownerId, String ownerName, String ownerType,
       boolean hasLicenseOverride, LicenseOverrideByOwner actual)
   {
@@ -338,12 +311,5 @@ public class LicenseOverrideResourceTest
     assertEquals(status, actual.getStatus());
     assertEquals(licenseId, actual.getLicenseId());
     assertEquals(comment, actual.getComment());
-  }
-
-  private void assertApplicableContext(String id, String name, String type, ApplicableContext actual) {
-    assertNotNull(actual);
-    assertEquals(id, actual.getId());
-    assertEquals(name, actual.getName());
-    assertEquals(type, actual.getType());
   }
 }

@@ -119,7 +119,7 @@
 	policyViolationApp.controller('AddWaiverController', [ 'hudson', '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData', function(hudson, $http, $scope, policyViolationData, messages, currentPolicyData) {
     //after dialog is shown, make sure to apply the angular stuff
     $('#componentAddWaiverModal').on('shown',function(){
-      AngularCommon.safeApply($scope, $scope.setupModal);
+      AngularUtils.safeApply($scope, $scope.setupModal);
     });
     
     $scope.setupModal = function() {

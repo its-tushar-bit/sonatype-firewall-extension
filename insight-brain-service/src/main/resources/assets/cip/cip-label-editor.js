@@ -81,7 +81,7 @@
     
     //after dialog is shown, make sure to apply the angular stuff
     $('#labelAssignScopeModal').on('shown',function(){
-      AngularCommon.safeApply($scope, function(){
+      AngularUtils.safeApply($scope, function(){
         $scope.labelLoading = true;
         $scope.labelAddError = null;
         var label = currentLabelData.get();
@@ -142,7 +142,7 @@
     };
     
     $('#labelAssignScopeModal').on('shown',function(){
-      AngularCommon.safeApply($scope, function(){
+      AngularUtils.safeApply($scope, function(){
         $scope.labelRemoveError = null;  
       });
     });

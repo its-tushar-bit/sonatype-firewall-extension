@@ -14,10 +14,10 @@
 				<ul class="nav nav-list" id="licenseList">
 					<li class="nav-header">Declared Licenses</li>
 					<li class="license" ng-repeat='licenseId in component.declaredLicenseIds'>
-						<img src="public/blue.png"> {{licenses[licenseId].longDisplayName}}</li>
+						<img src="public/blue.png"> {{licenses[licenseId].shortDisplayName}}</li>
 					<li class="divider"></li><li class="nav-header">Observed Licenses</li>
 					<li class="license" ng-repeat='licenseId in component.observedLicenseIds'>
-						<img src="public/blue.png"> {{licenses[licenseId].longDisplayName}}</li>
+						<img src="public/blue.png"> {{licenses[licenseId].shortDisplayName}}</li>
 				</ul>
 			</div>
 			<div class="well" style="width:595px">
@@ -25,7 +25,7 @@
 					<div class="control-group">
 						<label class="control-label">Scope</label>
 						<div class="controls">
-							<select ng-model='selectedScope'
+							<select ng-model='override.scope'
 									ng-options='scope.ownerName for scope in hierarchy'
 									required>
 							</select>
@@ -34,7 +34,7 @@
 					<div class="control-group">
 						<label class="control-label" for="licenseselect1376501760921">Status</label>
 						<div class="controls" style="text-align:left;">
-							<select ng-model='savedState.status'
+							<select ng-model='override.status'
 									ng-options='status.value as status.label for status in statuses'
 									required>
 							</select>
@@ -43,16 +43,15 @@
 					<div class="control-group">
 						<label class="control-label" for="license1376501760921">License</label>
 						<div class="controls" style="text-align:left;">
-							<span ng-switch='savedState.status'>
+							<span ng-switch='override.status'>
 								<select ng-switch-when='Selected'
-										ng-model='savedState.licenseId'
-										ng-options='id as license.longDisplayName for (id, license) in selectableLicenses'
+										ng-model='override.licenseId'
+										ng-options='id as license.shortDisplayName for (id, license) in selectableLicenses'
 										required>
 								</select>
 								<select ng-switch-when='Overridden'
-										ng-model='savedState.licenseId'
-										ng-options='id as license.longDisplayName for (id, license) in licenses'
-										ng-disabled="savedState.status != 'Overridden'"
+										ng-model='override.licenseId'
+										ng-options='id as license.shortDisplayName for (id, license) in licenses'
 										required>
 								</select>
 							</span>
@@ -61,7 +60,7 @@
 					<div class="control-group">
 						<label class="control-label" for="comment1376501760921">Comment</label>
 						<div class="controls">
-							<textarea ng-model='savedState.comment' class="input-xlarge" id="comment1376501760921" rows="3" style="padding:0px;height:62px"></textarea>
+							<textarea ng-model='override.comment' class="input-xlarge" id="comment1376501760921" rows="3" style="padding:0px;height:62px"></textarea>
 						</div>
 					</div>
 					<div class="controls" style="text-align:right">

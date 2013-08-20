@@ -116,68 +116,78 @@
 
 			$scope.save = function () {
 				$scope.saving = true;
+
 				var licenseOverride = {
-					artifactId : SelectedComponent.artifactId,
-					groupId : SelectedComponent.groupId,
-					version : SelectedComponent.version,
-					status : savedState.status,
-					comment : savedState.comment,
-					overriddenLicenses : []
-				};
-				if (savedState.status === 'Overridden' || savedState.status === 'Selected') {
-					licenseOverride.overriddenLicenses.push(savedState.licenseId);
+						id : null,
+						ownerId : null,
+						artifactId : SelectedComponent.artifactId,
+						groupId : SelectedComponent.groupId,
+						version : SelectedComponent.version,
+						status : $scope.override.status.toUpperCase(),
+						licenseId : null,
+						comment : $scope.override.comment
+					},
+					owner = null;
+
+				// Only set license for Override or Select states 
+				if (licenseOverride.status === 'Overridden' || licenseOverride.status === 'Selected') {
+					licenseOverride.overriddenLicenses.push($scope.licenseId);
 				}
-				hudson.post(CLM.path + 'rest/licenseOverride/' + savedState.scope.type + '/' + savedState.scope.id, licenseOverride).success(function () {
+
+				// Find owner
+				for (var i=0; i<$scope.hierarchy.length; i++) {
+					if ($scope.hierarchy[i].ownerId === $scope.override.scope.ownerId) {
+						owner = $scope.hierarchy[i];
+						break;
+					}
+				}
+				licenseOverride.ownerId = owner.ownerId;
+
+				hudson.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId, licenseOverride).success(function (data) {
 					$scope.saving = false;
-					savedState = angular.copy($scope.currentLicense);
+					for (var i=0; i<$scope.hierarchy.length; i++) {
+						if ($scope.hierarchy[i].ownerId === data.ownerId) {
+							$scope.hierarchy[i].licenseOverride = data;
+							break;
+						}
+					}
+					$scope.reset();
 				}).error(function () {
 					$scope.alert = Messages.getHttpErrorMessage(arguments);
 					$scope.saving = false;
 				});
 			};
 
-			$scope.$watch('selectedScope', function (val) {
-				if (val && $scope.savedState) {
-					$scope.savedState.ownerId = val.ownerId;
-					$scope.savedState.ownerType = val.ownerType;
-				}
-			});
 			$scope.reset = function () {
+				$scope.override = {
+					status : null,
+					scope : null,
+					licenseId : null
+				};
 				if (savedState && savedState.licenseOverridesByOwner) {
 					for (var i=0; i<savedState.licenseOverridesByOwner.length; i++) {
 						if (savedState.licenseOverridesByOwner[i].licenseOverride) {
-							$scope.savedState = angular.copy(savedState.licenseOverridesByOwner[i].licenseOverride);
-							$scope.savedState.comment = '';
+							$scope.override.status = savedState.licenseOverridesByOwner[i].licenseOverride.status;
+							$scope.override.scope = savedState.licenseOverridesByOwner[i].ownerId;
+
+							if ($scope.override.scope === 'Overridden' || $scope.override.scope === 'Selected') {
+								$scope.override.licenseId = savedState.licenseOverridesByOwner[i].licenseOverride.licenseId;
+							} else {
+								$scope.override.licenseId = null;
+							}
 							return;
 						}
 					}
 				}
-				$scope.savedState = {
-					ownerId : null,
-					ownerType : null,
-					licenseOverride : {
-						groupId : SelectedComponent.groupId,
-						artifactId : SelectedComponent.artifactId,
-						version :  SelectedComponent.version,
-						ownerId : null,
-						status : null,
-						licenseId : null,
-						comment : ''
-					}
-				};
 			};
 
 			$scope.statuses = [ { value : 'Open', label : 'Open' }, { value : 'Acknowledged', label : 'Acknowledged' },
 								{ value : 'Overridden', label : 'Overridden' }, { value : 'Selected', label : 'Selected' },
 								{ value : 'Confirmed', label : 'Confirmed' }];
 
-			$scope.$watch('savedState.status', function (val) {
-				if (!$scope.savedState) {
-					return;
-				}
-				if (val === null || val === 'Open' || val === 'Selected') {
-				} else {
-					$scope.savedState.licenseId = null;
+			$scope.$watch('status', function (val) {
+				if (val !== null && val !== 'Open' && val !== 'Selected') {
+					$scope.licenseId = null;
 				}
 			});
 

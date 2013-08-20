@@ -28,8 +28,8 @@
 	<script src='js/Resource.js?${build.timestamp}'></script>
 	<script src='js/Hudson.js?${build.timestamp}'></script>
 	<script src='DashboardModule.js?${build.timestamp}'></script>
+    <script src='ReportApp.js?${build.timestamp}'></script>
 	<script src='../application-assets/ReportController.js?${build.timestamp}'></script>
-	<script src='ReportApp.js?${build.timestamp}'></script>
 </head>
 <body ng-controller='dashboardController'>
 	<div class="first-row navbar navbar-fixed-top">
@@ -59,7 +59,7 @@
 		<div class="third-row" ui-view>
 		</div>
 	</div>
-	<div ng-show='error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>
+	<div ng-show='licenseChecked && error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>
 		<h3>Error</h3>
 		<p>An unrecoverable error has occurred while loading the page.</p>
 		<p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>

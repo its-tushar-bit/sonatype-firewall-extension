@@ -37,7 +37,7 @@
 	}]).run(['$rootScope', '$location', 'Messages', 'licenseChecker', function ($rootScope, $location, messages, licenseChecker) {
 
 		$rootScope.forcedRedirect = null;
-		licenseChecker.check(function() {
+		licenseChecker.check().then(null, function() {
 			$rootScope.forcedRedirect = '/management/configuration/productlicense';
 			$location.path($rootScope.forcedRedirect);
 		});
@@ -142,16 +142,21 @@
 		switchDashboard();
 	});
 
-	dashboardApp.service('licenseChecker', function ($http, CLMLocations) {
-		return {
-			check: function(unlicensed) {
-				return $http.get(CLMLocations.getLicenseSummaryUrl()).error(function(data, status) {
-					if (status === 402) {
-						unlicensed();
-					}
-				});
-			}
-		};
-	});
-
+  dashboardApp.service('licenseChecker', ['$http', '$q', 'CLMLocations', function ($http, $q, CLMLocations) {
+    return {
+      check: function() {
+        var deferred = $q.defer();
+        $http.get(CLMLocations.getLicenseSummaryUrl()).success(function() {
+          deferred.resolve();
+        }).error(function(data, status) {
+              if (status === 402) {
+                deferred.reject();
+              } else {
+                deferred.resolve();
+              }
+            });
+        return deferred.promise;
+      }
+    };
+  }]);
 }());

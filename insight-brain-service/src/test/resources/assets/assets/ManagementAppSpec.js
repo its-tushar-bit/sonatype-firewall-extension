@@ -1,19 +1,28 @@
 describe('dashboardApp', function () {
-	var scope, state;
+	var scope, state, licenseCheckedSpy;
 
 	beforeEach(module('DashboardModule'));
 	beforeEach(module(function($provide) {
-		$provide.value('licenseChecker', { check : function(){} });
-	}));
+    licenseCheckedSpy = jasmine.createSpy('then');
+		$provide.value('licenseChecker', {
+      check : function() {
+        return {
+          then: licenseCheckedSpy
+        }
+      }
+    });
+  }));
 	afterEach(function () {
 		scope.$destroy();
 	});
 	beforeEach(inject(function ($rootScope, $state, $controller, $httpBackend) {
+    expect(licenseCheckedSpy).toHaveBeenCalled();
+
 		scope = $rootScope.$new();
 		state = $state;
-		
+
 		$controller('dashboardController', { $scope: scope, $state: state });
-		
+
 		$httpBackend.expectGET('../assets/management.html').respond('<div></div>');
 		$httpBackend.expectGET('../application-assets/components/application-navigator.html').respond('<div></div>');
 	

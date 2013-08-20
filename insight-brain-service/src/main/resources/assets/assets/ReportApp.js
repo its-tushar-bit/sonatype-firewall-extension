@@ -14,13 +14,21 @@
 (function () {
 	'use strict';
 
-	var reportModule = angular.module('ReportList', ['ui.compat', 'AngularCommon'], ['$stateProvider', function ($stateProvider) {
+	var reportModule = angular.module('ReportList', ['ui.compat', 'AngularCommon', 'DashboardModule', 'CLMLocation'], ['$stateProvider', function ($stateProvider) {
 		$stateProvider.state('reports', {
 			url : '/reports',
 			templateUrl : '../assets/components/report-list.html?' + clmBuildTimestamp,
 			controller : 'ReportListController'
 		});
-	}]);
+	}]).run(['$rootScope', 'licenseChecker', function($rootScope, licenseChecker) {
+    $rootScope.licenseChecked = false;
+    licenseChecker.check().then(function() {
+      $rootScope.licenseChecked = true;
+    }, function() {
+      $rootScope.licenseChecked = true;
+      window.location = 'index.html#/management/configuration/productlicense';
+    });
+  }]);
 
 	reportModule.controller('ReportListController', ['$scope', '$http', '$q', 'CLMLocations', function ($scope, $http, $q, clmLocations) {
 		$scope.doLoad = function () {

@@ -12,7 +12,7 @@ var InsightDatatable = {
 };
 
 describe('CIP Policy Waiver tests', function() {
-    var scope, $http;
+    var _scope, _addScope, _viewScope;
 
     beforeEach(module('PolicyViolations', function($provide) {
       $provide.factory('hudson', ['$http', function($http){
@@ -20,12 +20,9 @@ describe('CIP Policy Waiver tests', function() {
       }]);
     }));
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend,$location) {
-        $http = $httpBackend;
-        scope = $rootScope.$new();
-        //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
-        $location.url('/sonatype-clm-report/');
-        $http.whenGET(SpecUtil.toRegExp('policyalerts.json')).respond({
+    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+        _scope = $rootScope.$new();
+        $httpBackend.expectGET(SpecUtil.toRegExp('policyalerts.json')).respond({
             aaData : [ {
                 trigger : {
                     policyId : "policyId",
@@ -55,24 +52,47 @@ describe('CIP Policy Waiver tests', function() {
                 actions : []
             } ]
         });
-        $http.whenGET('../brain/rest/policy/actionType').respond({});
+        $httpBackend.expectGET('../brain/rest/policy/actionType').respond({});
         $controller('PolicyViolationsController', {
-            $scope : scope,
+            $scope : _scope,
             global : {},
             PolicyViolationData : {
                 hash : "1",
                 appId : "appId"
             }
         });
-        $http.flush();
+        _addScope = _scope.$new();
+        $controller('AddWaiverController', {
+          $scope : _addScope,
+          PolicyViolationData : {
+            hash : "1",
+            appId : "appId"
+          }
+        });
+        _viewScope = _scope.$new();
+        $controller('ViewWaiverController', {
+          $scope: _viewScope,
+          global : {},
+          PolicyViolationData : {
+              hash : "1",
+              appId : "appId"
+          }
+        });
+        $httpBackend.flush();
     }));
 
     afterEach(inject(function($httpBackend) {
         $httpBackend.verifyNoOutstandingExpectation();
     }));
+    
+    afterEach(function(){
+      _scope.$destroy();
+      _addScope.$destroy();
+      _viewScope.$destroy();
+    });
 
-    it('Test waive policy at org level', function() {
-      $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+    it('Test waive policy at org level', inject(function($httpBackend) {
+      $httpBackend.expectGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',
@@ -84,28 +104,28 @@ describe('CIP Policy Waiver tests', function() {
           }]
         });
 
-        scope.waiveComponent({
-            id : 'policyId'
+        _scope.waiveComponent({
+          id: 'policyId'
         });
+        _addScope.setupModal();
+        $httpBackend.flush();
 
-        $http.flush();
+        _addScope.waiver.selectedTarget = 'orgId$$organization';
+        _addScope.waiverComment = 'this is my comment!';
 
-        scope.waiver.selectedTarget = 'orgId$$organization';
-        scope.waiverComment = 'this is my comment!';
-
-        $http.whenPOST('../brain/rest/policyWaiver/organization/orgId', {
+        $httpBackend.expectPOST('../brain/rest/policyWaiver/organization/orgId', {
             hash : "1",
             policyId : "policyId",
             comment : "this is my comment!"
         }).respond({});
 
-        scope.acceptWaiveComponent();
+        _addScope.acceptWaiveComponent();
 
-        $http.flush();
-    });
+        $httpBackend.flush();
+    }));
 
-    it('Test waive policy at app level', function() {
-      $http.whenGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+    it('Test waive policy at app level', inject(function($httpBackend) {
+      $httpBackend.expectGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
             id : 'orgId',
             name : 'org',
             type : 'organization',
@@ -117,23 +137,86 @@ describe('CIP Policy Waiver tests', function() {
           }]
         });
 
-        scope.waiveComponent({
-            id : 'policyId'
+        _scope.waiveComponent({
+          id: 'policyId'
         });
+        _addScope.setupModal();
+        $httpBackend.flush();
 
-        $http.flush();
+        _addScope.waiver.selectedTarget = 'appId$$application';
+        _addScope.waiverComment = 'this is my comment!';
 
-        scope.waiver.selectedTarget = 'appId$$application';
-        scope.waiverComment = 'this is my comment!';
-
-        $http.whenPOST('../brain/rest/policyWaiver/application/appId', {
+        $httpBackend.expectPOST('../brain/rest/policyWaiver/application/appId', {
             hash : "1",
             policyId : "policyId",
             comment : "this is my comment!"
         }).respond({});
 
-        scope.acceptWaiveComponent();
+        _addScope.acceptWaiveComponent();
 
-        $http.flush();
-    });
+        $httpBackend.flush();
+    }));
+    
+    it('Validate data in scope', inject(function($httpBackend) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1')).respond({
+        waiversByOwner: [{
+          ownerId: "appId",
+          ownerName: "ownerName",
+          ownerType: "application",
+          waivers: [{
+            id: "id",
+            hash: "1234",
+            policyId: "policyId",
+            policyName: "policyName",
+            constraintId: null,
+            ownerId: "appId",
+            comment: "some comment",
+            createTime: 1375366539817
+          }]
+        }]
+      });
+      _viewScope.setupModal();
+      $httpBackend.flush();
+      
+      expect(_viewScope.waivers.length).toEqual(1);
+      expect(_viewScope.waivers[0].id).toEqual("id");
+      expect(_viewScope.waivers[0].hash).toEqual("1234");
+      expect(_viewScope.waivers[0].policyId).toEqual("policyId");
+      expect(_viewScope.waivers[0].policyName).toEqual("policyName");
+      expect(_viewScope.waivers[0].constraintId).toEqual(null);
+      expect(_viewScope.waivers[0].ownerId).toEqual("appId");
+      expect(_viewScope.waivers[0].comment).toEqual("some comment");
+      expect(_viewScope.waivers[0].createTime).toEqual(1375366539817);
+    }));
+
+    it('Validate delete waiver', inject(function($httpBackend) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1')).respond({
+        waiversByOwner: [{
+          ownerId: "appId",
+          ownerName: "ownerName",
+          ownerType: "application",
+          waivers: [{
+            id: "id",
+            hash: "1234",
+            policyId: "policyId",
+            policyName: "policyName",
+            constraintId: null,
+            ownerId: "appId",
+            comment: "some comment",
+            createTime: 1375366539817
+          }]
+        }]
+      });
+      _viewScope.setupModal();
+      $httpBackend.flush();
+      
+      $httpBackend.expectDELETE(CLM.path + 'rest/policyWaiver/application/appId/id').respond(200);
+      _viewScope.remove(_viewScope.waivers[0]);
+      expect(_viewScope.confirmDelete).toEqual(_viewScope.waivers[0]);
+
+      _viewScope.removeWaiver();
+      $httpBackend.flush();
+      expect(_viewScope.confirmDelete).toEqual(null);
+      expect(_viewScope.waivers.length).toEqual(0);
+    }));
 });

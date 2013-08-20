@@ -4,6 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, window, $ */
+
+//global function
+var AngularUtils = {
+  safeApply: function(scope, fn){
+    if (scope.$$phase || scope.$root.$$phase) {
+      //already apply in progress, just call the function
+      fn();
+    } else {
+      //otherwise wrap the function in apply
+      scope.$apply(fn);
+    }
+  }
+};
 (function () {
 	"use strict";
 

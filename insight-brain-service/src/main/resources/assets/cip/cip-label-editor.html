@@ -47,15 +47,15 @@
 	<div id="labelRemoveModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelRemoveController">
 		<div class="modal-header">
 			<button type="button" class="close" ng-click="declineRemoveLabel()" aria-hidden="true">&times;</button>
-			<h3>Label Removal</h3>
+			<h3>Remove Label</h3>
 		</div>
 		<div class="modal-body">
 			Are you sure you want to remove this label?
 		</div>
 		<div class="modal-footer">
 			<span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
-			<button type='button' class="btn" ng-click="decline()" ng-disabled="labelDeleting">No</button>
-			<button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelDeleting">Yes</button>
+			<button type='button' class="btn" ng-click="decline()" ng-disabled="labelDeleting">Cancel</button>
+			<button type='button' class="btn btn-danger" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
 		</div>
 	</div>
 </div>

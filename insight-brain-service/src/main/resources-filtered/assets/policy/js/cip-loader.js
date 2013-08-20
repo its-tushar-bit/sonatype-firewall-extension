@@ -29,16 +29,35 @@
 		}
 	}
 
+	function createApplicationIdProvider() {
+		angular.module('ApplicationIdProvider', []).service('ApplicationId', function () {
+			// TODO Are ui-router parameters encoded or decoded?
+			return {
+				encoded: function () {
+					return applicationId;
+				}
+			};
+		}).service('OrganizationId', function () {
+			return {
+				encoded : function () {
+					return null;
+				}
+			};
+		});
+	}
+
     var head = $('head'),
-        scripts = [ 'assets/lib/datepicker/bootstrap-datepicker.js', 'cip/cip-label-editor.js', 'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-component-info-extensions.js', 'assets/js/Hudson.js', 'assets/util/AngularCommon.js' ],
-        styles = [ 'assets/lib/datepicker/datepicker.css', 'cip/cip-label-editor.css', 'cip/cip-policy-violations.css', 'cip/cip-claim-component.css' ],
+        scripts = [ 'assets/lib/datepicker/bootstrap-datepicker.js', 'cip/cip-label-editor.js', 'cip/cip-license-editor.js', 'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-component-info-extensions.js', 'assets/js/Hudson.js', 'assets/util/AngularCommon.js' ],
+        styles = [ 'assets/lib/datepicker/datepicker.css', 'cip/cip-label-editor.css', 'cip/cip-policy-violations.css', 'cip/cip-claim-component.css', 'cip/cip-license-editor.css'],
         clmBuildTimestamp = '${build.timestamp}';
 
 	if (!window.angular) {
 		loadScript(null, 'assets/lib/angular/angular-${angularjs.version}.min.js', function () {
+			createApplicationIdProvider();
 			$.each(scripts, loadScript);
 		});
 	} else {
+		createApplicationIdProvider();
 		$.each(scripts, loadScript);
 	}
 

@@ -25,8 +25,8 @@
 					<div class="control-group">
 						<label class="control-label">Scope</label>
 						<div class="controls">
-							<select ng-model='savedState.scope'
-									ng-options='scope.name for scope in hierarchy'
+							<select ng-model='selectedScope'
+									ng-options='scope.ownerName for scope in hierarchy'
 									required>
 							</select>
 						</div>
@@ -41,7 +41,7 @@
 						</div>
 					</div>
 					<div class="control-group">
-						<label class="control-label" for="license1376501760921">License(s)</label>
+						<label class="control-label" for="license1376501760921">License</label>
 						<div class="controls" style="text-align:left;">
 							<span ng-switch='savedState.status'>
 								<select ng-switch-when='Selected'
@@ -49,7 +49,7 @@
 										ng-options='id as license.longDisplayName for (id, license) in selectableLicenses'
 										required>
 								</select>
-								<select ng-switch-default
+								<select ng-switch-when='Overridden'
 										ng-model='savedState.licenseId'
 										ng-options='id as license.longDisplayName for (id, license) in licenses'
 										ng-disabled="savedState.status != 'Overridden'"

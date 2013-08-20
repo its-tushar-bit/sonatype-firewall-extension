@@ -1,3 +1,10 @@
+/**
+ * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved. Includes the
+ * third-party code listed at
+ * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
+ * trademark of Sonatype, Inc.
+ */
+/* global angular */
 (function () {
 
 	function BrainLicenseEditorTab(node, options) {
@@ -53,12 +60,6 @@
 		}]);
 
 		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', function ($scope, $q, $http, hudson, Messages, SelectedComponent) {
-			function buildAppContext(appContext) {
-				$scope.hierarchy.push(appContext);
-				angular.forEach(appContext.children, function (child) {
-					buildAppContext(child);
-				});
-			}
 			var savedState;
 
 			$scope.doLoad = function () {
@@ -67,10 +68,8 @@
 				var promises = [];
 				// List of licenses
 				promises.push($http.get(CLM.path + 'rest/license'));
-				// Application's hierarchy
-				promises.push($http.get(CLM.path + 'rest/application/' + applicationId + '/applicable/context'));
 				// Current override state
-				promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/' +
+				promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
 								SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' + SelectedComponent.version));
 				// Component licenses
 				promises.push($http.get(CLM.path + 'rest/ci/component/details/' + applicationId, {
@@ -86,17 +85,21 @@
 
 				// TODO License list ought to link to Category + ThreatLevel (Highest?)
 				$q.all(promises).then(function (results) {
+					var licenses = results[0].data,
+						currentOverride = results[1].data,
+						component = results[2].data;
 
 					$scope.licenses = {};
-					angular.forEach(results[0].data, function (license) {
+					angular.forEach(licenses, function (license) {
 						$scope.licenses[license.id] = license;
 					});
 
-					$scope.hierarchy = [];
-					buildAppContext(results[1].data);
+					$scope.hierarchy = angular.copy(currentOverride.licenseOverridesByOwner);
 
-					savedState = results[2].data;
-					$scope.component = results[3].data;
+					savedState = currentOverride;
+					$scope.reset();
+
+					$scope.component = component;
 
 					$scope.selectableLicenses = {};
 					angular.forEach($scope.component.declaredLicenseIds, function (license) {
@@ -106,7 +109,6 @@
 						$scope.selectableLicenses[license] = $scope.licenses[license];
 					});
 
-					$scope.reset();
 				}, function () {
 					$scope.error = arguments[0];
 				});
@@ -134,9 +136,35 @@
 				});
 			};
 
+			$scope.$watch('selectedScope', function (val) {
+				if (val && $scope.savedState) {
+					$scope.savedState.ownerId = val.ownerId;
+					$scope.savedState.ownerType = val.ownerType;
+				}
+			});
 			$scope.reset = function () {
-				//$scope.savedState = angular.copy(savedState) || {};
-				$scope.savedState = {};
+				if (savedState && savedState.licenseOverridesByOwner) {
+					for (var i=0; i<savedState.licenseOverridesByOwner.length; i++) {
+						if (savedState.licenseOverridesByOwner[i].licenseOverride) {
+							$scope.savedState = angular.copy(savedState.licenseOverridesByOwner[i].licenseOverride);
+							$scope.savedState.comment = '';
+							return;
+						}
+					}
+				}
+				$scope.savedState = {
+					ownerId : null,
+					ownerType : null,
+					licenseOverride : {
+						groupId : SelectedComponent.groupId,
+						artifactId : SelectedComponent.artifactId,
+						version :  SelectedComponent.version,
+						ownerId : null,
+						status : null,
+						licenseId : null,
+						comment : ''
+					}
+				};
 			};
 
 			$scope.statuses = [ { value : 'Open', label : 'Open' }, { value : 'Acknowledged', label : 'Acknowledged' },

@@ -1,5 +1,7 @@
 #license-editor .load-error .alert {
 	width : 50%;
+	margin : auto;
+	padding: 8px 35px 8px 14px;
 }
 #license-editor .controls {
 	width : 400px;

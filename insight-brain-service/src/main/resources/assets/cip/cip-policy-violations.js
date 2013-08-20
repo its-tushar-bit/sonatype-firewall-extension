@@ -190,14 +190,7 @@
 	
 	policyViolationApp.controller('ViewWaiverController', ['$scope','$http','$q','PolicyViolationData', function($scope, $http, $q, policyViolationData) {
       function handleHttpError(data, statusCode, headerFn, config) {
-          if (statusCode === 0) {
-            $scope.appError = 'Failed to contact server';
-          } else if (headerFn()['content-type'].indexOf('text/html') === -1) {
-            $scope.appError = data;
-          } else {
-            console.log(data);
-            $scope.appError = 'Error: CI server may be unable to reach CLM server';
-          }
+          $scope.appError = messages.getHttpErrorMessage({ status: status,  data: data });
         }
       
       //after dialog is shown, make sure to apply the angular stuff
@@ -207,12 +200,12 @@
       
       $scope.setupModal = function() {
         $scope.waiversLoading = true;
-        function processResults(results) {
+        function processData(data) {
           $scope.waiversLoading = false;
           $scope.waivers = [];
   
-          $.each(results[0].data.waiversByOwner, function(ownerIndex, waiversByOwner) {
-            $.each(waiversByOwner.waivers, function(waiverIndex, waiver) {
+          angular.forEach(data.waiversByOwner, function(waiversByOwner, ownerIndex) {
+            angular.forEach(waiversByOwner.waivers, function(waiver, waiverIndex) {
               waiver.type = waiversByOwner.ownerType;
               waiver.ownerName = waiversByOwner.ownerName;
               $scope.waivers.push(waiver);
@@ -220,14 +213,8 @@
           });
         }
         // get the waivers from the server
-        var policyWaiverPromise = $http.get(CLM.path + 'rest/policyWaiver/application/' + policyViolationData.appId
-                + '/component/' + policyViolationData.hash + '?timestamp=' + new Date().getTime());
-  
-        $q.all([policyWaiverPromise]).then(function(results) {
-          processResults(results);
-        }, function() {
-          handleHttpError(arguments[0].data, arguments[0].status, arguments[0].headers, arguments[0].config);
-        });
+        $http.get(CLM.path + 'rest/policyWaiver/application/' + policyViolationData.appId
+                + '/component/' + policyViolationData.hash + '?timestamp=' + new Date().getTime()).success(processData).error(handleHttpError);
       }
       
       //move the dialog onto the body in the dom, so the backdrop shows properly

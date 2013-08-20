@@ -61,7 +61,7 @@ describe('CIP Policy Waiver tests', function() {
                 appId : "appId"
             }
         });
-        _addScope = $rootScope.$new();
+        _addScope = _scope.$new();
         $controller('AddWaiverController', {
           $scope : _addScope,
           PolicyViolationData : {
@@ -69,7 +69,7 @@ describe('CIP Policy Waiver tests', function() {
             appId : "appId"
           }
         });
-        _viewScope = $rootScope.$new();
+        _viewScope = _scope.$new();
         $controller('ViewWaiverController', {
           $scope: _viewScope,
           global : {},

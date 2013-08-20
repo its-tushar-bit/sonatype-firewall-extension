@@ -12,10 +12,8 @@ import java.util.TreeMap;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -99,35 +97,28 @@ public class MultiLicenseDAO
     return licenseSetsById.get(id);
   }
 
-  public Integer getLicenseThreatLevelByApplicationIdAndMultiLicenseId(String appId, String multiLicenseId) {
-    final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    Application application = new ApplicationDAO().getByIdNotNull(appId);
-    String organizationId = application.getOrganizationId();
+  public Integer getLicenseThreatLevelByApplicationAndMultiLicenseId(Application application, String multiLicenseId) {
+    final LicenseDAO licenseDAO = new LicenseDAO();
     final Set<License> licenses = getLicensesByMultiLicenseId(multiLicenseId);
     Integer threatLevel = null;
     for (License license : licenses) {
-      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(appId,
-          license.getId());
-      threatLevel = max(threatLevel, licenseThreatGroups);
-
-      if (organizationId != null) {
-        licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId, license.getId());
-        threatLevel = max(threatLevel, licenseThreatGroups);
-      }
+      threatLevel = max(threatLevel,
+          licenseDAO.getLicenseThreatLevelByApplicationAndLicenseId(application, license.getId()));
     }
     return threatLevel;
   }
 
-  private Integer max(Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups) {
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      if (threatLevel == null) {
-        threatLevel = licenseThreatGroup.getThreatLevel();
-      }
-      else {
-        threatLevel = Math.max(threatLevel, licenseThreatGroup.getThreatLevel());
-      }
+  /**
+   * @since 1.6
+   */
+  private Integer max(Integer threatLevel1, Integer threatLevel2) {
+    if (threatLevel1 == null) {
+      return threatLevel2;
     }
-    return threatLevel;
+    if (threatLevel2 == null) {
+      return threatLevel1;
+    }
+    return Math.max(threatLevel1, threatLevel2);
   }
 
   void load() {

@@ -240,7 +240,7 @@ public final class Report
 
     cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licenses));
     cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialMatched));
-    writeLicenseThreatsToReportFile(application.getId(), reportFile);
+    writeLicenseThreatsToReportFile(application, reportFile);
 
     final ObjectNode data = JsonUtils.parse(extractEntry(reportFile, "data.json").buf);
     fill(data.putArray("policyCounts"), policyCounts);
@@ -387,14 +387,16 @@ public final class Report
     cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialmatchedJsonData));
   }
 
-  private static void writeLicenseThreatsToReportFile(final String appId, final File reportFile) throws IOException {
+  private static void writeLicenseThreatsToReportFile(final Application application, final File reportFile)
+      throws IOException
+  {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode licenseThreatsJson = mapper.createObjectNode();
     ObjectNode licenseTable = mapper.createObjectNode();
     for (MultiLicense multiLicense : multiLicenseDAO.getAll()) {
-      Integer threatLevel = multiLicenseDAO.getLicenseThreatLevelByApplicationIdAndMultiLicenseId(appId,
+      Integer threatLevel = multiLicenseDAO.getLicenseThreatLevelByApplicationAndMultiLicenseId(application,
           multiLicense.getId());
       licenseTable.put(multiLicense.getShortDisplayName(), threatLevel);
     }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.saas;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
@@ -18,6 +19,8 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
+import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -27,7 +30,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class CIComponentInfoResourceTest
@@ -94,6 +100,69 @@ public class CIComponentInfoResourceTest
   public void testGetSelectableLicenses_Unlicensed() throws Exception {
     uninstallLicense();
     Response response = RestAccess.get(getSelectableLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testGetLicenses() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    Application application = createApplication(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+
+    // Verify component without licenses
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        JsonHelpers.asJson(saasComponentDetails), 200);
+    Response response = RestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = JsonHelpers.fromJson(response.getResponseBody(), ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, empty());
+    assertThat(licenses.observedlicenses, empty());
+
+    // Verify component with licenses
+    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5 /* threatLevel */);
+    licenseThreatGroupDAO.insert(licenseThreatGroup);
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), toLicenseIdSet("LGPL-2.0", "BSD-3-Clause"));
+
+    saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
+    saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        JsonHelpers.asJson(saasComponentDetails), 200);
+    response = RestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    licenses = JsonHelpers.fromJson(response.getResponseBody(), ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(3));
+    assertContainsLicenseWithThreatLevel("Apache-2.0", "Apache-2.0", 0, licenses.declaredlicenses);
+    assertContainsLicenseWithThreatLevel("LGPL-2.0", "LGPL-2.0", 5, licenses.declaredlicenses);
+    assertContainsLicenseWithThreatLevel("MPL-1.1", "MPL-1.1", 2, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(3));
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("AFL-2.1", "AFL-2.1", 2, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("BSD-3-Clause", "BSD-3-Clause", 5, licenses.observedlicenses);
+  }
+
+  private void assertContainsLicenseWithThreatLevel(String licenseId, String licenseName, Integer threatLevel,
+      List<LicenseWithThreatLevel> actual)
+  {
+    for (LicenseWithThreatLevel licenseWithThreatLevel : actual) {
+      if (licenseId.equals(licenseWithThreatLevel.license.getLicenseId())) {
+        assertEquals(licenseName, licenseWithThreatLevel.license.getLicenseName());
+        assertEquals(threatLevel, licenseWithThreatLevel.threatLevel);
+        return;
+      }
+    }
+    fail("Expected license id " + licenseId);
+  }
+
+  @Test
+  public void testGetLicenses_Unlicensed() throws Exception {
+    uninstallLicense();
+    Response response = RestAccess.get(getLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
     assertResponseStatus(402, response);
   }
 
@@ -181,12 +250,25 @@ public class CIComponentInfoResourceTest
     return result;
   }
 
+  private Set<String> toLicenseIdSet(String... licenseIds) {
+    Set<String> result = new LinkedHashSet<String>();
+    for (String licenseId : licenseIds) {
+      result.add(licenseId);
+    }
+    return result;
+  }
+
   private String getSaasComponentDetailsUrl(String g, String a, String v) {
     return "/rest/ide/component/details?groupId=" + g + "&artifactId=" + a + "&version=" + v;
   }
 
   private String getComponentDetailsListUrl(String applicationPublicId, String g, String a, String v) {
     return getServiceURL() + "/list/" + applicationPublicId + "?groupId=" + g + "&artifactId=" + a + "&version=" + v;
+  }
+
+  private String getLicensesServiceURL(String applicationPublicId, String g, String a, String v) {
+    return getServiceURL() + "/licenses/" + applicationPublicId + "?groupId=" + g + "&artifactId=" + a + "&version="
+        + v;
   }
 
   private String getSelectableLicensesServiceURL(String applicationPublicId, String g, String a, String v) {

@@ -230,7 +230,7 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Application addApplication(Application application) throws IOException {
+  public Application addApplication(Application application) {
     int appLimit = licenseManager.getApplicationCountLimit();
 
     if (applicationDAO.getAll().size() >= appLimit) {
@@ -249,7 +249,7 @@ public class ApplicationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Application updateApplication(Application application) throws IOException {
+  public Application updateApplication(Application application) {
     if (application.getOrganizationId() == null) {
       throw new InvalidApplicationException("Applications must have a parent organization.");
     }

@@ -1,13 +1,12 @@
 package com.sonatype.insight.brain.model.license;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * @since 1.6
  */
-@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum LicenseOverrideStatus
 {
+  // Note: The order the statuses are defined here determines the order they are displayed in the UI
   OPEN("Open"), ACKNOWLEDGED("Acknowledged"), OVERRIDDEN("Overridden"), SELECTED("Selected"), CONFIRMED("Confirmed");
 
   private final String name;

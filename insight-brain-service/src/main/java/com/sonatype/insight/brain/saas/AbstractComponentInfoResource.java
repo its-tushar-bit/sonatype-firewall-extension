@@ -98,13 +98,12 @@ public abstract class AbstractComponentInfoResource
     log.debug("Getting {} component details list for application id {}, GAV {}:{}:{}.", getToolName(),
         applicationPublicId, groupId, artifactId, version);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    String applicationId = app.getId();
 
     ComponentDetailsList componentDetailsList = client.get(request, ComponentDetailsList.class,
         "rest/ide/component/details/list");
 
     for (ComponentDetails componentDetails : componentDetailsList.getList()) {
-      loadComponent(applicationId, componentDetails);
+      loadComponent(app, componentDetails);
     }
 
     log.debug("Loaded component details list for {}:{}:{} in {} ms.", groupId, artifactId, version,
@@ -167,7 +166,7 @@ public abstract class AbstractComponentInfoResource
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
 
-    Component component = loadComponent(applicationId, componentDetails);
+    Component component = loadComponent(app, componentDetails);
     component.setProprietary(proprietary);
 
     // Evaluate the policies
@@ -181,14 +180,14 @@ public abstract class AbstractComponentInfoResource
     return componentDetails;
   }
 
-  private Component loadComponent(String applicationId, ComponentDetails componentDetails) throws IOException {
+  private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
     // Load the augmented data for licenses and security vulnerabilities
-    ObjectNode licenseData = AugmentUtil.getLicenseData(work, applicationId, componentDetails.getGroupId(),
+    ObjectNode licenseData = AugmentUtil.getLicenseData(work, application.getId(), componentDetails.getGroupId(),
         componentDetails.getArtifactId(), componentDetails.getVersion());
-    ArrayNode svData = AugmentUtil.getSVData(work, applicationId, componentDetails.getGroupId(),
+    ArrayNode svData = AugmentUtil.getSVData(work, application.getId(), componentDetails.getGroupId(),
         componentDetails.getArtifactId(), componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities());
     ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(applicationId, componentDetails, licenseData, svData);
+    Component component = componentDAO.getComponent(application, componentDetails, licenseData, svData);
 
     // Use CLM data to populate the component details
     if (component.getLicenseOverrideId() != null) {

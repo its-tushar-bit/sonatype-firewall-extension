@@ -21,12 +21,15 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -38,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -513,6 +517,88 @@ public class PolicyEvaluateResourceTest
     expectedComponent.setHash("f2e35e4a21f07d25710f");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
         FailActionType.ID, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_LicenseOverride_DefinedAtOrgLevel() throws Exception {
+    String applicationPublicId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
+    Application application = createApplication(applicationPublicId);
+    String scanId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
+    String licenseFingerprint = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
+    setLicenseFingerprint(licenseFingerprint);
+
+    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    Condition condition1 = new Condition(LicenseConditionType.ID, "is", "ZPL-2.0");
+    constraint1.addCondition(condition1);
+    Constraint constraint2 = new Constraint(null /* constraintId */, "Constraint 2", LogicalOperator.AND);
+    Condition condition2 = new Condition(LicenseStatusConditionType.ID, "is", "OVERRIDDEN");
+    constraint2.addCondition(condition2);
+
+    Action action = new Action(FailActionType.ID);
+
+    Policy policy1 = new Policy(null /* policyId */, "Policy 1");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.addConstraint(constraint2);
+    policy1.addAction(BuildStageType.ID, action);
+    Response response = addPolicy(applicationPublicId, policy1);
+    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    constraint1 = policy1.getConstraints().get(0);
+    constraint2 = policy1.getConstraints().get(1);
+
+    Stage stage = new Stage(BuildStageType.ID);
+
+    // Simulate that the report is available
+    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    
+    // Override the license at org level
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), "commons-pool",
+        "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
+    licenseOverrideDAO.insert(orgLicenseOverride);
+
+    // Evaluate policy
+    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
+    Assert.assertNotNull(policyEval);
+    Assert.assertEquals(1, policyEval.getAffectedComponentCount());
+    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
+    Assert.assertEquals(1, policyEval.getSevereComponentCount());
+    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    List<PolicyAlert> policyAlerts = policyEval.getAlerts();
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    AbstractPolicyEvaluationTest.assertFactCounts(2, 1, policyAlerts.get(0));
+    Component expectedComponent = new Component("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
+    expectedComponent.setHash("1a667c9d419dc4f185c9");
+    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
+        FailActionType.ID, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
+    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
+        FailActionType.ID, constraint2.getId(), "Constraint 2", LicenseStatusConditionType.ID, policyAlerts);
+
+    // Override the license at app level. This must supersede the override at org level, so the policy should not
+    // trigger any alerts.
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), "commons-pool", "commons-pool",
+        "1.4", LicenseOverrideStatus.ACKNOWLEDGED, null /* licenseId */, " My comment");
+    licenseOverrideDAO.insert(appLicenseOverride);
+
+    // Evaluate policy
+    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
+    Assert.assertNotNull(policyEval);
+    Assert.assertEquals(0, policyEval.getAffectedComponentCount());
+    Assert.assertEquals(0, policyEval.getCriticalComponentCount());
+    Assert.assertEquals(0, policyEval.getSevereComponentCount());
+    Assert.assertEquals(0, policyEval.getModerateComponentCount());
+    policyAlerts = policyEval.getAlerts();
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(0, policyAlerts.size());
   }
 
   @Test

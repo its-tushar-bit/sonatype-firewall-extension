@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.6
@@ -22,10 +23,10 @@ public class LicenseOverrideDAO
   public static final int MAX_COMMENT_SIZE = 1000;
 
   @Override
-  public LicenseOverride getById(String id) {
+  protected LicenseOverride getById(EntityManager em, String id) {
     String sQuery = "SELECT entity FROM LicenseOverride entity" + //
         " WHERE entity.id=?1";
-    return get(sQuery, id);
+    return get(em, sQuery, id);
   }
 
   public LicenseOverride getByOwnerIdAndGAV(String ownerId, String groupId, String artifactId, String version) {
@@ -66,6 +67,24 @@ public class LicenseOverrideDAO
   private void validate(LicenseOverride entity) {
     if (entity.getComment() != null && entity.getComment().length() > MAX_COMMENT_SIZE) {
       throw new BadRequestException("Comment length must not exceed " + MAX_COMMENT_SIZE + " characters");
+    }
+  }
+
+  private LicenseOverride getByIdNotNull(EntityManager em, String id) {
+    LicenseOverride licenseOverride = getById(em, id);
+    if (licenseOverride == null) {
+      throw new NotFoundException("Cannot find a license override with id " + id);
+    }
+    return licenseOverride;
+  }
+
+  public LicenseOverride getByIdNotNull(String id) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByIdNotNull(em, id);
+    }
+    finally {
+      close(em);
     }
   }
 }

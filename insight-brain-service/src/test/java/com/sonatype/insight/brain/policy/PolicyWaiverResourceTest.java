@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -20,7 +21,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.policy.PolicyWaiverResource.ApplicableContext;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -126,7 +126,8 @@ public class PolicyWaiverResourceTest
     assertEquals(application.getName(), waivers.waiversByOwner.get(0).ownerName);
     assertEquals(IdUtils.TYPE_APPLICATION, waivers.waiversByOwner.get(0).ownerType);
     assertEquals(1, waivers.waiversByOwner.get(0).waivers.size());
-    assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment", waivers.waiversByOwner.get(0).waivers.get(0));
+    assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment",
+        waivers.waiversByOwner.get(0).waivers.get(0));
 
     PolicyWaiver waiver2 = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(), "My comment");
     policyWaiverDAO.insert(waiver2);
@@ -146,7 +147,8 @@ public class PolicyWaiverResourceTest
     assertEquals(organization.getName(), waivers.waiversByOwner.get(1).ownerName);
     assertEquals(IdUtils.TYPE_ORGANIZATION, waivers.waiversByOwner.get(1).ownerType);
     assertEquals(1, waivers.waiversByOwner.get(1).waivers.size());
-    assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment", waivers.waiversByOwner.get(0).waivers.get(0));
+    assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment",
+        waivers.waiversByOwner.get(0).waivers.get(0));
     assertPolicyWaiver(policy.getId(), organization.getId(), "My comment", waivers.waiversByOwner.get(1).waivers.get(0));
 
     response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId())
@@ -231,22 +233,23 @@ public class PolicyWaiverResourceTest
     // Create a policy for the organization
     Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId());
 
-    Response response = RestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/" + policy.getId());
+    Response response = RestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/"
+        + policy.getId());
     assertResponseStatus(200, response);
     ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
-    assertNotNull(result.children);
-    assertEquals(1, result.children.size());
-    ApplicableContext childContext = result.children.get(0);
+    assertNotNull(result.getChildren());
+    assertEquals(1, result.getChildren().size());
+    ApplicableContext childContext = result.getChildren().get(0);
     assertApplicableContext(application.getId(), application.getName(), "application", childContext);
-    assertNull(childContext.children);
+    assertNull(childContext.getChildren());
   }
 
   private void assertApplicableContext(String id, String name, String type, ApplicableContext actual) {
     assertNotNull(actual);
-    assertEquals(id, actual.id);
-    assertEquals(name, actual.name);
-    assertEquals(type, actual.type);
+    assertEquals(id, actual.getId());
+    assertEquals(name, actual.getName());
+    assertEquals(type, actual.getType());
   }
 
   private Policy createPolicy(String ownerType, String ownerId) throws Exception {

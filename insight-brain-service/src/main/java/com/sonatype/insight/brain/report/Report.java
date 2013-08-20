@@ -23,7 +23,6 @@ import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -95,8 +94,7 @@ public final class Report
     return buf != null ? buf.toString() : path;
   }
 
-  private static void embedApplicationPublicId(String applicationId, File reportFile) throws IOException {
-    Application application = new ApplicationDAO().getByIdNotNull(applicationId);
+  private static void embedApplicationPublicId(Application application, File reportFile) throws IOException {
     String filename = "index.html";
     ReportEntry reportEntry = extractEntry(reportFile, filename);
     String indexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
@@ -105,18 +103,20 @@ public final class Report
     cache(getCacheFile(reportFile, filename), indexHtmlContent.getBytes("UTF-8"));
   }
 
-  public static int[] applyChanges(final String appId, final File reportFile, final File auditDir) throws IOException {
+  public static int[] applyChanges(final Application application, final File reportFile, final File auditDir)
+      throws IOException
+  {
     final ReportType reportType = getType(reportFile);
 
     if (ReportType.ERROR.equals(reportType)) {
       return new int[] { -1, -1 };
     }
 
-    embedApplicationPublicId(appId, reportFile);
+    embedApplicationPublicId(application, reportFile);
 
     final JsonStore auditStore = JsonUtils.fileStore(auditDir);
 
-    applyComponentRelatedChanges(appId, reportFile, auditStore);
+    applyComponentRelatedChanges(application, reportFile, auditStore);
 
     // this data item is not in the original report, but is placed in the cache by the policy evaluator
     final ReportEntry policyReportEntry = getEntry(reportFile, "policythreats.json");
@@ -200,7 +200,7 @@ public final class Report
 
     ComponentDAO componentDAO = new ComponentDAO();
     for (JsonNode licenseJsonNode : licenses.get("aaData")) {
-      final Component component = componentDAO.getComponent(appId, licenseJsonNode);
+      final Component component = componentDAO.getComponent(application, licenseJsonNode);
       ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
       Integer threatLevel = component.getLicenseThreatLevel();
       licenseNode.put("effectiveLicenseThreat", threatLevel);
@@ -229,7 +229,7 @@ public final class Report
     for (JsonNode licenseJsonNode : partialMatched.get("aaData")) {
       final ArrayNode matchedComponentNodes = (ArrayNode) licenseJsonNode.get("matchDetails");
       for (JsonNode matchedComponentJsonNode : matchedComponentNodes) {
-        final Component matchedComponent = new ComponentDAO().getComponent(appId, matchedComponentJsonNode);
+        final Component matchedComponent = new ComponentDAO().getComponent(application, matchedComponentJsonNode);
         ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
         matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
         if (matchedComponent.getLicenseOverrideId() != null) {
@@ -240,7 +240,7 @@ public final class Report
 
     cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licenses));
     cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialMatched));
-    writeLicenseThreatsToReportFile(appId, reportFile);
+    writeLicenseThreatsToReportFile(application.getId(), reportFile);
 
     final ObjectNode data = JsonUtils.parse(extractEntry(reportFile, "data.json").buf);
     fill(data.putArray("policyCounts"), policyCounts);
@@ -267,8 +267,8 @@ public final class Report
   /**
    * Applies changes to component data (bom/license/security/partialmatched) including claiming components
    */
-  private static void applyComponentRelatedChanges(final String appId, final File reportFile, final JsonStore auditStore)
-      throws IOException
+  private static void applyComponentRelatedChanges(final Application application, final File reportFile,
+      final JsonStore auditStore) throws IOException
   {
     HashGAVDAO hashGAVDAO = new HashGAVDAO();
 
@@ -323,7 +323,12 @@ public final class Report
         iterLicenseData.remove();
       }
       else {
-        LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
+        LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId,
+            artifactId, version);
+        if (licenseOverride == null && application.getOrganizationId() != null) {
+          licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
+              version);
+        }
         if (licenseOverride != null) {
           licenseJsonNode.put("status", licenseOverride.getStatus().getName());
           if (licenseOverride.getLicenseId() != null) {

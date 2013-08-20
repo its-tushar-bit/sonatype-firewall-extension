@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -169,42 +170,15 @@ public class PolicyWaiverResource
     Organization organization = new OrganizationDAO().getById(application.getOrganizationId());
     ApplicableContext result = new ApplicableContext(organization.getId(), organization.getName(),
         IdUtils.TYPE_ORGANIZATION);
-    result.children = new ArrayList<ApplicableContext>();
+    result.setChildren(new ArrayList<ApplicableContext>());
     // Currently we need only the application specified by the applicationPublicId. In the future we might need to
     // return all the applications for this organization.
-    result.children.add(new ApplicableContext(applicationId, application.getName(), IdUtils.TYPE_APPLICATION));
+    result.getChildren().add(new ApplicableContext(applicationId, application.getName(), IdUtils.TYPE_APPLICATION));
     return result;
   }
 
   private PolicyDAO policyDAO() {
     return new PolicyDAO(work.getWorkDir());
-  }
-
-  /**
-   * Waivers can be applied in the context of an application or an organization. This class contains the hierarchy of
-   * organizations and applications for which a waiver can be applied.
-   */
-  public static class ApplicableContext
-  {
-    public String id;
-
-    public String name;
-
-    /**
-     * "application" or "organization"
-     */
-    public String type;
-
-    public List<ApplicableContext> children;
-
-    public ApplicableContext() {
-    }
-
-    public ApplicableContext(String id, String name, String type) {
-      this.id = id;
-      this.name = name;
-      this.type = type;
-    }
   }
 
   /**

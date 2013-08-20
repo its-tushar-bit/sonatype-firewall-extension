@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
-import java.util.Arrays;
 import java.util.List;
 
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
 public class LicenseStatusValueType
@@ -33,6 +31,6 @@ public class LicenseStatusValueType
 
   @Override
   public List<LicenseOverrideStatus> getAvailableValues() {
-    return Arrays.asList(LicenseOverrideStatus.values());
+    return LicenseOverrideStatus.getAll();
   }
 }

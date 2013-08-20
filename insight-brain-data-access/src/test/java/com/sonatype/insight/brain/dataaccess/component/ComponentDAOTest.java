@@ -15,10 +15,13 @@ import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import org.hamcrest.core.IsCollectionContaining;
@@ -104,7 +107,7 @@ public class ComponentDAOTest
     info.addDeclaredLicenseId("Apache-2.0");
     info.addObservedLicenseId("MIT");
     info.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
-    Component comp = componentDAO.getComponent(applicationId, info, null, null);
+    Component comp = componentDAO.getComponent(application, info, null, null);
     assertNotNull(comp);
     assertEquals(info.getHash(), comp.getHash());
     assertEquals(info.getGroupId(), comp.getGroupId());
@@ -126,6 +129,35 @@ public class ComponentDAOTest
   }
 
   @Test
+  public void testGetComponent_LicenseOverride() {
+    MatchedComponent componentInfo = new MatchedComponent();
+    componentInfo.setHash(COMP_HASH);
+    componentInfo.setGroupId("gid");
+    componentInfo.setArtifactId("aid");
+    componentInfo.setVersion("1.2.3");
+    Component component = componentDAO.getComponent(application, componentInfo, null, null);
+    assertNotNull(component);
+    assertNull(component.getLicenseOverrideId());
+    
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    // Override at org level
+    LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), "gid", "aid", "1.2.3",
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
+    licenseOverrideDAO.insert(orgLicenseOverride);
+    component = componentDAO.getComponent(application, componentInfo, null, null);
+    assertNotNull(component);
+    assertEquals("GPL-3.0", component.getLicenseOverrideId());
+
+    // Override at app level
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), "gid", "aid", "1.2.3",
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
+    licenseOverrideDAO.insert(appLicenseOverride);
+    component = componentDAO.getComponent(application, componentInfo, null, null);
+    assertNotNull(component);
+    assertEquals("GPL-2.0", component.getLicenseOverrideId());
+  }
+
+  @Test
   public void testGetComponent_MultiLicenses_Declared() {
     MatchedComponent componentInfo = new MatchedComponent();
     componentInfo.setHash(COMP_HASH);
@@ -133,7 +165,7 @@ public class ComponentDAOTest
     componentInfo.setArtifactId("aid");
     componentInfo.setVersion("1.2.3");
     componentInfo.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
-    Component component = componentDAO.getComponent(applicationId, componentInfo, null, null);
+    Component component = componentDAO.getComponent(application, componentInfo, null, null);
     assertNotNull(component);
     assertEquals(component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size());
     assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
@@ -149,7 +181,7 @@ public class ComponentDAOTest
     componentInfo.setArtifactId("aid");
     componentInfo.setVersion("1.2.3");
     componentInfo.addObservedLicenseId("Apache-2.0-GPL-2.0");
-    Component component = componentDAO.getComponent(applicationId, componentInfo, null, null);
+    Component component = componentDAO.getComponent(application, componentInfo, null, null);
     assertNotNull(component);
     assertEquals(component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size());
     assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));

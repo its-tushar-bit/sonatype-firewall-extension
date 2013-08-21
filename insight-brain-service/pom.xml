@@ -437,7 +437,6 @@
               <goal>test</goal>
             </goals>
             <configuration>
-              <jasmineTargetDir>${project.build.directory}${file.separator}jasmine-reports</jasmineTargetDir>
               <sourceIncludes>
                 <include>assets/lib/jquery/jquery-*.min.js</include>
                 <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
@@ -492,6 +491,7 @@
           </execution>
         </executions>
         <configuration>
+          <jasmineTargetDir>${project.build.directory}${file.separator}jasmine-reports</jasmineTargetDir>
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
           <keepServerAlive>true</keepServerAlive>

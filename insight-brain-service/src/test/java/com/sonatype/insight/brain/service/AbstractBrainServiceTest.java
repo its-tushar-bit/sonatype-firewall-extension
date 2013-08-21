@@ -76,10 +76,11 @@ public abstract class AbstractBrainServiceTest
       saas.setHttpPort(saasPort);
       saas.setJsonResponseDirectory(getJsonResponseDirectory());
       saas.setZipResponseDirectory(getZipResponseDirectory());
-      if (getClass().getName().endsWith("ProxyTest")) {
+      if (isProxyRequiredToReachSaas()) {
         saas.setKeyStore(System.getProperty("javax.net.ssl.trustStore"), "server-pwd");
         saas.setProxyAuthentication("proxyuser", "proxypass");
       }
+      configureSaas(saas);
       saas.start();
     }
     log.debug("Started InsightMockServer in {}", System.currentTimeMillis() - start);
@@ -91,7 +92,7 @@ public abstract class AbstractBrainServiceTest
       brain.setHttpPort(brainPort);
       brain.setHttpAdminPort(brainAdminPort);
       brain.setSaasAddress(saas.getHttpUrl());
-      if (getClass().getName().endsWith("ProxyTest")) {
+      if (isProxyRequiredToReachSaas()) {
         brain.setProxyConfig("127.0.0.1", saasPort, "proxyuser", "proxypass");
       }
       configureBrain(brain);
@@ -103,6 +104,14 @@ public abstract class AbstractBrainServiceTest
 
   protected void configureBrain(final TestInsightBrainService brain) {
     // hook for sub classes
+  }
+
+  protected void configureSaas(final InsightMockServer saas) {
+    // hook for sub classes
+  }
+
+  protected boolean isProxyRequiredToReachSaas() {
+    return getClass().getName().endsWith("ProxyTest");
   }
 
   @After

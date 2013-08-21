@@ -176,6 +176,7 @@
 						$scope.saving = false;
 						owner.licenseOverride = data;
 						$scope.reset();
+						updateStatuses();
 					}).error(function () {
 						$scope.alert = Messages.getHttpErrorMessage(arguments);
 						$scope.saving = false;
@@ -186,7 +187,7 @@
 			$scope.reset = function () {
 				$scope.override = {
 					status : null,
-					scope : null,
+					ownerId : null,
 					licenseId : null
 				};
 				if ($scope.hierarchy) {
@@ -216,8 +217,8 @@
 
 			// Remove license when changing away from Override/Selected status
 			$scope.$watch('override.status', function (val) {
-				if (val !== null && val !== 'OVERRIDDEN' && val !== 'SELECTED') {
-					$scope.licenseId = null;
+				if ($scope.override && val !== 'OVERRIDDEN' && val !== 'SELECTED') {
+					$scope.override.licenseId = null;
 				}
 			});
 

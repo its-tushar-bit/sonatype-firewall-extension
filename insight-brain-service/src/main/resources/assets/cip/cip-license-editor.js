@@ -7,42 +7,43 @@
 /* global angular */
 (function () {
 
-	function BrainLicenseEditorTab(node, options) {
-		this.node = node;
-		this.options = options;
-	}
-
-	BrainLicenseEditorTab.prototype = new Insight.InformationPanelPlugin();
-
-	BrainLicenseEditorTab.prototype.destroy = function () {
-		if (this.node) {
-			this.node.empty();
+	function createPlugin() {
+		function BrainLicenseEditorTab(node, options) {
+			this.node = node;
+			this.options = options;
 		}
-	};
-	BrainLicenseEditorTab.prototype.getTitle = function () {
-		return 'Licenses';
-	};
-	BrainLicenseEditorTab.prototype.isVisible = function () {
-		return !((freemium && !this.options.sampleData) || this.gav.matchState === 'unknown' || this.gav.identificationSource === 'Manual');
-	};
 
-	BrainLicenseEditorTab.prototype.create = function () {
-		var timestamp = new Date().getTime(), 
+		BrainLicenseEditorTab.prototype = new Insight.InformationPanelPlugin();
+
+		BrainLicenseEditorTab.prototype.destroy = function () {
+			if (this.node) {
+				this.node.empty();
+			}
+		};
+		BrainLicenseEditorTab.prototype.getTitle = function () {
+			return 'Licenses';
+		};
+		BrainLicenseEditorTab.prototype.isVisible = function () {
+			return !((freemium && !this.options.sampleData) || this.gav.matchState === 'unknown' || this.gav.identificationSource === 'Manual');
+		};
+
+		BrainLicenseEditorTab.prototype.create = function () {
+			var timestamp = new Date().getTime(), 
 			container = $('<div clm-include="\'' + CLM.path + 'cip/cip-license-editor.html\'"></div>'),
 			me = this;
 
-		me.node.empty();
-		container.appendTo(this.node);
+			me.node.empty();
+			container.appendTo(this.node);
 
-		angular.module('componentProvider' + timestamp, []).service('SelectedComponent', function() {
-			return me.gav;
-		});
+			angular.module('componentProvider' + timestamp, []).service('SelectedComponent', function() {
+				return me.gav;
+			});
 
-		angular.bootstrap(container[0], [ 'LicenseEditor', 'componentProvider' + timestamp, 'AngularCommon', 'Hudson' ]);
-	};
+			angular.bootstrap(container[0], [ 'LicenseEditor', 'componentProvider' + timestamp]);
+		};
+	}
 
-	function load() {
-		var licenseEditor = angular.module('LicenseEditor', ['CommonServices']),
+		var licenseEditor = angular.module('LicenseEditor', ['CommonServices', 'AngularCommon', 'Hudson' ]),
 			licenses = null;
 
 		licenseEditor.service('Licenses', ['$q', function ($q) {
@@ -137,7 +138,6 @@
 
 					$scope.hierarchy = currentOverride.licenseOverridesByOwner;
 					$scope.reset();
-
 
 					$scope.selectableLicenses = {};
 					angular.forEach($scope.component.declaredlicenses, function (license) {
@@ -246,12 +246,13 @@
 
 			$scope.doLoad();
 		}]);
-	}
 
 	var  timeout = null;
 	function checkAngular() {
 		if (window.angular) {
 			if (Insight && Insight.InformationPanelPlugins) {
+				createPlugin();
+
 				var index = -1;
 				$.each(Insight.InformationPanelPlugins, function (candidateIndex, plugin) {
 					if (plugin.name === 'LicenseEditorTab') {
@@ -265,7 +266,6 @@
 					Insight.InformationPanelPlugins.splice(4, 0, BrainLicenseEditorTab);
 				}
 			}
-			load();
 		} else {
 			timeout = setTimeout(checkAngular, 50);
 		}

@@ -61,7 +61,7 @@ public class LicenseDAOTest
   }
 
   @Test
-  public void testGetLicenseThreatLevelByApplicationIdAndLicenseId() {
+  public void testGetLicenseThreatLevelByApplicationAndLicenseId() {
     createDefaultApplication();
 
     LicenseDAO dao = new LicenseDAO();

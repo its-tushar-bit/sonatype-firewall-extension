@@ -60,7 +60,7 @@ public class MultiLicenseDAOTest
   }
 
   @Test
-  public void testGetLicenseThreatLevelByApplicationIdAndMultiLicenseId() {
+  public void testGetLicenseThreatLevelByApplicationAndMultiLicenseId() {
     createDefaultApplication();
 
     MultiLicenseDAO dao = new MultiLicenseDAO();

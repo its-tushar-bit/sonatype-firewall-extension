@@ -19,21 +19,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AugmentUtil
 {
-
-  public static ObjectNode getLicenseData(InsightWork work, String applicationId, String groupId, String artifactId,
-      String version) throws IOException
-  {
-    ArrayNode licenseData = new ArrayNode(JsonNodeFactory.instance);
-    ObjectNode gavNode = licenseData.objectNode();
-    licenseData.add(gavNode);
-    gavNode.put("groupId", groupId);
-    gavNode.put("artifactId", artifactId);
-    gavNode.put("version", version);
-    File auditDir = work.getAuditDir(applicationId);
-    JsonUtils.fileStore(auditDir).augment(licenseData, "licenses.json");
-    return (ObjectNode) licenseData.get(0);
-  }
-
   public static ArrayNode getSVData(InsightWork work, String applicationId, String groupId, String artifactId,
       String version, List<SecurityVulnerability> securityVulnerabilities) throws IOException
   {

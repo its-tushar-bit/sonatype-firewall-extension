@@ -45,7 +45,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Named
 @Path(IdeResource.SERVICE_PATH)
@@ -119,14 +118,12 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
-      ObjectNode licenseData = AugmentUtil.getLicenseData(work, applicationId, matchedComponent.getGroupId(),
-          matchedComponent.getArtifactId(), matchedComponent.getVersion());
       ArrayNode svData = AugmentUtil.getSVData(work, applicationId, matchedComponent.getGroupId(),
           matchedComponent.getArtifactId(), matchedComponent.getVersion(),
           matchedComponent.getSecurityVulnerabilities());
 
       ComponentDAO componentDAO = new ComponentDAO();
-      Component component = componentDAO.getComponent(app, matchedComponent, licenseData, svData);
+      Component component = componentDAO.getComponent(app, matchedComponent, svData);
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), policyDAO(),
           Collections.singletonList(component));

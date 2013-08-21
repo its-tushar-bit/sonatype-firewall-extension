@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,12 +181,10 @@ public abstract class AbstractComponentInfoResource
 
   private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
     // Load the augmented data for licenses and security vulnerabilities
-    ObjectNode licenseData = AugmentUtil.getLicenseData(work, application.getId(), componentDetails.getGroupId(),
-        componentDetails.getArtifactId(), componentDetails.getVersion());
     ArrayNode svData = AugmentUtil.getSVData(work, application.getId(), componentDetails.getGroupId(),
         componentDetails.getArtifactId(), componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities());
     ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(application, componentDetails, licenseData, svData);
+    Component component = componentDAO.getComponent(application, componentDetails, svData);
 
     // Use CLM data to populate the component details
     if (component.getLicenseOverrideId() != null) {

@@ -107,7 +107,7 @@ public class ComponentDAOTest
     info.addDeclaredLicenseId("Apache-2.0");
     info.addObservedLicenseId("MIT");
     info.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
-    Component comp = componentDAO.getComponent(application, info, null, null);
+    Component comp = componentDAO.getComponent(application, info, null);
     assertNotNull(comp);
     assertEquals(info.getHash(), comp.getHash());
     assertEquals(info.getGroupId(), comp.getGroupId());
@@ -135,7 +135,7 @@ public class ComponentDAOTest
     componentInfo.setGroupId("gid");
     componentInfo.setArtifactId("aid");
     componentInfo.setVersion("1.2.3");
-    Component component = componentDAO.getComponent(application, componentInfo, null, null);
+    Component component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertNull(component.getLicenseOverrideId());
     
@@ -144,7 +144,7 @@ public class ComponentDAOTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), "gid", "aid", "1.2.3",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
-    component = componentDAO.getComponent(application, componentInfo, null, null);
+    component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertEquals("GPL-3.0", component.getLicenseOverrideId());
 
@@ -152,7 +152,7 @@ public class ComponentDAOTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), "gid", "aid", "1.2.3",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
-    component = componentDAO.getComponent(application, componentInfo, null, null);
+    component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertEquals("GPL-2.0", component.getLicenseOverrideId());
   }
@@ -165,7 +165,7 @@ public class ComponentDAOTest
     componentInfo.setArtifactId("aid");
     componentInfo.setVersion("1.2.3");
     componentInfo.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
-    Component component = componentDAO.getComponent(application, componentInfo, null, null);
+    Component component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertEquals(component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size());
     assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
@@ -181,7 +181,7 @@ public class ComponentDAOTest
     componentInfo.setArtifactId("aid");
     componentInfo.setVersion("1.2.3");
     componentInfo.addObservedLicenseId("Apache-2.0-GPL-2.0");
-    Component component = componentDAO.getComponent(application, componentInfo, null, null);
+    Component component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertEquals(component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size());
     assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));

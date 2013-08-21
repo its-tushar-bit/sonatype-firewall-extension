@@ -60,7 +60,50 @@
 		}]);
 
 		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', function ($scope, $q, $http, hudson, Messages, SelectedComponent) {
-			var savedState;
+
+			function getHierarchyById(id) {
+				for (var i=0; i<$scope.hierarchy.length; i++) {
+					if ($scope.hierarchy[i].ownerId === id) {
+						return $scope.hierarchy[i];
+					}
+				}
+			}
+			function updateStatuses() {
+				$scope.statuses = angular.copy(statuses);
+				if ($scope.override && $scope.override.ownerId) {
+					var overrideScope = getHierarchyById($scope.override.ownerId);
+					if (overrideScope && overrideScope.licenseOverride && overrideScope.ownerType === 'application' && $scope.hierarchy.length > 1) {
+						for (var i=0; i<$scope.hierarchy.length; i++) {
+							if ($scope.hierarchy[i].ownerType !== 'application') {
+								$scope.statuses.push({
+									value : "DELETE",
+									label : 'Inherit Status (' + ($scope.hierarchy[i].licenseOverride ? $scope.hierarchy[i].licenseOverride.status : "Open")+ ')'
+								});
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			function setOverrideScope(overrideScope) {
+				$scope.override.licenseId = null;
+				$scope.override.ownerId = overrideScope.ownerId;
+
+				if (overrideScope.licenseOverride) {
+					$scope.override.status = overrideScope.licenseOverride.status;
+
+					if ($scope.override.status === 'OVERRIDDEN' || $scope.override.status === 'SELECTED') {
+						$scope.override.licenseId = overrideScope.licenseOverride.licenseId;
+					}
+				} else {
+					$scope.override.status = 'OPEN';
+				}
+			}
+
+			var statuses = [{ value : 'OPEN', label : 'Open' },{ value : 'ACKNOWLEDGED', label : 'Acknowledged' },
+							{ value : 'OVERRIDDEN', label : 'Overridden' }, { value : 'SELECTED', label : 'Selected' },
+							{ value : 'CONFIRMED', label : 'Confirmed' }];
 
 			$scope.doLoad = function () {
 				$scope.error = null;
@@ -72,14 +115,11 @@
 				promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
 								SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' + SelectedComponent.version));
 				// Component licenses
-				promises.push($http.get(CLM.path + 'rest/ci/component/details/' + applicationId, {
+				promises.push($http.get(CLM.path + 'rest/ci/component/details/licenses/' + applicationId, {
 					params : {
 						'artifactId' : SelectedComponent.artifactId,
 						'groupId' : SelectedComponent.groupId,
-						'version' : SelectedComponent.version,
-						'hash' : SelectedComponent.hash,
-						'matchState' : SelectedComponent.matchState,
-						'instanceId' : SelectedComponent.instanceId
+						'version' : SelectedComponent.version
 					}
 				}));
 
@@ -89,24 +129,22 @@
 						currentOverride = results[1].data,
 						component = results[2].data;
 
+					$scope.component = component;
 					$scope.licenses = {};
 					angular.forEach(licenses, function (license) {
 						$scope.licenses[license.id] = license;
 					});
 
-					$scope.hierarchy = angular.copy(currentOverride.licenseOverridesByOwner);
-
-					savedState = currentOverride;
+					$scope.hierarchy = currentOverride.licenseOverridesByOwner;
 					$scope.reset();
 
-					$scope.component = component;
 
 					$scope.selectableLicenses = {};
-					angular.forEach($scope.component.declaredLicenseIds, function (license) {
-						$scope.selectableLicenses[license] = $scope.licenses[license];
+					angular.forEach($scope.component.declaredlicenses, function (license) {
+						$scope.selectableLicenses[license.license.licenseId] = $scope.licenses[license.license.licenseId];
 					});
-					angular.forEach($scope.component.observedLicenseIds, function (license) {
-						$scope.selectableLicenses[license] = $scope.licenses[license];
+					angular.forEach($scope.component.observedlicenses, function (license) {
+						$scope.selectableLicenses[license.license.licenseId] = $scope.licenses[license.license.licenseId];
 					});
 
 				}, function () {
@@ -130,32 +168,34 @@
 					owner = null;
 
 				// Only set license for Override or Select states 
-				if (licenseOverride.status === 'Overridden' || licenseOverride.status === 'Selected') {
-					licenseOverride.overriddenLicenses.push($scope.licenseId);
+				if (licenseOverride.status === 'OVERRIDDEN' || licenseOverride.status === 'SELECTED') {
+					licenseOverride.licenseId = $scope.override.licenseId;
 				}
 
 				// Find owner
-				for (var i=0; i<$scope.hierarchy.length; i++) {
-					if ($scope.hierarchy[i].ownerId === $scope.override.scope.ownerId) {
-						owner = $scope.hierarchy[i];
-						break;
-					}
-				}
+				owner = getHierarchyById($scope.override.ownerId);
 				licenseOverride.ownerId = owner.ownerId;
 
-				hudson.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId, licenseOverride).success(function (data) {
-					$scope.saving = false;
-					for (var i=0; i<$scope.hierarchy.length; i++) {
-						if ($scope.hierarchy[i].ownerId === data.ownerId) {
-							$scope.hierarchy[i].licenseOverride = data;
-							break;
-						}
-					}
-					$scope.reset();
-				}).error(function () {
-					$scope.alert = Messages.getHttpErrorMessage(arguments);
-					$scope.saving = false;
-				});
+				if (licenseOverride.status === 'DELETE') {
+					hudson['delete'](CLM.path + 'rest/licenseOverride/application/' + licenseOverride.ownerId + '/' + owner.licenseOverride.id).success(function () {
+						$scope.saving = false;
+						owner.licenseOverride = null;
+						$scope.reset();
+						updateStatuses();
+					}).error(function () {
+						$scope.alert = Messages.getHttpErrorMessage(arguments);
+						$scope.saving = false;
+					});
+				} else {
+					hudson.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId, licenseOverride).success(function (data) {
+						$scope.saving = false;
+						owner.licenseOverride = data;
+						$scope.reset();
+					}).error(function () {
+						$scope.alert = Messages.getHttpErrorMessage(arguments);
+						$scope.saving = false;
+					});
+				}
 			};
 
 			$scope.reset = function () {
@@ -164,31 +204,44 @@
 					scope : null,
 					licenseId : null
 				};
-				if (savedState && savedState.licenseOverridesByOwner) {
-					for (var i=0; i<savedState.licenseOverridesByOwner.length; i++) {
-						if (savedState.licenseOverridesByOwner[i].licenseOverride) {
-							$scope.override.status = savedState.licenseOverridesByOwner[i].licenseOverride.status;
-							$scope.override.scope = savedState.licenseOverridesByOwner[i].ownerId;
-
-							if ($scope.override.scope === 'Overridden' || $scope.override.scope === 'Selected') {
-								$scope.override.licenseId = savedState.licenseOverridesByOwner[i].licenseOverride.licenseId;
-							} else {
-								$scope.override.licenseId = null;
-							}
+				if ($scope.hierarchy) {
+					for (var i=0; i<$scope.hierarchy.length; i++) {
+						if ($scope.hierarchy[i].licenseOverride) {
+							setOverrideScope($scope.hierarchy[i]);
 							return;
 						}
 					}
+					setOverrideScope($scope.hierarchy[0]);
 				}
 			};
 
-			$scope.statuses = [ { value : 'Open', label : 'Open' }, { value : 'Acknowledged', label : 'Acknowledged' },
-								{ value : 'Overridden', label : 'Overridden' }, { value : 'Selected', label : 'Selected' },
-								{ value : 'Confirmed', label : 'Confirmed' }];
+			$scope.getColor = function (threat) {
+				if (threat === null) {
+					return 'grey';
+				} else if (threat > 7) {
+					return 'red';
+				} else if (threat > 3) {
+					return 'orange';
+				} else if (threat > 0) {
+					return 'yellow';
+				} else {
+					return 'blue';
+				}
+			};
 
-			$scope.$watch('status', function (val) {
-				if (val !== null && val !== 'Open' && val !== 'Selected') {
+			// Remove license when changing away from Override/Selected status
+			$scope.$watch('override.status', function (val) {
+				if (val !== null && val !== 'OVERRIDDEN' && val !== 'SELECTED') {
 					$scope.licenseId = null;
 				}
+			});
+
+			// Create synthetic Inherit
+			$scope.$watch('override.ownerId', function (newValue) {
+				if (newValue) {
+					setOverrideScope(getHierarchyById(newValue));
+				}
+				updateStatuses();
 			});
 
 			$scope.doLoad();

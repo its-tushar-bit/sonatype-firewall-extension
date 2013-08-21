@@ -10,14 +10,13 @@
 		</div>
 		<form name='licenseEditorForm' ng-submit='save()'>
 			<div style="width:199px;height:212px;overflow:auto;" class="well">
-				<!-- TODO this section ought to be scrollable -->
 				<ul class="nav nav-list" id="licenseList">
 					<li class="nav-header">Declared Licenses</li>
-					<li class="license" ng-repeat='licenseId in component.declaredLicenseIds'>
-						<img src="public/blue.png"> {{licenses[licenseId].shortDisplayName}}</li>
+					<li class="license" ng-repeat='licenseWithThreat in component.declaredlicenses'>
+						<img ng-src="public/{{getColor(licenseWithThreat.threatLevel)}}.png"> {{licenseWithThreat.license.licenseName}}</li>
 					<li class="divider"></li><li class="nav-header">Observed Licenses</li>
-					<li class="license" ng-repeat='licenseId in component.observedLicenseIds'>
-						<img src="public/blue.png"> {{licenses[licenseId].shortDisplayName}}</li>
+					<li class="license" ng-repeat='licenseWithThreat in component.observedlicenses'>
+						<img ng-src="public/{{getColor(licenseWithThreat.threatLevel)}}.png"> {{licenseWithThreat.license.licenseName}}</li>
 				</ul>
 			</div>
 			<div class="well" style="width:595px">
@@ -25,8 +24,8 @@
 					<div class="control-group">
 						<label class="control-label">Scope</label>
 						<div class="controls">
-							<select ng-model='override.scope'
-									ng-options='scope.ownerName for scope in hierarchy'
+							<select ng-model='override.ownerId'
+									ng-options='scope.ownerId as scope.ownerName for scope in hierarchy'
 									required>
 							</select>
 						</div>
@@ -44,14 +43,14 @@
 						<label class="control-label" for="license1376501760921">License</label>
 						<div class="controls" style="text-align:left;">
 							<span ng-switch='override.status'>
-								<select ng-switch-when='Selected'
+								<select ng-switch-when='SELECTED'
 										ng-model='override.licenseId'
-										ng-options='id as license.shortDisplayName for (id, license) in selectableLicenses'
+										ng-options='license.id as license.shortDisplayName for (id, license) in selectableLicenses'
 										required>
 								</select>
-								<select ng-switch-when='Overridden'
+								<select ng-switch-when='OVERRIDDEN'
 										ng-model='override.licenseId'
-										ng-options='id as license.shortDisplayName for (id, license) in licenses'
+										ng-options='license.id as license.shortDisplayName for (id, license) in licenses'
 										required>
 								</select>
 							</span>

@@ -75,6 +75,22 @@ public class LicenseOverrideResourceTest
     assertLicenseOverride(ownerId, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
 
+    // Update (i.e. add again)
+    licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN,
+        "GPL-2.0", "My comment updated");
+    response = RestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
+        JsonHelpers.asJson(licenseOverride));
+    assertResponseStatus(200, response);
+    licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    assertLicenseOverride(ownerId, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated",
+        licenseOverride);
+    assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
+
+    // Get
+    licenseOverride = licenseOverrideDAO.getByIdNotNull(licenseOverride.getId());
+    assertLicenseOverride(ownerId, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated",
+        licenseOverride);
+
     // Delete
     response = RestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId() + "?user="
         + user + "&where=" + where);

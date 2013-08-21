@@ -188,7 +188,7 @@
     };    
   }]);
 	
-	policyViolationApp.controller('ViewWaiverController', ['$scope','$http','$q','PolicyViolationData', function($scope, $http, $q, policyViolationData) {
+	policyViolationApp.controller('ViewWaiverController', ['$scope','hudson','$http','$q','PolicyViolationData', function($scope, hudson, $http, $q, policyViolationData) {
       function handleHttpError(data, statusCode, headerFn, config) {
           $scope.appError = messages.getHttpErrorMessage({ status: status,  data: data });
         }
@@ -233,7 +233,7 @@
         $scope.confirmDelete = null;
         $scope.appError = null;
   
-        $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function () {
+        hudson['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' + waiver.id).success(function () {
           $scope.waivers.splice($scope.waivers.indexOf(waiver), 1);
         }).error(handleHttpError);
       };

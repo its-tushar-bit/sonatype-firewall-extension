@@ -91,6 +91,8 @@ public class LicenseOverrideDAOTest
     catch (BadRequestException expected) {
       assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
     }
+    override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE));
+    dao.insert(override);
   }
 
   @Test

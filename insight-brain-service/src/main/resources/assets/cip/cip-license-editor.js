@@ -7,11 +7,12 @@
 /* global angular */
 (function () {
 
+	function BrainLicenseEditorTab(node, options) {
+		this.node = node;
+		this.options = options;
+	}
+
 	function createPlugin() {
-		function BrainLicenseEditorTab(node, options) {
-			this.node = node;
-			this.options = options;
-		}
 
 		BrainLicenseEditorTab.prototype = new Insight.InformationPanelPlugin();
 

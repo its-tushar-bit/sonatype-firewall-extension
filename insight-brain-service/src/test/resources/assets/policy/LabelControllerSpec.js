@@ -47,6 +47,17 @@ describe('LabelController.js', function() {
     $provide.factory('hudson', ['$http', function($http){
       return $http;
     }]);
+
+    $provide.value('ApplicationId', {
+        encoded: function () {
+          return 'bom1-12345678';
+        }
+      });
+      $provide.value('OrganizationId', {
+        encoded: function () {
+          return null;
+        }
+      });
   }));
 
   beforeEach(inject(function ($rootScope) {

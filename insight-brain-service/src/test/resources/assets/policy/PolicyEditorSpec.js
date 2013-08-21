@@ -32,9 +32,20 @@ describe('PolicyEditor.js', function() {
 	}
 
 	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
-	  $provide.factory('hudson', ['$http', function($http){
-      return $http;
-    }]);
+
+	      $provide.value('ApplicationId', {
+	        encoded : function () {
+	          return 'bom1-12345678';
+	        }
+	     });
+	     $provide.value('OrganizationId', {
+	       encoded: function () {
+	         return null;
+	       }
+	     });
+		$provide.factory('hudson', ['$http', function($http){
+        return $http;
+      }]);
   }));
 	
 	beforeEach(inject(function ($rootScope) {

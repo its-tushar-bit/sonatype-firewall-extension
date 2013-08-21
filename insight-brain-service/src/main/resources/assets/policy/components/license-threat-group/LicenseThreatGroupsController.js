@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation', 'CommonServices']);
+  var licenseGroupModule = angular.module('LicenseThreatGroup', ['AngularCommon', 'ResourceModule', 'CLMAppLocation', 'CommonServices', 'ui.bootstrap']);
 
   licenseGroupModule.service('licenseGroupStore', ['$q', '$http', 'CLMAppLocations', 'CLMResource', function ($q, $http, CLMAppLocations, CLMResource) {
     var licenseGroupStore = null, licenseGroupStores = {};

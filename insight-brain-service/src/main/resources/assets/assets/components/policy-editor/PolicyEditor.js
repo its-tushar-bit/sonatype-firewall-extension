@@ -281,11 +281,7 @@
 			}
 		});
 		
-		$scope.click = function () {
-            if (!$scope.policy) {
-                $scope.policy = $scope.createPolicy();
-            }
-        };
+
         $scope.cancel = function () {
             if ($scope.policy) {
                 if ($scope.policy.isDirty()) {
@@ -574,7 +570,6 @@
 			restrict : 'A',
 			templateUrl : 'policy-quick-add',
 			scope : {},
-			controller : 'PolicyEditorController',
 			link : function (scope) {
 				scope.hide = function () {
 					scope.policy = null;
@@ -585,6 +580,11 @@
 				scope.getFormName = function() {
 				    return 'inlinePolicyForm';
 				};
+				scope.click = function () {
+		            if (!scope.policy) {
+		                scope.policy = policyStore.get().create();
+		            }
+		        };
 			}
 		};
 	}]);
@@ -603,7 +603,6 @@
         return {
             restrict : 'A',
             templateUrl : '../assets/components/policy-editor/policy-inline-editor.html?' + clmBuildTimestamp,
-			controller : 'PolicyEditorController',
 			link : function (scope) {
 				scope.hide = function () {
 					scope.policyEditMap[scope.policy.id] = null;

@@ -46,7 +46,7 @@ public class ScanClient
     final int status = result.status();
     final String text = result.text();
     if (status >= 300) {
-      throw new HttpResponseException(status, text);
+      throw new HttpResponseException(status, (text == null || text.isEmpty()) ? result.reason() : text);
     }
     return JsonUtils.parse(text, ScanReceipt.class);
   }

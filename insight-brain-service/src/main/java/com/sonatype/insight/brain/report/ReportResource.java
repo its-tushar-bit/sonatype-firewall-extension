@@ -297,16 +297,11 @@ public class ReportResource
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
-    if (licenseOverride == null) {
-      licenseOverride = new LicenseOverride(appId, groupId, artifactId, version, status, licenseOverrideId, comment);
-      licenseOverrideDAO.insert(licenseOverride);
+    if (licenseOverride != null) {
+      licenseOverrideDAO.delete(licenseOverride);
     }
-    else {
-      licenseOverride.setStatus(status);
-      licenseOverride.setLicenseId(licenseOverrideId);
-      licenseOverride.setComment(comment);
-      licenseOverrideDAO.update(licenseOverride);
-    }
+    licenseOverride = new LicenseOverride(appId, groupId, artifactId, version, status, licenseOverrideId, comment);
+    licenseOverrideDAO.insert(licenseOverride);
   }
 
   @GET

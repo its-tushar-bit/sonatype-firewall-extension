@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -60,11 +61,23 @@ public class LicenseOverrideDAO
 
   @Override
   public void update(EntityManager em, LicenseOverride entity) {
-    validate(entity);
-    super.update(em, entity);
+    // There's no need for update... yet.
+    throw new UnsupportedOperationException();
   }
 
   private void validate(LicenseOverride entity) {
+    if (entity.getStatus() == LicenseOverrideStatus.OVERRIDDEN || entity.getStatus() == LicenseOverrideStatus.SELECTED) {
+      if (entity.getLicenseId() == null) {
+        throw new BadRequestException("Expected not null license id for license override");
+      }
+      new LicenseDAO().getByIdNotNull(entity.getLicenseId());
+    }
+    else {
+      if (entity.getLicenseId() != null) {
+        throw new BadRequestException("Expected null license id for license override");
+      }
+    }
+
     if (entity.getComment() != null && entity.getComment().length() > MAX_COMMENT_SIZE) {
       throw new BadRequestException("Comment length must not exceed " + MAX_COMMENT_SIZE + " characters");
     }

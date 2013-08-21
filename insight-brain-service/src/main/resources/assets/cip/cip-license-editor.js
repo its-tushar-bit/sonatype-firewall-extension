@@ -43,22 +43,7 @@
 		};
 	}
 
-		var licenseEditor = angular.module('LicenseEditor', ['CommonServices', 'AngularCommon', 'Hudson' ]),
-			licenses = null;
-
-		licenseEditor.service('Licenses', ['$q', function ($q) {
-			return {
-				get : function () {
-					var deferred = $q.deferred();
-					if (licenses !== null) {
-						deferred.resolve(licenses);
-					} else {
-						$http.get('').success(function () {}).then(deferred);
-					}
-					return deferred.promise;
-				}
-			};
-		}]);
+		var licenseEditor = angular.module('LicenseEditor', ['CommonServices', 'AngularCommon', 'Hudson' ]);
 
 		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', function ($scope, $q, $http, hudson, Messages, SelectedComponent) {
 
@@ -124,7 +109,6 @@
 					}
 				}));
 
-				// TODO License list ought to link to Category + ThreatLevel (Highest?)
 				$q.all(promises).then(function (results) {
 					var licenses = results[0].data,
 						currentOverride = results[1].data,

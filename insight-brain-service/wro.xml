@@ -39,4 +39,10 @@
 		<group-ref>application</group-ref>
 		<group-ref>policy</group-ref>
 	</group>
+
+	<group name='cip'>
+		<css>/cip/cip-claim-component.css</css>
+		<css>/cip/cip-label-editor.css</css>
+		<css>/cip/cip-policy-violations.css</css>
+	</group>
 </groups>

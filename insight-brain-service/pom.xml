@@ -604,6 +604,17 @@
 	          <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
             </configuration>
           </execution>
+          <execution>
+            <id>css-cip</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+	          <targetGroups>cip</targetGroups>
+	          <cssDestinationFolder>${project.build.directory}/generated/assets/cip/</cssDestinationFolder>
+            </configuration>
+          </execution>
         </executions>
         <configuration>
           <wroFile>${basedir}/wro.xml</wroFile>

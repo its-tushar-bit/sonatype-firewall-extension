@@ -63,10 +63,10 @@ describe('PolicyEditor.js', function() {
 			constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/constraint-editor.html"),
 			scope = null;
 
-		beforeEach(inject(function ($compile, $httpBackend, PolicyStore) {
+		beforeEach(inject(function ($compile, $httpBackend) {
 			getPolicyEditorController();
 			createNewPolicy();
-			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator='createPolicy()'></div>");
+			var node = $("<div id='testInlinePolicyCreator' inline-policy-creator></div>");
 			node.appendTo('body');
 			scope = testScope.$new(); // testScope's destruction cascades
 			$httpBackend.whenGET("policy-quick-add").respond('<div show-if="policy">' + template + '</div>');
@@ -75,9 +75,11 @@ describe('PolicyEditor.js', function() {
 			$httpBackend.flush();
 		}));
 
-		afterEach(function () {
+		afterEach(inject(function ($httpBackend) {
 			$('#testInlinePolicyCreator').remove();
-		});
+                        $httpBackend.verifyNoOutstandingRequest()
+                        $httpBackend.verifyNoOutstandingExpectation();
+		}));
 
 		it('Create', function () {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
@@ -88,42 +90,45 @@ describe('PolicyEditor.js', function() {
 			expect(angular.element('#testInlinePolicyCreator').scope().policy).toBeDefined();
 		});
 
-		//TODO: check validation
 		it('Saving', inject(function ($httpBackend, CLMAppLocations) {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
+                        //creating a policy for the createScope should then trigger load of the child scope
+                        createScope.click();
+                        scope.$digest();
 
-			scope.createPolicy = function () {
-			    var policy = createNewPolicy();
-			    policy.name = 'testname';
-			    policy.constraints[0].name = 'constraintname';
-			    policy.constraints[0].operator = 'OR';
-			    return policy;
-			};
-			createScope.click();
+                        var policyEditorScope = angular.element('.inline-policy-editor').scope();
+                        // short-circuit the validation in a way we can still confirm this was called
+                        spyOn(policyEditorScope, 'validate').andReturn(true);
+                        $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+                        $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
 
-			$httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond({
-				id : 'foo',
+                        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond({
+				id : 'foo'
 			});
-			createScope.savePolicy();
+
+                        policyEditorScope.savePolicy();
 			$httpBackend.flush();
 
 			expect(angular.element('#testInlinePolicyCreator').scope().policy).toEqual(null);
+      expect(policyEditorScope.validate).toHaveBeenCalled();
 		}));
 
-		it('Cancel', function () {
+		it('Cancel', inject(function ($httpBackend) {
 			var createScope = angular.element('#testInlinePolicyCreator').scope();
-			scope.createPolicy = function () {
-				return createNewPolicy();
-			};
 			createScope.click();
-			createScope.cancel();
-		});
+                        scope.$digest();
+
+                        var policyEditorScope = angular.element('.inline-policy-editor').scope();
+                        expect(policyEditorScope.policy).not.toBeNull();
+                        $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+                        $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
+                        policyEditorScope.cancel();
+                        $httpBackend.flush();
+                        expect(policyEditorScope.policy).toBeNull();
+                }));
 		
 		it('Operator hidden when one condition', inject(function ($httpBackend) {
 		    var createScope = angular.element('#testInlinePolicyCreator').scope();
-            scope.createPolicy = function () {
-                return createNewPolicy();
-            };
 
             $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
             createScope.$apply(function () {
@@ -158,54 +163,37 @@ describe('PolicyEditor.js', function() {
 		describe('isDirty', function () {
 			it('Unchanged', function () {
 				var createScope = angular.element('#testInlinePolicyCreator').scope();
-				scope.createPolicy = function () {
-					return createNewPolicy();
-				};
 				createScope.click();
 				expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(false);
 			});
-			it('Policy Name', function () {
+			it('Policy Name', inject(function ($httpBackend) {
 				var createScope = angular.element('#testInlinePolicyCreator').scope();
-				scope.createPolicy = function () {
-					return createNewPolicy();
-				};
 				createScope.click();
-				createScope.policy.name = 'foo';
+                                scope.$digest();
+
+                                var policyEditorScope = angular.element('.inline-policy-editor').scope();
+                                $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+                                $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
+                                $httpBackend.flush();
+                                policyEditorScope.policy.name = 'foo';
 				expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
-			});
-			it('Constraint Name', function () {
+			}));
+			it('Constraint Name', inject(function ($httpBackend) {
 				var createScope = angular.element('#testInlinePolicyCreator').scope();
-				scope.createPolicy = function () {
-					return createNewPolicy();
-				};
-				createScope.click();
-				createScope.policy.constraints[0].name = 'foo'
+                                createScope.click();
+                                scope.$digest();
+
+                                var policyEditorScope = angular.element('.inline-policy-editor').scope();
+                                $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+                                $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
+                                $httpBackend.flush();
+                                policyEditorScope.policy.constraints[0].name = 'foo'
 				expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
-			});
+			}));
 		});
 	});
 
 	describe('InlinePolicyEditor', function () {
-		function expectPolicyRequest(responseData) {
-			inject(function($httpBackend, CLMAppLocations) {
-				$httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.copy(responseData));
-			});
-		}
-
-		function getPolicyEditorController() {
-			expectActionRequests();
-
-			return getController('PolicyEditorController');
-		}
-		function getPolicyController() {
-			inject(function ($httpBackend, CLMAppLocations) {
-				$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
-				$httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-			});
-
-			return getController('PolicyController');
-		}
-		
         var template = SpecUtil.getTemplate("../assets/components/policy-editor/policy-inline-editor.html"),
             constraintEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/constraint-editor.html"),
             conditionEditorTemplate = SpecUtil.getTemplate("../assets/components/policy-editor/condition-editor.html"),
@@ -248,77 +236,78 @@ describe('PolicyEditor.js', function() {
                 }
             };
 		    var validateValidation = function(scope, msg) {
-		        scope.validate();
-	            expect(scope.alerts.length).toEqual(1);
-	            expect(scope.alerts[0].msg).toEqual(msg);
-	            expect(scope.alerts[0].type).toEqual('error');
+		          scope.validate();
+                          expect(scope.alerts.length).toEqual(1);
+                          expect(scope.alerts[0].msg).toEqual(msg);
+                          expect(scope.alerts[0].type).toEqual('error');
 		    };
 
 		    parentScope.policyEditMap[policyScope.policy.id] = true;
 			parentScope.$digest();
 			scope = angular.element('#testInlinePolicyEditor').scope();
-
+                    parentScope.$digest();
             scope.policy.constraints = [];
 		    
-		    scope[scope.getFormName()] = form;
-		    validateValidation(scope,'Policy name is required.');
-		    
+
+            var policyEditorScope = angular.element('.inline-policy-editor').scope();
+            policyEditorScope[scope.getFormName()] = form;
+            validateValidation(policyEditorScope,'Policy name is required.');
 		    form.name.$error.required = false;
-		    validateValidation(scope,'Policy name cannot contain leading, trailing or double spaces or tabs.');
+		    validateValidation(policyEditorScope,'Policy name cannot contain leading, trailing or double spaces or tabs.');
 		    
             form.name.$error.spaces = false;
-            validateValidation(scope,'Policy name must be alpha numeric.');
+            validateValidation(policyEditorScope,'Policy name must be alpha numeric.');
             
             form.name.$error.alphaNumeric = false;
-            validateValidation(scope,'You must add at least one constraint to the policy.');
+            validateValidation(policyEditorScope,'You must add at least one constraint to the policy.');
             
             scope.policy.constraints.push({});
-            validateValidation(scope,'Enter a valid name for constraint #1');
+            validateValidation(policyEditorScope,'Enter a valid name for constraint #1');
             
             scope.policy.constraints[0].name = 'name';
-            validateValidation(scope,'You must select any or all of the conditions for constraint "name"');
+            validateValidation(policyEditorScope,'You must select any or all of the conditions for constraint "name"');
             
             scope.policy.constraints[0].operator = 'OR';
-            validateValidation(scope,'You must add at least one condition to constraint "name"');
+            validateValidation(policyEditorScope,'You must add at least one condition to constraint "name"');
             
             scope.policy.constraints[0].conditions = [{}];
-            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
+            validateValidation(policyEditorScope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a whole number for condition #1 in constraint "name"');
+            validateValidation(policyEditorScope,'Please enter a whole number for condition #1 in constraint "name"');
 
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'SecurityVulnerabilitySeverity';
-            validateValidation(scope,'Please enter a decimal number for condition #1 in constraint "name"');
+            validateValidation(policyEditorScope,'Please enter a decimal number for condition #1 in constraint "name"');
 
             scope.policy.constraints[0].conditions[0].conditionTypeId = 'SecurityVulnerabilityStatus';
-            validateValidation(scope,'Please enter a value for condition #1 in constraint "name"');
+            validateValidation(policyEditorScope,'Please enter a value for condition #1 in constraint "name"');
 
             scope.policy.constraints[0].conditions[0].value = '300';
             scope.policy.constraints.push({});
-            validateValidation(scope,'Enter a valid name for constraint #2');
+            validateValidation(policyEditorScope,'Enter a valid name for constraint #2');
             
             scope.policy.constraints[1].name = 'name';
-            validateValidation(scope,'You must select any or all of the conditions for constraint "name"');
+            validateValidation(policyEditorScope,'You must select any or all of the conditions for constraint "name"');
             
             scope.policy.constraints[1].operator = 'OR';
-            validateValidation(scope,'You must add at least one condition to constraint "name"');
+            validateValidation(policyEditorScope,'You must add at least one condition to constraint "name"');
             
             scope.policy.constraints[1].conditions = [{}];
-            validateValidation(scope,'Please select a valid condition type for condition #1 in constraint "name"');
+            validateValidation(policyEditorScope,'Please select a valid condition type for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a whole number for condition #1 in constraint "name"');
+            validateValidation(policyEditorScope,'Please enter a whole number for condition #1 in constraint "name"');
             
             scope.policy.constraints[1].conditions[0].value = '300';
             scope.policy.constraints[1].conditions.push({});
-            validateValidation(scope,'Please select a valid condition type for condition #2 in constraint "name"');
+            validateValidation(policyEditorScope,'Please select a valid condition type for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].conditionTypeId = 'AgeInDays';
-            validateValidation(scope,'Please enter a whole number for condition #2 in constraint "name"');
+            validateValidation(policyEditorScope,'Please enter a whole number for condition #2 in constraint "name"');
             
             scope.policy.constraints[1].conditions[1].value = '300';
-            scope.validate();
-            expect(scope.alerts.length).toEqual(0);
+            policyEditorScope.validate();
+            expect(policyEditorScope.alerts.length).toEqual(0);
 		}));
 		
 		it('Test update policy', inject(function(PolicyStore, CLMAppLocations, $httpBackend) {
@@ -338,7 +327,7 @@ describe('PolicyEditor.js', function() {
 			expect(policyScope.policy.isDirty()).toEqual(true);
 
 			$httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.extend(angular.copy(policyScope.policy.$getOriginal()), { name : policyScope.policy.name }));
-			angular.element('#testInlinePolicyEditor').scope().savePolicy()
+                        angular.element('.inline-policy-editor').scope().savePolicy();
 			$httpBackend.flush();
 
 			expect(policyStoreContents[0].isDirty()).toEqual(false);

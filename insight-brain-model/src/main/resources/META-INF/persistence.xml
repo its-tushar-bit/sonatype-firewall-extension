@@ -38,6 +38,11 @@
       <property name="openjpa.ConnectionFactoryProperties" value="PrintParameters=True"/>      
       <property name="openjpa.Log" value="DefaultLevel=TRACE, Runtime=INFO, Tool=INFO, SQL=TRACE"/>
       -->
+      <!-- To force openjpa to not re-order the sql commands in a transaction:
+      <property name="openjpa.jdbc.UpdateManager" value="operation-order"/>
+      or
+      <property name="openjpa.jdbc.UpdateManager" value="batching-operation-order"/>
+       -->
     </properties>
   </persistence-unit>
   <persistence-unit name="InsightBrainDM" transaction-type="RESOURCE_LOCAL">

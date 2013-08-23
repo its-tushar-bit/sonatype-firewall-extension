@@ -107,7 +107,7 @@
 				expect(scope.statuses.length).toEqual(6);
 				expect(scope.statuses[5]).toEqual({
 					value : 'DELETE',
-					label : 'Inherit Status (OVERRIDDEN)'
+					label : 'Inherit Status (Overridden)'
 				});
 			});
 

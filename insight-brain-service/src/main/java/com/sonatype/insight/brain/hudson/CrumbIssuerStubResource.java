@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 /**
  * The client-side UI makes requests to "/crumbIssuer/api/xml" to detect and integrate with Hudson's XSRF protection.
  * When the UI runs outside of Hudson, this resource prevents irritating 404 errors in the CLM server log.
+ * 
+ * @since 1.6
  */
 @Named
 @Path(CrumbIssuerStubResource.SERVICE_PATH)

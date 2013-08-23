@@ -49,7 +49,13 @@ public class LicenseOverrideDAOTest
     assertNotNull(licenseOverride);
     assertLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment, licenseOverride);
 
-    // Update is not supported
+    // Update
+    comment = "No comments";
+    licenseOverride.setComment(comment);
+    dao.update(licenseOverride);
+    licenseOverride = dao.getById(licenseOverride.getId());
+    assertNotNull(licenseOverride);
+    assertLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment, licenseOverride);
 
     // Delete
     dao.delete(licenseOverride);
@@ -93,10 +99,18 @@ public class LicenseOverrideDAOTest
     }
     override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE));
     dao.insert(override);
+    override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
+    try {
+      dao.update(override);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+    }
   }
 
   @Test
-  public void testInvalidLicenseId() throws Exception {
+  public void testInvalidLicenseId_Insert() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
@@ -121,86 +135,151 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
-  public void testNullLicenseId() throws Exception {
+  public void testInvalidLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride override;
-
-    override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
-        LicenseOverrideStatus.ACKNOWLEDGED, null /* licenseId */, "My comment");
+    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     dao.insert(override);
 
-    override = new LicenseOverride(applicationId, "gid", "aid", "2.0", LicenseOverrideStatus.CONFIRMED,
-        null /* licenseId */, "My comment");
-    dao.insert(override);
-
-    override = new LicenseOverride(applicationId, "gid", "aid", "3.0", LicenseOverrideStatus.OPEN,
-        null /* licenseId */, "My comment");
-    dao.insert(override);
-
-    override = new LicenseOverride(applicationId, "gid", "aid", "4.0", LicenseOverrideStatus.OVERRIDDEN,
-        null /* licenseId */, "My comment");
+    override.setLicenseId("FataMorganaId");
     try {
-      dao.insert(override);
-      fail("Expected BadRequestException");
+      dao.update(override);
+      fail("Expected NotFoundException");
     }
-    catch (BadRequestException expected) {
-      assertEquals("Expected not null license id for license override", expected.getMessage());
+    catch (NotFoundException expected) {
+      assertEquals("A license with id 'FataMorganaId' does not exist.", expected.getMessage());
     }
 
-    override = new LicenseOverride(applicationId, "gid", "aid", "5.0", LicenseOverrideStatus.SELECTED,
-        null /* licenseId */, "My comment");
+    override.setStatus(LicenseOverrideStatus.SELECTED);
     try {
-      dao.insert(override);
-      fail("Expected BadRequestException");
+      dao.update(override);
+      fail("Expected NotFoundException");
     }
-    catch (BadRequestException expected) {
-      assertEquals("Expected not null license id for license override", expected.getMessage());
+    catch (NotFoundException expected) {
+      assertEquals("A license with id 'FataMorganaId' does not exist.", expected.getMessage());
     }
   }
 
   @Test
-  public void testNotNullLicenseId() throws Exception {
+  public void testNullLicenseId_Insert() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride override;
+    for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
+      LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", status, null /* licenseId */,
+          "My comment");
+      switch (status) {
+        case ACKNOWLEDGED:
+        case CONFIRMED:
+        case OPEN:
+          dao.insert(override);
+          dao.delete(override);
+          break;
+        case OVERRIDDEN:
+        case SELECTED:
+          try {
+            dao.insert(override);
+            fail("Expected BadRequestException");
+          }
+          catch (BadRequestException expected) {
+            assertEquals("Expected not null license id for license override", expected.getMessage());
+          }
+          break;
+        default:
+          fail("Unknown license override status: " + status.getId());
+      }
+    }
+  }
 
-    override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.ACKNOWLEDGED,
-        "Apache-2.0", "My comment");
-    try {
-      dao.insert(override);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Expected null license id for license override", expected.getMessage());
-    }
-
-    override = new LicenseOverride(applicationId, "gid", "aid", "2.0", LicenseOverrideStatus.CONFIRMED, "Apache-2.0",
-        "My comment");
-    try {
-      dao.insert(override);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Expected null license id for license override", expected.getMessage());
-    }
-
-    override = new LicenseOverride(applicationId, "gid", "aid", "3.0", LicenseOverrideStatus.OPEN, "Apache-2.0",
-        "My comment");
-    try {
-      dao.insert(override);
-      fail("Expected BadRequestException");
-    }
-    catch (BadRequestException expected) {
-      assertEquals("Expected null license id for license override", expected.getMessage());
-    }
-
-    override = new LicenseOverride(applicationId, "gid", "aid", "4.0", LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
-        "My comment");
+  @Test
+  public void testNullLicenseId_Update() throws Exception {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.OPEN,
+        null /* licenseId */, "My comment");
     dao.insert(override);
 
-    override = new LicenseOverride(applicationId, "gid", "aid", "5.0", LicenseOverrideStatus.SELECTED, "Apache-2.0",
-        "My comment");
+    for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
+      override.setStatus(status);
+      switch (status) {
+        case ACKNOWLEDGED:
+        case CONFIRMED:
+        case OPEN:
+          dao.update(override);
+          break;
+        case OVERRIDDEN:
+        case SELECTED:
+          try {
+            dao.update(override);
+            fail("Expected BadRequestException");
+          }
+          catch (BadRequestException expected) {
+            assertEquals("Expected not null license id for license override", expected.getMessage());
+          }
+          break;
+        default:
+          fail("Unknown license override status: " + status.getId());
+      }
+    }
+  }
+
+  @Test
+  public void testNotNullLicenseId_Insert() throws Exception {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
+      LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", status, "Apache-2.0",
+          "My comment");
+      switch (status) {
+        case ACKNOWLEDGED:
+        case CONFIRMED:
+        case OPEN:
+          try {
+            dao.insert(override);
+            fail("Expected BadRequestException");
+          }
+          catch (BadRequestException expected) {
+            assertEquals("Expected null license id for license override", expected.getMessage());
+          }
+          break;
+        case OVERRIDDEN:
+        case SELECTED:
+          dao.insert(override);
+          dao.delete(override);
+          break;
+        default:
+          fail("Unknown license override status: " + status.getId());
+      }
+    }
+  }
+
+  @Test
+  public void testNotNullLicenseId_Update() throws Exception {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     dao.insert(override);
+
+    for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
+      override.setStatus(status);
+      switch (status) {
+        case ACKNOWLEDGED:
+        case CONFIRMED:
+        case OPEN:
+          try {
+            dao.update(override);
+            fail("Expected BadRequestException");
+          }
+          catch (BadRequestException expected) {
+            assertEquals("Expected null license id for license override", expected.getMessage());
+          }
+          break;
+        case OVERRIDDEN:
+        case SELECTED:
+          dao.update(override);
+          break;
+        default:
+          fail("Unknown license override status: " + status.getId());
+      }
+    }
   }
 }

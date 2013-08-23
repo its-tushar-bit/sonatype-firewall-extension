@@ -65,15 +65,19 @@ public class LicenseOverrideResource
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
+    licenseOverride.setOwnerId(internalOwnerId);
+
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride existingLicenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(internalOwnerId,
         licenseOverride.getGroupId(), licenseOverride.getArtifactId(), licenseOverride.getVersion());
     if (existingLicenseOverride != null) {
-      licenseOverrideDAO.delete(existingLicenseOverride);
+      licenseOverride.setId(existingLicenseOverride.getId());
+      licenseOverrideDAO.update(licenseOverride);
     }
-    licenseOverride.setId(null);
-    licenseOverride.setOwnerId(internalOwnerId);
-    licenseOverrideDAO.insert(licenseOverride);
+    else {
+      licenseOverride.setId(null);
+      licenseOverrideDAO.insert(licenseOverride);
+    }
 
     String ipAddress = AuditUtils.findIP(request);
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, false /* isDelete */);

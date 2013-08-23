@@ -61,8 +61,8 @@ public class LicenseOverrideDAO
 
   @Override
   public void update(EntityManager em, LicenseOverride entity) {
-    // There's no need for update... yet.
-    throw new UnsupportedOperationException();
+    validate(entity);
+    super.update(em, entity);
   }
 
   private void validate(LicenseOverride entity) {

@@ -185,7 +185,7 @@
             this.options = options;
         }
 
-        ClaimComponentTab.prototype = new Insight.InformationPanelPlugin({priority:8});
+        ClaimComponentTab.prototype = new Insight.InformationPanelPlugin({ priority : 128 });
 
         ClaimComponentTab.prototype.isVisible = function() {
             return !freemium && this.gav.matchState !== 'exact';

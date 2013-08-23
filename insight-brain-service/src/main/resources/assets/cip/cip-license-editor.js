@@ -77,7 +77,7 @@
 				}
 			}
 			function updateTable() {
-				if (SelectedComponent) {
+				if (SelectedComponent && SelectedComponent.observedLicenses) {
 					var licenseOverride = null,
 						component = SelectedComponent;
 					for (var i=0; i<$scope.hierarchy.length; i++) {

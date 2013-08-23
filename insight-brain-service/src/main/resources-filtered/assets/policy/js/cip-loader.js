@@ -74,6 +74,15 @@
 					return null;
 				}
 			};
+		}).directive('disablenav', function() {
+			return function(scope, element, attrs) {
+				element.bind("keydown.nav", function(e) {
+					// 9 is tab, others are arrow keys
+					if (e.keyCode == 9 || (e.keyCode >= 37 && e.keyCode <= 40)) {
+						e.stopPropagation();
+					}
+				});
+			};
 		});
 	}
 

@@ -66,7 +66,7 @@
 							if ($scope.hierarchy[i].ownerType !== 'application') {
 								$scope.statuses.push({
 									value : "DELETE",
-									label : 'Inherit Status (' + ($scope.hierarchy[i].licenseOverride ? $scope.hierarchy[i].licenseOverride.status : "Open")+ ')'
+									label : 'Inherit Status (' + ($scope.hierarchy[i].licenseOverride ? getStatusName($scope.hierarchy[i].licenseOverride.status) : "Open")+ ')'
 								});
 								break;
 							}
@@ -88,6 +88,16 @@
 				} else {
 					$scope.override.status = 'OPEN';
 				}
+			}
+			
+			function getStatusName(id) {
+			  for ( var i = 0 ; i < statuses.length ; i++ ) {
+			    if (statuses[i].value === id) {
+			      return statuses[i].label;
+			    }
+			  }
+			  //you send me junk, i send you junk back ;)
+			  return id;
 			}
 
 			var statuses = [{ value : 'OPEN', label : 'Open' },{ value : 'ACKNOWLEDGED', label : 'Acknowledged' },

@@ -64,6 +64,7 @@
 				artifactId : 'artifactid',
 				version : '1'
 			});
+			$provide.value('ApplicationIDProvider', 'app1');
 		    $provide.factory('hudson', ['$http', function($http){
 		        return $http;
 		      }]);
@@ -83,11 +84,11 @@
 			beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
 				$httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
 
-				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
+				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
 										SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
 										SelectedComponent.version).respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', "AFL"));
 
-				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/' + applicationId + '?artifactId=' + SelectedComponent.artifactId +
+				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' + SelectedComponent.artifactId +
 								'&groupId=' + SelectedComponent.groupId + '&version=' + SelectedComponent.version).respond(getLicenseWithThreats());
 
 				$controller('LicenseEditorController', {
@@ -131,11 +132,11 @@
 			beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
 				$httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
 
-				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
+				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
 										SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
 										SelectedComponent.version).respond(getAppliedLicenseOverrides(null, null, null, null));
 
-				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/' + applicationId + '?artifactId=' + SelectedComponent.artifactId +
+				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' + SelectedComponent.artifactId +
 								'&groupId=' + SelectedComponent.groupId + '&version=' + SelectedComponent.version).respond(getLicenseWithThreats());
 
 				$controller('LicenseEditorController', {
@@ -208,11 +209,11 @@
 			beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
 				$httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
 
-				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
+				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
 										SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
 										SelectedComponent.version).respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', "AFL"));
 
-				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/' + applicationId + '?artifactId=' + SelectedComponent.artifactId +
+				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' + SelectedComponent.artifactId +
 								'&groupId=' + SelectedComponent.groupId + '&version=' + SelectedComponent.version).respond(getLicenseWithThreats());
 
 				$controller('LicenseEditorController', {
@@ -276,11 +277,11 @@
 			beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
 				$httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
 
-				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
+				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
 										SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
 										SelectedComponent.version).respond(getAppliedLicenseOverrides('OVERRIDDEN', "AFL", null, null));
 
-				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/' + applicationId + '?artifactId=' + SelectedComponent.artifactId +
+				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' + SelectedComponent.artifactId +
 								'&groupId=' + SelectedComponent.groupId + '&version=' + SelectedComponent.version).respond(getLicenseWithThreats());
 
 				$controller('LicenseEditorController', {
@@ -349,11 +350,11 @@
 			beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
 				$httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
 
-				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
+				$httpBackend.expectGET(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
 										SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
 										SelectedComponent.version).respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/' + applicationId + '?artifactId=' + SelectedComponent.artifactId +
+				$httpBackend.expectGET(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' + SelectedComponent.artifactId +
 								'&groupId=' + SelectedComponent.groupId + '&version=' + SelectedComponent.version).respond(getLicenseWithThreats());
 
 				$controller('LicenseEditorController', {

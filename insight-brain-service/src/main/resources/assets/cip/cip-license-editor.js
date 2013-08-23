@@ -38,7 +38,9 @@
 
 			angular.module('componentProvider' + timestamp, []).service('SelectedComponent', function() {
 				return me.gav;
-			});
+			}).service('ApplicationIDProvider', function () {
+        return applicationId;
+      });
 
 			angular.bootstrap(container[0], [ 'LicenseEditor', 'componentProvider' + timestamp]);
 		};
@@ -46,7 +48,7 @@
 
 		var licenseEditor = angular.module('LicenseEditor', ['CommonServices', 'AngularCommon', 'Hudson' ]);
 
-		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', function ($scope, $q, $http, hudson, Messages, SelectedComponent) {
+		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', 'ApplicationIDProvider', function ($scope, $q, $http, hudson, Messages, SelectedComponent, ApplicationIDProvider) {
 
 			function getHierarchyById(id) {
 				for (var i=0; i<$scope.hierarchy.length; i++) {
@@ -99,10 +101,10 @@
 				// List of licenses
 				promises.push($http.get(CLM.path + 'rest/license'));
 				// Current override state
-				promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + applicationId + '/applied/' +
+				promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + ApplicationIDProvider + '/applied/' +
 								SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' + SelectedComponent.version));
 				// Component licenses
-				promises.push($http.get(CLM.path + 'rest/ci/component/details/licenses/' + applicationId, {
+				promises.push($http.get(CLM.path + 'rest/ci/component/details/licenses/' + ApplicationIDProvider, {
 					params : {
 						'artifactId' : SelectedComponent.artifactId,
 						'groupId' : SelectedComponent.groupId,

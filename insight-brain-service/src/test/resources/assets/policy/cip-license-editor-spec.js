@@ -1,4 +1,5 @@
 (function () {
+  SpecUtil.setupProviders('app1', 'org1');
 	function getAppliedLicenseOverrides(appStatus, appLicense, orgStatus, orgLicense) {
 		var overrides = {
 			licenseOverridesByOwner : [{
@@ -58,16 +59,15 @@
 	}
 
 	describe('CIP License Editor', function () {
-		beforeEach(module('LicenseEditor', function ($provide) {
+		beforeEach(module('LicenseEditor', 'ApplicationIdProvider', function ($provide) {
 			$provide.value('SelectedComponent', {
 				groupId : 'org.groupid',
 				artifactId : 'artifactid',
 				version : '1'
 			});
-			$provide.value('ApplicationIDProvider', 'app1');
-		    $provide.factory('hudson', ['$http', function($http){
-		        return $http;
-		      }]);
+			$provide.factory('hudson', ['$http', function($http){
+		    return $http;
+		  }]);
 		}));
 
 		var scope;

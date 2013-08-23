@@ -2,6 +2,22 @@ window.CLM = {
   path: '../brain/'
 }
 var SpecUtil = {
+  setupProviders : function(applicationId, organizationId) {
+    angular.module('ApplicationIdProvider', []).service('ApplicationId', function () {
+      // TODO Are ui-router parameters encoded or decoded?
+      return {
+        encoded: function () {
+          return applicationId;
+        }
+      };
+    }).service('OrganizationId', function () {
+      return {
+        encoded : function () {
+          return organizationId;
+        }
+      };
+    });
+  },
 	getTemplate : function (url) {
 		url = url.split('/');
 		if (url[0] === '..') {

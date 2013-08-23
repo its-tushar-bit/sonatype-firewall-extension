@@ -372,8 +372,6 @@ body {
 }
 .edit-image label {
 	display: block;
-	/*margin-left: 25px;*/
-	/*margin-right: 25px;*/
 	opacity: 0.8;
 	filter: alpha(opacity=80);
 	background-color: #17558E;

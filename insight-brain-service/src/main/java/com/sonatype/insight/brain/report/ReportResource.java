@@ -272,6 +272,8 @@ public class ReportResource
   }
 
   /**
+   * Supports the bulk license editor which does not use LicenseOverrideResource.
+   * 
    * @since 1.6
    */
   private void saveLicenseOverride(String appId, JsonNode licenseData) {

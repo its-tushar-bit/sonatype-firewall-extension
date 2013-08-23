@@ -610,7 +610,7 @@ var AngularUtils = {
 				if (!args) {
 					return;
 				}
-				if (angular.isArray(args)) {
+				if (angular.isArray(args) || args.toString() === "[object Arguments]") {
 					args = {
 						status : args[1],
 						data : args[0],

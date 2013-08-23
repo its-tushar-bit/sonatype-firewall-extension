@@ -8,8 +8,12 @@ describe('LicenseThreatGroup', function() {
       encoded : function () {
         return 'bom1-12345678';
       }
-    }
-  );
+    });
+    $provide.value('OrganizationId', {
+      encoded: function () {
+        return null;
+      }
+    });
     $provide.factory('hudson', ['$http', function($http){
       return $http;
     }]);

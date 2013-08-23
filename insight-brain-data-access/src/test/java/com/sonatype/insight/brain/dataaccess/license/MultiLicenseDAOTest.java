@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class MultiLicenseDAOTest
     extends AbstractLicenseDAOTest
 {
@@ -63,17 +65,21 @@ public class MultiLicenseDAOTest
   }
 
   @Test
-  public void testGetLicenseThreatLevelByApplicationIdAndMultiLicenseId() {
+  public void testGetLicenseThreatLevelByApplicationAndMultiLicenseId() {
     createDefaultApplication();
 
     MultiLicenseDAO dao = new MultiLicenseDAO();
     Collection<MultiLicense> multiLicenses = dao.getAll();
 
     for (MultiLicense multiLicense : multiLicenses) {
-      Integer threat = dao.getLicenseThreatLevelByApplicationIdAndMultiLicenseId(applicationId, multiLicense.getId());
+      Integer threat = dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, multiLicense.getId());
       Assert.assertTrue("Multilicense Threat Level between null and 10", threat == null
           || (threat >= 0 && threat <= 10));
     }
+
+    assertEquals(Integer.valueOf(0),
+        dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0"));
+    assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-2.0"));
   }
 
   @Test

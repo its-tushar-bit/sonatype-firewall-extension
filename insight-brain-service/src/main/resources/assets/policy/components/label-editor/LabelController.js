@@ -9,7 +9,7 @@
 
   var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null, description: null};
 
-  var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices']);
+  var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'ResourceModule']);
 
   labelModule.service('LabelStore',['CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations){
     var labelStore = null, labelStores = {};
@@ -44,8 +44,8 @@
     };
   }]);
 
-  labelModule.controller('LabelController', ['$scope', '$http', '$dialog', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
-                                             function ($scope, $http, $dialog, $q, clmAppLocations, messages, clmResource, LabelStore) {
+  labelModule.controller('LabelController', ['$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
+                                             function ($scope, $http, $q, clmAppLocations, messages, clmResource, LabelStore) {
       function deselect() {
         if ($scope.selectedLabel) {
           $scope.selectedLabel.$revert();

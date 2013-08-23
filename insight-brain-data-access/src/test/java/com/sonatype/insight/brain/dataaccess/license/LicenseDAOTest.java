@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -12,6 +13,8 @@ import com.sonatype.insight.brain.model.license.License;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LicenseDAOTest
     extends AbstractLicenseDAOTest
@@ -55,5 +58,21 @@ public class LicenseDAOTest
 
     dao.delete(newLicense);
     dao.load();
+  }
+
+  @Test
+  public void testGetLicenseThreatLevelByApplicationAndLicenseId() {
+    createDefaultApplication();
+
+    LicenseDAO dao = new LicenseDAO();
+    Collection<License> licenses = dao.getAll();
+
+    for (License license : licenses) {
+      Integer threat = dao.getLicenseThreatLevelByApplicationAndLicenseId(application, license.getId());
+      Assert.assertTrue("License Threat Level between null and 10", threat == null || (threat >= 0 && threat <= 10));
+    }
+
+    assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByApplicationAndLicenseId(application, "Apache-2.0"));
+    assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndLicenseId(application, "GPL-2.0"));
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -258,6 +259,72 @@ public abstract class AbstractComponentInfoResource
       }
     }
     return result;
+  }
+
+  /**
+   * Returns the declared and observed licenses with their threat levels for a GAV
+   * 
+   * @since 1.6
+   */
+  @GET
+  @Produces({ MediaType.APPLICATION_JSON })
+  @Path("licenses/{applicationPublicId}")
+  public ComponentLicenses getLicenses(@PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
+      @QueryParam("version") String version) throws IOException
+  {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+
+    // Get component details from the SAAS server
+    ComponentDetails componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+
+    ComponentLicenses result = new ComponentLicenses();
+    result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
+    result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
+
+    return result;
+  }
+
+  /**
+   * @since 1.6
+   */
+  private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Application application, Set<License> multiLicenses)
+  {
+    List<LicenseWithThreatLevel> result = new ArrayList<LicenseWithThreatLevel>();
+
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    LicenseDAO licenseDAO = new LicenseDAO();
+    for (License multiLicense : multiLicenses) {
+      Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
+          .getLicensesByMultiLicenseId(multiLicense.getLicenseId());
+      for (com.sonatype.insight.brain.model.license.License license : licenses) {
+        LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
+        licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
+        licenseWithThreatLevel.threatLevel = licenseDAO.getLicenseThreatLevelByApplicationAndLicenseId(application,
+            license.getId());
+
+        result.add(licenseWithThreatLevel);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * @since 1.6
+   */
+  public static class ComponentLicenses
+  {
+    public List<LicenseWithThreatLevel> declaredlicenses;
+    public List<LicenseWithThreatLevel> observedlicenses;
+  }
+
+  /**
+   * @since 1.6
+   */
+  public static class LicenseWithThreatLevel
+  {
+    public License license;
+    public Integer threatLevel;
   }
 
   protected abstract String getToolName();

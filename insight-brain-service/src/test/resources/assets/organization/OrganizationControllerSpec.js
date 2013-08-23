@@ -6,6 +6,11 @@ describe('Tests for the OrganizationController', function() {
         return '1';
       }
     });
+    $provide.value('ApplicationId', {
+      encoded: function () {
+        return;
+      }
+    });
     $provide.factory('hudson', ['$http', function($http){
       return $http;
     }]);

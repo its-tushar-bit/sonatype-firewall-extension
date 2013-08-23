@@ -17,7 +17,9 @@ import java.util.TreeMap;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -130,5 +132,38 @@ public class LicenseDAO
       throw new NotFoundException("A license with name '" + name + "' does not exist.");
     }
     return license;
+  }
+
+  /**
+   * @since 1.6
+   */
+  public Integer getLicenseThreatLevelByApplicationAndLicenseId(Application application, String licenseId) {
+    final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+    String organizationId = application.getOrganizationId();
+    Integer threatLevel = null;
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(application.getId(),
+        licenseId);
+    threatLevel = max(threatLevel, licenseThreatGroups);
+
+    if (organizationId != null) {
+      licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId, licenseId);
+      threatLevel = max(threatLevel, licenseThreatGroups);
+    }
+    return threatLevel;
+  }
+
+  /**
+   * @since 1.6
+   */
+  private Integer max(Integer threatLevel, List<LicenseThreatGroup> licenseThreatGroups) {
+    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+      if (threatLevel == null) {
+        threatLevel = licenseThreatGroup.getThreatLevel();
+      }
+      else {
+        threatLevel = Math.max(threatLevel, licenseThreatGroup.getThreatLevel());
+      }
+    }
+    return threatLevel;
   }
 }

@@ -38,6 +38,8 @@
 
 			angular.module('componentProvider' + timestamp, []).service('SelectedComponent', function() {
 				return me.gav;
+			}).service('DataView', function () {
+				return me.grid.getData();
 			});
 
 			angular.bootstrap(container[0], [ 'LicenseEditor', 'componentProvider' + timestamp]);
@@ -48,7 +50,7 @@
 
 		var licenseEditor = angular.module('LicenseEditor', ['CommonServices', 'AngularCommon', 'Hudson', 'ApplicationIdProvider' ]);
 
-		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', 'ApplicationId', function ($scope, $q, $http, hudson, Messages, SelectedComponent, ApplicationId) {
+		licenseEditor.controller('LicenseEditorController', ['$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', 'DataView', 'ApplicationId', function ($scope, $q, $http, hudson, Messages, SelectedComponent, DataView, ApplicationId) {
 
 			function getHierarchyById(id) {
 				for (var i=0; i<$scope.hierarchy.length; i++) {
@@ -74,7 +76,50 @@
 					}
 				}
 			}
+			function updateTable() {
+				if (SelectedComponent && SelectedComponent.observedLicenses) {
+					var licenseOverride = null,
+						component = SelectedComponent;
+					for (var i=0; i<$scope.hierarchy.length; i++) {
+						if ($scope.hierarchy[i].licenseOverride) {
+							licenseOverride = $scope.hierarchy[i].licenseOverride;
+							break;
+						}
+					}
 
+					if (licenseOverride && licenseOverride.licenseId) {
+						component.overriddenLicenses = [$scope.licenses[licenseOverride.licenseId].shortDisplayName];
+						component.effectiveLicenses = component.overriddenLicenses;
+						component.overriddenLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.overriddenLicenses[0]);
+						component.effectiveLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.overriddenLicenses[0]);
+					} else {
+						component.overriddenLicenses = null;
+						component.overriddenLicenseThreat = null;
+
+						var licenses = {};
+						component.effectiveLicenses = [];
+						$.each(component.declaredLicenses, function (index, license) {
+							licenses[license] = license;
+							component.effectiveLicenses.push(license);
+						});
+						$.each(component.observedLicenses, function (index, license) {
+							if (!licenses[license]) {
+								component.effectiveLicenses.push(license);
+							}
+						});
+
+						// Update threat
+						component.effectiveLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.effectiveLicenses);
+					}
+					component._formattedEffectiveLicenseThreat = component.effectiveLicenses.join(', ');
+					component.status = licenseOverride ? getStatusName(licenseOverride.status) : 'Open';
+
+					// Update Grid
+					DataView.updateItem(SelectedComponent.id, component);
+					// Update Summary Page
+					InsightDatatable.updateSummary();
+				}
+			}
 			function setOverrideScope(overrideScope) {
 				$scope.override.licenseId = null;
 				$scope.override.ownerId = overrideScope.ownerId;
@@ -179,6 +224,7 @@
 						owner.licenseOverride = null;
 						$scope.reset();
 						updateStatuses();
+						updateTable();
 					}).error(function () {
 						$scope.alert = Messages.getHttpErrorMessage(arguments);
 						$scope.saving = false;
@@ -189,6 +235,7 @@
 						owner.licenseOverride = data;
 						$scope.reset();
 						updateStatuses();
+						updateTable();
 					}).error(function () {
 						$scope.alert = Messages.getHttpErrorMessage(arguments);
 						$scope.saving = false;

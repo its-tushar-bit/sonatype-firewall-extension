@@ -65,6 +65,9 @@
 				artifactId : 'artifactid',
 				version : '1'
 			});
+			$provide.value('DataView', {
+				updateItem : $.noop
+			});
 			$provide.factory('hudson', ['$http', function($http){
 		    return $http;
 		  }]);

@@ -274,7 +274,6 @@ public class ReportResource
   /**
    * @since 1.6
    */
-  @Deprecated
   private void saveLicenseOverride(String appId, JsonNode licenseData) {
     String groupId = licenseData.get("groupId").asText();
     String artifactId = licenseData.get("artifactId").asText();

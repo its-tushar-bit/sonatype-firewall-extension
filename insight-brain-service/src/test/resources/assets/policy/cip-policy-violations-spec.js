@@ -1,16 +1,3 @@
-/*global window*/
-var InsightDatatable = {
-    getActiveTable : function() {
-        return {
-            dataView : {
-                getItems : function() {
-                    return [];
-                }
-            }
-        };
-    }
-};
-
 describe('CIP Policy Waiver tests', function() {
     var _scope, _addScope, _viewScope;
 

@@ -10,7 +10,38 @@
 
     $.extend(true, window, {
         'CLM' : {
-            'path' : '../brain/'
+            'path' : '../brain/',
+            'loadPlugin' : (function () {
+                var pluginsMap = null;
+                function getPluginMap() {
+                    if (pluginsMap === null) {
+                        pluginsMap = {};
+                        $.each(Insight.InformationPanelPlugins, function (index, Plugin) {
+                            pluginsMap[new Plugin(null, {}).getTitle()] = index;
+                        });
+                    }
+                    return pluginsMap;
+                }
+
+                return function (createPluginFn, tabName) {
+                   function check() {
+                      if (Insight && Insight.InformationPanelPlugins) {
+                          var plugin = createPluginFn();
+                          if (tabName) {
+                             var index = getPluginMap()[tabName];
+                             if (index) {
+                                 Insight.InformationPanelPlugins[index] = plugin;
+                                 return;
+                             }
+                          }
+                          Insight.InformationPanelPlugins.push(plugin);
+                      } else {
+                          setTimeout(check, 50);
+                      }
+                   }
+                   check();
+                };
+            }())
         }
     });
 

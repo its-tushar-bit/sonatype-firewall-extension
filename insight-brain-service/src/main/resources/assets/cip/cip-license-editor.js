@@ -42,6 +42,8 @@
 
 			angular.bootstrap(container[0], [ 'LicenseEditor', 'componentProvider' + timestamp]);
 		};
+
+		return BrainLicenseEditorTab;
 	}
 
 		var licenseEditor = angular.module('LicenseEditor', ['CommonServices', 'AngularCommon', 'Hudson', 'ApplicationIdProvider' ]);
@@ -233,28 +235,5 @@
 			$scope.doLoad();
 		}]);
 
-	var  timeout = null;
-	function checkAngular() {
-		if (window.angular) {
-			if (Insight && Insight.InformationPanelPlugins) {
-				createPlugin();
-
-				var index = -1;
-				$.each(Insight.InformationPanelPlugins, function (candidateIndex, plugin) {
-					if (plugin.name === 'LicenseEditorTab') {
-						index = candidateIndex;
-					}
-				});
-				if (index > -1) {
-					Insight.InformationPanelPlugins[index] = BrainLicenseEditorTab;
-				} else {
-					// XXX This may not be ideal if other plugins need to do this.
-					Insight.InformationPanelPlugins.splice(4, 0, BrainLicenseEditorTab);
-				}
-			}
-		} else {
-			timeout = setTimeout(checkAngular, 50);
-		}
-	}
-	checkAngular();
+	CLM.loadPlugin(createPlugin, 'Edit License');
 }());

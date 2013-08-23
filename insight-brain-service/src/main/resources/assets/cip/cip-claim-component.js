@@ -206,12 +206,17 @@
         };
 
         ClaimComponentTab.prototype.destroy = function() {
+            var nodeEl = $(this.node).find('.claimComponent');
+            nodeEl.on('$destroy',function(event){
+              nodeEl.scope().$destroy();
+            });
             this.node.empty();
         };
 
         ClaimComponentTab.prototype.getTitle = function() {
             return 'Claim Component';
         };
+        
         Insight.InformationPanelPlugins.push(ClaimComponentTab);
     }
 

@@ -12,9 +12,7 @@ describe('reportApp', function () {
       }
     });
   }));
-  afterEach(function () {
-    scope.$destroy();
-  });
+
   beforeEach(inject(function ($rootScope, $state, $controller, $httpBackend, CLMLocations) {
     expect(licenseCheckedSpy).toHaveBeenCalled();
 
@@ -28,6 +26,12 @@ describe('reportApp', function () {
     $controller('ReportListController', { $scope: scope, $state: state });
 
     $httpBackend.flush();
+  }));
+
+  afterEach(inject(function($httpBackend){
+    scope.$destroy();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   }));
 
   it('loads data', function() {

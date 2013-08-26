@@ -35,9 +35,11 @@ describe('LicenseThreatGroup', function() {
 		$httpBackend.flush();
 	}));
 
-	afterEach(function () {
-		scope.$destroy();
-	});
+  afterEach(inject(function($httpBackend){
+    scope.$destroy();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
 
 	describe('LicenseThreatGroupController', function () {
 		it('loads licenses.', function() {
@@ -70,17 +72,20 @@ describe('LicenseThreatGroup', function() {
 			expect(scope.ltgEditorMap[mockGroup.id]).toEqual(true);
 		});
 		it('updates the license group.', inject(function($httpBackend, $rootScope, $controller, CLMAppLocations) {
-			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupsUrl()).respond(LicenseGroupMockData.getLicenseGroupData());
-			$httpBackend.expectPOST(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup)).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
+			$httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
+			$httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 
 			scope.editLicenseGroup(mockGroup);
+      scope.selectedGroup = mockGroup;
+      scope.hide = angular.noop; //normally this impl provided by a directive
 
 			$controller('LicenseThreatGroupEditorController', {$scope: scope});
 
-			scope.licenseGroupEditor = { $isValid: true };
+			scope.licenseGroupEditor = { $valid: true };
 
 			scope.saveClick();
-		}));
+      $httpBackend.flush();
+    }));
 		it('shows the Delete modal', function() {
 			scope.confirmDeleteLicenseGroup(mockGroup);
 			expect(scope.deletedEnabled).toBeTruthy();
@@ -91,6 +96,7 @@ describe('LicenseThreatGroup', function() {
 			scope.confirmDeleteLicenseGroup(mockGroup);
 			scope.deleteLicenseGroup();
 
+      $httpBackend.flush();
 		}));
 	});
 

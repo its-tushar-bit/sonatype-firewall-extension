@@ -9,10 +9,12 @@ describe('Configuration', function () {
     }
 
     beforeEach(module('Configuration', 'CLMLocation'));
-    afterEach(function () {
-        scope.$destroy();
-        scope = null;
-    });
+    afterEach(inject(function($httpBackend){
+      scope.$destroy();
+      scope = null;
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    }));
 
     describe('Load', function () {
         it('Success', inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {

@@ -10,6 +10,11 @@ describe('Resource', function () {
       return $http;
     }]);
   }));
+
+  afterEach(inject(function($httpBackend){
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
 	
 	it('Get', inject(function (CLMResource, $httpBackend) {
 		var store = CLMResource.getStore({

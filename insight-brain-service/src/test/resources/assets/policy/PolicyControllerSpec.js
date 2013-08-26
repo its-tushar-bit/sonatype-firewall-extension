@@ -18,10 +18,12 @@ describe('PolicyController tests', function() {
 	      return $http;
 	    }]);
 	  }));
-	
-	afterEach(function () {
-	    scope.$destroy();
-	});
+
+  afterEach(inject(function($httpBackend){
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+    scope.$destroy();
+  }));
 
     // setup our http backend to return what we want
     beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {

@@ -5,8 +5,9 @@ describe('Hudson module tests', function() {
     $httpBackend.whenGET(new RegExp('/../../../crumbIssuer/api/xml.*')).respond(null);
   }));
 
-  afterEach(inject(function($httpBackend) {
+  afterEach(inject(function($httpBackend){
     $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   }));
 
   it('Validate post not altered', inject(function(hudson, $location, $httpBackend) {

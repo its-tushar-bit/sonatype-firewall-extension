@@ -146,6 +146,11 @@ describe('LabelController.js', function() {
       $httpBackend.flush();
     }));
 
+    afterEach(inject(function($httpBackend){
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    }));
+
     it('Can set color', function(){
       scope.createNew();
       var color = scope.colors[0];

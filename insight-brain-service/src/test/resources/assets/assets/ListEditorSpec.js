@@ -29,11 +29,13 @@ describe('ListEditor', function () {
 
     beforeEach(module('ListEditor'));
 
-    afterEach(function () {
+    afterEach(inject(function ($httpBackend) {
         if (scope) {
             scope.$destroy();
         }
-    });
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+    }));
 
     it('Validation', function () {
         var valid = true,

@@ -37,6 +37,11 @@ describe('ApplicationController', function () {
     httpBackend.flush();
   }));
 
+  afterEach(function(){
+    httpBackend.verifyNoOutstandingExpectation();
+    httpBackend.verifyNoOutstandingRequest();
+  });
+
   it('loads applications.', function () {
     expect(scope.applications).not.toBeUndefined();
     expect(scope.applications.length).toEqual(1);
@@ -144,6 +149,11 @@ describe('ApplicationEditorController', function () {
     httpBackend.flush();
   }));
 
+  afterEach(function(){
+    httpBackend.verifyNoOutstandingExpectation();
+    httpBackend.verifyNoOutstandingRequest();
+  });
+
   it('generates an icon', function () {
     scope.generateIcon();
 
@@ -214,9 +224,6 @@ describe('ApplicationEditorController', function () {
     expect(scope.hasRobotSource).toBeTruthy();
     expect(scope.iconChanged).toBeTruthy();
 
-    $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
-
     scope.cancel();
 
     expect(revertSpy).toHaveBeenCalled();
@@ -226,7 +233,7 @@ describe('ApplicationEditorController', function () {
     expect(scope.iconChanged).not.toBeTruthy();
   }));
 
-  it('saves an application', inject(function ($httpBackend, CLMAppLocations) {
+  it('saves an application', inject(function () {
     scope.applicationEditor = {};
     scope.applicationEditor.$valid = true;
 
@@ -234,16 +241,12 @@ describe('ApplicationEditorController', function () {
     scope.selectedApplication.name = "newName";
     scope.generateIcon();
 
-    $httpBackend.expectPUT(CLMAppLocations.getEntitiesUrl()).respond(mockApplication);
-
     var hasFormData = window.FormData;
     window.FormData = false;
 
     scope.save();
 
     expect(saveSpy).toHaveBeenCalled();
-
-    window.FormData = hasFormData;
   }));
 
   it('Can delete an application', inject(function (CLMAppLocations) {

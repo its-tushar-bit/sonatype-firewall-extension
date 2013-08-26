@@ -68,9 +68,10 @@ describe('CIP Policy Waiver tests', function() {
         $httpBackend.flush();
     }));
 
-    afterEach(inject(function($httpBackend) {
-        $httpBackend.verifyNoOutstandingExpectation();
-    }));
+  afterEach(inject(function($httpBackend){
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
     
     afterEach(function(){
       _scope.$destroy();

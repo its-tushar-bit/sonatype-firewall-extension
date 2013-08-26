@@ -5,7 +5,7 @@ describe('PolicyEditor.js', function() {
 		var controller = null,
 			scope = null;
 
-		inject(function ($controller, $httpBackend, $compile, $sniffer) {
+		inject(function ($controller, $httpBackend) {
 			scope = testScope.$new();
 			controller = $controller(controllerName, {$scope: scope});
 			$httpBackend.flush();
@@ -52,11 +52,13 @@ describe('PolicyEditor.js', function() {
 		testScope = $rootScope.$new();
 	}));
 
-	afterEach(function() {
+  afterEach(inject(function($httpBackend) {
 		if (testScope) {
 			testScope.$destroy();
 		}
-	});
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+	}));
 
 	describe('inlinePolicyCreator', function () {
 		function getPolicyEditorController() {
@@ -235,7 +237,7 @@ describe('PolicyEditor.js', function() {
             $('#testInlinePolicyEditor').remove();
         });
 
-		it('Test policy validation', inject(function(){
+		it('Test policy validation', inject(function($httpBackend){
 		    //policy name uses the form validation stuff
 		    var form = {
                 name : {
@@ -319,6 +321,7 @@ describe('PolicyEditor.js', function() {
             scope.policy.constraints[1].conditions[1].value = '300';
             policyEditorScope.validate();
             expect(policyEditorScope.alerts.length).toEqual(0);
+            $httpBackend.flush();
 		}));
 		
 		it('Test update policy', inject(function(PolicyStore, CLMAppLocations, $httpBackend) {
@@ -361,6 +364,7 @@ describe('PolicyEditor.js', function() {
 			policyScope.$destroy();
 			parentScope.$digest();
 			expect(policyStoreContents[0].isDirty()).toEqual(false);
+      $httpBackend.flush();
 		}));
 	});
 
@@ -375,7 +379,7 @@ describe('PolicyEditor.js', function() {
 		}
 
 		describe('ConstraintEditor', function () {
-			it('New Constraint - Dirty Checks', inject(function (PolicyStore) {
+			it('New Constraint - Dirty Checks', inject(function ($httpBackend) {
 				var controller = getConstraintEditorController(),
 					policy = createNewPolicy(),
 					e;
@@ -411,6 +415,7 @@ describe('PolicyEditor.js', function() {
 				controller.scope.constraint.conditions.push({});
 				e = testScope.$broadcast('pageChangeStarted', null);
 				expect(e.defaultPrevented).toEqual(true);
+        $httpBackend.flush();
 			}));
 
 			xit('figures dirty state of existing constraint', inject(function () {
@@ -467,8 +472,9 @@ describe('PolicyEditor.js', function() {
 	});
 
 	describe('PolicyStore', function () {
-		it('Default Values', inject(function (PolicyStore) {
+		it('Default Values', inject(function ($httpBackend) {
 			var newPolicy = createNewPolicy();
+      $httpBackend.flush();
 			expect(newPolicy.threatLevel).toEqual(5);
 			expect(newPolicy.constraints).toEqual([{ conditions : [ ], operator : 'OR', id : jasmine.any(String) }]);
 		}));

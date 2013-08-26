@@ -37,9 +37,10 @@ describe('CIP Claim Component tests', function() {
         });
     }));
 
-    afterEach(inject(function($httpBackend) {
-        $httpBackend.verifyNoOutstandingExpectation();
-    }));
+  afterEach(inject(function($httpBackend){
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
 
     it('Test Claim Component', function() {
         expect(scope.formValid()).toEqual(false);

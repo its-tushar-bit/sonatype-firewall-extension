@@ -100,6 +100,11 @@
 				$httpBackend.flush();
 			}));
 
+      afterEach(inject(function($httpBackend){
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+      }));
+
 			it('Default Selection', function () {
 				expect(scope.override).toEqual({
 					ownerId :'app1',

@@ -13,9 +13,15 @@ describe('AngularCommon', function () {
     };
   }));
 
+  afterEach(function(){
+    httpBackend.verifyNoOutstandingExpectation();
+    httpBackend.verifyNoOutstandingRequest();
+  });
+
   it('implements errorModal directive', function () {
     httpBackend.expectGET('../assets/components/errorModal.html?').respond("<div id='errorModal'></div>");
     var element = compile("<div error-Modal></div>")(scope);
+    httpBackend.flush();
     expect(element).not.toBeUndefined();
   });
 

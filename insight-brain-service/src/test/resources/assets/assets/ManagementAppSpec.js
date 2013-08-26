@@ -15,17 +15,13 @@ describe('dashboardApp', function () {
 	afterEach(function () {
 		scope.$destroy();
 	});
-	beforeEach(inject(function ($rootScope, $state, $controller, $httpBackend) {
+	beforeEach(inject(function ($rootScope, $state, $controller) {
     expect(licenseCheckedSpy).toHaveBeenCalled();
 
 		scope = $rootScope.$new();
 		state = $state;
 
 		$controller('dashboardController', { $scope: scope, $state: state });
-
-		$httpBackend.expectGET('../assets/management.html').respond('<div></div>');
-		$httpBackend.expectGET('../application-assets/components/application-navigator.html').respond('<div></div>');
-	
 	}));
 
 	it('Validate location change event is broadcast properly', inject(function($rootScope) {

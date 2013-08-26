@@ -102,6 +102,12 @@
 	}
 
     $.each(styles, function(key, style) {
-        $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', CLM.path + style + '?' + clmBuildTimestamp).appendTo(head);
+        var url = CLM.path + style + '?' + clmBuildTimestamp;
+        if (document.createStyleSheet) {
+            // Note at most 31 stylesheets can be loaded this way
+            document.createStyleSheet(url);
+        } else {
+            $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', url).appendTo(head);
+        }
     });
 }());

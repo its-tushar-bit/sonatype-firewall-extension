@@ -25,7 +25,6 @@
     licenseChecker.check().then(function() {
       $rootScope.licenseChecked = true;
     }, function() {
-      $rootScope.licenseChecked = true;
       window.location = 'index.html#/management/configuration/productlicense';
     });
   }]);

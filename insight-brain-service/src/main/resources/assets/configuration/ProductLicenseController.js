@@ -4,14 +4,14 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp, window, setTimeout */
+/*global angular, $, clmBuildTimestamp, window */
 (function() {
   'use strict';
 
   var module = angular.module('ProductLicense', ['AngularCommon', 'ngUpload', 'CLMLocation', 'Hudson']);
 
   module.controller('ProductLicenseController', [
-    '$http', 'hudson', '$scope', 'CLMLocations', function($http, hudson, $scope, clmLocations) {
+    '$http', 'hudson', '$scope', 'CLMLocations', '$timeout', function($http, hudson, $scope, clmLocations, $timeout) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -36,7 +36,7 @@
       function showLicense() {
         $('#eulaModal').modal('hide');
         $('#licenseInstalledModal').modal('show');
-        setTimeout($scope.reload, 5000);
+        $timeout($scope.reload, 5000);
       }
 
       function showError(content) {
@@ -97,7 +97,7 @@
             showLicense();
           }
           else {
-            setTimeout(function() {
+            $timeout(function() {
               showError(content);
             }, 0);
           }
@@ -108,7 +108,7 @@
         hudson['delete']($scope.uploadUrl).success(function(data) {
           $('#licenseUninstallConfirmationModal').modal('hide');
           $('#licenseUninstalledModal').modal('show');
-          setTimeout($scope.reload, 5000);
+          $timeout($scope.reload, 5000);
         }).error(function() {
               $scope.$broadcast('showServerError', arguments);
             });

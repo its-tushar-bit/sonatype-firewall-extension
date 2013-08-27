@@ -22,3 +22,6 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('OSL
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CECILL-UNSPECIFIED','CECILL','CeCILL Free Software Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('COMMERCIAL','COMMERCIAL','Commercial Software License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('PUBLIC-DOMAIN','Public Domain','The work has been placed in the public domain');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('No-Source-License','No Source License','No licenses found in sources');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('No-Sources','No Sources','No sources provided with component');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Not-Declared','Not Declared','No licenses declared in component descriptor');

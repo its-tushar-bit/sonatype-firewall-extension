@@ -88,3 +88,7 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('LGPL-3.0+-MPL-1.1', 'LGPL-3.0+ or MPL-1.1', 'Dual License Consisting of LGPL 3.0 or later and Mozilla Public License 1.1');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('AFL-2.1-BSD-3-Clause','AFL-2.1 or BSD-3-Clause','Dual License Consisting of Academic Free License v2.1 and New BSD License');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('AFL-2.1+-BSD-3-Clause','AFL-2.1+ or BSD-3-Clause','Dual License Consisting of Academic Free License v2.1 or later and New BSD License');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('No-Source-License','No Source License','No licenses found in sources');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('No-Sources','No Sources','No sources provided with component');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Not-Declared','Not Declared','No licenses declared in component descriptor');
+

@@ -346,3 +346,6 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('AFL-2.
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('AFL-2.1+-BSD-3-Clause', 'AFL-2.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('AFL-2.1+-BSD-3-Clause', 'AFL-3.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('AFL-2.1+-BSD-3-Clause', 'BSD-3-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('No-Source-License', 'No-Source-License');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('No-Sources', 'No-Sources');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Not-Declared', 'Not-Declared');

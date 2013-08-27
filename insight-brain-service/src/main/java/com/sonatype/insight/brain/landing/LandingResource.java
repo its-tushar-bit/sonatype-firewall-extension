@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,6 +13,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -26,10 +28,22 @@ public class LandingResource
   @Context
   private BaseUrl baseUrl;
 
+  private CLMLicenseManager licenseManager;
+
+  @Inject
+  public LandingResource(CLMLicenseManager licenseManager) {
+    this.licenseManager = licenseManager;
+  }
+
   @GET
   public Response home() {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html");
+    if (licenseManager.isValid()) {
+      uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html");
+    }
+    else {
+      uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html");
+    }
     return Response.seeOther(uriBuilder.build()).build();
   }
 }

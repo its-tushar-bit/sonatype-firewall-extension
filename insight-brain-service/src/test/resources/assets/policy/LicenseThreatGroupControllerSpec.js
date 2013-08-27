@@ -76,15 +76,18 @@ describe('LicenseThreatGroup', function() {
 			$httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(mockGroup))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
 
 			scope.editLicenseGroup(mockGroup);
-      scope.selectedGroup = mockGroup;
-      scope.hide = angular.noop; //normally this impl provided by a directive
 
-			$controller('LicenseThreatGroupEditorController', {$scope: scope});
+      var childScope = scope.$new();
+      $controller('LicenseThreatGroupEditorController', {$scope: childScope});
+      childScope.selectedGroup = mockGroup;
+      childScope.hide = angular.noop; //normally this impl provided by a directive
+      spyOn(childScope, 'hide');
+      childScope.licenseGroupEditor = { $valid: true };
 
-			scope.licenseGroupEditor = { $valid: true };
+      childScope.saveClick();
 
-			scope.saveClick();
       $httpBackend.flush();
+      expect(childScope.hide).toHaveBeenCalled();
     }));
 		it('shows the Delete modal', function() {
 			scope.confirmDeleteLicenseGroup(mockGroup);

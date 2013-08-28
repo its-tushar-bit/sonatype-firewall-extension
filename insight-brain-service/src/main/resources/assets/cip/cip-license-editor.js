@@ -157,13 +157,18 @@
 				promises.push($http.get(CLM.path + 'rest/license'));
 				// Current override state
 				promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + ApplicationId.encoded() + '/applied/' +
-								SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' + SelectedComponent.version));
+								SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' + SelectedComponent.version, {
+									params : {
+										'timestamp' : new Date().getTime()
+									}
+				}));
 				// Component licenses
 				promises.push($http.get(CLM.path + 'rest/ci/component/details/licenses/' + ApplicationId.encoded(), {
 					params : {
 						'artifactId' : SelectedComponent.artifactId,
 						'groupId' : SelectedComponent.groupId,
-						'version' : SelectedComponent.version
+						'version' : SelectedComponent.version,
+						'timestamp' : new Date().getTime()
 					}
 				}));
 

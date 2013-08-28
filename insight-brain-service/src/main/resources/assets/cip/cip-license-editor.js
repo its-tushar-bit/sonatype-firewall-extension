@@ -14,7 +14,7 @@
 
 	function createPlugin() {
 
-		BrainLicenseEditorTab.prototype = new Insight.InformationPanelPlugin();
+		BrainLicenseEditorTab.prototype = new Insight.InformationPanelPlugin({ priority : 80 });
 
 		BrainLicenseEditorTab.prototype.destroy = function () {
 			if (this.node) {

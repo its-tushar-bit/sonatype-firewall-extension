@@ -153,15 +153,10 @@
         };
 
         $scope.$on('pageChangeStarted', function (event) {
-            if ($scope.applicableLabel && $scope.selectedLabel && $scope.selectedLabel.id) {
-                angular.forEach($scope.applicableLabel.labels, function (candidate) {
-                    if (candidate.isDirty()) {
-                        event.preventDefault();
-                      return false;
-                    }
-                });
-            } else if ($scope.selectedLabel && $scope.selectedLabel.label) {
+            if ($scope.selectedLabel) {
+              if ($scope.selectedLabel.isDirty()) {
                 event.preventDefault();
+              }
             }
         });
 

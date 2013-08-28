@@ -4,14 +4,15 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp, window */
+/*global angular, $, clmBuildTimestamp */
 (function() {
   'use strict';
 
   var module = angular.module('ProductLicense', ['AngularCommon', 'ngUpload', 'CLMLocation', 'Hudson']);
 
   module.controller('ProductLicenseController', [
-    '$http', 'hudson', '$scope', 'CLMLocations', '$timeout', function($http, hudson, $scope, clmLocations, $timeout) {
+    '$http', 'hudson', '$scope', 'CLMLocations', '$timeout', '$window',
+    function($http, hudson, $scope, clmLocations, $timeout, $window) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -47,7 +48,7 @@
       }
 
       $scope.reload = function() {
-        window.location.reload();
+        $window.location.reload();
       };
 
       $scope.viewUninstallLicense = function() {
@@ -63,11 +64,11 @@
       };
 
       $scope.eulaDeclined = function() {
-        window.location.reload();
+        $window.location.reload();
       };
 
       $scope.eulaAccepted = function() {
-        if (window.FormData) {
+        if ($window.FormData) {
           var form = new FormData();
           form.append('file', $('#license-input')[0].files[0]);
           $.ajax({

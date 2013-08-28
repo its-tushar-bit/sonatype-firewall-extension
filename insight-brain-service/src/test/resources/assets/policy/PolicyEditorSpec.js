@@ -1,5 +1,6 @@
 describe('PolicyEditor.js', function() {
-	var testScope = null;
+	var testScope = null,
+		dialogScope = null;
 
 	function getController(controllerName) {
 		var controller = null,
@@ -32,6 +33,23 @@ describe('PolicyEditor.js', function() {
 	}
 
 	beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
+		$provide.value('$dialog', {
+			dialog : function (config) {
+				dialogScope = testScope.$new();
+				return {
+					open : function () {
+						inject(function ($controller) {
+							$controller(config.controller, {
+								$scope : dialogScope,
+								dialog : {
+									close : function () {}
+								}
+							});
+						});
+					}
+				};
+			}
+		});
 
 	      $provide.value('ApplicationId', {
 	        encoded : function () {
@@ -528,6 +546,43 @@ describe('PolicyEditor.js', function() {
 			expect(scope.age).toEqual('365');
 			SpecUtil.setInput($('#testAgeInDays select'), 30);
 			expect(scope.age).toEqual('30');
+		});
+	});
+
+	describe('Edit Notifications', function () {
+		var editorScope;
+
+		beforeEach(inject(function() {
+			expectActionRequests();
+			testScope.policy = createNewPolicy();
+			editorScope = getController('PolicyEditorController').scope;
+		}));
+
+		it('Save no addresses', function () {
+			editorScope.editNotification({ id : 'foo' });
+			dialogScope.save();
+			expect(testScope.policy.actions.foo).toEqual([]);
+		});
+
+		it('Save One Address', function () {
+			editorScope.editNotification({ id : 'foo' });
+			dialogScope.notificationEmailList.push('test@example.org');
+			dialogScope.save();
+			expect(testScope.policy.actions.foo).toEqual([{ actionTypeId : 'notify', target : 'test@example.org' }]);
+		});
+
+		it('Save Multiple Addresses', function () {
+			editorScope.editNotification({ id : 'foo' });
+			dialogScope.notificationEmailList.push('test@example.org', 'test1@example.org');
+			dialogScope.save();
+			expect(testScope.policy.actions.foo).toEqual([{ actionTypeId : 'notify', target : 'test@example.org,test1@example.org' }]);
+		});
+
+		it('Cancel', function () {
+			editorScope.editNotification({ id : 'foo' });
+			dialogScope.notificationEmailList.push('test@example.org');
+			dialogScope.cancel();
+			expect(testScope.policy.actions.foo).toBeUndefined();
 		});
 	});
 });

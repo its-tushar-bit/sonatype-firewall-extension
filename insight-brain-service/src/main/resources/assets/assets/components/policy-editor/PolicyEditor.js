@@ -233,7 +233,7 @@
 								break;
 							}
 						}
-						if (!found) {
+						if (!found && addresses.length > 0) {
 							$scope.policy.actions[stage.id].push({
 								actionTypeId : 'notify',
 								target : addresses.join()

@@ -47,7 +47,7 @@ public class ProductLicenseResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
-  public String installLicense(@FormDataParam("file") InputStream is, @QueryParam("isIE") boolean isIE)
+  public String installLicense(@FormDataParam("file") InputStream is, @QueryParam("forceSuccess") boolean forceSuccess)
       throws IOException
   {
     try {
@@ -57,10 +57,10 @@ public class ProductLicenseResource
       return "";
     }
     catch (LicensingException e) {
-      // IE will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
+      // IE<10 will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
       // error page
       // which then fails to load because of cross site scripting probs
-      if (isIE) {
+      if (forceSuccess) {
         log.debug("Unable to install license", e);
         return e.getMessage();
       }

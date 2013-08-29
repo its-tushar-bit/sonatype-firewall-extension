@@ -46,7 +46,9 @@
 
   labelModule.controller('LabelController', ['$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
                                              function ($scope, $http, $q, clmAppLocations, messages, clmResource, LabelStore) {
-      function deselect() {
+    $scope.alerts = [];
+
+    function deselect() {
         if ($scope.selectedLabel) {
           $scope.selectedLabel.$revert();
         }

@@ -199,6 +199,9 @@ describe('LabelController.js', function() {
 				scope.createNew();
 				scope.selectedLabel.name = 'foo';
 				expect(scope.selectedLabel.isDirty()).toEqual(true);
+
+        var e = scope.$broadcast('pageChangeStarted', null);
+        expect(e.defaultPrevented).toEqual(true);
 			});
 
 			it('Create New Attempted', function () {
@@ -219,6 +222,9 @@ describe('LabelController.js', function() {
 				scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
 				scope.selectedLabel.name = 'foo';
 				expect(scope.selectedLabel.isDirty()).toEqual(true);
+
+        var e = scope.$broadcast('pageChangeStarted', null);
+        expect(e.defaultPrevented).toEqual(true);
 			});
 
 			it('Edit Existing Attempted', function () {
@@ -238,6 +244,9 @@ describe('LabelController.js', function() {
 			beforeEach(function () {
 				scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
 				expect(scope.selectedLabel.isDirty()).toEqual(false);
+
+        var e = scope.$broadcast('pageChangeStarted', null);
+        expect(e.defaultPrevented).toEqual(false);
 			});
 
 			it('Edit Existing Attempted', function () {
@@ -256,6 +265,9 @@ describe('LabelController.js', function() {
 		it('Unmodified New Label - Edit Existing Attempted', function () {
 			scope.createNew();
 			expect(scope.selectedLabel.isDirty()).toEqual(false);
+
+      var e = scope.$broadcast('pageChangeStarted', null);
+      expect(e.defaultPrevented).toEqual(false);
 
 			scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
 			expect(scope.alerts.length).toEqual(0);

@@ -1,7 +1,7 @@
 System Requirements
 ===================
 
-Oracle's support for Java 6 ended in February 2013 [1].  Consequentially as of version 1.6 CLM Server now requires a Java 7 runtime.
+Oracle's support for Java 6 ended in February 2013 [1].  Consequentially as of version 1.6, CLM Server now requires a Java 7 runtime update 21 as a minimum [2].
 
 Internet Explorer 9+ or equivalent modern browsers from other vendors will be required for proper interaction with the web application.
 
@@ -37,3 +37,4 @@ Support and further information
 More information, documentation, and support can be found on our support site: http://links.sonatype.com/products/clm/ci/support
 
 [1] Java SE 6 End of Public Updates Notice: http://www.oracle.com/technetwork/java/eol-135779.html
+[2] All Java 7 update releases: http://www.oracle.com/technetwork/java/javase/7u-relnotes-515228.html

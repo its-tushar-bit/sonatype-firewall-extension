@@ -50,7 +50,7 @@ public abstract class AbstractLicenseTest
   protected String installLicenseAsIE() throws Exception {
 
     Map<String, String> queryParams = new LinkedHashMap<String, String>();
-    queryParams.put("isIE", "true");
+    queryParams.put("forceSuccess", "true");
     return doInstallLicense(queryParams);
   }
 

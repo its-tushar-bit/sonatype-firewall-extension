@@ -7,7 +7,7 @@
 (function () {
 	"use strict";
 
-	var module = angular.module('CLMLocation', ['CommonServices']).factory('CLMLocations', ['BaseUrl', function (baseUrl) {
+	var module = angular.module('CLMLocation', ['CommonServices']).factory('CLMLocations', ['BaseUrl', '$window', function (baseUrl, $window) {
 		return {
 			getLicensesUrl: function () {
 				return baseUrl.get() + '/rest/license';
@@ -50,8 +50,7 @@
 			},
 
 			getLicenseUploadUrl: function() {
-				// TODO $.browser is deprecated
-				return baseUrl.get() + '/rest/product/license'+ ($.browser.msie ? '?isIE=true' : '');
+				return baseUrl.get() + '/rest/product/license'+ (!$window.FormData ? '?forceSuccess=true' : '');
 			},
 
 			evaluatePolicyUrl: function(applicationId, scanId) {

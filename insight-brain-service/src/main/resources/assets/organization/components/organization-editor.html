@@ -18,7 +18,7 @@
 				</div>
                 <div class='edit-image'>
                     <form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{addOrganizationSync}}' class='form' style='margin: 0px;' method='post'>
-                        <label for='file'>Choose Icon</label>
+                        <label for='file' firefox-input-click>Choose Icon</label>
                         <input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
                                onchange='angular.element(this).scope().fileChanged(this)' />
                         <input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />

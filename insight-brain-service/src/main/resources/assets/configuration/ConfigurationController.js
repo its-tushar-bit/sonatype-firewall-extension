@@ -106,7 +106,7 @@
 
         $scope.isDirty = function() {
           return $scope.packages && $scope.proprietary && !angular.equals($scope.packages, $scope.proprietary.packages);
-        }
+        };
 
         $scope.setEditorError = function (error) {
             $scope.error = error;

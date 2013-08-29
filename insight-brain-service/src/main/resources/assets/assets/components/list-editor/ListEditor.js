@@ -70,7 +70,7 @@
 				scope.$watch('entries', function (newValue, oldValue) {
 					// Account for "reset" events
 					if (angular.isArray(newValue) && oldValue !== undefined) {
-						validate();
+						validate(elm.val());
 					}
 				});
 			}

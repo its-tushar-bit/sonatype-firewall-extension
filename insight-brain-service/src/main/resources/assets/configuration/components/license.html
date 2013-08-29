@@ -1,5 +1,6 @@
 <div class='face' style="padding-left: 10px;">
 	<div ng-controller='ProductLicenseController'>
+      <div error-Modal></div>
 		<div style="padding-top: 10px;">
 			<div load-error='error' reload='doLoad()'></div>
 			<div ng-show='!error && !isLoaded()'>
@@ -74,5 +75,4 @@
 			<button class="btn btn-primary" ng-click="reload()">Refresh</button>
 		</div>
 	</div>
-	<div error-Modal></div>
 </div>

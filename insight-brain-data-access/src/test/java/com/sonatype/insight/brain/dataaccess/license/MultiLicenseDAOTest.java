@@ -18,15 +18,16 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static junit.framework.Assert.fail;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class MultiLicenseDAOTest
     extends AbstractLicenseDAOTest
 {
-  private static String COMMON_ID = "test";
+  private static String MOCK_REMOTE_LICENSE_ID = "test";
 
   @Test
   public void testCRUD() throws Exception {
@@ -107,16 +108,18 @@ public class MultiLicenseDAOTest
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
     try{
-      dao.getLicensesByMultiLicenseId(COMMON_ID);
+      dao.getLicensesByMultiLicenseId(MOCK_REMOTE_LICENSE_ID);
       fail("Expected a NotFoundException to be thrown");
     }
     catch (NotFoundException e){
-      //expected
+      assertThat(e.getMessage(), is("A multi-license with id '" + MOCK_REMOTE_LICENSE_ID + "' does not exist locally or remotely."));
     }
 
-    LicenseDataUpdater.setUpdater(new NewLicenseDataUpdater());
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    LicenseDataUpdater.setUpdater(updater);
 
-    assertThat(dao.getLicensesByMultiLicenseId(COMMON_ID), notNullValue());
+    assertThat(dao.getLicensesByMultiLicenseId(MOCK_REMOTE_LICENSE_ID), notNullValue());
+    updater.cleanup();
   }
 
   @Test
@@ -152,49 +155,62 @@ public class MultiLicenseDAOTest
   /**
    * Inserts License/Multilicense records locally to mock out updates from SaaS
    */
-  private class NewLicenseDataUpdater
+  private class MockLicenseDataUpdater
       extends LicenseDataUpdater
   {
+    LicenseDAO licenseDAO = new LicenseDAO();
+
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+
+    MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
+
+    License license;
+
+    MultiLicense multiLicense;
+
+    MultiLicenseLicenseInternal multiLicenseLicense;
 
     @Override
     public void doUpdate() {
-
+      EntityManager em = multiLicenseDAO.createEntityManager();
       try {
-        LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
-        LicenseDAO licenseDAO = new LicenseDAO();
-        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-        MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
-        EntityManager em = licenseCategoryDAO.createEntityManager();
-        try {
-          em.getTransaction().begin();
+        em.getTransaction().begin();
 
-          License license = new License();
+        license = new License();
 
-          license.setId(COMMON_ID);
-          license.setShortDisplayName(COMMON_ID);
-          licenseDAO.insert(em, license);
+        license.setId(MOCK_REMOTE_LICENSE_ID);
+        license.setShortDisplayName(MOCK_REMOTE_LICENSE_ID);
+        licenseDAO.insert(em, license);
 
-          MultiLicense multiLicense = new MultiLicense();
-          multiLicense.setId(COMMON_ID);
-          multiLicense.setShortDisplayName(COMMON_ID);
-          multiLicenseDAO.insert(em, multiLicense);
+        multiLicense = new MultiLicense();
+        multiLicense.setId(MOCK_REMOTE_LICENSE_ID);
+        multiLicense.setShortDisplayName(MOCK_REMOTE_LICENSE_ID);
+        multiLicenseDAO.insert(em, multiLicense);
 
-          MultiLicenseLicenseInternal multiLicenseLicense = new MultiLicenseLicenseInternal();
-          multiLicenseLicense.setMultiLicenseId(multiLicense.getId());
-          multiLicenseLicense.setLicenseId(COMMON_ID);
-          multiLicenseLicense.setMultiLicenseId(COMMON_ID);
-          multiLicenseLicenseInternalDAO.insert(em, multiLicenseLicense);
+        multiLicenseLicense = new MultiLicenseLicenseInternal();
+        multiLicenseLicense.setMultiLicenseId(multiLicense.getId());
+        multiLicenseLicense.setLicenseId(MOCK_REMOTE_LICENSE_ID);
+        multiLicenseLicense.setMultiLicenseId(MOCK_REMOTE_LICENSE_ID);
+        multiLicenseLicenseInternalDAO.insert(em, multiLicenseLicense);
 
-          em.getTransaction().commit();
-        }
-        finally {
-          LicenseCategoryDAO.close(em);
-        }
+        em.getTransaction().commit();
       }
       catch (Exception e) {
-        throw new RuntimeException("Could not retrieve license data from SaaS: " + e.getMessage(), e);
+        throw new RuntimeException("Could not simulate retrieval of license data from SaaS: " + e.getMessage(), e);
       }
+      finally {
+        LicenseCategoryDAO.close(em);
+      }
+    }
 
+    /**
+     * Remove all data introduced during doUpdate method
+     */
+    public void cleanup() {
+      multiLicenseLicenseInternalDAO.delete(multiLicenseLicense);
+      licenseDAO.delete(license);
+      multiLicenseDAO.delete(multiLicense);
+      multiLicenseDAO.load();
     }
   }
 }

@@ -3,21 +3,31 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
 
+import javax.persistence.EntityManager;
+
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import static junit.framework.Assert.fail;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class MultiLicenseDAOTest
     extends AbstractLicenseDAOTest
 {
+  private static String COMMON_ID = "test";
+
   @Test
   public void testCRUD() throws Exception {
     MultiLicenseDAO dao = new MultiLicenseDAO();
@@ -82,6 +92,33 @@ public class MultiLicenseDAOTest
     assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-2.0"));
   }
 
+  @Test(expected = NotFoundException.class)
+  public void testGetLicensesByMultiLicenseIdNotFound() {
+    createDefaultApplication();
+
+    MultiLicenseDAO dao = new MultiLicenseDAO();
+    dao.getLicensesByMultiLicenseId("Not-To-Be-Found");
+  }
+
+  @Test
+  public void testGetLicensesByMultiLicenseIdRefreshedRemotely() {
+    createDefaultApplication();
+
+    MultiLicenseDAO dao = new MultiLicenseDAO();
+
+    try{
+      dao.getLicensesByMultiLicenseId(COMMON_ID);
+      fail("Expected a NotFoundException to be thrown");
+    }
+    catch (NotFoundException e){
+      //expected
+    }
+
+    LicenseDataUpdater.setUpdater(new NewLicenseDataUpdater());
+
+    assertThat(dao.getLicensesByMultiLicenseId(COMMON_ID), notNullValue());
+  }
+
   @Test
   public void testLicenseDataRefresh() {
     String newId = "new multi license id";
@@ -110,5 +147,54 @@ public class MultiLicenseDAOTest
     multiLicenseLicenseDAO.delete(multiLicenseLicense);
     dao.delete(newMultiLicense);
     dao.load();
+  }
+
+  /**
+   * Inserts License/Multilicense records locally to mock out updates from SaaS
+   */
+  private class NewLicenseDataUpdater
+      extends LicenseDataUpdater
+  {
+
+    @Override
+    public void doUpdate() {
+
+      try {
+        LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
+        LicenseDAO licenseDAO = new LicenseDAO();
+        MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+        MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
+        EntityManager em = licenseCategoryDAO.createEntityManager();
+        try {
+          em.getTransaction().begin();
+
+          License license = new License();
+
+          license.setId(COMMON_ID);
+          license.setShortDisplayName(COMMON_ID);
+          licenseDAO.insert(em, license);
+
+          MultiLicense multiLicense = new MultiLicense();
+          multiLicense.setId(COMMON_ID);
+          multiLicense.setShortDisplayName(COMMON_ID);
+          multiLicenseDAO.insert(em, multiLicense);
+
+          MultiLicenseLicenseInternal multiLicenseLicense = new MultiLicenseLicenseInternal();
+          multiLicenseLicense.setMultiLicenseId(multiLicense.getId());
+          multiLicenseLicense.setLicenseId(COMMON_ID);
+          multiLicenseLicense.setMultiLicenseId(COMMON_ID);
+          multiLicenseLicenseInternalDAO.insert(em, multiLicenseLicense);
+
+          em.getTransaction().commit();
+        }
+        finally {
+          LicenseCategoryDAO.close(em);
+        }
+      }
+      catch (Exception e) {
+        throw new RuntimeException("Could not retrieve license data from SaaS: " + e.getMessage(), e);
+      }
+
+    }
   }
 }

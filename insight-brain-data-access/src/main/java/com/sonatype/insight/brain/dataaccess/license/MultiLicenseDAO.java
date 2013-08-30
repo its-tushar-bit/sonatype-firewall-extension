@@ -95,11 +95,26 @@ public class MultiLicenseDAO
     return license;
   }
 
-  public Set<License> getLicensesByMultiLicenseId(String id) {
+  /**
+   * Look for license by id locally, will attempt to refresh from remote if local data is lacking.
+   */
+   public Set<License> getLicensesByMultiLicenseId(String id) {
     if (licenseSetsById == null) {
       load();
     }
-    return licenseSetsById.get(id);
+     Set<License> licenses = licenseSetsById.get(id);
+     if(licenses == null){
+       log.info("Cannot find a multi-license with id '{}'.  Refreshing license data.", id);
+       LicenseDataUpdater.update();
+       load();
+     }
+
+     licenses = licenseSetsById.get(id);
+     if(licenses == null){
+       throw new NotFoundException("A multi-license with id '" + id + "' does not exist locally or remotely.");
+     }
+
+     return licenses;
   }
 
   public Integer getLicenseThreatLevelByApplicationAndMultiLicenseId(Application application, String multiLicenseId) {
@@ -126,6 +141,9 @@ public class MultiLicenseDAO
     return Math.max(threatLevel1, threatLevel2);
   }
 
+  /**
+   * Load and cache license information from locally available data
+   */
   void load() {
     synchronized (this.getClass()) {
       long start = System.currentTimeMillis();

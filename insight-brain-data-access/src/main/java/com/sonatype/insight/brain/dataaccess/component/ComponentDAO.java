@@ -321,7 +321,7 @@ public class ComponentDAO
     Set<String> licenseIds = new LinkedHashSet<String>();
     for (String multiLicenseName : multiLicenseNames) {
       String multiLicenseId = multiLicenseDAO.getByNameNotNull(multiLicenseName).getId();
-      Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseId(multiLicenseId);
+      Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId);
       for (License license : licenses) {
         licenseIds.add(license.getId());
       }
@@ -335,7 +335,7 @@ public class ComponentDAO
     }
     Set<String> licenseIds = new LinkedHashSet<String>();
     for (String multiLicenseId : multiLicenseIds) {
-      Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseId(multiLicenseId);
+      Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId);
       for (License license : licenses) {
         licenseIds.add(license.getId());
       }

@@ -92,7 +92,7 @@ public class DefaultLicenseDataUpdaterTest
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
     setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
     assertNotNull(multiLicenseDAO.getById(newId));
-    assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId(newId).iterator().next().getId());
+    assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(newId).iterator().next().getId());
   }
 
   @Test
@@ -115,7 +115,7 @@ public class DefaultLicenseDataUpdaterTest
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
     setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, JsonHelpers.asJson(licenseData), 200);
     assertNotNull(multiLicenseDAO.getByName(newName));
-    assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseId(newId).iterator().next().getId());
+    assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(newId).iterator().next().getId());
   }
 
   @Test

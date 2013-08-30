@@ -245,7 +245,7 @@ public abstract class AbstractComponentInfoResource
         continue;
       }
       Set<com.sonatype.insight.brain.model.license.License> _licenses = multiLicenseDAO
-          .getLicensesByMultiLicenseId(multiLicense.getId());
+          .getLicensesByMultiLicenseIdNotNull(multiLicense.getId());
       for (com.sonatype.insight.brain.model.license.License _license : _licenses) {
         if (_license.getId().endsWith("-UNSPECIFIED")) {
           String licenseIdPrefix = _license.getId().substring(0, _license.getId().length() - "UNSPECIFIED".length());
@@ -296,7 +296,7 @@ public abstract class AbstractComponentInfoResource
     LicenseDAO licenseDAO = new LicenseDAO();
     for (License multiLicense : multiLicenses) {
       Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
-          .getLicensesByMultiLicenseId(multiLicense.getLicenseId());
+          .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
       for (com.sonatype.insight.brain.model.license.License license : licenses) {
         LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
         licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());

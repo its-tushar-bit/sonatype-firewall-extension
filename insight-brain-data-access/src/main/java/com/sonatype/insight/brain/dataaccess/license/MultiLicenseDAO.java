@@ -98,7 +98,7 @@ public class MultiLicenseDAO
   /**
    * Look for license by id locally, will attempt to refresh from remote if local data is lacking.
    */
-   public Set<License> getLicensesByMultiLicenseId(String id) {
+   public Set<License> getLicensesByMultiLicenseIdNotNull(String id) {
     if (licenseSetsById == null) {
       load();
     }
@@ -119,7 +119,7 @@ public class MultiLicenseDAO
 
   public Integer getLicenseThreatLevelByApplicationAndMultiLicenseId(Application application, String multiLicenseId) {
     final LicenseDAO licenseDAO = new LicenseDAO();
-    final Set<License> licenses = getLicensesByMultiLicenseId(multiLicenseId);
+    final Set<License> licenses = getLicensesByMultiLicenseIdNotNull(multiLicenseId);
     Integer threatLevel = null;
     for (License license : licenses) {
       threatLevel = max(threatLevel,

@@ -98,7 +98,7 @@ public class MultiLicenseDAOTest
     createDefaultApplication();
 
     MultiLicenseDAO dao = new MultiLicenseDAO();
-    dao.getLicensesByMultiLicenseId("Not-To-Be-Found");
+    dao.getLicensesByMultiLicenseIdNotNull("Not-To-Be-Found");
   }
 
   @Test
@@ -108,7 +108,7 @@ public class MultiLicenseDAOTest
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
     try{
-      dao.getLicensesByMultiLicenseId(MOCK_REMOTE_LICENSE_ID);
+      dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID);
       fail("Expected a NotFoundException to be thrown");
     }
     catch (NotFoundException e){
@@ -118,7 +118,7 @@ public class MultiLicenseDAOTest
     MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
     LicenseDataUpdater.setUpdater(updater);
 
-    assertThat(dao.getLicensesByMultiLicenseId(MOCK_REMOTE_LICENSE_ID), notNullValue());
+    assertThat(dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID), notNullValue());
     updater.cleanup();
   }
 

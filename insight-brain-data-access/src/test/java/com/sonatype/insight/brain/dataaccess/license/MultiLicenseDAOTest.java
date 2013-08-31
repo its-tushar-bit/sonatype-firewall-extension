@@ -88,8 +88,7 @@ public class MultiLicenseDAOTest
           || (threat >= 0 && threat <= 10));
     }
 
-    assertEquals(Integer.valueOf(0),
-        dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0"));
+    assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "Apache-2.0"));
     assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndMultiLicenseId(application, "GPL-2.0"));
   }
 
@@ -107,12 +106,13 @@ public class MultiLicenseDAOTest
 
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
-    try{
+    try {
       dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID);
       fail("Expected a NotFoundException to be thrown");
     }
-    catch (NotFoundException e){
-      assertThat(e.getMessage(), is("A multi-license with id '" + MOCK_REMOTE_LICENSE_ID + "' does not exist locally or remotely."));
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is("A multi-license with id '" + MOCK_REMOTE_LICENSE_ID
+          + "' does not exist locally or remotely."));
     }
 
     MockLicenseDataUpdater updater = new MockLicenseDataUpdater();

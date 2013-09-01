@@ -1,25 +1,27 @@
 var clmTimestamp = '';
 
-describe('ApplicationController', function () {
+describe('ApplicationController', function() {
   var scope, httpBackend, rootScope, state, mockApplication, _provide;
 
   beforeEach(module('ApplicationModule', function($provide) {
     $provide.value('ApplicationId', {
-      encoded: function () {
+      encoded: function() {
         return 'bom1-12345678';
       }
     });
     $provide.value('OrganizationId', {
-      encoded: function () {
+      encoded: function() {
         return null;
       }
     });
-    $provide.factory('hudson', ['$http', function($http){
-      return $http;
-    }]);
+    $provide.factory('hudson', [
+      '$http', function($http) {
+        return $http;
+      }
+    ]);
   }));
 
-  beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
+  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;
 
@@ -37,20 +39,20 @@ describe('ApplicationController', function () {
     httpBackend.flush();
   }));
 
-  afterEach(function(){
+  afterEach(function() {
     httpBackend.verifyNoOutstandingExpectation();
     httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('loads applications.', function () {
+  it('loads applications.', function() {
     expect(scope.applications).not.toBeUndefined();
     expect(scope.applications.length).toEqual(1);
     expect(scope.applications[0].publicId).toEqual('bom1-12345678');
   });
 
-  it('switches applications.', inject(function ($timeout) {
+  it('switches applications.', inject(function($timeout) {
     expect(scope.selectedApplication).toEqual(null);
-    scope.$apply(function () {
+    scope.$apply(function() {
       state.params.applicationPublicId = 'bom1-12345678';
     });
     $timeout.flush();
@@ -58,9 +60,9 @@ describe('ApplicationController', function () {
     expect(scope.selectedApplication.publicId).toEqual('bom1-12345678');
   }));
 
-  it('switch to new application', inject(function ($timeout) {
+  it('switch to new application', inject(function($timeout) {
     expect(scope.selectedApplication).toEqual(null);
-    scope.$apply(function () {
+    scope.$apply(function() {
       state.params.applicationPublicId = '_new_';
     });
     $timeout.flush();
@@ -94,16 +96,18 @@ describe('ApplicationController', function () {
   }));
 });
 
-describe('ApplicationEditorController', function () {
+describe('ApplicationEditorController', function() {
   var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
-  
+
   beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
-    $provide.factory('hudson', ['$http', function($http){
-      return $http;
-    }]);
+    $provide.factory('hudson', [
+      '$http', function($http) {
+        return $http;
+      }
+    ]);
   }));
-  
-  beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
+
+  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;
 
@@ -126,13 +130,13 @@ describe('ApplicationEditorController', function () {
     scope = $rootScope.$new();
     state = $state;
 
-    mockApplication.$getOriginal = function () {
+    mockApplication.$getOriginal = function() {
       return originalMockApplication
     };
-    mockApplication.$revert = function () {
+    mockApplication.$revert = function() {
       return angular.extend(mockApplication, originalMockApplication)
     };
-    mockApplication.$save = function () {
+    mockApplication.$save = function() {
       return { then: angular.noop }
     };
     getOriginalSpy = spyOn(mockApplication, '$getOriginal').andCallThrough();
@@ -149,12 +153,12 @@ describe('ApplicationEditorController', function () {
     httpBackend.flush();
   }));
 
-  afterEach(function(){
+  afterEach(function() {
     httpBackend.verifyNoOutstandingExpectation();
     httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('generates an icon', function () {
+  it('generates an icon', function() {
     scope.generateIcon();
 
     expect(scope.robotHash).not.toBeUndefined();
@@ -167,17 +171,17 @@ describe('ApplicationEditorController', function () {
     expect(scope.robotHash).not.toEqual(robotHash);
   });
 
-  it('gets org name from id', function () {
+  it('gets org name from id', function() {
     var name = scope.getOrganizationName(mockOrganization.id);
     expect(name).toEqual(mockOrganization.name);
   });
 
-  it('updates an applications organization', function () {
+  it('updates an applications organization', function() {
     scope.changeOrganization(mockOrganization);
     expect(scope.selectedApplication.organizationId).toEqual(mockOrganization.id);
   });
 
-  it('checks if the form is dirty', function () {
+  it('checks if the form is dirty', function() {
     var isDirty = scope.isFormDirty();
 
     expect(getOriginalSpy).toHaveBeenCalled();
@@ -216,7 +220,7 @@ describe('ApplicationEditorController', function () {
     expect(isDirty).toBeTruthy();
   });
 
-  it('cancels edits', inject(function ($httpBackend) {
+  it('cancels edits', inject(function($httpBackend) {
     scope.changeOrganization(mockOrganization);
     scope.selectedApplication.name = "newName";
     scope.generateIcon();
@@ -233,7 +237,7 @@ describe('ApplicationEditorController', function () {
     expect(scope.iconChanged).not.toBeTruthy();
   }));
 
-  it('saves an application', inject(function () {
+  it('saves an application', inject(function() {
     scope.applicationEditor = {};
     scope.applicationEditor.$valid = true;
 
@@ -249,7 +253,7 @@ describe('ApplicationEditorController', function () {
     expect(saveSpy).toHaveBeenCalled();
   }));
 
-  it('Can delete an application', inject(function (CLMAppLocations) {
+  it('Can delete an application', inject(function(CLMAppLocations) {
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
     httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
@@ -292,7 +296,8 @@ describe('ApplicationEditorController', function () {
     };
     scope.applicationSummary = mockApplication;
 
-    $httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId, mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
+    $httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId,
+        mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
 
     scope.reEvaluatePolicy(mockApplication.policyEvaluations.build);
 
@@ -304,7 +309,7 @@ describe('ApplicationEditorController', function () {
     expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
   }));
 
-  it('Can respond to errors when trying to delete an application', inject(function (CLMAppLocations) {
+  it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations) {
     var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
 
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
@@ -326,12 +331,12 @@ describe('ApplicationEditorController', function () {
     expect(scope.deletedEnabled).toBeFalsy();
   }));
 
-  it('Refreshes the list of applications when informed that an organization has been deleted', inject(function (CLMAppLocations, applicationStore) {
-    var applicationStoreSpy = spyOn(applicationStore, 'refresh');
-    rootScope.$broadcast('organizations.delete');
-    expect(applicationStoreSpy).toHaveBeenCalled()
-  }));
-
+  it('Refreshes the list of applications when informed that an organization has been deleted',
+      inject(function(CLMAppLocations, applicationStore) {
+        var applicationStoreSpy = spyOn(applicationStore, 'refresh');
+        rootScope.$broadcast('organizations.delete');
+        expect(applicationStoreSpy).toHaveBeenCalled()
+      }));
 
   it('displays confirmation dialog', function() {
     scope.selectedApplication.name = 'new_name';

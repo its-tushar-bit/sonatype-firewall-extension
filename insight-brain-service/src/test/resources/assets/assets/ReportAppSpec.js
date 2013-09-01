@@ -1,11 +1,11 @@
-describe('reportApp', function () {
+describe('reportApp', function() {
   var scope, state, licenseCheckedSpy;
 
   beforeEach(module('reportApp', 'ReportList', 'DashboardModule'));
   beforeEach(module(function($provide) {
     licenseCheckedSpy = jasmine.createSpy('then');
     $provide.value('licenseChecker', {
-      check : function() {
+      check: function() {
         return {
           then: licenseCheckedSpy
         }
@@ -13,7 +13,7 @@ describe('reportApp', function () {
     });
   }));
 
-  beforeEach(inject(function ($rootScope, $state, $controller, $httpBackend, CLMLocations) {
+  beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
     expect(licenseCheckedSpy).toHaveBeenCalled();
 
     scope = $rootScope.$new();
@@ -28,7 +28,7 @@ describe('reportApp', function () {
     $httpBackend.flush();
   }));
 
-  afterEach(inject(function($httpBackend){
+  afterEach(inject(function($httpBackend) {
     scope.$destroy();
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();

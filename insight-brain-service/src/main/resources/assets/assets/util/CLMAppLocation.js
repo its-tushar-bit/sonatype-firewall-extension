@@ -4,88 +4,92 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global window, angular */
-(function () {
-	"use strict";
+(function() {
+  "use strict";
 
-	var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.compat']);
-	
-	locationModule.factory('CLMAppLocations', ['ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function (appId, orgId, $state, baseUrl) {
-    var isApplication = function() {
-      return $state.current.name.indexOf('application') !== -1;
-    };
+  var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.compat']);
 
-		var getServicePath = function() {
-			return isApplication() ? 'application' : 'organization';
-		};
+  locationModule.factory('CLMAppLocations', [
+    'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function(appId, orgId, $state, baseUrl) {
+      var isApplication = function() {
+        return $state.current.name.indexOf('application') !== -1;
+      };
 
-		var getId = function() {
-			return isApplication() ? appId.encoded() : orgId.encoded();
-		};
+      var getServicePath = function() {
+        return isApplication() ? 'application' : 'organization';
+      };
 
-		var getServicePathWithId = function() {
-			return getServicePath() + '/' + getId();
-		};
+      var getId = function() {
+        return isApplication() ? appId.encoded() : orgId.encoded();
+      };
 
-		return {
-			getLabelsUrl: function () {
-				return baseUrl.get() + '/rest/label/' + getServicePathWithId();
-			},
+      var getServicePathWithId = function() {
+        return getServicePath() + '/' + getId();
+      };
 
-      getApplicableLabelsUrl: function() {
-        return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/applicable';
-      },
+      return {
+        getLabelsUrl: function() {
+          return baseUrl.get() + '/rest/label/' + getServicePathWithId();
+        },
 
-			getDeleteLabelsUrl: function (label) {
-				return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
-			},
+        getApplicableLabelsUrl: function() {
+          return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/applicable';
+        },
 
-			getLicenseGroupsUrl: function (ownerId, ownerType) {
-				return baseUrl.get() + '/rest/licenseThreatGroup/' + (ownerId ? ownerType + '/' + ownerId : getServicePathWithId());
-			},
+        getDeleteLabelsUrl: function(label) {
+          return baseUrl.get() + '/rest/label/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
+        },
 
-			getApplicableLicenseGroupsUrl : function () {
-				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/applicable';
-			},
+        getLicenseGroupsUrl: function(ownerId, ownerType) {
+          return baseUrl.get() + '/rest/licenseThreatGroup/' +
+              (ownerId ? ownerType + '/' + ownerId : getServicePathWithId());
+        },
 
-			getDeleteLicenseGroupUrl: function (group) {
-				return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id);
-			},
+        getApplicableLicenseGroupsUrl: function() {
+          return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/applicable';
+        },
 
-			getLicenseGroupLicensesUrl: function (group) {
-				return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
-			},
+        getDeleteLicenseGroupUrl: function(group) {
+          return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' +
+              encodeURIComponent(group.id);
+        },
 
-			getConditionValueTypeUrl: function () {
-				return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
-			},
+        getLicenseGroupLicensesUrl: function(group) {
+          return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
+        },
 
-			getPolicyUrl: function () {
-				return baseUrl.get() + '/rest/policy/' + getServicePathWithId();
-			},
+        getConditionValueTypeUrl: function() {
+          return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
+        },
 
-			getEntitiesUrl: function() {
-				return baseUrl.get() + '/rest/' + getServicePath();
-			},
+        getPolicyUrl: function() {
+          return baseUrl.get() + '/rest/policy/' + getServicePathWithId();
+        },
 
-			getEntityUrl: function () {
-				return baseUrl.get() + '/rest/' + getServicePathWithId();
-			},
+        getEntitiesUrl: function() {
+          return baseUrl.get() + '/rest/' + getServicePath();
+        },
 
-			addIcon: function () {
-				return baseUrl.get() + '/rest/' + getServicePath() + '/icon';
-			},
+        getEntityUrl: function() {
+          return baseUrl.get() + '/rest/' + getServicePathWithId();
+        },
 
-			addIconSync: function () {
-				return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
-			},
+        addIcon: function() {
+          return baseUrl.get() + '/rest/' + getServicePath() + '/icon';
+        },
 
-			getEntityId: getId,
+        addIconSync: function() {
+          return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
+        },
 
-			getApplicablePolicies : function () {
-			    return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
-			},
+        getEntityId: getId,
 
-			isApplication: isApplication
-		};
-	}]);
+        getApplicablePolicies: function() {
+          return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
+        },
+
+        isApplication: isApplication
+      };
+    }
+  ]);
 }());

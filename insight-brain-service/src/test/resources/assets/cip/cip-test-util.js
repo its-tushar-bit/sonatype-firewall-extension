@@ -1,20 +1,23 @@
 /*global window*/
 var InsightDatatable = {
-    getActiveTable : function() {
-        return {
-            dataView : {
-                getItems : function() {
-                    return [];
-                }
-            }
-        };
-    }
+  getActiveTable: function() {
+    return {
+      dataView: {
+        getItems: function() {
+          return [];
+        }
+      }
+    };
+  }
 };
 
 if (window.CLM) {
-    CLM.loadPlugin = function () {};
-} else {
-    window.CLM = {
-        loadPlugin : function () {}
-    };
+  CLM.loadPlugin = function() {
+  };
+}
+else {
+  window.CLM = {
+    loadPlugin: function() {
+    }
+  };
 }

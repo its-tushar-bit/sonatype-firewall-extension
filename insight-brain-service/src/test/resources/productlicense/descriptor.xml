@@ -7,42 +7,42 @@
 
 -->
 <license>
-	<subject>CLM</subject>
-<keystore>
+  <subject>CLM</subject>
+  <keystore>
     <alias>CLM</alias>
     <path>privateKeyStore</path>
     <password>Mu0XTw834Gk9nlP</password>
     <keyPassword>r5h57cYfggHHDdS</keyPassword>
   </keystore>
-	<validUntil>20/9/27</validUntil>
-	<evaluation>false</evaluation>
-	<licensedUsers>0</licensedUsers>
-	<products>
-	</products>
-	<features>
-		<feature>
-			<id>SonatypeCLM</id>
-		</feature>
-	</features>
-	<contact>
-		<name>name</name>
-		<company>company</company>
-		<country>us</country>
-		<email>email</email>
-		<phone>phone</phone>
-	</contact>
-	<properties>
-		<property>
-			<key>clm.maxActiveApplications</key>
-			<value>10</value>
-		</property>
-		<property>
-			<key>clm.allowedClmStages</key>
-			<value>Procure,Develop,Build,StageRelease,Release</value>
-		</property>
-		<property>
-			<key>clm.maxUsers</key>
-			<value>100</value>
-		</property>
-	</properties>
+  <validUntil>20/9/27</validUntil>
+  <evaluation>false</evaluation>
+  <licensedUsers>0</licensedUsers>
+  <products>
+  </products>
+  <features>
+    <feature>
+      <id>SonatypeCLM</id>
+    </feature>
+  </features>
+  <contact>
+    <name>name</name>
+    <company>company</company>
+    <country>us</country>
+    <email>email</email>
+    <phone>phone</phone>
+  </contact>
+  <properties>
+    <property>
+      <key>clm.maxActiveApplications</key>
+      <value>10</value>
+    </property>
+    <property>
+      <key>clm.allowedClmStages</key>
+      <value>Procure,Develop,Build,StageRelease,Release</value>
+    </property>
+    <property>
+      <key>clm.maxUsers</key>
+      <value>100</value>
+    </property>
+  </properties>
 </license>

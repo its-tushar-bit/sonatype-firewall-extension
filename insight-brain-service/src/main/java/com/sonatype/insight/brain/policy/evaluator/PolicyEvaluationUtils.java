@@ -169,9 +169,7 @@ public class PolicyEvaluationUtils
     return Collections.emptyList();
   }
 
-  public List<PolicyAlert> findPolicyAlerts(final String applicationPublicId, String appId, final String scanId)
-      throws IOException
-  {
+  public List<PolicyAlert> findPolicyAlerts(final String appId, final String scanId) throws IOException {
     final File reportFile = ReportResource.getReport(work, appId, scanId);
     if (reportFile != null) {
       final ReportEntry reportEntry = Report.getEntry(reportFile, POLICY_ALERTS_FILENAME);

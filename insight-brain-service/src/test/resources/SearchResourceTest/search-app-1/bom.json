@@ -1,0 +1,31 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "tomcat-util-5.5.23.jar" ],
+    "pathnames" : [ "sample-application.zip/tomcat-util-5.5.23.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1249e25aebb15358bedd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1201589122000,
+    "lastModifiedTime" : 1201148356000,
+    "lastModifiedEntryTime" : 1173079498000
+  }, {
+    "filenames" : [ "servlets-default-5.5.4.jar" ],
+    "pathnames" : [ "sample-application.zip/servlets-default-5.5.4.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "servlets-default",
+    "version" : "5.5.4",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a397f601582e5ccd4b1a",
+    "relativePopularity" : 0.25,
+    "createTime" : 1131486718000,
+    "lastModifiedTime" : 1342168788000,
+    "lastModifiedEntryTime" : 1099055424000
+  } ]
+}

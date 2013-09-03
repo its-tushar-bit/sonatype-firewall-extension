@@ -1,0 +1,49 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "1c25d5182bd24d46b6e83db428171554",
+      "policyName" : "1st Policy",
+      "threatLevel" : 8,
+      "componentFacts" : [ {
+        "groupId" : null,
+        "artifactId" : null,
+        "version" : null,
+        "hash" : "1249e25aebb15358bedd",
+        "constraintFacts" : [ {
+          "constraintId" : "3004fda915214e99a9cd004a046574e9",
+          "constraintName" : "Match State",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "summary" : "Match State is exact",
+            "reason" : "Match State was exact"
+          } ]
+        } ]
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "1c25d5182bd24d46b6e83db428171555",
+      "policyName" : "2nd Policy",
+      "threatLevel" : 4,
+      "componentFacts" : [ {
+        "groupId" : null,
+        "artifactId" : null,
+        "version" : null,
+        "hash" : "1249e25aebb15358bedd",
+        "constraintFacts" : [ {
+          "constraintId" : "3004fda915214e99a9cd004a046574e8",
+          "constraintName" : "Label",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "Label",
+            "summary" : "Label is red",
+            "reason" : "Found red Label"
+          } ]
+        } ]
+      } ]
+    },
+    "actions" : [ ]
+  } ]
+}

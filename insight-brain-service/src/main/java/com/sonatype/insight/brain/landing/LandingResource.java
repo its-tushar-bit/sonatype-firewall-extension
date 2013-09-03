@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
@@ -25,7 +24,7 @@ public class LandingResource
 {
   public static final String SERVICE_PATH = "";
 
-  @Context
+  @Inject
   private BaseUrl baseUrl;
 
   private CLMLicenseManager licenseManager;

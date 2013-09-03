@@ -27,7 +27,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -60,10 +59,10 @@ public class PolicyEvaluateResource
 
   private static Template policyThreatsTemplate;
 
-  @Context
+  @Inject
   private InsightMail mail;
 
-  @Context
+  @Inject
   private BaseUrl baseUrl;
 
   private final PolicyEvaluationUtils policyEvaluationUtils;

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -18,7 +19,7 @@ public class EnvironmentResource
 {
   public static final String RESOURCE_PATH = "rest/session/environment";
 
-  @Context
+  @Inject
   private SaasClient client;
 
   @GET

@@ -82,10 +82,10 @@ public class ReportResource
   static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = CacheBuilder.newBuilder().maximumSize(8192)
       .<String, Integer> build().asMap();
 
-  @Context
+  @Inject
   private InsightWork work;
 
-  @Context
+  @Inject
   private BaseUrl baseUrl;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();

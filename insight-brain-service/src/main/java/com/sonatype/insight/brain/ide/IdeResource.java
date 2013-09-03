@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -53,17 +54,17 @@ public class IdeResource
 {
   public static final String SERVICE_PATH = "rest/ide";
 
-  @Context
+  @Inject
   private SaasClient client;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private PolicyEvaluator evaluator = new PolicyEvaluator();
 
-  @Context
+  @Inject
   private InsightWork work;
 
-  @Context
+  @Inject
   private BaseUrl baseUrl;
 
   /**

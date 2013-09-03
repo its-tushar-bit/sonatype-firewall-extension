@@ -14,7 +14,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -37,15 +36,15 @@ public class LicenseAwareContainerResourceFilterFactory
   @Inject
   private CLMLicenseManager licenseManager;
 
+  @Inject
+  private BaseUrl baseUrl;
+
   private class Filter
       implements ResourceFilter, ContainerRequestFilter
   {
     private final Set<CLMEnforcementPoint> enforcementPoints;
 
     private final Logger log = LoggerFactory.getLogger(Filter.class);
-
-    @Context
-    private BaseUrl baseUrl;
 
     public Filter(Set<CLMEnforcementPoint> enforcementPoints) {
       this.enforcementPoints = enforcementPoints;

@@ -15,7 +15,6 @@ import java.io.OutputStream;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
@@ -46,7 +45,7 @@ abstract class AbstractResourceWithIcon
   @Inject
   private SaasClient client;
 
-  @Context
+  @Inject
   private BaseUrl baseUrl;
 
   private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);

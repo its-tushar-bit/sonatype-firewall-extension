@@ -22,7 +22,6 @@ import org.sonatype.micromailer.imp.HtmlMailType;
 @Named
 @Singleton
 public class InsightMail
-    extends AbstractInjectable<InsightMail>
 {
   private final InsightMailer insightMailer;
 

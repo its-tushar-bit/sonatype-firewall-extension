@@ -14,7 +14,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -32,7 +31,7 @@ public class ReleaseGraphResource
 {
   private static final Logger log = LoggerFactory.getLogger(ReleaseGraphResource.class);
 
-  @Context
+  @Inject
   private InsightWork work;
 
   private final LoadingCache<ReleaseGraphKey, byte[]> cache;

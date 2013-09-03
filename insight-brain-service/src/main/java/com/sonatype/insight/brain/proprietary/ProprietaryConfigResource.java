@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.proprietary;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -33,7 +34,7 @@ public class ProprietaryConfigResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
-  @Context
+  @Inject
   private InsightWork work;
 
   @GET

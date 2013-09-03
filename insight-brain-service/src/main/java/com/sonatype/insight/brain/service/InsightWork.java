@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class InsightWork
-    extends AbstractInjectable<InsightWork>
 {
   private static final Logger log = LoggerFactory.getLogger(InsightWork.class);
 

@@ -24,7 +24,6 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.service.AbstractInjectable;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.client.utils.HttpClientUtils;
@@ -71,7 +70,6 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class SaasClient
-    extends AbstractInjectable<SaasClient>
 {
   private static final Logger log = LoggerFactory.getLogger(SaasClient.class);
 

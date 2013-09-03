@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -62,10 +63,10 @@ public abstract class AbstractComponentInfoResource
 
   private PolicyEvaluator evaluator = new PolicyEvaluator();
 
-  @Context
+  @Inject
   private SaasClient client;
 
-  @Context
+  @Inject
   private InsightWork work;
 
   @Context

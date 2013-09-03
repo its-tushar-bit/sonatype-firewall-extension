@@ -15,7 +15,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 @Named
 @Singleton
 public class InsightProxy
-    extends AbstractInjectable<InsightProxy>
 {
   private final InsightConfig insightConfig;
 

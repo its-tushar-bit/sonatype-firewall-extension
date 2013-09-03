@@ -83,10 +83,10 @@ public class PolicyResource
   public static final String ORG_IMPORT_APP_ERROR = "Organization already has applications defined, cannot import data "
       + "unless the Organization is new.";
 
-  @Context
+  @Inject
   private InsightWork work;
 
-  @Context
+  @Inject
   private BaseUrl baseUrl;
 
   @Inject

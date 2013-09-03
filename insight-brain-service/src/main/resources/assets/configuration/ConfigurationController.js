@@ -6,37 +6,42 @@
  */
 /*global angular */
 
-(function () {
-    'use strict';
+(function() {
+  'use strict';
 
-    function getMessage(data, status, headersFn, config) {
-        if (status === 0) {
-            return 'Error: Unable to contact server';
-        } else {
-            return 'Error: ' + status + ' ' + data;
-        }
+  function getMessage(data, status, headersFn, config) {
+    if (status === 0) {
+      return 'Error: Unable to contact server';
     }
+    else {
+      return 'Error: ' + status + ' ' + data;
+    }
+  }
 
-    var module = angular.module('Configuration', ['ListEditor','ui.compat', 'ManagementModule', 'ProductLicense', 'Hudson'], ['$stateProvider', function ($stateProvider) {
-      $stateProvider.state('management.configuration', {
-        parent : 'management',
-        url : '/configuration',
-        controller : 'ConfigurationController',
-        templateUrl : '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
-      }).state('management.configuration.productlicense',{
-        parent : 'management.configuration',
-        url: '/productlicense',
-        controller: 'ProductLicenseController',
-        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
-      }).state('management.configuration.proprietarypackages',{
-        parent : 'management.configuration',
-        url: '/proprietarypackages',
-        controller: 'ProprietaryConfigurationController',
-        templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
-      });
-    }]);
+  var module = angular.module('Configuration',
+      ['ListEditor', 'ui.compat', 'ManagementModule', 'ProductLicense', 'Hudson'], [
+        '$stateProvider', function($stateProvider) {
+          $stateProvider.state('management.configuration', {
+            parent: 'management',
+            url: '/configuration',
+            controller: 'ConfigurationController',
+            templateUrl: '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
+          }).state('management.configuration.productlicense', {
+                parent: 'management.configuration',
+                url: '/productlicense',
+                controller: 'ProductLicenseController',
+                templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
+              }).state('management.configuration.proprietarypackages', {
+                parent: 'management.configuration',
+                url: '/proprietarypackages',
+                controller: 'ProprietaryConfigurationController',
+                templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
+              });
+        }
+      ]);
 
-    module.controller('ConfigurationController',['$scope', '$state', 'commonCodeFactory', '$location', function ($scope, $state, commonCodeFactory, $location) {
+  module.controller('ConfigurationController', [
+    '$scope', '$state', 'commonCodeFactory', '$location', function($scope, $state, commonCodeFactory, $location) {
       $scope.$state = $state;
       $scope.$location = $location;
 
@@ -45,7 +50,8 @@
           name: 'Product License',
           state: 'management/configuration/productlicense',
           isEnabled: true
-        },{
+        },
+        {
           name: 'Proprietary Packages',
           state: 'management/configuration/proprietarypackages',
           isEnabled: true
@@ -71,62 +77,67 @@
       if (error) {
         $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
       }
-    }]);
+    }
+  ]);
 
-    module.controller('ProprietaryConfigurationController', ['$scope', '$http', 'hudson', 'CLMLocations', function ($scope, $http, hudson, clmLocations) {
-        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$'); 
+  module.controller('ProprietaryConfigurationController', [
+    '$scope', '$http', 'hudson', 'CLMLocations', function($scope, $http, hudson, clmLocations) {
+      var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 
-        $scope.doLoad = function () {
-            $http.get(clmLocations.getProprietaryConfig(), { params : { "ts" : new Date().getTime() } }).success(function (data) {
-                $scope.proprietary = data;
-                $scope.reset();
-            }).error(function () {
-                $scope.loadError = getMessage.apply(null, arguments);
+      $scope.doLoad = function() {
+        $http.get(clmLocations.getProprietaryConfig(),
+            { params: { "ts": new Date().getTime() } }).success(function(data) {
+          $scope.proprietary = data;
+          $scope.reset();
+        }).error(function() {
+              $scope.loadError = getMessage.apply(null, arguments);
             });
-        };
+      };
 
-        $scope.save = function () {
-            var proprietary = angular.extend({}, $scope.proprietary, { packages : angular.copy($scope.packages) });
+      $scope.save = function() {
+        var proprietary = angular.extend({}, $scope.proprietary, { packages: angular.copy($scope.packages) });
 
-            $scope.saving = true;
+        $scope.saving = true;
 
-            hudson.put(clmLocations.getProprietaryConfig(), proprietary).success(function () {
-                $scope.saving = false;
-                $scope.proprietary = proprietary;
-                $scope.reset();
-            }).error(function (data, status, headersFn, config) {
-                $scope.saving = false;
-                $scope.error = getMessage.apply(null, arguments);
+        hudson.put(clmLocations.getProprietaryConfig(), proprietary).success(function() {
+          $scope.saving = false;
+          $scope.proprietary = proprietary;
+          $scope.reset();
+        }).error(function(data, status, headersFn, config) {
+              $scope.saving = false;
+              $scope.error = getMessage.apply(null, arguments);
             });
-        };
+      };
 
-        $scope.reset = function () {
-            $scope.packages = angular.copy($scope.proprietary.packages);
-        };
+      $scope.reset = function() {
+        $scope.packages = angular.copy($scope.proprietary.packages);
+      };
 
-        $scope.isDirty = function() {
-          return $scope.packages && $scope.proprietary && !angular.equals($scope.packages, $scope.proprietary.packages);
-        };
+      $scope.isDirty = function() {
+        return $scope.packages && $scope.proprietary && !angular.equals($scope.packages, $scope.proprietary.packages);
+      };
 
-        $scope.setEditorError = function (error) {
-            $scope.error = error;
-        };
+      $scope.setEditorError = function(error) {
+        $scope.error = error;
+      };
 
-        $scope.validatePackage = function (value) {
-            if (!PACKAGE_REGEXP.test(value)) {
-                return 'Invalid package prefix, enter e.g. com.mycompany';
-            } else if (value && value.indexOf('*') >= 0) {
-                return 'Wildcards are not allowed/required';
-            }
-            return null;
-        };
+      $scope.validatePackage = function(value) {
+        if (!PACKAGE_REGEXP.test(value)) {
+          return 'Invalid package prefix, enter e.g. com.mycompany';
+        }
+        else if (value && value.indexOf('*') >= 0) {
+          return 'Wildcards are not allowed/required';
+        }
+        return null;
+      };
 
-        $scope.doLoad();
+      $scope.doLoad();
 
-      $scope.$on('pageChangeStarted', function (event) {
+      $scope.$on('pageChangeStarted', function(event) {
         if ($scope.isDirty()) {
           event.preventDefault();
         }
       });
-    }]);
+    }
+  ]);
 }());

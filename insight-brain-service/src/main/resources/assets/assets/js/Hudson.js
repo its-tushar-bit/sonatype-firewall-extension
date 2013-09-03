@@ -4,175 +4,182 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, console */
-(function () {
-	'use strict';
+(function() {
+  'use strict';
 
-	var hudson = false,
-		tested = null,
-		outstanding = [];
+  var hudson = false,
+      tested = null,
+      outstanding = [];
 
-	function startTest($http, baseUrl) {
-		function complete() {
-			angular.forEach(outstanding, function (fn, key) {
-				fn();
-			});
-		}
+  function startTest($http, baseUrl) {
+    function complete() {
+      angular.forEach(outstanding, function(fn, key) {
+        fn();
+      });
+    }
 
-		tested = $http.get(baseUrl.get() + '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)').success(function () {
-			hudson = true;
-			tested = true;
-			complete();
-		}).error(function (xhr, status) {
-				tested = true;
-				if (status !== 404 && console) {
-					console.log('Got (' + status + ') while checking for Hudson API');
-				}
-				complete();
-			});
-	}
-	
-	function swapBasePath(path, $location) {
+    tested = $http.get(baseUrl.get() +
+            '/../../../crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)').success(function() {
+      hudson = true;
+      tested = true;
+      complete();
+    }).error(function(xhr, status) {
+          tested = true;
+          if (status !== 404 && console) {
+            console.log('Got (' + status + ') while checking for Hudson API');
+          }
+          complete();
+        });
+  }
+
+  function swapBasePath(path, $location) {
     //not being run from within the report via hudson, so fix the path so we don't have needless redirects
-    if (typeof CLM !== "undefined" && $location.absUrl().indexOf('/sonatype-clm-report/') < 0) { 
-      return path.replace(CLM.path,'../../../../../');
+    if (typeof CLM !== "undefined" && $location.absUrl().indexOf('/sonatype-clm-report/') < 0) {
+      return path.replace(CLM.path, '../../../../../');
     }
     return path;
   }
 
-	function wrap($http, method, args, baseUrl, $location) {
-		var success = [],
-			error = [],
-			result = {
-				success: function (fn) {
-					success.push(fn);
-					return this;
-				},
-				error: function (fn) {
-					error.push(fn);
-					return this;
-				}
-			},
-			iter = function (arr, me, args) {
-				angular.forEach(arr, function (fn) {
-					fn.apply(me, args);
-				});
-			},
-			successFn = function (data) {
-				var header = data !== null ? data.split(':') : null,
-					config = { headers: {  } };
+  function wrap($http, method, args, baseUrl, $location) {
+    var success = [],
+        error = [],
+        result = {
+          success: function(fn) {
+            success.push(fn);
+            return this;
+          },
+          error: function(fn) {
+            error.push(fn);
+            return this;
+          }
+        },
+        iter = function(arr, me, args) {
+          angular.forEach(arr, function(fn) {
+            fn.apply(me, args);
+          });
+        },
+        successFn = function(data) {
+          var header = data !== null ? data.split(':') : null,
+              config = { headers: {  } };
 
-				if (header !== null && header.length === 2) {
-					config.headers[header[0]] = header[1];
-				}
-				if (args.length < 3) {
-					args.push(config);
-				} else {
-					args[2] = angular.extend(config, args[2]);
-				}
-				
-				args[0] = swapBasePath(args[0], $location);
+          if (header !== null && header.length === 2) {
+            config.headers[header[0]] = header[1];
+          }
+          if (args.length < 3) {
+            args.push(config);
+          }
+          else {
+            args[2] = angular.extend(config, args[2]);
+          }
 
-				method(args[0], args[1], args[2]).success(function () {
-					iter(success, this, arguments);
-				}).error(function () {
-						iter(error, this, arguments);
-					});
-			},
-			request = function () {
-				if (hudson === true) {
-					$http.get(baseUrl.get() + '/../../../crumbIssuer/api/xml', {
-						params: {
-							timestamp: new Date().getTime(),
-							xpath: 'concat(//crumbRequestField,":",//crumb)'
-						}
-					}).success(successFn).error(function () {
-							iter(error, this, arguments);
-						});
-				} else {
-					successFn(null);
-				}
-			};
-		if (tested === true) {
-			request();
-		} else {
-			outstanding.push(request);
-		}
-		return result;
-	}
+          args[0] = swapBasePath(args[0], $location);
 
-	angular.module('Hudson', ['CommonServices']).service('hudson', ['$http', 'BaseUrl', '$location', function ($http, baseUrl, $location) {
-		if (tested === null) {
-			startTest($http, baseUrl);
-		}
-		function passThrough(args, method) {
-		  //note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
-      var argArray = [], i;
-      for (i = 0; i < args.length; i++) {
-        argArray.push(args[i]);
+          method(args[0], args[1], args[2]).success(function() {
+            iter(success, this, arguments);
+          }).error(function() {
+                iter(error, this, arguments);
+              });
+        },
+        request = function() {
+          if (hudson === true) {
+            $http.get(baseUrl.get() + '/../../../crumbIssuer/api/xml', {
+              params: {
+                timestamp: new Date().getTime(),
+                xpath: 'concat(//crumbRequestField,":",//crumb)'
+              }
+            }).success(successFn).error(function() {
+                  iter(error, this, arguments);
+                });
+          }
+          else {
+            successFn(null);
+          }
+        };
+    if (tested === true) {
+      request();
+    }
+    else {
+      outstanding.push(request);
+    }
+    return result;
+  }
+
+  angular.module('Hudson', ['CommonServices']).service('hudson', [
+    '$http', 'BaseUrl', '$location', function($http, baseUrl, $location) {
+      if (tested === null) {
+        startTest($http, baseUrl);
       }
-      
-      argArray[0] = swapBasePath(argArray[0], $location);
-      return $http[method].apply($http, argArray);
-		}
-		return {
-		  put: function () {
-		    return passThrough(arguments, 'put');
-		  },
-		  'delete': function () {
-		    return passThrough(arguments, 'delete');
-		  },
-		  'get': function () {
-		    return passThrough(arguments, 'get');
-		  },
-			post: function () {
-				//note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
-				var argArray = [], i;
-				for (i = 0; i < arguments.length; i++) {
-					argArray.push(arguments[i]);
-				}
-				
-			  if (!hudson && tested === true) {  
-			    argArray[0] = swapBasePath(argArray[0], $location);
-					return $http.post.apply($http, argArray);
-				}
-				return wrap($http, $http.post, argArray, baseUrl, $location);
-			},
-			xhrPost: function () {
-				var xhr = new XMLHttpRequest();
-				return {
-					xhr: xhr,
-					post: function () {
-						var argArray = [], i;
-						for (i = 0; i < arguments.length; i++) {
-							argArray.push(arguments[i]);
-						}
-						if (!hudson && tested === true) {
-						  argArray[0] = swapBasePath(argArray[0], $location);
-							return xhr.send.apply(xhr, argArray);
-						}
-						return wrap($http, xhr.send, argArray, baseUrl, $location);
-					}
-				};
-			},
-			ajaxPost: function () {
-				var argArray = [], i;
-				for (i = 0; i < arguments.length; i++) {
-					// apply necessary multi form properties
-					if (i === 0) {
-						var argument = arguments[i];
-						argument.url = swapBasePath(argument.url, $location);
-						argument.cache = false;
-						argument.contentType = false;
-						argument.processData = false;
-						argument.type = 'POST';
-					}
-					argArray.push(arguments[i]);
-				}
-				if (!hudson && tested === true) {
-					return jQuery.ajax.apply(jQuery, argArray);
-				}
-				return wrap($http, jQuery.ajax, argArray, baseUrl, $location);
-			}
-		};
-	}]);
+      function passThrough(args, method) {
+        //note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
+        var argArray = [], i;
+        for (i = 0; i < args.length; i++) {
+          argArray.push(args[i]);
+        }
+
+        argArray[0] = swapBasePath(argArray[0], $location);
+        return $http[method].apply($http, argArray);
+      }
+
+      return {
+        put: function() {
+          return passThrough(arguments, 'put');
+        },
+        'delete': function() {
+          return passThrough(arguments, 'delete');
+        },
+        'get': function() {
+          return passThrough(arguments, 'get');
+        },
+        post: function() {
+          //note that we are not using angular.copy here, as the special arguments object is not iterable properly in IE8
+          var argArray = [], i;
+          for (i = 0; i < arguments.length; i++) {
+            argArray.push(arguments[i]);
+          }
+
+          if (!hudson && tested === true) {
+            argArray[0] = swapBasePath(argArray[0], $location);
+            return $http.post.apply($http, argArray);
+          }
+          return wrap($http, $http.post, argArray, baseUrl, $location);
+        },
+        xhrPost: function() {
+          var xhr = new XMLHttpRequest();
+          return {
+            xhr: xhr,
+            post: function() {
+              var argArray = [], i;
+              for (i = 0; i < arguments.length; i++) {
+                argArray.push(arguments[i]);
+              }
+              if (!hudson && tested === true) {
+                argArray[0] = swapBasePath(argArray[0], $location);
+                return xhr.send.apply(xhr, argArray);
+              }
+              return wrap($http, xhr.send, argArray, baseUrl, $location);
+            }
+          };
+        },
+        ajaxPost: function() {
+          var argArray = [], i;
+          for (i = 0; i < arguments.length; i++) {
+            // apply necessary multi form properties
+            if (i === 0) {
+              var argument = arguments[i];
+              argument.url = swapBasePath(argument.url, $location);
+              argument.cache = false;
+              argument.contentType = false;
+              argument.processData = false;
+              argument.type = 'POST';
+            }
+            argArray.push(arguments[i]);
+          }
+          if (!hudson && tested === true) {
+            return jQuery.ajax.apply(jQuery, argArray);
+          }
+          return wrap($http, jQuery.ajax, argArray, baseUrl, $location);
+        }
+      };
+    }
+  ]);
 }());

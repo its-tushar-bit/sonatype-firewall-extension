@@ -5,12 +5,13 @@
  *          trademark of Sonatype, Inc.
  */
 /*global angular, $, clmBuildTimestamp, window, setTimeout */
-(function () {
-    'use strict';
+(function() {
+  'use strict';
 
-    var module = angular.module('ProductLicense', [ 'AngularCommon', 'ngUpload', 'CLMLocation', 'Hudson' ]);
+  var module = angular.module('ProductLicense', ['AngularCommon', 'ngUpload', 'CLMLocation', 'Hudson']);
 
-    module.controller('ProductLicenseController', [ '$http', 'hudson', '$scope', 'CLMLocations', function ($http, hudson, $scope, clmLocations) {
+  module.controller('ProductLicenseController', [
+    '$http', 'hudson', '$scope', 'CLMLocations', function($http, hudson, $scope, clmLocations) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -20,113 +21,121 @@
         $http.get($scope.summaryUrl).success(function(data) {
           $scope.license = data;
         }).error(function(data, status) {
-          if (status !== 402) {
-            $scope.error = {
-              status: status,
-              data: data
-            };
-          } else {
-            $scope.license = false;
-          }
-        });
+              if (status !== 402) {
+                $scope.error = {
+                  status: status,
+                  data: data
+                };
+              }
+              else {
+                $scope.license = false;
+              }
+            });
       };
 
-		function showLicense() {
-			$('#eulaModal').modal('hide');
-			$('#licenseInstalledModal').modal('show');
-			setTimeout($scope.reload, 5000);
-		}
-		
-        function showError(content) {
-            $scope.$apply(function() {
-                $('#eulaModal').modal('hide');
-                $scope.$broadcast('showError', content);
-            });
+      function showLicense() {
+        $('#eulaModal').modal('hide');
+        $('#licenseInstalledModal').modal('show');
+        setTimeout($scope.reload, 5000);
+      }
+
+      function showError(content) {
+        $scope.$apply(function() {
+          $('#eulaModal').modal('hide');
+          $scope.$broadcast('showError', content);
+        });
+      }
+
+      $scope.reload = function() {
+        window.location.reload();
+      };
+
+      $scope.viewUninstallLicense = function() {
+        $('#licenseUninstallConfirmationModal').modal('show');
+      };
+
+      $scope.onFileChanged = function() {
+        $('#eulaModal').modal('show');
+      };
+
+      $scope.fileSelected = function() {
+        $('#eulaModal').modal('show');
+      };
+
+      $scope.eulaDeclined = function() {
+        window.location.reload();
+      };
+
+      $scope.eulaAccepted = function() {
+        if (window.FormData) {
+          var form = new FormData();
+          form.append('file', $('#license-input')[0].files[0]);
+          $.ajax({
+            url: $scope.uploadUrl,
+            data: form,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function() {
+              $scope.$apply(function() {
+                showLicense();
+              });
+            },
+            error: function(req, status, error) {
+              showError(req.responseText);
+            }
+          });
         }
+        else {
+          $('input[type=submit]').trigger('click');
+        }
+      };
 
-        $scope.reload = function () {
-            window.location.reload();
-        };
+      $scope.installLicense = function(content, completed) {
+        if (completed) {
+          if (content.length === 0) {
+            showLicense();
+          }
+          else {
+            setTimeout(function() {
+              showError(content);
+            }, 0);
+          }
+        }
+      };
 
-        $scope.viewUninstallLicense = function () {
-            $('#licenseUninstallConfirmationModal').modal('show');
-        };
-        
-        $scope.onFileChanged = function() {
-            $('#eulaModal').modal('show');
-        };
+      $scope.uninstallLicense = function() {
+        hudson['delete']($scope.uploadUrl).success(function(data) {
+          $('#licenseUninstallConfirmationModal').modal('hide');
+          $('#licenseUninstalledModal').modal('show');
+          setTimeout($scope.reload, 5000);
+        }).error(function() {
+              $scope.$broadcast('showServerError', arguments);
+            });
+      };
 
-        $scope.fileSelected = function() {
-            $('#eulaModal').modal('show');
-        };
-        
-        $scope.eulaDeclined = function() {
-            window.location.reload();
-        };
+      $scope.isLoaded = function() {
+        return typeof $scope.license !== 'undefined';
+      };
 
-        $scope.eulaAccepted = function() {
-            if (window.FormData) {
-                var form = new FormData();
-                form.append('file', $('#license-input')[0].files[0]);
-                $.ajax({
-                    url : $scope.uploadUrl,
-                    data : form,
-                    processData : false,
-                    contentType : false,
-                    type : 'POST',
-                    success : function () {
-                        $scope.$apply(function () {
-                            showLicense();
-                        });
-                    },
-                    error : function (req, status, error) {
-                        showError(req.responseText);
-                    }
-                });
-            } else {
-                $('input[type=submit]').trigger('click');
+      $scope.doLoad();
+
+    }
+  ]);
+
+  module.directive('onFileChange', [
+    function() {
+      return {
+        restrict: 'A',
+        scope: false,
+        link: function(scope, elem, attr, ctrl) {
+          angular.element(elem).bind('change', function(event) {
+            if (attr.onFileChange) {
+              scope.$apply(attr.onFileChange);
             }
-        };
-        
-        $scope.installLicense = function (content, completed) {
-            if (completed) {
-                if (content.length === 0) {
-					showLicense();
-                } else {
-					setTimeout(function () {
-						showError(content);
-					}, 0);
-                }
-            }
-        };
-        
-        $scope.uninstallLicense = function () {
-            hudson['delete']($scope.uploadUrl).success(function (data) {
-                $('#licenseUninstallConfirmationModal').modal('hide');
-                $('#licenseUninstalledModal').modal('show');
-                setTimeout($scope.reload, 5000);
-            }).error(function () { $scope.$broadcast('showServerError', arguments); });
-        };
-
-        $scope.isLoaded = function () {
-                return typeof $scope.license !== 'undefined';
-        };
-
-        $scope.doLoad();
-
-    } ]);
-
-    module.directive('onFileChange', [function () {
-        return {
-			restrict: 'A',
-			scope : false,
-			link: function(scope, elem, attr, ctrl) {
-                angular.element(elem).bind('change', function (event) {
-                    if (attr.onFileChange) {
-                        scope.$apply(attr.onFileChange);
-                    }
-                });
-			}
-        };
-    }]);
+          });
+        }
+      };
+    }
+  ]);
 }());

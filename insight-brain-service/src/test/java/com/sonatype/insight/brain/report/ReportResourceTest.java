@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.HashGAVResource;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
@@ -103,7 +104,13 @@ public class ReportResourceTest
     hashGAVDAO.insert(hashGAV);
 
     String applicationPublicId = "testClaimedComponent_AppId";
-    createApplication(applicationPublicId);
+    Application application = createApplication(applicationPublicId);
+
+    String licenseId = new LicenseDAO().getByNameNotNull("EPL").getId();
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), groupId, artifactId, version,
+        LicenseOverrideStatus.OVERRIDDEN, licenseId, "manual override");
+    new LicenseOverrideDAO().insert(licenseOverride);
+
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -148,7 +155,8 @@ public class ReportResourceTest
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
     assertFalse(StringUtils.isEmpty(licensesJsonData));
-    assertFalse(licensesJsonData.contains(hash));
+    assertTrue(licensesJsonData.contains(hash));
+    assertTrue(licensesJsonData.contains(artifactId));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
 
     response = RestAccess.get(resourcePrefix + "/embedReport/security.json");

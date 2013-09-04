@@ -25,8 +25,7 @@
       return 'Licenses';
     };
     BrainLicenseEditorTab.prototype.isVisible = function() {
-      return !((freemium && !this.options.sampleData) || this.gav.matchState === 'unknown' ||
-          this.gav.identificationSource === 'Manual');
+      return !((freemium && !this.options.sampleData) || this.gav.matchState === 'unknown');
     };
 
     BrainLicenseEditorTab.prototype.create = function() {

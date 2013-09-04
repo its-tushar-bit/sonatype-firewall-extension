@@ -80,18 +80,8 @@ public class LabelDAO
     return getList(sQuery, ownerId, hash);
   }
 
-  public Label getByOwnerIdAndLowercaseLabel(String ownerId, String labelLowercase, boolean inherit) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOwnerIdAndLowercaseLabel(em, ownerId, labelLowercase, inherit);
-    }
-    finally {
-      close(em);
-    }
-  }
-
   public Label getByOwnerIdAndLowercaseLabel(EntityManager em, String ownerId, String labelLowercase) {
-    return getByOwnerIdAndLowercaseLabel(ownerId, labelLowercase, false);
+    return getByOwnerIdAndLowercaseLabel(em, ownerId, labelLowercase, false);
   }
 
   public Label getByOwnerIdAndLowercaseLabel(EntityManager em, String ownerId, String labelLowercase, boolean inherit) {

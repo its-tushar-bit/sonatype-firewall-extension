@@ -276,12 +276,19 @@ public abstract class AbstractComponentInfoResource
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    // Get component details from the SAAS server
-    ComponentDetails componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
-
     ComponentLicenses result = new ComponentLicenses();
-    result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
-    result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
+
+    try {
+      // Get component details from the SAAS server
+      ComponentDetails componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+      result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
+      result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
+    }
+    catch (NotFoundException e) {
+      // GAV is unknown to SaaS
+      result.declaredlicenses = Collections.emptyList();
+      result.observedlicenses = Collections.emptyList();
+    }
 
     return result;
   }

@@ -208,7 +208,7 @@ public class ApplicationDAO
     final List<Label> conflicts = new ArrayList<Label>();
     final LabelDAO labelDAO = new LabelDAO();
     for (Label appLabel : labelDAO.getByOwnerId(em, application.getId())) {
-      if (labelDAO.getByOwnerIdAndLowercaseLabel(em, organization.getId(), appLabel.getLabelLowercase()) != null) {
+      if (labelDAO.getByOwnerIdAndLabelLowercase(em, organization.getId(), appLabel.getLabelLowercase()) != null) {
         conflicts.add(appLabel);
       }
     }
@@ -288,7 +288,7 @@ public class ApplicationDAO
     }
   }
 
-  public List<Application> getByOrganizationIdAndLowercaseLabel(EntityManager em, String organizationId,
+  public List<Application> getByOrganizationIdAndLabelLowercase(EntityManager em, String organizationId,
       String labelLowercase)
   {
     final String oQuery = "SELECT app FROM Label label, Application app" + //

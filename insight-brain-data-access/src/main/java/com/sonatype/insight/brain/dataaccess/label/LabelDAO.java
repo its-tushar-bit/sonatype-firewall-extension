@@ -80,11 +80,12 @@ public class LabelDAO
     return getList(sQuery, ownerId, hash);
   }
 
-  public Label getByOwnerIdAndLowercaseLabel(EntityManager em, String ownerId, String labelLowercase) {
-    return getByOwnerIdAndLowercaseLabel(em, ownerId, labelLowercase, false);
+  public Label getByOwnerIdAndLabelLowercase(EntityManager em, String ownerId, String labelLowercase) {
+    return getByOwnerIdAndLabelLowercase(em, ownerId, labelLowercase, false);
   }
 
-  public Label getByOwnerIdAndLowercaseLabel(EntityManager em, String ownerId, String labelLowercase, boolean inherit) {
+  private Label getByOwnerIdAndLabelLowercase(EntityManager em, String ownerId, String labelLowercase, boolean inherit)
+  {
     final String sQuery = "SELECT label FROM Label label" + //
         " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
     Label label = null;
@@ -174,7 +175,7 @@ public class LabelDAO
 
     // first, check the same label does not exist in for the same owner
     // this is enforced by db unique key, but checking in java gives nicer error message
-    Label otherLabel = getByOwnerIdAndLowercaseLabel(em, label.getOwnerId(), label.getLabelLowercase(), false);
+    Label otherLabel = getByOwnerIdAndLabelLowercase(em, label.getOwnerId(), label.getLabelLowercase(), false);
     if (otherLabel != null && (!update || !otherLabel.getId().equals(label.getId()))) {
       final Application app = appDAO.getById(em, label.getOwnerId());
       if (app != null) {
@@ -190,7 +191,7 @@ public class LabelDAO
     }
 
     // owner can be an org, make sure none of org's apps have this label already
-    final List<Application> apps = appDAO.getByOrganizationIdAndLowercaseLabel(em, label.getOwnerId(),
+    final List<Application> apps = appDAO.getByOrganizationIdAndLabelLowercase(em, label.getOwnerId(),
         label.getLabelLowercase());
     if (!apps.isEmpty()) {
       final StringBuilder message = new StringBuilder();
@@ -205,7 +206,7 @@ public class LabelDAO
     // owner can be an app, make sure organization does not have this label already
     final Application app = appDAO.getById(em, label.getOwnerId());
     if (app != null && app.getOrganizationId() != null) {
-      otherLabel = getByOwnerIdAndLowercaseLabel(em, app.getOrganizationId(), label.getLabelLowercase(), false);
+      otherLabel = getByOwnerIdAndLabelLowercase(em, app.getOrganizationId(), label.getLabelLowercase(), false);
       if (otherLabel != null) {
         final Organization org = orgDAO.getById(em, app.getOrganizationId());
         final String message = String.format("A label with name '%s' already exists in organization '%s'.",

@@ -64,6 +64,23 @@ public class HashGAVDAOTest
   }
 
   @Test
+  public void testGetByGAV() throws Exception {
+    HashGAVDAO dao = new HashGAVDAO();
+
+    String groupId = "HashGAVDAOTest_G";
+    String artifactId = "HashGAVDAOTest_A";
+    String version = "HashGAVDAOTest_V";
+
+    dao.insert(new HashGAV("11111111111111111111", groupId, artifactId, version, "extension", "classifier"));
+    dao.insert(new HashGAV("22222222222222222222", groupId, artifactId, version, null, null));
+
+    HashGAV hashGAV = dao.getByGAV(groupId, artifactId, version);
+    assertNotNull(hashGAV);
+    assertNull(hashGAV.getClassifier());
+    assertNull(hashGAV.getExtension());
+  }
+
+  @Test
   public void testExtensionNotRequired_Null() throws Exception {
     HashGAVDAO dao = new HashGAVDAO();
 

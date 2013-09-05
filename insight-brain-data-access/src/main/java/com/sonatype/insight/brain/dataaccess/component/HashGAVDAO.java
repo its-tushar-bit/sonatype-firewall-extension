@@ -66,4 +66,21 @@ public class HashGAVDAO
   public void update(EntityManager em, HashGAV entity) {
     throw new UnsupportedOperationException();
   }
+
+  public HashGAV getByGAV(String groupId, String artifactId, String version) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByGAV(em, groupId, artifactId, version);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  private HashGAV getByGAV(EntityManager em, String groupId, String artifactId, String version) {
+    String sQuery = "SELECT entity FROM HashGAV entity" + //
+        " WHERE entity.groupId=?1 AND entity.artifactId=?2 AND entity.version=?3" + //
+        "       AND entity.extension IS NULL AND entity.classifier IS NULL";
+    return get(em, sQuery, groupId, artifactId, version);
+  }
 }

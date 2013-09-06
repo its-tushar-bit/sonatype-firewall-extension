@@ -54,6 +54,8 @@ public class InsightBrainService
   public static final String ORGANIZATION_ASSET_PATH = "/organization-assets/";
 
   public static final String CONFIGURATION_ASSET_PATH = "/configuration-assets/";
+  
+  public static final String LOGIN_ASSET_PATH = "/login-assets/";
 
   public static final String CIP_ASSET_PATH = "/cip/";
 
@@ -79,6 +81,7 @@ public class InsightBrainService
     bootstrap.addBundle(new AssetsBundle("/assets/organization/", ORGANIZATION_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/configuration/", CONFIGURATION_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/cip/", CIP_ASSET_PATH));
+    bootstrap.addBundle(new AssetsBundle("/assets/login/", LOGIN_ASSET_PATH));
 
     // workaround to let us set different defaults in the core HTTP configuration
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());

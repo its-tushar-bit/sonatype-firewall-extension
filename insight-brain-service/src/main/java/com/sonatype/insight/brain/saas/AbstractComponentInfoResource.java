@@ -172,14 +172,18 @@ public abstract class AbstractComponentInfoResource
     if (componentDetails == null) {
       try {
         componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+        componentDetails.setMatchState(MatchState.EXACT.getId());
       }
       catch (NotFoundException e) {
         // GAV is unknown to SaaS, still want to provide minimal data for details view
         componentDetails = new ComponentDetails(groupId, artifactId, version);
+        componentDetails.setMatchState(MatchState.UNKNOWN.getId());
       }
 
       componentDetails.setHash(hash); // SaaS does not set hash
-      componentDetails.setMatchState(matchState);
+      if (matchState != null && !matchState.trim().isEmpty()) {
+        componentDetails.setMatchState(matchState);
+      }
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
 

@@ -641,8 +641,33 @@ var AngularUtils = {
         }
       }
     }
-  })
+  });
 
+  /**
+   * Render four tiles representing threat levels. By default will only render tiles for set values, unless 'always-show="true"'
+   * is specified.
+   * Will add a small margin on the tiles by default, which can be overridden by specifying a 'margin' attribute.
+   */
+  angularCommon.directive('chiclets', function() {
+    return {
+      scope: {
+        critical: '=',
+        severe: '=',
+        moderate: '=',
+        none: '='
+      },
+      template:
+          '<span ng-show="critical || alwaysShow" class="threat-chiclet threat-chiclet-critical" ng-style="style">{{ critical || "0"  }}</span>' +
+          '<span ng-show="severe || alwaysShow" class="threat-chiclet threat-chiclet-severe" ng-style="style">{{ severe || "0" }}</span>' +
+          '<span ng-show="moderate || alwaysShow" class="threat-chiclet threat-chiclet-moderate" ng-style="style">{{ moderate || "0" }}</span>' +
+          '<span ng-show="none || alwaysShow" class="threat-chiclet threat-chiclet-none" ng-style="style">{{ none || "0" }}</span>',
+      link: function(scope, element, attrs)
+      {
+        scope.style = {margin: attrs.margin || '2px'};
+        scope.alwaysShow = attrs.alwaysShow || false;
+      }
+    }
+  });
 }());
 
 (function() {

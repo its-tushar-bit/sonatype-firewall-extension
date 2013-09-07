@@ -39,15 +39,9 @@
 						<div show-if='application.policyEvaluationsResults[stage.id]'>
 							<div>
 								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-									<span ng-show='application.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
-										{{application.policyEvaluationsResults[stage.id].criticalComponentCount}}
-									</span>
-									<span ng-show='application.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
-										{{application.policyEvaluationsResults[stage.id].severeComponentCount}}
-									</span>
-									<span ng-show='application.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
-										{{application.policyEvaluationsResults[stage.id].moderateComponentCount}}
-									</span>
+                                                                  <div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
+                                                                       severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
+                                                                       moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
 									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 								</a>
 							</div>

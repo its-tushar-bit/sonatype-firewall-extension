@@ -89,15 +89,9 @@
               <div show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
                 <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
                    ng-href='reports.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{stage.id}}' target='_blank'>
-								<span ng-show='applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount' class='threat-chiclet threat-chiclet-critical'>
-									{{applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount}}
-								</span>
-								<span ng-show='applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount' class='threat-chiclet threat-chiclet-severe'>
-									{{applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount}}
-								</span>
-								<span ng-show='applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount' class='threat-chiclet threat-chiclet-moderate'>
-									{{applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount}}
-								</span>
+                  <div chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
+                       severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
+                       moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
                   <span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
                 </a>
               </div>

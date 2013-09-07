@@ -220,4 +220,52 @@ describe('AngularCommon', function() {
       })(testCase['input'], testCase['expected']);
     }
   });
+
+  describe('chicklet directive', function() {
+    var compileElement = function(template){
+      var element = angular.element(template);
+      compile(element)(scope);
+      scope.$digest();
+      return element;
+    }
+    it('should show all defined chiclets with a default margin', function(){
+      var chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
+      expect(chicletElement.scope().style.margin).toBe('2px');
+      var chiclets = chicletElement.find('span');
+      expect(chiclets.length).toBe(4);
+      angular.forEach(chiclets, function(chiclet){
+        expect($(chiclet).text()).toBe('1');
+        expect($(chiclet).css('display')).not.toBe('none');
+      })
+    });
+    it('should show all chiclets even if not set when "alwaysShow" specified', function(){
+      var chicletElement = compileElement('<div chiclets always-show="true"></div>');
+      var chiclets = chicletElement.find('span');
+      expect(chiclets.length).toBe(4);
+      angular.forEach(chiclets, function(chiclet){
+        expect($(chiclet).text()).toBe('0');
+        expect($(chiclet).css('display')).not.toBe('none');
+      })
+    });
+    it('should show nothing if there is no chiclet data', function(){
+      var chicletElement = compileElement('<div chiclets></div>');
+      var chiclets = chicletElement.find('span');
+      expect(chiclets.length).toBe(4);
+      angular.forEach(chiclets, function(chiclet){
+        expect($(chiclet).css('display')).toBe('none');
+      })
+    });
+    it('should set a default margin if one is not specified', function(){
+      var chicletElement = compileElement('<div chiclets></div>');
+      var chiclets = chicletElement.find('span');
+      expect(chiclets.length).toBe(4);
+      angular.forEach(chiclets, function(chiclet){
+        expect($(chiclet).css('margin')).toBe('2px');
+      })
+    });
+    it('should respect a provided margin', function(){
+      var chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm"></div>');
+      expect(chicletElement.scope().style.margin).toBe('5cm');
+    });
+  });
 });

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
+import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 
@@ -31,6 +32,7 @@ import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
+import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +108,8 @@ public class InsightBrainService
 
     env.enableJerseyFeature(ResourceConfig.FEATURE_CANONICALIZE_URI_PATH);
     env.enableJerseyFeature(ResourceConfig.FEATURE_NORMALIZE_URI);
+    
+    env.addFilter( getInjector().getInstance( GuiceShiroFilter.class ), "/*" );
 
     log.info("Server base URL: {}", config.getBaseUrl());
     log.debug("SaaS address: {}", config.getSaasAddress());
@@ -148,6 +152,6 @@ public class InsightBrainService
         {
         }).toInstance(cache);
       }
-    });
+    }, new CLMShiroModule());
   }
 }

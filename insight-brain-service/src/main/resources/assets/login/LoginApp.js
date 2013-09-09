@@ -8,25 +8,27 @@
   "use strict";
   var loginApp = angular.module('LoginApp', ['CLMLocation', 'CommonServices']);
 
-  var loginController = loginApp.controller('LoginController', ['$scope', '$http', '$location', 'CLMLocations',
-      function($scope, $http, $location, CLMLocations) {
-        $scope.data = {
-          forwardTo: $location.search().forwardTo
-        };
+  var loginController = loginApp.controller('LoginController', ['$scope', '$http', '$location', '$window',
+      'CLMLocations', function($scope, $http, $location, $window, CLMLocations) {
+        $scope.data = {};
 
         $scope.signIn = function() {
+          delete $scope.loginError;
           var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
           $http.get(CLMLocations.getLoginUrl(), {
             headers: {
               'Authorization': 'Basic ' + authz
+            },
+            params: {
+              timestamp: new Date().getTime()
             }
           }).success(function() {
-            //TODO: handle redirect properly
-            if ($scope.data.forwardTo) {
-              $location.url($scope.data.forwardTo);
-            }
-          }).error(function() {
-            // TODO: handle error response by showing msg to user
+            $scope.data = {};
+            delete $scope.loginError;
+            // TODO: handle redirect properly, with url user initially browsed
+            $window.location = '../';
+          }).error(function(data, status, headers, config) {
+            $scope.loginError = 'Invalid credentials entered, please try again.';
           });
         };
       }]);

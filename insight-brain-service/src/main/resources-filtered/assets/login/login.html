@@ -31,7 +31,7 @@
 		</div>
 	</div>
 	<div style="position: absolute; top: 50%; margin-top: -150px; left: 0; width: 100%;">
-		<div class="well" style="width: 400px; margin-left: auto; margin-right: auto; height: 200px;">
+		<div class="well" style="width: 400px; margin-left: auto; margin-right: auto;">
 			<form name="loginForm" class="form-horizontal">
 				<h2 style="text-align: center;">Welcome to CLM</h2>
 				<div class="control-group">
@@ -52,6 +52,7 @@
 					</div>
 				</div>
 			</form>
+			<div ng-show='loginError' class='alert alert-error'>{{loginError}}</div>
 		</div>
 	</div>
 </body>

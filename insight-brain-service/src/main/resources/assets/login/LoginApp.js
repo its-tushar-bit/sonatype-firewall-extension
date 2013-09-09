@@ -6,14 +6,28 @@
  */
 (function() {
   "use strict";
-  var loginApp = angular.module('loginApp', []);
-  
-  var loginController = loginApp.controller('loginController', ['$scope', function($scope){
-    $scope.data = {};
-    $scope.signIn = function() {
-      //TODO: send POST to server with auth data
-      //TODO: handle successful response by redirecting to the clm app
-      //TODO: handle error response by showing msg to user
-    };
-  }]);
+  var loginApp = angular.module('LoginApp', ['CLMLocation', 'CommonServices']);
+
+  var loginController = loginApp.controller('LoginController', ['$scope', '$http', '$location', 'CLMLocations',
+      function($scope, $http, $location, CLMLocations) {
+        $scope.data = {
+          forwardTo: $location.search().forwardTo
+        };
+
+        $scope.signIn = function() {
+          var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
+          $http.get(CLMLocations.getLoginUrl(), {
+            headers: {
+              'Authorization': 'Basic ' + authz
+            }
+          }).success(function() {
+            //TODO: handle redirect properly
+            if ($scope.data.forwardTo) {
+              $location.url($scope.data.forwardTo);
+            }
+          }).error(function() {
+            // TODO: handle error response by showing msg to user
+          });
+        };
+      }]);
 }());

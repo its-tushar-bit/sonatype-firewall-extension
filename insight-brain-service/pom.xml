@@ -27,6 +27,7 @@
     <saga.version>1.4.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
+    <jasmine.login.id>test-login-assets</jasmine.login.id>
   </properties>
 
   <dependencies>
@@ -473,6 +474,7 @@
               <specExcludes>
                 <exclude>**/cip*.js</exclude>
                 <exclude>**/CIP*.js</exclude>
+                <exclude>**/login/*</exclude>
               </specExcludes>
               <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
             </configuration>
@@ -503,6 +505,31 @@
                 <include>**/CIP*.js</include>
               </specIncludes>
               <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.login.id}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>assets/lib/jquery/jquery-*.min.js</include>
+                <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>assets/lib/Base64.js</include>
+                <include>login/*.js</include>
+                <include>assets/util/AngularCommon.js</include>
+                <include>assets/util/CLMLocation.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>SpecUtil.js</include>
+                <include>**/lib/*.js</include>
+                <include>**/*MockData.js</include>
+                <include>**/login/*-spec.js</include>
+              </specIncludes>
+              <junitXmlReportFileName>TEST-login.xml</junitXmlReportFileName>
             </configuration>
           </execution>
         </executions>
@@ -718,6 +745,12 @@
       <id>test-brain</id>
       <properties>
         <jasmine.brain.id>default-cli</jasmine.brain.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-login</id>
+      <properties>
+        <jasmine.login.id>default-cli</jasmine.login.id>
       </properties>
     </profile>
   </profiles>

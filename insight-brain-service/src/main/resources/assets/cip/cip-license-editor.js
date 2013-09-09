@@ -301,6 +301,10 @@
         }
       };
 
+      $scope.isClaimedComponent = function() {
+        return SelectedComponent.identificationSource === 'Manual';
+      };
+
       // Remove license when changing away from Override/Selected status
       $scope.$watch('override.status', function(val) {
         if ($scope.override && val !== 'OVERRIDDEN' && val !== 'SELECTED') {

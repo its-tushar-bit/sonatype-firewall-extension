@@ -4,6 +4,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.shiro.SecurityUtils;
@@ -45,5 +47,28 @@ public class LoginResource
     subject.logout();
 
     return Response.ok().build();
+  }
+
+  @Path("status")
+  @Produces(MediaType.APPLICATION_JSON)
+  @GET
+  public AccountStatus getStatus() {
+    Subject subject = SecurityUtils.getSubject();
+    AccountStatus status = new AccountStatus();
+    status.setAccount(subject.getPrincipal().toString());
+    return status;
+  }
+
+  public static final class AccountStatus
+  {
+    private String account;
+
+    public String getAccount() {
+      return account;
+    }
+
+    public void setAccount(String account) {
+      this.account = account;
+    }
   }
 }

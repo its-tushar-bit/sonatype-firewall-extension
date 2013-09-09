@@ -8,22 +8,22 @@ package com.sonatype.insight.brain.security;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.security.LoginResource.AccountStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
-import org.junit.Assert;
-
+import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
+import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.shiro.codec.Base64;
-import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class LoginResourceTest
     extends AbstractResourceTest
 {
-  @After
-  public void logout() throws Exception {
-    RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout");
+  private Response logout(Cookie cookie) throws Exception {
+    return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
   }
 
   private Response login() throws Exception {
@@ -37,6 +37,10 @@ public class LoginResourceTest
     }
 
     return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", headers);
+  }
+
+  private Response status(Cookie cookie) throws Exception {
+    return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/status", cookie);
   }
 
   @Test
@@ -65,5 +69,33 @@ public class LoginResourceTest
     Assert.assertEquals("JSESSIONID", response.getCookies().get(0).getName());
     Assert.assertEquals("rememberMe", response.getCookies().get(1).getName());
     Assert.assertEquals("deleteMe", response.getCookies().get(1).getValue());
+
+    response = logout(response.getCookies().get(0));
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testStatus() throws Exception {
+    // logged out by default, so 401 expected
+    Response response = status(null);
+    assertResponseStatus(401, response);
+
+    response = login("admin", "admin");
+    assertResponseStatus(200, response);
+
+    // index 0 is the jsessionid cookie
+    Cookie jsessionIdCookie = response.getCookies().get(0);
+
+    response = status(jsessionIdCookie);
+    assertResponseStatus(200, response);
+    AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    Assert.assertEquals("admin", status.getAccount());
+
+    response = logout(jsessionIdCookie);
+    assertResponseStatus(200, response);
+
+    // this cookie should no longer be valid
+    response = status(jsessionIdCookie);
+    assertResponseStatus(401, response);
   }
 }

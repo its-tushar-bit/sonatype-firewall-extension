@@ -30,6 +30,8 @@ public class CLMShiroModule
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
     //TODO: this will ultimately cover all paths
     manager.createChain("/account/login", "authcBasic");
+    manager.createChain("/account/logout", "authcBasic");
+    manager.createChain("/account/status", "authcBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bindRealm().to(CLMRealm.class);
   }

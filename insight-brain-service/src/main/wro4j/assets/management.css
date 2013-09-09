@@ -656,3 +656,15 @@ ul.tri-pane {
 	border-top: 1px solid #eed3d7;
 	border-bottom: 1px solid #eed3d7;
 }
+.configuration .control-group {
+	margin: 20px 0 10px 25px;
+}
+.configuration .control-label {
+	text-align: left;
+}
+.configuration .controls>input {
+	width: 291px;
+}
+.configuration .controls>select {
+	width: 305px;
+}

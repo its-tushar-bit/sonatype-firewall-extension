@@ -1,0 +1,120 @@
+<div class='face' style="padding-left: 10px;">
+  <div ng-controller='LdapConfigurationController'>
+    <div style="padding-top: 10px;">
+      <div load-error='loadError' reload='doLoad()'></div>
+      <div ng-show='!loadError && !ldap'><i class='icon-time'></i> Loading</div>
+      <div ng-show='!loadError && ldap'>
+        <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
+          <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
+        </div>
+        <form name='ldapEditor' style='margin-bottom:0px; max-width: 510px;'>
+          <div class='inline head'>
+              <h1><span id='ldapName' name='ldapName' ng-model='ldap.name' xeditable href='javascript:;'
+                        ng-class="{ error: ldapEditor.ldapName.$error.alphaNumeric || ldapEditor.ldapName.$error.spaces}"            
+                        data-emptytext='Enter Server Name' data-placeholder='Enter Server Name' data-type='text'
+                        required alpha-numeric has-whitespace='suggestedName'></span></h1>
+              <div class='errors'>
+                  <span ng-show="ldapEditor.ldapName.$error.alphaNumeric"  style='color: #b94a48;'>Name must be alpha numeric</span>
+                  <span ng-show="ldapEditor.ldapName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+              </div>
+          </div>
+          <div class="form-horizontal configuration">
+            <div class="control-group">
+              <label class="control-label">Protocol:</label>
+              <div class="controls">
+                <select name='protocol' ng-model="ldap.protocol" ng-options="p for p in ldapProtocols"></select>
+              </div>
+            </div>
+            <div class="control-group" ng-class='{ error : ldapEditor.hostname.$invalid }'>
+              <label class="control-label">Hostname:</label>
+              <div class="controls">
+                <input name='hostname' ng-model='ldap.hostname' required type='text'>
+              </div>
+            </div>
+            <div class="control-group" ng-class='{ error : ldapEditor.port.$invalid }'>
+              <label class="control-label">Port:</label>
+              <div class="controls">
+                <input name='port' ng-model='ldap.port' required type='number'>
+              </div>
+            </div>
+            <div class="control-group" ng-class='{ error : ldapEditor.searchBase.$invalid }'>
+              <label class="control-label">Search Base:</label>
+              <div class="controls">
+                <input name='searchBase' ng-model='ldap.searchBase' required type='text'></input>
+              </div>
+            </div>
+            <div class="content-header">
+              <h4>Authentication</h4>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Method:</label>
+              <div class="controls">
+                <select name='authenticationMethod' ng-model="ldap.authenticationMethod" ng-options="m for m in ldapMethods"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">SASL Realm:</label>
+              <div class="controls">
+                <input name='saslRealm' ng-model='ldap.saslRealm' type='text'></input>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Username:</label>
+              <div class="controls">
+                <input name='systemUsername' ng-model='ldap.systemUsername' type='text'>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Password:</label>
+              <div class="controls">
+                <input name='systemPassword' ng-model='ldap.systemPassword' type='password'>
+              </div>
+            </div>
+            <div class="content-header">
+              <h4>Timeouts</h4>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Connection:</label>
+              <div class="controls">
+                <input name='connectionTimeout' ng-model='ldap.connectionTimeout' type='number'>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Retry Delay:</label>
+              <div class="controls">
+                <input name='retryDelay' ng-model='ldap.retryDelay' type='number'>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div style="max-width: 510px;">
+        <div clm-alerts='alerts'></div>
+        <span ng-show='!saving && ldap'>
+          <div style="margin: 20px 0 10px 25px;">
+            <button class='btn btn-success' ng-click="testConnection()">Test Connection</button>
+            <div style="float: right;">
+              <button class="btn" ng-click="reset()">Reset</button>
+              <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
+            </div>
+          </div>
+        </span>
+        <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
+      </div>
+    </div>
+    <div id='deleteConfigurationModal' data-backdrop='static' class='modal hide'>
+      <div class='modal-header'>
+        <button type='button' class='close' data-dismiss='modal'>&times;</button>
+        <h3>Delete Configuration</h3>
+      </div>
+      <div class='modal-body'>
+        <p>Are you sure you want to delete this LDAP configuration?</p>
+      </div>
+      <div class='modal-footer'>
+        <button class='btn' data-dismiss='modal'>Cancel</button>
+        <button class='btn btn-danger' ng-click='deleteConfiguration()'>Delete</button>
+      </div>
+    </div>
+    <div error-Modal></div>
+  </div>
+</div>

@@ -5,7 +5,8 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
@@ -393,6 +394,13 @@
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-license-model</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.plexus</groupId>
+      <artifactId>plexus-cipher</artifactId>
+      <version>1.7</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -644,8 +652,8 @@
               <goal>run</goal>
             </goals>
             <configuration>
-	          <targetGroups>clm-server</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
+              <targetGroups>clm-server</targetGroups>
+              <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
             </configuration>
           </execution>
           <execution>
@@ -655,8 +663,8 @@
               <goal>run</goal>
             </goals>
             <configuration>
-	          <targetGroups>cip</targetGroups>
-	          <cssDestinationFolder>${project.build.directory}/generated/assets/cip/</cssDestinationFolder>
+              <targetGroups>cip</targetGroups>
+              <cssDestinationFolder>${project.build.directory}/generated/assets/cip/</cssDestinationFolder>
             </configuration>
           </execution>
         </executions>

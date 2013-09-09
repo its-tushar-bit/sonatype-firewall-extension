@@ -62,6 +62,10 @@
           return baseUrl.get() + '/rest/config/proprietary';
         },
 
+        getLdapConfig: function() {
+          return baseUrl.get() + '/rest/config/ldap';
+        },
+
         getReportUrl: function(applicationId, scanId) {
           return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationId) + '/' +
               encodeURIComponent(scanId) + '/embedReport/index.html';

@@ -49,8 +49,7 @@ public class CLMLicenseManagerTest
           bind(FeatureValidator.class).toInstance(new NegativeFeatureValidator());
         }
       });
-    }
-    else {
+    } else {
       super.configureBrain(brain);
     }
   }

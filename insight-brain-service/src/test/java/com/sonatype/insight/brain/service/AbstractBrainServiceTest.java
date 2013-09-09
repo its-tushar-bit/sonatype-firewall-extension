@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.mock.InsightMockServer;
 
+import com.google.inject.AbstractModule;
+import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
@@ -60,6 +62,16 @@ public abstract class AbstractBrainServiceTest
 
   @Rule
   public TestName testName = new TestName();
+
+  private final boolean disableSecurity;
+
+  public AbstractBrainServiceTest() {
+    this(true);
+  }
+
+  public AbstractBrainServiceTest(boolean disableSecurity) {
+    this.disableSecurity = disableSecurity;
+  }
 
   @AfterClass
   public static void afterClass() {
@@ -103,7 +115,17 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void configureBrain(final TestInsightBrainService brain) {
-    // hook for sub classes
+    if (disableSecurity) {
+      brain.addModule(new AbstractModule()
+      {
+        @Override
+        protected void configure() {
+          DefaultFilterChainManager manager = new DefaultFilterChainManager();
+          manager.createChain("/**", "anon");
+          bind(DefaultFilterChainManager.class).toInstance(manager);
+        }
+      });
+    }
   }
 
   protected void configureSaas(final InsightMockServer saas) {

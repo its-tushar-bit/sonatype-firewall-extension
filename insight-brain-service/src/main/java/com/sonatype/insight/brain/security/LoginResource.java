@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -32,35 +32,34 @@ public class LoginResource
   }
 
   /**
-   * Logs in a user, using credentials stored in base64 in the Authorization header
    * Typical HTTP Basic Authentication.
    */
   @Path("login")
-  @GET
-  public Response login() {
-    return Response.ok().build();
+  @POST
+  public void login() {
+    // shiro handles all the work here
   }
 
   /**
    * Logout the currently logged in user
    */
   @Path("logout")
-  @GET
-  public Response logout() {
-    Subject subject = SecurityUtils.getSubject();
-
-    subject.logout();
-
-    return Response.ok().build();
+  @POST
+  public void logout() {
+    SecurityUtils.getSubject().logout();
   }
 
   @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public AccountStatus getStatus() {
-    Subject subject = SecurityUtils.getSubject();
     AccountStatus status = new AccountStatus();
-    status.setAccount(subject.getPrincipal().toString());
+
+    Subject subject = SecurityUtils.getSubject();
+    if (subject.isAuthenticated()) {
+      status.setAccount(subject.getPrincipal().toString());
+    }
+
     return status;
   }
 

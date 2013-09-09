@@ -38,15 +38,28 @@
           });
         }
       ]).run([
-        '$rootScope', '$location', 'Messages', 'licenseChecker',
-        function($rootScope, $location, messages, licenseChecker) {
-
-          $rootScope.forcedRedirect = null;
-          licenseChecker.check().then(null, function() {
-            $rootScope.forcedRedirect = '/management/configuration/productlicense';
-            $location.path($rootScope.forcedRedirect);
+        '$rootScope', '$http', '$location', '$window', 'Messages', 'CLMLocations', 'licenseChecker',
+        function($rootScope, $http, $location, $window, messages, CLMLocations, licenseChecker) {
+          // send status request to find if user is logged in
+          $http.get(CLMLocations.getStatusUrl(), {
+            params: {
+              timestamp: new Date().getTime()
+            }
+          }).success(function(data) {
+            if (!data.account) {
+              $window.location = '../login-assets/login.html';
+            } else {
+              $rootScope.username = data.account;
+              $rootScope.forcedRedirect = null;
+              licenseChecker.check().then(null, function() {
+                $rootScope.forcedRedirect = '/management/configuration/productlicense';
+                $location.path($rootScope.forcedRedirect);
+              }); 
+            }
+          }).error(function() {
+            //TODO: error getting status, uh-oh!
           });
-
+          
           // The page contains unsaved changes, continuing will discard them.
           $rootScope.tempState = null;
 

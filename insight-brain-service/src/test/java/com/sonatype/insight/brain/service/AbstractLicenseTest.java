@@ -35,8 +35,17 @@ public abstract class AbstractLicenseTest
 
   private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
+  public AbstractLicenseTest() {
+    this(true);
+  }
+
+  public AbstractLicenseTest(boolean disableSecurity) {
+    super(disableSecurity);
+  }
+
   @Override
   protected void configureBrain(TestInsightBrainService brain) {
+    super.configureBrain(brain);
     brain.addModule(new AbstractModule()
     {
       @Override

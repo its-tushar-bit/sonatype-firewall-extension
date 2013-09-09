@@ -69,6 +69,10 @@
         
         getLoginUrl: function() {
           return baseUrl.get() + '/account/login';
+        },
+        
+        getStatusUrl: function() {
+          return baseUrl.get() + '/account/status';
         }
       };
     }

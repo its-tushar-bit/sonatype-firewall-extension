@@ -25,8 +25,12 @@ import static org.junit.Assert.assertEquals;
 public class LoginResourceTest
     extends AbstractResourceTest
 {
+  public LoginResourceTest() {
+    super(false);
+  }
+  
   private Response logout(Cookie cookie) throws Exception {
-    return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
+    return RestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
   }
 
   private Response login() throws Exception {
@@ -39,7 +43,7 @@ public class LoginResourceTest
       headers.put("Authorization", "Basic " + Base64.encodeToString((username + ":" + password).getBytes("UTF-8")));
     }
 
-    return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", headers);
+    return RestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", "", headers);
   }
 
   private Response status(Cookie cookie) throws Exception {
@@ -65,7 +69,7 @@ public class LoginResourceTest
 
     // now run with valid data
     response = login(User.ADMIN_USERNAME, "admin123");
-    assertResponseStatus(200, response);
+    assertResponseStatus(204, response);
 
     // validate cookie is present
     Assert.assertEquals(2, response.getCookies().size());
@@ -74,31 +78,35 @@ public class LoginResourceTest
     Assert.assertEquals("deleteMe", response.getCookies().get(1).getValue());
 
     response = logout(response.getCookies().get(0));
-    assertResponseStatus(200, response);
+    assertResponseStatus(204, response);
   }
 
   @Test
   public void testStatus() throws Exception {
-    // logged out by default, so 401 expected
+    // logged out by default, so 200 expected with no username
     Response response = status(null);
-    assertResponseStatus(401, response);
+    assertResponseStatus(200, response);
+    AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    Assert.assertNull(status.getAccount());
 
     response = login(User.ADMIN_USERNAME, "admin123");
-    assertResponseStatus(200, response);
+    assertResponseStatus(204, response);
 
     // index 0 is the jsessionid cookie
     Cookie jsessionIdCookie = response.getCookies().get(0);
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
     Assert.assertEquals(User.ADMIN_USERNAME, status.getAccount());
 
     response = logout(jsessionIdCookie);
-    assertResponseStatus(200, response);
+    assertResponseStatus(204, response);
 
     // this cookie should no longer be valid
     response = status(jsessionIdCookie);
-    assertResponseStatus(401, response);
+    assertResponseStatus(200, response);
+    status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    Assert.assertNull(status.getAccount());
   }
 }

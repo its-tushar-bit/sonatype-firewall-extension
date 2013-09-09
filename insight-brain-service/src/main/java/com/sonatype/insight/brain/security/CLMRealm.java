@@ -23,7 +23,6 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.DefaultPasswordService;
 import org.apache.shiro.authc.credential.PasswordMatcher;
 import org.apache.shiro.authz.AuthorizationInfo;
-import org.apache.shiro.crypto.hash.DefaultHashService;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.codehaus.plexus.util.StringUtils;
@@ -43,21 +42,12 @@ public class CLMRealm
 {
   private static final Logger log = LoggerFactory.getLogger(CLMRealm.class);
 
-  private static final int HASH_ITERATIONS = 1000;
-
   private final DefaultPasswordService passwordService;
 
   public CLMRealm() {
     setName("CLMRealm");
 
     passwordService = new DefaultPasswordService();
-    // We create a DefaultHashService instance only to be able to change the default hash iteration count. Using the
-    // default (500000), a password encryption takes about 500ms on my machine. Using 1000, it takes about 30ms.
-    DefaultHashService hashService = new DefaultHashService();
-    hashService.setHashAlgorithmName(DefaultPasswordService.DEFAULT_HASH_ALGORITHM);
-    hashService.setHashIterations(HASH_ITERATIONS);
-    hashService.setGeneratePublicSalt(true);
-    passwordService.setHashService(hashService);
 
     // Create and set a password matcher. It will be used by shiro to match hashed passwords.
     PasswordMatcher passwordMatcher = new PasswordMatcher();

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.security;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.security.LoginResource.AccountStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -17,11 +19,18 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.shiro.codec.Base64;
 import org.junit.Assert;
+import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LoginResourceTest
     extends AbstractResourceTest
 {
+  @After
+  public void logout() throws Exception {
+    RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout");
+  }
   private Response logout(Cookie cookie) throws Exception {
     return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
   }
@@ -48,20 +57,20 @@ public class LoginResourceTest
     // now run the test with bad username
     Response response = login("admin2", "admin");
     assertResponseStatus(401, response);
+    assertEquals("", response.getResponseBody());
 
     // now run the test with bad password
-    /**
-     * TODO: currently no way to have invalid password, CLMRealm isn't complete
-     * response = login("admin", "admin2");
-     * assertResponseStatus(401, response);
-     */
+    response = login(User.ADMIN_USERNAME, "wrong password");
+    assertResponseStatus(401, response);
+    assertEquals("", response.getResponseBody());
 
     // now run the test with no header, validate failure
     response = login();
     assertResponseStatus(401, response);
+    assertEquals("", response.getResponseBody());
 
     // now run with valid data
-    response = login("admin", "admin");
+    response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(200, response);
 
     // validate cookie is present

@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
@@ -18,22 +20,49 @@ import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authc.credential.DefaultPasswordService;
+import org.apache.shiro.authc.credential.PasswordMatcher;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.crypto.hash.DefaultHashService;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Security Shiro realm backed by the CLM ODS database.
+ * Security Shiro realm backed by the CLM ODS database. It is used by shiro for authentication and authorization. It
+ * also exposes a method for password encryption.
  * 
  * @since 1.7
  */
 @Named
+@Singleton
 public class CLMRealm
     extends AuthorizingRealm
 {
+  private static final Logger log = LoggerFactory.getLogger(CLMRealm.class);
+
+  private static final int HASH_ITERATIONS = 1000;
+
+  private final DefaultPasswordService passwordService;
+
   public CLMRealm() {
     setName("CLMRealm");
+
+    passwordService = new DefaultPasswordService();
+    // We create a DefaultHashService instance only to be able to change the default hash iteration count. Using the
+    // default (500000), a password encryption takes about 500ms on my machine. Using 1000, it takes about 30ms.
+    DefaultHashService hashService = new DefaultHashService();
+    hashService.setHashAlgorithmName(DefaultPasswordService.DEFAULT_HASH_ALGORITHM);
+    hashService.setHashIterations(HASH_ITERATIONS);
+    hashService.setGeneratePublicSalt(true);
+    passwordService.setHashService(hashService);
+
+    // Create and set a password matcher. It will be used by shiro to match hashed passwords.
+    PasswordMatcher passwordMatcher = new PasswordMatcher();
+    passwordMatcher.setPasswordService(passwordService);
+    setCredentialsMatcher(passwordMatcher);
   }
 
   @Override
@@ -47,11 +76,34 @@ public class CLMRealm
 
     User user = new UserDAO().getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));
     if (user != null) {
-      // TODO check the password
-      return new SimpleAuthenticationInfo(username, usernamePasswordToken.getPassword(), getName());
+      // Shiro will verify the password
+      return new SimpleAuthenticationInfo(username, user.getPasswordHash(), getName());
     }
 
+    // The username is not in the CLM db. Leave it to other realms to authenticate the user.
     return null;
+  }
+
+  /**
+   * Encrypts the given password. The returned string can be saved as hashed password.
+   * <p>
+   * The input password char array is zeroed out.
+   */
+  public String encryptPassword(char[] password) {
+    if (password == null) {
+      return null;
+    }
+
+    long start = System.currentTimeMillis();
+
+    String encryptedPassword = passwordService.encryptPassword(password);
+
+    // Wipe out the input password char array
+    Arrays.fill(password, (char) 0);
+
+    log.debug("Encrypted password in {} ms", System.currentTimeMillis() - start);
+
+    return encryptedPassword;
   }
 
   @Override

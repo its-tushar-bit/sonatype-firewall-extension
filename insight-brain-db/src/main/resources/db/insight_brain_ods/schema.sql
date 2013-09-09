@@ -120,4 +120,4 @@ CREATE TABLE user (
   CONSTRAINT user_pk PRIMARY KEY (user_id),
   CONSTRAINT user_username_uk UNIQUE KEY (username_lowercase)
 );
-INSERT INTO user (user_id, username, username_lowercase, first_name, last_name ) VALUES ('ADMIN', 'admin', 'admin', 'Admin', 'BuiltIn');
+INSERT INTO user (user_id, username, username_lowercase, password_hash, first_name, last_name ) VALUES ('ADMIN', 'admin', 'admin', '$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=', 'Admin', 'BuiltIn');

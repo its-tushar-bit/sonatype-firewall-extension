@@ -11,6 +11,8 @@ import java.util.Map;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
+import org.junit.Assert;
+
 import com.ning.http.client.Response;
 import org.apache.shiro.codec.Base64;
 import org.junit.After;
@@ -31,8 +33,7 @@ public class LoginResourceTest
   private Response login(String username, String password) throws Exception {
     Map<String, String> headers = new HashMap<String, String>();
     if (username != null) {
-      String encoded = Base64.encodeToString(("Basic " + username + ":" + password).getBytes("UTF-8"));
-      headers.put("Authorization", encoded);
+      headers.put("Authorization", "Basic " + Base64.encodeToString((username + ":" + password).getBytes("UTF-8")));
     }
 
     return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", headers);
@@ -47,16 +48,22 @@ public class LoginResourceTest
     // now run the test with bad password
     /**
      * TODO: currently no way to have invalid password, CLMRealm isn't complete
-    response = login("admin", "admin2");
-    assertResponseStatus(401, response);
-    */
+     * response = login("admin", "admin2");
+     * assertResponseStatus(401, response);
+     */
 
     // now run the test with no header, validate failure
     response = login();
-    assertResponseStatus(400, response);
+    assertResponseStatus(401, response);
 
     // now run with valid data
     response = login("admin", "admin");
     assertResponseStatus(200, response);
+
+    // validate cookie is present
+    Assert.assertEquals(2, response.getCookies().size());
+    Assert.assertEquals("JSESSIONID", response.getCookies().get(0).getName());
+    Assert.assertEquals("rememberMe", response.getCookies().get(1).getName());
+    Assert.assertEquals("deleteMe", response.getCookies().get(1).getValue());
   }
 }

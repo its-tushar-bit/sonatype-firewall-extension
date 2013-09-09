@@ -28,7 +28,7 @@ public class CLMShiroModule
     expose(FilterChainResolver.class);
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
-    manager.createChain("/**/authc", "authcBasic");
+    manager.createChain("/account/login", "authcBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bindRealm().to(CLMRealm.class);
   }

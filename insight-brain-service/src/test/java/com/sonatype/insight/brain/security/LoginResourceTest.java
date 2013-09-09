@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.security.LoginResource.AccountStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -19,7 +18,6 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.shiro.codec.Base64;
 import org.junit.Assert;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -27,10 +25,6 @@ import static org.junit.Assert.assertEquals;
 public class LoginResourceTest
     extends AbstractResourceTest
 {
-  @After
-  public void logout() throws Exception {
-    RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout");
-  }
   private Response logout(Cookie cookie) throws Exception {
     return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
   }
@@ -89,7 +83,7 @@ public class LoginResourceTest
     Response response = status(null);
     assertResponseStatus(401, response);
 
-    response = login("admin", "admin");
+    response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(200, response);
 
     // index 0 is the jsessionid cookie
@@ -98,7 +92,7 @@ public class LoginResourceTest
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
     AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
-    Assert.assertEquals("admin", status.getAccount());
+    Assert.assertEquals(User.ADMIN_USERNAME, status.getAccount());
 
     response = logout(jsessionIdCookie);
     assertResponseStatus(200, response);

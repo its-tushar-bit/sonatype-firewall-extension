@@ -1,31 +1,34 @@
 describe('dashboardApp', function() {
-  var scope, state, licenseCheckedSpy;
+  var scope, state, securityStatusCheckedSpy;
 
   beforeEach(module('DashboardModule', function($provide) {
-    licenseCheckedSpy = jasmine.createSpy('then');
-    $provide.value('licenseChecker', {
+    securityStatusCheckedSpy = jasmine.createSpy('then');
+    $provide.value('securityStatusChecker', {
       check: function() {
         return {
-          then: licenseCheckedSpy
+          then: securityStatusCheckedSpy
         }
       }
     });
   }));
+  
   afterEach(function() {
     scope.$destroy();
   });
+  
   beforeEach(inject(function($rootScope, $state, $controller) {
-    expect(licenseCheckedSpy).toHaveBeenCalled();
+    expect(securityStatusCheckedSpy).toHaveBeenCalled();
 
     scope = $rootScope.$new();
     state = $state;
 
-    $controller('dashboardController', { $scope: scope, $state: state });
+    $controller('dashboardController', {
+      $scope: scope,
+      $state: state
+    });
   }));
 
-  // TODO: fix to handle the status request properly, its loaded when the module
-  // is, so runs before the test, or even the controller is created
-  xit('Validate location change event is broadcast properly', inject(function($rootScope) {
+  it('Validate location change event is broadcast properly', inject(function($rootScope) {
     var successStart = false, successAccept = false;
     $rootScope.$on('pageChangeStarted', function(event, destination) {
       successStart = true;
@@ -52,7 +55,11 @@ describe('ManagementModule', function() {
   beforeEach(inject(function($rootScope, $state, $controller, commonCodeFactory) {
     scope = $rootScope.$new();
 
-    $controller('ManagementController', { $scope: scope, $state: $state, commonCodeFactory: commonCodeFactory });
+    $controller('ManagementController', {
+      $scope: scope,
+      $state: $state,
+      commonCodeFactory: commonCodeFactory
+    });
   }));
   afterEach(function() {
     scope.$destroy();

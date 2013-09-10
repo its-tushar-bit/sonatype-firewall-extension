@@ -26,12 +26,22 @@
           });
         }
       ]).run([
-        '$rootScope', 'licenseChecker', function($rootScope, licenseChecker) {
+        '$rootScope', 'licenseChecker', 'securityStatusChecker', function($rootScope, licenseChecker, securityStatusChecker) {
           $rootScope.licenseChecked = false;
-          licenseChecker.check().then(function() {
-            $rootScope.licenseChecked = true;
+          securityStatusChecker.check().then(function(status){
+            if (!status.account) {
+              $window.location = '../login-assets/login.html';
+            } else {
+              $rootScope.username = data.account;
+              $rootScope.forcedRedirect = null;
+              licenseChecker.check().then(function() {
+                $rootScope.licenseChecked = true;
+              }, function() {
+                window.location = 'index.html#/management/configuration/productlicense';
+              });
+            }
           }, function() {
-            window.location = 'index.html#/management/configuration/productlicense';
+            //TODO: error getting status, uh-oh!
           });
         }
       ]);

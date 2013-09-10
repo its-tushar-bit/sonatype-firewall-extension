@@ -1,20 +1,21 @@
 describe('reportApp', function() {
-  var scope, state, licenseCheckedSpy;
-
-  beforeEach(module('reportApp', 'ReportList', 'DashboardModule'));
-  beforeEach(module(function($provide) {
-    licenseCheckedSpy = jasmine.createSpy('then');
-    $provide.value('licenseChecker', {
+  var scope, state, securityStatusCheckedSpy;
+  
+  beforeEach(module('reportApp', 'ReportList'));
+  
+  beforeEach(module('DashboardModule', function($provide) {
+    securityStatusCheckedSpy = jasmine.createSpy('then');
+    $provide.value('securityStatusChecker', {
       check: function() {
         return {
-          then: licenseCheckedSpy
+          then: securityStatusCheckedSpy
         }
       }
     });
   }));
-
+  
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
-    expect(licenseCheckedSpy).toHaveBeenCalled();
+    expect(securityStatusCheckedSpy).toHaveBeenCalled();
 
     scope = $rootScope.$new();
     state = $state;
@@ -34,9 +35,7 @@ describe('reportApp', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  // TODO: fix to handle the status request properly, its loaded when the module
-  // is, so runs before the test, or even the controller is created
-  xit('loads data', function() {
+  it('loads data', function() {
     var mockStageData = MockData.getActionStageData();
     var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
 

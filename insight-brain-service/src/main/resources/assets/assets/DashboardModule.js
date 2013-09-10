@@ -37,16 +37,13 @@
             $injector.invoke(fn);
           });
         }
-      ]).run([
-        '$rootScope', '$http', '$location', '$window', 'Messages', 'CLMLocations', 'licenseChecker',
-        function($rootScope, $http, $location, $window, messages, CLMLocations, licenseChecker) {
-          // send status request to find if user is logged in
-          $http.get(CLMLocations.getStatusUrl(), {
-            params: {
-              timestamp: new Date().getTime()
-            }
-          }).success(function(data) {
-            if (!data.account) {
+      ]).service('statusChecker', function(){
+        
+      }).run([
+        '$rootScope', '$http', '$location', '$window', 'Messages', 'CLMLocations', 'licenseChecker', 'securityStatusChecker',
+        function($rootScope, $http, $location, $window, messages, CLMLocations, licenseChecker, securityStatusChecker) {
+          securityStatusChecker.check().then(function(status){
+            if (!status.account) {
               $window.location = '../login-assets/login.html';
             } else {
               $rootScope.username = data.account;
@@ -54,9 +51,9 @@
               licenseChecker.check().then(null, function() {
                 $rootScope.forcedRedirect = '/management/configuration/productlicense';
                 $location.path($rootScope.forcedRedirect);
-              }); 
+              });
             }
-          }).error(function() {
+          }, function() {
             //TODO: error getting status, uh-oh!
           });
           
@@ -182,6 +179,31 @@
                   deferred.resolve();
                 }
               });
+          return deferred.promise;
+        }
+      };
+    }
+  ]);
+  
+  dashboardApp.service('securityStatusChecker', [
+    '$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
+      return {
+        check: function() {
+          var deferred = $q.defer();
+          $http.get(CLMLocations.getStatusUrl(), {
+            params: {
+              timestamp: new Date().getTime()
+            }
+          }).success(function(data) {
+            deferred.resolve();
+          }).error(function(data, status) {
+            if (status === 402) {
+              deferred.reject();
+            }
+            else {
+              deferred.resolve();
+            }
+          });
           return deferred.promise;
         }
       };

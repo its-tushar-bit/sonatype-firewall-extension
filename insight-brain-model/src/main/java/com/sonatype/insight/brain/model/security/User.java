@@ -33,11 +33,11 @@ public class User
   @Column(name = "username_lowercase")
   private String usernameLowercase;
 
-  @Column(name = "first_name")
-  private String firstName;
-
   @Column(name = "password_hash")
   private char[] passwordHash;
+
+  @Column(name = "first_name")
+  private String firstName;
 
   @Column(name = "last_name")
   private String lastName;
@@ -84,20 +84,20 @@ public class User
   private void setUsernameLowercase(String usernameLowercase) {
   }
 
-  public String getFirstName() {
-    return firstName;
-  }
-
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
   public char[] getPasswordHash() {
     return passwordHash;
   }
 
   public void setPasswordHash(char[] passwordHash) {
     this.passwordHash = passwordHash;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
   }
 
   public String getLastName() {

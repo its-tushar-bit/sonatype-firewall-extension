@@ -147,7 +147,7 @@ public class CLMRealmTest
   }
 
   @Test
-  public void encryptPassword() {
+  public void testEncryptPassword() {
     char[] password = "admin123".toCharArray();
     String encrypted = realm.encryptPassword(password);
     assertThat(encrypted, notNullValue());
@@ -159,7 +159,7 @@ public class CLMRealmTest
   }
 
   @Test
-  public void encryptPassword_Null() {
+  public void testEncryptPassword_Null() {
     String encrypted = realm.encryptPassword(null);
     assertThat(encrypted, nullValue());
   }

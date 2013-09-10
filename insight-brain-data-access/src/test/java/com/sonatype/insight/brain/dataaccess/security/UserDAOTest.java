@@ -26,12 +26,16 @@ public class UserDAOTest
   @Test
   public void testGetByUsernameLowercase() throws Exception {
     UserDAO dao = new UserDAO();
-    User user = dao.getByUsernameLowercase(User.ADMIN_USERNAME);
+    User user = dao.getByUsernameLowercase(User.ADMIN_USERNAME.toLowerCase(Locale.ENGLISH));
     assertThat(user, notNullValue());
     assertThat(user.getUsername(), is(User.ADMIN_USERNAME));
     assertThat(user.getUsernameLowercase(), is(User.ADMIN_USERNAME));
+  }
 
-    user = dao.getByUsernameLowercase(User.ADMIN_USERNAME.toUpperCase(Locale.ENGLISH));
+  @Test
+  public void testGetByUsernameLowercase_UppercaseNameDoesNotMatch() throws Exception {
+    UserDAO dao = new UserDAO();
+    User user = dao.getByUsernameLowercase(User.ADMIN_USERNAME.toUpperCase(Locale.ENGLISH));
     assertThat(user, nullValue());
   }
 }

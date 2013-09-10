@@ -34,7 +34,7 @@ describe('Tests for the LoginApp', function() {
 
     it('validate login.', inject(function($httpBackend, $window, CLMLocations) {
       // validate invalid login
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(401);
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(401);
       scope.data.username = 'admin';
       scope.data.password = 'admin';
       scope.signIn();
@@ -46,7 +46,7 @@ describe('Tests for the LoginApp', function() {
       });
 
       // validate valid login
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(200);
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(200);
       scope.data.username = 'admin';
       scope.data.password = 'admin';
       scope.signIn();

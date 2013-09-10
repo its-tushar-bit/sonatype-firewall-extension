@@ -1,12 +1,11 @@
 describe('dashboardApp', function() {
-  var scope, state, securityStatusCheckedSpy;
+  var scope, state;
 
   beforeEach(module('DashboardModule', function($provide) {
-    securityStatusCheckedSpy = jasmine.createSpy('then');
-    $provide.value('securityStatusChecker', {
+    $provide.value('serverStatus', {
       check: function() {
         return {
-          then: securityStatusCheckedSpy
+          then: function(){}
         }
       }
     });
@@ -17,8 +16,6 @@ describe('dashboardApp', function() {
   });
   
   beforeEach(inject(function($rootScope, $state, $controller) {
-    expect(securityStatusCheckedSpy).toHaveBeenCalled();
-
     scope = $rootScope.$new();
     state = $state;
 

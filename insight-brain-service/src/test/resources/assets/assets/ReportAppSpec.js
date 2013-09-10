@@ -1,22 +1,17 @@
 describe('reportApp', function() {
-  var scope, state, securityStatusCheckedSpy;
+  var scope, state;
   
-  beforeEach(module('reportApp', 'ReportList'));
-  
-  beforeEach(module('DashboardModule', function($provide) {
-    securityStatusCheckedSpy = jasmine.createSpy('then');
-    $provide.value('securityStatusChecker', {
+  beforeEach(module('reportApp', 'ReportList', 'DashboardModule', function($provide) {
+    $provide.value('serverStatus', {
       check: function() {
         return {
-          then: securityStatusCheckedSpy
+          then: function(){}
         }
       }
     });
   }));
   
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
-    expect(securityStatusCheckedSpy).toHaveBeenCalled();
-
     scope = $rootScope.$new();
     state = $state;
 

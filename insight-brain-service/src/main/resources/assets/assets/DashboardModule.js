@@ -44,10 +44,11 @@
               '$http',
               '$location',
               '$state',
+              '$window',
               'Messages',
               'CLMLocations',
               'serverStatus',
-              function($rootScope, $http, $location, $state, messages, CLMLocations, serverStatus) {
+              function($rootScope, $http, $location, $state, $window, messages, CLMLocations, serverStatus) {
                 // The page contains unsaved changes, continuing will discard
                 // them.
                 $rootScope.tempState = null;
@@ -61,11 +62,32 @@
                   $rootScope.tempNewUrl = null;
                   $rootScope.tempDestination = $location.url();
 
-                  if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
+                  if (!$rootScope.initialized || (newUrl !== oldUrl && newUrl != $rootScope.tempState)) {
                     // special case where back button is hit, locationUrl will
                     // be the same as the oldUrl!!
                     if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
                       $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
+                    }
+                    if (!$rootScope.initialized) {
+                      event.preventDefault();
+                      //first transition, so lets check the server and see whats up
+                      serverStatus.check().then(function(path){
+                        $rootScope.initialized = true;
+                        if (path) {
+                          $window.location = path;
+                        } else {
+                          $location.path($rootScope.tempDestination);  
+                        }
+                      }, function(status) {
+                        if (status) {
+                          $rootScope.error = 'Unable to initialize the application';
+                        } else {
+                          // nothing to do, some redirect must've occurred
+                        }
+                      });
+                    } else if (!$rootScope.licensed && $rootScope.tempDestination.indexOf('/management/configuration/productlicense') == -1) {
+                      event.preventDefault();
+                      $window.location = 'index.html#/management/configuration/productlicense';
                     }
                     // give components a chance to negate the page change
                     e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
@@ -219,12 +241,11 @@
                 $rootScope.username = data.account;
                 $rootScope.forcedRedirect = null;
                 licenseChecker.check().then(function() {
+                  $rootScope.licensed = true;
                   deferred.resolve();
                 }, function(status) {
                   if (status == 402) {
-                    deferred.reject();
-                    $rootScope.forcedRedirect = '/management/configuration/productlicense';
-                    $location.path($rootScope.forcedRedirect);
+                    deferred.resolve('index.html#/management/configuration/productlicense');  
                   } else {
                     deferred.reject(status);
                   }

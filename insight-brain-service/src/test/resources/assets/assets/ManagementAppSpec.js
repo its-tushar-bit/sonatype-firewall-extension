@@ -1,8 +1,20 @@
 describe('dashboardApp', function() {
   var scope, state;
 
-  beforeEach(module('DashboardModule'));
-  
+  beforeEach(module('DashboardModule', function($provide) {
+    $provide.value('$window', {
+      location: {
+        reload: function(){}
+      },
+      navigator: {
+        userAgent:{}
+      },
+      document: {
+        createElement: function(){ return null ;}
+      }
+    });
+  }));
+    
   afterEach(function() {
     scope.$destroy();
   });

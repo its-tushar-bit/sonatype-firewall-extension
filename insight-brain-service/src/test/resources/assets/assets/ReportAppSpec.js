@@ -1,10 +1,23 @@
 describe('reportApp', function() {
   var scope, state;
   
-  beforeEach(module('reportApp', 'ReportList', 'DashboardModule'));
+  beforeEach(module('reportApp', 'ReportList', 'DashboardModule', function($provide) {
+    $provide.value('$window', {
+      location: {
+        reload: function(){}
+      },
+      navigator: {
+        userAgent:{}
+      },
+      document: {
+        createElement: function(){ return null ;}
+      }
+    });
+  }));
   
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
-    $rootScope.initialized = true
+    $rootScope.initialized = true;
+    $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;
 

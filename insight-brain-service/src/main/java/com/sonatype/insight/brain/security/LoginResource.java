@@ -13,6 +13,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
+
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 
@@ -35,6 +37,7 @@ public class LoginResource
    * Typical HTTP Basic Authentication.
    */
   @Path("login")
+  @UnlicensedPath
   @POST
   public void login() {
     // shiro handles all the work here
@@ -50,6 +53,7 @@ public class LoginResource
   }
 
   @Path("status")
+  @UnlicensedPath
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public AccountStatus getStatus() {

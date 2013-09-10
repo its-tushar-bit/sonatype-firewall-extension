@@ -21,99 +21,91 @@
     masterModalShown = false;
   };
 
-  var dashboardApp = angular.module('DashboardModule', ['ui.compat', 'ui.bootstrap', 'CLMLocation', 'CommonServices'], [
-        '$stateProvider', '$routeProvider', '$urlRouterProvider',
-        function($stateProvider, $routeProvider, $urlRouterProvider) {
-          $stateProvider.state('home', {
-            url: '/',
-            controller: angular.noop
-          });
+  var dashboardApp = angular.module(
+          'DashboardModule',
+          ['ui.compat', 'ui.bootstrap', 'CLMLocation', 'CommonServices'],
+          ['$stateProvider', '$routeProvider', '$urlRouterProvider',
+              function($stateProvider, $routeProvider, $urlRouterProvider) {
+                $stateProvider.state('home', {
+                  url: '/',
+                  controller: angular.noop
+                });
 
-          var fn = function($rootScope, messages) {
-            $rootScope.error = 'Unknown Address';
-          };
-          fn.$inject = ['$rootScope', 'Messages'];
-          $urlRouterProvider.otherwise(function($injector, $location) {
-            $injector.invoke(fn);
-          });
-        }
-      ]).service('statusChecker', function(){
-        
-      }).run([
-        '$rootScope', '$http', '$location', '$window', 'Messages', 'CLMLocations', 'licenseChecker', 'securityStatusChecker',
-        function($rootScope, $http, $location, $window, messages, CLMLocations, licenseChecker, securityStatusChecker) {
-          securityStatusChecker.check().then(function(status){
-            if (!status.account) {
-              $window.location = '../login-assets/login.html';
-            } else {
-              $rootScope.username = data.account;
-              $rootScope.forcedRedirect = null;
-              licenseChecker.check().then(null, function() {
-                $rootScope.forcedRedirect = '/management/configuration/productlicense';
-                $location.path($rootScope.forcedRedirect);
-              });
-            }
-          }, function() {
-            //TODO: error getting status, uh-oh!
-          });
-          
-          // The page contains unsaved changes, continuing will discard them.
-          $rootScope.tempState = null;
+                var fn = function($rootScope, messages) {
+                  $rootScope.error = 'Unknown Address';
+                };
+                fn.$inject = ['$rootScope', 'Messages'];
+                $urlRouterProvider.otherwise(function($injector, $location) {
+                  $injector.invoke(fn);
+                });
+              }]).run(
+          [
+              '$rootScope',
+              '$http',
+              '$location',
+              'Messages',
+              'CLMLocations',
+              function($rootScope, $http, $location, messages, CLMLocations) {
+                // The page contains unsaved changes, continuing will discard
+                // them.
+                $rootScope.tempState = null;
 
-          $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
-            $rootScope.error = messages.getHttpErrorMessage(error);
-          });
+                $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
+                  $rootScope.error = messages.getHttpErrorMessage(error);
+                });
 
-          $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
-            var e;
-            $rootScope.tempNewUrl = null;
-            $rootScope.tempDestination = $location.url();
+                $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
+                  var e;
+                  $rootScope.tempNewUrl = null;
+                  $rootScope.tempDestination = $location.url();
 
-            if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
-              //special case where back button is hit, locationUrl will be the same as the oldUrl!!
-              if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
-                $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
-              }
-              //give components a chance to negate the page change
-              e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
-              if (e.defaultPrevented) {
-                event.preventDefault();
-                $rootScope.tempNewUrl = newUrl;
-                showMasterModal();
-                return;
-              }
+                  if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
+                    // special case where back button is hit, locationUrl will
+                    // be the same as the oldUrl!!
+                    if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
+                      $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
+                    }
+                    // give components a chance to negate the page change
+                    e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
+                    if (e.defaultPrevented) {
+                      event.preventDefault();
+                      $rootScope.tempNewUrl = newUrl;
+                      showMasterModal();
+                      return;
+                    }
 
-              $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
-            }
-            $rootScope.tempState = null;
-          });
+                    $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+                  }
+                  $rootScope.tempState = null;
+                });
 
-          $rootScope.$on('$locationChangeSuccess', function() {
-            if ($rootScope.forcedRedirect) {
-              $location.path($rootScope.forcedRedirect);
-            }
-          });
+                $rootScope.$on('$locationChangeSuccess', function() {
+                  if ($rootScope.forcedRedirect) {
+                    $location.path($rootScope.forcedRedirect);
+                  }
+                });
 
-          var fn = function(event) {
-            if (!masterModalShown) {
-              var e = $rootScope.$broadcast('pageChangeStarted');
-              return e.defaultPrevented ? e.message ||
-                  'The page may contain unsaved changes, continuing will discard them.' : undefined;
-            }
-          };
+                var fn = function(event) {
+                  if (!masterModalShown) {
+                    var e = $rootScope.$broadcast('pageChangeStarted');
+                    return e.defaultPrevented ? e.message
+                            || 'The page may contain unsaved changes, continuing will discard them.' : undefined;
+                  }
+                };
 
-          //make sure to cleanup event listeners
-          $rootScope.$on('$destroy', function() {
-            $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
-            $(window).unbind('beforeunload', fn);
-          });
+                // make sure to cleanup event listeners
+                $rootScope.$on('$destroy', function() {
+                  $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+                  $(window).unbind('beforeunload', fn);
+                });
 
-          //this causes the browser to notify the user that the page contains unsaved data
-          $(window).bind('beforeunload', fn);
-        }
-      ]);
+                // this causes the browser to notify the user that the page
+                // contains unsaved data
+                $(window).bind('beforeunload', fn);
+              }]);
 
-  //this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
+  // this is a fix to bootstrap to stop the 'too much recursion' error when
+  // multiple modals are fighting for focus
   $.fn.modal.Constructor.prototype.enforceFocus = function() {
     var that = this;
     var done = false;
@@ -125,22 +117,21 @@
     });
   };
 
-  dashboardApp.controller('UnsavedController', [
-    '$rootScope', '$scope', '$location', function($rootScope, $scope, $location) {
-      $scope.close = function(shouldContinue) {
-        hideMasterModal();
-        if (shouldContinue) {
-          $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
-          $rootScope.tempState = $rootScope.tempNewUrl;
-          $location.url($rootScope.tempDestination);
-        }
-      };
-    }
-  ]);
+  dashboardApp.controller('UnsavedController', ['$rootScope', '$scope', '$location',
+      function($rootScope, $scope, $location) {
+        $scope.close = function(shouldContinue) {
+          hideMasterModal();
+          if (shouldContinue) {
+            $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+            $rootScope.tempState = $rootScope.tempNewUrl;
+            $location.url($rootScope.tempDestination);
+          }
+        };
+      }]);
 
-  dashboardApp.controller('dashboardController', function($scope, $state) {
+  dashboardApp.controller('dashboardController', ['$scope', '$state', function($scope, $state) {
     function switchDashboard() {
-      for (var i = 0; i < $scope.availableDashboards.length; i++) {
+      for ( var i = 0; i < $scope.availableDashboards.length; i++) {
         if (window.location.href.indexOf($scope.availableDashboards[i].href) !== -1) {
           $scope.selectedDashboard = $scope.availableDashboards[i];
           break;
@@ -149,64 +140,86 @@
     }
 
     $scope.$state = $state;
-    $scope.availableDashboards = [
-      {
-        name: 'Management',
-        href: 'index.html#/management'
-      },
-      {
-        name: 'Reports',
-        href: 'reports.html#/reports'
-      }
-    ];
+    $scope.availableDashboards = [{
+      name: 'Management',
+      href: 'index.html#/management'
+    }, {
+      name: 'Reports',
+      href: 'reports.html#/reports'
+    }];
 
     $scope.$watch('$state.current.name', switchDashboard);
     switchDashboard();
-  });
+  }]);
 
-  dashboardApp.service('licenseChecker', [
-    '$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
-      return {
-        check: function() {
-          var deferred = $q.defer();
-          $http.get(CLMLocations.getLicenseSummaryUrl()).success(function() {
-            deferred.resolve();
-          }).error(function(data, status) {
-                if (status === 402) {
-                  deferred.reject();
-                }
-                else {
+  dashboardApp.service('licenseChecker', ['$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
+    return {
+      check: function() {
+        var deferred = $q.defer();
+        $http.get(CLMLocations.getLicenseSummaryUrl(), {
+          params: {
+            timestamp: new Date().getTime()
+          }
+        }).success(function(data) {
+          deferred.resolve(data);
+        }).error(function(data, status) {
+          deferred.reject(status);
+        });
+        return deferred.promise;
+      }
+    };
+  }]);
+
+  dashboardApp.service('securityStatusChecker', ['$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
+    return {
+      check: function() {
+        var deferred = $q.defer();
+        $http.get(CLMLocations.getStatusUrl(), {
+          params: {
+            timestamp: new Date().getTime()
+          }
+        }).success(function(data) {
+          deferred.resolve(data);
+        }).error(function() {
+          deferred.reject();
+        });
+        return deferred.promise;
+      }
+    };
+  }]);
+
+  dashboardApp.service('serverStatus', ['$rootScope', '$http', '$q', '$window', '$location', 'CLMLocations', 'licenseChecker',
+      'securityStatusChecker',
+      function($rootScope, $http, $q, $window, $location, CLMLocations, licenseChecker, securityStatusChecker) {
+        return {
+          check: function() {
+            var deferred = $q.defer();
+            $rootScope.username = null;
+            securityStatusChecker.check().then(function(data) {
+              if (data.account) {
+                $rootScope.username = data.account;
+                $rootScope.forcedRedirect = null;
+                licenseChecker.check().then(function() {
                   deferred.resolve();
-                }
-              });
-          return deferred.promise;
-        }
-      };
-    }
-  ]);
-  
-  dashboardApp.service('securityStatusChecker', [
-    '$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
-      return {
-        check: function() {
-          var deferred = $q.defer();
-          $http.get(CLMLocations.getStatusUrl(), {
-            params: {
-              timestamp: new Date().getTime()
-            }
-          }).success(function(data) {
-            deferred.resolve(data);
-          }).error(function(data, status) {
-            if (status === 402) {
-              deferred.reject();
-            }
-            else {
-              deferred.resolve();
-            }
-          });
-          return deferred.promise;
-        }
-      };
-    }
-  ]);
+                }, function(status) {
+                  if (status == 402) {
+                    deferred.reject();
+                    $rootScope.forcedRedirect = '/management/configuration/productlicense';
+                    $location.path($rootScope.forcedRedirect);
+                  } else {
+                    deferred.reject(status);
+                  }
+                });
+              } else {
+                deferred.reject();
+                $window.location = '../login-assets/login.html';
+              }
+            }, function(status) {
+              deferred.reject(status);
+            });
+
+            return deferred.promise;
+          }
+        };
+      }]);
 }());

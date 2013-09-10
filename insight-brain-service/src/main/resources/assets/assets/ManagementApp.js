@@ -23,9 +23,15 @@
         url: '/management',
         templateUrl: '../assets/management.html?' + clmBuildTimestamp,
         controller: 'ManagementController'
-      });
-    }
-  ]);
+      })}]).run(['serverStatus', function(serverStatus) {
+        serverStatus.check().then(null, function(status) {
+          if (status) {
+            // TODO: some big error thing
+          } else {
+            // nothing to do, some redirect must've occurred
+          }
+        });
+    }]);
 
   managementModule.controller('ManagementController', function($scope, $state, commonCodeFactory) {
     $scope.$state = $state;

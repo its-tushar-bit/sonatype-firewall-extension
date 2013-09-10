@@ -15,7 +15,7 @@
         $scope.signIn = function() {
           delete $scope.loginError;
           var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
-          $http.post(CLMLocations.getLoginUrl(), {
+          $http.post(CLMLocations.getLoginUrl(), {}, {
             headers: {
               'Authorization': 'Basic ' + authz
             },

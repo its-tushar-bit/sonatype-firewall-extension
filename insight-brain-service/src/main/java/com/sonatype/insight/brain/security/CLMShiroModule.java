@@ -36,6 +36,7 @@ public class CLMShiroModule
     manager.createChain("/account/status", "anon");
     manager.createChain("/*assets/**", "anon");
     manager.createChain("/favicon.ico", "anon");
+    manager.createChain("/crumbIssuer/**", "anon");
     manager.createChain("/**/*", "authcBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bindRealm().to(CLMRealm.class);

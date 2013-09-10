@@ -195,7 +195,7 @@
               timestamp: new Date().getTime()
             }
           }).success(function(data) {
-            deferred.resolve();
+            deferred.resolve(data);
           }).error(function(data, status) {
             if (status === 402) {
               deferred.reject();

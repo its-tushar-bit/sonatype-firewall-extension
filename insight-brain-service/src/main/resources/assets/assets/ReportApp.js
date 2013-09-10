@@ -32,7 +32,7 @@
             if (!status.account) {
               $window.location = '../login-assets/login.html';
             } else {
-              $rootScope.username = data.account;
+              $rootScope.username = status.account;
               $rootScope.forcedRedirect = null;
               licenseChecker.check().then(function() {
                 $rootScope.licenseChecked = true;

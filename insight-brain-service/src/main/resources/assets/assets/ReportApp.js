@@ -23,15 +23,7 @@
               templateUrl: '../assets/components/report-list.html?' + clmBuildTimestamp,
               controller: 'ReportListController'
             });
-          }]).run(['serverStatus', function(serverStatus) {
-    serverStatus.check().then(null, function(status) {
-      if (status) {
-        // TODO: some big error thing
-      } else {
-        // nothing to do, some redirect must've occurred
-      }
-    });
-  }]);
+          }]);
 
   reportModule.controller('ReportListController', [
       '$scope',

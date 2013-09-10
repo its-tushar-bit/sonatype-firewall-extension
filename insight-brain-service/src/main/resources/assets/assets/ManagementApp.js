@@ -11,15 +11,7 @@
         '$routeProvider', function($routeProvider) {
         $routeProvider.when('', { redirectTo: '/management/application' });
       }
-      ]).run(['serverStatus', function(serverStatus) {
-        serverStatus.check().then(null, function(status) {
-          if (status) {
-            // TODO: some big error thing
-          } else {
-            // nothing to do, some redirect must've occurred
-          }
-        });
-    }]);
+      ]);
 }());
 
 (function() {

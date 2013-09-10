@@ -43,9 +43,11 @@
               '$rootScope',
               '$http',
               '$location',
+              '$state',
               'Messages',
               'CLMLocations',
-              function($rootScope, $http, $location, messages, CLMLocations) {
+              'serverStatus',
+              function($rootScope, $http, $location, $state, messages, CLMLocations, serverStatus) {
                 // The page contains unsaved changes, continuing will discard
                 // them.
                 $rootScope.tempState = null;
@@ -82,6 +84,23 @@
                 $rootScope.$on('$locationChangeSuccess', function() {
                   if ($rootScope.forcedRedirect) {
                     $location.path($rootScope.forcedRedirect);
+                  }
+                });
+                
+                $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
+                  if (!$rootScope.initialized) {
+                    event.preventDefault();
+                    //first transition, so lets check the server and see whats up
+                    serverStatus.check().then(function(){
+                      $rootScope.initialized = true;
+                      $state.transitionTo(toState, { location: true, inherit: true, relative: $state.$current });
+                    }, function(status) {
+                      if (status) {
+                        $rootScope.error = 'Unable to initialize the application';
+                      } else {
+                        // nothing to do, some redirect must've occurred
+                      }
+                    });
                   }
                 });
 

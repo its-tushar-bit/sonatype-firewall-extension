@@ -1,21 +1,14 @@
 describe('dashboardApp', function() {
   var scope, state;
 
-  beforeEach(module('DashboardModule', function($provide) {
-    $provide.value('serverStatus', {
-      check: function() {
-        return {
-          then: function(){}
-        }
-      }
-    });
-  }));
+  beforeEach(module('DashboardModule'));
   
   afterEach(function() {
     scope.$destroy();
   });
   
   beforeEach(inject(function($rootScope, $state, $controller) {
+    $rootScope.initialized = true
     scope = $rootScope.$new();
     state = $state;
 

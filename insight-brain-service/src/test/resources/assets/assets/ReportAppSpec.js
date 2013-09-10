@@ -1,17 +1,10 @@
 describe('reportApp', function() {
   var scope, state;
   
-  beforeEach(module('reportApp', 'ReportList', 'DashboardModule', function($provide) {
-    $provide.value('serverStatus', {
-      check: function() {
-        return {
-          then: function(){}
-        }
-      }
-    });
-  }));
+  beforeEach(module('reportApp', 'ReportList', 'DashboardModule'));
   
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
+    $rootScope.initialized = true
     scope = $rootScope.$new();
     state = $state;
 

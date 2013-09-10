@@ -146,6 +146,24 @@ public class CIComponentInfoResourceTest
     assertContainsLicenseWithThreatLevel("BSD-3-Clause", "BSD-3-Clause", 5, licenses.observedlicenses);
   }
 
+  @Test
+  public void testGetLicenses_claimedComponent() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    createApplication(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+
+    // Verify exception is not thrown if component is not known to SaaS
+    Response response = RestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    // if we got here, we are good, but let's do some sanity check 
+    ComponentLicenses licenses = JsonHelpers.fromJson(response.getResponseBody(), ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, empty());
+    assertThat(licenses.observedlicenses, empty());
+  }
+
   private void assertContainsLicenseWithThreatLevel(String licenseId, String licenseName, Integer threatLevel,
       List<LicenseWithThreatLevel> actual)
   {

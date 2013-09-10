@@ -129,43 +129,7 @@ public abstract class AbstractComponentInfoResource
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();
 
-    // Get component details from the SAAS server
-    ComponentDetails componentDetails;
-    try {
-      componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
-    }
-    catch (NotFoundException e) {
-      // GAV is unknown to SaaS, still want to provide minimal data for details view
-      componentDetails = new ComponentDetails(groupId, artifactId, version);
-    }
-
-    if (hash != null && !hash.isEmpty()) {
-      componentDetails.setHash(hash);
-    }
-    if (matchState != null && !matchState.isEmpty()) {
-      componentDetails.setMatchState(matchState);
-    }
-    else {
-      componentDetails.setMatchState(MatchState.EXACT.getId());
-    }
-
-    // Is this a manually claimed component?
-    HashGAV hashGAV = null;
-    if (componentDetails.getHash() != null) {
-      hashGAV = new HashGAVDAO().getByHash(componentDetails.getHash());
-    }
-    if (hashGAV != null) {
-      componentDetails.setGroupId(hashGAV.getGroupId());
-      componentDetails.setArtifactId(hashGAV.getArtifactId());
-      componentDetails.setVersion(hashGAV.getVersion());
-      componentDetails.setMatchState(MatchState.EXACT.getId());
-      componentDetails.setCatalogDate(hashGAV.getCreateTimeLong());
-      componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
-      componentDetails.setIdentificationSourceComment(hashGAV.getComment());
-    }
-    else {
-      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-    }
+    ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, hash, matchState);
 
     Component component = loadComponent(app, componentDetails);
     component.setProprietary(proprietary);
@@ -177,6 +141,51 @@ public abstract class AbstractComponentInfoResource
 
     log.debug("Loaded component details for {}:{}:{}, hash {}, in {} ms.", groupId, artifactId, version, hash,
         System.currentTimeMillis() - start);
+
+    return componentDetails;
+  }
+
+  private ComponentDetails getComponentDetails(String groupId, String artifactId, String version, String hash,
+      String matchState) throws IOException
+  {
+    ComponentDetails componentDetails = null;
+
+    // Look among claimed components first
+    final HashGAV hashGAV;
+    HashGAVDAO hashGAVDAO = new HashGAVDAO();
+    if (hash != null && !hash.trim().isEmpty()) {
+      hashGAV = hashGAVDAO.getByHash(hash);
+    }
+    else {
+      hashGAV = hashGAVDAO.getByGAV(groupId, artifactId, version);
+    }
+    if (hashGAV != null) {
+      componentDetails = new ComponentDetails(hashGAV.getGroupId(), hashGAV.getArtifactId(), hashGAV.getVersion());
+      componentDetails.setHash(hashGAV.getHash());
+      componentDetails.setMatchState(MatchState.EXACT.getId());
+      componentDetails.setCatalogDate(hashGAV.getCreateTimeLong());
+      componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
+      componentDetails.setIdentificationSourceComment(hashGAV.getComment());
+    }
+
+    // Get component details from the SaaS server, if not found locally
+    if (componentDetails == null) {
+      try {
+        componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+        componentDetails.setMatchState(MatchState.EXACT.getId());
+      }
+      catch (NotFoundException e) {
+        // GAV is unknown to SaaS, still want to provide minimal data for details view
+        componentDetails = new ComponentDetails(groupId, artifactId, version);
+        componentDetails.setMatchState(MatchState.UNKNOWN.getId());
+      }
+
+      componentDetails.setHash(hash); // SaaS does not set hash
+      if (matchState != null && !matchState.trim().isEmpty()) {
+        componentDetails.setMatchState(matchState);
+      }
+      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+    }
 
     return componentDetails;
   }
@@ -231,7 +240,7 @@ public abstract class AbstractComponentInfoResource
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     // Get component details from the SAAS server
-    ComponentDetails componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+    ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, null, null);
 
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     Set<License> result = new LinkedHashSet<License>();
@@ -276,10 +285,9 @@ public abstract class AbstractComponentInfoResource
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    // Get component details from the SAAS server
-    ComponentDetails componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
-
     ComponentLicenses result = new ComponentLicenses();
+
+    ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, null, null);
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
 
@@ -293,20 +301,23 @@ public abstract class AbstractComponentInfoResource
   {
     List<LicenseWithThreatLevel> result = new ArrayList<LicenseWithThreatLevel>();
 
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-    LicenseDAO licenseDAO = new LicenseDAO();
-    for (License multiLicense : multiLicenses) {
-      Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
-          .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
-      for (com.sonatype.insight.brain.model.license.License license : licenses) {
-        LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
-        licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
-        licenseWithThreatLevel.threatLevel = licenseDAO.getLicenseThreatLevelByApplicationAndLicenseId(application,
-            license.getId());
+    if (multiLicenses != null) {
+      MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+      LicenseDAO licenseDAO = new LicenseDAO();
+      for (License multiLicense : multiLicenses) {
+        Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
+            .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
+        for (com.sonatype.insight.brain.model.license.License license : licenses) {
+          LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
+          licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
+          licenseWithThreatLevel.threatLevel = licenseDAO.getLicenseThreatLevelByApplicationAndLicenseId(application,
+              license.getId());
 
-        result.add(licenseWithThreatLevel);
+          result.add(licenseWithThreatLevel);
+        }
       }
     }
+
     return result;
   }
 

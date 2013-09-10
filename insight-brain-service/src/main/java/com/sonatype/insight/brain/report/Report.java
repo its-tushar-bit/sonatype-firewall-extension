@@ -15,8 +15,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -38,6 +40,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -272,7 +276,7 @@ public final class Report
   {
     HashGAVDAO hashGAVDAO = new HashGAVDAO();
 
-    Set<String> claimedHashes = new LinkedHashSet<String>();
+    Map<String, HashGAV> claimedHashes = new LinkedHashMap<String, HashGAV>();
     Set<String> gavs = new LinkedHashSet<String>();
     ReportEntry bomReportEntry = extractEntry(reportFile, "bom.json");
     ContainerNode<?> bomJsonData = JsonUtils.parse(bomReportEntry.buf);
@@ -290,7 +294,7 @@ public final class Report
         bomObjectNode.put("createTime", hashGAV.getCreateTimeLong());
         bomObjectNode.put("relativePopularity", 0F);
         bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
-        claimedHashes.add(hash);
+        claimedHashes.put(hash, hashGAV);
       }
       gavs.add(bomJsonNode.get("groupId").asText() + ':' + bomJsonNode.get("artifactId").asText() + ':'
           + bomJsonNode.get("version").asText());
@@ -309,7 +313,8 @@ public final class Report
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     ReportEntry licensesReportEntry = extractEntry(reportFile, "licenses.json");
     ContainerNode<?> licensesJsonData = JsonUtils.parse(licensesReportEntry.buf);
-    Iterator<JsonNode> iterLicenseData = licensesJsonData.get("aaData").iterator();
+    ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
+    Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
 
@@ -323,12 +328,8 @@ public final class Report
         iterLicenseData.remove();
       }
       else {
-        LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId,
-            artifactId, version);
-        if (licenseOverride == null && application.getOrganizationId() != null) {
-          licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
-              version);
-        }
+        LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, groupId, artifactId,
+            version);
         if (licenseOverride != null) {
           licenseJsonNode.put("status", licenseOverride.getStatus().getName());
           if (licenseOverride.getLicenseId() != null) {
@@ -338,6 +339,30 @@ public final class Report
           if (licenseOverride.getComment() != null) {
             licenseJsonNode.put("comment", licenseOverride.getComment());
           }
+        }
+      }
+    }
+
+    // add claimed components with license overrides
+    for (HashGAV hashGAV : claimedHashes.values()) {
+      LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, hashGAV.getGroupId(),
+          hashGAV.getArtifactId(), hashGAV.getVersion());
+      if (licenseOverride != null) {
+        ObjectNode licenseJsonNode = licensesAaData.addObject();
+        licenseJsonNode.put("hash", hashGAV.getHash());
+        licenseJsonNode.put("groupId", hashGAV.getGroupId());
+        licenseJsonNode.put("artifactId", hashGAV.getArtifactId());
+        licenseJsonNode.put("version", hashGAV.getVersion());
+        licenseJsonNode.put("classifier", hashGAV.getClassifier());
+        licenseJsonNode.put("matchState", MatchState.EXACT.getId());
+        licenseJsonNode.put("catalogDate", hashGAV.getCreateTimeLong());
+        licenseJsonNode.put("status", licenseOverride.getStatus().getName());
+        if (licenseOverride.getLicenseId() != null) {
+          License license = licenseDAO.getByIdNotNull(licenseOverride.getLicenseId());
+          licenseJsonNode.putArray("overriddenLicenses").add(license.getShortDisplayName());
+        }
+        if (licenseOverride.getComment() != null) {
+          licenseJsonNode.put("comment", licenseOverride.getComment());
         }
       }
     }
@@ -375,7 +400,7 @@ public final class Report
     while (iterPartialMatchData.hasNext()) {
       JsonNode jsonNode = iterPartialMatchData.next();
       String hash = jsonNode.path("hash").asText();
-      if (claimedHashes.contains(hash)) {
+      if (claimedHashes.containsKey(hash)) {
         iterPartialMatchData.remove();
       }
     }
@@ -385,6 +410,18 @@ public final class Report
 
     // finally save the changes
     cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialmatchedJsonData));
+  }
+
+  private static LicenseOverride getLicenseOverride(final Application application,
+      LicenseOverrideDAO licenseOverrideDAO, String groupId, String artifactId, String version)
+  {
+    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId, artifactId,
+        version);
+    if (licenseOverride == null && application.getOrganizationId() != null) {
+      licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
+          version);
+    }
+    return licenseOverride;
   }
 
   private static void writeLicenseThreatsToReportFile(final Application application, final File reportFile)

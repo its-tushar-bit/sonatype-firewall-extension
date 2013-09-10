@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.HashGAVResource;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
@@ -104,6 +105,7 @@ public class ReportResourceTest
 
     String applicationPublicId = "testClaimedComponent_AppId";
     createApplication(applicationPublicId);
+
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -168,6 +170,56 @@ public class ReportResourceTest
     assertFalse(partialmatched.contains("commons-httpclient"));
     assertTrue(partialmatched.contains("c32df577f739535648b0"));
     assertTrue(partialmatched.contains("org.slf4j.api_1.6.1.v20100831-0715.jar"));
+
+    hashGAVDAO.delete(hashGAV);
+  }
+
+  @Test
+  public void testManuallyIdentifiedComponent_LicenseOverrides() throws Exception {
+    // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
+    String hash = "f0776db1593e215146d2";
+    String groupId = "testClaimedComponent_G";
+    String artifactId = "testClaimedComponent_A";
+    String version = "testClaimedComponent_V";
+    String extension = "testClaimedComponent_E";
+    String classifier = "testClaimedComponent_C";
+    Date createTime = new Date();
+    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    hashGAV.setCreateTime(createTime);
+    HashGAVDAO hashGAVDAO = new HashGAVDAO();
+    hashGAVDAO.insert(hashGAV);
+
+    String applicationPublicId = "testClaimedComponent_AppId";
+    Application application = createApplication(applicationPublicId);
+
+    String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), groupId, artifactId, version,
+        LicenseOverrideStatus.OVERRIDDEN, licenseId, "manual override");
+    new LicenseOverrideDAO().insert(licenseOverride);
+
+    String scanId = "testClaimedComponent_ScanId";
+    String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+
+    assertResponseStatus(200,
+        RestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
+
+    String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+
+    Response response = RestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    assertResponseStatus(200, response);
+    String licensesJsonData = response.getResponseBody();
+    assertNotNull(licensesJsonData);
+    assertFalse(StringUtils.isEmpty(licensesJsonData));
+    assertTrue(licensesJsonData.contains(hash));
+    assertTrue(licensesJsonData.contains(artifactId));
+    assertFalse(licensesJsonData.contains("commons-httpclient"));
 
     hashGAVDAO.delete(hashGAV);
   }

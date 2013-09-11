@@ -6,16 +6,16 @@
  */
 (function() {
   "use strict";
-  var loginApp = angular.module('LoginApp', ['CLMLocation', 'CommonServices']);
+  var loginApp = angular.module('LoginApp', ['CLMLocation', 'CommonServices', 'Hudson']);
 
-  var loginController = loginApp.controller('LoginController', ['$scope', '$http', '$location', '$window',
-      'CLMLocations', function($scope, $http, $location, $window, CLMLocations) {
+  var loginController = loginApp.controller('LoginController', ['$scope', 'hudson', '$location', '$window',
+      'CLMLocations', function($scope, hudson, $location, $window, CLMLocations) {
         $scope.data = {};
 
         $scope.signIn = function() {
           delete $scope.loginError;
           var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
-          $http.post(CLMLocations.getLoginUrl(), {}, {
+          hudson.post(CLMLocations.getLoginUrl(), {}, {
             headers: {
               'Authorization': 'Basic ' + authz
             },

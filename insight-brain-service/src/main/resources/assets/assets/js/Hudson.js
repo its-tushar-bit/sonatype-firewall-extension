@@ -62,14 +62,15 @@
           var header = data !== null ? data.split(':') : null,
               config = { headers: {  } };
 
-          if (header !== null && header.length === 2) {
-            config.headers[header[0]] = header[1];
-          }
           if (args.length < 3) {
             args.push(config);
           }
           else {
             args[2] = angular.extend(config, args[2]);
+          }
+          
+          if (header !== null && header.length === 2) {
+            config.headers[header[0]] = header[1];
           }
 
           args[0] = swapBasePath(args[0], $location);

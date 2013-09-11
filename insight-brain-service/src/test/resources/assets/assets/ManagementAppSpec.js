@@ -13,6 +13,14 @@ describe('dashboardApp', function() {
         createElement: function(){ return null ;}
       }
     });
+    $provide.value('securityStatusChecker', {
+      check : function(){
+        return {
+          then: function(data) {
+          }
+        };
+      }
+    });
   }));
     
   afterEach(function() {
@@ -20,7 +28,8 @@ describe('dashboardApp', function() {
   });
   
   beforeEach(inject(function($rootScope, $state, $controller) {
-    $rootScope.initialized = true
+    $rootScope.username = 'user';
+    $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;
 

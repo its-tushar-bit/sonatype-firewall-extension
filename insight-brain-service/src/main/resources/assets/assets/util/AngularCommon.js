@@ -720,7 +720,7 @@ var AngularUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/'],
+          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/login-assets/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {

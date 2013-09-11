@@ -8,6 +8,11 @@ describe('Tests for the LoginApp', function() {
       navigator: function() {
       }
     });
+    $provide.factory('hudson', [
+      '$http', function($http) {
+        return $http;
+      }
+    ]);
   }));
 
   describe('LoginController', function() {

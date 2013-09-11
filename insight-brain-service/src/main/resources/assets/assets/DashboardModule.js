@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+//using global variable to share between apps
+var currentUrl;
 (function() {
   "use strict";
   var masterModalShown = false;
@@ -41,14 +43,12 @@
               }]).run(
           [
               '$rootScope',
-              '$http',
               '$location',
-              '$state',
               '$window',
               'Messages',
               'CLMLocations',
               'serverStatus',
-              function($rootScope, $http, $location, $state, $window, messages, CLMLocations, serverStatus) {
+              function($rootScope, $location, $window, messages, CLMLocations, serverStatus) {
                 // The page contains unsaved changes, continuing will discard
                 // them.
                 $rootScope.tempState = null;
@@ -58,71 +58,42 @@
                 });
 
                 $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
-                  var e;
-                  $rootScope.tempNewUrl = null;
-                  $rootScope.tempDestination = $location.url();
+                  currentUrl = newUrl;
+                  
+                  //don't bother checking unless the status has resolved
+                  if ($rootScope.username && $rootScope.licensed) {
+                    var e;
+                    $rootScope.tempNewUrl = null;
+                  
+                    if (newUrl != $rootScope.tempState) {
+                      // give components a chance to negate the page change
+                      e = $rootScope.$broadcast('pageChangeStarted', currentUrl);
+                      if (e.defaultPrevented) {
+                        event.preventDefault();
+                        $rootScope.tempNewUrl = newUrl;
+                        showMasterModal();
+                        return;
+                      }
 
-                  if (!$rootScope.initialized || (newUrl !== oldUrl && newUrl != $rootScope.tempState)) {
-                    // special case where back button is hit, locationUrl will
-                    // be the same as the oldUrl!!
-                    if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
-                      $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
+                      $rootScope.$broadcast('pageChangeAccepted', currentUrl); 
                     }
-                    if (!$rootScope.initialized) {
-                      event.preventDefault();
-                      //first transition, so lets check the server and see whats up
-                      serverStatus.check().then(function(path){
-                        $rootScope.initialized = true;
-                        if (path) {
-                          $window.location = path;
-                        } else {
-                          $location.path($rootScope.tempDestination);  
-                        }
-                      }, function(status) {
-                        if (status) {
-                          $rootScope.error = 'Unable to initialize the application';
-                        } else {
-                          // nothing to do, some redirect must've occurred
-                        }
-                      });
-                    } else if (!$rootScope.licensed && $rootScope.tempDestination.indexOf('/management/configuration/productlicense') == -1) {
-                      event.preventDefault();
-                      $window.location = 'index.html#/management/configuration/productlicense';
-                    }
-                    // give components a chance to negate the page change
-                    e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
-                    if (e.defaultPrevented) {
-                      event.preventDefault();
-                      $rootScope.tempNewUrl = newUrl;
-                      showMasterModal();
-                      return;
-                    }
-
-                    $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+                  } else if ($rootScope.username && currentUrl.indexOf('management/configuration/productlicense') == -1){
+                    event.preventDefault();
                   }
                   $rootScope.tempState = null;
-                });
-
-                $rootScope.$on('$locationChangeSuccess', function() {
-                  if ($rootScope.forcedRedirect) {
-                    $location.path($rootScope.forcedRedirect);
-                  }
-                });
+              }, function(status) {
+                if (status) {
+                  $rootScope.error = 'Unable to initialize the application';
+                } else {
+                  // nothing to do, some redirect must've occurred
+                }
+              });
                 
-                $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
-                  if (!$rootScope.initialized) {
-                    event.preventDefault();
-                    //first transition, so lets check the server and see whats up
-                    serverStatus.check().then(function(){
-                      $rootScope.initialized = true;
-                      $state.transitionTo(toState, { location: true, inherit: true, relative: $state.$current });
-                    }, function(status) {
-                      if (status) {
-                        $rootScope.error = 'Unable to initialize the application';
-                      } else {
-                        // nothing to do, some redirect must've occurred
-                      }
-                    });
+                serverStatus.check().then(function(data){
+                  $rootScope.username = data.username;
+                  $rootScope.licensed = data.licensed;
+                  if (currentUrl) {
+                    $window.location = currentUrl;
                   }
                 });
 
@@ -136,7 +107,7 @@
 
                 // make sure to cleanup event listeners
                 $rootScope.$on('$destroy', function() {
-                  $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+                  $rootScope.$broadcast('pageChangeAccepted', currentUrl);
                   $(window).unbind('beforeunload', fn);
                 });
 
@@ -163,9 +134,9 @@
         $scope.close = function(shouldContinue) {
           hideMasterModal();
           if (shouldContinue) {
-            $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+            $rootScope.$broadcast('pageChangeAccepted', currentUrl);
             $rootScope.tempState = $rootScope.tempNewUrl;
-            $location.url($rootScope.tempDestination);
+            $location.url(currentUrl);
           }
         };
       }]);
@@ -235,17 +206,19 @@
         return {
           check: function() {
             var deferred = $q.defer();
-            $rootScope.username = null;
             securityStatusChecker.check().then(function(data) {
               if (data.account) {
-                $rootScope.username = data.account;
-                $rootScope.forcedRedirect = null;
                 licenseChecker.check().then(function() {
-                  $rootScope.licensed = true;
-                  deferred.resolve();
+                  deferred.resolve({username: data.account, licensed: true});
+                  if (currentUrl) {
+                    $window.location = currentUrl;
+                  } else {
+                    $window.location = '../';
+                  }
                 }, function(status) {
                   if (status == 402) {
-                    deferred.resolve('index.html#/management/configuration/productlicense');  
+                    deferred.resolve({username: data.account, licensed: false});
+                    $window.location = '../assets/index.html#/management/configuration/productlicense';
                   } else {
                     deferred.reject(status);
                   }

@@ -13,10 +13,18 @@ describe('reportApp', function() {
         createElement: function(){ return null ;}
       }
     });
+    $provide.value('securityStatusChecker', {
+      check : function(){
+        return {
+          then: function(data) {
+          }
+        };
+      }
+    });
   }));
   
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
-    $rootScope.initialized = true;
+    $rootScope.username = 'user';
     $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;

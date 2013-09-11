@@ -98,7 +98,7 @@ public class CLMRealm
 
   @Override
   protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-    // TODO Auto-generated method stub
+    // TODO To be implemented when we add support for authorization
     return null;
   }
 }

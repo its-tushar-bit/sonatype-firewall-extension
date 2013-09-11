@@ -10,10 +10,10 @@ import java.util.Iterator;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -95,9 +95,9 @@ public class CLMRealmTest
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(null /* username */, (char[]) null);
     try {
       realm.doGetAuthenticationInfo(usernamePasswordToken);
-      fail("Expected BadRequestException");
+      fail("Expected AuthenticationException");
     }
-    catch (BadRequestException expected) {
+    catch (AuthenticationException expected) {
       assertThat(expected.getMessage(), is("The username is required"));
     }
   }
@@ -107,9 +107,9 @@ public class CLMRealmTest
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(" " /* username */, (char[]) null);
     try {
       realm.doGetAuthenticationInfo(usernamePasswordToken);
-      fail("Expected BadRequestException");
+      fail("Expected AuthenticationException");
     }
-    catch (BadRequestException expected) {
+    catch (AuthenticationException expected) {
       assertThat(expected.getMessage(), is("The username is required"));
     }
   }

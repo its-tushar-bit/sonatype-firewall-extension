@@ -13,7 +13,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -61,7 +60,7 @@ public class CLMRealm
 
     String username = usernamePasswordToken.getUsername();
     if (StringUtils.isEmpty(username)) {
-      throw new BadRequestException("The username is required");
+      throw new AuthenticationException("The username is required");
     }
 
     User user = new UserDAO().getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));

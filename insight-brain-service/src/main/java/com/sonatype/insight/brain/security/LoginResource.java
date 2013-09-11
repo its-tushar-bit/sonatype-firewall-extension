@@ -36,8 +36,8 @@ public class LoginResource
   /**
    * Typical HTTP Basic Authentication.
    */
-  @Path("login")
   @UnlicensedPath
+  @Path("login")
   @POST
   public void login() {
     // shiro handles all the work here
@@ -52,8 +52,8 @@ public class LoginResource
     SecurityUtils.getSubject().logout();
   }
 
-  @Path("status")
   @UnlicensedPath
+  @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public AccountStatus getStatus() {

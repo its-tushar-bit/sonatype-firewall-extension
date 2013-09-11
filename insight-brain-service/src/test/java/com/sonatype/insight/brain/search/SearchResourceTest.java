@@ -13,12 +13,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.search.SearchResource.SearchResult;
 import com.sonatype.insight.brain.search.SearchResource.SearchResults;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -81,7 +81,7 @@ public class SearchResourceTest
     assertThat(result.applicationId, is(appId));
     assertThat(result.applicationName, is(appName));
     assertThat(result.reportUrl, is(notNullValue()));
-    assertResponseStatus(200, RestAccess.get(result.reportUrl));
+    assertResponseStatus(200, AuthedRestAccess.get(result.reportUrl));
     assertThat(result.hash, is(hash));
     assertThat(result.groupId, is(groupId));
     assertThat(result.artifactId, is(artifactId));
@@ -91,21 +91,21 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_MissingStageId() throws Exception {
-    Response response = RestAccess.get(getSearchUrl("", "12345678901234567890"));
+    Response response = AuthedRestAccess.get(getSearchUrl("", "12345678901234567890"));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Stage has not been specified"));
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
-    Response response = RestAccess.get(getSearchUrl("invalid", "12345678901234567890"));
+    Response response = AuthedRestAccess.get(getSearchUrl("invalid", "12345678901234567890"));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid stage: invalid"));
   }
 
   @Test
   public void testSearchComponent_MissingHashAndGav() throws Exception {
-    Response response = RestAccess.get(getSearchUrl("build", ""));
+    Response response = AuthedRestAccess.get(getSearchUrl("build", ""));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         is("Neither hash nor coordinates of component to search for have been specified"));
@@ -113,14 +113,14 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_InvalidHash() throws Exception {
-    Response response = RestAccess.get(getSearchUrl("build", "invalid-hash"));
+    Response response = AuthedRestAccess.get(getSearchUrl("build", "invalid-hash"));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid hash: invalid-hash"));
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
-    Response response = RestAccess.get(getSearchUrl("build", "1249e25aebb15358bed"));
+    Response response = AuthedRestAccess.get(getSearchUrl("build", "1249e25aebb15358bed"));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid hash: 1249e25aebb15358bed"));
   }
@@ -130,7 +130,7 @@ public class SearchResourceTest
     createAppWithScan("search-app-1", Stage.ID_BUILD);
     createAppWithScan("search-app-2", Stage.ID_RELEASE);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -145,7 +145,7 @@ public class SearchResourceTest
     createAppWithScan("search-app-1", Stage.ID_BUILD);
     createAppWithScan("search-app-2", Stage.ID_BUILD);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -161,7 +161,7 @@ public class SearchResourceTest
   public void testSearchComponent_ByHash_FullHashString() throws Exception {
     createAppWithScan("search-app-1", Stage.ID_BUILD);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd00000000000000000000"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd00000000000000000000"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -176,7 +176,7 @@ public class SearchResourceTest
     createAppWithScan("search-app-1", Stage.ID_BUILD);
     createAppWithScan("search-app-2", Stage.ID_BUILD);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "tomcat", "*", "*"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "tomcat", "*", "*"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -195,7 +195,7 @@ public class SearchResourceTest
     createAppWithScan("search-app-1", Stage.ID_BUILD);
     createAppWithScan("search-app-2", Stage.ID_BUILD);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "tomcat", "*", "*"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "tomcat", "*", "*"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -212,7 +212,7 @@ public class SearchResourceTest
     createAppWithScan("search-app-1", Stage.ID_BUILD);
     createAppWithScan("search-app-2", Stage.ID_BUILD);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", "*", "tomcat-util", "*"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", "*", "tomcat-util", "*"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -222,7 +222,7 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_EchoCriteria() throws Exception {
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "gid", "aid", "1"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "gid", "aid", "1"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -240,7 +240,7 @@ public class SearchResourceTest
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
     createAppWithScan("search-app-1", Stage.ID_BUILD);
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdf"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdf"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -252,7 +252,7 @@ public class SearchResourceTest
   public void testSearchComponent_AppWithoutAnyReports() throws Exception {
     createApplication("search-app-1");
 
-    Response response = RestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));

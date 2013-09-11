@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.LoginResource.AccountStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -16,7 +14,6 @@ import com.sonatype.insight.test.RestAccess;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.apache.shiro.codec.Base64;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,10 +22,6 @@ import static org.junit.Assert.assertEquals;
 public class LoginResourceTest
     extends AbstractResourceTest
 {
-  public LoginResourceTest() {
-    super(false);
-  }
-  
   private Response logout(Cookie cookie) throws Exception {
     return RestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
   }
@@ -38,12 +31,7 @@ public class LoginResourceTest
   }
 
   private Response login(String username, String password) throws Exception {
-    Map<String, String> headers = new HashMap<String, String>();
-    if (username != null) {
-      headers.put("Authorization", "Basic " + Base64.encodeToString((username + ":" + password).getBytes("UTF-8")));
-    }
-
-    return RestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", "", headers);
+    return AuthedRestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", username, password);
   }
 
   private Response status(Cookie cookie) throws Exception {

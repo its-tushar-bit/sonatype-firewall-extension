@@ -9,8 +9,7 @@ import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
@@ -20,10 +19,10 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.AbstractModule;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataMultiPart;
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
+import com.ning.http.multipart.ByteArrayPartSource;
+import com.ning.http.multipart.FilePart;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 
@@ -34,14 +33,6 @@ public abstract class AbstractLicenseTest
   private final TestProductLicenseManager licenseManager = new TestProductLicenseManager(true);
 
   private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
-
-  public AbstractLicenseTest() {
-    this(true);
-  }
-
-  public AbstractLicenseTest(boolean disableSecurity) {
-    super(disableSecurity);
-  }
 
   @Override
   protected void configureBrain(TestInsightBrainService brain) {
@@ -70,21 +61,19 @@ public abstract class AbstractLicenseTest
   private String doInstallLicense(Map<String, String> queryParams) throws Exception {
     InputStream license = AbstractLicenseTest.class.getResourceAsStream("/productlicense/license.lic");
     try {
-      FormDataMultiPart form = new FormDataMultiPart();
-      form.bodyPart(new FormDataBodyPart("file", license, MediaType.APPLICATION_OCTET_STREAM_TYPE));
-
-      WebResource resource = Client.create().resource(getServiceURL());
+      AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(getServiceURL());
+      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(null, IOUtil.toByteArray(license))));
       if (queryParams != null) {
         for (String key : queryParams.keySet()) {
-          resource = resource.queryParam(key, queryParams.get(key));
+          builder.addQueryParameter(key, queryParams.get(key));
         }
       }
-
-      String result = resource.type(MediaType.MULTIPART_FORM_DATA).post(String.class, form);
+      Response response = AuthedRestAccess.execute(builder);
+      assertResponseStatus(200, response);
 
       Assert.assertTrue(licenseManager.isValid());
 
-      return result;
+      return response.getResponseBody();
     }
     finally {
       IOUtil.close(license);
@@ -92,9 +81,7 @@ public abstract class AbstractLicenseTest
   }
 
   protected void uninstallLicense() throws Exception {
-    WebResource resource = Client.create().resource(getServiceURL());
-
-    resource.delete();
+    AuthedRestAccess.delete(getServiceURL());
 
     Assert.assertFalse(licenseManager.isValid());
   }

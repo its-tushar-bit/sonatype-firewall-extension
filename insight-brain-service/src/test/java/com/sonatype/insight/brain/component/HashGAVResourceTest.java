@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.component;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -40,7 +40,7 @@ public class HashGAVResourceTest
     HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
     hashGAV.setComment(comment);
     hashGAV.setCreateTime(createTime);
-    Response response = RestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
     assertResponseStatus(200, response);
     hashGAV = JsonHelpers.fromJson(response.getResponseBody(), HashGAV.class);
     assertHashGAV(hash, groupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
@@ -62,7 +62,7 @@ public class HashGAVResourceTest
         200);
 
     HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
-    Response response = RestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
     assertResponseStatus(400, response);
     assertEquals(
         "The 'HashGAVResourceTest_G:HashGAVResourceTest_A:HashGAVResourceTest_V:HashGAVResourceTest_E:HashGAVResourceTest_C' coordinates are already in use",

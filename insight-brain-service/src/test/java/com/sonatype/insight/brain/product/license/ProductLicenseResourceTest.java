@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.product.license;
 
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.sun.jersey.api.client.UniformInterfaceException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.endsWith;
+import static org.junit.Assert.assertThat;
 
 public class ProductLicenseResourceTest
     extends AbstractResourceTest
@@ -28,8 +30,8 @@ public class ProductLicenseResourceTest
       installLicense();
       Assert.fail("License installation should have failed");
     }
-    catch (UniformInterfaceException e) {
-      Assert.assertEquals(400, e.getResponse().getStatus());
+    catch (AssertionError expected) {
+      assertThat(expected.getMessage(), endsWith("expected:<200> but was:<400>"));
     }
 
     // IE is expecting a 200 response back, so we need to validate the error

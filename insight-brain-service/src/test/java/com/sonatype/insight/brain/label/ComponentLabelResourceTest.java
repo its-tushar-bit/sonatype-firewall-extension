@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.label;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.label.ComponentLabelResource.AppliedLabels;
@@ -15,7 +16,6 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -53,7 +53,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testGetComponentLabels_AppLevel() throws Exception {
-    Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash));
+    Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash));
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
@@ -63,7 +63,7 @@ public class ComponentLabelResourceTest
     componentLabelDAO.insert(new ComponentLabel(app.getId(), appLabel.getId(), componentHash));
     componentLabelDAO.insert(new ComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash));
 
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash));
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash));
     assertResponseStatus(200, response);
     componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
@@ -87,7 +87,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testGetComponentLabels_OrgLevel() throws Exception {
-    Response response = RestAccess
+    Response response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash));
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
@@ -98,7 +98,7 @@ public class ComponentLabelResourceTest
     componentLabelDAO.insert(new ComponentLabel(app.getId(), appLabel.getId(), componentHash));
     componentLabelDAO.insert(new ComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash));
 
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash));
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash));
     assertResponseStatus(200, response);
     componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
@@ -115,7 +115,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_AppLevel() throws Exception {
-    Response response = RestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash),
+    Response response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash),
         JsonHelpers.asJson(appLabel));
     assertResponseStatus(204, response);
 
@@ -130,7 +130,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_OrgLevel() throws Exception {
-    Response response = RestAccess.post(
+    Response response = AuthedRestAccess.post(
         getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash), JsonHelpers.asJson(orgLabel));
     assertResponseStatus(204, response);
 
@@ -148,13 +148,13 @@ public class ComponentLabelResourceTest
     componentLabelDAO.insert(appComponentLabel);
     componentLabelDAO.insert(orgComponentLabel);
 
-    Response response = RestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash)
+    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash)
         + "/" + appLabel.getId());
     assertResponseStatus(204, response);
 
     Assert.assertThat(componentLabelDAO.getById(appComponentLabel.getId()), is(nullValue()));
 
-    response = RestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash) + "/"
+    response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash) + "/"
         + orgLabel.getId());
     assertResponseStatus(404, response);
     Assert.assertThat(response.getResponseBody(), is("Cannot find the label with id " + orgLabel.getId()
@@ -168,13 +168,13 @@ public class ComponentLabelResourceTest
     componentLabelDAO.insert(appComponentLabel);
     componentLabelDAO.insert(orgComponentLabel);
 
-    Response response = RestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(),
+    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(),
         componentHash) + "/" + orgLabel.getId());
     assertResponseStatus(204, response);
 
     Assert.assertThat(componentLabelDAO.getById(orgComponentLabel.getId()), is(nullValue()));
 
-    response = RestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash) + "/"
+    response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash) + "/"
         + appLabel.getId());
     assertResponseStatus(404, response);
     Assert.assertThat(response.getResponseBody(), is("Cannot find the label with id " + appLabel.getId()

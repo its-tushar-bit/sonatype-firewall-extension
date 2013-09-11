@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.features;
 
 import java.util.Arrays;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -21,7 +21,7 @@ public class FeatureResourceTest
   @Test
   public void testFeatures() throws Exception {
     // Get all features
-    Response response = RestAccess.get(getServiceURL());
+    Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
     String[] features = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
     Assert.assertNotNull(features);

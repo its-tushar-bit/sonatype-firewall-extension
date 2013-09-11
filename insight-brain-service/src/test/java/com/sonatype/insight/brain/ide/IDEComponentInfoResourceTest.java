@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -41,7 +42,6 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -102,7 +102,7 @@ public class IDEComponentInfoResourceTest
     ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
     setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasComponentDetails), 200);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -132,7 +132,7 @@ public class IDEComponentInfoResourceTest
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
     setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasComponentDetails), 200);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -163,7 +163,7 @@ public class IDEComponentInfoResourceTest
     ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("36079", "osvdb", 7.5F, "Summary"));
     setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasComponentDetails), 200);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -199,7 +199,7 @@ public class IDEComponentInfoResourceTest
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
         "01234567890123456789", "unknown");
     setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), "unknown GAV", 404);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -214,7 +214,7 @@ public class IDEComponentInfoResourceTest
 
     serviceUrl = getComponentDetailsUrl(applicationPublicId, "", "", "", "01234567890123456789", "unknown");
     setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), "unknown GAV", 404);
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -241,7 +241,7 @@ public class IDEComponentInfoResourceTest
     ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
     setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), JsonHelpers.asJson(saasComponentDetails),
         200);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -254,7 +254,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess
+    Response response = AuthedRestAccess
         .get(getComponentDetailsUrl("unlicensedappId", "ulg", "ula", "ulv", "ulh", "unknown"));
     assertResponseStatus(402, response);
   }
@@ -280,7 +280,7 @@ public class IDEComponentInfoResourceTest
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
     setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasComponentDetails), 200);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -295,7 +295,7 @@ public class IDEComponentInfoResourceTest
 
     serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, "01234567890123456789",
         "similar", "false");
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
@@ -327,7 +327,7 @@ public class IDEComponentInfoResourceTest
     String version = "v1";
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, hash,
         MatchState.SIMILAR.getId(), "false" /* proprietary */);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -349,7 +349,7 @@ public class IDEComponentInfoResourceTest
     hashGAV.setCreateTime(new Date());
     HashGAVDAO hashGAVDAO = new HashGAVDAO();
     hashGAVDAO.insert(hashGAV);
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     hashGAVDAO.delete(hashGAV);
     assertResponseStatus(200, response);
     componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);
@@ -404,7 +404,7 @@ public class IDEComponentInfoResourceTest
     String version = "v1";
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, hash,
         MatchState.SIMILAR.getId(), "false" /* proprietary */);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = JsonHelpers.fromJson(response.getResponseBody(), ComponentDetails.class);

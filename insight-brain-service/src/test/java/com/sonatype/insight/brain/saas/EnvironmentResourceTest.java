@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -19,7 +19,7 @@ public class EnvironmentResourceTest
   public void testSubmitClientEnvironment() throws Exception {
     String queryParams = "p=eclipse&version=2.0.1.qualifier";
     setSaasResponseForURI("session/environment?" + queryParams, "", 200);
-    final Response response = RestAccess.get(getRestBaseUrl() + EnvironmentResource.RESOURCE_PATH + "?" + queryParams);
+    final Response response = AuthedRestAccess.get(getRestBaseUrl() + EnvironmentResource.RESOURCE_PATH + "?" + queryParams);
     assertResponseStatus(200, response);
   }
 

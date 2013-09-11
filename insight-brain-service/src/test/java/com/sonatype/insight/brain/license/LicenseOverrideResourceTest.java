@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.io.File;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
@@ -21,7 +22,6 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -61,7 +61,7 @@ public class LicenseOverrideResourceTest
     // Create
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    Response response = RestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
         JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
@@ -78,7 +78,7 @@ public class LicenseOverrideResourceTest
     // Update (i.e. add again)
     licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN,
         "GPL-2.0", "My comment updated");
-    response = RestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
+    response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
         JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
@@ -92,7 +92,7 @@ public class LicenseOverrideResourceTest
         licenseOverride);
 
     // Delete
-    response = RestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId() + "?user="
+    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId() + "?user="
         + user + "&where=" + where);
     assertResponseStatus(204, response);
     assertAuditLog(ownerId, user, where, true /* isDelete */, licenseOverride);
@@ -155,7 +155,7 @@ public class LicenseOverrideResourceTest
     String appPublicId = "LicenseOverrideResourceTest";
     createApplication(appPublicId);
 
-    Response response = RestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
+    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with id YettiId", response.getResponseBody());
   }
@@ -164,7 +164,7 @@ public class LicenseOverrideResourceTest
   public void testDelete_Nonexistant_Organization() throws Exception {
     Organization organization = createOrganization("LicenseOverrideResourceTest");
 
-    Response response = RestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
+    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with id YettiId", response.getResponseBody());
   }
@@ -180,7 +180,7 @@ public class LicenseOverrideResourceTest
     createApplication(appPublicId, appPublicId, organization);
 
     // Verify the applied license overrides for the application
-    Response response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
+    Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
     AppliedLicenseOverrides appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(),
         AppliedLicenseOverrides.class);
@@ -192,7 +192,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(1));
 
     // Verify the applied license overrides for the organization
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
     appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -203,12 +203,12 @@ public class LicenseOverrideResourceTest
     // Create a license override for the application
     LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    response = RestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId),
+    response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId),
         JsonHelpers.asJson(appLicenseOverride));
     appLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
     // Verify the applied license overrides for the application
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
     appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -221,7 +221,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverride.getId());
 
     // Verify the applied license overrides for the organization
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
     appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -232,11 +232,11 @@ public class LicenseOverrideResourceTest
     // Create a license override for the organization
     LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    response = RestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), JsonHelpers.asJson(orgLicenseOverride));
+    response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), JsonHelpers.asJson(orgLicenseOverride));
     orgLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
     // Verify the applied license overrides for the application
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
     appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -251,7 +251,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(1).licenseOverride.getId());
 
     // Verify the applied license overrides for the organization
-    response = RestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
+    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId) + "/applied/g1/a1/v1");
     assertResponseStatus(200, response);
     appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -286,11 +286,11 @@ public class LicenseOverrideResourceTest
   {
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    Response response = RestAccess.post(getServiceURL(ownerType, ownerPublicId1), JsonHelpers.asJson(licenseOverride));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
-    response = RestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + licenseOverride.getId());
+    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + licenseOverride.getId());
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with id " + licenseOverride.getId() + " for " + ownerType + " id "
         + ownerPublicId2, response.getResponseBody());

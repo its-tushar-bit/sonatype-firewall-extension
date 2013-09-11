@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -18,7 +18,7 @@ public class ConditionTypeResourceTest
 {
   @Test
   public void testGetConditionTypes() throws Exception {
-    final Response response = RestAccess.get(getServiceURL());
+    final Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
     final Object[] conditionTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
     Assert.assertNotNull(conditionTypes);

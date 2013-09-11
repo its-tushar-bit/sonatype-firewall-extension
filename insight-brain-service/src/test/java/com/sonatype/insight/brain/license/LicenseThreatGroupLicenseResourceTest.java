@@ -8,13 +8,13 @@ package com.sonatype.insight.brain.license;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -34,7 +34,7 @@ public class LicenseThreatGroupLicenseResourceTest
     groupDAO.insert(group);
 
     // Get
-    Response response = RestAccess.get(getServiceURL(ownerType, ownerPublicId, group.getId()));
+    Response response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId, group.getId()));
     assertResponseStatus(200, response);
     LicenseThreatGroupLicense[] licenseThreatGroupLicenses = JsonHelpers.fromJson(response.getResponseBody(),
         LicenseThreatGroupLicense[].class);
@@ -45,7 +45,7 @@ public class LicenseThreatGroupLicenseResourceTest
     Set<String> licenseIds = new LinkedHashSet<String>();
     licenseIds.add("GPL-2.0");
     licenseIds.add("Apache-2.0");
-    response = RestAccess.put(getServiceURL(ownerType, ownerPublicId, group.getId()), JsonHelpers.asJson(licenseIds));
+    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId, group.getId()), JsonHelpers.asJson(licenseIds));
     assertResponseStatus(200, response);
 
     // Get

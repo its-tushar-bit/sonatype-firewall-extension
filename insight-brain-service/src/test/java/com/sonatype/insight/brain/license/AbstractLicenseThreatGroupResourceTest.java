@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.license;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -32,16 +32,16 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setOwnerId(ownerId1);
     group.setName("AAA My group");
     group.setThreatLevel(4);
-    Response response = RestAccess.post(getServiceURL(ownerPublicId1), JsonHelpers.asJson(group));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerPublicId1), JsonHelpers.asJson(group));
     assertResponseStatus(200, response);
     group = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
 
-    response = RestAccess.delete(getServiceURL(ownerPublicId2) + "/" + group.getId());
+    response = AuthedRestAccess.delete(getServiceURL(ownerPublicId2) + "/" + group.getId());
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a license threat group with id " + group.getId() + " for " + getOwnerType()
         + " id " + ownerPublicId2, response.getResponseBody());
     // Verify that the group was not deleted
-    response = RestAccess.get(getServiceURL(ownerPublicId1));
+    response = AuthedRestAccess.get(getServiceURL(ownerPublicId1));
     assertResponseStatus(200, response);
     LicenseThreatGroup[] groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
@@ -66,7 +66,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     policy.addConstraint(constraint);
     new PolicyDAO(brain.getWorkDir()).insert(policyOwnerId, policy);
 
-    Response response = RestAccess.delete(getServiceURL(ownerPublicId) + "/" + ltg.getId());
+    Response response = AuthedRestAccess.delete(getServiceURL(ownerPublicId) + "/" + ltg.getId());
     assertResponseStatus(400, response);
 
     String error = "Cannot delete the license threat group because it is used in a condition for the 'policyName' policy";
@@ -80,7 +80,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
   protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {
     // Get all groups
-    Response response = RestAccess.get(getServiceURL(ownerPublicId));
+    Response response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
     LicenseThreatGroup[] groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
@@ -91,13 +91,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setOwnerId(ownerId);
     group.setName("AAA My group");
     group.setThreatLevel(10);
-    response = RestAccess.post(getServiceURL(ownerPublicId), JsonHelpers.asJson(group));
+    response = AuthedRestAccess.post(getServiceURL(ownerPublicId), JsonHelpers.asJson(group));
     assertResponseStatus(200, response);
     group = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, group);
 
     // Get all groups
-    response = RestAccess.get(getServiceURL(ownerPublicId));
+    response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
     groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
@@ -106,13 +106,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
     // Update a group
     group.setName("AAA My updated group");
-    response = RestAccess.put(getServiceURL(ownerPublicId), JsonHelpers.asJson(group));
+    response = AuthedRestAccess.put(getServiceURL(ownerPublicId), JsonHelpers.asJson(group));
     assertResponseStatus(200, response);
     group = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, group);
 
     // Get all groups
-    response = RestAccess.get(getServiceURL(ownerPublicId));
+    response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
     groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
@@ -120,11 +120,11 @@ abstract class AbstractLicenseThreatGroupResourceTest
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
 
     // Delete a group
-    response = RestAccess.delete(getServiceURL(ownerPublicId) + "/" + group.getId());
+    response = AuthedRestAccess.delete(getServiceURL(ownerPublicId) + "/" + group.getId());
     assertResponseStatus(204, response);
 
     // Get all groups
-    response = RestAccess.get(getServiceURL(ownerPublicId));
+    response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
     groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
@@ -148,7 +148,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
   }
 
   protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(String ownerId) throws Exception {
-    Response response = RestAccess.get(getApplicableUrl(ownerId));
+    Response response = AuthedRestAccess.get(getApplicableUrl(ownerId));
     assertResponseStatus(200, response);
     return JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseThreatGroups.class);
   }

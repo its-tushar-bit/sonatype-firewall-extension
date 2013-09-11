@@ -9,11 +9,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
@@ -42,13 +42,13 @@ public class CIResourceTest
     applicationDAO.insert(application);
 
     // Validate that the application was created
-    Response response = RestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
+    Response response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("OK"));
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     // Validation should not fail if the application exists
-    response = RestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
+    response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("OK"));
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -56,7 +56,7 @@ public class CIResourceTest
     applicationDAO.delete(application);
 
     // validate service always returns 200, the actual result is in the response body
-    response = RestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
+    response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("Invalid application id " + applicationPublicId));
   }
@@ -64,7 +64,7 @@ public class CIResourceTest
   @Test
   public void testValidate_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getServiceURL() + "/validate/unlicensedapp");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/validate/unlicensedapp");
     assertResponseStatus(402, response);
   }
 
@@ -73,7 +73,7 @@ public class CIResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getServiceURL() + "/validate/unlicensedapp");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/validate/unlicensedapp");
     assertResponseStatus(402, response);
   }
 
@@ -90,7 +90,7 @@ public class CIResourceTest
     final URL testScanResultUrl = getClass().getResource("/CIResourceTest/scan.json");
     FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
 
-    final Response response = RestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
+    final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
 
     assertResponseStatus(200, response);
 
@@ -100,7 +100,7 @@ public class CIResourceTest
   @Test
   public void testScan_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
+    Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
     assertResponseStatus(402, response);
   }
 
@@ -109,7 +109,7 @@ public class CIResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
+    Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
     assertResponseStatus(402, response);
   }
 
@@ -127,7 +127,7 @@ public class CIResourceTest
     final URL testReportResultUrl = getClass().getResource("/CIResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
 
-    final Response response = RestAccess.get(getServiceURL() + "/report/" + applicationPublicId + "?scanId=" + scanId);
+    final Response response = AuthedRestAccess.get(getServiceURL() + "/report/" + applicationPublicId + "?scanId=" + scanId);
 
     assertResponseStatus(200, response);
 
@@ -138,7 +138,7 @@ public class CIResourceTest
   @Test
   public void testReport_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
     assertResponseStatus(402, response);
   }
 
@@ -147,7 +147,7 @@ public class CIResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
     assertResponseStatus(402, response);
   }
 
@@ -156,10 +156,10 @@ public class CIResourceTest
     final String scanId = "CIResourceTest_ScanId";
 
     final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
-    Response response = RestAccess.get(getServiceURL() + "/artifact/" + query);
+    Response response = AuthedRestAccess.get(getServiceURL() + "/artifact/" + query);
     assertResponseStatus(307, response);
 
-    response = RestAccess.get(response.getHeader("Location"));
+    response = AuthedRestAccess.get(response.getHeader("Location"));
     assertResponseStatus(200, response);
 
     assertThat(response.getResponseBody(), stringContainsInOrder(Arrays.asList("\"groupId\"",
@@ -169,7 +169,7 @@ public class CIResourceTest
   @Test
   public void testArtifact_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getServiceURL()
+    Response response = AuthedRestAccess.get(getServiceURL()
         + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv");
     assertResponseStatus(402, response);
   }
@@ -179,7 +179,7 @@ public class CIResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getServiceURL()
+    Response response = AuthedRestAccess.get(getServiceURL()
         + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv");
     assertResponseStatus(402, response);
   }

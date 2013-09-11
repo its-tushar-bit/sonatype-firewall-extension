@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.license;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -19,7 +19,7 @@ public class LicenseResourceTest
 {
   @Test
   public void testGet() throws Exception {
-    Response response = RestAccess.get(getRestBaseUrl() + LicenseResource.SERVICE_PATH);
+    Response response = AuthedRestAccess.get(getRestBaseUrl() + LicenseResource.SERVICE_PATH);
     assertResponseStatus(200, response);
 
     License[] licenses = JsonHelpers.fromJson(response.getResponseBody(), License[].class);

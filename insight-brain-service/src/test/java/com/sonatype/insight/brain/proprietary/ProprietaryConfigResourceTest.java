@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -37,7 +37,7 @@ public class ProprietaryConfigResourceTest
 
   @Test
   public void testGet_InitialConfig() throws Exception {
-    Response response = RestAccess.get(getServiceUrl());
+    Response response = AuthedRestAccess.get(getServiceUrl());
     assertResponseStatus(200, response);
     ProprietaryConfig config = JsonHelpers.fromJson(response.getResponseBody(), ProprietaryConfig.class);
     assertNotNull(config);
@@ -49,10 +49,10 @@ public class ProprietaryConfigResourceTest
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
-    Response response = RestAccess.put(getServiceUrl(), JsonHelpers.asJson(config));
+    Response response = AuthedRestAccess.put(getServiceUrl(), JsonHelpers.asJson(config));
     assertResponseStatus(204, response);
 
-    response = RestAccess.get(getServiceUrl());
+    response = AuthedRestAccess.get(getServiceUrl());
     assertResponseStatus(200, response);
     config = JsonHelpers.fromJson(response.getResponseBody(), ProprietaryConfig.class);
     assertEquals(packages, config.getPackages());

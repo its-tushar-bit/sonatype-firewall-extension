@@ -13,13 +13,12 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -36,7 +35,6 @@ import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
@@ -67,14 +65,14 @@ public class ApplicationResourceTest
     application.setName("ApplicationResourceTest-testValidate-AppName");
     applicationDAO.insert(application);
 
-    Response response = RestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
+    Response response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("OK"));
 
     applicationDAO.delete(application);
 
     // validate service always returns 200, the actual result is in the response body
-    response = RestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
+    response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("Invalid application id " + applicationPublicId));
   }
@@ -92,7 +90,7 @@ public class ApplicationResourceTest
     application.setPublicId(applicationPublicId);
     application.setOrganizationId(organization.getId());
 
-    Response response = RestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
 
     assertResponseStatus(200, response);
 
@@ -109,41 +107,39 @@ public class ApplicationResourceTest
 
     // Test Add Invalid Icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
-    AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost(getSetIconServiceUrl());
+    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
     builder.addBodyPart(new StringPart("applicationId", application.getId()));
     builder.addBodyPart(new StringPart("hasRobotSource", "false"));
     builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("defaulticon_application.png",
         defaultIconByteArray)));
-    Future<Response> futureResponse = builder.execute();
 
-    response = futureResponse.get();
+    response = AuthedRestAccess.execute(builder);
     assertResponseStatus(400, response);
     Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getResponseBody());
 
     // Test Get Icon (default icon)
     defaultIconByteArray = loadDefaultIcon();
-    Response iconResponse = RestAccess.get(getGetIconServiceUrl(applicationPublicId));
+    Response iconResponse = AuthedRestAccess.get(getGetIconServiceUrl(applicationPublicId));
     assertResponseStatus(307, iconResponse);
     Assert
         .assertEquals(getRestBaseUrl() + "assets/img/defaulticon_application.png", iconResponse.getHeader("Location"));
 
     // Test Add Application Icon
-    builder = RestAccess.getClient().preparePost(getSetIconServiceUrl());
+    builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
     builder.addBodyPart(new StringPart("applicationId", application.getId()));
     builder.addBodyPart(new StringPart("hasRobotSource", "false"));
     builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("defaulticon_application.png",
         defaultIconByteArray)));
-    futureResponse = builder.execute();
-    response = futureResponse.get();
+    response = AuthedRestAccess.execute(builder);
     assertResponseStatus(204, response);
 
     // Test Get Icon (from added application)
-    iconResponse = RestAccess.get(getGetIconServiceUrl(applicationPublicId));
+    iconResponse = AuthedRestAccess.get(getGetIconServiceUrl(applicationPublicId));
     testValidIconResponse(iconResponse);
 
     // Test application update
     application.setName(applicationName + "updated");
-    response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(200, response);
     applicationResult = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
     Assert.assertEquals(application.getId(), applicationResult.getId());
@@ -151,17 +147,16 @@ public class ApplicationResourceTest
     Assert.assertEquals(applicationName + "updated", applicationResult.getName());
 
     // Test icon update
-    builder = RestAccess.getClient().preparePost(getSetIconServiceUrl());
+    builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
     builder.addBodyPart(new StringPart("applicationId", application.getId()));
     builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    futureResponse = builder.execute();
-    response = futureResponse.get();
+    response = AuthedRestAccess.execute(builder);
     assertResponseStatus(204, response);
 
     // Verify non alpha numeric name fails
     application.setName("Non Alphanumeric Name !!!!!");
 
-    response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
 
     assertResponseStatus(400, response);
 
@@ -175,45 +170,43 @@ public class ApplicationResourceTest
     policyDAO.insert(application.getId(), policy1);
 
     // Test delete
-    response = RestAccess.delete(getServiceURL() + "/" + applicationPublicId);
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
     Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.getId()).size());
 
     // Default icon redirect should be returned
-    iconResponse = RestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
+    iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
     assertResponseStatus(307, iconResponse);
     Assert
         .assertEquals(getRestBaseUrl() + "assets/img/defaulticon_application.png", iconResponse.getHeader("Location"));
   }
 
   @Test
-  public void testSyncIcon() throws IOException, ExecutionException, InterruptedException {
+  public void testSyncIcon() throws Exception {
     final String applicationPublicId = "testID";
     Application application = createApplication(applicationPublicId);
 
     byte[] defaultIconByteArray = loadDefaultIcon();
 
     // Test Sync Update Application Icon
-    AsyncHttpClient.BoundRequestBuilder builder = RestAccess.getClient().preparePost(getSetSyncIconServiceUrl());
+    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(getSetSyncIconServiceUrl());
     builder.addBodyPart(new StringPart("applicationId", application.getId()));
     builder.addBodyPart(new StringPart("hasRobotSource", "false"));
     builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("defaulticon_application.png",
         defaultIconByteArray)));
-    Future<Response> futureResponse = builder.execute();
-    Response response = futureResponse.get();
+    Response response = AuthedRestAccess.execute(builder);
     assertResponseStatus(200, response);
     Assert.assertEquals("", response.getResponseBody());
 
     // Test Sync Fail Update Application Icon
-    builder = RestAccess.getClient().preparePost(getSetSyncIconServiceUrl());
+    builder = AuthedRestAccess.getClient().preparePost(getSetSyncIconServiceUrl());
     builder.addBodyPart(new StringPart("applicationId", application.getId()));
     builder.addBodyPart(new StringPart("hasRobotSource", "false"));
     builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("defaulticon_application.png", IconUtils
         .loadInvalidIcon())));
-    futureResponse = builder.execute();
-    response = futureResponse.get();
+    response = AuthedRestAccess.execute(builder);
     assertResponseStatus(200, response);
     Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getResponseBody());
   }
@@ -261,7 +254,7 @@ public class ApplicationResourceTest
     URL testScanResultUrl = getClass().getResource("/CIResourceTest/scan.json");
     FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
 
-    Response response = RestAccess.put(getScanURL(applicationPublicId), "");
+    Response response = AuthedRestAccess.put(getScanURL(applicationPublicId), "");
 
     assertResponseStatus(200, response);
 
@@ -276,7 +269,7 @@ public class ApplicationResourceTest
     createDirectory(insightWork.getReportDir(applicationId));
     createDirectory(policyDAO.getPolicyDir(applicationId));
 
-    response = RestAccess.delete(getServiceURL() + "/" + applicationPublicId);
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     application = applicationDAO.getByPublicId(applicationPublicId);
 
     assertResponseStatus(204, response);
@@ -302,13 +295,13 @@ public class ApplicationResourceTest
 
     applicationDAO.insert(application);
 
-    Response response = RestAccess.delete(getServiceURL() + "/" + applicationPublicId);
+    Response response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     application = applicationDAO.getByPublicId(applicationPublicId);
 
     assertResponseStatus(204, response);
     Assert.assertNull(application);
 
-    response = RestAccess.delete(getServiceURL() + "/" + applicationPublicId);
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
 
     assertResponseStatus(404, response);
     Assert.assertEquals("Could not find an application with public id " + applicationPublicId + ".",
@@ -326,7 +319,7 @@ public class ApplicationResourceTest
     application.setName("testAddApplication_exceedsLicense_id_new_name");
     application.setPublicId("testAddApplication_exceedsLicense_id_new_id");
 
-    Response response = RestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(402, response);
     Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getResponseBody());
   }
@@ -341,7 +334,7 @@ public class ApplicationResourceTest
     Application application = createApplication(applicationPublicId, applicationName);
     setLicenseFingerprint(licenseFingerprint);
 
-    Response response = RestAccess.get(getServiceURL());
+    Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
 
     Application[] applications = JsonHelpers.fromJson(response.getResponseBody(), Application[].class);
@@ -352,7 +345,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(application.getName(), applications[0].getName());
 
     // Test GetApplication
-    response = RestAccess.get(getApplicationServiceUrl(applicationPublicId));
+    response = AuthedRestAccess.get(getApplicationServiceUrl(applicationPublicId));
     assertResponseStatus(200, response);
 
     Application applicationSummary = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
@@ -385,16 +378,16 @@ public class ApplicationResourceTest
     FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId2));
 
     // Eval policy
-    Response response = RestAccess.post(getEvalURL(applicationPublicId, scanId1),
+    Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
         JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
-    response = RestAccess.post(getEvalURL(applicationPublicId, scanId1),
+    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
         JsonHelpers.asJson(new Stage(Stage.ID_RELEASE)));
     assertResponseStatus(200, response);
-    response = RestAccess.post(getEvalURL(applicationPublicId, scanId2), JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
+    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId2), JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
 
-    response = RestAccess.get(getSummariesURL());
+    response = AuthedRestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
     ApplicationManagementSummary[] applications = JsonHelpers.fromJson(response.getResponseBody(),
@@ -441,9 +434,9 @@ public class ApplicationResourceTest
     final URL testScanResultUrl = getClass().getResource("/CIResourceTest/scan.json");
     FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
 
-    RestAccess.put(getScanURL(applicationPublicId), "");
+    AuthedRestAccess.put(getScanURL(applicationPublicId), "");
 
-    response = RestAccess.get(getSummariesURL());
+    response = AuthedRestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
     applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummary[].class);
@@ -451,7 +444,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(1, applications[0].getScansCount());
 
     // Test GetApplication
-    response = RestAccess.get(getSummaryURL(applicationPublicId));
+    response = AuthedRestAccess.get(getSummaryURL(applicationPublicId));
     assertResponseStatus(200, response);
 
     ApplicationManagementSummary applicationSummary = JsonHelpers.fromJson(response.getResponseBody(),
@@ -501,7 +494,7 @@ public class ApplicationResourceTest
     evalLog.add(new Stage(Stage.ID_BUILD), scanId, false, "anonymous", "127.0.0.1");
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
 
-    Response response = RestAccess.get(getServiceURL());
+    Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
 
     ApplicationManagementSummary[] applications = JsonHelpers.fromJson(response.getResponseBody(),
@@ -516,7 +509,7 @@ public class ApplicationResourceTest
     final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
     createApplication(applicationPublicId, applicationName);
 
-    Response response = RestAccess.get(getServiceURL() + "/services/names");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/services/names");
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")
@@ -537,7 +530,7 @@ public class ApplicationResourceTest
     application.setName(applicationName);
     application.setPublicId(applicationPublicId);
 
-    Response response = RestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Applications must have a parent organization.", response.getResponseBody());
   }
@@ -548,7 +541,7 @@ public class ApplicationResourceTest
 
     application.setOrganizationId(null);
 
-    Response response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Applications must have a parent organization.", response.getResponseBody());
   }
@@ -559,7 +552,7 @@ public class ApplicationResourceTest
 
     application.setOrganizationId("newOrganizationId");
 
-    Response response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
   }
@@ -586,7 +579,7 @@ public class ApplicationResourceTest
 
     app.setOrganizationId(org.getId());
 
-    Response response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
+    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
     assertResponseStatus(400, response);
     Assert.assertEquals(
         "The following policies collide with policies of the parent organization: " + policy2.getName(),
@@ -595,7 +588,7 @@ public class ApplicationResourceTest
     policy2.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     policyDAO.update(app.getId(), policy2);
 
-    response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
+    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
     assertResponseStatus(400, response);
     Assert.assertEquals(
         "The following policies collide with policies of the parent organization: " + policy2.getName(),
@@ -612,7 +605,7 @@ public class ApplicationResourceTest
 
     app.setOrganizationId(org.getId());
 
-    Response response = RestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
+    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
     assertResponseStatus(400, response);
     Assert.assertEquals("The following policies have invalid names: Legacy Policy  with invalid name !?",
         response.getResponseBody());
@@ -624,7 +617,7 @@ public class ApplicationResourceTest
     String url = getGenerateIconServiceUrl(hashcode);
     String saasUrl = "rest/application/icon/generate/" + hashcode;
     setSaasResponseForURI(saasUrl, 200, loadDefaultIcon());
-    Response response = RestAccess.get(url);
+    Response response = AuthedRestAccess.get(url);
     testValidIconResponse(response);
   }
 

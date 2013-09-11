@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -30,7 +30,7 @@ public class LandingResourceTest
 
   @Test
   public void testHome_RequestBaseUrl() throws Exception {
-    Response response = RestAccess.get(getRestBaseUrl() + "?x=y&a=b");
+    Response response = AuthedRestAccess.get(getRestBaseUrl() + "?x=y&a=b");
     assertResponseStatus(303, response);
     assertEquals(getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html?x=y&a=b",
         response.getHeader("Location"));
@@ -38,7 +38,7 @@ public class LandingResourceTest
 
   @Test
   public void testHome_ConfiguredBaseUrl() throws Exception {
-    Response response = RestAccess.get(getRestBaseUrl() + "?x=y&a=b");
+    Response response = AuthedRestAccess.get(getRestBaseUrl() + "?x=y&a=b");
     assertResponseStatus(303, response);
     assertEquals("http://clm.sonatype.com/test/" + InsightBrainService.BRAIN_ASSET_PATH.substring(1)
         + "reports.html?x=y&a=b", response.getHeader("Location"));

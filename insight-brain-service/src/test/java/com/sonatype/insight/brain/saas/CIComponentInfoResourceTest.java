@@ -13,6 +13,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -22,7 +23,6 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -62,7 +62,7 @@ public class CIComponentInfoResourceTest
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("EPL-1.0", "UNSPECIFIED"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         JsonHelpers.asJson(saasComponentDetails), 200);
-    Response response = RestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId,
+    Response response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId,
         version));
     assertResponseStatus(200, response);
     License[] licenses = JsonHelpers.fromJson(response.getResponseBody(), License[].class);
@@ -73,7 +73,7 @@ public class CIComponentInfoResourceTest
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-UNSPECIFIED"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         JsonHelpers.asJson(saasComponentDetails), 200);
-    response = RestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     licenses = JsonHelpers.fromJson(response.getResponseBody(), License[].class);
     assertEquals(Arrays.asList(licenses).toString(), 4, licenses.length);
@@ -87,7 +87,7 @@ public class CIComponentInfoResourceTest
     saasComponentDetails.setObservedLicenses(toLicenseSet("EPL-1.0", "GPL-2.0"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         JsonHelpers.asJson(saasComponentDetails), 200);
-    response = RestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     licenses = JsonHelpers.fromJson(response.getResponseBody(), License[].class);
     assertEquals(Arrays.asList(licenses).toString(), 3, licenses.length);
@@ -99,7 +99,7 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetSelectableLicenses_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getSelectableLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
+    Response response = AuthedRestAccess.get(getSelectableLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
     assertResponseStatus(402, response);
   }
 
@@ -116,7 +116,7 @@ public class CIComponentInfoResourceTest
     // Verify component without licenses
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         JsonHelpers.asJson(saasComponentDetails), 200);
-    Response response = RestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = JsonHelpers.fromJson(response.getResponseBody(), ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, empty());
@@ -133,7 +133,7 @@ public class CIComponentInfoResourceTest
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         JsonHelpers.asJson(saasComponentDetails), 200);
-    response = RestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     licenses = JsonHelpers.fromJson(response.getResponseBody(), ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, hasSize(3));
@@ -180,14 +180,14 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetLicenses_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
+    Response response = AuthedRestAccess.get(getLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testGetComponentDetailsList_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getComponentDetailsListUrl("unlicensedappid", "ulg", "ula", "ulv"));
+    Response response = AuthedRestAccess.get(getComponentDetailsListUrl("unlicensedappid", "ulg", "ula", "ulv"));
     assertResponseStatus(402, response);
   }
 
@@ -230,7 +230,7 @@ public class CIComponentInfoResourceTest
         + "&version=" + version, JsonHelpers.asJson(saasComponentDetailsList), 200);
 
     String serviceUrl = getComponentDetailsListUrl(applicationPublicId, groupId, artifactId, version);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = JsonHelpers.fromJson(response.getResponseBody(),

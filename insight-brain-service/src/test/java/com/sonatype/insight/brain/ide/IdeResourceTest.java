@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -46,7 +47,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -83,7 +83,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -116,7 +116,7 @@ public class IdeResourceTest
     String serviceUrl = getScanEnhancedUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json");
-    Response response = RestAccess.post(serviceUrl, JsonHelpers.asJson(new ScannedComponent()));
+    Response response = AuthedRestAccess.post(serviceUrl, JsonHelpers.asJson(new ScannedComponent()));
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -124,7 +124,7 @@ public class IdeResourceTest
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json");
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -157,7 +157,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -176,7 +176,7 @@ public class IdeResourceTest
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
     new LicenseOverrideDAO().insert(licenseOverride);
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -210,7 +210,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -229,7 +229,7 @@ public class IdeResourceTest
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
     new LicenseOverrideDAO().insert(licenseOverride);
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -263,7 +263,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -280,7 +280,7 @@ public class IdeResourceTest
     // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
     // the policy again. There should be no policy alerts.
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json");
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -295,7 +295,7 @@ public class IdeResourceTest
 
     // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json");
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -327,7 +327,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -361,7 +361,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -387,7 +387,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -399,7 +399,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_simple_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getScanSimpleUrl("unlicensedappId", "ulh"));
+    Response response = AuthedRestAccess.get(getScanSimpleUrl("unlicensedappId", "ulh"));
     assertResponseStatus(402, response);
   }
 
@@ -408,7 +408,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getScanSimpleUrl("unlicensedappId", "ulh"));
+    Response response = AuthedRestAccess.get(getScanSimpleUrl("unlicensedappId", "ulh"));
     assertResponseStatus(402, response);
   }
 
@@ -431,7 +431,7 @@ public class IdeResourceTest
     String serviceUrl = getScanEnhancedUrl(applicationPublicId, hash);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -443,7 +443,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_enhanced_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getScanEnhancedUrl("unlicensedappId", "ulh"));
+    Response response = AuthedRestAccess.get(getScanEnhancedUrl("unlicensedappId", "ulh"));
     assertResponseStatus(402, response);
   }
 
@@ -452,7 +452,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getScanEnhancedUrl("unlicensedappId", "ulh"));
+    Response response = AuthedRestAccess.get(getScanEnhancedUrl("unlicensedappId", "ulh"));
     assertResponseStatus(402, response);
   }
 
@@ -473,7 +473,7 @@ public class IdeResourceTest
         "true");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -490,7 +490,7 @@ public class IdeResourceTest
     serviceUrl = getScanUrl("enhanced", applicationPublicId, "abababababababababab", null, null, null, null, "true");
     saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -506,7 +506,7 @@ public class IdeResourceTest
     serviceUrl = getScanUrl("simple", applicationPublicId, "abababababababababab", null, null, null, null, "false");
     saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    response = RestAccess.get(serviceUrl);
+    response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
@@ -550,7 +550,7 @@ public class IdeResourceTest
     saasResponse.setHash(hash);
     saasResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
     setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasResponse), 200);
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     hashGAVDAO.delete(hashGAV);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
@@ -603,7 +603,7 @@ public class IdeResourceTest
     String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = RestAccess.get(serviceUrl);
+    Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
@@ -622,7 +622,7 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions() throws Exception {
     setSaasResponseForURI("rest/ide/artifact/versions?groupId=gid&artifactId=aid", "[\"1.1\", \"2.0\"]", 200);
-    Response response = RestAccess.get(getComponentVersionsUrl("gid", "aid"));
+    Response response = AuthedRestAccess.get(getComponentVersionsUrl("gid", "aid"));
     assertResponseStatus(200, response);
     String[] versions = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
@@ -631,7 +631,7 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getComponentVersionsUrl("ulg", "ula"));
+    Response response = AuthedRestAccess.get(getComponentVersionsUrl("ulg", "ula"));
     assertResponseStatus(402, response);
   }
 
@@ -640,14 +640,14 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getComponentVersionsUrl("ulg", "ula"));
+    Response response = AuthedRestAccess.get(getComponentVersionsUrl("ulg", "ula"));
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testGetAsset() throws Exception {
     setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
     assertResponseStatus(200, response);
     Assert.assertEquals("OK", response.getResponseBody());
   }
@@ -655,7 +655,7 @@ public class IdeResourceTest
   @Test
   public void testGetAsset_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
     assertResponseStatus(402, response);
   }
 
@@ -664,7 +664,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = AuthedRestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
     assertResponseStatus(402, response);
   }
 

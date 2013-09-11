@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -51,7 +52,6 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
@@ -68,7 +68,7 @@ public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
   private Response addPolicy(final String applicationPublicId, final Policy policy) throws Exception {
-    final Response response = RestAccess.post(
+    final Response response = AuthedRestAccess.post(
         getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
@@ -76,7 +76,7 @@ public class PolicyEvaluateResourceTest
   }
 
   private Response updatePolicy(final String applicationPublicId, final Policy policy) throws Exception {
-    final Response response = RestAccess.put(
+    final Response response = AuthedRestAccess.put(
         getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
@@ -117,13 +117,13 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // The report file is not available yet
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -191,14 +191,14 @@ public class PolicyEvaluateResourceTest
     HashGAVDAO hashGAVDAO = new HashGAVDAO();
     hashGAVDAO.insert(hashGAV);
     // The report file is not available yet
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     URL testReportFileUrl = getClass()
         .getResource("/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     hashGAVDAO.delete(hashGAV);
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
@@ -266,7 +266,7 @@ public class PolicyEvaluateResourceTest
 
     URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertThat(policyEval, is(notNullValue()));
@@ -338,7 +338,7 @@ public class PolicyEvaluateResourceTest
     messagesB.clear();
 
     // evaluate policy
-    Response response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -353,7 +353,7 @@ public class PolicyEvaluateResourceTest
     assertPolicyEvaluation(application.getId(), scanId, false /* isReevaluation */);
 
     // check the calculated policy threat
-    response = RestAccess.get(getThreatsURL(applicationPublicId, scanId));
+    response = AuthedRestAccess.get(getThreatsURL(applicationPublicId, scanId));
     assertResponseStatus(200, response);
     final JsonNode policyThreats = JsonUtils.parse(response.getResponseBody()).get("aaData");
     Assert.assertNotNull(policyThreats);
@@ -370,7 +370,7 @@ public class PolicyEvaluateResourceTest
     messagesB.clear();
 
     // evaluate policy again
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -409,7 +409,7 @@ public class PolicyEvaluateResourceTest
     final Stage stage = new Stage(BuildStageType.ID);
 
     // The report file is not available yet
-    Response response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -417,7 +417,7 @@ public class PolicyEvaluateResourceTest
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
 
     // Threat Level 1 Should not show up in any counts
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
 
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
@@ -431,7 +431,7 @@ public class PolicyEvaluateResourceTest
     updatePolicy(applicationPublicId, policy);
 
     // Threat Level 2 should show up as moderate
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -444,7 +444,7 @@ public class PolicyEvaluateResourceTest
     updatePolicy(applicationPublicId, policy);
 
     // Threat Level 4 should show up as severe
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -457,7 +457,7 @@ public class PolicyEvaluateResourceTest
     updatePolicy(applicationPublicId, policy);
 
     // Threat Level 8 should show up as severe
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -495,13 +495,13 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // The report file is not available yet
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -562,7 +562,7 @@ public class PolicyEvaluateResourceTest
     licenseOverrideDAO.insert(orgLicenseOverride);
 
     // Evaluate policy
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -588,7 +588,7 @@ public class PolicyEvaluateResourceTest
     licenseOverrideDAO.insert(appLicenseOverride);
 
     // Evaluate policy
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -648,7 +648,7 @@ public class PolicyEvaluateResourceTest
     String serverUrl = "http://localhost/";
     String cdnUrl = "http://cdn.localhost/";
 
-    Response response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
@@ -696,7 +696,7 @@ public class PolicyEvaluateResourceTest
     final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/empty_report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
 
-    Response response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(Stage.ID_BUILD));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(Stage.ID_BUILD));
     assertResponseStatus(400, response);
 
     PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(appId));
@@ -736,7 +736,7 @@ public class PolicyEvaluateResourceTest
     notifications.clear();
 
     // Evaluate policy
-    Response response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -760,7 +760,7 @@ public class PolicyEvaluateResourceTest
     scanId += "1";
     saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -804,7 +804,7 @@ public class PolicyEvaluateResourceTest
     notifications.clear();
 
     // Evaluate policy
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = JsonHelpers.fromJson(response.getResponseBody(),
         PolicyEvaluationResult.class);
@@ -824,7 +824,7 @@ public class PolicyEvaluateResourceTest
     updatePolicy(applicationPublicId, policy1);
 
     // Evaluate policy again for the same scan
-    response = RestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     policyEvaluationResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
@@ -845,7 +845,7 @@ public class PolicyEvaluateResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
-    Response response = RestAccess.post(getServiceURL(applicationPublicId, scanId),
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId),
         JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(404, response);
 

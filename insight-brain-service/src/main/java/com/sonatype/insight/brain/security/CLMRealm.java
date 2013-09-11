@@ -21,6 +21,7 @@ import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.DefaultPasswordService;
 import org.apache.shiro.authc.credential.PasswordMatcher;
+import org.apache.shiro.authc.credential.PasswordService;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
@@ -41,7 +42,7 @@ public class CLMRealm
 {
   private static final Logger log = LoggerFactory.getLogger(CLMRealm.class);
 
-  private final DefaultPasswordService passwordService;
+  private final PasswordService passwordService;
 
   public CLMRealm() {
     setName("CLMRealm");

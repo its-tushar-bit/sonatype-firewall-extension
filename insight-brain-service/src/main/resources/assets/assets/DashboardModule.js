@@ -3,8 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-//using global variable to share between apps
-var currentUrl;
 (function() {
   "use strict";
   var masterModalShown = false;
@@ -45,10 +43,11 @@ var currentUrl;
               '$rootScope',
               '$location',
               '$window',
+              '$state',
               'Messages',
               'CLMLocations',
               'serverStatus',
-              function($rootScope, $location, $window, messages, CLMLocations, serverStatus) {
+              function($rootScope, $location, $window, $state, messages, CLMLocations, serverStatus) {
                 // The page contains unsaved changes, continuing will discard
                 // them.
                 $rootScope.tempState = null;
@@ -56,45 +55,61 @@ var currentUrl;
                 $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
                   $rootScope.error = messages.getHttpErrorMessage(error);
                 });
-
-                $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
-                  currentUrl = newUrl;
-                  
-                  //don't bother checking unless the status has resolved
-                  if ($rootScope.username && $rootScope.licensed) {
-                    var e;
-                    $rootScope.tempNewUrl = null;
-                  
-                    if (newUrl != $rootScope.tempState) {
-                      // give components a chance to negate the page change
-                      e = $rootScope.$broadcast('pageChangeStarted', currentUrl);
-                      if (e.defaultPrevented) {
-                        event.preventDefault();
-                        $rootScope.tempNewUrl = newUrl;
-                        showMasterModal();
-                        return;
-                      }
-
-                      $rootScope.$broadcast('pageChangeAccepted', currentUrl); 
-                    }
-                  } else if ($rootScope.username && currentUrl.indexOf('management/configuration/productlicense') == -1){
+                
+                $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
+                  //check status
+                  if (!$rootScope.initialized) {
                     event.preventDefault();
+                    var storedState = toState;
+                    serverStatus.check().then(function(data){
+                      $rootScope.username = data.username;
+                      $rootScope.licensed = data.licensed;
+                      $rootScope.initialized = true;
+                      if (!$rootScope.licensed) {
+                        if ($location.absUrl().indexOf('/reports.html') > -1) {
+                          $window.location = 'index.html#/management/configuration/productlicense';  
+                        } else {
+                          $state.transitionTo('management.configuration.productlicense');
+                        }
+                      } else {
+                        $state.transitionTo(storedState);  
+                      }
+                    }, function(status){
+                      if (status) {
+                        $rootScope.error = 'Unable to initialize the application';
+                      }
+                    });
+                  } else if (!$rootScope.username) {
+                    event.preventDefault();
+                    $window.location = '../login-assets/login.html';
+                  } else if (!$rootScope.licensed && toState.name != 'management.configuration.productlicense') {
+                    event.preventDefault();
+                    $state.transitionTo('management.configuration.productlicense');
+                  }
+                });
+                
+                $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
+                  var e;
+                  $rootScope.tempNewUrl = null;
+                  $rootScope.tempDestination = $location.url();
+
+                  if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
+                    //special case where back button is hit, locationUrl will be the same as the oldUrl!!
+                    if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
+                      $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
+                    }
+                    //give components a chance to negate the page change
+                    e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
+                    if (e.defaultPrevented) {
+                      event.preventDefault();
+                      $rootScope.tempNewUrl = newUrl;
+                      showMasterModal();
+                      return;
+                    }
+
+                    $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
                   }
                   $rootScope.tempState = null;
-              }, function(status) {
-                if (status) {
-                  $rootScope.error = 'Unable to initialize the application';
-                } else {
-                  // nothing to do, some redirect must've occurred
-                }
-              });
-                
-                serverStatus.check().then(function(data){
-                  $rootScope.username = data.username;
-                  $rootScope.licensed = data.licensed;
-                  if (currentUrl) {
-                    $window.location = currentUrl;
-                  }
                 });
 
                 var fn = function(event) {
@@ -107,7 +122,7 @@ var currentUrl;
 
                 // make sure to cleanup event listeners
                 $rootScope.$on('$destroy', function() {
-                  $rootScope.$broadcast('pageChangeAccepted', currentUrl);
+                  $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
                   $(window).unbind('beforeunload', fn);
                 });
 
@@ -134,9 +149,9 @@ var currentUrl;
         $scope.close = function(shouldContinue) {
           hideMasterModal();
           if (shouldContinue) {
-            $rootScope.$broadcast('pageChangeAccepted', currentUrl);
+            $rootScope.$broadcast('pageChangeAccepted', $scope.tempDestination);
             $rootScope.tempState = $rootScope.tempNewUrl;
-            $location.url(currentUrl);
+            $location.url($scope.tempDestination);
           }
         };
       }]);
@@ -210,15 +225,9 @@ var currentUrl;
               if (data.account) {
                 licenseChecker.check().then(function() {
                   deferred.resolve({username: data.account, licensed: true});
-                  if (currentUrl) {
-                    $window.location = currentUrl;
-                  } else {
-                    $window.location = '../';
-                  }
                 }, function(status) {
                   if (status == 402) {
                     deferred.resolve({username: data.account, licensed: false});
-                    $window.location = '../assets/index.html#/management/configuration/productlicense';
                   } else {
                     deferred.reject(status);
                   }

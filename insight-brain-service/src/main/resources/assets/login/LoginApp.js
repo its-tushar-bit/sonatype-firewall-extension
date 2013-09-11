@@ -32,4 +32,29 @@
           });
         };
       }]);
-}());
+  
+  loginApp.directive('autofill', [
+    '$timeout', '$parse', function($timeout, $parse) {
+      return {
+        restrict: 'A',
+        require: '?ngModel',
+        link: function postLink($scope, element, attrs, controller) {
+          function checkForChange() {
+            var elementValue = element.val();
+            
+            var modelParser = $parse(attrs.ngModel);
+            if (elementValue !== modelParser($scope)) {
+              AngularUtils.safeApply($scope, function(){
+                modelParser.assign($scope, elementValue);
+              });
+            }
+            
+            $timeout(checkForChange, 500);
+          }
+          
+          checkForChange();
+        }
+      };
+    }
+  ]);
+  }());

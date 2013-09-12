@@ -55,50 +55,65 @@
                 $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
                   $rootScope.error = messages.getHttpErrorMessage(error);
                 });
-                
-                $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
-                  //check status
+
+                $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+                  // first state change occurs on first page load, so we always
+                  // want to prevent the first state
+                  // change so that we can first check security and license
+                  // status
                   if (!$rootScope.initialized) {
                     event.preventDefault();
+                    // save the state they were going to for use later, we will
+                    // reuse this if the security/license check all passes
                     var storedState = toState;
-                    serverStatus.check().then(function(data){
+                    serverStatus.check().then(function(data) {
                       $rootScope.username = data.username;
                       $rootScope.licensed = data.licensed;
                       $rootScope.initialized = true;
+                      // unlicensed, force them to the product license page
                       if (!$rootScope.licensed) {
+                        // the reports is a seperate html and app, so we need to
+                        // do a location switch rather than
+                        // a state change
                         if ($location.absUrl().indexOf('/reports.html') > -1) {
-                          $window.location = 'index.html#/management/configuration/productlicense';  
+                          $window.location.replace('index.html#/management/configuration/productlicense');
                         } else {
                           $state.transitionTo('management.configuration.productlicense');
                         }
                       } else {
-                        $state.transitionTo(storedState);  
+                        // user all set, license all set, send em off on their
+                        // way!
+                        $state.transitionTo(storedState);
                       }
-                    }, function(status){
+                    }, function(status) {
                       if (status) {
                         $rootScope.error = 'Unable to initialize the application';
                       }
                     });
                   } else if (!$rootScope.username) {
+                    // not logged in so force to the login page
                     event.preventDefault();
-                    $window.location = '../login-assets/login.html';
+                    $window.location.replace('../login-assets/login.html?timestamp=' + new Date().getTime());
                   } else if (!$rootScope.licensed && toState.name != 'management.configuration.productlicense') {
+                    // not licensed and trying to browse to a page other than
+                    // license
                     event.preventDefault();
                     $state.transitionTo('management.configuration.productlicense');
                   }
                 });
-                
+
                 $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
                   var e;
                   $rootScope.tempNewUrl = null;
                   $rootScope.tempDestination = $location.url();
 
                   if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
-                    //special case where back button is hit, locationUrl will be the same as the oldUrl!!
+                    // special case where back button is hit, locationUrl will
+                    // be the same as the oldUrl!!
                     if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
                       $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
                     }
-                    //give components a chance to negate the page change
+                    // give components a chance to negate the page change
                     e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
                     if (e.defaultPrevented) {
                       event.preventDefault();
@@ -183,11 +198,7 @@
     return {
       check: function() {
         var deferred = $q.defer();
-        $http.get(CLMLocations.getLicenseSummaryUrl(), {
-          params: {
-            timestamp: new Date().getTime()
-          }
-        }).success(function(data) {
+        $http.get(CLMLocations.getLicenseSummaryUrl()).success(function(data) {
           deferred.resolve(data);
         }).error(function(data, status) {
           deferred.reject(status);
@@ -215,8 +226,8 @@
     };
   }]);
 
-  dashboardApp.service('serverStatus', ['$rootScope', '$http', '$q', '$window', '$location', 'CLMLocations', 'licenseChecker',
-      'securityStatusChecker',
+  dashboardApp.service('serverStatus', ['$rootScope', '$http', '$q', '$window', '$location', 'CLMLocations',
+      'licenseChecker', 'securityStatusChecker',
       function($rootScope, $http, $q, $window, $location, CLMLocations, licenseChecker, securityStatusChecker) {
         return {
           check: function() {
@@ -224,17 +235,23 @@
             securityStatusChecker.check().then(function(data) {
               if (data.username) {
                 licenseChecker.check().then(function() {
-                  deferred.resolve({username: data.username, licensed: true});
+                  deferred.resolve({
+                    username: data.username,
+                    licensed: true
+                  });
                 }, function(status) {
                   if (status == 402) {
-                    deferred.resolve({username: data.username, licensed: false});
+                    deferred.resolve({
+                      username: data.username,
+                      licensed: false
+                    });
                   } else {
                     deferred.reject(status);
                   }
                 });
               } else {
                 deferred.reject();
-                $window.location = '../login-assets/login.html';
+                $window.location.replace('../login-assets/login.html?timestamp=' + new Date().getTime());
               }
             }, function(status) {
               deferred.reject(status);

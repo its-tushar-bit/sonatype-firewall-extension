@@ -72,15 +72,18 @@ public class LoginResourceTest
     assertResponseStatus(204, response);
 
     // validate cookie is present
-    Assert.assertEquals(2, response.getCookies().size());
-    Assert.assertEquals("JSESSIONID", response.getCookies().get(0).getName());
-    Assert.assertEquals("rememberMe", response.getCookies().get(1).getName());
-    Assert.assertEquals("deleteMe", response.getCookies().get(1).getValue());
+    Cookie loggedInSessionCookie = extractSessionCookie(response);
+    Assert.assertFalse(loggedInSessionCookie.getValue().equals("deleteMe"));
 
+    // logout is successful
     response = logout(response.getCookies().get(0));
     assertResponseStatus(204, response);
+    
+    // logout removes session id
+    Cookie loggOutSessionCookie = extractSessionCookie(response);
+    Assert.assertTrue(loggOutSessionCookie.getValue().equals("deleteMe"));
   }
-
+  
   @Test
   public void testStatus() throws Exception {
     // logged out by default, so 200 expected with no username
@@ -92,8 +95,7 @@ public class LoginResourceTest
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
-    // index 0 is the jsessionid cookie
-    Cookie jsessionIdCookie = response.getCookies().get(0);
+    Cookie jsessionIdCookie = extractSessionCookie(response);
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
@@ -108,5 +110,15 @@ public class LoginResourceTest
     assertResponseStatus(200, response);
     status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
     Assert.assertNull(status.getAccount());
+  }
+
+  private Cookie extractSessionCookie(Response response) {
+    for (Cookie cookie : response.getCookies()) {
+      if( "JSESSIONID".equals(cookie.getName())) {
+        return cookie;
+      }
+    }
+    
+    throw new IllegalStateException("Missing session cookie");
   }
 }

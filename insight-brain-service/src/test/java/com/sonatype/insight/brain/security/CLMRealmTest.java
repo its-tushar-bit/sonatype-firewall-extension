@@ -41,6 +41,19 @@ public class CLMRealmTest
   @Inject
   private CLMRealm realm;
 
+  /**
+   * testing internals; that we've implemented the abstract doGetAuthenticationInfo correctly
+   * auth info indicates account found
+   * auth info comprised of:
+   * - 1 principal
+   * - principal is from the clm realm
+   * - principal value is the username
+   * - credentials in expected string format
+   * 
+   * why the cast and use of SimpleAuthenticationInfo?  doesn't seem relevant to the test; it functions fine using the
+   * AuthenticationInfo interface
+   * 
+   */
   @Test
   public void testDoGetAuthenticationInfo_ValidUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
@@ -61,6 +74,10 @@ public class CLMRealmTest
         is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=".toCharArray()));
   }
 
+  /**
+   * testing internals
+   * auth info indicates no account found; null value
+   */
   @Test
   public void testDoGetAuthenticationInfo_UnknownUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("Yeti", "admin123".toCharArray());
@@ -69,6 +86,16 @@ public class CLMRealmTest
     assertThat(authenticationInfo, nullValue());
   }
 
+  /**
+   * testing internals
+   * auth info indicates account found
+   * call to auth does not compare the credentials, that's left to Shiro and the public method 
+   * auth info comprised of:
+   * - 1 principal
+   * - principal is from the clm realm
+   * - principal value is the username
+   * - credentials in expected string format
+   */
   @Test
   public void testDoGetAuthenticationInfo_WrongPassword() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
@@ -90,6 +117,10 @@ public class CLMRealmTest
         is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=".toCharArray()));
   }
 
+  /**
+   * testing internals
+   * null user name input is not tolerated
+   */
   @Test
   public void testDoGetAuthenticationInfo_NullUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(null /* username */, (char[]) null);
@@ -102,6 +133,10 @@ public class CLMRealmTest
     }
   }
 
+  /**
+   * testing internals
+   * empty user name input is not tolerated
+   */
   @Test
   public void testDoGetAuthenticationInfo_EmptyUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(" " /* username */, (char[]) null);
@@ -114,6 +149,12 @@ public class CLMRealmTest
     }
   }
 
+  /**
+   * testing public api
+   * principal is populated with the username
+   * expect that public access preserves the information populated privately; note we expect this, but don't really 
+   * care since we don't use the extra info
+   */
   @Test
   public void testGetAuthenticationInfo_ValidUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
@@ -134,6 +175,11 @@ public class CLMRealmTest
         is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=".toCharArray()));
   }
 
+  /**
+   * testing public api
+   * found credentials are checked, bad credentials indicated with exception
+   * our class should not throw a different exception
+   */
   @Test
   public void testGetAuthenticationInfo_WrongPassword() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,

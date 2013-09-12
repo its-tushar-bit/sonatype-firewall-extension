@@ -31,6 +31,9 @@ import static org.junit.Assert.fail;
 public class ConfigurationClientTest
     extends AbstractLicenseTest
 {
+  public ConfigurationClientTest() {
+    super(true /* disableSecurity */);
+  }
 
   private void assertMatch(String pattern, String text) {
     assertTrue(text + " does not match pattern " + pattern, text != null && text.matches(pattern));

@@ -27,6 +27,10 @@ public class ReportClientTest
 
   private static Application application;
 
+  public ReportClientTest() {
+    super(true /* disableSecurity */);
+  }
+
   @AfterClass
   public static void afterClass() {
     if (application != null) {

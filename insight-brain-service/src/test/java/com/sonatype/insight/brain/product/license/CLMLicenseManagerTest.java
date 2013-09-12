@@ -98,12 +98,13 @@ public class CLMLicenseManagerTest
 
     CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance(CLMLicenseManager.class);
 
-    licenseManager.setExpirationDate(new Date(System.currentTimeMillis() + 500));
+    licenseManager.setExpirationDate(new Date(System.currentTimeMillis() + 2000));
+    long before = System.currentTimeMillis();
     installLicense();
 
     assertEquals(true, clmLicenseManager.isValid());
 
-    Thread.sleep(600);
+    Thread.sleep(2100 - (System.currentTimeMillis() - before));
 
     assertEquals(false, clmLicenseManager.isValid());
   }

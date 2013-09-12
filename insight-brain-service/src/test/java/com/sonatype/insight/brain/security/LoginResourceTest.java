@@ -118,7 +118,8 @@ public class LoginResourceTest
         return cookie;
       }
     }
-    
-    throw new IllegalStateException("Missing session cookie");
+
+    Assert.fail("Missing session cookie");
+    return null;
   }
 }

@@ -90,7 +90,7 @@ public class LoginResourceTest
     Response response = status(null);
     assertResponseStatus(200, response);
     AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
-    Assert.assertNull(status.getAccount());
+    Assert.assertNull(status.getUsername());
 
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
@@ -100,7 +100,7 @@ public class LoginResourceTest
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
     status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
-    Assert.assertEquals(User.ADMIN_USERNAME, status.getAccount());
+    Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 
     response = logout(jsessionIdCookie);
     assertResponseStatus(204, response);
@@ -109,7 +109,7 @@ public class LoginResourceTest
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
     status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
-    Assert.assertNull(status.getAccount());
+    Assert.assertNull(status.getUsername());
   }
 
   private Cookie extractSessionCookie(Response response) {

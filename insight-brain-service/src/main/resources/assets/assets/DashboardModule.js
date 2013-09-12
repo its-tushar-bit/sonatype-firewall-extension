@@ -222,12 +222,12 @@
           check: function() {
             var deferred = $q.defer();
             securityStatusChecker.check().then(function(data) {
-              if (data.account) {
+              if (data.username) {
                 licenseChecker.check().then(function() {
-                  deferred.resolve({username: data.account, licensed: true});
+                  deferred.resolve({username: data.username, licensed: true});
                 }, function(status) {
                   if (status == 402) {
-                    deferred.resolve({username: data.account, licensed: false});
+                    deferred.resolve({username: data.username, licensed: false});
                   } else {
                     deferred.reject(status);
                   }

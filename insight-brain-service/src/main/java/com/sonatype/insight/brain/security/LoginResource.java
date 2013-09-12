@@ -52,31 +52,38 @@ public class LoginResource
     SecurityUtils.getSubject().logout();
   }
 
+  /**
+   * Get the status of the current account, will always return an AccountStatus
+   * object, if not logged in, username will be null
+   * @return AccountStatus
+   */
   @UnlicensedPath
   @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public AccountStatus getStatus() {
-    AccountStatus status = new AccountStatus();
-
-    Subject subject = SecurityUtils.getSubject();
-    if (subject.isAuthenticated()) {
-      status.setAccount(subject.getPrincipal().toString());
-    }
-
-    return status;
+    return new AccountStatus(SecurityUtils.getSubject());
   }
 
   public static final class AccountStatus
   {
-    private String account;
-
-    public String getAccount() {
-      return account;
+    private String username;
+    
+    public AccountStatus() {
     }
 
-    public void setAccount(String account) {
-      this.account = account;
+    public AccountStatus(Subject subject) {
+      if (subject.isAuthenticated()) {
+        username = subject.getPrincipal().toString();
+      }
+    }
+    
+    public void setUsername( String username ) {
+      this.username = username;
+    }
+
+    public String getUsername() {
+      return username;
     }
   }
 }

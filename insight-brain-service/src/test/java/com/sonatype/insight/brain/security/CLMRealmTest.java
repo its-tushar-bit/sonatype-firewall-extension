@@ -13,9 +13,10 @@ import com.sonatype.insight.brain.model.security.User;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
+import org.apache.shiro.authc.AuthenticationInfo;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.IncorrectCredentialsException;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.Test;
@@ -49,16 +50,12 @@ public class CLMRealmTest
    * - principal is from the clm realm
    * - principal value is the username
    * - credentials in expected string format
-   * 
-   * why the cast and use of SimpleAuthenticationInfo?  doesn't seem relevant to the test; it functions fine using the
-   * AuthenticationInfo interface
-   * 
    */
   @Test
   public void testDoGetAuthenticationInfo_ValidUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "admin123".toCharArray());
-    SimpleAuthenticationInfo authenticationInfo = (SimpleAuthenticationInfo) realm
+    AuthenticationInfo authenticationInfo = realm
         .doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertNotNull(principalCollection);
@@ -81,7 +78,7 @@ public class CLMRealmTest
   @Test
   public void testDoGetAuthenticationInfo_UnknownUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("Yeti", "admin123".toCharArray());
-    SimpleAuthenticationInfo authenticationInfo = (SimpleAuthenticationInfo) realm
+    AuthenticationInfo authenticationInfo = realm
         .doGetAuthenticationInfo(usernamePasswordToken);
     assertThat(authenticationInfo, nullValue());
   }
@@ -100,7 +97,7 @@ public class CLMRealmTest
   public void testDoGetAuthenticationInfo_WrongPassword() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "Oops! Wrong password!".toCharArray());
-    SimpleAuthenticationInfo authenticationInfo = (SimpleAuthenticationInfo) realm
+    AuthenticationInfo authenticationInfo = realm
         .doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertNotNull(principalCollection);
@@ -159,7 +156,7 @@ public class CLMRealmTest
   public void testGetAuthenticationInfo_ValidUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "admin123".toCharArray());
-    SimpleAuthenticationInfo authenticationInfo = (SimpleAuthenticationInfo) realm
+    AuthenticationInfo authenticationInfo = realm
         .getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertNotNull(principalCollection);

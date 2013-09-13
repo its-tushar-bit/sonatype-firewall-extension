@@ -72,6 +72,7 @@ public abstract class AbstractBrainServiceTest
     this(false /*disableSecurity*/);
   }
 
+  // To be removed when we implement auth for clients
   public AbstractBrainServiceTest(boolean disableSecurity) {
     this.disableSecurity = disableSecurity;
   }

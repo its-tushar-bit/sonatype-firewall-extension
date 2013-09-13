@@ -38,6 +38,7 @@ public abstract class AbstractLicenseTest
     this(false /* disableSecurity */);
   }
 
+  // To be removed when we implement auth for clients
   public AbstractLicenseTest(boolean disableSecurity) {
     super(disableSecurity);
   }

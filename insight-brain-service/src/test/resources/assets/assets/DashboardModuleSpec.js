@@ -54,7 +54,7 @@ describe('dashboardApp', function() {
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
               username: 'user'
             });
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]])).respond({
+            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond({
               username: 'user'
             });
             var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
@@ -74,7 +74,7 @@ describe('dashboardApp', function() {
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
               username: 'user'
             });
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(402);
+            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
             var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
             $httpBackend.flush();
 

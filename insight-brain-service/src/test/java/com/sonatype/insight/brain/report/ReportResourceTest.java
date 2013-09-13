@@ -208,11 +208,11 @@ public class ReportResourceTest
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
 
     assertResponseStatus(200,
-        RestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
+        AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
 
     String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    Response response = RestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);

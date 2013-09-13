@@ -156,7 +156,7 @@ public class CIComponentInfoResourceTest
     String version = "v1";
 
     // Verify exception is not thrown if component is not known to SaaS
-    Response response = RestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     // if we got here, we are good, but let's do some sanity check 
     ComponentLicenses licenses = JsonHelpers.fromJson(response.getResponseBody(), ComponentLicenses.class);

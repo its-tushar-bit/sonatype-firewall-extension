@@ -41,8 +41,6 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

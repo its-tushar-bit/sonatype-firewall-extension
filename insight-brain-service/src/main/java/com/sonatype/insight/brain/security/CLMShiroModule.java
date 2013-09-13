@@ -33,6 +33,7 @@ public class CLMShiroModule
     expose(FilterChainResolver.class);
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
+    addTemporaryAnonymousPaths(manager);
     manager.createChain("/account/status", "anon");
     manager.createChain("/*assets/**", "anon");
     manager.createChain("/favicon.ico", "anon");
@@ -40,6 +41,30 @@ public class CLMShiroModule
     manager.createChain("/**/*", "authcBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bindRealm().to(CLMRealm.class);
+  }
+  
+  private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
+    manager.createChain("/rest/application/services/names", "anon");
+    manager.createChain("/rest/component/identified", "anon");
+    manager.createChain("/rest/config/proprietary", "anon");
+    manager.createChain("/rest/features", "anon");
+    manager.createChain("/rest/ide/**", "anon");
+    manager.createChain("/rest/label/application/*", "anon");
+    manager.createChain("/rest/label/application/*/applicable", "anon");
+    manager.createChain("/rest/label/component/**", "anon");
+    manager.createChain("/rest/license", "anon");
+    manager.createChain("/rest/licenseOverride/**", "anon");
+    manager.createChain("/rest/policyWaiver/**", "anon");
+    manager.createChain("/rest/policy/*/evaluate", "anon");
+    manager.createChain("/rest/policy/*/*/export", "anon");
+    manager.createChain("/rest/policy/*/*/import", "anon");
+    manager.createChain("/rest/policy/actionType", "anon");
+    manager.createChain("/rest/report/**", "anon");
+    manager.createChain("/rest/ci/**", "anon");
+    manager.createChain("/rest/session/environment", "anon");
+    manager.createChain("/rest/rm/**", "anon");
+    manager.createChain("/api/v1/**", "anon");
+    manager.createChain("/tasks/**", "anon");
   }
 
   @Override

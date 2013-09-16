@@ -73,6 +73,16 @@
                     msg: result.message
                 });
             }
+        }).error(function(data, status) {
+            var msg = data;
+            $scope.alerts.splice(0, 1); // clear old alerts
+            if (status===0) {
+                msg = 'Unable to reach CLM server';
+            }
+            $scope.alerts.push({
+                type: 'error',
+                msg: msg
+            });
         });
       };
 

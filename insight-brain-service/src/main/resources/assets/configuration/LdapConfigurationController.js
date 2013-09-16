@@ -39,8 +39,8 @@
   ]);
 
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$dialog', 'Messages', 'LdapConfigurationStore',
-    function($scope, $state, $dialog, messages, ldapStore) {
+    '$scope', '$state', '$dialog', '$http', 'Messages', 'LdapConfigurationStore', 'CLMLocations',
+    function($scope, $state, $dialog, $http, messages, ldapStore, clmLocations) {
       function isDirty() {
         if ($scope.ldap) {
           return $scope.ldap.isDirty();
@@ -60,7 +60,20 @@
       };
 
       $scope.testConnection = function() {
-        return true;
+        $http.put(clmLocations.getLdapConfig() + '/test', $scope.ldap).success(function (result) {
+            $scope.alerts.splice(0, 1); // clear old alerts
+            if (result.status === 'OK') {
+                $scope.alerts.push({
+                    type: 'success',
+                    msg: 'Success!'
+                });
+            } else {
+                $scope.alerts.push({
+                    type: 'error',
+                    msg: result.message
+                });
+            }
+        });
       };
 
       $scope.closeAlert = function(index) {

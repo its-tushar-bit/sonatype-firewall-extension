@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.CommunicationException;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -113,7 +112,7 @@ public class LdapConfigurationResource
       return LdapConnectionStatus.OK;
     }
     catch (NamingException e) {
-      return new LdapConnectionStatus(Status.FAILURE, e.toString(true));
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
     }
   }
 

@@ -27,7 +27,7 @@ import org.apache.shiro.subject.Subject;
 @Named
 public class LoginResource
 {
-  public static final String SERVICE_PATH = "account";
+  public static final String SERVICE_PATH = "rest/account";
 
   @Inject
   public LoginResource() {

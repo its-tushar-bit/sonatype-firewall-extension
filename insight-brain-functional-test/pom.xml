@@ -1,0 +1,186 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.7.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>insight-brain-functional-test</artifactId>
+  
+  <!--
+    assembled with help from:
+      https://github.com/spockframework/spock-example
+      https://github.com/geb/geb-example-maven
+  -->
+  <build>
+    <!-- Mandatory plugins for using Spock -->
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <version>1.5</version>
+        <configuration>
+          <providerSelection>2.0</providerSelection>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.gmaven.runtime</groupId>
+            <artifactId>gmaven-runtime-2.0</artifactId>
+            <version>1.5</version>
+            <exclusions>
+              <exclusion>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.1.7</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <!-- Make surefire aware of Spec tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- Don't halt on failures, so that the damage control report can pick up the test results. -->
+          <!-- <testFailureIgnore>true</testFailureIgnore> -->
+          <excludes>
+            <!-- Examples to be run as individual tests from Maven CLI or IDE. -->
+            <exclude>**/example/**</exclude>
+          </excludes>
+          <includes>
+            <include>**/*Spec.*</include>
+          </includes>
+          <systemPropertyVariables>
+            <!-- Defined in GebConfig.groovy so that tests can be executed in Eclipse or from Maven CLI. -->
+            <!-- <geb.build.reportsDir>${project.build.directory}/test-reports/geb</geb.build.reportsDir> -->
+            <!-- <geb.build.baseUrl>http://localhost:8070/</geb.build.baseUrl> -->
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <!--
+        A nice report using the Spock blocks
+        https://github.com/damage-control/  
+       -->
+      <plugin>
+        <groupId>com.github.damage-control.report</groupId>
+        <artifactId>damage-control-maven-plugin</artifactId>
+        <version>1.2-SNAPSHOT</version>
+        <configuration>
+          <!-- ${skip.damage.control.report} -->
+          <skip>false</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+     </plugins>
+     
+     <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.gmaven</groupId>
+                    <artifactId>gmaven-plugin</artifactId>
+                    <versionRange>[1.4,)</versionRange>
+                    <goals>
+                      <goal>compile</goal>
+                      <goal>testCompile</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <dependencies>
+    <!-- Mandatory dependencies for using Spock -->
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <version>2.1.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.spockframework</groupId>
+      <artifactId>spock-core</artifactId>
+      <!-- <version>1.0-groovy-2.0-SNAPSHOT</version> -->
+      <version>0.7-groovy-2.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.groovy</groupId>
+          <artifactId>groovy-all</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Geb browser automation -->
+    <dependency>
+      <groupId>org.gebish</groupId>
+      <artifactId>geb-spock</artifactId>
+      <version>0.9.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-firefox-driver</artifactId>
+      <!-- 2.26.0 wouldn't drive FF on my OS X or Ubuntu install -->
+      <version>2.35.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-chrome-driver</artifactId>
+      <version>2.35.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-support</artifactId>
+      <version>2.35.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- DW testing to start services -->
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- The app to test against -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+    </dependency>
+  </dependencies>
+</project>

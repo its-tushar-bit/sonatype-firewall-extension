@@ -105,10 +105,15 @@ public class LdapConfigurationResource
   @Path("test")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LdapConnectionStatus testConnection(LdapConfiguration config) {
+  public LdapConnectionStatus testConnection(LdapConfiguration config) throws PlexusCipherException {
     try {
+      String password = config.getSystemPassword();
+      if (FAKE_PASSWORD.equals(password) && config.getId() != null) {
+        password = decryptPassword(dao.getByIdNotNull(config.getId())).getSystemPassword();
+      }
+
       LdapRealm.testConnection(config.getUrl(), config.getAuthenticationMethod().getMethod(),
-          config.getSystemUsername(), config.getSystemPassword(), config.getSaslRealm());
+          config.getSystemUsername(), password, config.getSaslRealm());
       return LdapConnectionStatus.OK;
     }
     catch (NamingException e) {

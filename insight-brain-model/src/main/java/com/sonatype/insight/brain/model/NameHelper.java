@@ -29,19 +29,24 @@ public class NameHelper
   }
 
   public static void validate(String name) {
-    if (name == null || name.trim().isEmpty()) {
-      throw new InvalidNameException("Name is required.");
+    validate("Name", name);
+  }
+
+  public static void validate(String fieldName, String fieldValue) {
+    if (fieldValue == null || fieldValue.trim().isEmpty()) {
+      throw new InvalidNameException(fieldName + " is required.");
     }
-    for (char c : name.toCharArray()) {
+    for (char c : fieldValue.toCharArray()) {
       if (!Character.isLetterOrDigit(c) && c != '-' && c != ' ') {
-        throw new InvalidNameException("Name must be alpha numeric.");
+        throw new InvalidNameException(fieldName + " must be alpha numeric.");
       }
     }
-    if (name.startsWith(" ") || name.endsWith(" ") || name.indexOf("  ") > 0) {
-      throw new InvalidNameException("Name must not have leading or trailing spaces, or have two spaces in a row.");
+    if (fieldValue.startsWith(" ") || fieldValue.endsWith(" ") || fieldValue.indexOf("  ") > 0) {
+      throw new InvalidNameException(fieldName
+          + " must not have leading or trailing spaces, or have two spaces in a row.");
     }
-    if (name.length() > MAX_NAME_LENGTH) {
-      throw new InvalidNameException("Name must be " + NameHelper.MAX_NAME_LENGTH + " characters or less.");
+    if (fieldValue.length() > MAX_NAME_LENGTH) {
+      throw new InvalidNameException(fieldName + " must be " + NameHelper.MAX_NAME_LENGTH + " characters or less.");
     }
   }
 }

@@ -179,7 +179,7 @@ public class UserDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals("The username must be alpha numeric.", expected.getMessage());
       }
     }
   }
@@ -195,7 +195,7 @@ public class UserDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals("The username must be alpha numeric.", expected.getMessage());
       }
     }
   }
@@ -240,7 +240,7 @@ public class UserDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
+      assertEquals("The username must be 60 characters or less.", expected.getMessage());
     }
 
     createUser(username);
@@ -257,7 +257,7 @@ public class UserDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
+      assertEquals("The username must be 60 characters or less.", expected.getMessage());
     }
 
     user.setUsername(username);

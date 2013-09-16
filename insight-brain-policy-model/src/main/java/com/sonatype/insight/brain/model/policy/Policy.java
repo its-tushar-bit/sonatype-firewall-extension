@@ -140,10 +140,10 @@ public class Policy
     else {
       // if inserting/updating a policy, go with strict name validation
       try {
-        NameHelper.validate(name);
+        NameHelper.validate("The policy name", name);
       }
       catch (InvalidNameException e) {
-        result.addError(e.getMessage().replace("Name", "The policy name"));
+        result.addError(e.getMessage());
       }
     }
     if (constraints == null || constraints.isEmpty()) {

@@ -69,7 +69,7 @@ public class UserDAO
     if (username.contains(" ")) {
       throw new InvalidNameException("The username cannot contain spaces");
     }
-    NameHelper.validate(username);
+    NameHelper.validate("The username", username);
   }
 
   @Override

@@ -53,10 +53,7 @@ public class LoginResource
   }
 
   /**
-   * Get the status of the current account, will always return an AccountStatus object, if not logged in, 
-   * username will be null
-   * 
-   * @return AccountStatus
+   * Get the authentication status of the current account.
    */
   @UnlicensedPath
   @Path("status")
@@ -86,12 +83,14 @@ public class LoginResource
     /**
      * Create a status based on the {@link Subject}.
      * 
-     * If the user is not authenticated then the username will be null, otherwise it will contain the user identifier.
+     * If the user is not authenticated {@link #isAuthenticated()} will be false; {@link #getUsername()} may be null.
      */
     public static UserStatus fromSubject(Subject subject) {
       UserStatus status = new UserStatus();
       status.setAuthenticated(subject.isAuthenticated());
-      if (status.isAuthenticated()) {
+      
+      // Supply username if it's available.  Will be useful when a user is remembered but not authenticated.
+      if(subject.getPrincipal() != null) {
         status.setUsername(subject.getPrincipal().toString());
       }
 

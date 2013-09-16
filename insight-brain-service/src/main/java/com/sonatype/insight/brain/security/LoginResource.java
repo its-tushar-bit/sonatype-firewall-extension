@@ -19,7 +19,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 
 /**
- * Allows an account to login and logout for access to the server
+ * Allows an account to login and logout for access to the server.
  * 
  * @since 1.7
  */
@@ -40,7 +40,7 @@ public class LoginResource
   @Path("login")
   @POST
   public void login() {
-    // shiro handles all the work here
+    // Shiro handles all the work here.
   }
 
   /**
@@ -53,8 +53,9 @@ public class LoginResource
   }
 
   /**
-   * Get the status of the current account, will always return an AccountStatus
-   * object, if not logged in, username will be null
+   * Get the status of the current account, will always return an AccountStatus object, if not logged in, 
+   * username will be null
+   * 
    * @return AccountStatus
    */
   @UnlicensedPath
@@ -62,20 +63,36 @@ public class LoginResource
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public UserStatus getStatus() {
-    return new UserStatus(SecurityUtils.getSubject());
+    return UserStatus.fromSubject(SecurityUtils.getSubject());
   }
 
+  /**
+   * The authentication status of an account.
+   * 
+   * @since 1.7
+   */
   public static final class UserStatus
   {
     private String username;
     
+    /**
+     * Status for an account that is not authenticated.
+     */
     public UserStatus() {
     }
 
-    public UserStatus(Subject subject) {
+    /**
+     * Create a status based on the {@link Subject}.
+     * 
+     * If the user is not authenticated then the username will be null, otherwise it will contain the user identifier.
+     */
+    public static UserStatus fromSubject(Subject subject) {
+      UserStatus status = new UserStatus();
       if (subject.isAuthenticated()) {
-        username = subject.getPrincipal().toString();
+        status.setUsername(subject.getPrincipal().toString());
       }
+
+      return status;
     }
     
     public void setUsername( String username ) {

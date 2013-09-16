@@ -27,7 +27,7 @@ import org.apache.shiro.subject.Subject;
 @Named
 public class LoginResource
 {
-  public static final String SERVICE_PATH = "rest/account";
+  public static final String SERVICE_PATH = "rest/user";
 
   @Inject
   public LoginResource() {
@@ -61,18 +61,18 @@ public class LoginResource
   @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
-  public AccountStatus getStatus() {
-    return new AccountStatus(SecurityUtils.getSubject());
+  public UserStatus getStatus() {
+    return new UserStatus(SecurityUtils.getSubject());
   }
 
-  public static final class AccountStatus
+  public static final class UserStatus
   {
     private String username;
     
-    public AccountStatus() {
+    public UserStatus() {
     }
 
-    public AccountStatus(Subject subject) {
+    public UserStatus(Subject subject) {
       if (subject.isAuthenticated()) {
         username = subject.getPrincipal().toString();
       }

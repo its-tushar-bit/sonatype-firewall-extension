@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.LoginResource.AccountStatus;
+import com.sonatype.insight.brain.security.LoginResource.UserStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -77,7 +77,7 @@ public class LoginResourceTest
     // logged out by default, so 200 expected with no username
     Response response = status(null);
     assertResponseStatus(200, response);
-    AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    UserStatus status = JsonHelpers.fromJson(response.getResponseBody(), UserStatus.class);
     Assert.assertNull(status.getUsername());
 
     response = login(User.ADMIN_USERNAME, "admin123");
@@ -87,7 +87,7 @@ public class LoginResourceTest
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    status = JsonHelpers.fromJson(response.getResponseBody(), UserStatus.class);
     Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 
     response = logout(jsessionIdCookie);
@@ -96,7 +96,7 @@ public class LoginResourceTest
     // this cookie should no longer be valid
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    status = JsonHelpers.fromJson(response.getResponseBody(), UserStatus.class);
     Assert.assertNull(status.getUsername());
   }
 

@@ -43,16 +43,19 @@ public class LoginResourceTest
     // now run the test with bad username
     Response response = login("admin2", "admin");
     assertResponseStatus(401, response);
+    assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
     assertEquals("", response.getResponseBody());
 
     // now run the test with bad password
     response = login(User.ADMIN_USERNAME, "wrong password");
     assertResponseStatus(401, response);
+    assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
     assertEquals("", response.getResponseBody());
 
     // now run the test with no header, validate failure
     response = login();
     assertResponseStatus(401, response);
+    assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
     assertEquals("", response.getResponseBody());
 
     // now run with valid data

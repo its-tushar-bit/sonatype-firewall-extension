@@ -232,6 +232,7 @@ public class LdapConfiguration
     return systemUsername;
   }
 
+  // XXX poor choice of method name, depending on auth method this can be either username or user DN
   public void setSystemUsername(String systemUsername) {
     this.systemUsername = systemUsername;
   }
@@ -260,4 +261,9 @@ public class LdapConfiguration
     this.retryDelay = retryDelay;
   }
 
+  public String getUrl() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(protocol.getProtocol()).append("://").append(hostname).append(':').append(port);
+    return sb.toString();
+  }
 }

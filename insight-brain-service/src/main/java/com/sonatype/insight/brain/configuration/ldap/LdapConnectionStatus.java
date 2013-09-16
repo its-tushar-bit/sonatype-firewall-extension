@@ -1,0 +1,34 @@
+package com.sonatype.insight.brain.configuration.ldap;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class LdapConnectionStatus
+{
+  public static enum Status
+  {
+    OK, FAILURE;
+  }
+
+  public static LdapConnectionStatus OK = new LdapConnectionStatus(Status.OK, null);
+
+  @JsonProperty
+  private final Status status;
+
+  @JsonProperty
+  private final String message;
+
+  @JsonCreator
+  public LdapConnectionStatus(@JsonProperty("status") Status status, @JsonProperty("message") String message) {
+    this.status = status;
+    this.message = message;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+}

@@ -5,15 +5,20 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConfigurationDAO;
+import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.AuthedRestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -22,6 +27,17 @@ import static org.junit.Assert.assertNull;
 public class LdapConfigurationResourceTest
     extends AbstractResourceTest
 {
+
+  private EmbeddedLdapServer ldapServer;
+
+  @After
+  public void stopEmbeddedLdapServer() throws Exception {
+    if (ldapServer != null) {
+      ldapServer.stop();
+      ldapServer = null;
+    }
+  }
+
   @Test
   public void testCRUD() throws Exception {
     // Create
@@ -181,6 +197,152 @@ public class LdapConfigurationResourceTest
     uninstallLicense();
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testTestAnonymousConnection() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+  }
+
+  @Test
+  public void testTestSimpleConnection() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSimple();
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    config.setSystemUsername(ldapServer.getSystemUserDN());
+    config.setSystemPassword(ldapServer.getSystemUserPassword());
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+  }
+
+  @Test
+  public void testTestDigestConnection() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
+    config.setSystemUsername(ldapServer.getSystemUser());
+    config.setSystemPassword(ldapServer.getSystemUserPassword());
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+  }
+
+  @Test
+  public void testTestCramConnection() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.CRAMMD5);
+    config.setSystemUsername(ldapServer.getSystemUser());
+    config.setSystemPassword(ldapServer.getSystemUserPassword());
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+  }
+
+  @Test
+  public void testTestConnection_InvalidUser() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSimple();
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    String systemUserDN = "litter." + ldapServer.getSystemUserDN() + ".garbage";
+    config.setSystemUsername(systemUserDN);
+    config.setSystemPassword(ldapServer.getSystemUserPassword());
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
+    Assert.assertTrue(status.getMessage().contains("Incorrect DN") && status.getMessage().contains(systemUserDN));
+  }
+
+  @Test
+  public void testTestConnection_InvalidPassword() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSimple();
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    config.setSystemUsername(ldapServer.getSystemUserDN());
+    config.setSystemPassword("garbage.litter");
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
+    Assert.assertTrue(status.getMessage().contains("Cannot authenticate user"));
+  }
+
+  @Test
+  public void testTestConnection_InvalidHostname() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("garbage.localhost.litter");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
+    Assert.assertTrue(status.getMessage().contains("UnknownHostException")
+        && status.getMessage().contains("garbage.localhost.litter"));
   }
 
   private String getServiceURL() {

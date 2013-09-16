@@ -30,6 +30,7 @@ describe('dashboardApp', function() {
 
   beforeEach(inject(function($rootScope, $state, $controller) {
     $rootScope.username = 'user';
+    $rootScope.authenticated = true;
     $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;
@@ -45,14 +46,19 @@ describe('dashboardApp', function() {
             var event = {
               preventDefault: jasmine.createSpy('preventDefault')
             };
-
-            // dump the vars so that we can test from scratch
-            delete $rootScope.username;
-            delete $rootScope.licensed;
-            delete $rootScope.initialized;
-
+            
+            function cleanScope() {
+              // dump the vars so that we can test from scratch
+              delete $rootScope.username;
+              delete $rootScope.authenticated;
+              delete $rootScope.licensed;
+              delete $rootScope.initialized;  
+            }
+            
+            cleanScope();
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
-              username: 'user'
+              username: 'user',
+              authenticated: true
             });
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond({
               username: 'user'
@@ -62,17 +68,17 @@ describe('dashboardApp', function() {
 
             expect(event.defaultPrevented).toEqual(true);
             expect($rootScope.username).toEqual('user');
+            expect($rootScope.authenticated).toEqual(true);
             expect($rootScope.licensed).toEqual(true);
             expect($rootScope.initialized).toEqual(true);
             expect($state.current.name).toEqual('test');
 
             // now test with bad license
-            delete $rootScope.username;
-            delete $rootScope.licensed;
-            delete $rootScope.initialized;
+            cleanScope();
 
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
-              username: 'user'
+              username: 'user',
+              authenticated: true
             });
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
             var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
@@ -80,23 +86,25 @@ describe('dashboardApp', function() {
 
             expect(event.defaultPrevented).toEqual(true);
             expect($rootScope.username).toEqual('user');
+            expect($rootScope.authenticated).toEqual(true);
             expect($rootScope.licensed).toEqual(false);
             expect($rootScope.initialized).toEqual(true);
             expect($state.current.name).toEqual('management.configuration.productlicense');
 
             // now test with bad auth
-            delete $rootScope.username;
-            delete $rootScope.licensed;
-            delete $rootScope.initialized;
+            cleanScope();
 
             $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
-              username: null
+              username: null,
+              authenticated: false
             });
             var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
             $httpBackend.flush();
 
             expect(event.defaultPrevented).toEqual(true);
             expect($rootScope.username).toBeUndefined();
+            // Apps authenticated state is only set when authenticated is true.
+            expect($rootScope.authenticated).toBeUndefined();
             expect($rootScope.licensed).toBeUndefined();
             expect($rootScope.initialized).toBeUndefined();
             expect($window.location.replace.mostRecentCall.args[0]).toMatch(/\.\.\/login-assets\/login\.html\?timestamp=[0-9]+/);

@@ -75,6 +75,8 @@ public class LoginResource
   {
     private String username;
     
+    private boolean isAuthenticated;
+    
     /**
      * Status for an account that is not authenticated.
      */
@@ -88,19 +90,28 @@ public class LoginResource
      */
     public static UserStatus fromSubject(Subject subject) {
       UserStatus status = new UserStatus();
-      if (subject.isAuthenticated()) {
+      status.setAuthenticated(subject.isAuthenticated());
+      if (status.isAuthenticated()) {
         status.setUsername(subject.getPrincipal().toString());
       }
 
       return status;
     }
     
-    public void setUsername( String username ) {
+    public void setUsername(String username) {
       this.username = username;
     }
 
     public String getUsername() {
       return username;
+    }
+
+    public boolean isAuthenticated() {
+      return isAuthenticated;
+    }
+
+    public void setAuthenticated(boolean isAuthenticated) {
+      this.isAuthenticated = isAuthenticated;
     }
   }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.List;
 import java.util.Locale;
 
 import javax.persistence.EntityManager;
@@ -93,5 +94,11 @@ public class UserDAO
     }
 
     super.update(em, user);
+  }
+
+  public List<User> getAll() {
+    String sQuery = "SELECT entity FROM User entity" + //
+        " ORDER BY entity.username";
+    return getList(sQuery);
   }
 }

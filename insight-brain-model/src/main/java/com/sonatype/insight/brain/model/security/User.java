@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.security;
 
+import java.util.Arrays;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -119,5 +121,13 @@ public class User
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public void clearPassword() {
+    if (passwordHash == null) {
+      return;
+    }
+    Arrays.fill(passwordHash, (char) 0);
+    passwordHash = null;
   }
 }

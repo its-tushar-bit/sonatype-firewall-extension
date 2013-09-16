@@ -64,6 +64,8 @@ public class Organization
    * 
    * @deprecated This method should not be used explicitly.
    */
-  public void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 }

@@ -96,7 +96,9 @@ public class Application
    * 
    * @deprecated This method should not be used explicitly.
    */
-  public void setPublicIdLowercase(String publicIdLowercase) {
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setPublicIdLowercase(String publicIdLowercase) {
   }
 
   /**
@@ -106,7 +108,9 @@ public class Application
    * 
    * @deprecated This method should not be used explicitly.
    */
-  public void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 
   public String getOrganizationId() {

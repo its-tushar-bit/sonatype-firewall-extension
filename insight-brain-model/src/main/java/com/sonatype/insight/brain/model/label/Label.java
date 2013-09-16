@@ -124,7 +124,9 @@ public class Label
    * 
    * @deprecated This method should not be used explicitly.
    */
-  public void setLabelLowercase(String labelLowercase) {
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setLabelLowercase(String labelLowercase) {
   }
 
   public void fixLabelLowercase() {

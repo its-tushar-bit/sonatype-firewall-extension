@@ -45,8 +45,13 @@ public class User
   @Column(name = "email")
   private String email;
 
-
   public User() {
+  }
+
+  public User(String username, String firstName, String lastName) {
+    setUsername(username);
+    this.firstName = firstName;
+    this.lastName = lastName;
   }
 
   @Override

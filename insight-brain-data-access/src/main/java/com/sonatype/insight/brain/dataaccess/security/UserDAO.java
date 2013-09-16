@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Locale;
+
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -17,10 +21,20 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class UserDAO
     extends AbstractOperationalSqlDAO<User>
 {
-  public User getByUsernameLowercase(String usernameLowercase) {
+  private User getByUsernameLowercase(EntityManager em, String usernameLowercase) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
-    return get(sQuery, usernameLowercase);
+    return get(em, sQuery, usernameLowercase);
+  }
+
+  public User getByUsernameLowercase(String usernameLowercase) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByUsernameLowercase(em, usernameLowercase);
+    }
+    finally {
+      close(em);
+    }
   }
 
   @Override
@@ -46,5 +60,38 @@ public class UserDAO
     finally {
       close(em);
     }
+  }
+
+  private void validateUsername(String username) {
+    if (username == null || username.isEmpty()) {
+      throw new InvalidNameException("The username cannot be null or empty");
+    }
+    if (username.contains(" ")) {
+      throw new InvalidNameException("The username cannot contain spaces");
+    }
+    NameHelper.validate(username);
+  }
+
+  @Override
+  public void insert(EntityManager em, User user) {
+    validateUsername(user.getUsername());
+
+    if (getByUsernameLowercase(em, user.getUsername().toLowerCase(Locale.ENGLISH)) != null) {
+      throw new InvalidNameException(user.getUsername() + " is already used as a username.");
+    }
+
+    super.insert(em, user);
+  }
+
+  @Override
+  public void update(EntityManager em, User user) {
+    validateUsername(user.getUsername());
+
+    User existingUser = getByUsernameLowercase(em, user.getUsername().toLowerCase(Locale.ENGLISH));
+    if (existingUser != null && !existingUser.getId().equals(user.getId())) {
+      throw new InvalidNameException(user.getUsername() + " is already used as a username.");
+    }
+
+    super.update(em, user);
   }
 }

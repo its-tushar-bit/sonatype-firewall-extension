@@ -5,10 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
-import org.apache.shiro.mgt.SecurityManager;
-
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import org.apache.shiro.guice.ShiroModule;
+import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
@@ -64,6 +63,7 @@ public class CLMShiroModule
     manager.createChain("/rest/session/environment", "anon");
     manager.createChain("/rest/rm/**", "anon");
     manager.createChain("/api/v1/**", "anon");
+    manager.createChain("/cip/**", "anon");
     manager.createChain("/tasks/**", "anon");
   }
 

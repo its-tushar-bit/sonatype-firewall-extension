@@ -77,20 +77,34 @@ public class EmbeddedLdapServerTest
   }
 
   @Test
-  public void testSaslRealm() throws Exception {
+  public void testInvalidSaslRealm() throws Exception {
     server = newEmbeddedLdapServer();
-    server.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
+    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     server.start();
 
-    Hashtable<String, Object> env = getEnv(AUTH_CRAMMD5);
+    Hashtable<String, Object> env = getEnv(AUTH_DIGESTMD5);
     env.put("java.naming.security.sasl.realm", "wrongrealm");
     try {
       new InitialDirContext(env).close();
       Assert.fail();
     }
     catch (NamingException expected) {
+      Assert.assertTrue(expected.toString().contains("Nonexistent realm: wrongrealm"));
     }
+  }
 
+  @Test
+  public void testNoSaslRealm() throws Exception {
+    server = newEmbeddedLdapServer();
+    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    server.start();
+
+    Hashtable<String, Object> env = getEnv(AUTH_DIGESTMD5);
+    env.remove("java.naming.security.sasl.realm");
+
+    // this is apparently client-only affair, so this is expected to work
+
+    new InitialDirContext(env).close();
   }
 
   private void assertLogin(String... mechanisms) throws NamingException {

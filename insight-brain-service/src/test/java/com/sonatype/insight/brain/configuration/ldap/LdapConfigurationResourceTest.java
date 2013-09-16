@@ -345,6 +345,29 @@ public class LdapConfigurationResourceTest
         && status.getMessage().contains("garbage.localhost.litter"));
   }
 
+  @Test
+  public void testTestConnection_invalidSaslRealm() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    ldapServer.start();
+
+    LdapConfiguration config = new LdapConfiguration();
+    config.setProtocol(LdapProtocol.LDAP);
+    config.setHostname("localhost");
+    config.setPort(ldapServer.getPort());
+    config.setAuthenticationMethod(LdapAuthenticationMethod.DIGESTMD5);
+    config.setSystemUsername(ldapServer.getSystemUser());
+    config.setSystemPassword(ldapServer.getSystemUserPassword());
+    config.setSaslRealm("invalidrealm");
+
+    Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+    Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
+    Assert.assertTrue(status.getMessage().contains("Nonexistent realm: invalidrealm"));
+  }
+
   private String getServiceURL() {
     return getRestBaseUrl() + LdapConfigurationResource.SERVICE_PATH;
   }

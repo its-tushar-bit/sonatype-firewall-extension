@@ -44,6 +44,7 @@ public class CLMShiroModule
   
   private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
     manager.createChain("/rest/application/services/names", "anon");
+    manager.createChain("/rest/application/validate/*", "anon");
     manager.createChain("/rest/component/identified", "anon");
     manager.createChain("/rest/config/proprietary", "anon");
     manager.createChain("/rest/features", "anon");

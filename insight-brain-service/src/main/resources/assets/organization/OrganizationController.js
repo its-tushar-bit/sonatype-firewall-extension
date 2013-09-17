@@ -287,7 +287,7 @@
           $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
           $state.transitionTo('management.organization');
         }, function() {
-          $scope.$broadcast('showServerError', arguments)
+          $scope.$broadcast('showServerError', arguments);
         });
       };
     }

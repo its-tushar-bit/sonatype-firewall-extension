@@ -9,12 +9,26 @@
   var loginApp = angular.module('LoginApp', ['CLMLocation', 'CommonServices', 'Hudson']);
 
   var loginController = loginApp.controller('LoginController', ['$scope', 'hudson', '$location', '$window',
-      'CLMLocations', function($scope, hudson, $location, $window, CLMLocations) {
+      'CLMLocations', 'Messages', function($scope, hudson, $location, $window, CLMLocations, Messages) {
         $scope.data = {};
 
+        // Focus field
+        angular.element('#user').focus();
+
+        // Remove error when user changes login information
+        $scope.$watch('data.username', function() {
+          $scope.loginError = null;
+        });
+        $scope.$watch('data.password', function() {
+          $scope.loginError = null;
+        });
+
         $scope.signIn = function() {
-          delete $scope.loginError;
           var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
+
+          $scope.loginError = null;
+          $scope.processing = true;
+
           hudson.post(CLMLocations.getLoginUrl(), {}, {
             headers: {
               'Authorization': 'Basic ' + authz
@@ -23,16 +37,21 @@
               timestamp: new Date().getTime()
             }
           }).success(function() {
-            $scope.data = {};
-            delete $scope.loginError;
+            $scope.redirecting = true;
             // TODO: handle redirect properly, with url user initially browsed
             $window.location = '../';
           }).error(function(data, status, headers, config) {
-            $scope.loginError = 'Invalid credentials entered, please try again.';
+            $scope.processing = false;
+            if (status === 401) {
+              $scope.loginError = 'Invalid credentials. Please try again.';
+            } else {
+              // Non-login related error occurred
+              $scope.loginError = Messages.getHttpErrorMessage(arguments);
+            }
           });
         };
       }]);
-  
+
   loginApp.directive('autofill', [
     '$timeout', '$parse', function($timeout, $parse) {
       return {

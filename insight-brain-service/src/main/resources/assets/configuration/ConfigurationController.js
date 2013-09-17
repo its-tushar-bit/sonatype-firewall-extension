@@ -19,7 +19,7 @@
   }
 
   var module = angular.module('Configuration',
-      ['ListEditor', 'ui.compat', 'ManagementModule', 'ProductLicense', 'Hudson'], [
+      ['ListEditor', 'ui.compat', 'ManagementModule', 'ProductLicense', 'LdapConfiguration', 'Hudson'], [
         '$stateProvider', function($stateProvider) {
           $stateProvider.state('management.configuration', {
             parent: 'management',
@@ -36,6 +36,11 @@
                 url: '/proprietarypackages',
                 controller: 'ProprietaryConfigurationController',
                 templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
+              }).state('management.configuration.ldap', {
+                parent: 'management.configuration',
+                url: '/ldap',
+                controller: 'LdapConfigurationController',
+                templateUrl: '../configuration-assets/components/ldap.html?' + clmBuildTimestamp
               });
         }
       ]);
@@ -54,6 +59,11 @@
         {
           name: 'Proprietary Packages',
           state: 'management/configuration/proprietarypackages',
+          isEnabled: true
+        },
+        {
+          name: 'LDAP',
+          state: 'management/configuration/ldap',
           isEnabled: true
         }
       ];

@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.configuration.ldap;
+
+/**
+ * @see http://docs.oracle.com/javase/tutorial/jndi/ldap/auth_mechs.html
+ * @since 1.7
+ */
+public enum LdapAuthenticationMethod
+{
+  /**
+   * @since 1.7
+   */
+  NONE,
+
+  /**
+   * @since 1.7
+   */
+  SIMPLE,
+
+  /**
+   * @since 1.7
+   */
+  DIGESTMD5,
+
+  /**
+   * @since 1.7
+   */
+  CRAMMD5
+}

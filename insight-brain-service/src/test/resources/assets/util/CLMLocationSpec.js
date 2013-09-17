@@ -5,9 +5,10 @@ describe('CLMLocation.js', function() {
   });
 
   it('Test forceSuccess added to license upload', inject(function(CLMLocations, $window) {
-    delete $window.FormData;
+    var formData = $window.FormData || 'mock';
+    $window.FormData = null;
     expect(CLMLocations.getLicenseUploadUrl()).toMatch(/.*forceSuccess=true/);
-    $window.FormData = 'mock';
+    $window.FormData = formData;
     expect(CLMLocations.getLicenseUploadUrl()).not.toMatch(/.*forceSuccess=true/);
   }));
 });

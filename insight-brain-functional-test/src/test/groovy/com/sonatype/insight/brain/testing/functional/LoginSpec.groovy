@@ -71,7 +71,37 @@ class LoginSpec extends GebReportingSpec {
       waitFor { at(LoginPage) }
   }
 
-  // TODO session state
+  def "authentication session state is remembered"() {
+    given: "user has logged in"
+      autoLogin()
+      
+    when: "accessing management application"
+      to ManagementPage
+    
+    then: "user is not prompted to log in"
+      waitFor { title != "CLM Login" }
+    
+    when: "accessing report application"
+      to ReportPage
+
+    then: "user is not prompted to log in"
+      waitFor { title != "CLM Login" }
+    
+    when: "cookies are removed"
+      clearCookies()
+
+    and: "accessing something that requires authentication"
+      via LandingPage
+    
+    then: "user is prompted to log in"
+      waitFor { at(LoginPage) }
+  }
   
   // TODO redirect to original location
+
+  void autoLogin() {
+    to LoginPage
+    loginAsAdmin()
+    waitFor { title != "CLM Login" }
+  }
 }

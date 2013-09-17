@@ -118,6 +118,15 @@ public class LdapConfigurationResource
     return config;
   }
 
+  private LdapConfiguration decryptPassword(LdapConfiguration config) throws PlexusCipherException {
+    if (StringUtils.isNotBlank(config.getSystemPassword())) {
+      LdapConfiguration copy = new LdapConfiguration(config);
+      copy.setSystemPassword(cipher.decryptDecorated(config.getSystemPassword(), ENC));
+      return copy;
+    }
+    return config;
+  }
+
   private LdapConfiguration encryptPassword(LdapConfiguration config) throws PlexusCipherException {
     if (StringUtils.isNotBlank(config.getSystemPassword())) {
       LdapConfiguration copy = new LdapConfiguration(config);

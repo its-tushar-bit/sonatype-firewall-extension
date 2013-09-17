@@ -64,11 +64,8 @@ public class UserDAO
   }
 
   private void validateUsername(String username) {
-    if (username == null || username.isEmpty()) {
-      throw new InvalidNameException("The username cannot be null or empty");
-    }
-    if (username.contains(" ")) {
-      throw new InvalidNameException("The username cannot contain spaces");
+    if (username != null && username.contains(" ")) {
+      throw new InvalidNameException("The username cannot contain spaces.");
     }
     NameHelper.validate("The username", username);
   }

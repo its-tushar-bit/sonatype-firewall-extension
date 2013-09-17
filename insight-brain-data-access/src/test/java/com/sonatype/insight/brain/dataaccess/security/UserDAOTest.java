@@ -127,7 +127,7 @@ public class UserDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("The username cannot be null or empty", expected.getMessage());
+      assertEquals("The username is required.", expected.getMessage());
     }
   }
 
@@ -142,7 +142,7 @@ public class UserDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("The username cannot be null or empty", expected.getMessage());
+      assertEquals("The username is required.", expected.getMessage());
     }
   }
 
@@ -153,7 +153,7 @@ public class UserDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("The username cannot be null or empty", expected.getMessage());
+      assertEquals("The username is required.", expected.getMessage());
     }
   }
 
@@ -166,7 +166,7 @@ public class UserDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("The username cannot be null or empty", expected.getMessage());
+      assertEquals("The username is required.", expected.getMessage());
     }
   }
 
@@ -202,14 +202,14 @@ public class UserDAOTest
 
   @Test
   public void testValidateUsernameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in" };
+    String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in", "double  space" };
     for (String username : invalidSpacingNames) {
       try {
         createUser(username);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("The username cannot contain spaces", expected.getMessage());
+        assertEquals("The username cannot contain spaces.", expected.getMessage());
       }
     }
   }
@@ -218,7 +218,7 @@ public class UserDAOTest
   public void testValidateUsernameSpaces_Update() {
     User user = createUser("testValidateUsernameSpaces");
 
-    String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in" };
+    String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in", "double  space" };
     for (String username : invalidSpacingNames) {
       user.setUsername(username);
       try {
@@ -226,8 +226,7 @@ public class UserDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("The username cannot contain spaces",
-            expected.getMessage());
+        assertEquals("The username cannot contain spaces.", expected.getMessage());
       }
     }
   }

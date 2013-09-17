@@ -156,5 +156,58 @@ describe('Tests for the LdapConfigurationController', function() {
 
     });
 
+    it('test connection', inject(function(CLMLocations) {
+      scope.ldap.name = 'config1';
+      scope.ldap.protocol = 'LDAP';
+      scope.ldap.hostname = 'example.com';
+      scope.ldap.port = 389;
+      scope.ldap.authenticationMethod = 'SIMPLE';
+      scope.ldap.username = 'guest';
+      scope.ldap.password = 'anon';
+
+      // configuration is good
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+        function(method, url, data) {
+          return [200, {status: 'OK'}, {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('success');
+
+      // configuration is bad
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+        function(method, url, data) {
+          return [200, {status: 'FAILURE', message: 'foo bar'}, {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('error');
+      expect(scope.alerts[0].msg).toBe('foo bar');
+
+      // clm server misbehaves
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+        function(method, url, data) {
+          return [500, 'foo bar', {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('error');
+      expect(scope.alerts[0].msg).toBe('foo bar');
+
+      // can't connect to clm server
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+        function(method, url, data) {
+          return [0, '', {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('error');
+      expect(scope.alerts[0].msg).toBe('Unable to reach CLM server');
+
+    }));
   });
 });

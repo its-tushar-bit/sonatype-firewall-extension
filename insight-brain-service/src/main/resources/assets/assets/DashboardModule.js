@@ -58,18 +58,18 @@
                 });
 
                 $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-                  // first state change occurs on first page load, so we always
-                  // want to prevent the first state
-                  // change so that we can first check security and license
-                  // status
+                  // first state change occurs on first page load, so we always want to prevent the first state change
+                  // so that we can first check security and license status
                   if (!$rootScope.initialized) {
                     event.preventDefault();
-                    // save the state they were going to for use later, we will
-                    // reuse this if the security/license check all passes
+                    // save the state they were going to for use later, we will reuse this if the security/license check
+                    // all passes
                     var storedState = toState;
                     serverStatus.check().then(function(data) {
+                      // all good, off you go!
                       $state.transitionTo(storedState);
                     }, function(data) {
+                      // naughty naughty, no auth
                       if (data.status === 401 || !$rootScope.authenticated) {
                         var to = '../login-assets/login.html';
                         var current = $window.location.href;
@@ -77,7 +77,7 @@
                           to = to + '?redirectTo=' + encodeURIComponent(current);
                         }
                         $window.location.replace(to);
-                      } else if (data.status == 402 || !$rootScope.licensed) {
+                      } else if (data.status == 402 || !$rootScope.licensed) { // even naughtier, no license!
                         if ($window.location.href.indexOf('/index.html') === -1) {
                           $window.location.replace('index.html#/management/configuration/productlicense');
                         } else {
@@ -88,8 +88,7 @@
                       }
                     });
                   } else if (!$rootScope.licensed && toState.name != 'management.configuration.productlicense') {
-                    // not licensed and trying to browse to a page other than
-                    // license
+                    // not licensed and trying to browse to a page other than license
                     event.preventDefault();
                     $state.transitionTo('management.configuration.productlicense');
                   }
@@ -101,8 +100,7 @@
                   $rootScope.tempDestination = $location.url();
 
                   if (newUrl !== oldUrl && newUrl != $rootScope.tempState) {
-                    // special case where back button is hit, locationUrl will
-                    // be the same as the oldUrl!!
+                    // special case where back button is hit, locationUrl will be the same as the oldUrl!!
                     if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
                       $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
                     }
@@ -134,13 +132,11 @@
                   $(window).unbind('beforeunload', fn);
                 });
 
-                // this causes the browser to notify the user that the page
-                // contains unsaved data
+                // this causes the browser to notify the user that the page contains unsaved data
                 $(window).bind('beforeunload', fn);
               }]);
 
-  // this is a fix to bootstrap to stop the 'too much recursion' error when
-  // multiple modals are fighting for focus
+  // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
   $.fn.modal.Constructor.prototype.enforceFocus = function() {
     var that = this;
     var done = false;

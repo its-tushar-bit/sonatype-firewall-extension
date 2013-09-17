@@ -4,18 +4,16 @@ describe('Tests for the LoginApp', function() {
 
   beforeEach(module('LoginApp', function($provide) {
     $provide.value('$window', {
-      location : {
+      location: {
         href: 'http://blah/rest?redirectTo=' + encodeURIComponent('http://blah/something_& '),
         replace: jasmine.createSpy()
       },
       navigator: function() {
       }
     });
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
+    $provide.factory('hudson', ['$http', function($http) {
+      return $http;
+    }]);
   }));
 
   describe('LoginController', function() {
@@ -42,7 +40,7 @@ describe('Tests for the LoginApp', function() {
     it('Invalid Login', inject(function($httpBackend, $window, CLMLocations) {
       // validate invalid login
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(401);
-      scope.$apply(function () {
+      scope.$apply(function() {
         scope.data.username = 'adminuser';
         scope.data.password = 'adminpass';
       });
@@ -56,7 +54,7 @@ describe('Tests for the LoginApp', function() {
     it('Server Down', inject(function($httpBackend, $window, CLMLocations, Messages) {
       // validate non-login response
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(0);
-      scope.$apply(function () {
+      scope.$apply(function() {
         scope.data.username = 'adminuser';
         scope.data.password = 'adminpass';
       });
@@ -70,7 +68,7 @@ describe('Tests for the LoginApp', function() {
     it('Valid Login', inject(function($httpBackend, $window, CLMLocations) {
       // validate valid login
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(200);
-      scope.$apply(function () {
+      scope.$apply(function() {
         scope.data.username = 'adminuser';
         scope.data.password = 'adminpass';
       });
@@ -82,12 +80,12 @@ describe('Tests for the LoginApp', function() {
       expect(scope.loginError).toBeFalsy();
       expect(scope.redirecting).toBeTruthy();
     }));
-    
+
     it('Valid Login bad redirect', inject(function($httpBackend, $window, CLMLocations) {
       // validate valid login
       $window.location.href = 'http://blah/rest?redirectTo=' + encodeURIComponent('http://blah2/something');
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(200);
-      scope.$apply(function () {
+      scope.$apply(function() {
         scope.data.username = 'adminuser';
         scope.data.password = 'adminpass';
       });

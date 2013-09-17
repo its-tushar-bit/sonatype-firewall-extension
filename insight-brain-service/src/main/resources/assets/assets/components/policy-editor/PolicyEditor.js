@@ -360,7 +360,7 @@
         }
         msg += ' for condition #' + index + ' in constraint "' + constraintName + '"';
         return msg;
-      }
+      };
 
       $scope.validate = function() {
         var msg = null;

@@ -624,7 +624,7 @@ var AngularUtils = {
             }
           });
         }
-      }
+      };
     }
   ]);
 
@@ -640,7 +640,7 @@ var AngularUtils = {
           });
         }
       }
-    }
+    };
   });
 
   /**
@@ -666,7 +666,7 @@ var AngularUtils = {
         scope.style = {margin: attrs.margin || '2px'};
         scope.alwaysShow = attrs.alwaysShow || false;
       }
-    }
+    };
   });
 }());
 
@@ -738,7 +738,7 @@ var AngularUtils = {
         unit += 's';
       }
       return val + ' ' + unit + ' Ago';
-    }
+    };
   });
 
   services.service('BaseUrl', [

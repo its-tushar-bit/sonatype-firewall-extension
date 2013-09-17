@@ -17,13 +17,13 @@
 (function() {
   'use strict';
 
-  var managementModule = angular.module('ManagementModule', ['ui.compat'], [
-    '$stateProvider', function($stateProvider) {
-      $stateProvider.state('management', {
-        url: '/management',
-        templateUrl: '../assets/management.html?' + clmBuildTimestamp,
-        controller: 'ManagementController'
-      })}]);
+  var managementModule = angular.module('ManagementModule', ['ui.compat'], ['$stateProvider', function($stateProvider) {
+    $stateProvider.state('management', {
+      url: '/management',
+      templateUrl: '../assets/management.html?' + clmBuildTimestamp,
+      controller: 'ManagementController'
+    });
+  }]);
 
   managementModule.controller('ManagementController', function($scope, $state, commonCodeFactory) {
     $scope.$state = $state;

@@ -8,6 +8,8 @@ class LoginSpec extends GebReportingSpec {
 //  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
 //    Resources.getResource('config-test.yml').getPath())
 
+  // assumes a license has already been installed
+
   def setup() {
     browser.config.baseUrl = "http://localhost:8070/"
   }
@@ -17,7 +19,7 @@ class LoginSpec extends GebReportingSpec {
       to LoginPage
     
     then: "login page is shown"
-      assert at(LoginPage)
+      at(LoginPage)
   }
   
   def "can log in with valid credentials"() {
@@ -39,9 +41,37 @@ class LoginSpec extends GebReportingSpec {
       login("unknown", "user")
       
     then: "an error indicating bad credentials is shown"
-      waitFor { errorMessage }
+      errorMessage
 
     and: "user is prompted to log in"
-      assert at(LoginPage)
+      at(LoginPage)
   }
+
+  def "root web application is protected by authentication"() {
+    when: "accessing the root web application"
+      via LandingPage
+    
+    then: "user is prompted to log in"
+      waitFor { at(LoginPage) }
+  }
+
+  def "report application is protected by authentication"() {
+    when: "accessing the report application"
+      via ReportPage
+
+    then: "user is prompted to log in"
+      waitFor { at(LoginPage) }
+  }
+
+  def "management application is protected by authentication"() {
+    when: "accessing the management application"
+      via ManagementPage
+
+    then: "user is prompted to log in"
+      waitFor { at(LoginPage) }
+  }
+
+  // TODO session state
+  
+  // TODO redirect to original location
 }

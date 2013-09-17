@@ -15,7 +15,7 @@ class LoginPage extends Page {
     loginButton { $("button", text: "Sign in") }
     // Ideally this would be identified by something other than the text content.  Then the message can be compared
     // against what is expected in the test.
-    errorMessage { $(text: contains("Invalid credentials")) }
+    errorMessage(required: false, wait: true) { $(text: contains("Invalid credentials")) }
   }
 
   void loginAsAdmin() {

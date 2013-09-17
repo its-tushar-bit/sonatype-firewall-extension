@@ -1,12 +1,20 @@
 package com.sonatype.insight.brain.testing.functional
 
-import geb.spock.GebReportingSpec;
+import com.sonatype.insight.brain.service.InsightBrainService
+import com.sonatype.insight.brain.service.InsightConfig
+
+import com.google.common.io.Resources
+import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+import geb.spock.GebReportingSpec
+import org.junit.ClassRule
+import org.junit.rules.TestRule
+import spock.lang.Shared
 
 class LoginSpec extends GebReportingSpec {
-//  @Shared
-//  @ClassRule
-//  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-//    Resources.getResource('config-test.yml').getPath())
+  @Shared
+  @ClassRule
+  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
+    Resources.getResource('config-test.yml').getPath())
 
   // assumes a license has already been installed
 

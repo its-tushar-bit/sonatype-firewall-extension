@@ -68,11 +68,11 @@
         },
         
         getLoginUrl: function() {
-          return baseUrl.get() + '/rest/user/login';
+          return baseUrl.get() + '/rest/user/session';
         },
         
         getStatusUrl: function() {
-          return baseUrl.get() + '/rest/user/status';
+          return baseUrl.get() + '/rest/user/session/status';
         }
       };
     }

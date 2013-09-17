@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -19,25 +20,24 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 
 /**
- * Allows an account to login and logout for access to the server.
+ * Manages user account authentication sessions which provide access to the server.
  * 
  * @since 1.7
  */
-@Path(LoginResource.SERVICE_PATH)
+@Path(AuthenticationSessionResource.SERVICE_PATH)
 @Named
-public class LoginResource
+public class AuthenticationSessionResource
 {
-  public static final String SERVICE_PATH = "rest/user";
+  public static final String SERVICE_PATH = "rest/user/session";
 
   @Inject
-  public LoginResource() {
+  public AuthenticationSessionResource() {
   }
 
   /**
    * Typical HTTP Basic Authentication.
    */
   @UnlicensedPath
-  @Path("login")
   @POST
   public void login() {
     // Shiro handles all the work here.
@@ -46,21 +46,30 @@ public class LoginResource
   /**
    * Logout the currently logged in user
    */
-  @Path("logout")
-  @POST
+  @DELETE
   public void logout() {
     SecurityUtils.getSubject().logout();
   }
 
   /**
    * Get the authentication status of the current account.
+   * 
+   * The REST implementation uses a sub-resource (path) in order to allow anonymous access.  This is due to Shiro not 
+   * having authentication based on specified HTTP methods.
+   * 
+   * For background see the discussion on list [1] which called for an improvement to configure authentication for 
+   * specific http methods.  As a result, SHIRO-200 [2] was filed with a patch supplied.  It is not resolved due to an 
+   * open question on an appropriate way to configure http method for arbitrary filters.
+   * 
+   * [1] http://shiro-developer.582600.n2.nabble.com/HTTP-method-dependent-Basic-authentication-td5635284.html
+   * [2] https://issues.apache.org/jira/browse/SHIRO-200
    */
   @UnlicensedPath
   @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
-  public UserStatus getStatus() {
-    return UserStatus.fromSubject(SecurityUtils.getSubject());
+  public AuthenticationStatus getStatus() {
+    return AuthenticationStatus.fromSubject(SecurityUtils.getSubject());
   }
 
   /**
@@ -68,16 +77,16 @@ public class LoginResource
    * 
    * @since 1.7
    */
-  public static final class UserStatus
+  public static final class AuthenticationStatus
   {
     private String username;
     
     private boolean isAuthenticated;
     
     /**
-     * Status for an account that is not authenticated.
+     * Status for a user that is not authenticated.
      */
-    public UserStatus() {
+    public AuthenticationStatus() {
     }
 
     /**
@@ -85,8 +94,8 @@ public class LoginResource
      * 
      * If the user is not authenticated {@link #isAuthenticated()} will be false; {@link #getUsername()} may be null.
      */
-    public static UserStatus fromSubject(Subject subject) {
-      UserStatus status = new UserStatus();
+    public static AuthenticationStatus fromSubject(Subject subject) {
+      AuthenticationStatus status = new AuthenticationStatus();
       status.setAuthenticated(subject.isAuthenticated());
       
       // Supply username if it's available.  Will be useful when a user is remembered but not authenticated.

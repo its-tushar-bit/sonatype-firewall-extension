@@ -40,6 +40,10 @@ public class LoginResourceTest
 
   @Test
   public void testLogin() throws Exception {
+
+    // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
+    getTestProductLicenseManager().uninstallLicense();
+
     // now run the test with bad username
     Response response = login("admin2", "admin");
     assertResponseStatus(401, response);
@@ -66,14 +70,18 @@ public class LoginResourceTest
     // logout is successful
     response = logout(response.getCookies().get(0));
     assertResponseStatus(204, response);
-    
+
     // logout removes session id
     Cookie loggOutSessionCookie = extractSessionCookie(response);
     Assert.assertTrue(loggOutSessionCookie.getValue().equals("deleteMe"));
   }
-  
+
   @Test
   public void testStatus() throws Exception {
+
+    // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
+    getTestProductLicenseManager().uninstallLicense();
+
     // logged out by default, so 200 expected with no username
     Response response = status(null);
     assertResponseStatus(200, response);
@@ -102,7 +110,7 @@ public class LoginResourceTest
 
   private Cookie extractSessionCookie(Response response) {
     for (Cookie cookie : response.getCookies()) {
-      if( "JSESSIONID".equals(cookie.getName())) {
+      if ("JSESSIONID".equals(cookie.getName())) {
         return cookie;
       }
     }

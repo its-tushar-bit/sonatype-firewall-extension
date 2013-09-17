@@ -24,6 +24,7 @@ import org.apache.shiro.subject.Subject;
  * @since 1.7
  */
 @Path(LoginResource.SERVICE_PATH)
+@UnlicensedPath
 @Named
 public class LoginResource
 {
@@ -36,7 +37,6 @@ public class LoginResource
   /**
    * Typical HTTP Basic Authentication.
    */
-  @UnlicensedPath
   @Path("login")
   @POST
   public void login() {
@@ -55,9 +55,9 @@ public class LoginResource
   /**
    * Get the status of the current account, will always return an AccountStatus
    * object, if not logged in, username will be null
+   * 
    * @return AccountStatus
    */
-  @UnlicensedPath
   @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
@@ -68,7 +68,7 @@ public class LoginResource
   public static final class AccountStatus
   {
     private String username;
-    
+
     public AccountStatus() {
     }
 
@@ -77,8 +77,8 @@ public class LoginResource
         username = subject.getPrincipal().toString();
       }
     }
-    
-    public void setUsername( String username ) {
+
+    public void setUsername(String username) {
       this.username = username;
     }
 

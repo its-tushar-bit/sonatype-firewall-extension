@@ -85,13 +85,10 @@ public class UserSessionResourceTest
     // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
     getTestProductLicenseManager().uninstallLicense();
 
-    // logged out by default, so 200 expected with no username
+    // logged out by default, so 401 expected
     Response response = status(null);
-    assertResponseStatus(200, response);
-    AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
-    Assert.assertFalse(status.isAuthenticated());
-    Assert.assertNull(status.getUsername());
-
+    assertResponseStatus(401, response);
+    
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
@@ -99,7 +96,7 @@ public class UserSessionResourceTest
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
+    AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
     Assert.assertTrue(status.isAuthenticated());
     Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 
@@ -108,9 +105,7 @@ public class UserSessionResourceTest
 
     // this cookie should no longer be valid
     response = status(jsessionIdCookie);
-    assertResponseStatus(200, response);
-    status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
-    Assert.assertFalse(status.isAuthenticated());
+    assertResponseStatus(401, response);
   }
 
   private Cookie extractSessionCookie(Response response) {

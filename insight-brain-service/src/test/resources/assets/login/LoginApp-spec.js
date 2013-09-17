@@ -4,7 +4,10 @@ describe('Tests for the LoginApp', function() {
 
   beforeEach(module('LoginApp', function($provide) {
     $provide.value('$window', {
-      location: '/default',
+      location : {
+        href: 'http://blah/rest?redirectTo=' + encodeURIComponent('http://blah/something_& '),
+        replace: jasmine.createSpy()
+      },
       navigator: function() {
       }
     });
@@ -34,7 +37,6 @@ describe('Tests for the LoginApp', function() {
 
     it('validate initial state.', inject(function($window) {
       expect(scope.data).toEqual({});
-      expect($window.location).toEqual('/default');
     }));
 
     it('Invalid Login', inject(function($httpBackend, $window, CLMLocations) {
@@ -76,9 +78,26 @@ describe('Tests for the LoginApp', function() {
       expect(scope.processing).toBeTruthy();
       $httpBackend.flush();
 
+      expect($window.location.replace).toHaveBeenCalledWith('http://blah/something_& ');
       expect(scope.loginError).toBeFalsy();
       expect(scope.redirecting).toBeTruthy();
-      expect($window.location).toEqual('../');
+    }));
+    
+    it('Valid Login bad redirect', inject(function($httpBackend, $window, CLMLocations) {
+      // validate valid login
+      $window.location.href = 'http://blah/rest?redirectTo=' + encodeURIComponent('http://blah2/something');
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(200);
+      scope.$apply(function () {
+        scope.data.username = 'adminuser';
+        scope.data.password = 'adminpass';
+      });
+      scope.signIn();
+      expect(scope.processing).toBeTruthy();
+      $httpBackend.flush();
+
+      expect($window.location.replace).toHaveBeenCalledWith('../');
+      expect(scope.loginError).toBeFalsy();
+      expect(scope.redirecting).toBeTruthy();
     }));
   });
 });

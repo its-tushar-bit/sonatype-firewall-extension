@@ -65,6 +65,7 @@
                     var storedState = toState;
                     serverStatus.check().then(function(data) {
                       $rootScope.username = data.username;
+                      $rootScope.authenticated = data.authenticated;
                       $rootScope.licensed = data.licensed;
                       $rootScope.initialized = true;
                       // unlicensed, force them to the product license page
@@ -84,7 +85,7 @@
                         $rootScope.error = 'Unable to initialize the application';
                       }
                     });
-                  } else if (!$rootScope.username) {
+                  } else if (!$rootScope.authenticated) {
                     // not logged in so force to the login page
                     event.preventDefault();
                     $window.location.replace('../login-assets/login.html?timestamp=' + new Date().getTime());
@@ -223,16 +224,18 @@
           check: function() {
             var deferred = $q.defer();
             securityStatusChecker.check().then(function(data) {
-              if (data.username) {
+              if (data.authenticated) {
                 licenseChecker.check().then(function() {
                   deferred.resolve({
                     username: data.username,
+                    authenticated: data.authenticated,
                     licensed: true
                   });
                 }, function(status) {
                   if (status == 402) {
                     deferred.resolve({
                       username: data.username,
+                      authenticated: data.authenticated,
                       licensed: false
                     });
                   } else {

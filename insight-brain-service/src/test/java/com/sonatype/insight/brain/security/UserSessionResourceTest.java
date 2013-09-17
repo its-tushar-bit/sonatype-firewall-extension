@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.LoginResource.AccountStatus;
+import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -19,11 +19,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class LoginResourceTest
+public class UserSessionResourceTest
     extends AbstractResourceTest
 {
   private Response logout(Cookie cookie) throws Exception {
-    return RestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/logout", cookie);
+    return RestAccess.delete(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, null, null, null, cookie);
   }
 
   private Response login() throws Exception {
@@ -31,15 +31,15 @@ public class LoginResourceTest
   }
 
   private Response login(String username, String password) throws Exception {
-    return AuthedRestAccess.post(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/login", username, password);
+    return AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, username, password);
   }
 
   private Response status(Cookie cookie) throws Exception {
-    return RestAccess.get(getRestBaseUrl() + LoginResource.SERVICE_PATH + "/status", cookie);
+    return RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH + "/status", cookie);
   }
 
   @Test
-  public void testLogin() throws Exception {
+  public void testSessionManagement() throws Exception {
 
     // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
     getTestProductLicenseManager().uninstallLicense();
@@ -88,7 +88,8 @@ public class LoginResourceTest
     // logged out by default, so 200 expected with no username
     Response response = status(null);
     assertResponseStatus(200, response);
-    AccountStatus status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
+    Assert.assertFalse(status.isAuthenticated());
     Assert.assertNull(status.getUsername());
 
     response = login(User.ADMIN_USERNAME, "admin123");
@@ -98,7 +99,8 @@ public class LoginResourceTest
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
+    status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
+    Assert.assertTrue(status.isAuthenticated());
     Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 
     response = logout(jsessionIdCookie);
@@ -107,8 +109,8 @@ public class LoginResourceTest
     // this cookie should no longer be valid
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    status = JsonHelpers.fromJson(response.getResponseBody(), AccountStatus.class);
-    Assert.assertNull(status.getUsername());
+    status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
+    Assert.assertFalse(status.isAuthenticated());
   }
 
   private Cookie extractSessionCookie(Response response) {

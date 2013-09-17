@@ -37,24 +37,24 @@
 				<h2 style="text-align: center;">Welcome to CLM</h2>
 				<hr/>
 				<div class="control-group">
-					<label class="control-label" for='user'>Username</label>
+					<label class="control-label" for='login-username'>Username</label>
 					<div class="controls">
-						<input type="text" id='user' placeholder="Enter Username" ng-model="data.username" ng-required="true" autofill>
+						<input type="text" id='login-username' placeholder="Enter Username" ng-model="data.username" ng-required="true" autofill>
 					</div>
 				</div>
 				<div class="control-group">
-					<label class="control-label" for='password'>Password</label>
+					<label class="control-label" for='login-password'>Password</label>
 					<div class="controls">
-						<input type="password" id='password' placeholder="Enter Password" ng-model="data.password" ng-required="true" autofill>
+						<input type="password" id='login-password' placeholder="Enter Password" ng-model="data.password" ng-required="true" autofill>
 					</div>
 				</div>
 				<div class="control-group">
 					<div class="controls">
-						<button type="submit" class="btn btn-primary" ng-click="signIn()" ng-disabled="loginForm.$invalid || processing">Sign in</button>
+						<button type="submit" id='login-action' class="btn btn-primary" ng-click="signIn()" ng-disabled="loginForm.$invalid || processing">Sign in</button>
 					</div>
 				</div>
 			</form>
-			<div ng-show='loginError' class='alert alert-error'>{{loginError}}</div>
+			<div id='login-error' ng-show='loginError' class='alert alert-error'>{{loginError}}</div>
 		</div>
 		<div ng-show='redirecting' style='text-align:center'>
 			<em>Redirecting...</em>

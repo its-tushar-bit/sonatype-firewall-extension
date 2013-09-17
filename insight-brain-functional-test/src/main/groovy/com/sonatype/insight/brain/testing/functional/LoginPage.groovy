@@ -10,12 +10,10 @@ class LoginPage extends Page {
   }
   
   static content = {
-    usernameInput { $("input", id: "user") }
-    passwordInput { $("input", id: "password") }
-    loginButton { $("button", text: "Sign in") }
-    // Ideally this would be identified by something other than the text content.  Then the message can be compared
-    // against what is expected in the test.
-    errorMessage(required: false, wait: true) { $(text: contains("Invalid credentials")) }
+    usernameInput { $(id: "login-username") }
+    passwordInput { $(id: "login-password") }
+    loginAction { $(id: "login-action") }
+    errorMessage(required: false, wait: true) { $(id: "login-error") }
   }
 
   void loginAsAdmin() {
@@ -25,6 +23,6 @@ class LoginPage extends Page {
   void login(username, password) {
     usernameInput.value(username)
     passwordInput.value(password)
-    loginButton.click()
+    loginAction.click()
   }
 }

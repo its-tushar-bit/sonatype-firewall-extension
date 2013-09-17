@@ -18,7 +18,7 @@
         $scope.data = {};
 
         // Focus field
-        angular.element('#user').focus();
+        angular.element('#login-username').focus();
 
         // Remove error when user changes login information
         $scope.$watch('data.username', function() {

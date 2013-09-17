@@ -41,7 +41,7 @@ class LoginSpec extends GebReportingSpec {
       login("unknown", "user")
       
     then: "an error indicating bad credentials is shown"
-      errorMessage
+      waitFor { errorMessage.text().contains("Invalid credentials") }
 
     and: "user is prompted to log in"
       at(LoginPage)

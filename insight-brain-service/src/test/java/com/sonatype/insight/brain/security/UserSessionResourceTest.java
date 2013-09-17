@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.AuthenticationSessionResource.AuthenticationStatus;
+import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -19,11 +19,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class AuthenticationSessionResourceTest
+public class UserSessionResourceTest
     extends AbstractResourceTest
 {
   private Response logout(Cookie cookie) throws Exception {
-    return RestAccess.delete(getRestBaseUrl() + AuthenticationSessionResource.SERVICE_PATH, null, null, null, cookie);
+    return RestAccess.delete(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, null, null, null, cookie);
   }
 
   private Response login() throws Exception {
@@ -31,11 +31,11 @@ public class AuthenticationSessionResourceTest
   }
 
   private Response login(String username, String password) throws Exception {
-    return AuthedRestAccess.post(getRestBaseUrl() + AuthenticationSessionResource.SERVICE_PATH, username, password);
+    return AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, username, password);
   }
 
   private Response status(Cookie cookie) throws Exception {
-    return RestAccess.get(getRestBaseUrl() + AuthenticationSessionResource.SERVICE_PATH + "/status", cookie);
+    return RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH + "/status", cookie);
   }
 
   @Test

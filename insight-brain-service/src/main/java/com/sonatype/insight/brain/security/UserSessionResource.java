@@ -24,15 +24,15 @@ import org.apache.shiro.subject.Subject;
  * 
  * @since 1.7
  */
-@Path(AuthenticationSessionResource.SERVICE_PATH)
+@Path(UserSessionResource.SERVICE_PATH)
 @UnlicensedPath
 @Named
-public class AuthenticationSessionResource
+public class UserSessionResource
 {
   public static final String SERVICE_PATH = "rest/user/session";
 
   @Inject
-  public AuthenticationSessionResource() {
+  public UserSessionResource() {
   }
 
   /**

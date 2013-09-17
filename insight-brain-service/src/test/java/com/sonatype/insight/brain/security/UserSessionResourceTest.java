@@ -35,7 +35,7 @@ public class UserSessionResourceTest
   }
 
   private Response status(Cookie cookie) throws Exception {
-    return RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH + "/status", cookie);
+    return RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, cookie);
   }
 
   @Test

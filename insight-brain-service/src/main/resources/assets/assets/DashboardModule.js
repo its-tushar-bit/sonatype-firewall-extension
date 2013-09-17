@@ -60,7 +60,7 @@
                 $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
                   // first state change occurs on first page load, so we always want to prevent the first state change
                   // so that we can first check security and license status
-                  if (!$rootScope.initialized) {
+                  if (!$rootScope.authenticated) {
                     event.preventDefault();
                     // save the state they were going to for use later, we will reuse this if the security/license check
                     // all passes
@@ -222,7 +222,6 @@
           check: function() {
             var deferred = $q.defer();
             securityStatusChecker.check().then(function(data) {
-              $rootScope.initialized = true;
               $rootScope.authenticated = data.authenticated;
               $rootScope.username = data.username;
               licenseChecker.check().then(function() {

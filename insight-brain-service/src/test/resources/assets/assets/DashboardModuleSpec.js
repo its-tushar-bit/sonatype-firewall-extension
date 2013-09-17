@@ -53,7 +53,6 @@ describe('dashboardApp', function() {
       delete $rootScope.username;
       delete $rootScope.authenticated;
       delete $rootScope.licensed;
-      delete $rootScope.initialized;
     }
 
     cleanScope();
@@ -71,7 +70,6 @@ describe('dashboardApp', function() {
     expect($rootScope.username).toEqual('user');
     expect($rootScope.authenticated).toBeTruthy();
     expect($rootScope.licensed).toBeTruthy();
-    expect($rootScope.initialized).toBeTruthy();
     expect($state.current.name).toEqual('test');
 
     // now test with bad license
@@ -89,7 +87,6 @@ describe('dashboardApp', function() {
     expect($rootScope.username).toEqual('user');
     expect($rootScope.authenticated).toBeTruthy();
     expect($rootScope.licensed).toBeFalsy();
-    expect($rootScope.initialized).toBeTruthy();
     expect($state.current.name).toEqual('management.configuration.productlicense');
 
     // now test with bad license from something other than index.html (i.e.
@@ -109,7 +106,6 @@ describe('dashboardApp', function() {
     expect($rootScope.username).toEqual('user');
     expect($rootScope.authenticated).toBeTruthy();
     expect($rootScope.licensed).toBeFalsy();
-    expect($rootScope.initialized).toBeTruthy();
     expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
 
     // now test with bad auth
@@ -124,7 +120,6 @@ describe('dashboardApp', function() {
     expect($rootScope.username).toBeFalsy();
     expect($rootScope.authenticated).toBeFalsy();
     expect($rootScope.licensed).toBeFalsy();
-    expect($rootScope.initialized).toBeFalsy();
     expect($window.location.replace).toHaveBeenCalledWith(
             '../login-assets/login.html?redirectTo=' + encodeURIComponent('http://blah/reports.html'));
   }));

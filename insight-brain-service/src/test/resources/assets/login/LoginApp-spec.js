@@ -37,28 +37,48 @@ describe('Tests for the LoginApp', function() {
       expect($window.location).toEqual('/default');
     }));
 
-    it('validate login.', inject(function($httpBackend, $window, CLMLocations) {
+    it('Invalid Login', inject(function($httpBackend, $window, CLMLocations) {
       // validate invalid login
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(401);
-      scope.data.username = 'admin';
-      scope.data.password = 'admin';
-      scope.signIn();
-      $httpBackend.flush();
-      expect(scope.loginError).toEqual('Invalid credentials entered, please try again.');
-      expect(scope.data).toEqual({
-        username: 'admin',
-        password: 'admin'
+      scope.$apply(function () {
+        scope.data.username = 'adminuser';
+        scope.data.password = 'adminpass';
       });
+      scope.signIn();
+      expect(scope.processing).toBeTruthy();
+      $httpBackend.flush();
+      expect(scope.redirecting).toBeFalsy();
+      expect(scope.loginError).toEqual('Invalid credentials. Please try again.');
+    }));
 
+    it('Server Down', inject(function($httpBackend, $window, CLMLocations, Messages) {
+      // validate non-login response
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(0);
+      scope.$apply(function () {
+        scope.data.username = 'adminuser';
+        scope.data.password = 'adminpass';
+      });
+      scope.signIn();
+      expect(scope.processing).toBeTruthy();
+      $httpBackend.flush();
+      expect(scope.redirecting).toBeFalsy();
+      expect(scope.loginError).toEqual(Messages.getHttpErrorMessage([null, 0, null, null]));
+    }));
+
+    it('Valid Login', inject(function($httpBackend, $window, CLMLocations) {
       // validate valid login
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLoginUrl())).respond(200);
-      scope.data.username = 'admin';
-      scope.data.password = 'admin';
+      scope.$apply(function () {
+        scope.data.username = 'adminuser';
+        scope.data.password = 'adminpass';
+      });
       scope.signIn();
+      expect(scope.processing).toBeTruthy();
       $httpBackend.flush();
-      expect(scope.loginError).toBeUndefined();
-      expect(scope.data).toEqual({});
+
+      expect(scope.loginError).toBeFalsy();
+      expect(scope.redirecting).toBeTruthy();
       expect($window.location).toEqual('../');
-    }))
+    }));
   });
 });

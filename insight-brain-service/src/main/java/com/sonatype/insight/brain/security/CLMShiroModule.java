@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
+
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
@@ -38,6 +40,8 @@ public class CLMShiroModule
     manager.createChain("/favicon.ico", "anon");
     manager.createChain("/crumbIssuer/**", "anon");
     manager.createChain("/**/*", "authcBasic");
+    //change the auth type so browsers dont prompt for login details
+    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme("nonBrowserPromptingBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bindRealm().to(CLMRealm.class);
   }

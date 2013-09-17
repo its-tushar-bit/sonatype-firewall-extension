@@ -5,7 +5,7 @@ describe('CLMLocation.js', function() {
   });
 
   it('Test forceSuccess added to license upload', inject(function(CLMLocations, $window) {
-    var formData = $window.FormData;
+    var formData = $window.FormData || 'mock';
     $window.FormData = null;
     expect(CLMLocations.getLicenseUploadUrl()).toMatch(/.*forceSuccess=true/);
     $window.FormData = formData;

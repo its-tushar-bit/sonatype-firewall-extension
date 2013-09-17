@@ -1,7 +1,8 @@
-package com.sonatype.insight.brain.testing.functional
+package com.sonatype.insight.brain.testing.example
 
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
+import com.sonatype.insight.brain.testing.functional.LoginSpec;
 
 import com.google.common.io.Resources
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
@@ -10,6 +11,13 @@ import org.junit.ClassRule
 import org.junit.rules.TestRule
 import spock.lang.Shared
 
+/**
+ * An example of scripting page interactions using Geb.  
+ * 
+ * Compare and contrast to the page object approach seen with {@link LoginSpec} and supporting objects.
+ * 
+ * This will not be kept up-to-date with UI changes.  It is known to work with UI from commit 798321a .
+ */
 class LoginScriptSpec extends GebReportingSpec {
   @Shared
   @ClassRule
@@ -93,8 +101,4 @@ class LoginScriptSpec extends GebReportingSpec {
     and: "user is prompted to log in"
       assert title == "CLM Login"
   }
-  
-  // TODO session state
-  
-  // TODO redirect to original location
 }

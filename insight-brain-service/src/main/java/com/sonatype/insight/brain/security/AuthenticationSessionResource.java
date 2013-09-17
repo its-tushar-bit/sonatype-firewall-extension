@@ -25,6 +25,7 @@ import org.apache.shiro.subject.Subject;
  * @since 1.7
  */
 @Path(AuthenticationSessionResource.SERVICE_PATH)
+@UnlicensedPath
 @Named
 public class AuthenticationSessionResource
 {
@@ -37,7 +38,6 @@ public class AuthenticationSessionResource
   /**
    * Typical HTTP Basic Authentication.
    */
-  @UnlicensedPath
   @POST
   public void login() {
     // Shiro handles all the work here.
@@ -64,7 +64,6 @@ public class AuthenticationSessionResource
    * [1] http://shiro-developer.582600.n2.nabble.com/HTTP-method-dependent-Basic-authentication-td5635284.html
    * [2] https://issues.apache.org/jira/browse/SHIRO-200
    */
-  @UnlicensedPath
   @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET

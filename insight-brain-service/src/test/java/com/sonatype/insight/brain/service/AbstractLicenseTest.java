@@ -50,10 +50,14 @@ public abstract class AbstractLicenseTest
     {
       @Override
       protected void configure() {
-        bind(ProductLicenseManager.class).toInstance(licenseManager);
+        bind(ProductLicenseManager.class).toInstance(getTestProductLicenseManager());
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
       }
     });
+  }
+
+  protected TestProductLicenseManager getTestProductLicenseManager() {
+    return licenseManager;
   }
 
   protected String installLicenseAsIE() throws Exception {
@@ -80,7 +84,7 @@ public abstract class AbstractLicenseTest
       Response response = AuthedRestAccess.execute(builder);
       assertResponseStatus(200, response);
 
-      Assert.assertTrue(licenseManager.isValid());
+      Assert.assertTrue(getTestProductLicenseManager().isValid());
 
       return response.getResponseBody();
     }
@@ -92,7 +96,7 @@ public abstract class AbstractLicenseTest
   protected void uninstallLicense() throws Exception {
     AuthedRestAccess.delete(getServiceURL());
 
-    Assert.assertFalse(licenseManager.isValid());
+    Assert.assertFalse(getTestProductLicenseManager().isValid());
   }
 
   private String getServiceURL() {
@@ -100,12 +104,12 @@ public abstract class AbstractLicenseTest
   }
 
   protected void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) throws Exception {
-    licenseManager.setEnforcementPoints(enforcementPoints);
+    getTestProductLicenseManager().setEnforcementPoints(enforcementPoints);
     installLicense();
   }
 
   protected void setApplicationLimit(int applicationLimit) throws Exception {
-    licenseManager.setApplicationLimit(applicationLimit);
+    getTestProductLicenseManager().setApplicationLimit(applicationLimit);
     installLicense();
   }
 

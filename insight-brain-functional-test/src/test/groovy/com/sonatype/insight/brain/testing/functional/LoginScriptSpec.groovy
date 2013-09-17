@@ -67,8 +67,8 @@ class LoginScriptSpec extends GebReportingSpec {
       go "login-assets/login.html"
     
     when: "valid credentials are supplied"
-      $("input", placeholder: "Enter username...").value("admin")
-      $("input", placeholder: "Enter password...").value("admin123")
+      $("input", id: "user").value("admin")
+      $("input", id: "password").value("admin123")
       
       report()
       
@@ -83,8 +83,8 @@ class LoginScriptSpec extends GebReportingSpec {
       go "login-assets/login.html"
   
     when: "invalid credentials are supplied"
-      $("input", placeholder: "Enter username...").value("unknown")
-      $("input", placeholder: "Enter password...").value("user")
+      $("input", id: "user").value("unknown")
+      $("input", id: "password").value("user")
       $("button", text: "Sign in").click()
       
     then: "an error indicating bad credentials is shown"

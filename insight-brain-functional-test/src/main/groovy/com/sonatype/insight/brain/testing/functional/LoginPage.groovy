@@ -10,8 +10,8 @@ class LoginPage extends Page {
   }
   
   static content = {
-    usernameInput { $("input", placeholder: "Enter username...") }
-    passwordInput { $("input", placeholder: "Enter password...") }
+    usernameInput { $("input", id: "user") }
+    passwordInput { $("input", id: "password") }
     loginButton { $("button", text: "Sign in") }
     // Ideally this would be identified by something other than the text content.  Then the message can be compared
     // against what is expected in the test.

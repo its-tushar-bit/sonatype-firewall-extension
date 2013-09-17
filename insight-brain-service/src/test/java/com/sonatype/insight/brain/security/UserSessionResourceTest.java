@@ -75,8 +75,8 @@ public class UserSessionResourceTest
     assertResponseStatus(204, response);
 
     // logout removes session id
-    Cookie loggOutSessionCookie = extractSessionCookie(response);
-    Assert.assertTrue(loggOutSessionCookie.getValue().equals("deleteMe"));
+    Cookie logoutSessionCookie = extractSessionCookie(response);
+    Assert.assertTrue(logoutSessionCookie.getValue().equals("deleteMe"));
   }
 
   @Test

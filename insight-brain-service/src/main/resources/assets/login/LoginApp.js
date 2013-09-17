@@ -34,7 +34,7 @@
           $scope.loginError = null;
           $scope.processing = true;
 
-          hudson.post(CLMLocations.getLoginUrl(), {}, {
+          hudson.post(CLMLocations.getSessionUrl(), {}, {
             headers: {
               'Authorization': 'Basic ' + authz
             },

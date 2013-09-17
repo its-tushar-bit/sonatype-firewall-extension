@@ -201,7 +201,7 @@
     return {
       check: function() {
         var deferred = $q.defer();
-        $http.get(CLMLocations.getStatusUrl(), {
+        $http.get(CLMLocations.getSessionUrl(), {
           params: {
             timestamp: new Date().getTime()
           }

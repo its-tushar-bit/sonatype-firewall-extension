@@ -56,7 +56,7 @@ describe('dashboardApp', function() {
     }
 
     cleanScope();
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
       username: 'user',
       authenticated: true
     });
@@ -75,7 +75,7 @@ describe('dashboardApp', function() {
     // now test with bad license
     cleanScope();
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
       username: 'user',
       authenticated: true
     });
@@ -94,7 +94,7 @@ describe('dashboardApp', function() {
     $window.location.href = 'http://blah/reports.html';
     cleanScope();
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
       username: 'user',
       authenticated: true
     });
@@ -112,7 +112,7 @@ describe('dashboardApp', function() {
     $window.location.replace.reset();
     cleanScope();
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond(401);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
     var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
     $httpBackend.flush();
 

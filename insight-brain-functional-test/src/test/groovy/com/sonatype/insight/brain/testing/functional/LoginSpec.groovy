@@ -22,6 +22,27 @@ class LoginSpec extends GebReportingSpec {
       at(LoginPage)
   }
   
+  def "form states are usable"() {
+    when: "login page is shown"
+      to LoginPage
+    
+    then: "username input has focus"
+      // Can't figure out how to determine if something has focus.
+      // Don't know if it's a failing on my lack of selector knowledge or if Geb/Webdriver just doesn't support the
+      // lookup.  There is an open issue to make checking for foucs easier in Geb: http://jira.codehaus.org/browse/GEB-208
+      // waitFor { $("*:focus", id: "login-username") }
+
+    and: "login action is disabled"
+      loginAction.isDisabled() // Navigator API version of loginAction.@disabled
+
+    when: "credential inputs are filled in"
+      usernameInput = "some username"
+      passwordInput = "some password"
+    
+    then: "login action is enabled"
+      ! loginAction.isDisabled()
+  }
+  
   def "can log in with valid credentials"() {
     given: "prompt to log in"
       to LoginPage

@@ -56,7 +56,7 @@ public class LdapConfigurationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<LdapConfiguration> getAll() throws PlexusCipherException {
+  public List<LdapConfiguration> getAll() {
     List<LdapConfiguration> result = new ArrayList<LdapConfiguration>();
     for (LdapConfiguration encrypted : dao.getAll()) {
       result.add(fakeOutPassword(encrypted));
@@ -70,7 +70,7 @@ public class LdapConfigurationResource
   @GET
   @Path("{ldapConfigurationName}")
   @Produces(MediaType.APPLICATION_JSON)
-  public LdapConfiguration get(@PathParam("ldapConfigurationName") String configName) throws PlexusCipherException {
+  public LdapConfiguration get(@PathParam("ldapConfigurationName") String configName) {
     return fakeOutPassword(dao.getByName(configName));
   }
 
@@ -113,15 +113,6 @@ public class LdapConfigurationResource
     if (StringUtils.isNotBlank(config.getSystemPassword())) {
       LdapConfiguration copy = new LdapConfiguration(config);
       copy.setSystemPassword(FAKE_PASSWORD);
-      return copy;
-    }
-    return config;
-  }
-
-  private LdapConfiguration decryptPassword(LdapConfiguration config) throws PlexusCipherException {
-    if (StringUtils.isNotBlank(config.getSystemPassword())) {
-      LdapConfiguration copy = new LdapConfiguration(config);
-      copy.setSystemPassword(cipher.decryptDecorated(config.getSystemPassword(), ENC));
       return copy;
     }
     return config;

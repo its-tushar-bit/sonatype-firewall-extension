@@ -42,6 +42,8 @@ import org.codehaus.plexus.util.FileUtils;
 
 /**
  * Embedded LDAP server meant to facilitate unit testing of LDAP integration.
+ * 
+ * @since 1.7
  */
 public class EmbeddedLdapServer
 {
@@ -59,10 +61,16 @@ public class EmbeddedLdapServer
 
   private Map<String, MechanismHandler> saslHandlers = new HashMap<String, MechanismHandler>();
 
+  /**
+   * @since 1.7
+   */
   public EmbeddedLdapServer(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
 
+  /**
+   * @since 1.7
+   */
   public void start() throws Exception {
     if (port <= 0) {
       port = getRandomPort();
@@ -140,37 +148,61 @@ public class EmbeddedLdapServer
     }
   }
 
+  /**
+   * @since 1.7
+   */
   public void stop() throws Exception {
     ldapServer.stop();
     directoryService.shutdown();
   }
 
+  /**
+   * @since 1.7
+   */
   public String getUrl() {
     StringBuilder sb = new StringBuilder();
     sb.append("ldap://localhost:" + port);
     return sb.toString();
   }
 
+  /**
+   * @since 1.7
+   */
   public int getPort() {
     return port;
   }
 
+  /**
+   * @since 1.7
+   */
   public String getSystemUserDN() {
     return "uid=admin,ou=system";
   }
 
+  /**
+   * @since 1.7
+   */
   public String getSystemUser() {
     return "admin";
   }
 
+  /**
+   * @since 1.7
+   */
   public String getSystemUserPassword() {
     return "secret";
   }
 
+  /**
+   * @since 1.7
+   */
   public void setAuthenticationSimple() {
     authLevel = AuthenticationLevel.SIMPLE;
   }
 
+  /**
+   * @since 1.7
+   */
   public void setAuthenticationSasl(String mechanism) {
     authLevel = AuthenticationLevel.STRONG;
     if (SupportedSaslMechanisms.DIGEST_MD5.equals(mechanism)) {
@@ -181,20 +213,17 @@ public class EmbeddedLdapServer
     }
   }
 
-  public static void main(String[] args) throws Exception {
-    File workingDirectory = new File("target/apacheds");
-    FileUtils.deleteDirectory(workingDirectory);
-    EmbeddedLdapServer server = new EmbeddedLdapServer(workingDirectory);
-    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
-    server.start();
-  }
-
+  /**
+   * @since 1.7
+   */
   public String getSaslRealm() {
     return LOCALHOST;
   }
 
   /**
    * Creates new LDAP server instance with conventional work directory target/apacheds
+   * 
+   * @since 1.7
    */
   public static EmbeddedLdapServer newEmbeddedLdapServer() throws IOException {
     File workingDirectory = new File("target/apacheds");
@@ -202,4 +231,12 @@ public class EmbeddedLdapServer
     return new EmbeddedLdapServer(workingDirectory);
   }
 
+
+  public static void main(String[] args) throws Exception {
+    File workingDirectory = new File("target/apacheds");
+    FileUtils.deleteDirectory(workingDirectory);
+    EmbeddedLdapServer server = new EmbeddedLdapServer(workingDirectory);
+    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    server.start();
+  }
 }

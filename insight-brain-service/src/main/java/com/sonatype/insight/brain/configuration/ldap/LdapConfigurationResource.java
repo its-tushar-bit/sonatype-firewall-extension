@@ -101,6 +101,9 @@ public class LdapConfigurationResource
     return fakeOutPassword(encrypted);
   }
 
+  /**
+   * @since 1.7
+   */
   @PUT
   @Path("test")
   @Consumes(MediaType.APPLICATION_JSON)

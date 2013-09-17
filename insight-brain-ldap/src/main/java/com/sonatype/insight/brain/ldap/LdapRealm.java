@@ -11,8 +11,14 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
+/**
+ * @since 1.7
+ */
 public class LdapRealm
 {
+  /**
+   * @since 1.7
+   */
   public static void testConnection(String url, String authenticationMechanism, String securityPrincipal,
       String securityPassword, String saslRealm) throws NamingException
   {

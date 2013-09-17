@@ -25,12 +25,7 @@ class LoginSpec extends GebReportingSpec {
       to LoginPage
     
     when: "valid credentials are supplied"
-      usernameInput.value("admin")
-      passwordInput.value("admin123")
-      
-      report()
-      
-      loginButton.click()
+      loginAsAdmin()
     
     then: "the user is logged in"
       waitFor { title != "CLM Login" }
@@ -41,9 +36,7 @@ class LoginSpec extends GebReportingSpec {
       to LoginPage
   
     when: "invalid credentials are supplied"
-      usernameInput.value("unknown")
-      passwordInput.value("user")
-      loginButton.click()
+      login("unknown", "user")
       
     then: "an error indicating bad credentials is shown"
       waitFor { errorMessage }

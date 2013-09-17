@@ -17,4 +17,14 @@ class LoginPage extends Page {
     // against what is expected in the test.
     errorMessage { $(text: contains("Invalid credentials")) }
   }
+
+  void loginAsAdmin() {
+    login("admin","admin123")
+  }
+  
+  void login(username, password) {
+    usernameInput.value(username)
+    passwordInput.value(password)
+    loginButton.click()
+  }
 }

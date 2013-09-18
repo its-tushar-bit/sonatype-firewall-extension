@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConfigurationDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
@@ -14,23 +18,27 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-
 public class LdapConfigurationResourceTest
     extends AbstractResourceTest
 {
 
+  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
   private EmbeddedLdapServer ldapServer;
 
   @After
@@ -40,6 +48,9 @@ public class LdapConfigurationResourceTest
       ldapServer = null;
     }
   }
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
   public void testCRUD() throws Exception {
@@ -369,6 +380,50 @@ public class LdapConfigurationResourceTest
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(), containsString("Nonexistent realm: invalidrealm"));
+  }
+
+  @Test
+  public void testTestConnection_ldaps() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSimple();
+    ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
+    ldapServer.start();
+
+    String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
+    try {
+      System.setProperty(SYSPROP_SSLTRUSTSTORE, getTestResourceFile("/keystore/insight-testclient.ks")
+          .getCanonicalPath());
+
+      LdapConfiguration config = new LdapConfiguration();
+      config.setProtocol(LdapProtocol.LDAPS);
+      config.setHostname("localhost");
+      config.setPort(ldapServer.getPort());
+      config.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+      config.setSystemUsername(ldapServer.getSystemUserDN());
+      config.setSystemPassword(ldapServer.getSystemUserPassword());
+
+      Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+      assertResponseStatus(200, response);
+      LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+      Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+    }
+    finally {
+      if (origTruststore != null) {
+        System.setProperty(SYSPROP_SSLTRUSTSTORE, origTruststore);
+      }
+      else {
+        System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
+      }
+    }
+  }
+
+  private File getTestResourceFile(String path) throws IOException {
+    URL resource = getClass().getResource(path);
+    Assert.assertNotNull(resource); // sanity check
+    File tempFile = temporaryFolder.newFile();
+    FileUtils.copyURLToFile(resource, tempFile);
+    return tempFile;
   }
 
   private String getServiceURL() {

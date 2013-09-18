@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ldap.test;
 
+import java.io.File;
 import java.util.Hashtable;
 
 import javax.naming.AuthenticationException;
@@ -29,6 +30,7 @@ import static org.hamcrest.Matchers.containsString;
  */
 public class EmbeddedLdapServerTest
 {
+  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
   private static final String AUTH_CRAMMD5 = "CRAM-MD5";
   private static final String AUTH_DIGESTMD5 = "DIGEST-MD5";
   private static final String AUTH_SIMPLE = "simple";
@@ -112,6 +114,28 @@ public class EmbeddedLdapServerTest
     // this is apparently client-only affair, so this is expected to work
 
     new InitialDirContext(env).close();
+  }
+
+  @Test
+  public void testLdaps() throws Exception {
+    server = newEmbeddedLdapServer();
+    server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
+    server.start();
+
+    String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
+    try {
+      System.setProperty(SYSPROP_SSLTRUSTSTORE,
+          new File("src/test/resources/keystore/insight-testclient.ks").getCanonicalPath());
+      assertLogin(AUTH_NONE);
+    }
+    finally {
+      if (origTruststore != null) {
+        System.setProperty(SYSPROP_SSLTRUSTSTORE, origTruststore);
+      }
+      else {
+        System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
+      }
+    }
   }
 
   private void assertLogin(String... mechanisms) throws NamingException {

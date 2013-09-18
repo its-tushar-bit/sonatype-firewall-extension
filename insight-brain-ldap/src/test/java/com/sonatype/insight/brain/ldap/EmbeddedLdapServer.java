@@ -86,7 +86,6 @@ public class EmbeddedLdapServer
     SchemaManager schemaManager = new DefaultSchemaManager();
     directoryService.setSchemaManager(schemaManager);
 
-    // initSchema(directoryService);
     initSystemPartition(directoryService);
 
     ldapServer = new LdapServer();

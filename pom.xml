@@ -373,6 +373,20 @@
   </build>
 
   <profiles>
+    <!--
+        Allows build of 'functional-test' to be disabled; required for build-automation optimizations.
+    -->
+    <profile>
+      <id>include-functional-test</id>
+      <activation>
+        <property>
+          <name>!skip-functional-test</name>
+        </property>
+      </activation>
+      <modules>
+        <module>insight-brain-functional-test</module>
+      </modules>
+    </profile>
     <profile>
       <id>quick</id>
       <activation>

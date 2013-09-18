@@ -58,12 +58,12 @@
     <module>insight-brain-db</module>
     <module>insight-brain-data-access</module>
     <module>insight-brain-policy-data-access</module>
+    <module>insight-brain-ldap</module>
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>
     <module>insight-rm-common</module>
     <module>sonatype-clm-server</module>
     <module>sonatype-clm-scanner</module>
-    <module>insight-brain-ldap</module>
   </modules>
 
   <dependencyManagement>

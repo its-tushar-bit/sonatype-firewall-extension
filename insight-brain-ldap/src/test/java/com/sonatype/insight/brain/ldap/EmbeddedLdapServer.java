@@ -160,9 +160,7 @@ public class EmbeddedLdapServer
    * @since 1.7
    */
   public String getUrl() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("ldap://localhost:" + port);
-    return sb.toString();
+    return "ldap://localhost:" + port;
   }
 
   /**

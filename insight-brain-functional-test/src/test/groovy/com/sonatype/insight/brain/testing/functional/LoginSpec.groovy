@@ -86,6 +86,7 @@ class LoginSpec extends GebReportingSpec {
       via LandingPage
     
     then: "user is prompted to log in"
+      // see CLM-976
       waitFor { at(LoginPage) }
   }
 
@@ -94,6 +95,7 @@ class LoginSpec extends GebReportingSpec {
       via ReportPage
 
     then: "user is prompted to log in"
+      // see CLM-976
       waitFor { at(LoginPage) }
   }
 
@@ -102,6 +104,7 @@ class LoginSpec extends GebReportingSpec {
       via ManagementPage
 
     then: "user is prompted to log in"
+      // see CLM-976
       waitFor { at(LoginPage) }
   }
 

@@ -46,32 +46,18 @@ class LoginScriptSpec extends GebReportingSpec {
   def "report application is protected by authentication"() {
     when: "accessing the report application"
       go "assets/reports.html#/reports"
-      // reports js app is actually served up, but then quickly redirects to login
-      // is this expected?  I would have expected the auth filter to redirect to the login page without serving up
-      // the report page
-
-      // sometimes the redirect is fast enough for it to not be captured by the test and then pass
-      // instead of using
-      //   assert title == "CLM Login"
-      // use a wait for the clm login page
 
     then: "user is prompted to log in"
+      // see CLM-976
       waitFor { title == "CLM Login" }
   }
 
   def "management application is protected by authentication"() {
     when: "accessing the management application"
       go "assets/index.html#/management/application"
-      // management js app is actually served up, but then quickly redirects to login
-      // is this expected?  I would have expected the auth filter to redirect to the login page without serving up
-      // the report page
-      
-      // sometimes the redirect is fast enough for it to not be captured by the test and then pass
-      // instead of using
-      //   assert title == "CLM Login"
-      // use a wait for the clm login page 
 
     then: "user is prompted to log in"
+      // see CLM-976
       waitFor { title == "CLM Login" }
   }
   

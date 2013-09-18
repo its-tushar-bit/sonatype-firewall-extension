@@ -1,4 +1,4 @@
-#saasAddress: "https://clm-staging.sonatype.com/"
+saasAddress: "https://clm-staging.sonatype.com/"
 #saasAddress: "http://localhost:8080/insight-portal"
 
 # Directory for data files.

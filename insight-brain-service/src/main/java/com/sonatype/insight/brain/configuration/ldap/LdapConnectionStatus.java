@@ -15,7 +15,7 @@ public class LdapConnectionStatus
     OK, FAILURE;
   }
 
-  public static LdapConnectionStatus OK = new LdapConnectionStatus(Status.OK, null);
+  public static final LdapConnectionStatus OK = new LdapConnectionStatus(Status.OK, null);
 
   @JsonProperty
   private final Status status;

@@ -113,14 +113,14 @@ CREATE TABLE user (
   user_id varchar(50) NOT NULL,
   username varchar(60) NOT NULL,
   username_lowercase varchar(60) NOT NULL,
-  password_hash varchar(128) NULL,
+  password varchar(128) NULL,
   first_name varchar(100) NOT NULL,
   last_name varchar(100) NOT NULL,
   email varchar(255) NULL,
   CONSTRAINT user_pk PRIMARY KEY (user_id),
   CONSTRAINT user_username_uk UNIQUE KEY (username_lowercase)
 );
-INSERT INTO user (user_id, username, username_lowercase, password_hash, first_name, last_name ) VALUES ('ADMIN', 'admin', 'admin', '$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=', 'Admin', 'BuiltIn');
+INSERT INTO user (user_id, username, username_lowercase, password, first_name, last_name ) VALUES ('ADMIN', 'admin', 'admin', '$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=', 'Admin', 'BuiltIn');
 
 CREATE TABLE ldap_configuration (
   ldap_configuration_id varchar(50) NOT NULL,

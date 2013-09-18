@@ -57,8 +57,8 @@ public class UserResource
   @Produces(MediaType.APPLICATION_JSON)
   public User addUser(User user) {
     user.setId(null);
-    if (user.getPasswordHash() != null) {
-      user.setPasswordHash(clmRealm.encryptPassword(user.getPasswordHash()).toCharArray());
+    if (user.getPassword() != null) {
+      user.setPassword(clmRealm.encryptPassword(user.getPassword()).toCharArray());
     }
     new UserDAO().insert(user);
 
@@ -73,15 +73,15 @@ public class UserResource
   public User updateUser(User user) {
     UserDAO dao = new UserDAO();
 
-    if (Arrays.equals(FAKE_PASSWORD.toCharArray(), user.getPasswordHash())) {
+    if (Arrays.equals(FAKE_PASSWORD.toCharArray(), user.getPassword())) {
       // We don't have a new password, so we need to retrieve the existing one and fill it in the user object to be
       // updated.
       User existingUser = dao.getByIdNotNull(user.getId());
-      user.setPasswordHash(existingUser.getPasswordHash());
+      user.setPassword(existingUser.getPassword());
     }
-    else if (user.getPasswordHash() != null) {
+    else if (user.getPassword() != null) {
       // We have a new password, encrypt it.
-      user.setPasswordHash(clmRealm.encryptPassword(user.getPasswordHash()).toCharArray());
+      user.setPassword(clmRealm.encryptPassword(user.getPassword()).toCharArray());
     }
     dao.update(user);
 
@@ -103,6 +103,6 @@ public class UserResource
 
   private void clearUserPassword(User user) {
     user.clearPassword();
-    user.setPasswordHash(FAKE_PASSWORD.toCharArray());
+    user.setPassword(FAKE_PASSWORD.toCharArray());
   }
 }

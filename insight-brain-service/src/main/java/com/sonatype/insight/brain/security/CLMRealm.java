@@ -67,7 +67,7 @@ public class CLMRealm
     User user = new UserDAO().getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));
     if (user != null) {
       // Shiro will verify the password
-      return new SimpleAuthenticationInfo(username, user.getPasswordHash(), getName());
+      return new SimpleAuthenticationInfo(username, user.getPassword(), getName());
     }
 
     // The username is not in the CLM db. Leave it to other realms to authenticate the user.

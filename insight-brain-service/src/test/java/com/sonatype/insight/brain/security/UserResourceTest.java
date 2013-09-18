@@ -48,19 +48,19 @@ public class UserResourceTest
     // Add
     User user = new User("testCRUD", "testCRUDFirstName", "testCRUDLastName");
     user.setEmail("testCRUD@sonatype.com");
-    user.setPasswordHash("testCRUDPassword".toCharArray());
+    user.setPassword("testCRUDPassword".toCharArray());
     response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     assertThat(user.getId(), notNullValue());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
     UserDAO dao = new UserDAO();
     user = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPasswordHash()), notNullValue());
-    assertThat(String.valueOf(user.getPasswordHash()), is(not(UserResource.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPasswordHash()), is(not("testCRUDPassword")));
+    assertThat(String.valueOf(user.getPassword()), notNullValue());
+    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
     response = AuthedRestAccess.get(getServiceURL());
@@ -70,8 +70,8 @@ public class UserResourceTest
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
 
     // Update, no password change
     user.setFirstName("testCRUDFirstNameUpdated");
@@ -79,12 +79,12 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
     user = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPasswordHash()), notNullValue());
-    assertThat(String.valueOf(user.getPasswordHash()), is(not(UserResource.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPasswordHash()), is(not("testCRUDPassword")));
+    assertThat(String.valueOf(user.getPassword()), notNullValue());
+    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
     response = AuthedRestAccess.get(getServiceURL());
@@ -94,21 +94,21 @@ public class UserResourceTest
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
 
     // Update, password change
-    user.setPasswordHash("testCRUDPasswordUpdated".toCharArray());
+    user.setPassword("testCRUDPasswordUpdated".toCharArray());
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
     user = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPasswordHash()), notNullValue());
-    assertThat(String.valueOf(user.getPasswordHash()), is(not(UserResource.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPasswordHash()), is(not("testCRUDPasswordUpdated")));
+    assertThat(String.valueOf(user.getPassword()), notNullValue());
+    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPasswordUpdated")));
 
     // Get all
     response = AuthedRestAccess.get(getServiceURL());
@@ -118,8 +118,8 @@ public class UserResourceTest
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
 
     // Delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
@@ -132,7 +132,7 @@ public class UserResourceTest
     assertThat(users, notNullValue());
     assertThat(users, hasSize(1));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

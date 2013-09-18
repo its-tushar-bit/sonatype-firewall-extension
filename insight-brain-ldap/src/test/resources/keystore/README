@@ -1,0 +1,5 @@
+Self-signed SSL certificated generated described in http://directory.apache.org/apacheds/basic-ug/3.3-enabling-ssl.html
+
+insight-test.ks has the private key, insight-testclient.ks only the certificate.
+
+Both keystores have password 'secret'. Certificate alias is insight-test in both keystores. 

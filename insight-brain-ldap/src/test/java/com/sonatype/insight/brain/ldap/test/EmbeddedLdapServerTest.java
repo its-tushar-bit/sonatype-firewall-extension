@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ldap.test;
 
+import java.io.File;
 import java.util.Hashtable;
 
 import javax.naming.AuthenticationException;
@@ -112,6 +113,23 @@ public class EmbeddedLdapServerTest
     // this is apparently client-only affair, so this is expected to work
 
     new InitialDirContext(env).close();
+  }
+
+  @Test
+  public void testLdaps() throws Exception {
+    server = newEmbeddedLdapServer();
+    server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
+    server.start();
+
+    System.setProperty("javax.net.ssl.trustStore",
+        new File("src/test/resources/keystore/insight-testclient.ks").getCanonicalPath());
+
+    try {
+      assertLogin(AUTH_NONE);
+    }
+    finally {
+      System.getProperties().remove("javax.net.ssl.trustStore");
+    }
   }
 
   private void assertLogin(String... mechanisms) throws NamingException {

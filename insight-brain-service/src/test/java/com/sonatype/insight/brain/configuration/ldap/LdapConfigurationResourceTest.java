@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConfigurationDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
@@ -14,18 +20,19 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 public class LdapConfigurationResourceTest
     extends AbstractResourceTest
@@ -33,11 +40,25 @@ public class LdapConfigurationResourceTest
 
   private EmbeddedLdapServer ldapServer;
 
+  private Set<File> tempFiles = new HashSet<File>();
+
   @After
   public void stopEmbeddedLdapServer() throws Exception {
     if (ldapServer != null) {
       ldapServer.stop();
       ldapServer = null;
+    }
+  }
+
+  @After
+  public void deleteTemporaryFiles() throws Exception {
+    for (File tempFile : tempFiles) {
+      if (tempFile.isDirectory()) {
+        FileUtils.deleteDirectory(tempFile);
+      }
+      else {
+        Assert.assertTrue(tempFile.delete());
+      }
     }
   }
 
@@ -369,6 +390,45 @@ public class LdapConfigurationResourceTest
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(), containsString("Nonexistent realm: invalidrealm"));
+  }
+
+  @Test
+  public void testTestConnection_ldaps() throws Exception {
+    ldapServer = newEmbeddedLdapServer();
+    ldapServer.setAuthenticationSimple();
+    ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
+    ldapServer.start();
+
+    System.setProperty("javax.net.ssl.trustStore", getTestResourceFile("/keystore/insight-testclient.ks")
+        .getCanonicalPath());
+
+    try {
+      LdapConfiguration config = new LdapConfiguration();
+      config.setProtocol(LdapProtocol.LDAPS);
+      config.setHostname("localhost");
+      config.setPort(ldapServer.getPort());
+      config.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+      config.setSystemUsername(ldapServer.getSystemUserDN());
+      config.setSystemPassword(ldapServer.getSystemUserPassword());
+
+      Response response = AuthedRestAccess.put(getServiceURL() + "/test", JsonHelpers.asJson(config));
+      assertResponseStatus(200, response);
+      LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
+
+      Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+    }
+    finally {
+      System.getProperties().remove("javax.net.ssl.trustStore");
+    }
+  }
+
+  private File getTestResourceFile(String path) throws IOException {
+    URL resource = getClass().getResource(path);
+    Assert.assertNotNull(resource); // sanity check
+    File tempFile = File.createTempFile("testresource", ".tmp");
+    tempFiles.add(tempFile);
+    FileUtils.copyURLToFile(resource, tempFile);
+    return tempFile;
   }
 
   private String getServiceURL() {

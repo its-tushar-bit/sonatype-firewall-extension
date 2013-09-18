@@ -61,6 +61,10 @@ public class EmbeddedLdapServer
 
   private Map<String, MechanismHandler> saslHandlers = new HashMap<String, MechanismHandler>();
 
+  private File ldapsKeystore;
+
+  private String ldapsKeystorePassword;
+
   /**
    * @since 1.7
    */
@@ -91,7 +95,14 @@ public class EmbeddedLdapServer
     ldapServer = new LdapServer();
 
     Transport transport = new TcpTransport(LOCALHOST, port);
+    transport.setEnableSSL(ldapsKeystore != null);
     ldapServer.setTransports(transport);
+    if (ldapsKeystore != null) {
+      ldapServer.setKeystoreFile(ldapsKeystore.getCanonicalPath());
+    }
+    if (ldapsKeystorePassword != null) {
+      ldapServer.setCertificatePassword(ldapsKeystorePassword);
+    }
 
     ldapServer.setDirectoryService(directoryService);
 
@@ -161,7 +172,11 @@ public class EmbeddedLdapServer
    * @since 1.7
    */
   public String getUrl() {
-    return "ldap://localhost:" + port;
+    StringBuilder sb = new StringBuilder();
+    sb.append(ldapsKeystore != null ? "ldaps" : "ldap");
+    sb.append("://localhost:");
+    sb.append(port);
+    return sb.toString();
   }
 
   /**
@@ -219,6 +234,11 @@ public class EmbeddedLdapServer
     return LOCALHOST;
   }
 
+  public void enableLdaps(File keystore, String keystorePassword) {
+    this.ldapsKeystore = keystore;
+    this.ldapsKeystorePassword = keystorePassword;
+  }
+
   /**
    * Creates new LDAP server instance with conventional work directory target/apacheds
    * 
@@ -234,7 +254,7 @@ public class EmbeddedLdapServer
     File workingDirectory = new File("target/apacheds");
     FileUtils.deleteDirectory(workingDirectory);
     EmbeddedLdapServer server = new EmbeddedLdapServer(workingDirectory);
-    server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+    server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
     server.start();
   }
 }

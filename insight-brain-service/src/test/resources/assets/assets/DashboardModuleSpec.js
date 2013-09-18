@@ -17,7 +17,7 @@ describe('dashboardApp', function() {
       }
     });
 
-    $stateProvider.state('test', {}).state('management', {}).state('management.configuration', {}).state(
+    $stateProvider.state('test', {url: '/test/:testId'}).state('management', {}).state('management.configuration', {}).state(
             'management.configuration.productlicense', {});
   }));
 
@@ -42,7 +42,7 @@ describe('dashboardApp', function() {
     });
   }));
 
-  it('Validate proper requests made on initialization', inject(function($rootScope, $httpBackend, $state, $window,
+  it('Validate proper requests made on initialization', inject(function($rootScope, $httpBackend, $state, $stateParams, $window,
           CLMLocations) {
     var event = {
       preventDefault: jasmine.createSpy('preventDefault')
@@ -63,7 +63,8 @@ describe('dashboardApp', function() {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond({
       username: 'user'
     });
-    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
+    var toParams = {testId:'blah'};
+    var event = $rootScope.$broadcast('$stateChangeStart', 'test', toParams, '', {});
     $httpBackend.flush();
 
     expect(event.defaultPrevented).toBeTruthy();
@@ -71,6 +72,7 @@ describe('dashboardApp', function() {
     expect($rootScope.authenticated).toBeTruthy();
     expect($rootScope.licensed).toBeTruthy();
     expect($state.current.name).toEqual('test');
+    expect($stateParams).toEqual(toParams);
 
     // now test with bad license
     cleanScope();

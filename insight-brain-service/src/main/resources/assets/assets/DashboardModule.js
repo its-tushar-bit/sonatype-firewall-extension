@@ -65,9 +65,10 @@
                     // save the state they were going to for use later, we will reuse this if the security/license check
                     // all passes
                     var storedState = toState;
+                    var storedParams = toParams;
                     serverStatus.check().then(function(data) {
                       // all good, off you go!
-                      $state.transitionTo(storedState);
+                      $state.transitionTo(storedState, storedParams);
                     }, function(data) {
                       // naughty naughty, no auth
                       if (data.status === 401 || !$rootScope.authenticated) {

@@ -21,6 +21,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 /**
  * This may sound silly, but this test actually tests test LDAP server.
@@ -94,7 +96,7 @@ public class EmbeddedLdapServerTest
       Assert.fail();
     }
     catch (NamingException expected) {
-      Assert.assertTrue(expected.toString().contains("Nonexistent realm: wrongrealm"));
+      assertThat(expected.toString(), containsString("Nonexistent realm: wrongrealm"));
     }
   }
 

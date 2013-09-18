@@ -24,6 +24,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 public class LdapConfigurationResourceTest
     extends AbstractResourceTest
 {
@@ -300,7 +303,7 @@ public class LdapConfigurationResourceTest
     LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    Assert.assertTrue(status.getMessage().contains("Incorrect DN") && status.getMessage().contains(systemUserDN));
+    assertThat(status.getMessage(), allOf(containsString("Incorrect DN"), containsString(systemUserDN)));
   }
 
   @Test
@@ -322,7 +325,7 @@ public class LdapConfigurationResourceTest
     LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    Assert.assertTrue(status.getMessage().contains("Cannot authenticate user"));
+    assertThat(status.getMessage(), containsString("Cannot authenticate user"));
   }
 
   @Test
@@ -341,8 +344,8 @@ public class LdapConfigurationResourceTest
     LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    Assert.assertTrue(status.getMessage().contains("UnknownHostException")
-        && status.getMessage().contains("garbage.localhost.litter"));
+    assertThat(status.getMessage(),
+        allOf(containsString("UnknownHostException"), containsString("garbage.localhost.litter")));
   }
 
   @Test
@@ -365,7 +368,7 @@ public class LdapConfigurationResourceTest
     LdapConnectionStatus status = JsonHelpers.fromJson(response.getResponseBody(), LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    Assert.assertTrue(status.getMessage().contains("Nonexistent realm: invalidrealm"));
+    assertThat(status.getMessage(), containsString("Nonexistent realm: invalidrealm"));
   }
 
   private String getServiceURL() {

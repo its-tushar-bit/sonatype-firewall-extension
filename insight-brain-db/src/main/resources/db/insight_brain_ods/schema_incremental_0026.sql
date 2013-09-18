@@ -6,7 +6,7 @@ CREATE TABLE ldap_configuration (
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   protocol varchar(5) NOT NULL,
   hostname varchar(255) NOT NULL,
-  port smallint(5) NOT NULL,
+  port int(5) NOT NULL,
   search_base varchar(255),
   authentication_method varchar(10) NOT NULL,
   sasl_realm varchar(255),

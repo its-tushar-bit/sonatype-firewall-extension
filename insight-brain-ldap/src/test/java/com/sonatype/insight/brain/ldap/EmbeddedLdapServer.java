@@ -154,6 +154,7 @@ public class EmbeddedLdapServer
   public void stop() throws Exception {
     ldapServer.stop();
     directoryService.shutdown();
+    port = 0;
   }
 
   /**

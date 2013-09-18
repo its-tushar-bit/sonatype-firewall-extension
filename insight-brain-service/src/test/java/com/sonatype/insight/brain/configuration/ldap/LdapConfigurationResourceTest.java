@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConfigurationDAO;
@@ -23,7 +21,9 @@ import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,8 +40,6 @@ public class LdapConfigurationResourceTest
 
   private EmbeddedLdapServer ldapServer;
 
-  private Set<File> tempFiles = new HashSet<File>();
-
   @After
   public void stopEmbeddedLdapServer() throws Exception {
     if (ldapServer != null) {
@@ -50,17 +48,8 @@ public class LdapConfigurationResourceTest
     }
   }
 
-  @After
-  public void deleteTemporaryFiles() throws Exception {
-    for (File tempFile : tempFiles) {
-      if (tempFile.isDirectory()) {
-        FileUtils.deleteDirectory(tempFile);
-      }
-      else {
-        Assert.assertTrue(tempFile.delete());
-      }
-    }
-  }
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
   public void testCRUD() throws Exception {
@@ -425,8 +414,7 @@ public class LdapConfigurationResourceTest
   private File getTestResourceFile(String path) throws IOException {
     URL resource = getClass().getResource(path);
     Assert.assertNotNull(resource); // sanity check
-    File tempFile = File.createTempFile("testresource", ".tmp");
-    tempFiles.add(tempFile);
+    File tempFile = temporaryFolder.newFile();
     FileUtils.copyURLToFile(resource, tempFile);
     return tempFile;
   }

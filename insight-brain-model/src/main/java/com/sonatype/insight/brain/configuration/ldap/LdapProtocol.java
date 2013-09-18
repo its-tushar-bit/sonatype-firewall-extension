@@ -13,10 +13,20 @@ public enum LdapProtocol
   /**
    * @since 1.7
    */
-  LDAP,
+  LDAP("ldap"),
 
   /**
    * @since 1.7
    */
-  LDAPS
+  LDAPS("ldaps");
+
+  private String protocol;
+
+  private LdapProtocol(String name) {
+    this.protocol = name;
+  }
+
+  public String getProtocol() {
+    return protocol;
+  }
 }

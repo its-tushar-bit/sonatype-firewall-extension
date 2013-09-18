@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,7 +21,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConfigurationDAO;
+import com.sonatype.insight.brain.ldap.LdapRealm;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -96,6 +99,29 @@ public class LdapConfigurationResource
     LdapConfiguration encrypted = encryptPassword(config);
     dao.update(encrypted);
     return fakeOutPassword(encrypted);
+  }
+
+  /**
+   * @since 1.7
+   */
+  @PUT
+  @Path("test")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public LdapConnectionStatus testConnection(LdapConfiguration config) throws PlexusCipherException {
+    try {
+      String password = config.getSystemPassword();
+      if (FAKE_PASSWORD.equals(password) && config.getId() != null) {
+        password = decryptPassword(dao.getByIdNotNull(config.getId())).getSystemPassword();
+      }
+
+      LdapRealm.testConnection(config.getUrl(), config.getAuthenticationMethod().getMethod(),
+          config.getSystemUsername(), password, config.getSaslRealm());
+      return LdapConnectionStatus.OK;
+    }
+    catch (NamingException e) {
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
+    }
   }
 
   /**

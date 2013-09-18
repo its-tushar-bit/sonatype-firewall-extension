@@ -14,20 +14,30 @@ public enum LdapAuthenticationMethod
   /**
    * @since 1.7
    */
-  NONE,
+  NONE("none"),
 
   /**
    * @since 1.7
    */
-  SIMPLE,
+  SIMPLE("simple"),
 
   /**
    * @since 1.7
    */
-  DIGESTMD5,
+  DIGESTMD5("DIGEST-MD5"),
 
   /**
    * @since 1.7
    */
-  CRAMMD5
+  CRAMMD5("CRAM-MD5");
+
+  private String method;
+
+  private LdapAuthenticationMethod(String name) {
+    this.method = name;
+  }
+
+  public String getMethod() {
+    return method;
+  }
 }

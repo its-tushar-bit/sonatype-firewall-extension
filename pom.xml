@@ -5,7 +5,8 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
@@ -57,6 +58,7 @@
     <module>insight-brain-db</module>
     <module>insight-brain-data-access</module>
     <module>insight-brain-policy-data-access</module>
+    <module>insight-brain-ldap</module>
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>
     <module>insight-rm-common</module>
@@ -112,6 +114,38 @@
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-json-store</artifactId>
         <version>1.7.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-ldap</artifactId>
+        <version>1.7.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-ldap</artifactId>
+        <version>1.7.0-SNAPSHOT</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.directory.server</groupId>
+        <artifactId>apacheds-core-integ</artifactId>
+        <version>2.0.0-M13</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.directory.server</groupId>
+            <artifactId>apacheds-jdbm-partition</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.directory.jdbm</groupId>
+            <artifactId>apacheds-jdbm1</artifactId>
+          </exclusion>
+        </exclusions>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -271,12 +305,12 @@
         <version>1.3</version>
       </dependency>
       <dependency>
-	    <groupId>com.sun.jersey.contribs</groupId>
-	    <artifactId>jersey-multipart</artifactId>
-	    <version>${jersey.version}</version>
-	  </dependency>
-	  <dependency>
-      <groupId>com.yammer.dropwizard</groupId>
+        <groupId>com.sun.jersey.contribs</groupId>
+        <artifactId>jersey-multipart</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.yammer.dropwizard</groupId>
         <artifactId>dropwizard-testing</artifactId>
         <version>${dropwizard.version}</version>
       </dependency>

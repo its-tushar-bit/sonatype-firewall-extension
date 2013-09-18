@@ -1,0 +1,26 @@
+<div>
+	<div load-error='error' reload='doLoad()'></div>
+	<div ng-hide='error'>
+		<div ng-hide='users' style='text-align:center;margin:30px'>
+			<h5><i class='icon-time'></i> Loading...</h5>
+		</div>
+		<div ng-show='users' style='padding:10px;min-width:400px;max-width:700px'>
+			<table class="table table-hover table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>First Name</th>
+						<th>Last Name</th>
+						<th>Login</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat='user in users'>
+						<td>{{user.firstName}}</td>
+						<td>{{user.lastName}}</td>
+						<td>{{user.username}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

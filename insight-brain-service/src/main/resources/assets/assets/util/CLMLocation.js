@@ -73,6 +73,14 @@
         
         getSessionUrl: function() {
           return baseUrl.get() + '/rest/user/session';
+        },
+        
+        getStatusUrl: function() {
+          return baseUrl.get() + '/rest/user/session/status';
+        },
+
+        getUserListUrl : function () {
+          return baseUrl.get() + '/rest/user';
         }
       };
     }

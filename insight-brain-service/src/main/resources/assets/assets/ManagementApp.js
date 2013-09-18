@@ -6,7 +6,7 @@
 (function() {
   "use strict";
   var managementApp = angular.module('managementApp',
-      ['DashboardModule', 'OrganizationModule', 'ApplicationModule', 'Configuration'],
+      ['DashboardModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule'],
       [
         '$routeProvider', function($routeProvider) {
         $routeProvider.when('', { redirectTo: '/management/application' });
@@ -37,6 +37,11 @@
       {
         name: 'Applications',
         state: 'management/application',
+        isEnabled: true
+      },
+      {
+        name: 'Security',
+        state: 'management/security',
         isEnabled: true
       },
       {

@@ -19,47 +19,28 @@
     <geb.version>0.9.1</geb.version>
     <selenium.version>2.35.0</selenium.version>
   </properties>
-  <!--
-    assembled with help from:
-      https://github.com/spockframework/spock-example
-      https://github.com/geb/geb-example-maven
-  -->
+
   <build>
-    <!-- Mandatory plugins for using Spock -->
     <plugins>
       <plugin>
-        <groupId>org.codehaus.gmaven</groupId>
-        <artifactId>gmaven-plugin</artifactId>
-        <version>1.5</version>
-        <configuration>
-          <providerSelection>2.0</providerSelection>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
         <dependencies>
           <dependency>
-            <groupId>org.codehaus.gmaven.runtime</groupId>
-            <artifactId>gmaven-runtime-2.0</artifactId>
-            <version>1.5</version>
-            <exclusions>
-              <exclusion>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-              </exclusion>
-            </exclusions>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-eclipse-compiler</artifactId>
+            <version>2.7.0-01</version>
           </dependency>
           <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.1.7</version>
+            <artifactId>groovy-eclipse-batch</artifactId>
+            <version>2.0.6-01</version>
           </dependency>
         </dependencies>
+        <configuration>
+          <!-- Enable Groovy compilation. -->
+          <compilerId>groovy-eclipse-compiler</compilerId>
+        </configuration>
       </plugin>
       <!-- Make surefire aware of Spec tests -->
       <plugin>
@@ -93,6 +74,7 @@
         <configuration>
           <!-- ${skip.damage.control.report} -->
           <skip>false</skip>
+          <specDefinitionsFolder>${project.build.testSourceDirectory}</specDefinitionsFolder>
         </configuration>
         <executions>
           <execution>
@@ -104,37 +86,6 @@
         </executions>
       </plugin>
     </plugins>
-
-    <pluginManagement>
-      <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.codehaus.gmaven</groupId>
-                    <artifactId>gmaven-plugin</artifactId>
-                    <versionRange>[1.4,)</versionRange>
-                    <goals>
-                      <goal>compile</goal>
-                      <goal>testCompile</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <dependencies>

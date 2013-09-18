@@ -71,12 +71,8 @@
               encodeURIComponent(scanId) + '/embedReport/index.html';
         },
         
-        getLoginUrl: function() {
+        getSessionUrl: function() {
           return baseUrl.get() + '/rest/user/session';
-        },
-        
-        getStatusUrl: function() {
-          return baseUrl.get() + '/rest/user/session/status';
         }
       };
     }

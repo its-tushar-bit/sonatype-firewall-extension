@@ -35,7 +35,6 @@ public class CLMShiroModule
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
     addTemporaryAnonymousPaths(manager);
-    manager.createChain("/rest/user/session/status", "anon");
     manager.createChain("/*assets/**", "anon");
     manager.createChain("/favicon.ico", "anon");
     manager.createChain("/crumbIssuer/**", "anon");

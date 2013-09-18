@@ -52,19 +52,8 @@ public class UserSessionResource
   }
 
   /**
-   * Get the authentication status of the current account.
-   * 
-   * The REST implementation uses a sub-resource (path) in order to allow anonymous access.  This is due to Shiro not 
-   * having authentication based on specified HTTP methods.
-   * 
-   * For background see the discussion on list [1] which called for an improvement to configure authentication for 
-   * specific http methods.  As a result, SHIRO-200 [2] was filed with a patch supplied.  It is not resolved due to an 
-   * open question on an appropriate way to configure http method for arbitrary filters.
-   * 
-   * [1] http://shiro-developer.582600.n2.nabble.com/HTTP-method-dependent-Basic-authentication-td5635284.html
-   * [2] https://issues.apache.org/jira/browse/SHIRO-200
+   * Get the authentication status of the current account. 
    */
-  @Path("status")
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public AuthenticationStatus getStatus() {

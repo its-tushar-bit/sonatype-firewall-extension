@@ -4,6 +4,7 @@ describe('dashboardApp', function() {
   beforeEach(module('DashboardModule', function($stateProvider, $provide) {
     $provide.value('$window', {
       location: {
+        href: 'http://blah/index.html',
         replace: jasmine.createSpy()
       },
       navigator: {
@@ -41,74 +42,87 @@ describe('dashboardApp', function() {
     });
   }));
 
-  it('Validate proper requests made on initialization',
-          inject(function($rootScope, $httpBackend, $state, $window, CLMLocations) {
-            var event = {
-              preventDefault: jasmine.createSpy('preventDefault')
-            };
-            
-            function cleanScope() {
-              // dump the vars so that we can test from scratch
-              delete $rootScope.username;
-              delete $rootScope.authenticated;
-              delete $rootScope.licensed;
-              delete $rootScope.initialized;  
-            }
-            
-            cleanScope();
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
-              username: 'user',
-              authenticated: true
-            });
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond({
-              username: 'user'
-            });
-            var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-            $httpBackend.flush();
+  it('Validate proper requests made on initialization', inject(function($rootScope, $httpBackend, $state, $window,
+          CLMLocations) {
+    var event = {
+      preventDefault: jasmine.createSpy('preventDefault')
+    };
 
-            expect(event.defaultPrevented).toEqual(true);
-            expect($rootScope.username).toEqual('user');
-            expect($rootScope.authenticated).toEqual(true);
-            expect($rootScope.licensed).toEqual(true);
-            expect($rootScope.initialized).toEqual(true);
-            expect($state.current.name).toEqual('test');
+    function cleanScope() {
+      // dump the vars so that we can test from scratch
+      delete $rootScope.username;
+      delete $rootScope.authenticated;
+      delete $rootScope.licensed;
+    }
 
-            // now test with bad license
-            cleanScope();
+    cleanScope();
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
+      username: 'user',
+      authenticated: true
+    });
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond({
+      username: 'user'
+    });
+    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
+    $httpBackend.flush();
 
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
-              username: 'user',
-              authenticated: true
-            });
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
-            var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-            $httpBackend.flush();
+    expect(event.defaultPrevented).toBeTruthy();
+    expect($rootScope.username).toEqual('user');
+    expect($rootScope.authenticated).toBeTruthy();
+    expect($rootScope.licensed).toBeTruthy();
+    expect($state.current.name).toEqual('test');
 
-            expect(event.defaultPrevented).toEqual(true);
-            expect($rootScope.username).toEqual('user');
-            expect($rootScope.authenticated).toEqual(true);
-            expect($rootScope.licensed).toEqual(false);
-            expect($rootScope.initialized).toEqual(true);
-            expect($state.current.name).toEqual('management.configuration.productlicense');
+    // now test with bad license
+    cleanScope();
 
-            // now test with bad auth
-            cleanScope();
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
+      username: 'user',
+      authenticated: true
+    });
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
+    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
+    $httpBackend.flush();
 
-            $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getStatusUrl())).respond({
-              username: null,
-              authenticated: false
-            });
-            var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-            $httpBackend.flush();
+    expect(event.defaultPrevented).toBeTruthy();
+    expect($rootScope.username).toEqual('user');
+    expect($rootScope.authenticated).toBeTruthy();
+    expect($rootScope.licensed).toBeFalsy();
+    expect($state.current.name).toEqual('management.configuration.productlicense');
 
-            expect(event.defaultPrevented).toEqual(true);
-            expect($rootScope.username).toBeUndefined();
-            // Apps authenticated state is only set when authenticated is true.
-            expect($rootScope.authenticated).toBeUndefined();
-            expect($rootScope.licensed).toBeUndefined();
-            expect($rootScope.initialized).toBeUndefined();
-            expect($window.location.replace.mostRecentCall.args[0]).toMatch(/\.\.\/login-assets\/login\.html\?timestamp=[0-9]+/);
-          }));
+    // now test with bad license from something other than index.html (i.e.
+    // reports.html)
+    $window.location.href = 'http://blah/reports.html';
+    cleanScope();
+
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
+      username: 'user',
+      authenticated: true
+    });
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
+    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
+    $httpBackend.flush();
+
+    expect(event.defaultPrevented).toBeTruthy();
+    expect($rootScope.username).toEqual('user');
+    expect($rootScope.authenticated).toBeTruthy();
+    expect($rootScope.licensed).toBeFalsy();
+    expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
+
+    // now test with bad auth
+    $window.location.replace.reset();
+    cleanScope();
+
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
+    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
+    $httpBackend.flush();
+
+    expect(event.defaultPrevented).toBeTruthy();
+    expect($rootScope.username).toBeFalsy();
+    expect($rootScope.authenticated).toBeFalsy();
+    expect($rootScope.licensed).toBeFalsy();
+    expect($window.location.replace).toHaveBeenCalledWith(
+            '../login-assets/login.html?redirectTo=' + encodeURIComponent('http://blah/reports.html'));
+  }));
 
   it('Validate location change event is broadcast properly', inject(function($rootScope) {
     var successStart = false, successAccept = false;

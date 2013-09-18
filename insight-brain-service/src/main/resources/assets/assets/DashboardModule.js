@@ -48,6 +48,7 @@
               'CLMLocations',
               'serverStatus',
               function($rootScope, $location, $window, $state, messages, CLMLocations, serverStatus) {
+
                 // The page contains unsaved changes, continuing will discard
                 // them.
                 $rootScope.tempState = null;
@@ -59,36 +60,33 @@
                 $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
                   // first state change occurs on first page load, so we always want to prevent the first state change
                   // so that we can first check security and license status
-                  if (!$rootScope.initialized) {
+                  if (!$rootScope.authenticated) {
                     event.preventDefault();
-                    // save the state they were going to for use later, reuse if the security/license check passes
+                    // save the state they were going to for use later, we will reuse this if the security/license check
+                    // all passes
                     var storedState = toState;
                     serverStatus.check().then(function(data) {
-                      $rootScope.username = data.username;
-                      $rootScope.authenticated = data.authenticated;
-                      $rootScope.licensed = data.licensed;
-                      $rootScope.initialized = true;
-                      // unlicensed, force them to the product license page
-                      if (!$rootScope.licensed) {
-                        // reports are a separate html/app, so we need a location switch rather than a state change
-                        if ($location.absUrl().indexOf('/reports.html') > -1) {
+                      // all good, off you go!
+                      $state.transitionTo(storedState);
+                    }, function(data) {
+                      // naughty naughty, no auth
+                      if (data.status === 401 || !$rootScope.authenticated) {
+                        var to = '../login-assets/login.html';
+                        var current = $window.location.href;
+                        if (current && current.indexOf('/login-assets/login.html') == -1) {
+                          to = to + '?redirectTo=' + encodeURIComponent(current);
+                        }
+                        $window.location.replace(to);
+                      } else if (data.status == 402 || !$rootScope.licensed) { // even naughtier, no license!
+                        if ($window.location.href.indexOf('/index.html') === -1) {
                           $window.location.replace('index.html#/management/configuration/productlicense');
                         } else {
                           $state.transitionTo('management.configuration.productlicense');
                         }
-                      } else {
-                        // user all set, license all set, send em off on their way!
-                        $state.transitionTo(storedState);
-                      }
-                    }, function(status) {
-                      if (status) {
+                      } else if (data.status) {
                         $rootScope.error = 'Unable to initialize the application';
                       }
                     });
-                  } else if (!$rootScope.authenticated) {
-                    // not logged in so force to the login page
-                    event.preventDefault();
-                    $window.location.replace('../login-assets/login.html?timestamp=' + new Date().getTime());
                   } else if (!$rootScope.licensed && toState.name != 'management.configuration.productlicense') {
                     // not licensed and trying to browse to a page other than license
                     event.preventDefault();
@@ -162,10 +160,10 @@
         };
       }]);
 
-  dashboardApp.controller('dashboardController', ['$scope', '$state', function($scope, $state) {
+  dashboardApp.controller('dashboardController', ['$scope', '$state', '$window', function($scope, $state, $window) {
     function switchDashboard() {
       for ( var i = 0; i < $scope.availableDashboards.length; i++) {
-        if (window.location.href.indexOf($scope.availableDashboards[i].href) !== -1) {
+        if ($window.location.href && $window.location.href.indexOf($scope.availableDashboards[i].href) !== -1) {
           $scope.selectedDashboard = $scope.availableDashboards[i];
           break;
         }
@@ -203,14 +201,14 @@
     return {
       check: function() {
         var deferred = $q.defer();
-        $http.get(CLMLocations.getStatusUrl(), {
+        $http.get(CLMLocations.getSessionUrl(), {
           params: {
             timestamp: new Date().getTime()
           }
         }).success(function(data) {
           deferred.resolve(data);
-        }).error(function() {
-          deferred.reject();
+        }).error(function(data, status) {
+          deferred.reject(status);
         });
         return deferred.promise;
       }
@@ -224,30 +222,20 @@
           check: function() {
             var deferred = $q.defer();
             securityStatusChecker.check().then(function(data) {
-              if (data.authenticated) {
-                licenseChecker.check().then(function() {
-                  deferred.resolve({
-                    username: data.username,
-                    authenticated: data.authenticated,
-                    licensed: true
-                  });
-                }, function(status) {
-                  if (status == 402) {
-                    deferred.resolve({
-                      username: data.username,
-                      authenticated: data.authenticated,
-                      licensed: false
-                    });
-                  } else {
-                    deferred.reject(status);
-                  }
+              $rootScope.authenticated = data.authenticated;
+              $rootScope.username = data.username;
+              licenseChecker.check().then(function() {
+                $rootScope.licensed = true;
+                deferred.resolve();
+              }, function(status) {
+                deferred.reject({
+                  status: status
                 });
-              } else {
-                deferred.reject();
-                $window.location.replace('../login-assets/login.html?timestamp=' + new Date().getTime());
-              }
+              });
             }, function(status) {
-              deferred.reject(status);
+              deferred.reject({
+                status: status
+              });
             });
 
             return deferred.promise;

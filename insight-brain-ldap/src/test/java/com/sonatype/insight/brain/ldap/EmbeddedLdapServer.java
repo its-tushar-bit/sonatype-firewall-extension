@@ -250,6 +250,7 @@ public class EmbeddedLdapServer
     return new EmbeddedLdapServer(workingDirectory);
   }
 
+  // this method is meant to help test this test harness, it is not part of API, do not use
   public static void main(String[] args) throws Exception {
     File workingDirectory = new File("target/apacheds");
     FileUtils.deleteDirectory(workingDirectory);

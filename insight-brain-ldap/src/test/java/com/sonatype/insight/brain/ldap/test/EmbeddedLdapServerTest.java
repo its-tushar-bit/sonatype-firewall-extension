@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.containsString;
  */
 public class EmbeddedLdapServerTest
 {
+  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
   private static final String AUTH_CRAMMD5 = "CRAM-MD5";
   private static final String AUTH_DIGESTMD5 = "DIGEST-MD5";
   private static final String AUTH_SIMPLE = "simple";
@@ -121,14 +122,19 @@ public class EmbeddedLdapServerTest
     server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
     server.start();
 
-    System.setProperty("javax.net.ssl.trustStore",
-        new File("src/test/resources/keystore/insight-testclient.ks").getCanonicalPath());
-
+    String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
     try {
+      System.setProperty(SYSPROP_SSLTRUSTSTORE,
+          new File("src/test/resources/keystore/insight-testclient.ks").getCanonicalPath());
       assertLogin(AUTH_NONE);
     }
     finally {
-      System.getProperties().remove("javax.net.ssl.trustStore");
+      if (origTruststore != null) {
+        System.setProperty(SYSPROP_SSLTRUSTSTORE, origTruststore);
+      }
+      else {
+        System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
+      }
     }
   }
 

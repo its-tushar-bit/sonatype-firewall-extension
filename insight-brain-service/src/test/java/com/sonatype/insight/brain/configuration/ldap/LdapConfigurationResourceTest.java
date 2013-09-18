@@ -38,6 +38,7 @@ public class LdapConfigurationResourceTest
     extends AbstractResourceTest
 {
 
+  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
   private EmbeddedLdapServer ldapServer;
 
   @After
@@ -388,10 +389,11 @@ public class LdapConfigurationResourceTest
     ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
     ldapServer.start();
 
-    System.setProperty("javax.net.ssl.trustStore", getTestResourceFile("/keystore/insight-testclient.ks")
-        .getCanonicalPath());
-
+    String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
     try {
+      System.setProperty(SYSPROP_SSLTRUSTSTORE, getTestResourceFile("/keystore/insight-testclient.ks")
+          .getCanonicalPath());
+
       LdapConfiguration config = new LdapConfiguration();
       config.setProtocol(LdapProtocol.LDAPS);
       config.setHostname("localhost");
@@ -407,7 +409,12 @@ public class LdapConfigurationResourceTest
       Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
     }
     finally {
-      System.getProperties().remove("javax.net.ssl.trustStore");
+      if (origTruststore != null) {
+        System.setProperty(SYSPROP_SSLTRUSTSTORE, origTruststore);
+      }
+      else {
+        System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
+      }
     }
   }
 

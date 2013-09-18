@@ -294,6 +294,14 @@ public class LdapConfigurationDAOTest
     dao.update(config);
   }
 
+  @Test
+  public void testHighPortNumbers() {
+    LdapConfiguration config = createLdapConfiguration("ldap");
+    config.setPort(65535);
+    dao.insert(config);
+    Assert.assertNotNull(config.getId());
+  }
+  
   protected LdapConfiguration createLdapConfiguration(String name) {
     LdapConfiguration config = new LdapConfiguration();
     config.setName(name);

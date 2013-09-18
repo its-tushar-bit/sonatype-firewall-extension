@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -54,7 +53,14 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     assertThat(user.getId(), notNullValue());
-    assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", null /* password */, user);
+    assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
+    assertThat(String.valueOf(user.getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    UserDAO dao = new UserDAO();
+    user = dao.getByIdNotNull(user.getId());
+    assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
+    assertThat(String.valueOf(user.getPasswordHash()), notNullValue());
+    assertThat(String.valueOf(user.getPasswordHash()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPasswordHash()), is(not("testCRUDPassword")));
 
     // Get all
     response = AuthedRestAccess.get(getServiceURL());
@@ -63,19 +69,22 @@ public class UserResourceTest
     assertThat(users, notNullValue());
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", null /* password */,
-        users.get(1));
-    UserDAO dao = new UserDAO();
-    assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", "testCRUDPassword",
-        dao.getByIdNotNull(user.getId()));
+    assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
+    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
 
     // Update, no password change
     user.setFirstName("testCRUDFirstNameUpdated");
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com",
-        null /* password */, user);
+    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
+    assertThat(String.valueOf(user.getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    user = dao.getByIdNotNull(user.getId());
+    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
+    assertThat(String.valueOf(user.getPasswordHash()), notNullValue());
+    assertThat(String.valueOf(user.getPasswordHash()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPasswordHash()), is(not("testCRUDPassword")));
 
     // Get all
     response = AuthedRestAccess.get(getServiceURL());
@@ -84,18 +93,22 @@ public class UserResourceTest
     assertThat(users, notNullValue());
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com",
-        null /* password */, users.get(1));
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", "testCRUDPassword",
-        dao.getByIdNotNull(user.getId()));
+    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
+    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
 
     // Update, password change
     user.setPasswordHash("testCRUDPasswordUpdated".toCharArray());
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com",
-        null /* password */, user);
+    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
+    assertThat(String.valueOf(user.getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    user = dao.getByIdNotNull(user.getId());
+    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
+    assertThat(String.valueOf(user.getPasswordHash()), notNullValue());
+    assertThat(String.valueOf(user.getPasswordHash()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPasswordHash()), is(not("testCRUDPasswordUpdated")));
 
     // Get all
     response = AuthedRestAccess.get(getServiceURL());
@@ -104,10 +117,9 @@ public class UserResourceTest
     assertThat(users, notNullValue());
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com",
-        null /* password */, users.get(1));
-    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com",
-        "testCRUDPasswordUpdated", dao.getByIdNotNull(user.getId()));
+    assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
+    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
 
     // Delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
@@ -120,22 +132,14 @@ public class UserResourceTest
     assertThat(users, notNullValue());
     assertThat(users, hasSize(1));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
+    assertThat(String.valueOf(users.get(0).getPasswordHash()), is(UserResource.FAKE_PASSWORD));
   }
 
-  private void assertUser(String username, String firstName, String lastName, String email, String password, User actual)
-  {
+  private void assertUser(String username, String firstName, String lastName, String email, User actual) {
     assertThat(actual.getUsername(), is(username));
     assertThat(actual.getFirstName(), is(firstName));
     assertThat(actual.getLastName(), is(lastName));
     assertThat(actual.getEmail(), is(email));
-    // The password must be encrypted
-    if (password != null) {
-      assertThat(actual.getPasswordHash(), notNullValue());
-      assertThat(actual.getPasswordHash(), is(not(password.toCharArray())));
-    }
-    else {
-      assertThat(actual.getPasswordHash(), nullValue());
-    }
   }
 
   private String getServiceURL() {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -31,6 +32,8 @@ public class UserResource
 {
   public static final String SERVICE_PATH = "rest/user/";
 
+  static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
+
   private final CLMRealm clmRealm;
 
   @Inject
@@ -44,7 +47,7 @@ public class UserResource
   {
     List<User> users = new UserDAO().getAll();
     for (User user : users) {
-      user.clearPassword();
+      clearUserPassword(user);
     }
     return users;
   }
@@ -59,7 +62,7 @@ public class UserResource
     }
     new UserDAO().insert(user);
 
-    user.clearPassword();
+    clearUserPassword(user);
 
     return user;
   }
@@ -70,19 +73,19 @@ public class UserResource
   public User updateUser(User user) {
     UserDAO dao = new UserDAO();
 
-    if (user.getPasswordHash() != null) {
-      // We have a new password, encrypt it.
-      user.setPasswordHash(clmRealm.encryptPassword(user.getPasswordHash()).toCharArray());
-    }
-    else {
+    if (Arrays.equals(FAKE_PASSWORD.toCharArray(), user.getPasswordHash())) {
       // We don't have a new password, so we need to retrieve the existing one and fill it in the user object to be
       // updated.
       User existingUser = dao.getByIdNotNull(user.getId());
       user.setPasswordHash(existingUser.getPasswordHash());
     }
+    else if (user.getPasswordHash() != null) {
+      // We have a new password, encrypt it.
+      user.setPasswordHash(clmRealm.encryptPassword(user.getPasswordHash()).toCharArray());
+    }
     dao.update(user);
 
-    user.clearPassword();
+    clearUserPassword(user);
 
     return user;
   }
@@ -96,5 +99,10 @@ public class UserResource
     User user = dao.getByIdNotNull(userId);
 
     dao.delete(user);
+  }
+
+  private void clearUserPassword(User user) {
+    user.clearPassword();
+    user.setPasswordHash(FAKE_PASSWORD.toCharArray());
   }
 }

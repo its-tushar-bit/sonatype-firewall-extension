@@ -122,6 +122,7 @@
         $scope.saving = true;
         $scope.ldap.$save().then(function(config) {
           $scope.saving = false;
+          $scope.alerts.length = 0;
         }, function(error) {
           $scope.saving = false;
           $scope.alerts.push({

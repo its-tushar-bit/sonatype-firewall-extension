@@ -34,7 +34,7 @@
             <div class="control-group" ng-class='{ error : ldapEditor.port.$invalid }'>
               <label class="control-label">Port:</label>
               <div class="controls">
-                <input name='port' ng-model='ldap.port' required type='number'>
+                <input name='port' ng-model='ldap.port' required type='number' min='1' max='65535'>
               </div>
             </div>
             <div class="control-group" ng-class='{ error : ldapEditor.searchBase.$invalid }'>
@@ -76,13 +76,13 @@
             <div class="control-group">
               <label class="control-label">Connection:</label>
               <div class="controls">
-                <input name='connectionTimeout' ng-model='ldap.connectionTimeout' type='number'>
+                <input name='connectionTimeout' ng-model='ldap.connectionTimeout' type='number' min='0' max='999'>
               </div>
             </div>
             <div class="control-group">
               <label class="control-label">Retry Delay:</label>
               <div class="controls">
-                <input name='retryDelay' ng-model='ldap.retryDelay' type='number'>
+                <input name='retryDelay' ng-model='ldap.retryDelay' type='number' min='0' max='999'>
               </div>
             </div>
           </div>

@@ -61,7 +61,7 @@
 
       $scope.testConnection = function() {
         $http.put(clmLocations.getLdapConfig() + '/test', $scope.ldap).success(function (result) {
-            $scope.alerts.splice(0, 1); // clear old alerts
+            $scope.alerts.length = 0; // clear old alerts
             if (result.status === 'OK') {
                 $scope.alerts.push({
                     type: 'success',
@@ -75,8 +75,8 @@
             }
         }).error(function(data, status) {
             var msg = data;
-            $scope.alerts.splice(0, 1); // clear old alerts
-            if (status===0) {
+            $scope.alerts.length = 0; // clear old alerts
+            if (status === 0) {
                 msg = 'Unable to reach CLM server';
             }
             $scope.alerts.push({

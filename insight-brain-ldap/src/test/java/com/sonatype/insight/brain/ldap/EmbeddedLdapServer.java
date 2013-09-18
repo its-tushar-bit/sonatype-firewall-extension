@@ -76,6 +76,7 @@ public class EmbeddedLdapServer
       port = getRandomPort();
     }
 
+    // an example that shows how to create and configure embedder apachedb instance
     // http://svn.apache.org/repos/asf/directory/apacheds/trunk/core-annotations/src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
 
     directoryService = new DefaultDirectoryService();
@@ -230,7 +231,6 @@ public class EmbeddedLdapServer
     FileUtils.deleteDirectory(workingDirectory);
     return new EmbeddedLdapServer(workingDirectory);
   }
-
 
   public static void main(String[] args) throws Exception {
     File workingDirectory = new File("target/apacheds");

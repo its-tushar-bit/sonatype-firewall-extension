@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.mock.InsightMockServer;
 
 import com.google.inject.AbstractModule;
+import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.codehaus.plexus.util.FileUtils;
@@ -38,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public abstract class AbstractBrainServiceTest
 {
@@ -347,5 +349,16 @@ public abstract class AbstractBrainServiceTest
     assertEquals(
         "URI:" + response.getUri() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
             + response.getResponseBody(), expectedStatus, actualStatus);
+  }
+
+  protected Cookie extractSessionCookie(final Response response) {
+    for (final Cookie cookie : response.getCookies()) {
+      if ("JSESSIONID".equals(cookie.getName())) {
+        return cookie;
+      }
+    }
+
+    fail("Missing session cookie");
+    return null;
   }
 }

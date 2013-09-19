@@ -13,7 +13,11 @@ import java.util.List;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Cookie;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -200,6 +204,39 @@ public class UserResourceTest
     assertThat(users, hasSize(1));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
+  }
+
+  @Test
+  public void testDelete_ImmediatelyInvalidateSessionsOfDeletedUser() throws Exception {
+    // create some user
+    User user = new User("test-user", "testFirstName", "testLastName");
+    user.setEmail("test@sonatype.com");
+    user.setPassword("test-password".toCharArray());
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    assertThat(user.getId(), is(notNullValue()));
+    Cookie adminCookie = extractSessionCookie(response);
+
+    // log the user in
+    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
+        "test-password");
+    assertResponseStatus(204, response);
+    Cookie userCookie = extractSessionCookie(response);
+
+    // delete the user
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    assertResponseStatus(204, response);
+
+    // the user's session should be invalid now
+    response = RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, userCookie);
+    assertResponseStatus(401, response);
+
+    // the admin's session should not have been invalidated
+    response = RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, adminCookie);
+    assertResponseStatus(200, response);
+    AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
+    assertThat(status.isAuthenticated(), is(true));
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

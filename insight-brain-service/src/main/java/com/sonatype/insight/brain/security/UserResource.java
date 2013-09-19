@@ -23,6 +23,10 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
+import org.apache.shiro.session.Session;
+import org.apache.shiro.session.mgt.eis.SessionDAO;
+import org.apache.shiro.subject.Subject;
+
 /**
  * @since 1.7
  */
@@ -36,9 +40,12 @@ public class UserResource
 
   private final CLMRealm clmRealm;
 
+  private final SessionDAO sessionDAO;
+
   @Inject
-  public UserResource(CLMRealm clmRealm) {
+  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO) {
     this.clmRealm = clmRealm;
+    this.sessionDAO = sessionDAO;
   }
 
   @GET
@@ -92,13 +99,20 @@ public class UserResource
 
   @DELETE
   @Path("{userId}")
-  public void deleteUser(@PathParam("userId") String userId)
-  {
+  public void deleteUser(@PathParam("userId") String userId) {
     UserDAO dao = new UserDAO();
 
     User user = dao.getByIdNotNull(userId);
 
     dao.delete(user);
+
+    for (Session session : sessionDAO.getActiveSessions()) {
+      Subject subject = new Subject.Builder().session(session).buildSubject();
+      Object principal = subject.getPrincipal();
+      if (user.getUsername().equalsIgnoreCase(principal.toString())) {
+        subject.logout();
+      }
+    }
   }
 
   private void clearUserPassword(User user) {

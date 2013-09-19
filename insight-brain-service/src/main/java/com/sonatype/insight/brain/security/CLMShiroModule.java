@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.security;
 
-import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
+import javax.inject.Singleton;
 
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.session.mgt.eis.MemorySessionDAO;
+import org.apache.shiro.session.mgt.eis.SessionDAO;
+import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainResolver;
@@ -74,8 +77,10 @@ public class CLMShiroModule
   @Override
   protected void bindSessionManager(AnnotatedBindingBuilder<SessionManager> bind) {
     bind.to(WebSessionManager.class);
-    bind(WebSessionManager.class).to(DefaultWebSessionManager.class);
+    bind(WebSessionManager.class).to(DefaultWebSessionManager.class).in(Singleton.class);
     bind(DefaultWebSessionManager.class);
+    bind(SessionDAO.class).to(MemorySessionDAO.class).in(Singleton.class);
+    expose(SessionDAO.class);
   }
 
   @Override
@@ -84,8 +89,7 @@ public class CLMShiroModule
      * NOTE: Not using bindWebSecurityManager() as in ShiroWebModule to avoid
      * https://issues.apache.org/jira/browse/SHIRO-435.
      */
-    bind.toInstance(new DefaultWebSecurityManager());
-    
+    bind.to( WebSecurityManager.class );
   }
 
   protected void bindWebSecurityManager(AnnotatedBindingBuilder<? super WebSecurityManager> bind) {

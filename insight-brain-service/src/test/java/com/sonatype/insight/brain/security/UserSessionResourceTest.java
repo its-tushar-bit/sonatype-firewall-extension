@@ -107,15 +107,4 @@ public class UserSessionResourceTest
     response = status(jsessionIdCookie);
     assertResponseStatus(401, response);
   }
-
-  private Cookie extractSessionCookie(Response response) {
-    for (Cookie cookie : response.getCookies()) {
-      if ("JSESSIONID".equals(cookie.getName())) {
-        return cookie;
-      }
-    }
-
-    Assert.fail("Missing session cookie");
-    return null;
-  }
 }

@@ -22,7 +22,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.Subject;
@@ -103,6 +105,10 @@ public class UserResource
     UserDAO dao = new UserDAO();
 
     User user = dao.getByIdNotNull(userId);
+    String username = SecurityUtils.getSubject().getPrincipal().toString();
+    if (user.getUsername().equalsIgnoreCase(username)) {
+      throw new BadRequestException("Cannot delete the currently logged in user.");
+    }
 
     dao.delete(user);
 

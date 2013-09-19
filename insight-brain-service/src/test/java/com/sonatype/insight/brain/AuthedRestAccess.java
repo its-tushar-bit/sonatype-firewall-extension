@@ -12,12 +12,14 @@ import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
+import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 
 /**
  * Helper class for making authenticated REST calls from tests.
  * <p>
- * The methods that do not have username and password parameters use admin credentials by default.
+ * The methods that do not have username and password parameters and do not provide a cookie, use admin credentials by
+ * default.
  * 
  * @since 1.7
  */
@@ -49,6 +51,10 @@ public class AuthedRestAccess
 
   public static Response delete(String urlString) throws Exception {
     return RestAccess.delete(urlString, ADMIN_USERNAME, ADMIN_PASSWORD);
+  }
+
+  public static Response delete(String urlString, Cookie cookie) throws Exception {
+    return RestAccess.delete(urlString, null /* params */, null /* username */, null /* password */, cookie);
   }
 
   public static Response execute(BoundRequestBuilder builder) throws Exception {

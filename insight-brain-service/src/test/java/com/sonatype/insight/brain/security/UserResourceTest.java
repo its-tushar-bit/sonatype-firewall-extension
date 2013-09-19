@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
-
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.After;
@@ -215,6 +214,7 @@ public class UserResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
     assertThat(user.getId(), is(notNullValue()));
     Cookie adminCookie = extractSessionCookie(response);
 
@@ -237,6 +237,29 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
     assertThat(status.isAuthenticated(), is(true));
+  }
+
+  @Test
+  public void testDelete_Self() throws Exception {
+    // create some user
+    User user = new User("test-user", "testFirstName", "testLastName");
+    user.setEmail("test@sonatype.com");
+    user.setPassword("test-password".toCharArray());
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
+
+    // log the user in
+    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
+        "test-password");
+    assertResponseStatus(204, response);
+    Cookie userCookie = extractSessionCookie(response);
+
+    // try to delete the user using the same user's session/cookie
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId(), userCookie);
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("Cannot delete the currently logged in user."));
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

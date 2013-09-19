@@ -23,7 +23,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserModule', ['ui.compat', 'SecurityModule', 'CLMLocation'], ['$stateProvider', function($stateProvider) {
+  var module = angular.module('UserModule', ['ui.compat', 'SecurityModule', 'CLMLocation', 'ResourceModule'], ['$stateProvider', function($stateProvider) {
       $stateProvider.state('management.security.users', {
         parent: 'management.security',
         url: '/users',
@@ -57,10 +57,10 @@
     $scope.doLoad = function () {
       $scope.error = null;
 
-      UserStore.get().then(function (data) {
+      UserStore.refresh().then(function (data) {
         $scope.users = data;
-      }, function () {
-        $scope.error = messages.getHttpErrorMessage(arguments);
+      }, function (error) {
+        $scope.error = error;
       });
     };
     $scope.doLoad();

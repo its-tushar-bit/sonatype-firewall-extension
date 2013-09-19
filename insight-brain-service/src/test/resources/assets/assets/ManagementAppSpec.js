@@ -17,9 +17,10 @@ describe('ManagementModule', function() {
 
   it('Lists Org before App', function() {
     expect(scope.managementPanes).not.toBeUndefined();
-    expect(scope.managementPanes.length).toEqual(3);
+    expect(scope.managementPanes.length).toEqual(4);
     expect(scope.managementPanes[0].name).toEqual('Organizations');
     expect(scope.managementPanes[1].name).toEqual('Applications');
-    expect(scope.managementPanes[2].name).toEqual('Configuration');
+    expect(scope.managementPanes[2].name).toEqual('Security');
+    expect(scope.managementPanes[3].name).toEqual('Configuration');
   });
 });

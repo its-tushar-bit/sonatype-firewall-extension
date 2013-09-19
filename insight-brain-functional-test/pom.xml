@@ -47,8 +47,13 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <!-- Don't halt on failures, so that the damage control report can pick up the test results. -->
-          <!-- <testFailureIgnore>true</testFailureIgnore> -->
+          <!--
+            Don't halt on failures, so that the damage control report can pick up the test results.
+            CI builds set this to true so that it can analyze the test results.
+            If you want to use it locally then pass the property maven.test.failure.ignore to the build.
+            
+            <testFailureIgnore>true</testFailureIgnore>
+          -->
           <excludes>
             <!-- Examples to be run as individual tests from Maven CLI or IDE. -->
             <exclude>**/example/**</exclude>
@@ -57,7 +62,9 @@
             <include>**/*Spec.*</include>
           </includes>
           <systemPropertyVariables>
-            <!-- Defined in GebConfig.groovy so that tests can be executed in Eclipse or from Maven CLI. -->
+            <!--
+              Defined in GebConfig.groovy so that tests can be executed in Eclipse or from Maven CLI.
+            -->
             <!-- <geb.build.reportsDir>${project.build.directory}/test-reports/geb</geb.build.reportsDir> -->
             <!-- <geb.build.baseUrl>http://localhost:8070/</geb.build.baseUrl> -->
           </systemPropertyVariables>
@@ -72,8 +79,7 @@
         <artifactId>damage-control-maven-plugin</artifactId>
         <version>1.1.0</version>
         <configuration>
-          <!-- ${skip.damage.control.report} -->
-          <skip>false</skip>
+          <skip>${skipTests}</skip>
           <specDefinitionsFolder>${project.build.testSourceDirectory}</specDefinitionsFolder>
         </configuration>
         <executions>
@@ -150,4 +156,22 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <!--
+      Allows build of 'functional-test' to be disabled; required for build-automation optimizations.
+    -->
+    <profile>
+      <id>exclude-functional-test</id>
+      <activation>
+        <property>
+          <name>skip-functional-test</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+  </profiles>
 </project>

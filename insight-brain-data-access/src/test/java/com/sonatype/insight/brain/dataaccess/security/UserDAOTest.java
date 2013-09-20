@@ -263,8 +263,211 @@ public class UserDAOTest
     new UserDAO().update(user);
   }
 
+  @Test
+  public void testValidateNullFirstName_Insert() {
+    try {
+      createUser("username", null, "lastName", null);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The first name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNullFirstName_Update() {
+    User user = createUser("testValidateNullFirstName");
+
+    user.setFirstName(null);
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The first name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyFirstName_Insert() {
+    try {
+      createUser("username", "", "lastName", null);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The first name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyFirstName_Update() {
+    User user = createUser("testValidateEmptyFirstName");
+    user.setFirstName("");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The first name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateFirstNameLength_Insert() {
+    String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
+    try {
+      createUser("username", firstName + "a", "lastName", null);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE
+          + " characters or less."));
+    }
+
+    createUser("username", firstName, "lastName", null);
+  }
+
+  @Test
+  public void testValidateFirstNameLength_Update() {
+    User user = createUser("testValidateFirstNameLength");
+
+    String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
+    user.setFirstName(firstName + "a");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE
+          + " characters or less."));
+    }
+
+    user.setFirstName(firstName);
+    new UserDAO().update(user);
+  }
+
+  @Test
+  public void testValidateNullLastName_Insert() {
+    try {
+      createUser("username", "firstName", null, null);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The last name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNullLastName_Update() {
+    User user = createUser("testValidateNullLastName");
+
+    user.setLastName(null);
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The last name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyLastName_Insert() {
+    try {
+      createUser("username", "firstName", "", null);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The last name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyLastName_Update() {
+    User user = createUser("testValidateEmptyLastName");
+    user.setLastName("");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The last name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateLastNameLength_Insert() {
+    String lastName = StringUtils.repeat("a", UserDAO.MAX_LAST_NAME_SIZE);
+    try {
+      createUser("username", "firstName", lastName + "a", null);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE
+          + " characters or less."));
+    }
+
+    createUser("username", "firstName", lastName, null);
+  }
+
+  @Test
+  public void testValidateLastNameLength_Update() {
+    User user = createUser("testValidateLastNameLength");
+
+    String lastName = StringUtils.repeat("a", UserDAO.MAX_LAST_NAME_SIZE);
+    user.setLastName(lastName + "a");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE
+          + " characters or less."));
+    }
+
+    user.setLastName(lastName);
+    new UserDAO().update(user);
+  }
+
+  @Test
+  public void testValidateEmailLength_Insert() {
+    String email = StringUtils.repeat("a", UserDAO.MAX_EMAIL_SIZE);
+    try {
+      createUser("username", "firstName", "lastName", email + "a");
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less."));
+    }
+
+    createUser("username", "firstName", "lastName", email);
+  }
+
+  @Test
+  public void testValidateEmailLength_Update() {
+    User user = createUser("testValidateEmailLength");
+
+    String email = StringUtils.repeat("a", UserDAO.MAX_EMAIL_SIZE);
+    user.setEmail(email + "a");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less."));
+    }
+
+    user.setEmail(email);
+    new UserDAO().update(user);
+  }
+
   private User createUser(String username) {
-    User user = new User(username, username + "First", username + "Last");
+    return createUser(username, username + "First", username + "Last", null);
+  }
+
+  private User createUser(String username, String firstName, String lastName, String email) {
+    User user = new User(username, firstName, lastName);
+    user.setEmail(email);
     new UserDAO().insert(user);
     usersToDelete.add(user);
     return user;

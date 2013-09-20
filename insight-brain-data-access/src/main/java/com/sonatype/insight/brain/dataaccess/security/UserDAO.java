@@ -22,6 +22,13 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class UserDAO
     extends AbstractOperationalSqlDAO<User>
 {
+
+  public static final int MAX_FIRST_NAME_SIZE = 100;
+
+  public static final int MAX_LAST_NAME_SIZE = 100;
+
+  public static final int MAX_EMAIL_SIZE = 255;
+
   private User getByUsernameLowercase(EntityManager em, String usernameLowercase) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
@@ -70,9 +77,31 @@ public class UserDAO
     NameHelper.validate("The username", username);
   }
 
+  private void validate(User user) {
+    validateUsername(user.getUsername());
+
+    if (user.getFirstName() == null || user.getFirstName().trim().isEmpty()) {
+      throw new InvalidUserException("The first name is required.");
+    }
+    if (user.getFirstName().length() > MAX_FIRST_NAME_SIZE) {
+      throw new InvalidUserException("The first name must be " + MAX_FIRST_NAME_SIZE + " characters or less.");
+    }
+
+    if (user.getLastName() == null || user.getLastName().trim().isEmpty()) {
+      throw new InvalidUserException("The last name is required.");
+    }
+    if (user.getLastName().length() > MAX_LAST_NAME_SIZE) {
+      throw new InvalidUserException("The last name must be " + MAX_LAST_NAME_SIZE + " characters or less.");
+    }
+
+    if (user.getEmail() != null && user.getEmail().length() > MAX_EMAIL_SIZE) {
+      throw new InvalidUserException("The email must be " + MAX_EMAIL_SIZE + " characters or less.");
+    }
+  }
+
   @Override
   public void insert(EntityManager em, User user) {
-    validateUsername(user.getUsername());
+    validate(user);
 
     if (getByUsernameLowercase(em, user.getUsername().toLowerCase(Locale.ENGLISH)) != null) {
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
@@ -83,7 +112,7 @@ public class UserDAO
 
   @Override
   public void update(EntityManager em, User user) {
-    validateUsername(user.getUsername());
+    validate(user);
 
     User existingUser = getByUsernameLowercase(em, user.getUsername().toLowerCase(Locale.ENGLISH));
     if (existingUser != null && !existingUser.getId().equals(user.getId())) {

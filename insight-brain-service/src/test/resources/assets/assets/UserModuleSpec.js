@@ -17,7 +17,7 @@ describe('UserModuleSpec', function() {
     function getController() {
       inject(function ($controller, $rootScope) {
         scope = $rootScope.$new();
-        controller = $controller('UserListController', {
+        $controller('UserListController', {
           $scope : scope 
         });
       });

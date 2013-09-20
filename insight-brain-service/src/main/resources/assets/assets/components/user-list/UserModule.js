@@ -38,7 +38,7 @@
             template : {
               id : null,
               username : '',
-              passwordHash : '',
+              password : '',
               firstName : '',
               lastName : '',
               email : ''

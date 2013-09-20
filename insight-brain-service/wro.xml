@@ -38,6 +38,7 @@
 		<group-ref>insight</group-ref>
 		<group-ref>application</group-ref>
 		<group-ref>policy</group-ref>
+		<group-ref>security</group-ref>
 	</group>
 
 	<group name='cip'>
@@ -45,5 +46,9 @@
 		<css>/cip/cip-label-editor.css</css>
 		<css>/cip/cip-policy-violations.css</css>
 		<css>/cip/cip-license-editor.css</css>
+	</group>
+	
+	<group name='security'>
+		<css>/user/user.css</css>
 	</group>
 </groups>

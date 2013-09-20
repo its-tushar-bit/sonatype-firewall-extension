@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,6 +26,8 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.Subject;
@@ -52,8 +55,7 @@ public class UserResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  public List<User> getAll()
-  {
+  public List<User> getAll() {
     List<User> users = new UserDAO().getAll();
     for (User user : users) {
       clearUserPassword(user);
@@ -121,8 +123,42 @@ public class UserResource
     }
   }
 
+  @PUT
+  @Path("{userId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void changePassword(ChangePasswordDTO dto, @PathParam("userId") String userId) {
+    //validate the old password first
+    try {
+      SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(userId, dto.oldPassword));
+    }
+    catch (AuthenticationException e) {
+      throw new BadRequestException("Invalid credentials supplied.");
+    }
+    
+    UserDAO dao = new UserDAO();
+
+    User user = dao.getByUsernameLowercase(userId.toLowerCase(Locale.ENGLISH));
+    user.setPassword(clmRealm.encryptPassword(dto.newPassword).toCharArray());
+
+    dao.update(user);
+    
+    clearDTOPassword(dto);
+    clearUserPassword(user);
+  }
+
   private void clearUserPassword(User user) {
     user.clearPassword();
     user.setPassword(FAKE_PASSWORD.toCharArray());
+  }
+  
+  private void clearDTOPassword(ChangePasswordDTO dto) {
+    Arrays.fill(dto.newPassword, (char) 0);
+    Arrays.fill(dto.oldPassword, (char) 0);
+  }
+
+  public static final class ChangePasswordDTO
+  {
+    public char[] oldPassword;
+    public char[] newPassword;
   }
 }

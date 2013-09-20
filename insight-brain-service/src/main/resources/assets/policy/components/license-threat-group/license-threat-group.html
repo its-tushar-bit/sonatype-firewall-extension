@@ -2,7 +2,7 @@
 	<script type='text/ng-template' id='ltgcreator'>
 		<div>
 			<div ng-hide='selectedGroup' style='margin-bottom:5px'>
-				<button type="button" class="btn add-new"  ng-click="createNew()" id='createLTG' focus-input-on-click='licenseGroupEditorName'><i class="icon icon-plus"></i> New License Threat Group</button>
+				<button type="button" class="btn add-new"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
 			</div>
 			<div show-if="selectedGroup" class='border-box' style='width:530px;margin-bottom:5px'>
 				<div ng-controller='LicenseThreatGroupEditorController'>
@@ -39,7 +39,7 @@
 			<input id='licenseGroupEditorName' name='name' type='text'
 				class='input' maxlength='60' ng-model='selectedGroup.name'
 				required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
-				placeholder="Enter Name" style='width:248px;'>
+				placeholder="Enter Name" style='width:248px;' focus-input="true">
 		 <div>
 			<span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
 			<span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>

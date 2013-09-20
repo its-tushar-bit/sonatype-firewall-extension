@@ -89,10 +89,10 @@
             });
           }
 
-          $timeout(checkForChange, 500);
+          $timeout(checkForChange, 100);
         }
 
-        $timeout(checkForChange, 500);
+        $timeout(checkForChange, 100);
       }
     };
   }]);

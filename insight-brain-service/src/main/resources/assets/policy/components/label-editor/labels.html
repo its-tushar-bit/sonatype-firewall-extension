@@ -18,7 +18,7 @@
         </div>
         <div class="label-list">
           <span show-if='applicableLabel.editable'>
-            <button type='button' class='btn add-new' ng-click='createNew()' focus-input-on-click='labelEditorLabel'>
+            <button type='button' class='btn add-new' ng-click='createNew()'>
               <i class='icon icon-plus'></i> New Label
             </button>
           </span>
@@ -47,7 +47,7 @@
               <div class="modal-body" style="padding: 15px 0;">
                 <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
                   <div class="controls" style="margin-left: 0;">
-                    <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" item-label>
+                    <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" focus-input="true" item-label>
                     <span ng-show='labelEditor.label.$error.empty' class="help-inline">Required</span>
                     <span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
                     <span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character</span>

@@ -13,6 +13,7 @@ import java.util.List;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -260,6 +261,28 @@ public class UserResourceTest
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId(), userCookie);
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Cannot delete the currently logged in user."));
+  }
+  
+  @Test
+  public void testChangePassword() throws Exception {
+    // Add user so we can change his password
+    User user = new User("testChangePassword", "testChangePasswordFirstName", "testChangePasswordLastName");
+    user.setEmail("testChangePassword@sonatype.com");
+    user.setPassword("testChangePasswordPassword".toCharArray());
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    
+    ChangePasswordDTO dto = new ChangePasswordDTO();
+    dto.oldPassword = "badPass".toCharArray();
+    dto.newPassword = "doesntmatter".toCharArray();
+    
+    response = AuthedRestAccess.put(getServiceURL() + "/testChangePassword", JsonHelpers.asJson(dto));
+    assertResponseStatus(400, response);
+    
+    dto.oldPassword = "testChangePasswordPassword".toCharArray();
+    
+    response = AuthedRestAccess.put(getServiceURL() + "/testChangePassword", JsonHelpers.asJson(dto));
+    assertResponseStatus(204, response);
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

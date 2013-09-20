@@ -1,0 +1,170 @@
+<div style="margin-left:5px;">
+	<script type='text/ng-template' id='delete-user-dialog'>
+<div class="modal-header">Delete User</div>
+<div class="modal-body">{{'Are you sure you want to delete user "' + username + '"?'}}</div>
+<div class="modal-footer">
+	<button class="btn" ng-click="cancel()">Cancel</button>
+	<button class="btn btn-danger" ng-click="discard()">Delete</button>
+</div>
+<div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+	</script>
+	<script type='text/ng-template' id='change-password-dialog'>
+<div class="modal-header">Change Password</div>
+<div class="modal-body">
+	<form name="changePasswordForm">
+		<div class="form-horizontal">
+			<div class="control-group" ng-class="{ error : changePasswordForm.currentPassword.$invalid && changePasswordForm.currentPassword.$dirty }">
+				<label class="control-label">Current Password</label>
+				<div class="controls">
+					<input class="input-xlarge" name="currentPassword" type="password" ng-required="true" placeholder="Enter Old Password" ng-model="currentPassword">
+					<div show-if="changePasswordForm.currentPassword.$error.required && changePasswordForm.currentPassword.$dirty" class="text-error">Field is required.</div>
+				</div>
+			</div>
+			<div class="control-group" ng-class="{ error : changePasswordForm.newPassword.$invalid && changePasswordForm.newPassword.$dirty }">
+				<label class="control-label">New Password</label>
+				<div class="controls">
+					<input class="input-xlarge" name="newPassword" type="password" ng-required="true" placeholder="Enter New Password" ng-model="newPassword">
+					<div show-if="changePasswordForm.newPassword.$error.required && changePasswordForm.newPassword.$dirty" class="text-error">Field is required.</div>
+				</div>
+			</div>
+			<div class="control-group" ng-class="{ error : changePasswordForm.validatePassword.$invalid && changePasswordForm.validatePassword.$dirty }">
+				<label class="control-label">Validate</label>
+				<div class="controls">
+					<input class="input-xlarge" name="validatePassword" type="password" ng-required="true" match-field="newPassword" placeholder="Re-enter Password" ng-model="validatePassword">
+					<div show-if="changePasswordForm.validatePassword.$error.matchField && changePasswordForm.validatePassword.$dirty" class="text-error">Passwords must match!</div>
+					<div show-if="changePasswordForm.newPassword.$error.required && !changePasswordForm.validatePassword.$error.matchField && changePasswordForm.validatePassword.$dirty" class="text-error">Field is required.</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+<div class="modal-footer">
+	<button class="btn" ng-click="cancel()">Cancel</button>
+	<button class="btn btn-primary" ng-click="save()" ng-disabled="changePasswordForm.$invalid || saving">Save</button>
+</div>
+<div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+	</script>
+	<script type='text/ng-template' id='user-item'>
+<div ng-show='context.users' class="accordion users">
+	<button ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
+		<i class='icon icon-plus'></i> New User
+	</button>
+	<div show-if='user'>
+		<ul ng-show="!user.id" class="tri-pane" style="min-width:0px;margin-top:10px;margin-bottom:10px;">
+			<li class="active">
+				<a style="text-transform:none;">Add New User</a>
+			</li>
+		</ul>
+		<form name="userForm">
+			<div class="form-horizontal">
+				<div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
+					<label class="control-label user-form-label">First Name:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="firstName" type="text" ng-required="true" alpha-numeric placeholder="Enter First Name" ng-model="user.firstName" focus-input="user">
+						<div show-if="userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Must be alpha numeric.</div>
+						<div show-if="userForm.firstName.$error.required && !userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Field is required.</div>
+					</div>
+				</div>
+				<div class="control-group" ng-class="{ error : userForm.lastName.$invalid && userForm.lastName.$dirty }">
+					<label class="control-label user-form-label">Last Name:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="lastName" type="text" ng-required="true" alpha-numeric placeholder="Enter Last Name" ng-model="user.lastName">
+						<div show-if="userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Must be alpha numeric.</div>
+						<div show-if="userForm.lastName.$error.required && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Field is required.</div>
+					</div>
+				</div>
+				<div class="control-group" ng-class="{ error : userForm.email.$invalid && userForm.email.$dirty }">
+					<label class="control-label user-form-label">Email Address:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="email" type="email" ng-required="true" is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Email Address" ng-model="user.email">
+						<div show-if="userForm.email.$error.email && userForm.email.$dirty" class="text-error">Use valid format: abc@xyz.com</div>
+						<div show-if="userForm.email.$error.duplicate && userForm.email.$dirty" class="text-error">Enter a unique email address</div>
+						<div show-if="userForm.email.$error.required && !userForm.email.$error.alphaNumeric && userForm.email.$dirty" class="text-error">Field is required.</div>
+					</div>
+				</div>
+				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.username.$invalid && userForm.username.$dirty }">
+					<label class="control-label user-form-label">Username:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="username" type="text" ng-required="!user.id" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
+						<div show-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
+						<div show-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error">Enter a unique username</div>
+						<div show-if="userForm.username.$error.required && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Field is required.</div>
+					</div>
+				</div>
+				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.password.$invalid && userForm.password.$dirty }">
+					<label class="control-label user-form-label">Password:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="password" type="password" ng-required="!user.id" placeholder="Enter Password" ng-model="user.password">
+						<div show-if="userForm.password.$error.required && userForm.password.$dirty" class="text-error">Field is required.</div>
+					</div>
+				</div>
+				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.passwordValidate.$invalid && userForm.passwordValidate.$dirty }">
+					<label class="control-label user-form-label">Validate:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="passwordValidate" type="password" ng-required="!user.id" match-field="user.password" placeholder="Re-enter Password" ng-model="user.passwordValidate">
+						<div show-if="userForm.passwordValidate.$error.matchField && userForm.passwordValidate.$dirty" class="text-error">Passwords must match!</div>
+						<div show-if="userForm.passwordValidate.$error.required && userForm.passwordValidate.$dirty && !userForm.passwordValidate.$error.matchField" class="text-error">Field is required.</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="user-button-bar">
+			<button class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
+			<button class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
+		</div>
+		<div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+	</div>
+</div>
+</script>
+	<div load-error='error' reload='doLoad()'></div>
+	<div expand-user-on-event='userEditClick'></div>
+	<div ng-hide='error'>
+		<div ng-hide='context.users' class="user-list-loading">
+			<h5>
+				<i class='icon-time'></i> Loading...
+			</h5>
+		</div>
+		<div ng-show='context.users' class="accordion users">
+			<div user-item context="context" user="user"></div>
+		</div>
+		<div class="accordion-group users" ng-repeat='user in context.users'>
+			<div class="accordion-heading">
+				<div class='btn-group floatRight'>
+					<button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
+						<i class="icon-pencil"></i>
+					</button>
+					<button type='button' class="btn btn-mini user-button hover-buttons" title="Change Password" ng-show='isCurrentUser(user)' ng-click="changePasswordClick(user)">
+						<i class="icon-user"></i>
+					</button>
+					<button type='button' class="btn btn-mini user-button hover-buttons" title="Remove User" ng-click="removeClick(user)">
+						<i class="icon-trash"></i>
+					</button>
+				</div>
+				<a class="accordion-toggle user-top collapsed" style="padding-bottom:0px;" data-toggle="collapse" href="#collapse{{user.id}}">
+					<h4 style="margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.lastName}}, {{user.firstName}})</h4>
+				</a>
+			</div>
+			<div id="collapse{{user.id}}" class="accordion-body collapse">
+				<div class="accordion-inner" style="padding:0px 15px;" show-if="!context.userEditMap[user.id]">
+					<table style="margin-bottom:5px;">
+						<tr>
+							<td class="summary-label">First Name:</td>
+							<td>{{user.firstName}}</td>
+						</tr>
+						<tr>
+							<td class="summary-label">Last Name:</td>
+							<td>{{user.lastName}}</td>
+						</tr>
+						<tr>
+							<td class="summary-label">Email Address:</td>
+							<td>{{user.email}}</td>
+						</tr>
+					</table>
+				</div>
+				<div class="accordion-inner" style="padding:0px;" show-if="context.userEditMap[user.id]">
+					<div user-item user='user' context='context'></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

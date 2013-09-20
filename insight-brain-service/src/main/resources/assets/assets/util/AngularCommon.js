@@ -430,6 +430,27 @@ var AngularUtils = {
       };
     }
   ]);
+  
+  angularCommon.directive("matchField", ['$parse', function($parse) {
+    return {
+       require: "ngModel",
+       restrict: 'A',
+       link: function(scope, element, attrs, ctrl) { 
+         var validator = function(value) {
+           var passed = $parse(attrs.matchField)(scope) == value;
+           ctrl.$setValidity('matchField', passed);
+           return passed ? value : undefined;
+         };
+         ctrl.$parsers.push(validator);
+         // Allows validation to be invoked by code or user input
+         scope.$watch(attrs.ngModel, function(newValue) {
+           if (typeof newValue !== 'undefined') {
+             validator(newValue);
+           }
+         });
+       }
+    };
+ }]);
 
   /**
    * Ensure that a given value does not :
@@ -456,7 +477,7 @@ var AngularUtils = {
             suggestionModel.assign(scope,
                 (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
             ctrl.$setValidity('spaces', !whitespacePass);
-            return whitespacePass;
+            return whitespacePass ? value : undefined;
           }
 
           var failed = null;
@@ -634,20 +655,18 @@ var AngularUtils = {
     };
   });
 
-  /**
-   *  When clicking this element, we will assign focus to the first child input.
-   */
-  angularCommon.directive('focusInputOnClick', function() {
+  angularCommon.directive('focusInput', ['$parse', function($parse) {
     return {
       link: function(scope, element, attrs) {
-        element.on('click.inputFocus', function() {
-          if (attrs.focusInputOnClick) {
-            angular.element('#' + attrs.focusInputOnClick).focus();
+        var model = $parse(attrs.focusInput);
+        scope.$watch(model, function(value) {
+          if(value) { 
+            element[0].focus();
           }
         });
       }
     };
-  });
+  }]);
 
   angularCommon.directive('clmInclude', [
     '$templateCache', '$http', '$compile', function($templateCache, $http, $compile) {
@@ -802,7 +821,7 @@ var AngularUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/login-assets/'],
+          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/login-assets/', '/security-assets/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {

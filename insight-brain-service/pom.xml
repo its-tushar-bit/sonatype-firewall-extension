@@ -478,6 +478,7 @@
                 <include>policy/**/*.js</include>
                 <include>organization/**/*.js</include>
                 <include>configuration/**/*.js</include>
+                <include>security/**/*.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>SpecUtil.js</include>

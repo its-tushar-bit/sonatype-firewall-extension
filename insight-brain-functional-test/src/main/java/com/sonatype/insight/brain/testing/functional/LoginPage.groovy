@@ -29,6 +29,7 @@ class LoginPage
   void login(username, password) {
     usernameInput.value(username)
     passwordInput.value(password)
+    waitFor { loginAction.@disabled != 'disabled' }
     loginAction.click()
   }
 }

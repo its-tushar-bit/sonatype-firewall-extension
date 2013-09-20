@@ -75,7 +75,7 @@
           return baseUrl.get() + '/rest/user/session';
         },
 
-        getUserListUrl : function () {
+        getUserUrl : function () {
           return baseUrl.get() + '/rest/user';
         }
       };

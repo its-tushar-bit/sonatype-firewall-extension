@@ -9,7 +9,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapConfiguration;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -19,18 +19,18 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * @since 1.7
  */
-public class LdapConfigurationDAO
-    extends AbstractOperationalSqlDAO<LdapConfiguration>
+public class LdapServerDAO
+    extends AbstractOperationalSqlDAO<LdapServer>
 {
 
   @Override
-  public LdapConfiguration getById(EntityManager em, String id) {
-    String sQuery = "SELECT entity FROM LdapConfiguration entity" + //
+  public LdapServer getById(EntityManager em, String id) {
+    String sQuery = "SELECT entity FROM LdapServer entity" + //
         " WHERE entity.id=?1";
     return get(em, sQuery, id);
   }
 
-  public LdapConfiguration getByIdNotNull(String id) {
+  public LdapServer getByIdNotNull(String id) {
     EntityManager em = createEntityManager();
     try {
       return getByIdNotNull(em, id);
@@ -40,26 +40,26 @@ public class LdapConfigurationDAO
     }
   }
 
-  public LdapConfiguration getByIdNotNull(EntityManager em, String id) {
-    LdapConfiguration config = getById(em, id);
+  public LdapServer getByIdNotNull(EntityManager em, String id) {
+    LdapServer config = getById(em, id);
     if (config == null) {
-      throw new NotFoundException("Cannot find LdapConfiguration with id " + id + ".");
+      throw new NotFoundException("Cannot find LdapServer with id " + id + ".");
     }
     return config;
   }
 
-  private LdapConfiguration getByName(EntityManager em, String name) {
+  private LdapServer getByName(EntityManager em, String name) {
     if (name == null || name.trim().isEmpty()) {
-      throw new DataAccessException("The LdapConfiguration name cannot be null or empty.");
+      throw new DataAccessException("The LdapServer name cannot be null or empty.");
     }
     // LdapConfiguration Name is whitespace and case insensitive
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM LdapConfiguration entity" + //
+    String sQuery = "SELECT entity FROM LdapServer entity" + //
         " WHERE entity.nameLowercaseNoWhitespace=?1";
     return get(em, sQuery, name);
   }
 
-  public LdapConfiguration getByName(String name) {
+  public LdapServer getByName(String name) {
     EntityManager em = createEntityManager();
     try {
       return getByName(em, name);
@@ -69,14 +69,14 @@ public class LdapConfigurationDAO
     }
   }
 
-  public List<LdapConfiguration> getAll() {
-    String sQuery = "SELECT entity FROM LdapConfiguration entity" + //
+  public List<LdapServer> getAll() {
+    String sQuery = "SELECT entity FROM LdapServer entity" + //
         " ORDER BY entity.name";
     return getList(sQuery);
   }
 
   @Override
-  public void insert(EntityManager em, LdapConfiguration config) {
+  public void insert(EntityManager em, LdapServer config) {
     NameHelper.validate(config.getName());
 
     if (getByName(em, config.getName()) != null) {
@@ -87,10 +87,10 @@ public class LdapConfigurationDAO
   }
 
   @Override
-  public void update(EntityManager em, LdapConfiguration config) {
+  public void update(EntityManager em, LdapServer config) {
     NameHelper.validate(config.getName());
 
-    LdapConfiguration existingConfig = getByName(em, config.getName());
+    LdapServer existingConfig = getByName(em, config.getName());
     if (existingConfig != null && !existingConfig.getId().equals(config.getId())) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
@@ -98,4 +98,10 @@ public class LdapConfigurationDAO
     super.update(em, config);
   }
 
+  
+  @Override
+  public void delete(EntityManager em, LdapServer entity) {
+    new LdapConnectionDAO().deleteByServerId(em, entity.getId());
+    super.delete(em, entity);
+  }
 }

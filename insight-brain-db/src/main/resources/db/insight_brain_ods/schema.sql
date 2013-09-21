@@ -122,10 +122,17 @@ CREATE TABLE user (
 );
 INSERT INTO user (user_id, username, username_lowercase, password, first_name, last_name ) VALUES ('ADMIN', 'admin', 'admin', '$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=', 'Admin', 'BuiltIn');
 
-CREATE TABLE ldap_configuration (
-  ldap_configuration_id varchar(50) NOT NULL,
+CREATE TABLE ldap_server (
+  ldap_server_id varchar(50) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
+  CONSTRAINT ldap_server_pk PRIMARY KEY (ldap_server_id),
+  CONSTRAINT ldap_server_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+);
+
+CREATE TABLE ldap_connection (
+  ldap_connection_id varchar(50) NOT NULL,
+  ldap_server_id varchar(50) NOT NULL,
   protocol varchar(5) NOT NULL,
   hostname varchar(255) NOT NULL,
   port int(5) NOT NULL,
@@ -136,6 +143,8 @@ CREATE TABLE ldap_configuration (
   system_password varchar(255),
   connection_timeout smallint(3), -- in seconds
   retry_delay smallint(3), -- in seconds
-  CONSTRAINT ldap_configuration_pk PRIMARY KEY (ldap_configuration_id),
-  CONSTRAINT ldap_configuration_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+  CONSTRAINT ldap_connection_pk PRIMARY KEY (ldap_connection_id),
+  CONSTRAINT ldap_connection_server_fk FOREIGN KEY (ldap_server_id) REFERENCES ldap_server(ldap_server_id),
+  CONSTRAINT ldap_server_id_uk UNIQUE KEY (ldap_server_id)
 );
+

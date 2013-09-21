@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
-import com.sonatype.insight.brain.configuration.ldap.LdapConfiguration;
-import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -25,60 +23,30 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-public class LdapConfigurationDAOTest
+public class LdapServerDAOTest
     extends AbstractDbDAOTest
 {
-  private LdapConfigurationDAO dao = new LdapConfigurationDAO();
+  private LdapServerDAO dao = new LdapServerDAO();
 
-  protected Set<LdapConfiguration> configsToDelete = new LinkedHashSet<LdapConfiguration>();
+  protected Set<LdapServer> serversToDelete = new LinkedHashSet<LdapServer>();
 
   @Test
   public void testCRUD() {
     String name = "name";
-    LdapProtocol protocol = LdapProtocol.LDAPS;
-    String hostname = "hostname";
-    int port = 389;
-    String searchBase = "searchBase";
-    LdapAuthenticationMethod authenticationMethod = LdapAuthenticationMethod.DIGESTMD5;
-    String saslRealm = "saslRealm";
-    String systemUsername = "systemUsername";
-    String systemPassword = "systemPassword";
-    int connectionTimeout = 123;
-    int retryDelay = 345;
 
     // insert
 
-    LdapConfiguration config = new LdapConfiguration();
-    config.setName(name);
-    config.setProtocol(protocol);
-    config.setHostname(hostname);
-    config.setPort(port);
-    config.setSearchBase(searchBase);
-    config.setAuthenticationMethod(authenticationMethod);
-    config.setSaslRealm(saslRealm);
-    config.setSystemUsername(systemUsername);
-    config.setSystemPassword(systemPassword);
-    config.setConnectionTimeout(connectionTimeout);
-    config.setRetryDelay(retryDelay);
-    Assert.assertNull(config.getId()); // sanity check
-    dao.insert(config);
+    LdapServer server = new LdapServer();
+    server.setName(name);
+    Assert.assertNull(server.getId()); // sanity check
+    dao.insert(server);
 
     // select by id
 
-    LdapConfiguration echo = dao.getById(config.getId());
+    LdapServer echo = dao.getById(server.getId());
     Assert.assertNotNull(echo);
     Assert.assertEquals(name, echo.getName());
     Assert.assertEquals(NameHelper.normalize(name), echo.getNameLowercaseNoWhitespace());
-    Assert.assertEquals(protocol, echo.getProtocol());
-    Assert.assertEquals(hostname, echo.getHostname());
-    Assert.assertEquals(port, echo.getPort());
-    Assert.assertEquals(searchBase, echo.getSearchBase());
-    Assert.assertEquals(authenticationMethod, echo.getAuthenticationMethod());
-    Assert.assertEquals(saslRealm, echo.getSaslRealm());
-    Assert.assertEquals(systemUsername, echo.getSystemUsername());
-    Assert.assertEquals(systemPassword, echo.getSystemPassword());
-    Assert.assertEquals(connectionTimeout, echo.getConnectionTimeout());
-    Assert.assertEquals(retryDelay, echo.getRetryDelay());
 
     // select by name
 
@@ -87,20 +55,20 @@ public class LdapConfigurationDAOTest
 
     // update
 
-    String changedPassword = "changed_password";
-    config.setSystemPassword(changedPassword);
-    dao.update(config);
-    echo = dao.getById(config.getId());
-    Assert.assertEquals(changedPassword, echo.getSystemPassword());
+    String changedName = "changedName";
+    server.setName(changedName);
+    dao.update(server);
+    echo = dao.getById(server.getId());
+    Assert.assertEquals(changedName, echo.getName());
 
     // delete
-    dao.delete(config);
-    Assert.assertNull(dao.getById(config.getId()));
+    dao.delete(server);
+    Assert.assertNull(dao.getById(server.getId()));
   }
 
   @Test
   public void testValidateNullName_Insert() {
-    LdapConfiguration config = createLdapConfiguration(null /* name */);
+    LdapServer config = createLdapServer(null /* name */);
     try {
       dao.insert(config);
       fail("Expected InvalidNameException");
@@ -112,7 +80,7 @@ public class LdapConfigurationDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    LdapConfiguration config = insertLdapConfiguration("testValidateNullName");
+    LdapServer config = insertLdapServer("testValidateNullName");
     assertEquals("testvalidatenullname", config.getNameLowercaseNoWhitespace());
 
     config.setName(null);
@@ -129,7 +97,7 @@ public class LdapConfigurationDAOTest
   @Test
   public void testValidateEmptyName_Insert() {
     try {
-      insertLdapConfiguration(" ");
+      insertLdapServer(" ");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -139,7 +107,7 @@ public class LdapConfigurationDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    LdapConfiguration config = insertLdapConfiguration("testValidateEmptyName");
+    LdapServer config = insertLdapServer("testValidateEmptyName");
     assertEquals("testvalidateemptyname", config.getNameLowercaseNoWhitespace());
 
     config.setName(" ");
@@ -157,7 +125,7 @@ public class LdapConfigurationDAOTest
   public void testValidateNameInvalidChars_Insert() {
     String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
     for (String name : invalidAlphaNumericNames) {
-      LdapConfiguration config = createLdapConfiguration(name);
+      LdapServer config = createLdapServer(name);
       try {
         dao.insert(config);
         fail("Expected InvalidNameException");
@@ -170,7 +138,7 @@ public class LdapConfigurationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    LdapConfiguration config = insertLdapConfiguration("testValidateNameInvalidChars");
+    LdapServer config = insertLdapServer("testValidateNameInvalidChars");
     String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
     for (String name : invalidAlphaNumericNames) {
       config.setName(name);
@@ -190,7 +158,7 @@ public class LdapConfigurationDAOTest
         "  starts with double space", "ends with double space  " };
     for (String name : invalidSpacingNames) {
       try {
-        insertLdapConfiguration(name);
+        insertLdapServer(name);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -202,7 +170,7 @@ public class LdapConfigurationDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    LdapConfiguration config = insertLdapConfiguration("testValidateNameSpaces");
+    LdapServer config = insertLdapServer("testValidateNameSpaces");
 
     String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
         "  starts with double space", "ends with double space  " };
@@ -223,23 +191,23 @@ public class LdapConfigurationDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String name = "test string With Case and Whitespace";
 
-    LdapConfiguration config = insertLdapConfiguration(name);
+    LdapServer config = insertLdapServer(name);
 
     assertEquals(name, config.getName());
     assertEquals("teststringwithcaseandwhitespace", config.getNameLowercaseNoWhitespace());
 
     String name1 = "TEST String      With    cASE and      whitespace";
-    LdapConfiguration config1 = dao.getByName(name1);
+    LdapServer config1 = dao.getByName(name1);
     assertNotNull(config1);
     assertEquals(config.getId(), config1.getId());
   }
 
   @Test
   public void testDuplicateName_Insert() {
-    insertLdapConfiguration("testDuplicateName");
+    insertLdapServer("testDuplicateName");
 
     try {
-      insertLdapConfiguration("testDuplicateName");
+      insertLdapServer("testDuplicateName");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -249,8 +217,8 @@ public class LdapConfigurationDAOTest
 
   @Test
   public void testDuplicateName_Update() {
-    insertLdapConfiguration("testDuplicateName");
-    LdapConfiguration config = insertLdapConfiguration("testDuplicateName1");
+    insertLdapServer("testDuplicateName");
+    LdapServer config = insertLdapServer("testDuplicateName1");
 
     config.setName("Test Duplicate Name");
     try {
@@ -266,19 +234,19 @@ public class LdapConfigurationDAOTest
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     try {
-      insertLdapConfiguration(name + "a");
+      insertLdapServer(name + "a");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
       assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    insertLdapConfiguration(name);
+    insertLdapServer(name);
   }
 
   @Test
   public void testValidateNameLength_Update() {
-    LdapConfiguration config = insertLdapConfiguration("test name");
+    LdapServer config = insertLdapServer("test name");
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     config.setName(name + "a");
@@ -294,35 +262,23 @@ public class LdapConfigurationDAOTest
     dao.update(config);
   }
 
-  @Test
-  public void testHighPortNumbers() {
-    LdapConfiguration config = createLdapConfiguration("ldap");
-    config.setPort(65535);
-    dao.insert(config);
-    Assert.assertNotNull(config.getId());
-  }
-  
-  protected LdapConfiguration createLdapConfiguration(String name) {
-    LdapConfiguration config = new LdapConfiguration();
+  protected LdapServer createLdapServer(String name) {
+    LdapServer config = new LdapServer();
     config.setName(name);
-    config.setHostname("localhost");
-    config.setPort(389);
-    config.setProtocol(LdapProtocol.LDAP);
-    config.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     return config;
   }
 
-  protected LdapConfiguration insertLdapConfiguration(String name) {
-    LdapConfiguration config = createLdapConfiguration(name);
+  protected LdapServer insertLdapServer(String name) {
+    LdapServer config = createLdapServer(name);
     dao.insert(config);
-    configsToDelete.add(config);
+    serversToDelete.add(config);
     return config;
   }
 
   @After
   @Override
   public void tearDown() {
-    for (LdapConfiguration config : configsToDelete) {
+    for (LdapServer config : serversToDelete) {
       config = dao.getById(config.getId());
       if (config != null) {
         dao.delete(config);

@@ -146,10 +146,14 @@ describe('Tests for the LdapConfigurationController', function() {
   
   
   describe('LdapConnectionController', function() {
-    var httpBackend, state;
+    var httpBackend, state, getConfigLdapUrl;
 
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
+
+      getConfigLdapUrl = function() {
+        return CLMLocations.getLdapConfig() + '/123/connection';
+      };
 
       $state.current.name = 'management.configuration.ldap.connection';
 
@@ -157,8 +161,9 @@ describe('Tests for the LdapConfigurationController', function() {
       state = $state;
 
       scope.ldap = {id: "123"};
+      scope.getConfigLdapUrl = getConfigLdapUrl;
 
-      httpBackend.expectGET(CLMLocations.getLdapConfig() + '/123/connection').respond(404, "");
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond(404, "");
 
       $controller('LdapConnectionController', {
         $scope: scope,
@@ -302,5 +307,130 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('Unable to reach CLM server');
 
     }));
+  });
+
+
+
+  
+  
+  
+  
+  
+  
+  
+  describe('LdapUsermappingController', function() {
+    var httpBackend, state, getConfigLdapUrl;
+
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
+      httpBackend = $httpBackend;
+
+      getConfigLdapUrl = function() {
+        return CLMLocations.getLdapConfig() + '/123/userMapping';
+      };
+
+      $state.current.name = 'management.configuration.ldap.usermapping';
+
+      scope = $rootScope.$new();
+      state = $state;
+
+      scope.ldap = {id: "123"};
+      scope.getConfigLdapUrl = getConfigLdapUrl;
+
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond(404, "");
+
+      $controller('LdapUsermappingController', {
+        $scope: scope,
+        $state: state
+      });
+
+      httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    });
+
+    it('create/update/delete ldap user mapping', inject(function(CLMLocations) {
+
+      // retrieve (empty configuration)
+
+      expect(scope.ldapUserMapping).not.toBeUndefined();
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapUserMapping.id).toBeUndefined();
+      expect(scope.ldapUserMapping.serverId).toBe('123');
+
+      // create
+
+      scope.ldapUserMapping.userBaseDN = 'userBaseDN';
+      scope.ldapUserMapping.userSubtree = true;
+      scope.ldapUserMapping.userObjectClass = 'userObjectClass';
+      scope.ldapUserMapping.userFilter = 'userFilter';
+      scope.ldapUserMapping.userIDAttribute = 'userIDAttribute';
+      scope.ldapUserMapping.realNameAttribute = 'realNameAttribute';
+      scope.ldapUserMapping.emailAttribute = 'emailAttribute';
+      scope.ldapUserMapping.passwordAttribute = 'passwordAttribute';
+      scope.ldapUserMapping.groupMappingType = 'NONE';
+      scope.ldapUserMapping.groupBaseDN = 'groupBaseDN';
+      scope.ldapUserMapping.groupSubtree = 'groupSubtree';
+      scope.ldapUserMapping.groupObjectClass = 'groupObjectClass';
+      scope.ldapUserMapping.groupIDAttribute = 'groupIDAttribute';
+      scope.ldapUserMapping.groupMemberAttribute = 'groupMemberAttribute';
+      scope.ldapUserMapping.groupMemberFormat = 'groupMemberFormat';
+      scope.ldapUserMapping.userMemberOfGroupAttribute = 'userMemberOfGroupAttribute';
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/userMapping').respond(function(method, url, data) {
+        return [200, angular.extend({
+          id: 'id1'
+        }, angular.copy(data)), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.ldapUserMapping.id).toEqual('id1');
+
+      // update
+
+      scope.ldapUserMapping.groupMappingType = 'SIMPLE';
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/userMapping').respond(function(method, url, data) {
+        return [200, angular.copy(data), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapUserMapping.id).toEqual('id1');
+    }));
+
+    it('displays confirmation dialog when navigating away from edited data', function() {
+
+      scope.ldapUserMapping.userBaseDN = 'userBaseDN';
+
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.ldapUserMappingEditor = {
+        $dirty: true      
+      };
+
+      scope.reset();
+
+      dialogScope.discard();
+
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+
+    });
+
   });
 });

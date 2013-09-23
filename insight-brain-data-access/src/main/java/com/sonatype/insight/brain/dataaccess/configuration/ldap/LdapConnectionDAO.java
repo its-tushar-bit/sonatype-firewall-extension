@@ -33,14 +33,10 @@ public class LdapConnectionDAO
     return conn;
   }
 
-  public LdapConnection getByServerIdNotNull(String serverId) {
+  public LdapConnection getByServerId(String serverId) {
     EntityManager em = createEntityManager();
     try {
-      LdapConnection conn = getByServerId(em, serverId);
-      if (conn == null) {
-        throw new NotFoundException("Cannot find LdapConnection for LdapServer with id " + serverId + ".");
-      }
-      return conn;
+      return getByServerId(em, serverId);
     }
     finally {
       em.close();

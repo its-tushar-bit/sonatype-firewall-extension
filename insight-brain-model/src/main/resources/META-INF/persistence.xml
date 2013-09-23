@@ -21,6 +21,7 @@
     <class>com.sonatype.insight.brain.model.security.User</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapServer</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapConnection</class>
+    <class>com.sonatype.insight.brain.configuration.ldap.LdapUserMapping</class>
     <properties>
       <!-- 
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

@@ -25,6 +25,5 @@ CREATE TABLE ldap_connection (
   retry_delay smallint(3), -- in seconds
   CONSTRAINT ldap_connection_pk PRIMARY KEY (ldap_connection_id),
   CONSTRAINT ldap_connection_server_fk FOREIGN KEY (ldap_server_id) REFERENCES ldap_server(ldap_server_id),
-  CONSTRAINT ldap_server_id_uk UNIQUE KEY (ldap_server_id)
+  CONSTRAINT ldap_connection_server_id_uk UNIQUE KEY (ldap_server_id)
 );
-

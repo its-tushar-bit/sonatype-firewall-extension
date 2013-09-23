@@ -44,7 +44,7 @@ public class LdapConnection
    */
   @Column(name = "protocol")
   @Enumerated(EnumType.STRING)
-  private LdapProtocol protocol;
+  private LdapProtocol protocol = LdapProtocol.LDAP;
 
   /**
    * LDAP server hostname
@@ -60,7 +60,7 @@ public class LdapConnection
    * @since 1.7
    */
   @Column(name = "port")
-  private int port;
+  private int port = 389;
 
   /**
    * Read http://technet.microsoft.com/en-us/library/cc978021.aspx if "ldap search base" does not tell you anything.
@@ -75,7 +75,7 @@ public class LdapConnection
    */
   @Column(name = "authentication_method")
   @Enumerated(EnumType.STRING)
-  private LdapAuthenticationMethod authenticationMethod;
+  private LdapAuthenticationMethod authenticationMethod = LdapAuthenticationMethod.NONE;
 
   /**
    * Optional SASL realm for digest authentication.

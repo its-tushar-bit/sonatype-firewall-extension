@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapRealm;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -50,6 +51,8 @@ public class LdapResource
   private final LdapServerDAO serverDao = new LdapServerDAO();
 
   private final LdapConnectionDAO connDao = new LdapConnectionDAO();
+
+  private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
 
   private PlexusCipher cipher;
 
@@ -111,7 +114,12 @@ public class LdapResource
   @Path("{ldapServerId}/connection")
   @Produces(MediaType.APPLICATION_JSON)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
-    return fakeOutPassword(connDao.getByServerIdNotNull(serverId));
+    LdapConnection conn = connDao.getByServerId(serverId);
+    if (conn == null) {
+      conn = new LdapConnection();
+      conn.setServerId(serverId);
+    }
+    return fakeOutPassword(conn);
   }
 
   /**
@@ -136,6 +144,46 @@ public class LdapResource
       connDao.insert(encrypted);
     }
     return fakeOutPassword(encrypted);
+  }
+
+  // user mapping
+
+  /**
+   * @since 1.7
+   */
+  @GET
+  @Path("{ldapServerId}/userMapping")
+  @Produces(MediaType.APPLICATION_JSON)
+  public LdapUserMapping getUserMapping(@PathParam("ldapServerId") String serverId) {
+    LdapUserMapping umap = umapDao.getByServerId(serverId);
+    if (umap == null) {
+      umap = new LdapUserMapping();
+      umap.setServerId(serverId);
+    }
+    return umap;
+  }
+
+  /**
+   * @since 1.7
+   */
+  @PUT
+  @Path("{ldapServerId}/userMapping")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap)
+      throws PlexusCipherException
+  {
+    if (serverId == null || !serverId.equals(umap.getServerId())) {
+      throw new BadRequestException("Inconsistent ldap server id");
+    }
+
+    if (umap.getId() != null) {
+      umapDao.update(umap);
+    }
+    else {
+      umapDao.insert(umap);
+    }
+    return umap;
   }
 
   /**

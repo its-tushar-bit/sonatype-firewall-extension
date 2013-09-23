@@ -124,6 +124,54 @@ public class LdapResourceTest
   }
 
   @Test
+  public void testUserMappingCRUD() throws Exception {
+    final LdapUserMapping orig = newUserMapping("test server");
+
+    // PUT new, a.k.a. "insert"
+    Response response = AuthedRestAccess.put(getUsermappingServiceURL(orig.getServerId()), JsonHelpers.asJson(orig));
+    assertResponseStatus(200, response);
+    LdapUserMapping umap = JsonHelpers.fromJson(response.getResponseBody(), LdapUserMapping.class);
+    assertUserMappingEquals(orig, umap);
+
+    // GET
+    response = AuthedRestAccess.get(getUsermappingServiceURL(orig.getServerId()));
+    assertResponseStatus(200, response);
+    umap = JsonHelpers.fromJson(response.getResponseBody(), LdapUserMapping.class);
+    assertUserMappingEquals(orig, umap);
+
+    // PUT existing, a.k.a "update"
+    umap.setUserEmailAttribute(orig.getUserEmailAttribute() + "changed");
+    response = AuthedRestAccess.put(getUsermappingServiceURL(umap.getServerId()), JsonHelpers.asJson(umap));
+    assertResponseStatus(200, response);
+    umap = JsonHelpers.fromJson(response.getResponseBody(), LdapUserMapping.class);
+    Assert.assertEquals(orig.getUserEmailAttribute() + "changed", umap.getUserEmailAttribute());
+  }
+
+  @Test
+  public void testNewUserMapping() throws Exception {
+    server = createLdapServer("test server");
+    serverDao.insert(server);
+
+    Response response = AuthedRestAccess.get(getUsermappingServiceURL(server.getId()));
+    assertResponseStatus(200, response);
+    LdapUserMapping umap = JsonHelpers.fromJson(response.getResponseBody(), LdapUserMapping.class);
+    Assert.assertNotNull(umap);
+    Assert.assertEquals(server.getId(), umap.getServerId());
+  }
+
+  @Test
+  public void testNewConnection() throws Exception {
+    server = createLdapServer("test server");
+    serverDao.insert(server);
+
+    Response response = AuthedRestAccess.get(getConnectionServiceURL(server.getId()));
+    assertResponseStatus(200, response);
+    LdapConnection conn = JsonHelpers.fromJson(response.getResponseBody(), LdapConnection.class);
+    Assert.assertNotNull(conn);
+    Assert.assertEquals(server.getId(), conn.getServerId());
+  }
+
+  @Test
   public void testConnectionCRUD() throws Exception {
     // Create
     LdapConnection conn = createLdapConnection("LdapConfigurationResourceTest");
@@ -477,6 +525,10 @@ public class LdapResourceTest
     return getRestBaseUrl() + LdapResource.SERVICE_PATH + "/" + serverId + "/connection";
   }
 
+  private String getUsermappingServiceURL(String serverId) {
+    return getRestBaseUrl() + LdapResource.SERVICE_PATH + "/" + serverId + "/userMapping";
+  }
+
   private String getTestConnectionServiceUrl() {
     return getRestBaseUrl() + LdapResource.SERVICE_PATH + "/test";
   }
@@ -502,5 +554,56 @@ public class LdapResourceTest
     conn.setSystemUsername("system");
     conn.setSystemPassword("password");
     return conn;
+  }
+
+  private LdapUserMapping newUserMapping(String name) {
+    if (server == null) {
+      server = createLdapServer(name);
+      serverDao.insert(server);
+    }
+
+    LdapUserMapping umap = new LdapUserMapping();
+
+    umap.setServerId(server.getId());
+    umap.setUserBaseDN("userBaseDN");
+    umap.setUserSubtree(true);
+    umap.setUserObjectClass("userObjectClass");
+    umap.setUserFilter("userFilter");
+    umap.setUserIDAttribute("userIDAttribute");
+    umap.setUserRealNameAttribute("realNameAttribute");
+    umap.setUserEmailAttribute("emailAttribute");
+    umap.setUserPasswordAttribute("passwordAttribute");
+
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupBaseDN("groupBaseDN");
+    umap.setGroupSubtree(true);
+    umap.setGroupObjectClass("groupObjectClass");
+    umap.setGroupIDAttribute("groupIDAttribute");
+    umap.setGroupMemberAttribute("groupMemberAttribute");
+    umap.setGroupMemberFormat("groupMemberFormat");
+    umap.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
+
+    return umap;
+  }
+
+  private void assertUserMappingEquals(LdapUserMapping expected, LdapUserMapping actual) {
+    Assert.assertEquals(expected.getServerId(), actual.getServerId());
+    Assert.assertEquals(expected.getUserBaseDN(), actual.getUserBaseDN());
+    Assert.assertEquals(expected.isUserSubtree(), actual.isUserSubtree());
+    Assert.assertEquals(expected.getUserObjectClass(), actual.getUserObjectClass());
+    Assert.assertEquals(expected.getUserFilter(), actual.getUserFilter());
+    Assert.assertEquals(expected.getUserIDAttribute(), actual.getUserIDAttribute());
+    Assert.assertEquals(expected.getUserRealNameAttribute(), actual.getUserRealNameAttribute());
+    Assert.assertEquals(expected.getUserEmailAttribute(), actual.getUserEmailAttribute());
+    Assert.assertEquals(expected.getUserPasswordAttribute(), actual.getUserPasswordAttribute());
+
+    Assert.assertEquals(expected.getGroupMappingType(), actual.getGroupMappingType());
+    Assert.assertEquals(expected.getGroupBaseDN(), actual.getGroupBaseDN());
+    Assert.assertEquals(expected.getGroupObjectClass(), actual.getGroupObjectClass());
+    Assert.assertEquals(expected.getGroupIDAttribute(), actual.getGroupIDAttribute());
+    Assert.assertEquals(expected.getGroupMemberAttribute(), actual.getGroupMemberAttribute());
+    Assert.assertEquals(expected.getGroupMemberFormat(), actual.getGroupMemberFormat());
+    Assert.assertEquals(expected.getUserMemberOfGroupAttribute(), actual.getUserMemberOfGroupAttribute());
+
   }
 }

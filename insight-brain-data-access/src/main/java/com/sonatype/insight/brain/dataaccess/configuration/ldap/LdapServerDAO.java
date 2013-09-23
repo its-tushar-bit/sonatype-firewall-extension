@@ -102,6 +102,7 @@ public class LdapServerDAO
   @Override
   public void delete(EntityManager em, LdapServer entity) {
     new LdapConnectionDAO().deleteByServerId(em, entity.getId());
+    new LdapUserMappingDAO().deleteByServerId(em, entity.getId());
     super.delete(em, entity);
   }
 }

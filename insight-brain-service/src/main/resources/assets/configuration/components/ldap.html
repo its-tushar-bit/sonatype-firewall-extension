@@ -29,8 +29,11 @@
           <div ng-switch-when='null'></div>
           <div ng-switch-default>
             <ul class='tri-pane'>
-              <li ng-class='{ active : true }'>
-                <a>CONNECTION</a>
+              <li ng-class='{ active : isCurrentTab("connection") }'>
+                <a ng-click='setCurrentTab("connection")'>CONNECTION</a>
+              </li>
+              <li ng-class='{ active : isCurrentTab("usermapping") }'>
+                <a ng-click='setCurrentTab("usermapping")'>USER &amp; GROUP SETTINGS</a>
               </li>
             </ul>
             <div ui-view></div>

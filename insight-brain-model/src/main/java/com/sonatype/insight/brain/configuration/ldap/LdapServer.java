@@ -49,12 +49,6 @@ public class LdapServer
   public LdapServer() {
   }
 
-  public LdapServer(LdapServer other) {
-    this.id = other.id;
-    this.name = other.name;
-    this.nameLowercaseNoWhitespace = other.nameLowercaseNoWhitespace;
-  }
-
   @Override
   public String getId() {
     return id;

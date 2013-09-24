@@ -46,11 +46,6 @@
     <url>http://github.com/sonatype/insight-brain</url>
   </scm>
 
-  <ciManagement>
-    <system>hudson</system>
-    <url>https://builds.sonatype.org/job/insight-brain/</url>
-  </ciManagement>
-
   <modules>
     <module>insight-json-store</module>
     <module>insight-brain-model</module>

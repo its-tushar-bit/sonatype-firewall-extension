@@ -40,6 +40,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
@@ -311,7 +314,7 @@ public class ApplicationResource
     File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
     applicationManagement.setScansCount(scans != null ? scans.length : 0);
 
-    final List<PolicyEvaluation> policyEvaluationList = work.getMostRecentPolicyEvaluations(application.getId());
+    final List<PolicyEvaluation> policyEvaluationList = getMostRecentPolicyEvaluations(application.getId());
     Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
     Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
     for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
@@ -333,6 +336,18 @@ public class ApplicationResource
     applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
 
     return applicationManagement;
+  }
+
+  private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) throws IOException {
+    final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
+    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
+    for (StageType stageType : StageTypes.getAll()) {
+      PolicyEvaluation eval = evalLog.lastByStage(stageType.getId());
+      if (eval != null) {
+        policyEvaluations.add(eval);
+      }
+    }
+    return policyEvaluations;
   }
 
   public static String validateApplicationPublicIdInternal(String applicationPublicId) {

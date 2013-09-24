@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.IOException;
-import java.net.URI;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,7 +25,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 @Path(CIResource.SERVICE_PATH)
@@ -36,19 +35,19 @@ public class CIResource
 {
   public static final String SERVICE_PATH = "rest/ci";
 
-  private final InsightWork work;
-
   private final SaasClient client;
 
   private final ScanUploader uploader;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
+  
+  private ReportResource reportResource;
 
   @Inject
-  public CIResource(final InsightWork work, final SaasClient client, final ScanUploader uploader) {
-    this.work = work;
+  public CIResource(final SaasClient client, final ScanUploader uploader, ReportResource reportResource) {
     this.client = client;
     this.uploader = uploader;
+    this.reportResource = reportResource;
   }
 
   /**
@@ -85,15 +84,11 @@ public class CIResource
   @Path("artifact/{scanId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getArtifactInfo(@PathParam("scanId") final String scanId,
-      @QueryParam("groupId") final String groupId, @QueryParam("artifactId") final String artifactId,
-      @QueryParam("version") final String version)
+                                  @QueryParam("groupId") final String groupId, 
+                                  @QueryParam("artifactId") final String artifactId,
+                                  @QueryParam("version") final String version,
+                                  @Context final HttpServletRequest httpRequest) throws Exception
   {
-    String applicationPublicId = "unknown";
-    String appId = work.findOwningAppId(scanId);
-    if (appId != null) {
-      applicationPublicId = applicationDAO.getByIdNotNull(appId).getPublicId();
-    }
-    return Response.temporaryRedirect(URI.create("rest/report/" + applicationPublicId + '/' + scanId //
-        + "/artifactDetails" + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version)).build();
+    return reportResource.getArtifactInfo(scanId, groupId, artifactId, version, httpRequest);
   }
 }

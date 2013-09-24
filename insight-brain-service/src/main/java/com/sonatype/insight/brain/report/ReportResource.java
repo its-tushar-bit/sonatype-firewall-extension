@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
@@ -189,9 +190,12 @@ public class ReportResource
   @Path("artifactDetails{ignore:.*}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response artifactDetails(@PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId, @QueryParam("groupId") final String groupId,
-      @QueryParam("artifactId") final String artifactId, @QueryParam("version") final String version,
-      @Context final HttpServletRequest httpRequest) throws Exception
+                                  @PathParam("scanId") final String scanId, 
+                                  @QueryParam("groupId") final String groupId,
+                                  @QueryParam("artifactId") final String artifactId, 
+                                  @QueryParam("version") final String version,
+                                  @Context final HttpServletRequest httpRequest) 
+                                      throws Exception
   {
     ReportEntry reportEntry = null;
     try {
@@ -234,6 +238,34 @@ public class ReportResource
     }
 
     return response.entity(data).build();
+  }
+  
+  public Response getArtifactInfo(final String scanId,
+                                  final String groupId, final String artifactId, final String version,
+                                  final HttpServletRequest httpRequest) throws Exception
+  {
+    String applicationPublicId = "unknown";
+    String appId = findOwningAppId(scanId);
+    if (appId != null) {
+      applicationPublicId = applicationDAO.getByIdNotNull(appId).getPublicId();
+    }    
+    return artifactDetails(applicationPublicId, scanId, groupId, artifactId, version, httpRequest);
+  }
+  
+  private String findOwningAppId(final String scanId) {
+    final File rootDir = work.getReportDir();
+    if (rootDir.isDirectory()) {
+      try {
+        final List<String> dirs = FileUtils.getDirectoryNames(rootDir, "*/" + scanId, null, false);
+        if (!dirs.isEmpty()) {
+          return FileUtils.dirname(dirs.get(0));
+        }
+      }
+      catch (final IOException e) {
+        log.error("Problem searching directory: {} for scanId: {}", rootDir, scanId, e);
+      }
+    }
+    return null;
   }
 
   @POST

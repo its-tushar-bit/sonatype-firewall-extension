@@ -157,9 +157,6 @@ public class CIResourceTest
 
     final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
     Response response = AuthedRestAccess.get(getServiceURL() + "/artifact/" + query);
-    assertResponseStatus(307, response);
-
-    response = AuthedRestAccess.get(response.getHeader("Location"));
     assertResponseStatus(200, response);
 
     assertThat(response.getResponseBody(), stringContainsInOrder(Arrays.asList("\"groupId\"",

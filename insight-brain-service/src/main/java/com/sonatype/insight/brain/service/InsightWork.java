@@ -6,29 +6,15 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
-
-import org.codehaus.plexus.util.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 @Singleton
 public class InsightWork
 {
-  private static final Logger log = LoggerFactory.getLogger(InsightWork.class);
-
   private final InsightConfig insightConfig;
 
   @Inject
@@ -46,6 +32,10 @@ public class InsightWork
 
   public File getAuditDir(final String appId) {
     return new File(insightConfig.getSonatypeWork(), "audit/" + appId);
+  }
+
+  public File getReportDir() {
+    return new File(insightConfig.getSonatypeWork(), "report");
   }
 
   public File getReportDir(final String appId) {
@@ -70,33 +60,5 @@ public class InsightWork
 
   public File getDataDir() {
     return new File(insightConfig.getSonatypeWork(), "data");
-  }
-
-  public String findOwningAppId(final String scanId) {
-    final File rootDir = new File(insightConfig.getSonatypeWork(), "report");
-    if (rootDir.isDirectory()) {
-      try {
-        final List<String> dirs = FileUtils.getDirectoryNames(rootDir, "*/" + scanId, null, false);
-        if (!dirs.isEmpty()) {
-          return FileUtils.dirname(dirs.get(0));
-        }
-      }
-      catch (final IOException e) {
-        log.error("Problem scanning directory: {} for scanId: {}", rootDir, scanId, e);
-      }
-    }
-    return null;
-  }
-
-  public List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) throws IOException {
-    final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(getAuditDir(appId));
-    for (StageType stageType : StageTypes.getAll()) {
-      PolicyEvaluation eval = evalLog.lastByStage(stageType.getId());
-      if (eval != null) {
-        policyEvaluations.add(eval);
-      }
-    }
-    return policyEvaluations;
   }
 }

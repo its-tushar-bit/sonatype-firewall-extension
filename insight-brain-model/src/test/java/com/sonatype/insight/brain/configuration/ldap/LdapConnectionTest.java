@@ -5,17 +5,14 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import com.sonatype.insight.brain.model.NameHelper;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-public class LdapConfigurationTest
+public class LdapConnectionTest
 {
   @Test
   public void testCopyConstructor() {
     String id = "id";
-    String name = "name";
     LdapProtocol protocol = LdapProtocol.LDAPS;
     String hostname = "hostname";
     int port = 389;
@@ -27,9 +24,8 @@ public class LdapConfigurationTest
     int connectionTimeout = 123;
     int retryDelay = 345;
 
-    LdapConfiguration orig = new LdapConfiguration();
+    LdapConnection orig = new LdapConnection();
     orig.setId(id);
-    orig.setName(name);
     orig.setProtocol(protocol);
     orig.setHostname(hostname);
     orig.setPort(port);
@@ -41,11 +37,9 @@ public class LdapConfigurationTest
     orig.setConnectionTimeout(connectionTimeout);
     orig.setRetryDelay(retryDelay);
 
-    LdapConfiguration copy = new LdapConfiguration(orig);
+    LdapConnection copy = new LdapConnection(orig);
 
     Assert.assertEquals(id, copy.getId());
-    Assert.assertEquals(name, copy.getName());
-    Assert.assertEquals(NameHelper.normalize(name), copy.getNameLowercaseNoWhitespace());
     Assert.assertEquals(protocol, copy.getProtocol());
     Assert.assertEquals(hostname, copy.getHostname());
     Assert.assertEquals(port, copy.getPort());

@@ -26,23 +26,13 @@ describe('Tests for the LdapConfigurationController', function() {
         };
       }
     });
-    $stateProvider.state('management', {
-        url: '/management'
-    }).state('management.configuration', {
-        parent: 'management',
-        url: '/configuration'
-    }).state('management.configuration.ldap', {
-        parent: 'management.configuration',
-        url: '/ldap'
-    });
   }));
 
   describe('LdapConfigurationController', function() {
-    var httpBackend, rootScope, state;
+    var httpBackend, state;
 
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
-      rootScope = $rootScope;
 
       $state.current.name = 'management.configuration.ldap';
 
@@ -50,6 +40,11 @@ describe('Tests for the LdapConfigurationController', function() {
       state = $state;
 
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([]);
+
+      httpBackend.whenGET('../assets/management.html?').respond('<div></div>');
+      httpBackend.whenGET('../configuration-assets/components/configuration-navigator.html?').respond('<div></div>');
+      httpBackend.whenGET('../configuration-assets/components/ldap.html?').respond('<div></div>');
+      httpBackend.whenGET('../configuration-assets/components/ldap-connection.html?').respond('<div></div>');
 
       $controller('LdapConfigurationController', {
         $scope: scope,
@@ -65,8 +60,8 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.$destroy();
     });
 
-    it('create/update/delete ldap configuration', inject(function(CLMLocations) {
-   
+    it('create/update/delete ldap server', inject(function(CLMLocations) {
+
       // retrieve (empty configuration)
 
       expect(scope.ldap).not.toBeUndefined();
@@ -77,16 +72,6 @@ describe('Tests for the LdapConfigurationController', function() {
       // create
 
       scope.ldap.name = 'config1';
-      scope.ldap.protocol = 'LDAP';
-      scope.ldap.hostname = 'example.com';
-      scope.ldap.port = 389;
-      scope.ldap.searchBase = 'DC=example,DC=com';
-      scope.ldap.authenticationMethod = 'SIMPLE';
-      scope.ldap.saslRealm = '';
-      scope.ldap.username = 'guest';
-      scope.ldap.password = 'anon';
-      scope.ldap.connectionTimeout = 60;
-      scope.ldap.retryDelay = 10;
 
       expect(scope.ldap.isDirty()).toBeTruthy();
 
@@ -103,10 +88,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       // update
 
-      scope.ldap.authenticationMethod = 'DIGESTMD5';
-      scope.ldap.saslRealm = 'testing';
-      scope.ldap.username = 'user';
-      scope.ldap.password = 'pass';
+      scope.ldap.name = 'config1changed';
 
       expect(scope.ldap.isDirty()).toBeTruthy();
 
@@ -139,13 +121,125 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.ldap).toBeNull();
 
     }));
+  });
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  describe('LdapConnectionController', function() {
+    var httpBackend, state;
+
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
+      httpBackend = $httpBackend;
+
+      $state.current.name = 'management.configuration.ldap.connection';
+
+      scope = $rootScope.$new();
+      state = $state;
+
+      scope.ldap = {id: "123"};
+
+      httpBackend.expectGET(CLMLocations.getLdapConfig() + '/123/connection').respond(404, "");
+
+      $controller('LdapConnectionController', {
+        $scope: scope,
+        $state: state
+      });
+
+      httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    });
+
+    it('create/update/delete ldap connection', inject(function(CLMLocations) {
+
+      // retrieve (empty configuration)
+
+      expect(scope.ldapConn).not.toBeUndefined();
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapConn.id).toBeUndefined();
+
+      // create
+
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.hostname = 'example.com';
+      scope.ldapConn.port = 389;
+      scope.ldapConn.searchBase = 'DC=example,DC=com';
+      scope.ldapConn.authenticationMethod = 'SIMPLE';
+      scope.ldapConn.saslRealm = '';
+      scope.ldapConn.username = 'guest';
+      scope.ldapConn.password = 'anon';
+      scope.ldapConn.connectionTimeout = 60;
+      scope.ldapConn.retryDelay = 10;
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/connection').respond(function(method, url, data) {
+        return [200, angular.extend({
+          id: 'id1'
+        }, angular.copy(data)), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.ldapConn.id).toEqual('id1');
+
+      // update
+
+      scope.ldapConn.authenticationMethod = 'DIGESTMD5';
+      scope.ldapConn.saslRealm = 'testing';
+      scope.ldapConn.username = 'user';
+      scope.ldapConn.password = 'pass';
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/connection').respond(function(method, url, data) {
+        return [200, angular.copy(data), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapConn.id).toEqual('id1');
+    }));
 
     it('displays confirmation dialog when navigating away from edited data', function() {
 
-      scope.ldap.name = 'new_name';
+      scope.ldapConn.username = 'new_name';
 
       var e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).toBeTruthy();
+
+      scope.ldapConnectionEditor = {
+        $dirty: true      
+      };
 
       scope.reset();
 
@@ -157,13 +251,12 @@ describe('Tests for the LdapConfigurationController', function() {
     });
 
     it('test connection', inject(function(CLMLocations) {
-      scope.ldap.name = 'config1';
-      scope.ldap.protocol = 'LDAP';
-      scope.ldap.hostname = 'example.com';
-      scope.ldap.port = 389;
-      scope.ldap.authenticationMethod = 'SIMPLE';
-      scope.ldap.username = 'guest';
-      scope.ldap.password = 'anon';
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.hostname = 'example.com';
+      scope.ldapConn.port = 389;
+      scope.ldapConn.authenticationMethod = 'SIMPLE';
+      scope.ldapConn.username = 'guest';
+      scope.ldapConn.password = 'anon';
 
       // configuration is good
       httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(

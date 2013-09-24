@@ -12,15 +12,14 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.model.HasStringId;
 
 /**
  * @since 1.7
  */
 @Entity
-@Table(name = "ldap_configuration")
-public class LdapConfiguration
+@Table(name = "ldap_connection")
+public class LdapConnection
     implements HasStringId
 {
   /**
@@ -29,24 +28,16 @@ public class LdapConfiguration
    * @since 1.7
    */
   @Id
-  @Column(name = "ldap_configuration_id")
+  @Column(name = "ldap_connection_id")
   private String id;
 
   /**
-   * Human readable name of this LDAP configuration
+   * LdapServer id
    * 
    * @since 1.7
    */
-  @Column(name = "name")
-  private String name;
-
-  /**
-   * Canonical name form used in uniqueness constraint
-   * 
-   * @since 1.7
-   */
-  @Column(name = "name_lowercase_no_whitespace")
-  private String nameLowercaseNoWhitespace;
+  @Column(name = "ldap_server_id")
+  private String serverId;
 
   /**
    * @since 1.7
@@ -127,13 +118,12 @@ public class LdapConfiguration
   @Column(name = "retry_delay")
   private long retryDelay = 300;
 
-  public LdapConfiguration() {
+  public LdapConnection() {
   }
 
-  public LdapConfiguration(LdapConfiguration other) {
+  public LdapConnection(LdapConnection other) {
     this.id = other.id;
-    this.name = other.name;
-    this.nameLowercaseNoWhitespace = other.nameLowercaseNoWhitespace;
+    this.serverId = other.serverId;
     this.protocol = other.protocol;
     this.hostname = other.hostname;
     this.port = other.port;
@@ -156,36 +146,20 @@ public class LdapConfiguration
     this.id = id;
   }
 
+  public String getServerId() {
+    return serverId;
+  }
+
+  public void setServerId(String serverId) {
+    this.serverId = serverId;
+  }
+
   public LdapProtocol getProtocol() {
     return protocol;
   }
 
   public void setProtocol(LdapProtocol protocol) {
     this.protocol = protocol;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    nameLowercaseNoWhitespace = NameHelper.normalize(name);
-    this.name = name;
-  }
-
-  public String getNameLowercaseNoWhitespace() {
-    return nameLowercaseNoWhitespace;
-  }
-
-  /**
-   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-   * 
-   * @deprecated This method should not be used explicitly.
-   */
-  @SuppressWarnings("unused")
-  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 
   public String getHostname() {

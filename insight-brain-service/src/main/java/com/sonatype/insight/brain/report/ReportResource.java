@@ -239,7 +239,11 @@ public class ReportResource
 
     return response.entity(data).build();
   }
-  
+
+  /**
+   * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
+   */
+  @Deprecated
   public Response getArtifactInfo(final String scanId,
                                   final String groupId, final String artifactId, final String version,
                                   final HttpServletRequest httpRequest) throws Exception

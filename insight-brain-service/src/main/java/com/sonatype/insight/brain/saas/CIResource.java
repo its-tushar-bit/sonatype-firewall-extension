@@ -80,6 +80,10 @@ public class CIResource
     return StreamingOutput.class.cast(client.doProxy(req, "rest/ci/report").getEntity());
   }
 
+  /**
+   * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
+   */
+  @Deprecated
   @GET
   @Path("artifact/{scanId}")
   @Produces(MediaType.APPLICATION_JSON)

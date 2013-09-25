@@ -426,7 +426,7 @@
         <directory>${project.build.directory}/generated</directory>
       </resource>
       <resource>
-        <directory>src/main/resources-filtered</directory>
+        <directory>src/main/filtered-resources</directory>
         <filtering>true</filtering>
       </resource>
       <resource>

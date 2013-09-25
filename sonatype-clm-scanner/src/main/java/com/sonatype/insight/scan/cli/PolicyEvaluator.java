@@ -29,22 +29,22 @@ import com.sonatype.insight.scan.cli.RestClientFactory.RestClient;
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 public class PolicyEvaluator
 {
 
-  private final Logger log;
+  private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
   private final Scanner scanner;
 
   private final RestClientFactory restClientFactory;
 
   @Inject
-  public PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory, Logger log) {
+  public PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     this.scanner = scanner;
     this.restClientFactory = restClientFactory;
-    this.log = log;
   }
 
   public void run(Parameters params) throws ExitException {

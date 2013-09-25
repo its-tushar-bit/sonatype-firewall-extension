@@ -24,12 +24,13 @@ import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 public class Scanner
 {
 
-  private final Logger log;
+  private static final Logger log = LoggerFactory.getLogger(Scanner.class);
 
   private final ScanPropertiesLoader configLoader;
 
@@ -41,13 +42,12 @@ public class Scanner
 
   @Inject
   public Scanner(ScanPropertiesLoader configLoader, ClientScanner clientScanner, FileScanner fileScanner,
-      ScanWriterFactory writerFactory, Logger log)
+      ScanWriterFactory writerFactory)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;
     this.fileScanner = fileScanner;
     this.writerFactory = writerFactory;
-    this.log = log;
   }
 
   public void scan(File scanFile, List<File> targets, Properties config) throws IOException {

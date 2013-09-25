@@ -5,36 +5,71 @@
  */
 package com.sonatype.insight.brain.ldap;
 
-import java.util.Hashtable;
-
-import javax.naming.Context;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.naming.NamingException;
-import javax.naming.directory.InitialDirContext;
+import javax.naming.ldap.LdapContext;
+
+import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.realm.ldap.JndiLdapRealm;
+import org.apache.shiro.realm.ldap.LdapUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
+ * Connects Shiro's {@link JndiLdapRealm} to our internal LDAP configuration.
+ * 
  * @since 1.7
  */
+@Named
+@Singleton
 public class LdapRealm
+    extends JndiLdapRealm
 {
-  /**
-   * @since 1.7
-   */
-  public static void testConnection(String url, String authenticationMechanism, String securityPrincipal,
-      String securityPassword, String saslRealm) throws NamingException
-  {
-    Hashtable<String, Object> env = new Hashtable<String, Object>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, url);
-    env.put(Context.SECURITY_AUTHENTICATION, authenticationMechanism);
-    if (securityPrincipal != null) {
-      env.put(Context.SECURITY_PRINCIPAL, securityPrincipal);
+  private final LdapConnectionManager ldapConnectionManager;
+
+  @Inject
+  public LdapRealm(LdapConnectionManager ldapConnectionManager) {
+    this.ldapConnectionManager = ldapConnectionManager;
+  }
+
+  @Override
+  public boolean supports(AuthenticationToken token) {
+    return super.supports(token) && ldapConnectionManager.isLdapConfigured();
+  }
+
+  @Override
+  public LdapContextFactory getContextFactory() {
+    LdapConnection conn = ldapConnectionManager.getDecryptedConnection();
+    // TODO: this shortcut for finding user DNs will be replaced with LDAP search once user mapping is integrated
+    if (conn != null && StringUtils.isNotBlank(conn.getSearchBase())
+        && !conn.getAuthenticationMethod().getMethod().endsWith("MD5")) {
+      setUserDnTemplate(conn.getSearchBase());
     }
-    if (securityPassword != null) {
-      env.put(Context.SECURITY_CREDENTIALS, securityPassword);
+    return createContextFactory(conn);
+  }
+
+  static void testConnection(LdapConnection conn) throws NamingException {
+    LdapContext ctx = null;
+    try {
+      ctx = createContextFactory(conn).getSystemLdapContext();
     }
-    if (saslRealm != null) {
-      env.put("java.naming.security.sasl.realm", saslRealm);
+    finally {
+      LdapUtils.closeContext(ctx);
     }
-    new InitialDirContext(env).close();
+  }
+
+  private static LdapContextFactory createContextFactory(LdapConnection conn) {
+    LdapContextFactory contextFactory = new LdapContextFactory();
+
+    contextFactory.setUrl(conn.getUrl());
+    contextFactory.setAuthenticationMechanism(conn.getAuthenticationMethod().getMethod());
+    contextFactory.setSystemUsername(conn.getSystemUsername());
+    contextFactory.setSystemPassword(conn.getSystemPassword());
+    contextFactory.setSaslRealm(conn.getSaslRealm());
+
+    return contextFactory;
   }
 }

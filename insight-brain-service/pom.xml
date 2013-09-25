@@ -23,7 +23,6 @@
     <wro4j.version>1.7.0</wro4j.version>
     <licensing.version>1.3.2</licensing.version>
     <angularjs.version>1.0.7</angularjs.version>
-    <shiro.version>1.2.2</shiro.version>
     <jasmine.version>1.3.1.2</jasmine.version>
     <saga.version>1.4.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
@@ -382,12 +381,10 @@
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
-      <version>${shiro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-guice</artifactId>
-      <version>${shiro.version}</version>
     </dependency>
 
     <dependency>
@@ -395,11 +392,6 @@
       <artifactId>insight-license-model</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.sonatype.plexus</groupId>
-      <artifactId>plexus-cipher</artifactId>
-      <version>1.7</version>
-    </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-ldap</artifactId>

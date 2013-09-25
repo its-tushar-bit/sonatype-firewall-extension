@@ -51,8 +51,8 @@ public class EmbeddedLdapServerTest
     server = newEmbeddedLdapServer();
     server.start();
 
-    assertLogin(AUTH_NONE);
-    assertLoginFailure(AUTH_SIMPLE, AUTH_DIGESTMD5, AUTH_CRAMMD5);
+    assertLogin(AUTH_NONE, AUTH_SIMPLE);
+    assertLoginFailure(AUTH_DIGESTMD5, AUTH_CRAMMD5);
   }
 
   @Test

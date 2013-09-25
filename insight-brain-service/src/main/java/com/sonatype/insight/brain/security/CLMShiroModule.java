@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.ldap.LdapRealm;
+
 import com.google.inject.binder.AnnotatedBindingBuilder;
+import org.apache.shiro.authc.Authenticator;
 import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SessionManager;
@@ -45,7 +48,9 @@ public class CLMShiroModule
     //change the auth type so browsers dont prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme("nonBrowserPromptingBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
+    bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(CLMRealm.class);
+    bindRealm().to(LdapRealm.class);
   }
   
   private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {

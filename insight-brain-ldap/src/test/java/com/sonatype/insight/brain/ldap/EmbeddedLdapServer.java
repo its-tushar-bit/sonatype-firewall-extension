@@ -20,6 +20,7 @@ import org.apache.directory.api.ldap.model.schema.SchemaManager;
 import org.apache.directory.api.ldap.schemamanager.impl.DefaultSchemaManager;
 import org.apache.directory.server.constants.ServerDNConstants;
 import org.apache.directory.server.core.DefaultDirectoryService;
+import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.core.api.InstanceLayout;
 import org.apache.directory.server.core.api.InterceptorEnum;
 import org.apache.directory.server.core.api.partition.Partition;
@@ -36,6 +37,7 @@ import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.ldap.handlers.sasl.MechanismHandler;
 import org.apache.directory.server.ldap.handlers.sasl.cramMD5.CramMd5MechanismHandler;
 import org.apache.directory.server.ldap.handlers.sasl.digestMD5.DigestMd5MechanismHandler;
+import org.apache.directory.server.protocol.shared.store.LdifFileLoader;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
 import org.codehaus.plexus.util.FileUtils;
@@ -90,7 +92,7 @@ public class EmbeddedLdapServer
     SchemaManager schemaManager = new DefaultSchemaManager();
     directoryService.setSchemaManager(schemaManager);
 
-    initSystemPartition(directoryService);
+    initPartitions(directoryService);
 
     ldapServer = new LdapServer();
 
@@ -107,13 +109,13 @@ public class EmbeddedLdapServer
     ldapServer.setDirectoryService(directoryService);
 
     // allowed authentication mechanisms
-    Authenticator authenticator;
+    Authenticator[] authenticators;
     switch (authLevel) {
       case SIMPLE:
-        authenticator = new SimpleAuthenticator();
+        authenticators = new Authenticator[] { new SimpleAuthenticator() };
         break;
       case STRONG:
-        authenticator = new StrongAuthenticator();
+        authenticators = new Authenticator[] { new StrongAuthenticator() };
         ldapServer.setSaslMechanismHandlers(saslHandlers);
         ldapServer.setSaslHost(LOCALHOST);
         ldapServer.setSaslRealms(Arrays.asList(getSaslRealm()));
@@ -122,18 +124,20 @@ public class EmbeddedLdapServer
       case NONE:
       default:
         directoryService.setAllowAnonymousAccess(true);
-        authenticator = new AnonymousAuthenticator();
+        authenticators = new Authenticator[] { new AnonymousAuthenticator(), new SimpleAuthenticator() };
         break;
     }
     AuthenticationInterceptor auth = (AuthenticationInterceptor) directoryService
         .getInterceptor(InterceptorEnum.AUTHENTICATION_INTERCEPTOR.getName());
-    auth.setAuthenticators(new Authenticator[] { authenticator });
+    auth.setAuthenticators(authenticators);
 
     directoryService.startup();
     ldapServer.start();
+
+    loadUsers(workingDirectory, directoryService);
   }
 
-  private static void initSystemPartition(DefaultDirectoryService directoryService) throws Exception {
+  private static void initPartitions(DefaultDirectoryService directoryService) throws Exception {
     LdifPartition ldifPartition = new LdifPartition(directoryService.getSchemaManager());
     ldifPartition.setPartitionPath(new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "schema")
         .toURI());
@@ -141,12 +145,26 @@ public class EmbeddedLdapServer
     schemaPartition.setWrappedPartition(ldifPartition);
     directoryService.setSchemaPartition(schemaPartition);
     PartitionFactory partitionFactory = new AvlPartitionFactory();
+
     Partition systemPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "system",
         ServerDNConstants.SYSTEM_DN, 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(),
             "system"));
     systemPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(systemPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.setSystemPartition(systemPartition);
+
+    Partition usersPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "users",
+        "ou=users,dc=company,dc=com", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(),
+            "users"));
+    usersPartition.setSchemaManager(directoryService.getSchemaManager());
+    partitionFactory.addIndex(usersPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
+    directoryService.addPartition(usersPartition);
+  }
+
+  private static void loadUsers(File workingDirectory, DirectoryService directoryService) throws IOException {
+    File usersLdif = new File(workingDirectory, "ldap_users.ldif");
+    FileUtils.copyURLToFile(EmbeddedLdapServer.class.getResource("/ldap_users.ldif"), usersLdif);
+    new LdifFileLoader(directoryService.getAdminSession(), usersLdif.getAbsolutePath()).execute();
   }
 
   private static int getRandomPort() throws IOException {
@@ -174,9 +192,16 @@ public class EmbeddedLdapServer
   public String getUrl() {
     StringBuilder sb = new StringBuilder();
     sb.append(ldapsKeystore != null ? "ldaps" : "ldap");
-    sb.append("://localhost:");
+    sb.append("://" + LOCALHOST + ":");
     sb.append(port);
     return sb.toString();
+  }
+
+  /**
+   * @since 1.7
+   */
+  public String getHostname() {
+    return LOCALHOST;
   }
 
   /**

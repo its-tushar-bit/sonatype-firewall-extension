@@ -22,16 +22,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-import com.sonatype.insight.brain.ldap.LdapRealm;
+import com.sonatype.insight.brain.ldap.LdapConnectionManager;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @since 1.7
@@ -43,22 +37,15 @@ public class LdapResource
 
   public static final String SERVICE_PATH = "rest/config/ldap";
 
-  public static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
-
-  // XXX do we need to obfuscate this or pretend no one will notice?
-  private static final String ENC = "CMMDwoV";
-
   private final LdapServerDAO serverDao = new LdapServerDAO();
-
-  private final LdapConnectionDAO connDao = new LdapConnectionDAO();
 
   private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
 
-  private PlexusCipher cipher;
+  private final LdapConnectionManager ldapConnectionManager;
 
   @Inject
-  public LdapResource(PlexusCipher cipher) {
-    this.cipher = cipher;
+  public LdapResource(LdapConnectionManager ldapConnectionManager) {
+    this.ldapConnectionManager = ldapConnectionManager;
   }
 
   /**
@@ -114,12 +101,7 @@ public class LdapResource
   @Path("{ldapServerId}/connection")
   @Produces(MediaType.APPLICATION_JSON)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
-    LdapConnection conn = connDao.getByServerId(serverId);
-    if (conn == null) {
-      conn = new LdapConnection();
-      conn.setServerId(serverId);
-    }
-    return fakeOutPassword(conn);
+    return ldapConnectionManager.loadConnection(serverId);
   }
 
   /**
@@ -129,21 +111,11 @@ public class LdapResource
   @Path("{ldapServerId}/connection")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn)
-      throws PlexusCipherException
-  {
+  public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     if (serverId == null || !serverId.equals(conn.getServerId())) {
       throw new BadRequestException("Inconsistent ldap server id");
     }
-
-    LdapConnection encrypted = encryptPassword(conn);
-    if (conn.getId() != null) {
-      connDao.update(encrypted);
-    }
-    else {
-      connDao.insert(encrypted);
-    }
-    return fakeOutPassword(encrypted);
+    return ldapConnectionManager.saveConnection(conn);
   }
 
   // user mapping
@@ -171,7 +143,6 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap)
-      throws PlexusCipherException
   {
     if (serverId == null || !serverId.equals(umap.getServerId())) {
       throw new BadRequestException("Inconsistent ldap server id");
@@ -194,15 +165,9 @@ public class LdapResource
   // XXX connection-test or connection/test?
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LdapConnectionStatus testConnection(LdapConnection conn) throws PlexusCipherException {
+  public LdapConnectionStatus testConnection(LdapConnection conn) {
     try {
-      String password = conn.getSystemPassword();
-      if (FAKE_PASSWORD.equals(password) && conn.getId() != null) {
-        password = decryptPassword(connDao.getByIdNotNull(conn.getId())).getSystemPassword();
-      }
-
-      LdapRealm.testConnection(conn.getUrl(), conn.getAuthenticationMethod().getMethod(), conn.getSystemUsername(),
-          password, conn.getSaslRealm());
+      ldapConnectionManager.testConnection(conn);
       return LdapConnectionStatus.OK;
     }
     catch (NamingException e) {
@@ -210,37 +175,4 @@ public class LdapResource
     }
   }
 
-  // password encryption
-
-  private LdapConnection fakeOutPassword(LdapConnection config) {
-    if (StringUtils.isNotBlank(config.getSystemPassword())) {
-      LdapConnection copy = new LdapConnection(config);
-      copy.setSystemPassword(FAKE_PASSWORD);
-      return copy;
-    }
-    return config;
-  }
-
-  private LdapConnection decryptPassword(LdapConnection config) throws PlexusCipherException {
-    if (StringUtils.isNotBlank(config.getSystemPassword())) {
-      LdapConnection copy = new LdapConnection(config);
-      copy.setSystemPassword(cipher.decryptDecorated(config.getSystemPassword(), ENC));
-      return copy;
-    }
-    return config;
-  }
-
-  private LdapConnection encryptPassword(LdapConnection config) throws PlexusCipherException {
-    if (StringUtils.isNotBlank(config.getSystemPassword())) {
-      LdapConnection copy = new LdapConnection(config);
-      if (FAKE_PASSWORD.equals(config.getSystemPassword())) {
-        copy.setSystemPassword(connDao.getByIdNotNull(config.getId()).getSystemPassword());
-      }
-      else {
-        copy.setSystemPassword(cipher.encryptAndDecorate(config.getSystemPassword(), ENC));
-      }
-      return copy;
-    }
-    return config;
-  }
 }

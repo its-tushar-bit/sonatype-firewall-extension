@@ -30,6 +30,7 @@
     <logback.version>1.0.12</logback.version>
     <jackson.version>2.1.2</jackson.version>
     <openjpa.version>2.2.2</openjpa.version>
+    <shiro.version>1.2.2</shiro.version>
     <sisu-inject.version>2.3.4</sisu-inject.version>
     <sisu-guice.version>3.1.3</sisu-guice.version>
     <clm.model.version>1.4</clm.model.version>
@@ -190,6 +191,22 @@
         <groupId>org.sonatype.sisu</groupId>
         <artifactId>sisu-inject-bean</artifactId>
         <version>${sisu-inject.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-core</artifactId>
+        <version>${shiro.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-web</artifactId>
+        <version>${shiro.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-guice</artifactId>
+        <version>${shiro.version}</version>
       </dependency>
 
       <dependency>

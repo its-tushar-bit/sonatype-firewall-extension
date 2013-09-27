@@ -48,9 +48,12 @@ public class LdapUserMappingDAOTest
   }
 
   @After
-  public void deleteLdapUserMapping() {
+  public void deleteLdapData() {
+    for (LdapServer s : serverDao.getAll()) {
+      serverDao.delete(s); // should cascade-delete
+    }
     for (LdapUserMapping umap : dao.getAll()) {
-      dao.delete(umap);
+      dao.delete(umap); // clean up any dangling refs
     }
   }
 

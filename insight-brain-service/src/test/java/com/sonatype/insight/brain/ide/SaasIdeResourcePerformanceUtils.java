@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.ide;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
@@ -64,22 +63,11 @@ public class SaasIdeResourcePerformanceUtils
     return request;
   }
 
-  public static InsightWork setWork(Object o) throws Exception {
-    Field field = o.getClass().getDeclaredField("work");
-    field.setAccessible(true);
-    InsightWork work = createInsightWork();
-    field.set(o, work);
-    return work;
-  }
-
-  public static void setClient(Object o, String saasAddress) throws Exception {
-    Field field = o.getClass().getDeclaredField("client");
-    field.setAccessible(true);
+  public static SaasClient createSaasClient(String saasAddress) {
     InsightConfig config = new InsightConfig();
     config.setSaasAddress(saasAddress);
-    SaasClient client = new SaasClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(
-        true), new TestLicenseFingerprinter()));
-    field.set(o, client);
+    return new SaasClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(true),
+        new TestLicenseFingerprinter()));
   }
 
   public static InsightWork createInsightWork() throws IOException {

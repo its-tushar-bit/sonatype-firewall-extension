@@ -19,8 +19,12 @@ public class EnvironmentResource
 {
   public static final String RESOURCE_PATH = "rest/session/environment";
 
+  private final SaasClient client;
+
   @Inject
-  private SaasClient client;
+  public EnvironmentResource(SaasClient client) {
+    this.client = client;
+  }
 
   @GET
   public Response submitClientEnvironment(@Context HttpServletRequest request) throws Exception {

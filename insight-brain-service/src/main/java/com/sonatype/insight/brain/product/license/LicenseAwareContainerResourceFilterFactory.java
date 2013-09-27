@@ -33,11 +33,15 @@ import org.slf4j.LoggerFactory;
 public class LicenseAwareContainerResourceFilterFactory
     implements ResourceFilterFactory
 {
-  @Inject
-  private CLMLicenseManager licenseManager;
+  private final CLMLicenseManager licenseManager;
+
+  private final BaseUrl baseUrl;
 
   @Inject
-  private BaseUrl baseUrl;
+  public LicenseAwareContainerResourceFilterFactory(CLMLicenseManager licenseManager, BaseUrl baseUrl) {
+    this.licenseManager = licenseManager;
+    this.baseUrl = baseUrl;
+  }
 
   private class Filter
       implements ResourceFilter, ContainerRequestFilter

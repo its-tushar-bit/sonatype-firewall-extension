@@ -84,13 +84,13 @@ public class SaasIdeResourcePerformance
     pool = Executors.newFixedThreadPool(connections);
 
     this.iterations = iterations * connections;
-    resource = new IdeResource();
-    SaasIdeResourcePerformanceUtils.setClient(resource, server);
-    work = SaasIdeResourcePerformanceUtils.setWork(resource);
+    work = SaasIdeResourcePerformanceUtils.createInsightWork();
+    resource = new IdeResource(work, null, SaasIdeResourcePerformanceUtils.createSaasClient(server));
 
     // trigger db
     testApplication = new Application();
     testApplication.setPublicId("bom1-12345678");
+    testApplication.setName("perf-test");
     new ApplicationDAO().insert(testApplication);
 
     SaasIdeResourcePerformanceUtils.addPolicy(testApplication, policies, work);

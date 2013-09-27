@@ -90,6 +90,7 @@ public class ApplicationResource
   public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
       final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils)
   {
+    super(client, baseUrl);
     this.work = work;
     this.licenseManager = licenseManager;
     this.policyEvaluationUtils = policyEvaluationUtils;

@@ -13,7 +13,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -63,14 +62,17 @@ public abstract class AbstractComponentInfoResource
 
   private PolicyEvaluator evaluator = new PolicyEvaluator();
 
-  @Inject
-  private SaasClient client;
+  private final SaasClient client;
 
-  @Inject
-  private InsightWork work;
+  private final InsightWork work;
 
   @Context
   private HttpServletRequest request;
+
+  protected AbstractComponentInfoResource(SaasClient client, InsightWork work) {
+    this.client = client;
+    this.work = work;
+  }
 
   @GET
   @Path("versions/{applicationPublicId}")

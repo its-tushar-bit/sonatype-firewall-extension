@@ -34,8 +34,12 @@ public class ProprietaryConfigResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
+  private final InsightWork work;
+
   @Inject
-  private InsightWork work;
+  public ProprietaryConfigResource(InsightWork work) {
+    this.work = work;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

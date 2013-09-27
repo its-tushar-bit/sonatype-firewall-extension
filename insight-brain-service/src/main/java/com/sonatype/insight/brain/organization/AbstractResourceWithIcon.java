@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -42,13 +41,16 @@ abstract class AbstractResourceWithIcon
 
   private static final Logger log = LoggerFactory.getLogger(AbstractResourceWithIcon.class);
 
-  @Inject
-  private SaasClient client;
+  private final SaasClient client;
 
-  @Inject
-  private BaseUrl baseUrl;
+  private final BaseUrl baseUrl;
 
   private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
+
+  protected AbstractResourceWithIcon(SaasClient client, BaseUrl baseUrl) {
+    this.client = client;
+    this.baseUrl = baseUrl;
+  }
 
   protected void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
       InputStream uploadedInputStream, FormDataContentDisposition fileDetail) throws IOException

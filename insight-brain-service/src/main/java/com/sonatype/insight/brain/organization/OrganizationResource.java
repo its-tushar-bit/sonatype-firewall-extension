@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 
@@ -60,7 +62,10 @@ public class OrganizationResource
   private final ApplicationResource applicationResource;
 
   @Inject
-  public OrganizationResource(InsightWork work, ApplicationResource applicationResource) {
+  public OrganizationResource(InsightWork work, ApplicationResource applicationResource, SaasClient client,
+      BaseUrl baseUrl)
+  {
+    super(client, baseUrl);
     this.work = work;
     this.applicationResource = applicationResource;
   }

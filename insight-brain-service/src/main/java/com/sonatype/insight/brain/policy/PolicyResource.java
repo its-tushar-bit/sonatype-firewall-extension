@@ -83,14 +83,19 @@ public class PolicyResource
   public static final String ORG_IMPORT_APP_ERROR = "Organization already has applications defined, cannot import data "
       + "unless the Organization is new.";
 
-  @Inject
-  private InsightWork work;
+  private final InsightWork work;
+
+  private final BaseUrl baseUrl;
+
+  private final CLMLicenseManager licenseManager;
 
   @Inject
-  private BaseUrl baseUrl;
+  public PolicyResource(InsightWork work, BaseUrl baseUrl, CLMLicenseManager licenseManager) {
+    this.work = work;
+    this.baseUrl = baseUrl;
+    this.licenseManager = licenseManager;
 
-  @Inject
-  private CLMLicenseManager licenseManager;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

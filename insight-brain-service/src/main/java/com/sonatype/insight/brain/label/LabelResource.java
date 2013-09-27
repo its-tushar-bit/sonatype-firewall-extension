@@ -52,10 +52,14 @@ public class LabelResource
 
   private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
 
-  @Inject
-  private InsightWork work;
+  private final InsightWork work;
 
   private LabelDAO labelDAO = new LabelDAO();
+
+  @Inject
+  public LabelResource(InsightWork work) {
+    this.work = work;
+  }
 
   /**
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization

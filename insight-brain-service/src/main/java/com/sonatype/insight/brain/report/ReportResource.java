@@ -83,11 +83,9 @@ public class ReportResource
   static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = CacheBuilder.newBuilder().maximumSize(8192)
       .<String, Integer> build().asMap();
 
-  @Inject
-  private InsightWork work;
+  private final InsightWork work;
 
-  @Inject
-  private BaseUrl baseUrl;
+  private final BaseUrl baseUrl;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -96,9 +94,13 @@ public class ReportResource
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
   @Inject
-  public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils) {
+  public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
+      InsightWork work, BaseUrl baseUrl)
+  {
     this.reportDownloader = reportDownloader;
     this.policyEvaluationUtils = policyEvaluationUtils;
+    this.work = work;
+    this.baseUrl = baseUrl;
   }
 
   @GET

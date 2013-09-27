@@ -24,14 +24,14 @@ public class LandingResource
 {
   public static final String SERVICE_PATH = "";
 
-  @Inject
-  private BaseUrl baseUrl;
+  private final BaseUrl baseUrl;
 
   private CLMLicenseManager licenseManager;
 
   @Inject
-  public LandingResource(CLMLicenseManager licenseManager) {
+  public LandingResource(CLMLicenseManager licenseManager, BaseUrl baseUrl) {
     this.licenseManager = licenseManager;
+    this.baseUrl = baseUrl;
   }
 
   @GET

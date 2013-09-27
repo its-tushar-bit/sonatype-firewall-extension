@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.releasegraph;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,10 +23,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.GAVPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -56,15 +58,13 @@ public class ReleaseGraphPerformance
     callables = new LinkedList<UserCallable>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
 
-    reportResource = new ReleaseGraphResource(cache);
-
-    Field field = ReleaseGraphResource.class.getDeclaredField("work");
-    field.setAccessible(true);
-    field.set(reportResource, work);
+    reportResource = new ReleaseGraphResource(cache, work, null, new CLMLicenseManager(new TestProductLicenseManager(
+        true), new TestLicenseFingerprinter()));
 
     // trigger db
     testApplication = new Application();
     testApplication.setPublicId("ReleaseGraphPerformance_AppId");
+    testApplication.setName("perf-test");
     new ApplicationDAO().insert(testApplication);
   }
 

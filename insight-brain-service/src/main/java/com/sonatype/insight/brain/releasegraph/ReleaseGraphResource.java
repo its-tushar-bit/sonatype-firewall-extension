@@ -31,22 +31,24 @@ public class ReleaseGraphResource
 {
   private static final Logger log = LoggerFactory.getLogger(ReleaseGraphResource.class);
 
-  @Inject
-  private InsightWork work;
+  private final InsightWork work;
 
   private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
   private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
 
-  @Inject
-  private ReportDownloader reportDownloader;
+  private final ReportDownloader reportDownloader;
+
+  private final CLMLicenseManager licenseManager;
 
   @Inject
-  private CLMLicenseManager licenseManager;
-
-  @Inject
-  public ReleaseGraphResource(LoadingCache<ReleaseGraphKey, byte[]> cache) {
+  public ReleaseGraphResource(LoadingCache<ReleaseGraphKey, byte[]> cache, InsightWork work,
+      ReportDownloader reportDownloader, CLMLicenseManager licenseManager)
+  {
     this.cache = cache;
+    this.work = work;
+    this.reportDownloader = reportDownloader;
+    this.licenseManager = licenseManager;
   }
 
   @GET

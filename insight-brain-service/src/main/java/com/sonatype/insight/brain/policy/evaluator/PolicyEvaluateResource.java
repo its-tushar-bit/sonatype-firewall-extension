@@ -59,19 +59,19 @@ public class PolicyEvaluateResource
 
   private static Template policyThreatsTemplate;
 
-  @Inject
-  private InsightMail mail;
+  private final InsightMail mail;
 
-  @Inject
-  private BaseUrl baseUrl;
+  private final BaseUrl baseUrl;
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Inject
-  public PolicyEvaluateResource(final PolicyEvaluationUtils policyEvaluationUtils) {
+  public PolicyEvaluateResource(final PolicyEvaluationUtils policyEvaluationUtils, InsightMail mail, BaseUrl baseUrl) {
     this.policyEvaluationUtils = policyEvaluationUtils;
+    this.mail = mail;
+    this.baseUrl = baseUrl;
   }
 
   @POST

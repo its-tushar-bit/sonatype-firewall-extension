@@ -54,18 +54,22 @@ public class IdeResource
 {
   public static final String SERVICE_PATH = "rest/ide";
 
-  @Inject
-  private SaasClient client;
+  private final SaasClient client;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private PolicyEvaluator evaluator = new PolicyEvaluator();
 
-  @Inject
-  private InsightWork work;
+  private final InsightWork work;
+
+  private final BaseUrl baseUrl;
 
   @Inject
-  private BaseUrl baseUrl;
+  public IdeResource(InsightWork work, BaseUrl baseUrl, SaasClient client) {
+    this.work = work;
+    this.baseUrl = baseUrl;
+    this.client = client;
+  }
 
   /**
    * Requests an asset from the SaaS

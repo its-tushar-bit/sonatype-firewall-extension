@@ -151,8 +151,8 @@ describe('Tests for the LdapConfigurationController', function() {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      getConfigLdapUrl = function() {
-        return CLMLocations.getLdapConfig() + '/123/connection';
+      getConfigLdapUrl = function(service) {
+        return CLMLocations.getLdapConfig() + '/123/' + service;
       };
 
       $state.current.name = 'management.configuration.ldap.connection';
@@ -163,7 +163,7 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.ldap = {id: "123"};
       scope.getConfigLdapUrl = getConfigLdapUrl;
 
-      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond(404, "");
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(404, "");
 
       $controller('LdapConnectionController', {
         $scope: scope,
@@ -202,7 +202,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/connection').respond(function(method, url, data) {
+      httpBackend.expectPUT(getConfigLdapUrl('connection')).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
         }, angular.copy(data)), {}];
@@ -223,7 +223,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/connection').respond(function(method, url, data) {
+      httpBackend.expectPUT(getConfigLdapUrl('connection')).respond(function(method, url, data) {
         return [200, angular.copy(data), {}];
       });
       scope.save();
@@ -264,7 +264,7 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.ldapConn.password = 'anon';
 
       // configuration is good
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
         function(method, url, data) {
           return [200, {status: 'OK'}, {}];
         });
@@ -274,7 +274,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].type).toBe('success');
 
       // configuration is bad
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
         function(method, url, data) {
           return [200, {status: 'FAILURE', message: 'foo bar'}, {}];
         });
@@ -285,7 +285,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // clm server misbehaves
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
         function(method, url, data) {
           return [500, 'foo bar', {}];
         });
@@ -296,7 +296,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // can't connect to clm server
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/test').respond(
+      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
         function(method, url, data) {
           return [0, '', {}];
         });
@@ -382,7 +382,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/userMapping').respond(function(method, url, data) {
+      httpBackend.expectPUT(getConfigLdapUrl()).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
         }, angular.copy(data)), {}];
@@ -400,7 +400,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(CLMLocations.getLdapConfig() + '/123/userMapping').respond(function(method, url, data) {
+      httpBackend.expectPUT(getConfigLdapUrl()).respond(function(method, url, data) {
         return [200, angular.copy(data), {}];
       });
       scope.save();

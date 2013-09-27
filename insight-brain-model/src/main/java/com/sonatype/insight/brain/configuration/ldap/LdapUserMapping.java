@@ -20,7 +20,7 @@ import com.sonatype.insight.model.HasStringId;
 @Entity
 @Table(name = "ldap_usermapping")
 public class LdapUserMapping
-    implements HasStringId
+    implements HasStringId, HasLdapServerId
 {
   /**
    * Internal id used to identify this LDAP configuration
@@ -129,7 +129,7 @@ public class LdapUserMapping
    */
   @Column(name = "group_member_attribute")
   private String groupMemberAttribute;
-  
+
   /**
    * @since 1.7
    */
@@ -154,10 +154,12 @@ public class LdapUserMapping
     this.id = id;
   }
 
+  @Override
   public String getServerId() {
     return serverId;
   }
 
+  @Override
   public void setServerId(String serverId) {
     this.serverId = serverId;
   }

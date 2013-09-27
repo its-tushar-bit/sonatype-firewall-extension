@@ -1,83 +1,90 @@
 <div>
-  <form name='ldapConnectionEditor' style='margin-bottom:0px; max-width: 510px;'>
+  <form name='ldapConnectionEditor' class="ldap-form">
     <div class="form-horizontal configuration">
+      <div class="content-header">
+        <h4>Connection Details</h4>
+      </div>
       <div class="control-group">
-        <label class="control-label">Protocol:</label>
+        <label class="control-label" for="protocol">Protocol:</label>
         <div class="controls">
-          <select name='protocol' ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"></select>
+          <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"></select>
         </div>
       </div>
       <div class="control-group" ng-class='{ error : ldapConnectionEditor.hostname.$invalid }'>
-        <label class="control-label">Hostname:</label>
+        <label class="control-label" for="hostname">Hostname:</label>
         <div class="controls">
-          <input name='hostname' ng-model='ldapConn.hostname' required type='text'>
+          <input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'>
         </div>
       </div>
       <div class="control-group" ng-class='{ error : ldapConnectionEditor.port.$invalid }'>
-        <label class="control-label">Port:</label>
+        <label class="control-label" for="port">Port:</label>
         <div class="controls">
-          <input name='port' ng-model='ldapConn.port' required type='number' min='1' max='65535' title="Valid range is 1 to 65535"/> 
+          <input name='port' id='port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
+                 title="Valid range is 1 to 65535"/>
         </div>
       </div>
       <div class="control-group" ng-class='{ error : ldapConnectionEditor.searchBase.$invalid }'>
-        <label class="control-label">Search Base:</label>
+        <label class="control-label" for="searchBase">Search Base:</label>
         <div class="controls">
-          <input name='searchBase' ng-model='ldapConn.searchBase' required type='text'>
+          <input name='searchBase' id='searchBase' ng-model='ldapConn.searchBase' required type='text'>
         </div>
       </div>
       <div class="content-header">
         <h4>Authentication</h4>
       </div>
       <div class="control-group">
-        <label class="control-label">Method:</label>
+        <label class="control-label" for="authenticationMethod">Method:</label>
         <div class="controls">
-          <select name='authenticationMethod' ng-model="ldapConn.authenticationMethod" ng-options="m for m in ldapMethods"></select>
+          <select name='authenticationMethod' id='authenticationMethod' ng-model="ldapConn.authenticationMethod"
+                  ng-options="m for m in ldapMethods"></select>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">SASL Realm:</label>
+        <label class="control-label" for="saslRealm">SASL Realm:</label>
         <div class="controls">
-          <input name='saslRealm' ng-model='ldapConn.saslRealm' type='text'></input>
+          <input name='saslRealm' id='saslRealm' ng-model='ldapConn.saslRealm' type='text'>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">Username:</label>
+        <label class="control-label" for="systemUsername">Username:</label>
         <div class="controls">
-          <input name='systemUsername' ng-model='ldapConn.systemUsername' type='text'>
+          <input name='systemUsername' id='systemUsername' ng-model='ldapConn.systemUsername' type='text'>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">Password:</label>
+        <label class="control-label" for="systemPassword">Password:</label>
         <div class="controls">
-          <input name='systemPassword' ng-model='ldapConn.systemPassword' type='password'>
+          <input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'>
         </div>
       </div>
       <div class="content-header">
         <h4>Timeouts</h4>
       </div>
       <div class="control-group" ng-class='{ error : ldapConnectionEditor.connectionTimeout.$invalid }'>
-        <label class="control-label">Connection:</label>
+        <label class="control-label" for="connectionTimeout">Connection:</label>
         <div class="controls">
-          <input name='connectionTimeout' ng-model='ldapConn.connectionTimeout' type='number' min='0' max='999' title="Valid range is 0 to 999">
+          <input name='connectionTimeout' id='connectionTimeout' ng-model='ldapConn.connectionTimeout' type='number'
+                 min='0' max='999' title="Valid range is 0 to 999">
         </div>
       </div>
       <div class="control-group" ng-class='{ error : ldapConnectionEditor.retryDelay.$invalid }'>
-        <label class="control-label">Retry Delay:</label>
+        <label class="control-label" for="retryDelay">Retry Delay:</label>
         <div class="controls">
-          <input name='retryDelay' ng-model='ldapConn.retryDelay' type='number' min='0' max='999' title="Valid range is 0 to 999">
+          <input name='retryDelay' id='retryDelay' ng-model='ldapConn.retryDelay' type='number' min='0' max='999'
+                 title="Valid range is 0 to 999">
         </div>
       </div>
     </div>
   </form>
   <div style="max-width: 510px;">
-    <div clm-alerts='alerts'></div>
+    <div clm-alerts='alerts' style="padding-left: 20px; padding-right: 5px;"></div>
     <span ng-show='!saving && ldapConn'>
-      <div style="margin: 20px 0 10px 25px;">
-        <button class='btn btn-success' ng-click="testConnection()">Test Connection</button>
-        <div style="float: right;">
-          <button class="btn" ng-disabled="!isDirty()" ng-click="reset()">Reset</button>
-          <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
-        </div>
+    <div class="ldap-button-group">
+      <button class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress" ng-click="testConnection()">Test Connection</button>
+      <div style="float: right;padding-right: 5px;">
+        <button class="btn" ng-disabled="!isDirty()" ng-click="reset()">Reset</button>
+        <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
+      </div>
       </div>
     </span>
     <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>

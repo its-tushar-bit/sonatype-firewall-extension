@@ -8,22 +8,24 @@
           <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
         </div>
         <form name='ldapEditor' style='margin-bottom:0px; max-width: 510px;'>
-          <div class='inline head' style="padding-left: 20px">
-            <h1><span id='ldapName' name='ldapName' ng-model='ldap.name' xeditable href='javascript:;'
-              ng-class="{ error: ldapEditor.ldapName.$error.alphaNumeric || ldapEditor.ldapName.$error.spaces}"            
-              data-emptytext='Enter Server Name' data-placeholder='Enter Server Name' data-type='text'
-              required alpha-numeric has-whitespace='suggestedName'></span>
-            </h1>
-            <div class='errors'>
-              <span ng-show="ldapEditor.ldapName.$error.alphaNumeric" style='color: #b94a48;'>Name must be alpha numeric</span>
-              <span ng-show="ldapEditor.ldapName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+          <div style="padding-left: 20px">
+            <div class='inline head'>
+              <h1><span id='ldapName' name='ldapName' ng-model='ldap.name' xeditable href='javascript:;'
+                ng-class="{ error: ldapEditor.ldapName.$error.alphaNumeric || ldapEditor.ldapName.$error.spaces}"
+                data-emptytext='Enter Server Name' data-placeholder='Enter Server Name' data-type='text'
+                required alpha-numeric has-whitespace='suggestedName'></span>
+              </h1>
+              <div class='errors'>
+                <span ng-show="ldapEditor.ldapName.$error.alphaNumeric" style='color: #b94a48;'>Name must be alpha numeric</span>
+                <span ng-show="ldapEditor.ldapName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+              </div>
             </div>
+            <div ng-show="!saving && (ldap.id == null || isDirty())">
+              <button class="btn" ng-click="ldap.$revert()">Cancel</button>
+              <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
+            </div>
+            <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
           </div>
-          <div ng-show="!saving && (ldap.id == null || isDirty())">
-            <button class="btn" ng-click="ldap.$revert()">Cancel</button>
-            <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
-          </div>
-          <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
         </form>
         <div ng-switch on='ldap.id'>
           <div ng-switch-when='null'></div>

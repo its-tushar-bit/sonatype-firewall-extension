@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
@@ -112,9 +113,7 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
-    if (serverId == null || !serverId.equals(conn.getServerId())) {
-      throw new BadRequestException("Inconsistent ldap server id");
-    }
+    validateServerId(serverId, conn);
     return ldapManager.saveConnection(conn);
   }
 
@@ -143,9 +142,7 @@ public class LdapResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
-    if (serverId == null || !serverId.equals(umap.getServerId())) {
-      throw new BadRequestException("Inconsistent ldap server id");
-    }
+    validateServerId(serverId, umap);
 
     if (umap.getId() != null) {
       umapDao.update(umap);
@@ -160,11 +157,12 @@ public class LdapResource
    * @since 1.7
    */
   @PUT
-  @Path("test")
-  // XXX connection-test or connection/test?
+  @Path("{ldapServerId}/testConnection")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LdapConnectionStatus testConnection(LdapConnection conn) {
+  public LdapConnectionStatus testConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
+    validateServerId(serverId, conn);
+
     try {
       ldapManager.testConnection(conn);
       return LdapConnectionStatus.OK;
@@ -174,4 +172,57 @@ public class LdapResource
     }
   }
 
+  /**
+   * Returns 20 random ldap users. Meant to visually inspect user mapping configuration in UI.
+   * 
+   * @since 1.7
+   */
+  @PUT
+  @Path("{ldapServerId}/testUserMapping")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<LdapUser> testUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
+    validateServerId(serverId, umap);
+
+    try {
+      return ldapManager.testUserMapping(umap, 20);
+    }
+    catch (IllegalStateException e) {
+      // happens when ldap server connection is not configured
+      throw new BadRequestException(e);
+    }
+    catch (NamingException e) {
+      throw new BadRequestException(e);
+    }
+  }
+
+  /**
+   * @since 1.7
+   */
+  @PUT
+  @Path("{ldapServerId}/testLogin")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public LdapConnectionStatus testLogin(@PathParam("ldapServerId") String serverId, LdapTestLoginRequest request) {
+    LdapUserMapping umap = request.getUserMapping();
+    validateServerId(serverId, umap);
+
+    try {
+      ldapManager.testUserLogin(umap, request.getUsername(), request.getPassword().toCharArray());
+      return LdapConnectionStatus.OK;
+    }
+    catch (IllegalStateException e) {
+      // happens when ldap server connection is not configured
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
+    }
+    catch (NamingException e) {
+      return new LdapConnectionStatus(Status.FAILURE, e.toString());
+    }
+  }
+
+  private void validateServerId(String serverId, HasLdapServerId entity) {
+    if (serverId == null || entity == null || !serverId.equals(entity.getServerId())) {
+      throw new BadRequestException("Inconsistent LDAP server id");
+    }
+  }
 }

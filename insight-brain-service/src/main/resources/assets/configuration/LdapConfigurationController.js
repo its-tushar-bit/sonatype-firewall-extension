@@ -7,8 +7,8 @@
 (function() {
   'use strict';
 
-  var module = angular.module('LdapConfiguration', //
-  ['CLMLocation', 'Hudson', 'ResourceModule', 'ui.compat', 'AngularCommon', 'CommonServices', 'Configuration'], //
+  var module = angular.module('LdapConfiguration',
+  ['CLMLocation', 'Hudson', 'ResourceModule', 'ui.compat', 'AngularCommon', 'CommonServices', 'Configuration'],
   ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management.configuration.ldap', {
       parent: 'management.configuration',
@@ -91,6 +91,40 @@
     }; 
   }
 
+  /**
+   * Executes PUT request passing provided requestData object to the specified requestUrl.
+   * Updates $scope.alerts according to response from the server.
+   */
+  function testRequest($scope, $http, resourceUrl, requestData) {
+    $scope.testInProgress = true;
+    $http.put(resourceUrl, requestData).success(function(result) {
+      $scope.testInProgress = false;
+      $scope.alerts.length = 0; // clear old alerts
+      if (result.status === 'OK') {
+        $scope.alerts.push({
+          type: 'success',
+          msg: 'Success!'
+        });
+      } else {
+        $scope.alerts.push({
+          type: 'error',
+          msg: result.message
+        });
+      }
+    }).error(function(data, status) {
+      var msg = data;
+      $scope.testInProgress = false;
+      $scope.alerts.length = 0; // clear old alerts
+      if (status === 0) {
+        msg = 'Unable to reach CLM server';
+      }
+      $scope.alerts.push({
+        type: 'error',
+        msg: msg
+      });
+    });
+  }
+  
   module.controller('LdapConfigurationController', [
     '$scope', '$state', '$dialog', 'LdapConfigurationStore', 'CLMLocations',
     function($scope, $state, $dialog, ldapStore, clmLocations) {
@@ -177,8 +211,8 @@
   ]);
   
   module.controller('LdapConnectionController', [
-    '$scope', '$dialog', '$http','CLMLocations',
-    function($scope, $dialog, $http, clmLocations) {
+    '$scope', '$dialog', '$http',
+    function($scope, $dialog, $http) {
 
       var origLdapConn = {
         serverId: $scope.ldap.id
@@ -194,31 +228,9 @@
         return !$scope.ldapConnectionEditor.$invalid && $scope.isDirty();
       };
 
+      $scope.testInProgress = false;
       $scope.testConnection = function() {
-        $http.put(clmLocations.getLdapConfig() + '/test', $scope.ldapConn).success(function (result) {
-            $scope.alerts.length = 0; // clear old alerts
-            if (result.status === 'OK') {
-                $scope.alerts.push({
-                    type: 'success',
-                    msg: 'Success!'
-                });
-            } else {
-                $scope.alerts.push({
-                    type: 'error',
-                    msg: result.message
-                });
-            }
-        }).error(function(data, status) {
-            var msg = data;
-            $scope.alerts.length = 0; // clear old alerts
-            if (status === 0) {
-                msg = 'Unable to reach CLM server';
-            }
-            $scope.alerts.push({
-                type: 'error',
-                msg: msg
-            });
-        });
+        testRequest($scope, $http, $scope.getConfigLdapUrl('testConnection'), $scope.ldapConn);
       };
 
       $scope.closeAlert = function(index) {
@@ -233,6 +245,7 @@
           $scope.saving = false;
           origLdapConn = data;
           $scope.ldapConn = angular.copy(origLdapConn);
+          $scope.alerts.push({type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
           $scope.$broadcast('showServerError', arguments);
@@ -249,7 +262,7 @@
       $http.get($scope.getConfigLdapUrl('connection'), weHeartIE()).success(function(data) {
         origLdapConn = data;
         $scope.ldapConn = angular.copy(origLdapConn);
-      }).error(function(data, status) {
+      }).error(function() {
         $scope.$broadcast('showServerError', arguments);
       });
     }
@@ -257,6 +270,8 @@
 
   module.controller('LdapUsermappingController', ['$scope', '$dialog', '$http', 
     function($scope, $dialog, $http) {
+      $scope.alerts = [];
+
       var origLdapUserMapping = {
         serverId: $scope.ldap.id,
         userPasswordAttribute: null // to make tests happy, not needed otherwise
@@ -292,9 +307,52 @@
           $scope.saving = false;
           origLdapUserMapping = data;
           $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
+          $scope.alerts.push({type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
           $scope.$broadcast('showServerError', arguments);
+        });
+      };
+
+      $scope.testInProgress = false;
+
+      $scope.checkUserMapping = function() {
+        $scope.testInProgress = true;
+        $dialog.dialog({
+          scope: $scope,
+          templateUrl: '../configuration-assets/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
+          controller: 'LdapCheckUserMappingController',
+          dialogClass: 'modal modal-ldap',
+          resolve: {
+            users: function($q, $http) {
+                var deferred = $q.defer();
+                $http.put($scope.getConfigLdapUrl('testUserMapping'), $scope.ldapUserMapping).success(function (users) {
+                    deferred.resolve(users);
+                }).error(function(data, status, headers, config) {
+                    $scope.testInProgress = false;
+                    $scope.alerts.push({type: 'error', msg: data});
+                    deferred.reject({ data: data, status: status, headers: headers, config: config });
+                  });
+                return deferred.promise;
+            }
+          }
+        }).open().then(function() {
+          $scope.testInProgress = false;
+        }, function() {
+          $scope.testInProgress = false;
+        });
+      };
+
+      $scope.checkLogin = function() {
+        $scope.testInProgress = true;
+        $dialog.dialog({
+          scope: $scope,
+          templateUrl: '../configuration-assets/components/ldap-checklogin.html?' + clmBuildTimestamp,
+          controller: 'LdapCheckLoginController',
+        }).open().then(function() {
+          $scope.testInProgress = false;
+        }, function() {
+          $scope.testInProgress = false;
         });
       };
 
@@ -308,9 +366,40 @@
         origLdapUserMapping = data;
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
         $scope.useUserPasswordAttribute = $scope.ldapUserMapping.userPasswordAttribute != null;
-      }).error(function(data, status) {
+      }).error(function() {
         $scope.$broadcast('showServerError', arguments);
       });
     }
   ]);
+
+  module.controller('LdapCheckUserMappingController', function($scope, dialog, users) {
+    $scope.users = users;
+    $scope.infoText = 'Scroll through the table and verify that the values in each column are in the correct format. ' +
+      'If they are not, click "Close" and revise your LDAP field mappings.';
+    $scope.close = function() {
+      dialog.close(true);
+    };
+  });
+
+  module.controller('LdapCheckLoginController', function($scope, $http, dialog) {
+    // ui-bootstrap 0.3.0 currently in use does not appear to support $dialog scope inheritance
+    // as a workaround, use scope passed through dialog options.
+    // CLM-1031 should remove this need
+    var inheritedScope = dialog.options.scope;
+    
+    $scope.close = function() {
+      dialog.close(true);
+    };
+    $scope.alerts = [];
+    $scope.testInProgress = false;
+    $scope.testLogin = function() {
+      var request = {
+        userMapping: inheritedScope.ldapUserMapping,
+        username: $scope.ldapCredentials.username,
+        password: $scope.ldapCredentials.password
+      };
+      testRequest($scope, $http, inheritedScope.getConfigLdapUrl('testLogin'), request);
+    };
+  });
+
 }());

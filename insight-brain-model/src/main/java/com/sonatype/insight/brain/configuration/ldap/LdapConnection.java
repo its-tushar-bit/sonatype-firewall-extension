@@ -22,7 +22,7 @@ import org.codehaus.plexus.util.StringUtils;
 @Entity
 @Table(name = "ldap_connection")
 public class LdapConnection
-    implements HasStringId
+    implements HasStringId, HasLdapServerId
 {
   /**
    * Internal id used to identify this LDAP configuration
@@ -148,10 +148,12 @@ public class LdapConnection
     this.id = id;
   }
 
+  @Override
   public String getServerId() {
     return serverId;
   }
 
+  @Override
   public void setServerId(String serverId) {
     this.serverId = serverId;
   }

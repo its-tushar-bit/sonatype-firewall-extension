@@ -1,0 +1,29 @@
+<div class="modal-header">
+  <h3>Verify LDAP Field Mappings</h3>
+  <span class="icon-question-sign" style="position: absolute;right: 15px;top: 15px;" data-popover="{{infoText}}" data-popover-placement="left"></span>
+</div>
+
+<div class="modal-ldap-user-list">
+  <table class="clm-table table table-striped table-bordered">
+    <thead>
+    <tr>
+      <th>User Id</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Roles</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="user in users">
+      <td class="truncate-ellipsis" style="width: 20%" title="{{user.username}}">{{user.username}}</td>
+      <td style="width: 20%">{{user.realName}}</td>
+      <td class="truncate-ellipsis" style="width: 30%" title="{{user.email}}">{{user.email}}</td>
+      <td style="width: 30%"><span ng-repeat='role in user.userRoles'><span ng-hide='$index==0'>,</span> {{ role }}</span></td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal-footer">
+  <button class="btn" ng-click="close()">Close</button>
+</div>

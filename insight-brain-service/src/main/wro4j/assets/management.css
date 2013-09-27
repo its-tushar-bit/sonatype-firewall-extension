@@ -667,3 +667,44 @@ ul.tri-pane {
 .configuration .controls>select {
 	width: 305px;
 }
+
+.truncate-ellipsis{
+  max-width: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/**
+ * styling to embed a scrollable table in a div, and fix the footer outside the scrolling area
+ */
+.modal-ldap{
+  width: 760px;
+  margin-left: -380px;
+}
+.modal-ldap-user-list {
+  max-height: 420px;
+  overflow: -moz-scrollbars-vertical;
+  overflow-y: scroll;
+  padding: 2% 0 0 2%;
+}
+.modal-ldap-user-list table{
+  width: 98%;
+}
+.modal-ldap-user-list modal-footer{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 94%;
+}
+
+.ldap-form{
+  margin-bottom: 0px;
+  max-width: 510px;
+  margin-left: -5px;
+}
+
+.ldap-button-group{
+  margin: 20px 0 10px 20px;
+}
+

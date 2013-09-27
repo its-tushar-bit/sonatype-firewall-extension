@@ -20,6 +20,10 @@ public class DataSourceFactory
 
   private static Map<DataSource, Boolean> newDataSources = new LinkedHashMap<DataSource, Boolean>();
 
+  public DataSourceFactory() {
+    super(null, null);
+  }
+
   @Override
   protected Map<String, DataSource> getDataSources() {
     return dataSources;

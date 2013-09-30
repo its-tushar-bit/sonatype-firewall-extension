@@ -36,7 +36,6 @@ body {
 	top: 0;
 	left: 0;
 	right: 0;
-	-webkit-font-smoothing: auto;
 }
 a, a:hover, a:active, a:focus {
 	color: #2476C3;

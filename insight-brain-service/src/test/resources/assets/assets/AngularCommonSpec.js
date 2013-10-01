@@ -188,15 +188,15 @@ describe('AngularCommon', function() {
       ago = $filter('ago');
     }));
     var today = new Date();
-    var twoYearsAgo = new Date(today.getFullYear() - 2, today.getMonth(), today.getDay());
-    var threeMonthsAgo = new Date(today.getFullYear(), today.getMonth(), today.getDay() - 3 * 31);
+    var twoYearsAgo = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+    var threeMonthsAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30);
     var tenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
     var twentyThreeHoursAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 23);
     var fiftyEightMinutesAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
         today.getMinutes() - 58);
     var oneMinuteAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
         today.getMinutes() - 1);
-    var theFuture = new Date(today.getFullYear() + 100, today.getMonth(), today.getDay());
+    var theFuture = new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
     var testCases = [
       { input: today, expected: 'Seconds Ago' },
       { input: today.getTime(), expected: 'Seconds Ago' },

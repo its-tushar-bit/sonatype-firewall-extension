@@ -743,6 +743,41 @@ var AngularUtils = {
       }
     };
   });
+
+  angularCommon.service('Dialog', ['$modal', function ($modal) {
+    function wrapClick(fn, scope) {
+      return function () {
+        scope.$close();
+        if (fn) {
+          fn();
+        }
+      };
+    }
+    return {
+      open : function (config) {
+        config = angular.extend({
+          backdrop: 'static',
+          keyboard : false,
+          template: '<div class="modal-header"><h3>{{title}}</h3></div>' +
+              '<div class="modal-body"><p>{{body}}</p></div>' +
+              '<div class="modal-footer">' +
+                '<button ng-repeat="button in buttons" ng-class="{\'btn-danger\' : button.type == \'danger\',\'btn-primary\' : button.type == \'primary\'}" class="btn" ng-click="button.click()">{{button.name}}</button>' +
+              '</div>',
+          controller: ['$scope', function(scope) {
+            scope.buttons = config.buttons;
+            scope.title = config.title;
+            scope.body = config.body;
+
+            angular.forEach(scope.buttons, function (button) {
+              button.click = wrapClick(button.click, scope);
+            });
+          }]
+        }, config);
+
+        return $modal.open(config);
+      }
+    };
+  }]);
 }());
 
 (function() {

@@ -7,6 +7,20 @@
 (function() {
   'use strict';
 
+  function getCancelConfig(confirmFn) {
+    return {
+      title : 'Unsaved Changes',
+      body : 'There are unsaved changes, continuing will discard any unsaved changes.',
+      buttons : [{
+        name : 'Cancel'
+      }, {
+        name : 'Confirm',
+        type : 'danger',
+        click : confirmFn
+      }]
+    };
+  }
+
   var licenseGroupModule = angular.module('LicenseThreatGroup',
       ['AngularCommon', 'ResourceModule', 'CLMAppLocation', 'CommonServices', 'ui.bootstrap']);
 
@@ -387,36 +401,8 @@
     };
   });
 
-  licenseGroupModule.service('cancelModal', [
-    '$modal', function($modal) {
-      function wrap($modalInstance, fn) {
-        return function() {
-          $modalInstance.close();
-          fn();
-        };
-      }
-
-      return {
-        open: function(confirmFn, cancelFn) {
-          $modal.open({
-            backdrop: 'static',
-            template: '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
-                '<div class="modal-body">There are unsaved changes, continuing will discard any unsaved changes.</div>' +
-                '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button><button class="btn btn-danger" ng-click="confirm()">Confirm</button></div>',
-            controller: [
-              '$scope', '$modalInstance', function($scope, $modalInstance) {
-                $scope.cancel = wrap($modalInstance, cancelFn);
-                $scope.confirm = wrap($modalInstance, confirmFn);
-              }
-            ]
-          });
-        }
-      };
-    }
-  ]);
-
   licenseGroupModule.directive('ltgEditor', [
-    'cancelModal', function(cancelModal) {
+    'Dialog', function(Dialog) {
       return {
         restrict: 'A',
         templateUrl: 'ltgInlineEditor',
@@ -437,9 +423,9 @@
           scope.alerts = [];
           scope.cancelLicenseGroupEdit = function() {
             if (scope.selectedGroup && scope.selectedGroup.isDirty()) {
-              cancelModal.open(function() {
+              Dialog.open(getCancelConfig(function () {
                 scope.hide();
-              }, angular.noop);
+              }));
             }
             else {
               scope.hide();
@@ -451,7 +437,7 @@
   ]);
 
   licenseGroupModule.directive('ltgCreator', [
-    'licenseGroupStore', 'cancelModal', function(licenseGroupStore, cancelModal) {
+    'licenseGroupStore', 'Dialog', function(licenseGroupStore, Dialog) {
       return {
         restrict: 'A',
         templateUrl: 'ltgcreator',
@@ -465,9 +451,9 @@
           };
           scope.cancelLicenseGroupEdit = function() {
             if (scope.selectedGroup && scope.selectedGroup.isDirty()) {
-              cancelModal.open(function() {
+              Dialog.open(getCancelConfig(function () {
                 scope.hide();
-              }, angular.noop);
+              }));
             }
             else {
               scope.hide();

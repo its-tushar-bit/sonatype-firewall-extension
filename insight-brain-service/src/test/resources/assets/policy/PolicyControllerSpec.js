@@ -62,35 +62,28 @@ describe('PolicyController tests', function() {
     expect(sc.getActionCount(scope.applicablePolicies[0].policies[4])).toEqual(0);
   }));
 
-  it('Test remove policy', inject(function(CLMAppLocations, $httpBackend) {
+  it('Test remove policy', inject(function(CLMAppLocations, $httpBackend, Dialog) {
     expect(scope.applicablePolicies[0].policies.length).toEqual(5);
+    spyOn(Dialog, 'open');
     scope.viewRemovePolicy(scope.applicablePolicies[0].policies[0]);
 
     expect(scope.applicablePolicies[0].policies[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
-    expect(scope.state.confirm.header).toEqual('Delete Policy?');
-    expect(scope.state.confirm.body).toEqual('Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.');
-    expect(scope.state.confirm.declineText).toEqual('Cancel');
-    expect(scope.state.confirm.acceptText).toEqual('Delete');
-    expect(scope.state.confirm.acceptFn).not.toBeNull();
-    expect(scope.state.confirm.declineFn).not.toBeNull();
+    expect(Dialog.open).toHaveBeenCalledWith({
+      title : 'Delete Policy',
+      body : 'Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.',
+      buttons : [{
+        name : 'Cancel'
+      }, {
+        name : 'Delete',
+        type : 'danger',
+        click : jasmine.any(Function)
+      }]
+    });
 
-    scope.state.confirm.declineFn(); // Cancel delete dialog
-    expect(scope.applicablePolicies[0].policies.length).toEqual(5);
+    $httpBackend.expectDELETE(
+            CLMAppLocations.getPolicyUrl() + '/' + scope.applicablePolicies[0].policies[0].id).respond(200);
 
-    scope.viewRemovePolicy(scope.applicablePolicies[0].policies[0]);
-
-    expect(scope.applicablePolicies[0].policies[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
-    expect(scope.state.confirm.header).toEqual('Delete Policy?');
-    expect(scope.state.confirm.body).toEqual('Are you sure you want to delete the Policy named \'asdffffrfff\'?  This action is not reversible.');
-    expect(scope.state.confirm.declineText).toEqual('Cancel');
-    expect(scope.state.confirm.acceptText).toEqual('Delete');
-    expect(scope.state.confirm.accept).not.toBeNull();
-    expect(scope.state.confirm.declineFn).not.toBeNull();
-
-    $httpBackend.expectDELETE(CLMAppLocations.getPolicyUrl() + '/' +
-        scope.applicablePolicies[0].policies[0].id).respond(200);
-
-    scope.state.confirm.acceptFn();
+    Dialog.open.mostRecentCall.args[0].buttons[1].click();
 
     $httpBackend.flush();
 

@@ -13,43 +13,29 @@
 
   policyModule.controller('PolicyController', [
     '$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
-    'CLMAppLocations',
-    function($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations) {
-
-      function viewConfirmation(header, body, declineText, acceptText, acceptFn, declineFn) {
-        $scope.state.confirm = {
-          header: header,
-          body: body,
-          declineText: declineText,
-          acceptText: acceptText,
-          acceptFn: function() {
-            delete $scope.state.confirm;
-            $('#confirmationModal').modal('hide');
-            acceptFn();
-          },
-          declineFn: function() {
-            delete $scope.state.confirm;
-            $('#confirmationModal').modal('hide');
-            declineFn();
-          }
-        };
-        $('#confirmationModal').modal('show');
-      }
+    'CLMAppLocations', 'Dialog',
+    function($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog) {
 
       $scope.alerts = [];
       $scope.location = $location;
       $scope.state = {};
 
       $scope.viewRemovePolicy = function(policy) {
-        viewConfirmation("Delete Policy?",
-            "Are you sure you want to delete the Policy named '" + policy.name + "'?  This action is not reversible.",
-            'Cancel',
-            'Delete',
-            function() {
+        Dialog.open({
+          title : 'Delete Policy',
+          body : "Are you sure you want to delete the Policy named '" + policy.name + "'? This action is not reversible.",
+          buttons : [{
+            name : 'Cancel'
+          },{
+            name : 'Delete',
+            type : 'danger',
+            click : function () {
               policy.$delete().then(angular.noop, function(error) {
                 $scope.$broadcast('showServerError', arguments);
               });
-            }, angular.noop);
+            }
+          }]
+        });
       };
 
       $scope.doLoad = function() {

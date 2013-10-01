@@ -128,8 +128,8 @@
   }
   
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$modal', 'LdapConfigurationStore', 'CLMLocations',
-    function($scope, $state, $modal, ldapStore, clmLocations) {
+    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations',
+    function($scope, $state, $modal, Dialog, ldapStore, clmLocations) {
       function isDirty() {
         if ($scope.ldap) {
           return $scope.ldap.isDirty();
@@ -185,11 +185,20 @@
       };
 
       $scope.confirmDeleteConfiguration = function(config) {
-        $('#deleteConfigurationModal').modal('show');
+        Dialog.open({
+          title : 'Delete Configuration',
+          body : 'Are you sure you want to delete this LDAP configuration?',
+          buttons : [{
+            name : 'Cancel'
+          },{
+            name : 'Delete',
+            type : 'danger',
+            click : $scope.deleteConfiguration
+          }]
+        });
       };
 
-      $scope.deleteConfiguration = function() {
-        $('#deleteConfigurationModal').modal('hide');
+      $scope.deleteConfiguration = function () {
         $scope.ldap.$delete().then(function() {
           $scope.ldap = null;
           $state.transitionTo('management.configuration');

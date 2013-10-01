@@ -114,8 +114,8 @@
   ]);
 
   module.controller('PolicyEditorController', [
-    '$scope', '$state', '$location', '$modal', '$timeout', 'Messages', 'PolicyStore', '$q', 'ActionStore',
-    function($scope, $state, $location, $modal, $timeout, messages, policyStore, $q, actionStore) {
+    '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'ActionStore',
+    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore) {
       function isDirty() {
         if ($scope.policy) {
           return $scope.policy.isDirty();
@@ -166,24 +166,23 @@
       }
 
       $scope.removeConstraint = function(constraint) {
-        $modal.open({
-          backdrop: 'static',
-          template: '<div class="modal-body">Are you sure you want to delete this Constraint?</div>' +
-              '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
-              '<button class="btn btn-danger" ng-click="discard()">Delete</button></div>',
-          controller: [
-            '$scope', function($localScope) {
-              $localScope.discard = function() {
-                $localScope.$close();
-                angular.forEach($scope.policy.constraints, function(value, index) {
-                  if (constraint === value) {
-                    $scope.policy.constraints.splice(index, 1);
-                    return false;
-                  }
-                });
-              };
+        Dialog.open({
+          title : 'Remove Constraint',
+          body : 'Are you sure you want to delete this constraint?',
+          buttons : [{
+            name : 'Cancel'
+          }, {
+            name : 'Delete',
+            type : 'danger',
+            click : function() {
+              angular.forEach($scope.policy.constraints, function(value, index) {
+                if (constraint === value) {
+                  $scope.policy.constraints.splice(index, 1);
+                  return false;
+                }
+              });
             }
-          ]
+          }]
         });
       };
 
@@ -292,21 +291,19 @@
         if ($scope.policy) {
           if ($scope.policy.isDirty()) {
             // show dialog
-            $modal.open({
-              backdrop: 'static',
-              template: '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
-                  '<div class="modal-body">This policy may contain unsaved changes.  Continuing will discard any unsaved changes.</div>' +
-                  '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
-                  '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
-              controller: [
-                '$scope', function(modalScope) {
-                  modalScope.discard = function() {
-                    modalScope.$close(true);
-                    $scope.policy.$revert();
-                    $scope.hide();
-                  };
+            Dialog.open({
+              title : 'Unsaved Changes',
+              body : 'This policy may contain unsaved changes. Continuing will discard any unsaved changes.',
+              buttons : [{
+                name : 'Cancel'
+              }, {
+                name : 'Discard',
+                type : 'danger',
+                click : function() {
+                  $scope.policy.$revert();
+                  $scope.hide();
                 }
-              ]
+              }]
             });
           }
           else {

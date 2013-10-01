@@ -24,7 +24,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-import com.sonatype.insight.brain.ldap.LdapConnectionManager;
+import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
@@ -41,11 +41,11 @@ public class LdapResource
 
   private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
 
-  private final LdapConnectionManager ldapConnectionManager;
+  private final LdapManager ldapManager;
 
   @Inject
-  public LdapResource(LdapConnectionManager ldapConnectionManager) {
-    this.ldapConnectionManager = ldapConnectionManager;
+  public LdapResource(LdapManager ldapManager) {
+    this.ldapManager = ldapManager;
   }
 
   /**
@@ -101,7 +101,7 @@ public class LdapResource
   @Path("{ldapServerId}/connection")
   @Produces(MediaType.APPLICATION_JSON)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
-    return ldapConnectionManager.loadConnection(serverId);
+    return ldapManager.loadConnection(serverId);
   }
 
   /**
@@ -115,7 +115,7 @@ public class LdapResource
     if (serverId == null || !serverId.equals(conn.getServerId())) {
       throw new BadRequestException("Inconsistent ldap server id");
     }
-    return ldapConnectionManager.saveConnection(conn);
+    return ldapManager.saveConnection(conn);
   }
 
   // user mapping
@@ -142,8 +142,7 @@ public class LdapResource
   @Path("{ldapServerId}/userMapping")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap)
-  {
+  public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
     if (serverId == null || !serverId.equals(umap.getServerId())) {
       throw new BadRequestException("Inconsistent ldap server id");
     }
@@ -167,7 +166,7 @@ public class LdapResource
   @Produces(MediaType.APPLICATION_JSON)
   public LdapConnectionStatus testConnection(LdapConnection conn) {
     try {
-      ldapConnectionManager.testConnection(conn);
+      ldapManager.testConnection(conn);
       return LdapConnectionStatus.OK;
     }
     catch (NamingException e) {

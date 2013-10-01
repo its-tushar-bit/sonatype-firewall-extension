@@ -14,6 +14,7 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test User
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user@company.com
 
 dn: uid=test_sasl_user,ou=system
 uid: test_sasl_user
@@ -25,4 +26,5 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test SASL User
 userPassword: s3cr3t
+mail: test.sasl.user@company.com
 

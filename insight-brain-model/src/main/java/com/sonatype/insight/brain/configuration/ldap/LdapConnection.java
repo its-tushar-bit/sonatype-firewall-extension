@@ -14,6 +14,8 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import org.codehaus.plexus.util.StringUtils;
+
 /**
  * @since 1.7
  */
@@ -238,6 +240,9 @@ public class LdapConnection
   public String getUrl() {
     StringBuilder sb = new StringBuilder();
     sb.append(protocol.getProtocol()).append("://").append(hostname).append(':').append(port);
+    if (StringUtils.isNotBlank(searchBase)) {
+      sb.append('/').append(searchBase);
+    }
     return sb.toString();
   }
 }

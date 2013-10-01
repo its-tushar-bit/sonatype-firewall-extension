@@ -16,9 +16,11 @@ import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
-import com.sonatype.insight.brain.ldap.LdapConnectionManager;
+import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapRealm;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
@@ -52,11 +54,14 @@ public class LdapRealmTest
   private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
 
   private static final LdapServerDAO serverDao = new LdapServerDAO();
+  private static final LdapUserMappingDAO userDao = new LdapUserMappingDAO();
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private LdapAuthenticationMethod authentication = LdapAuthenticationMethod.NONE;
+
+  private boolean authenticateWithBind;
 
   private LdapProtocol protocol = LdapProtocol.LDAP;
 
@@ -66,132 +71,119 @@ public class LdapRealmTest
 
   private LdapConnection connectionDetails;
 
+  private LdapUserMapping userMappingDetails;
+
   private String oldTrustStore;
 
   @Inject
-  private LdapConnectionManager connectionManager;
+  private LdapManager manager;
 
   @Inject
   private LdapRealm realm;
 
   @Test
   public void testAnonymousAuth() throws Exception {
-    startLdapServer();
+    startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "far2simple");
-
-    assertBadCredentials("test_user", null);
-    assertBadCredentials("test_user", "");
-    assertBadCredentials("test_user", "guest");
-    assertGoodCredentials("test_user", "far2simple");
+  @Test
+  public void testAnonymousAuthWithBind() throws Exception {
+    withBind().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testAnonymousAuthWithSsl() throws Exception {
-    withSsl().startLdapServer();
+    withSsl().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "far2simple");
-
-    assertBadCredentials("test_user", null);
-    assertBadCredentials("test_user", "");
-    assertBadCredentials("test_user", "guest");
-    assertGoodCredentials("test_user", "far2simple");
+  @Test
+  public void testAnonymousAuthWithBindWithSsl() throws Exception {
+    withBind().withSsl().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testSimpleAuth() throws Exception {
-    withSimpleAuth().startLdapServer();
+    withSimpleAuth().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "far2simple");
-
-    assertBadCredentials("test_user", null);
-    assertBadCredentials("test_user", "");
-    assertBadCredentials("test_user", "guest");
-    assertGoodCredentials("test_user", "far2simple");
+  @Test
+  public void testSimpleAuthWithBind() throws Exception {
+    withSimpleAuth().withBind().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testSimpleAuthWithSsl() throws Exception {
-    withSimpleAuth().withSsl().startLdapServer();
+    withSimpleAuth().withSsl().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "far2simple");
-
-    assertBadCredentials("test_user", null);
-    assertBadCredentials("test_user", "");
-    assertBadCredentials("test_user", "guest");
-    assertGoodCredentials("test_user", "far2simple");
+  @Test
+  public void testSimpleAuthWithBindWithSsl() throws Exception {
+    withSimpleAuth().withBind().withSsl().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testDigestAuth() throws Exception {
-    withDigestAuth().startLdapServer();
+    withDigestAuth().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "s3cr3t");
-
-    assertBadCredentials("test_sasl_user", null);
-    assertBadCredentials("test_sasl_user", "");
-    assertBadCredentials("test_sasl_user", "guest");
-    assertGoodCredentials("test_sasl_user", "s3cr3t");
+  @Test
+  public void testDigestAuthWithBind() throws Exception {
+    withDigestAuth().withBind().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testDigestAuthWithSsl() throws Exception {
-    withDigestAuth().withSsl().startLdapServer();
+    withDigestAuth().withSsl().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "s3cr3t");
-
-    assertBadCredentials("test_sasl_user", null);
-    assertBadCredentials("test_sasl_user", "");
-    assertBadCredentials("test_sasl_user", "guest");
-    assertGoodCredentials("test_sasl_user", "s3cr3t");
+  @Test
+  public void testDigestAuthWithBindWithSsl() throws Exception {
+    withDigestAuth().withBind().withSsl().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testCramAuth() throws Exception {
-    withCramAuth().startLdapServer();
+    withCramAuth().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "s3cr3t");
-
-    assertBadCredentials("test_sasl_user", null);
-    assertBadCredentials("test_sasl_user", "");
-    assertBadCredentials("test_sasl_user", "guest");
-    assertGoodCredentials("test_sasl_user", "s3cr3t");
+  @Test
+  public void testCramAuthWithBind() throws Exception {
+    withCramAuth().withBind().startLdapServer().runAuthTests();
   }
 
   @Test
   public void testCramAuthWithSsl() throws Exception {
-    withCramAuth().withSsl().startLdapServer();
+    withCramAuth().withSsl().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("anonymous", null);
-    assertBadCredentials("anonymous", "");
-    assertBadCredentials("anonymous", "guest");
-    assertBadCredentials("anonymous", "s3cr3t");
+  @Test
+  public void testCramAuthWithBindWithSsl() throws Exception {
+    withCramAuth().withBind().withSsl().startLdapServer().runAuthTests();
+  }
 
-    assertBadCredentials("test_sasl_user", null);
-    assertBadCredentials("test_sasl_user", "");
-    assertBadCredentials("test_sasl_user", "guest");
-    assertGoodCredentials("test_sasl_user", "s3cr3t");
+  public void runAuthTests() {
+    if (authentication.getMethod().endsWith("MD5")) {
+      assertBadCredentials("anonymous", null);
+      assertBadCredentials("anonymous", "");
+      assertBadCredentials("anonymous", "guest");
+      assertBadCredentials("anonymous", "s3cr3t");
+
+      assertBadCredentials("test_sasl_user", null);
+      assertBadCredentials("test_sasl_user", "");
+      assertBadCredentials("test_sasl_user", "guest");
+      assertGoodCredentials("test_sasl_user", "s3cr3t");
+    }
+    else {
+      assertBadCredentials("anonymous", null);
+      assertBadCredentials("anonymous", "");
+      assertBadCredentials("anonymous", "guest");
+      assertBadCredentials("anonymous", "far2simple");
+
+      assertBadCredentials("test_user", null);
+      assertBadCredentials("test_user", "");
+      assertBadCredentials("test_user", "guest");
+      assertGoodCredentials("test_user", "far2simple");
+    }
   }
 
   public void assertGoodCredentials(String username, String password) {
@@ -238,11 +230,31 @@ public class LdapRealmTest
     return this;
   }
 
+  public LdapRealmTest withBind() {
+    authenticateWithBind = true;
+    return this;
+  }
+
   public LdapRealmTest startLdapServer() throws Exception {
 
     serverDetails = new LdapServer();
     serverDetails.setName("Test Server");
     serverDao.insert(serverDetails);
+
+    userMappingDetails = new LdapUserMapping();
+    userMappingDetails.setServerId(serverDetails.getId());
+    userMappingDetails.setUserBaseDN("");
+    userMappingDetails.setUserObjectClass("person");
+    userMappingDetails.setUserIDAttribute("uid");
+    userMappingDetails.setUserRealNameAttribute("givenName");
+    userMappingDetails.setUserEmailAttribute("mail");
+    userMappingDetails.setUserSubtree(true);
+
+    if (!authenticateWithBind) {
+      userMappingDetails.setUserPasswordAttribute("userPassword");
+    }
+
+    userDao.insert(userMappingDetails);
 
     ldapServer = newEmbeddedLdapServer();
 
@@ -250,7 +262,7 @@ public class LdapRealmTest
     connectionDetails.setServerId(serverDetails.getId());
     connectionDetails.setProtocol(protocol);
     connectionDetails.setHostname(ldapServer.getHostname());
-    connectionDetails.setSearchBase("uid={0},ou=users,dc=company,dc=com");
+    connectionDetails.setSearchBase("ou=users,dc=company,dc=com");
     connectionDetails.setSystemUsername(ldapServer.getSystemUserDN());
     connectionDetails.setSystemPassword(ldapServer.getSystemUserPassword());
     connectionDetails.setAuthenticationMethod(authentication);
@@ -260,10 +272,14 @@ public class LdapRealmTest
     }
     else if (authentication == LdapAuthenticationMethod.DIGESTMD5) {
       ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
+      connectionDetails.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
+      connectionDetails.setSystemUsername(ldapServer.getSystemUser()); // SASL-based auth expects username not DN
       connectionDetails.setSaslRealm(ldapServer.getSaslRealm());
     }
     else if (authentication == LdapAuthenticationMethod.CRAMMD5) {
       ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
+      connectionDetails.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
+      connectionDetails.setSystemUsername(ldapServer.getSystemUser()); // SASL-based auth expects username not DN
       connectionDetails.setSaslRealm(ldapServer.getSaslRealm());
     }
 
@@ -277,7 +293,7 @@ public class LdapRealmTest
     ldapServer.start();
 
     connectionDetails.setPort(ldapServer.getPort());
-    connectionManager.saveConnection(connectionDetails);
+    manager.saveConnection(connectionDetails);
 
     return this;
   }
@@ -310,6 +326,7 @@ public class LdapRealmTest
       serverDao.delete(serverDetails);
       serverDetails = null;
       connectionDetails = null;
+      userMappingDetails = null;
     }
 
     Assert.assertEquals(0, serverDao.getAll().size());

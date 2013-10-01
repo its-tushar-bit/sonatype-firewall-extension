@@ -17,13 +17,19 @@ import org.codehaus.plexus.util.StringUtils;
 import static java.lang.Boolean.TRUE;
 
 /**
- * Extends Shiro's {@link JndiLdapContextFactory} to properly track system contexts.
+ * Shiro LDAP context factory that uses a thread-local to properly track system contexts.
  * 
  * @since 1.7
  */
-class LdapContextFactory
+class LdapCtxFactory
     extends JndiLdapContextFactory
 {
+  static {
+    // ensure LDAP pooling is enabled for all protocols and methods (CRAM-MD5 cannot be pooled)
+    System.setProperty("com.sun.jndi.ldap.connect.pool.authentication", "none simple DIGEST-MD5");
+    System.setProperty("com.sun.jndi.ldap.connect.pool.protocol", "plain ssl");
+  }
+
   private static final ThreadLocal<Boolean> systemContext = new ThreadLocal<Boolean>();
 
   private String saslRealm;

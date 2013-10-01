@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
-import com.sonatype.insight.brain.ldap.LdapConnectionManager;
+import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -198,7 +198,7 @@ public class LdapResourceTest
     assertEquals(conn.getSaslRealm(), raw.getSaslRealm());
     assertEquals(conn.getSystemUsername(), raw.getSystemUsername());
     assertNotEquals(conn.getSystemPassword(), raw.getSystemPassword()); // stored encrypted
-    assertNotEquals(LdapConnectionManager.FAKE_PASSWORD, raw.getSystemPassword());
+    assertNotEquals(LdapManager.FAKE_PASSWORD, raw.getSystemPassword());
     assertEquals(conn.getConnectionTimeout(), raw.getConnectionTimeout());
     assertEquals(conn.getRetryDelay(), raw.getRetryDelay());
 
@@ -216,7 +216,7 @@ public class LdapResourceTest
     assertEquals(conn.getAuthenticationMethod(), echo.getAuthenticationMethod());
     assertEquals(conn.getSaslRealm(), echo.getSaslRealm());
     assertEquals(conn.getSystemUsername(), echo.getSystemUsername());
-    assertEquals(LdapConnectionManager.FAKE_PASSWORD, echo.getSystemPassword());
+    assertEquals(LdapManager.FAKE_PASSWORD, echo.getSystemPassword());
     assertEquals(conn.getConnectionTimeout(), echo.getConnectionTimeout());
     assertEquals(conn.getRetryDelay(), echo.getRetryDelay());
 
@@ -256,14 +256,14 @@ public class LdapResourceTest
     assertEquals(authenticationMethod, conn.getAuthenticationMethod());
     assertEquals(saslRealm, conn.getSaslRealm());
     assertEquals(systemUsername, conn.getSystemUsername());
-    assertEquals(LdapConnectionManager.FAKE_PASSWORD, conn.getSystemPassword());
+    assertEquals(LdapManager.FAKE_PASSWORD, conn.getSystemPassword());
     assertEquals(connectionTimeout, conn.getConnectionTimeout());
     assertEquals(retryDelay, conn.getRetryDelay());
 
     raw = dao.getById(conn.getId());
     assertNotEquals(oldEncryptedPassword, raw.getSystemPassword());
     assertNotEquals(conn.getSystemPassword(), raw.getSystemPassword());
-    assertNotEquals(LdapConnectionManager.FAKE_PASSWORD, raw.getSystemPassword());
+    assertNotEquals(LdapManager.FAKE_PASSWORD, raw.getSystemPassword());
   }
 
   @Test

@@ -57,15 +57,20 @@ public class ProductLicenseResource
       return "";
     }
     catch (LicensingException e) {
+      // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
+      String msg = "The provided license file is invalid. Please verify you selected the correct file."
+          + " If the problem persists, please contact our support team.";
+
+      // log the actual exception (especially its message which isn't otherwise revealed) to help support
+      log.debug("Unable to install license", e);
+
       // IE<10 will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
-      // error page
-      // which then fails to load because of cross site scripting probs
+      // error page which then fails to load because of cross site scripting probs
       if (forceSuccess) {
-        log.debug("Unable to install license", e);
-        return e.getMessage();
+        return msg;
       }
 
-      throw new BadRequestException(e.getMessage(), e);
+      throw new BadRequestException(msg, e);
     }
   }
 

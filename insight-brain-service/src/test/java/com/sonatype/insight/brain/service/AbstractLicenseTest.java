@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.InputStream;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -60,18 +60,20 @@ public abstract class AbstractLicenseTest
     return licenseManager;
   }
 
-  protected String installLicenseAsIE() throws Exception {
-
-    Map<String, String> queryParams = new LinkedHashMap<String, String>();
-    queryParams.put("forceSuccess", "true");
-    return doInstallLicense(queryParams);
-  }
-
   protected String installLicense() throws Exception {
-    return doInstallLicense(null);
+    Response response = uploadLicense(null);
+    assertResponseStatus(200, response);
+
+    Assert.assertTrue(getTestProductLicenseManager().isValid());
+
+    return response.getResponseBody();
   }
 
-  private String doInstallLicense(Map<String, String> queryParams) throws Exception {
+  protected Response installLicense(boolean forceSuccess) throws Exception {
+    return uploadLicense(Collections.singletonMap("forceSuccess", Boolean.toString(forceSuccess)));
+  }
+
+  private Response uploadLicense(Map<String, String> queryParams) throws Exception {
     InputStream license = AbstractLicenseTest.class.getResourceAsStream("/productlicense/license.lic");
     try {
       AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(getServiceURL());
@@ -81,12 +83,7 @@ public abstract class AbstractLicenseTest
           builder.addQueryParameter(key, queryParams.get(key));
         }
       }
-      Response response = AuthedRestAccess.execute(builder);
-      assertResponseStatus(200, response);
-
-      Assert.assertTrue(getTestProductLicenseManager().isValid());
-
-      return response.getResponseBody();
+      return AuthedRestAccess.execute(builder);
     }
     finally {
       IOUtil.close(license);

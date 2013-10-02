@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.product.license;
 
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
+import com.ning.http.client.Response;
+
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class ProductLicenseResourceTest
     extends AbstractResourceTest
@@ -23,20 +23,25 @@ public class ProductLicenseResourceTest
   }
 
   @Test
+  public void testInstallFailedWithNormalBrowser() throws Exception {
+    getLicenseManager().forceInstallFailure(true);
+
+    Response response = installLicense(false);
+    assertResponseStatus(400, response);
+
+    assertEquals("The provided license file is invalid. Please verify you selected the correct file."
+        + " If the problem persists, please contact our support team.", response.getResponseBody());
+  }
+
+  @Test
   public void testInstallFailedWithIE() throws Exception {
     getLicenseManager().forceInstallFailure(true);
 
-    try {
-      installLicense();
-      Assert.fail("License installation should have failed");
-    }
-    catch (AssertionError expected) {
-      assertThat(expected.getMessage(), endsWith("expected:<200> but was:<400>"));
-    }
-
     // IE is expecting a 200 response back, so we need to validate the error
-    String result = installLicenseAsIE();
+    Response response = installLicense(true);
+    assertResponseStatus(200, response);
 
-    Assert.assertEquals("An error occurred", result);
+    assertEquals("The provided license file is invalid. Please verify you selected the correct file."
+        + " If the problem persists, please contact our support team.", response.getResponseBody());
   }
 }

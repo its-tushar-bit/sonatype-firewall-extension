@@ -53,6 +53,7 @@ class LdapQuery
     LdapContext ctx = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
+      ctx.getAttributes(""); // make sure we have enough access
     }
     finally {
       LdapUtils.closeContext(ctx);

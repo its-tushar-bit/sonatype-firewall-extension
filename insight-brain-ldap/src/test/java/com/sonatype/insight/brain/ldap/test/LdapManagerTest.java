@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ldap.test;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -96,19 +97,28 @@ public class LdapManagerTest
     umap.setUserBaseDN("ou=users");
     umap.setUserObjectClass("person");
     umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("givenName");
+    umap.setUserRealNameAttribute("cn");
     umap.setUserEmailAttribute("mail");
     umap.setUserPasswordAttribute("userPassword");
     umap.setUserSubtree(true);
 
     List<LdapUser> users = manager.testUserMapping(umap, -1);
-    assertThat(users, hasSize(1));
+    assertThat(users, hasSize(2));
+
+    Collections.sort(users); // sorts on username
 
     LdapUser user = users.get(0);
     assertThat(user.getUsername(), is("test_user"));
     assertThat(user.getDn(), is("uid=test_user,ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test"));
+    assertThat(user.getRealName(), is("Test User"));
     assertThat(user.getEmail(), is("test.user@company.com"));
+    assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
+
+    user = users.get(1);
+    assertThat(user.getUsername(), is("test_user2"));
+    assertThat(user.getDn(), is("uid=test_user2,ou=users,dc=company,dc=com"));
+    assertThat(user.getRealName(), is("Test User 2"));
+    assertThat(user.getEmail(), is("test.user2@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
   }
 

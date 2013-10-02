@@ -16,6 +16,18 @@ cn: Test User
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
 mail: test.user@company.com
 
+dn: uid=test_user2,ou=users,dc=company,dc=com
+uid: test_user2
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User 2
+userPassword: test
+mail: test.user2@company.com
+
 dn: uid=test_sasl_user,ou=system
 uid: test_sasl_user
 givenName: Test

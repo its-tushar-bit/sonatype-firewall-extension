@@ -125,7 +125,7 @@ class LdapQuery
       ctx = ctxFactory.getSystemLdapContext();
       result = searchUsers(ctx, null, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
-      if (result.hasMoreElements()) {
+      while (result.hasMoreElements()) {
         ldapUsers.add(createUser(result.nextElement()));
       }
       return ldapUsers;

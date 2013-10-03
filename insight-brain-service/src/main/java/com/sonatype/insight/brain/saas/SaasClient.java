@@ -238,9 +238,13 @@ public class SaasClient
     if (orig != null) {
       for (Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements();) {
         String headerName = e.nextElement();
-        if (!HttpHeaders.CONNECTION.equals(headerName) && !HttpHeaders.HOST.equals(headerName)
-            && !HttpHeaders.ACCEPT_ENCODING.equals(headerName) && !HttpHeaders.TRANSFER_ENCODING.equals(headerName)
-            && !HttpHeaders.CONTENT_LENGTH.equals(headerName) && !HttpHeaders.CONTENT_ENCODING.equals(headerName)) {
+        if (!HttpHeaders.CONNECTION.equalsIgnoreCase(headerName) && !HttpHeaders.HOST.equalsIgnoreCase(headerName)
+            && !HttpHeaders.ACCEPT_ENCODING.equalsIgnoreCase(headerName)
+            && !HttpHeaders.TRANSFER_ENCODING.equalsIgnoreCase(headerName)
+            && !HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(headerName)
+            && !HttpHeaders.CONTENT_ENCODING.equalsIgnoreCase(headerName)
+            && !HttpHeaders.AUTHORIZATION.equalsIgnoreCase(headerName)
+            && !HttpHeaders.PROXY_AUTHORIZATION.equalsIgnoreCase(headerName) && !"COOKIE".equalsIgnoreCase(headerName)) {
           req.setHeader(headerName, orig.getHeader(headerName));
         }
       }

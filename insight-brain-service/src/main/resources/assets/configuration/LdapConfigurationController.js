@@ -237,7 +237,10 @@
         $scope.alerts.splice(index, 1);
       };
 
-      $scope.reset = resetDialog($dialog, function() { $scope.ldapConn = angular.copy(origLdapConn); } );
+      $scope.reset = resetDialog($dialog, function() {
+        $scope.ldapConn = angular.copy(origLdapConn);
+        $scope.alerts.length = 0;
+      } );
 
       $scope.save = function() {
         $scope.saving = true;
@@ -297,6 +300,7 @@
       $scope.reset = resetDialog($dialog, function () { 
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
         $scope.useUserPasswordAttribute = $scope.ldapUserMapping.userPasswordAttribute != null;
+        $scope.alerts.length = 0;
       });
 
       preventPageChange($scope);

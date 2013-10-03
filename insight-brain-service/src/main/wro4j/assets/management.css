@@ -669,7 +669,7 @@ ul.tri-pane {
 }
 /* standard treatment for a label on a required field */
 .label-required:after {
-  content: '\2217';
+  content: '\002a';
   color: red;
   font-weight: bold;
 }

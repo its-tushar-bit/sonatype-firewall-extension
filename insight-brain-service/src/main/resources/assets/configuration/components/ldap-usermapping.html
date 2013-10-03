@@ -16,8 +16,8 @@
           <input type='checkbox' name='userSubtree' id='userSubtree' ng-model="ldapUserMapping.userSubtree">
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userObjectClass.$invalid }'>
-        <label class="control-label" for="userObjectClass">Object Class:</label>
+      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userObjectClass.$invalid && ldapUserMappingEditor.userObjectClass.$dirty }'>
+        <label class="control-label label-required" for="userObjectClass">Object Class:</label>
         <div class="controls">
           <input type='text' maxlength='255' name='userObjectClass' id="userObjectClass" ng-model='ldapUserMapping.userObjectClass' required>
         </div>
@@ -28,20 +28,20 @@
           <input type='text' maxlength='255' name='userFilter' id='userFilter' ng-model='ldapUserMapping.userFilter'>
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userIDAttribute.$invalid }'>
-        <label class="control-label" for="userIDAttribute">User ID Attribute:</label>
+      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userIDAttribute.$invalid && ldapUserMappingEditor.userIDAttribute.$dirty }'>
+        <label class="control-label label-required" for="userIDAttribute">User ID Attribute:</label>
         <div class="controls">
           <input type='text' maxlength='255' name='userIDAttribute' id='userIDAttribute' ng-model='ldapUserMapping.userIDAttribute' required>
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userRealNameAttribute.$invalid }'>
-        <label class="control-label" for="userRealNameAttribute">Real Name Attribute:</label>
+      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userRealNameAttribute.$invalid && ldapUserMappingEditor.userRealNameAttribute.$dirty }'>
+        <label class="control-label label-required" for="userRealNameAttribute">Real Name Attribute:</label>
         <div class="controls">
           <input type='text' maxlength='255' name='userRealNameAttribute' id='userRealNameAttribute' ng-model='ldapUserMapping.userRealNameAttribute' required>
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userEmailAttribute.$invalid }'>
-        <label class="control-label" for="userEmailAttribute">E-Mail Attribute:</label>
+      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userEmailAttribute.$invalid && ldapUserMappingEditor.userEmailAttribute.$dirty}'>
+        <label class="control-label label-required" for="userEmailAttribute">E-Mail Attribute:</label>
         <div class="controls">
           <input type='text' maxlength='255' name='userEmailAttribute' id='userEmailAttribute' ng-model='ldapUserMapping.userEmailAttribute' required>
         </div>
@@ -55,10 +55,12 @@
           <h4>Use Password Attribute</h4>
         </label>
       </div>
-      <div ng-show="useUserPasswordAttribute" class="control-group" ng-class='{ error : ldapUserMappingEditor.userPasswordAttribute.$invalid }'>
-        <label class="control-label" for="userPasswordAttribute">Password Attribute:</label>
+      <div ng-show="useUserPasswordAttribute" class="control-group"
+           ng-class='{ error : ldapUserMappingEditor.userPasswordAttribute.$invalid && ldapUserMappingEditor.userPasswordAttribute.$dirty }'>
+        <label class="control-label label-required" for="userPasswordAttribute">Password Attribute:</label>
         <div class="controls">
-          <input type='text' maxlength='255' name='userPasswordAttribute' id='userPasswordAttribute' ng-model='ldapUserMapping.userPasswordAttribute' ng-required="useUserPasswordAttribute">
+          <input type='text' maxlength='255' name='userPasswordAttribute' id='userPasswordAttribute'
+                 ng-model='ldapUserMapping.userPasswordAttribute' ng-required="useUserPasswordAttribute">
         </div>
       </div>
 
@@ -67,10 +69,12 @@
       <div class="content-header">
         <h4>Group Element Mapping</h4>
       </div>
-      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.groupMappingType.$invalid }'>
-        <label class="control-label" for="groupMappingType">Group Type:</label>
+      <div class="control-group"
+           ng-class='{ error : ldapUserMappingEditor.groupMappingType.$invalid && ldapUserMappingEditor.groupMappingType.$dirty }'>
+        <label class="control-label label-required" for="groupMappingType">Group Type:</label>
         <div class="controls">
-          <select name='groupMappingType' id='groupMappingType' ng-model='ldapUserMapping.groupMappingType' ng-options="p for p in groupMappingTypes" required></select>
+          <select name='groupMappingType' id='groupMappingType' ng-model='ldapUserMapping.groupMappingType'
+                  ng-options="p for p in groupMappingTypes" required></select>
         </div>
       </div>
       <div ng-show='ldapUserMapping.groupMappingType == "STATIC"'>
@@ -86,36 +90,46 @@
             <input type='checkbox' name='groupSubtree' id='groupSubtree' ng-model='ldapUserMapping.groupSubtree'>
           </div>
         </div>
-        <div class="control-group" ng-class='{ error : ldapUserMappingEditor.groupObjectClass.$invalid }'>
-          <label class="control-label" for="groupObjectClass">Object Class:</label>
+        <div class="control-group"
+             ng-class='{ error : ldapUserMappingEditor.groupObjectClass.$invalid && ldapUserMappingEditor.groupObjectClass.$dirty}'>
+          <label class="control-label label-required" for="groupObjectClass">Object Class:</label>
           <div class="controls">
-            <input type='text' maxlength='255' name='groupObjectClass' id='groupObjectClass' ng-model='ldapUserMapping.groupObjectClass' ng-required='isGroupFieldRequired("STATIC")'>
+            <input type='text' maxlength='255' name='groupObjectClass' id='groupObjectClass'
+                   ng-model='ldapUserMapping.groupObjectClass' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
         </div>
-        <div class="control-group" ng-class='{ error : ldapUserMappingEditor.groupIDAttribute.$invalid }'>
-          <label class="control-label" for="groupIDAttribute">Group ID Attribute:</label>
+        <div class="control-group"
+             ng-class='{ error : ldapUserMappingEditor.groupIDAttribute.$invalid && ldapUserMappingEditor.groupIDAttribute.$dirty }'>
+          <label class="control-label label-required" for="groupIDAttribute">Group ID Attribute:</label>
           <div class="controls">
-            <input type='text' maxlength='255' name='groupIDAttribute' id='groupIDAttribute' ng-model='ldapUserMapping.groupIDAttribute' ng-required='isGroupFieldRequired("STATIC")'>
+            <input type='text' maxlength='255' name='groupIDAttribute' id='groupIDAttribute'
+                   ng-model='ldapUserMapping.groupIDAttribute' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
         </div>
-        <div class="control-group" ng-class='{ error : ldapUserMappingEditor.groupMemberAttribute.$invalid }'>
-          <label class="control-label" for="groupMemberAttribute">Group Member Attribute:</label>
+        <div class="control-group"
+             ng-class='{ error : ldapUserMappingEditor.groupMemberAttribute.$invalid && ldapUserMappingEditor.groupMemberAttribute.$dirty}'>
+          <label class="control-label label-required" for="groupMemberAttribute">Group Member Attribute:</label>
           <div class="controls">
-            <input type='text' maxlength='255' name='groupMemberAttribute' id='groupMemberAttribute' ng-model='ldapUserMapping.groupMemberAttribute' ng-required='isGroupFieldRequired("STATIC")'>
+            <input type='text' maxlength='255' name='groupMemberAttribute' id='groupMemberAttribute'
+                   ng-model='ldapUserMapping.groupMemberAttribute' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
         </div>
-        <div class="control-group" ng-class='{ error : ldapUserMappingEditor.groupMemberFormat.$invalid }'>
-          <label class="control-label" for="groupMemberFormat">Group Member Format:</label>
+        <div class="control-group"
+             ng-class='{ error : ldapUserMappingEditor.groupMemberFormat.$invalid && ldapUserMappingEditor.groupMemberFormat.$dirty }'>
+          <label class="control-label label-required" for="groupMemberFormat">Group Member Format:</label>
           <div class="controls">
-            <input type='text' maxlength='255' name='groupMemberFormat' id='groupMemberFormat' ng-model='ldapUserMapping.groupMemberFormat' ng-required='isGroupFieldRequired("STATIC")'>
+            <input type='text' maxlength='255' name='groupMemberFormat' id='groupMemberFormat'
+                   ng-model='ldapUserMapping.groupMemberFormat' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
         </div>
       </div>
       <div ng-show='ldapUserMapping.groupMappingType == "DYNAMIC"'>
-        <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userMemberOfGroupAttribute.$invalid }'>
-          <label class="control-label" for="userMemberOfGroupAttribute">Member of Attribute:</label>
+        <div class="control-group"
+             ng-class='{ error : ldapUserMappingEditor.userMemberOfGroupAttribute.$invalid  && ldapUserMappingEditor.userMemberOfGroupAttribute.$dirty}'>
+          <label class="control-label label-required" for="userMemberOfGroupAttribute">Member of Attribute:</label>
           <div class="controls">
-            <input type='text' maxlength='255' name='userMemberOfGroupAttribute' id='userMemberOfGroupAttribute' ng-model='ldapUserMapping.userMemberOfGroupAttribute' ng-required='isGroupFieldRequired("DYNAMIC")'>
+            <input type='text' maxlength='255' name='userMemberOfGroupAttribute' id='userMemberOfGroupAttribute'
+                   ng-model='ldapUserMapping.userMemberOfGroupAttribute' ng-required='isGroupFieldRequired("DYNAMIC")'>
           </div>
         </div>
       </div>
@@ -124,8 +138,10 @@
   <div style="max-width: 510px;">
     <div clm-alerts='alerts' style="padding-left: 20px; padding-right: 5px;"></div>
     <div class="ldap-button-group">
-      <button class='btn btn-success' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress" ng-click="checkUserMapping()">Check User Mapping</button>
-      <button class='btn btn-success' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress" ng-click="checkLogin()">Check Login</button>
+      <button class='btn btn-success' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress"
+              ng-click="checkUserMapping()">Check User Mapping</button>
+      <button class='btn btn-success' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress"
+              ng-click="checkLogin()">Check Login</button>
       <div style="float: right;padding-right: 5px;">
         <button class="btn" ng-disabled="!isDirty()" ng-click="reset()">Reset</button>
         <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>

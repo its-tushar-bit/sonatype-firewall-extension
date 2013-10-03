@@ -10,21 +10,21 @@
           <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"></select>
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapConnectionEditor.hostname.$invalid }'>
-        <label class="control-label" for="hostname">Hostname:</label>
+      <div class="control-group" ng-class='{ error : ldapConnectionEditor.hostname.$invalid && ldapConnectionEditor.hostname.$dirty}'>
+        <label class="control-label label-required" for="hostname">Hostname:</label>
         <div class="controls">
           <input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'>
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapConnectionEditor.port.$invalid }'>
-        <label class="control-label" for="port">Port:</label>
+      <div class="control-group" ng-class='{ error : ldapConnectionEditor.port.$invalid && ldapConnectionEditor.port.$dirty }'>
+        <label class="control-label label-required" for="port">Port :</label>
         <div class="controls">
           <input name='port' id='port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
                  title="Valid range is 1 to 65535"/>
         </div>
       </div>
-      <div class="control-group" ng-class='{ error : ldapConnectionEditor.searchBase.$invalid }'>
-        <label class="control-label" for="searchBase">Search Base:</label>
+      <div class="control-group" ng-class='{ error : ldapConnectionEditor.searchBase.$invalid && ldapConnectionEditor.searchBase.$dirty }'>
+        <label class="control-label label-required" for="searchBase">Search Base :</label>
         <div class="controls">
           <input name='searchBase' id='searchBase' ng-model='ldapConn.searchBase' required type='text'>
         </div>

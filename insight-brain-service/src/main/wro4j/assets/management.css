@@ -667,6 +667,12 @@ ul.tri-pane {
 .configuration .controls>select {
 	width: 305px;
 }
+/* standard treatment for a label on a required field */
+.label-required:after {
+  content: '\2217';
+  color: red;
+  font-weight: bold;
+}
 
 .truncate-ellipsis{
   max-width: 1px;

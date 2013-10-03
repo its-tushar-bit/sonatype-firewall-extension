@@ -3,14 +3,14 @@
 </div>
 <form name='ldapCheckLogin' style='margin-bottom: 0px; max-width: 510px;'>
   <div class="form-horizontal configuration">
-    <div class="control-group" ng-class='{ error : ldapCheckLogin.username.$invalid }'>
-      <label class="control-label">Username:</label>
+    <div class="control-group" ng-class='{ error : ldapCheckLogin.username.$invalid && ldapCheckLogin.username.$dirty}'>
+      <label class="control-label label-required">Username:</label>
       <div class="controls">
         <input type='text' name='username' ng-model="ldapCredentials.username" required>
       </div>
     </div>
-    <div class="control-group" ng-class='{ error : ldapCheckLogin.password.$invalid }'>
-      <label class="control-label">Password:</label>
+    <div class="control-group" ng-class='{ error : ldapCheckLogin.password.$invalid && ldapCheckLogin.password.$dirty }'>
+      <label class="control-label label-required">Password:</label>
       <div class="controls">
         <input type='password' name='password' ng-model="ldapCredentials.password" required>
       </div>
@@ -18,7 +18,7 @@
   </div>
 </form>
 <div class="modal-footer" style="padding-top: 0">
-  <div clm-alerts='alerts'></div>
+  <div clm-alerts='alerts' style="text-align: left;"></div>
   <div class="ldap-button-group" style="padding-top:5px;">
     <div style="float: right;">
       <button class="btn" ng-click="$close()">Close</button>

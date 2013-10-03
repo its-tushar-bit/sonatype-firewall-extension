@@ -233,6 +233,8 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeFalsy();
       expect(scope.ldapConn.id).toEqual('id1');
+      expect(scope.alerts.length).toEqual(1);
+      expect(scope.alerts[0].msg).toEqual('Configuration saved.');
     }));
 
     it('displays confirmation dialog when navigating away from edited data', function() {
@@ -391,7 +393,8 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();
       expect(scope.saving).toBeFalsy();
-
+      expect(scope.alerts.length).toEqual(1);
+      expect(scope.alerts[0].msg).toEqual('Configuration saved.');
       expect(scope.ldapUserMapping.id).toEqual('id1');
 
       // update
@@ -410,6 +413,8 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeFalsy();
       expect(scope.ldapUserMapping.id).toEqual('id1');
+      expect(scope.alerts.length).toEqual(1);
+      expect(scope.alerts[0].msg).toEqual('Configuration saved.');
     }));
 
     it('displays confirmation dialog when navigating away from edited data', function() {

@@ -7,6 +7,11 @@
 (function() {
   'use strict';
 
+  function addAlert(alerts, alert){
+    alerts.length = 0;
+    alerts.push(alert);
+  };
+
   var module = angular.module('LdapConfiguration',
   ['CLMLocation', 'Hudson', 'ResourceModule', 'ui.compat', 'AngularCommon', 'CommonServices', 'Configuration'],
   ['$stateProvider', function($stateProvider) {
@@ -95,12 +100,12 @@
       $scope.testInProgress = false;
       $scope.alerts.length = 0; // clear old alerts
       if (result.status === 'OK') {
-        $scope.alerts.push({
+        addAlert($scope.alerts, {
           type: 'success',
           msg: 'Success!'
         });
       } else {
-        $scope.alerts.push({
+        addAlert($scope.alerts,{
           type: 'error',
           msg: result.message
         });
@@ -112,7 +117,7 @@
       if (status === 0) {
         msg = 'Unable to reach CLM server';
       }
-      $scope.alerts.push({
+      addAlert($scope.alerts,{
         type: 'error',
         msg: msg
       });
@@ -227,10 +232,6 @@
         testRequest($scope, $http, $scope.getConfigLdapUrl('testConnection'), $scope.ldapConn);
       };
 
-      $scope.closeAlert = function(index) {
-        $scope.alerts.splice(index, 1);
-      };
-
       $scope.reset = resetDialog($modal, function() { $scope.ldapConn = angular.copy(origLdapConn); } );
 
       $scope.save = function() {
@@ -239,7 +240,7 @@
           $scope.saving = false;
           origLdapConn = data;
           $scope.ldapConn = angular.copy(origLdapConn);
-          $scope.alerts.push({type:'success', msg: 'Configuration saved.'});
+          addAlert($scope.alerts, {type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
           $scope.$broadcast('showServerError', arguments);
@@ -301,7 +302,7 @@
           $scope.saving = false;
           origLdapUserMapping = data;
           $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-          $scope.alerts.push({type:'success', msg: 'Configuration saved.'});
+          addAlert($scope.alerts,{type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
           $scope.$broadcast('showServerError', arguments);
@@ -325,7 +326,7 @@
                     deferred.resolve(users);
                 }).error(function(data, status, headers, config) {
                     $scope.testInProgress = false;
-                    $scope.alerts.push({type: 'error', msg: data});
+                    addAlert($scope.alerts, {type: 'error', msg: data});
                     deferred.reject({ data: data, status: status, headers: headers, config: config });
                   });
                 return deferred.promise;

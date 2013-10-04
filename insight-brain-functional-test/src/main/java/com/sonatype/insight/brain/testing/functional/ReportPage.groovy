@@ -9,4 +9,6 @@ import geb.Page
 
 class ReportPage extends Page {
   static url = "assets/reports.html#/reports"
+
+  static at = { title == 'CLM Reports' }
 }

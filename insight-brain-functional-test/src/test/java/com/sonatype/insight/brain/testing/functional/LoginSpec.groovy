@@ -40,10 +40,7 @@ class LoginSpec extends GebReportingSpec {
       to LoginPage
     
     then: "username input has focus"
-      // Can't figure out how to determine if something has focus.
-      // Don't know if it's a failing on my lack of selector knowledge or if Geb/Webdriver just doesn't support the
-      // lookup.  There is an open issue to make checking for foucs easier in Geb: http://jira.codehaus.org/browse/GEB-208
-      // waitFor { $("*:focus", id: "login-username") }
+      js.'document.activeElement'.id == usernameInput.firstElement().id
 
     and: "login action is disabled"
       loginAction.isDisabled() // Navigator API version of loginAction.@disabled
@@ -116,13 +113,15 @@ class LoginSpec extends GebReportingSpec {
       to ManagementPage
     
     then: "user is not prompted to log in"
-      waitFor { title != "CLM Login" }
+      report 'management page'
+      at ManagementPage
     
     when: "accessing report application"
       to ReportPage
 
     then: "user is not prompted to log in"
-      waitFor { title != "CLM Login" }
+      report 'report page'
+      at ReportPage
     
     when: "cookies are removed"
       clearCookies()
@@ -131,7 +130,7 @@ class LoginSpec extends GebReportingSpec {
       via LandingPage
     
     then: "user is prompted to log in"
-      waitFor { at(LoginPage) }
+      waitFor { at LoginPage }
   }
   
   // TODO redirect to original location

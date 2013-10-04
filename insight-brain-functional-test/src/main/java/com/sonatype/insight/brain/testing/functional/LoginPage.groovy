@@ -3,17 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.testing.functional
 
 import geb.Page
 
-class LoginPage extends Page {
+class LoginPage
+    extends Page
+{
   static url = "login-assets/login.html"
-  
-  static at = {
-    title == "CLM Login"
-  }
-  
+
+  static at = { title == "CLM Login" }
+
   static content = {
     usernameInput { $(id: "login-username") }
     passwordInput { $(id: "login-password") }
@@ -22,9 +23,9 @@ class LoginPage extends Page {
   }
 
   void loginAsAdmin() {
-    login("admin","admin123")
+    login("admin", "admin123")
   }
-  
+
   void login(username, password) {
     usernameInput.value(username)
     passwordInput.value(password)

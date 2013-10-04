@@ -71,7 +71,7 @@
       </div>
       <div class="control-group"
            ng-class='{ error : ldapUserMappingEditor.groupMappingType.$invalid && ldapUserMappingEditor.groupMappingType.$dirty }'>
-        <label class="control-label label-required" for="groupMappingType">Group Type:</label>
+        <label class="control-label" for="groupMappingType">Group Type:</label>
         <div class="controls">
           <select name='groupMappingType' id='groupMappingType' ng-model='ldapUserMapping.groupMappingType'
                   ng-options="p for p in groupMappingTypes" required></select>

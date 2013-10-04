@@ -43,29 +43,23 @@
     }
   ]);
 
-  function resetDialog($dialog, reset) {
+  function resetDialog($modal, discardChanges) {
     return function() {
-      $dialog.dialog({
-        backdrop: true,
-        backdropClick: false,
-        backdropFade: true,
-        dialogFade: true,
+      $modal.open({
+        backdrop: 'static',
         template: '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
             '<div class="modal-body">There are unsaved changes, continuing will discard them.</div>' +
-            '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-            '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
+            '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
+            '<button class="btn btn-danger" ng-click="discardChanges()">Discard</button></div>',
         controller: [
-          '$scope', 'dialog', function(scope, dialog) {
-            scope.discard = function() {
-              dialog.close(true);
-              reset();
-            };
-            scope.cancel = function() {
-              dialog.close(true);
+          '$scope', function(modalScope) {
+            modalScope.discardChanges = function() {
+              discardChanges();
+              modalScope.$close(true);
             };
           }
         ]
-      }).open();
+      });
     };
   }
 
@@ -126,8 +120,8 @@
   }
   
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$dialog', 'LdapConfigurationStore', 'CLMLocations',
-    function($scope, $state, $dialog, ldapStore, clmLocations) {
+    '$scope', '$state', '$modal', 'LdapConfigurationStore', 'CLMLocations',
+    function($scope, $state, $modal, ldapStore, clmLocations) {
       function isDirty() {
         if ($scope.ldap) {
           return $scope.ldap.isDirty();
@@ -144,7 +138,7 @@
           if (!event.defaultPrevented) {
             $state.transitionTo(targetState, {}, false);
           } else {
-            resetDialog($dialog, function () { 
+            resetDialog($modal, function () { 
               $state.transitionTo(targetState, {}, false); 
             })();
           }
@@ -211,8 +205,8 @@
   ]);
   
   module.controller('LdapConnectionController', [
-    '$scope', '$dialog', '$http',
-    function($scope, $dialog, $http) {
+    '$scope', '$modal', '$http',
+    function($scope, $modal, $http) {
 
       var origLdapConn = {
         serverId: $scope.ldap.id
@@ -237,7 +231,7 @@
         $scope.alerts.splice(index, 1);
       };
 
-      $scope.reset = resetDialog($dialog, function() { $scope.ldapConn = angular.copy(origLdapConn); } );
+      $scope.reset = resetDialog($modal, function() { $scope.ldapConn = angular.copy(origLdapConn); } );
 
       $scope.save = function() {
         $scope.saving = true;
@@ -268,8 +262,8 @@
     }
   ]);
 
-  module.controller('LdapUsermappingController', ['$scope', '$dialog', '$http', 
-    function($scope, $dialog, $http) {
+  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 
+    function($scope, $modal, $http) {
       $scope.alerts = [];
 
       var origLdapUserMapping = {
@@ -294,7 +288,7 @@
         return !$scope.ldapUserMappingEditor.$invalid && $scope.isDirty();
       };
 
-      $scope.reset = resetDialog($dialog, function () { 
+      $scope.reset = resetDialog($modal, function () { 
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
         $scope.useUserPasswordAttribute = $scope.ldapUserMapping.userPasswordAttribute != null;
       });
@@ -318,11 +312,12 @@
 
       $scope.checkUserMapping = function() {
         $scope.testInProgress = true;
-        $dialog.dialog({
+        $modal.open({
+          backdrop: 'static',
           scope: $scope,
           templateUrl: '../configuration-assets/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
           controller: 'LdapCheckUserMappingController',
-          dialogClass: 'modal modal-ldap',
+          windowClass: 'modal modal-ldap',
           resolve: {
             users: function($q, $http) {
                 var deferred = $q.defer();
@@ -336,7 +331,7 @@
                 return deferred.promise;
             }
           }
-        }).open().then(function() {
+        }).result.then(function() {
           $scope.testInProgress = false;
         }, function() {
           $scope.testInProgress = false;
@@ -345,11 +340,12 @@
 
       $scope.checkLogin = function() {
         $scope.testInProgress = true;
-        $dialog.dialog({
+        $modal.open({
+          backdrop: 'static',
           scope: $scope,
           templateUrl: '../configuration-assets/components/ldap-checklogin.html?' + clmBuildTimestamp,
           controller: 'LdapCheckLoginController',
-        }).open().then(function() {
+        }).result.then(function() {
           $scope.testInProgress = false;
         }, function() {
           $scope.testInProgress = false;
@@ -372,33 +368,23 @@
     }
   ]);
 
-  module.controller('LdapCheckUserMappingController', function($scope, dialog, users) {
+  module.controller('LdapCheckUserMappingController', function($scope, users) {
     $scope.users = users;
     $scope.infoText = 'Scroll through the table and verify that the values in each column are in the correct format. ' +
       'If they are not, click "Close" and revise your LDAP field mappings.';
-    $scope.close = function() {
-      dialog.close(true);
-    };
   });
 
-  module.controller('LdapCheckLoginController', function($scope, $http, dialog) {
-    // ui-bootstrap 0.3.0 currently in use does not appear to support $dialog scope inheritance
-    // as a workaround, use scope passed through dialog options.
-    // CLM-1031 should remove this need
-    var inheritedScope = dialog.options.scope;
-    
-    $scope.close = function() {
-      dialog.close(true);
-    };
+  module.controller('LdapCheckLoginController', function($scope, $http) {
     $scope.alerts = [];
     $scope.testInProgress = false;
+    $scope.ldapCredentials = {};
     $scope.testLogin = function() {
       var request = {
-        userMapping: inheritedScope.ldapUserMapping,
+        userMapping: $scope.ldapUserMapping,
         username: $scope.ldapCredentials.username,
         password: $scope.ldapCredentials.password
       };
-      testRequest($scope, $http, inheritedScope.getConfigLdapUrl('testLogin'), request);
+      testRequest($scope, $http, $scope.getConfigLdapUrl('testLogin'), request);
     };
   });
 

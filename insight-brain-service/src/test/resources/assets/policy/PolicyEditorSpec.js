@@ -33,20 +33,21 @@ describe('PolicyEditor.js', function() {
   }
 
   beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
-    $provide.value('$dialog', {
-      dialog: function(config) {
+    $provide.value('$modal', {
+      open: function(config) {
         dialogScope = testScope.$new();
+        dialogScope.$close = function() {
+        };
+        inject(function($controller) {
+          $controller(config.controller, {
+            $scope: dialogScope
+          });
+        });
         return {
-          open: function() {
-            inject(function($controller) {
-              $controller(config.controller, {
-                $scope: dialogScope,
-                dialog: {
-                  close: function() {
-                  }
-                }
-              });
-            });
+          result: {
+            then: function(success, failure) {
+              success();
+            }
           }
         };
       }
@@ -599,7 +600,7 @@ describe('PolicyEditor.js', function() {
     it('Cancel', function() {
       editorScope.editNotification({ id: 'foo' });
       dialogScope.notificationEmailList.push('test@example.org');
-      dialogScope.cancel();
+      dialogScope.$close();
       expect(testScope.policy.actions.foo).toBeUndefined();
     });
   });

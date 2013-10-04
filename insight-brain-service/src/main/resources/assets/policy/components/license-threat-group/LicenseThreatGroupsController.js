@@ -388,31 +388,28 @@
   });
 
   licenseGroupModule.service('cancelModal', [
-    '$dialog', function($dialog) {
-      function wrap(dialog, fn) {
+    '$modal', function($modal) {
+      function wrap($modalInstance, fn) {
         return function() {
-          dialog.close();
+          $modalInstance.close();
           fn();
         };
       }
 
       return {
         open: function(confirmFn, cancelFn) {
-          $dialog.dialog({
-            backdrop: true,
-            backdropClick: false,
-            backdropFade: true,
-            dialogFade: true,
+          $modal.open({
+            backdrop: 'static',
             template: '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
                 '<div class="modal-body">There are unsaved changes, continuing will discard any unsaved changes.</div>' +
                 '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button><button class="btn btn-danger" ng-click="confirm()">Confirm</button></div>',
             controller: [
-              '$scope', 'dialog', function($scope, dialog) {
-                $scope.cancel = wrap(dialog, cancelFn);
-                $scope.confirm = wrap(dialog, confirmFn);
+              '$scope', '$modalInstance', function($scope, $modalInstance) {
+                $scope.cancel = wrap($modalInstance, cancelFn);
+                $scope.confirm = wrap($modalInstance, confirmFn);
               }
             ]
-          }).open();
+          });
         }
       };
     }

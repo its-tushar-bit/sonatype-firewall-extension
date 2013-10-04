@@ -114,8 +114,8 @@
   ]);
 
   module.controller('PolicyEditorController', [
-    '$scope', '$state', '$location', '$dialog', '$timeout', 'Messages', 'PolicyStore', '$q', 'ActionStore',
-    function($scope, $state, $location, $dialog, $timeout, messages, policyStore, $q, actionStore) {
+    '$scope', '$state', '$location', '$modal', '$timeout', 'Messages', 'PolicyStore', '$q', 'ActionStore',
+    function($scope, $state, $location, $modal, $timeout, messages, policyStore, $q, actionStore) {
       function isDirty() {
         if ($scope.policy) {
           return $scope.policy.isDirty();
@@ -166,18 +166,15 @@
       }
 
       $scope.removeConstraint = function(constraint) {
-        $dialog.dialog({
-          backdrop: true,
-          backdropClick: false,
-          backdropFade: true,
-          dialogFade: true,
+        $modal.open({
+          backdrop: 'static',
           template: '<div class="modal-body">Are you sure you want to delete this Constraint?</div>' +
-              '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+              '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
               '<button class="btn btn-danger" ng-click="discard()">Delete</button></div>',
           controller: [
-            '$scope', 'dialog', function($localScope, dialog) {
+            '$scope', function($localScope) {
               $localScope.discard = function() {
-                dialog.close(true);
+                $localScope.$close();
                 angular.forEach($scope.policy.constraints, function(value, index) {
                   if (constraint === value) {
                     $scope.policy.constraints.splice(index, 1);
@@ -185,12 +182,9 @@
                   }
                 });
               };
-              $localScope.cancel = function() {
-                dialog.close(true);
-              };
             }
           ]
-        }).open();
+        });
       };
 
       $scope.addConstraint = function() {
@@ -217,24 +211,21 @@
           }
         }
 
-        $dialog.dialog({
-          backdrop: true,
-          backdropClick: false,
-          backdropFade: true,
-          dialogFade: true,
+        $modal.open({
+          backdrop: 'static',
           templateUrl: 'notification',
           controller: [
-            '$scope', 'dialog', function(scope, dialog) {
+            '$scope', function(modalScope) {
               var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
-              scope.validateEmail = function(value) {
+              modalScope.validateEmail = function(value) {
                 return !value || EMAIL_REGEXP.test(value);
               };
-              scope.setEditorError = function(error) {
-                scope.error = error;
+              modalScope.setEditorError = function(error) {
+                modalScope.error = error;
               };
-              scope.notificationEmailList = addresses;
+              modalScope.notificationEmailList = addresses;
 
-              scope.save = function() {
+              modalScope.save = function() {
                 var found = false;
                 $scope.policy.actions[stage.id] = $scope.policy.actions[stage.id] || [];
                 for (var i = 0; i < $scope.policy.actions[stage.id].length; i++) {
@@ -257,14 +248,11 @@
                     target: addresses.join()
                   });
                 }
-                dialog.close(true);
-              };
-              scope.cancel = function() {
-                dialog.close(true);
+                modalScope.$close();
               };
             }
           ]
-        }).open();
+        });
       };
 
       $scope.toggleWarnAction = function(stage) {
@@ -304,28 +292,22 @@
         if ($scope.policy) {
           if ($scope.policy.isDirty()) {
             // show dialog
-            $dialog.dialog({
-              backdrop: true,
-              backdropClick: false,
-              backdropFade: true,
-              dialogFade: true,
+            $modal.open({
+              backdrop: 'static',
               template: '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
                   '<div class="modal-body">This policy may contain unsaved changes.  Continuing will discard any unsaved changes.</div>' +
-                  '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+                  '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
                   '<button class="btn btn-danger" ng-click="discard()">Discard</button></div>',
               controller: [
-                '$scope', 'dialog', function(scope, dialog) {
-                  scope.discard = function() {
-                    dialog.close(true);
+                '$scope', function(modalScope) {
+                  modalScope.discard = function() {
+                    modalScope.$close(true);
                     $scope.policy.$revert();
                     $scope.hide();
                   };
-                  scope.cancel = function() {
-                    dialog.close(true);
-                  };
                 }
               ]
-            }).open();
+            });
           }
           else {
             $scope.hide();

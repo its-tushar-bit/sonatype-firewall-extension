@@ -7,21 +7,21 @@ describe('Tests for the LdapConfigurationController', function() {
         return $http;
       }
     ]);
-    $provide.value('$dialog', {
-      dialog: function(config) {
+    $provide.value('$modal', {
+      open: function(config) {
         dialogScope = scope.$new();
+        dialogScope.$close = function() {
+        };
+        inject(function($controller) {
+          $controller(config.controller, {
+            $scope: dialogScope
+          });
+        });
         return {
-          open: function() {
-            inject(function($controller) {
-              $controller(config.controller, {
-                $scope: dialogScope,
-                dialog: {
-                  close: function() {
-                	dialogScope.$destroy();
-                  }
-                }
-              });
-            });
+          result: {
+            then: function(success, failure) {
+              success();
+            }
           }
         };
       }
@@ -248,7 +248,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       scope.reset();
 
-      dialogScope.discard();
+      dialogScope.discardChanges();
 
       e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).not.toBeTruthy();
@@ -425,7 +425,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       scope.reset();
 
-      dialogScope.discard();
+      dialogScope.discardChanges();
 
       e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).not.toBeTruthy();

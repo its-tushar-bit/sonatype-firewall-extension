@@ -10,7 +10,7 @@
       <th>User Id</th>
       <th>Name</th>
       <th>Email</th>
-      <th>Roles</th>
+      <th>Groups</th>
     </tr>
     </thead>
     <tbody>
@@ -18,7 +18,7 @@
       <td class="truncate-ellipsis" style="width: 20%" title="{{user.username}}">{{user.username}}</td>
       <td style="width: 20%">{{user.realName}}</td>
       <td class="truncate-ellipsis" style="width: 30%" title="{{user.email}}">{{user.email}}</td>
-      <td style="width: 30%"><span ng-repeat='role in user.userRoles'><span ng-hide='$index==0'>,</span> {{ role }}</span></td>
+      <td style="width: 30%"><span ng-repeat='group in user.membership'><span ng-hide='$index==0'>,</span> {{ group }}</span></td>
     </tr>
     </tbody>
   </table>

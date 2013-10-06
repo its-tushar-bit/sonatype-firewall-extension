@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
@@ -28,6 +29,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -52,24 +54,14 @@ public class LdapManagerTest
   public void testConnection() throws Exception {
     startLdapServer();
 
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname(ldapServer.getHostname());
-    conn.setPort(ldapServer.getPort());
-
-    manager.testConnection(conn);
+    manager.testConnection(createLdapConnection());
   }
 
   @Test
   public void testBadSearchBase() throws Exception {
     startLdapServer();
 
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname(ldapServer.getHostname());
-    conn.setPort(ldapServer.getPort());
+    LdapConnection conn = createLdapConnection();
     conn.setSearchBase("!@£$%^&*()");
 
     try {
@@ -84,23 +76,11 @@ public class LdapManagerTest
   public void testUserMapping() throws Exception {
     startLdapServer();
 
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname(ldapServer.getHostname());
-    conn.setPort(ldapServer.getPort());
+    LdapConnection conn = createLdapConnection();
     conn.setSearchBase("dc=company,dc=com");
     manager.saveConnection(conn);
 
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(serverDetails.getId());
-    umap.setUserBaseDN("ou=users");
-    umap.setUserObjectClass("person");
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("cn");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserPasswordAttribute("userPassword");
-    umap.setUserSubtree(true);
+    LdapUserMapping umap = createUserMapping();
 
     List<LdapUser> users = manager.testUserMapping(umap, -1);
     assertThat(users, hasSize(2));
@@ -113,6 +93,7 @@ public class LdapManagerTest
     assertThat(user.getRealName(), is("Test User"));
     assertThat(user.getEmail(), is("test.user@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
+    assertThat(user.getMembership(), nullValue());
 
     user = users.get(1);
     assertThat(user.getUsername(), is("test_user2"));
@@ -120,30 +101,95 @@ public class LdapManagerTest
     assertThat(user.getRealName(), is("Test User 2"));
     assertThat(user.getEmail(), is("test.user2@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
+    assertThat(user.getMembership(), nullValue());
+  }
+
+  @Test
+  public void testDynamicGroupMapping() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+
+    List<LdapUser> users = manager.testUserMapping(umap, -1);
+    assertThat(users, hasSize(2));
+
+    Collections.sort(users); // sorts on username
+
+    assertThat(users.get(0).getMembership(), containsInAnyOrder("testUsers", "primaryUsers"));
+    assertThat(users.get(1).getMembership(), containsInAnyOrder("testUsers", "secondaryUsers"));
+  }
+
+  @Test
+  public void testStaticGroupMapping() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfUniqueNames");
+    umap.setGroupMemberAttribute("uniqueMember");
+    umap.setGroupMemberFormat("${dn}");
+
+    List<LdapUser> users = manager.testUserMapping(umap, -1);
+    assertThat(users, hasSize(2));
+
+    Collections.sort(users); // sorts on username
+
+    assertThat(users.get(0).getMembership(), containsInAnyOrder("Alpha"));
+    assertThat(users.get(1).getMembership(), containsInAnyOrder("Beta"));
+
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=${username}");
+
+    users = manager.testUserMapping(umap, -1);
+    assertThat(users, hasSize(2));
+
+    Collections.sort(users); // sorts on username
+
+    assertThat(users.get(0).getMembership(), containsInAnyOrder("Gamma", "Theta", "Omega"));
+    assertThat(users.get(1).getMembership(), containsInAnyOrder("Theta"));
   }
 
   @Test
   public void testUserLogin() throws Exception {
     startLdapServer();
 
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
-    conn.setProtocol(LdapProtocol.LDAP);
-    conn.setHostname(ldapServer.getHostname());
-    conn.setPort(ldapServer.getPort());
+    LdapConnection conn = createLdapConnection();
     conn.setSearchBase("dc=company,dc=com");
     manager.saveConnection(conn);
 
-    LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(serverDetails.getId());
-    umap.setUserBaseDN("ou=users");
-    umap.setUserObjectClass("person");
-    umap.setUserIDAttribute("uid");
-    umap.setUserRealNameAttribute("givenName");
-    umap.setUserEmailAttribute("mail");
-    umap.setUserSubtree(true);
+    LdapUserMapping umap = createUserMapping();
 
-    manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
+    umap.setUserPasswordAttribute(null); // AUTH-via-BIND
+
+    try {
+      manager.testUserLogin(umap, "test_user", "far2simply".toCharArray());
+      fail("Expected NamingException");
+    }
+    catch (NamingException expected) {
+      manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
+    }
+
+    umap.setUserPasswordAttribute("userPassword"); // AUTH-via-ATTRIBUTE
+
+    try {
+      manager.testUserLogin(umap, "test_user", "far2simply".toCharArray());
+      fail("Expected NamingException");
+    }
+    catch (NamingException expected) {
+      manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
+    }
   }
 
   public LdapManagerTest startLdapServer() throws Exception {
@@ -168,5 +214,29 @@ public class LdapManagerTest
       serverDao.delete(s);
     }
     Assert.assertEquals(0, serverDao.getAll().size());
+  }
+
+  protected LdapConnection createLdapConnection() {
+    LdapConnection conn = manager.loadConnection(serverDetails.getId());
+    conn.setServerId(serverDetails.getId());
+    conn.setProtocol(LdapProtocol.LDAP);
+    conn.setHostname(ldapServer.getHostname());
+    conn.setPort(ldapServer.getPort());
+    return conn;
+  }
+
+  protected LdapUserMapping createUserMapping() {
+    LdapUserMapping umap = new LdapUserMapping();
+    umap.setServerId(serverDetails.getId());
+    umap.setUserBaseDN("ou=users");
+    umap.setUserObjectClass("person");
+    umap.setUserIDAttribute("uid");
+    umap.setUserRealNameAttribute("cn");
+    umap.setUserEmailAttribute("mail");
+    umap.setUserSubtree(true);
+    umap.setGroupBaseDN("ou=groups");
+    umap.setGroupIDAttribute("cn");
+    umap.setGroupSubtree(true);
+    return umap;
   }
 }

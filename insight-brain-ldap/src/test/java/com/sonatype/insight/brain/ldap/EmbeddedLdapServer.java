@@ -153,6 +153,13 @@ public class EmbeddedLdapServer
     partitionFactory.addIndex(systemPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.setSystemPartition(systemPartition);
 
+    Partition groupsPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "groups",
+        "ou=groups,dc=company,dc=com", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(),
+            "groups"));
+    groupsPartition.setSchemaManager(directoryService.getSchemaManager());
+    partitionFactory.addIndex(groupsPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
+    directoryService.addPartition(groupsPartition);
+
     Partition usersPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "users",
         "ou=users,dc=company,dc=com", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(),
             "users"));

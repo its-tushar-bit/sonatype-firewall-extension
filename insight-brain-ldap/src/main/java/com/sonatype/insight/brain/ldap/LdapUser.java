@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.ldap;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * User details populated from LDAP.
  * 
@@ -22,6 +25,8 @@ public class LdapUser
   private String realName;
 
   private String email;
+
+  private Set<String> membership = new HashSet<String>();
 
   public String getUsername() {
     return username;
@@ -63,6 +68,14 @@ public class LdapUser
     this.email = email;
   }
 
+  public Set<String> getMembership() {
+    return membership;
+  }
+
+  public void setMembership(Set<String> membership) {
+    this.membership = membership;
+  }
+
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();
@@ -72,6 +85,10 @@ public class LdapUser
     buf.append("\n\tDN: ").append(dn);
     buf.append("\n\tReal Name: ").append(realName);
     buf.append("\n\tEmail: ").append(email);
+
+    if (getMembership() != null && !getMembership().isEmpty()) {
+      buf.append("\n\tMembership: ").append(getMembership());
+    }
 
     return buf.toString();
   }

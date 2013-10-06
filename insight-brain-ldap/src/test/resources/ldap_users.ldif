@@ -4,6 +4,12 @@ objectclass: organizationalUnit
 ou: users
 description: Container for user entries
 
+dn: ou=groups,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+description: Container for group entries
+
 dn: uid=test_user,ou=users,dc=company,dc=com
 uid: test_user
 givenName: Test
@@ -15,6 +21,8 @@ sn: User
 cn: Test User
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
 mail: test.user@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
 
 dn: uid=test_user2,ou=users,dc=company,dc=com
 uid: test_user2
@@ -27,6 +35,8 @@ sn: User
 cn: Test User 2
 userPassword: test
 mail: test.user2@company.com
+departmentNumber: testUsers
+departmentNumber: secondaryUsers
 
 dn: uid=test_sasl_user,ou=system
 uid: test_sasl_user
@@ -39,4 +49,36 @@ sn: User
 cn: Test SASL User
 userPassword: s3cr3t
 mail: test.sasl.user@company.com
+departmentNumber: testUsers
+departmentNumber: saslUsers
 
+dn: cn=Alpha,ou=groups,dc=company,dc=com
+cn: Alpha
+objectClass: top
+objectClass: groupOfUniqueNames
+uniqueMember: uid=test_user,ou=users,dc=company,dc=com
+
+dn: cn=Beta,ou=groups,dc=company,dc=com
+cn: Beta
+objectClass: top
+objectClass: groupOfUniqueNames
+uniqueMember: uid=test_user2,ou=users,dc=company,dc=com
+
+dn: cn=Gamma,ou=groups,dc=company,dc=com
+cn: Gamma
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user
+
+dn: cn=Theta,ou=groups,dc=company,dc=com
+cn: Theta
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user
+member: uid=test_user2
+
+dn: cn=Omega,ou=groups,dc=company,dc=com
+cn: Omega
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user

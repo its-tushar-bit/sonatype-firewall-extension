@@ -134,6 +134,9 @@ public class LdapManager
 
   // password encryption
 
+  /**
+   * Returns the current stored connection details with the password decrypted.
+   */
   private LdapConnection getDecryptedConnection() {
     List<LdapServer> servers = serverDao.getAll();
     if (servers.isEmpty()) {
@@ -154,6 +157,9 @@ public class LdapManager
     return conn;
   }
 
+  /**
+   * Returns a copy of the given connection for clients with the password faked-out.
+   */
   private static LdapConnection fakeOutPassword(LdapConnection conn) {
     if (StringUtils.isNotBlank(conn.getSystemPassword())) {
       LdapConnection copy = new LdapConnection(conn);
@@ -163,6 +169,9 @@ public class LdapManager
     return conn;
   }
 
+  /**
+   * Returns a copy of the given connection for testing with the real password restored.
+   */
   private LdapConnection restorePassword(LdapConnection conn) {
     if (FAKE_PASSWORD.equals(conn.getSystemPassword())) {
       try {
@@ -178,6 +187,9 @@ public class LdapManager
     return conn;
   }
 
+  /**
+   * Returns a copy of the given connection for storage with the password encrypted.
+   */
   private LdapConnection encryptPassword(LdapConnection conn) {
     if (StringUtils.isNotBlank(conn.getSystemPassword())) {
       try {

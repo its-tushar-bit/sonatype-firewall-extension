@@ -118,7 +118,7 @@ describe('UserModuleSpec.js', function() {
     dialogScope.changePasswordForm.$valid = true;
     dialogScope.currentPassword = 'old';
     dialogScope.newPassword = 'new';
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test', {
+    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test' + '/password', {
       oldPassword: 'old',
       newPassword: 'new'
     }).respond(401, 'Error');

@@ -1,3 +1,70 @@
-<div>
-	Security!
+<div id="security" style='min-width: 955px'>
+	<div class="content-section">
+		<script type='text/ng-template' id='role-item'>
+<div ng-show='context.roles' class="accordion">
+	<div show-if='role'>
+		<form name="roleForm" ng-submit="saveClick(role)">
+			<div class="form-horizontal">
+				<div class="control-group" ng-class="{ error : roleForm.name.$invalid && roleForm.name.$dirty }">
+					<label class="control-label">First Name:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="name" type="text" ng-required="true" alpha-numeric placeholder="Enter Name" ng-model="role.name" focus-input="role" has-whitespace="suggestedName">
+						<div show-if="roleForm.name.$error.alphaNumeric && roleForm.name.$dirty" class="text-error">Must be alpha numeric.</div>
+						<div show-if="roleForm.name.$error.required && roleForm.name.$dirty" class="text-error">Field is required.</div>
+						<div show-if="roleForm.name.$error.spaces && !roleForm.name.$error.alphaNumeric && roleForm.name.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<button type="button" class='btn' type='button' ng-click='cancelClick(role)'>Cancel</button>
+				<button type="submit" class='btn btn-primary' type='button' ng-click='saveClick(role)' ng-disabled='roleForm.$invalid || saving'>Save</button>
+			</div>
+			<div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+		</form>
+	</div>
+</div>
+</script>
+		<div load-error='error' reload='doLoad()'></div>
+		<div expand-role-on-event='roleEditClick'></div>
+		<div style='text-align: center; margin: 30px' ng-show='!state && !error'>
+			<h5>
+				<i class='icon-time'></i> Loading...
+			</h5>
+		</div>
+		<div class='fade' ng-class='{in : state}'>
+			<div clm-alerts='alerts'></div>
+			<div class="content-header">
+				<h4>
+					<span>Roles</span>
+				</h4>
+			</div>
+			<div class="accordion-group" ng-repeat='role in context.roles'>
+				<div class="accordion-heading">
+					<div class='btn-group floatRight'>
+						<button type='button' class="btn btn-mini hover-buttons" title="Edit Role" ng-disabled='context.roleEditMap[role.id]'
+							ng-click="editClick(role)">
+							<i class="icon-pencil"></i>
+						</button>
+					</div>
+					<a class="accordion-toggle collapsed" style="padding-bottom: 0px;" data-toggle="collapse" href="#collapse{{role.id}}">
+						<h4 style="margin-top: 0px; margin-bottom: 4px;">{{role.name}}</h4>
+					</a>
+				</div>
+				<div id="collapse{{role.id}}" class="accordion-body collapse">
+					<div class="accordion-inner" style="padding: 0px 15px;" show-if="!context.roleEditMap[role.id]">
+						<table style="margin-bottom: 5px;">
+							<tr>
+								<td>Name:</td>
+								<td>{{role.name}}</td>
+							</tr>
+						</table>
+					</div>
+					<div class="accordion-inner" style="padding: 0px;" show-if="context.roleEditMap[role.id]">
+						<div role-item role='role' context='context'></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div error-Modal></div>
 </div>

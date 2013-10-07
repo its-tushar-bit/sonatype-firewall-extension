@@ -470,7 +470,6 @@
                 <include>assets/lib/jquery/jquery-*.min.js</include>
                 <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
                 <include>assets/lib/angular/angular-${angularjs.version}.js</include>
-                <include>assets/lib/angular-ui-utils-0.0.4.js</include>
                 <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
                 <include>assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
                 <include>assets/lib/X-editable/bootstrap-editable.min.js</include>

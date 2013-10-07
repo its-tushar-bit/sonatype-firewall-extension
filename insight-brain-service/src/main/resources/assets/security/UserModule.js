@@ -23,7 +23,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserModule', ['ui.compat', 'ui.keypress', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
+  var module = angular.module('UserModule', ['ui.compat', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('management.security.users', {
               parent: 'management.security',

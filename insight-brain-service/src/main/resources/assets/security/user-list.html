@@ -9,9 +9,9 @@
 <div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
 	</script>
 	<script type='text/ng-template' id='change-password-dialog'>
-<div class="modal-header">Change Password</div>
-<div class="modal-body">
-	<form name="changePasswordForm" ui-keypress="{13:'save()'}">
+<form name="changePasswordForm" ng-submit="save()" style="margin-bottom:0px;">
+	<div class="modal-header">Change Password</div>
+	<div class="modal-body">	
 		<div class="form-horizontal">
 			<div class="control-group" ng-class="{ error : changePasswordForm.currentPassword.$invalid && changePasswordForm.currentPassword.$dirty }">
 				<label class="control-label">Current Password</label>
@@ -36,13 +36,13 @@
 				</div>
 			</div>
 		</div>
-	</form>
-</div>
-<div class="modal-footer">
-	<button class="btn" ng-click="cancel()">Cancel</button>
-	<button class="btn btn-primary" ng-click="save()" ng-disabled="changePasswordForm.$invalid || saving">Save</button>
-</div>
-<div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn" ng-click="cancel()">Cancel</button>
+		<button type="submit" class="btn btn-primary" ng-disabled="changePasswordForm.$invalid || saving">Save</button>
+	</div>
+	<div style="margin-left:0px;margin-right:0px;margin-bottom:0px;" ng-class="{'alert alert-error': errorMsg }" ng-show="errorMsg">{{errorMsg}}</div>
+</form>
 	</script>
 	<script type='text/ng-template' id='user-item'>
 <div ng-show='context.users' class="accordion users">
@@ -55,7 +55,7 @@
 				<a style="text-transform:none;">Add New User</a>
 			</li>
 		</ul>
-		<form name="userForm" ui-keypress="{13:'saveClick(user)'}">
+		<form name="userForm" ng-submit="saveClick(user)">
 			<div class="form-horizontal">
 				<div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
 					<label class="control-label user-form-label">First Name:</label>
@@ -107,12 +107,12 @@
 					</div>
 				</div>
 			</div>
+			<div class="user-button-bar">
+				<button type="button" class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
+				<button type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
+			</div>
+			<div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
 		</form>
-		<div class="user-button-bar">
-			<button class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
-			<button class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
-		</div>
-		<div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
 	</div>
 </div>
 </script>

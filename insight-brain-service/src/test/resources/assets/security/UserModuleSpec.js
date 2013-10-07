@@ -128,7 +128,7 @@ describe('UserModuleSpec.js', function() {
     expect(dialogScope.errorMsg).toEqual('Error');
 
     // all good
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test', {
+    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test' + '/password', {
       oldPassword: 'old',
       newPassword: 'new'
     }).respond(204);

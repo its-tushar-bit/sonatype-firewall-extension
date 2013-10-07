@@ -262,7 +262,7 @@ public class UserResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Cannot delete the currently logged in user."));
   }
-  
+
   @Test
   public void testChangePassword() throws Exception {
     // Add user so we can change his password
@@ -271,17 +271,21 @@ public class UserResourceTest
     user.setPassword("testChangePasswordPassword".toCharArray());
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
-    
+
+    String changePasswordUrl = getServiceURL() + "/testChangePassword" + "/password";
+
+    // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();
     dto.oldPassword = "badPass".toCharArray();
     dto.newPassword = "doesntmatter".toCharArray();
-    
-    response = AuthedRestAccess.put(getServiceURL() + "/testChangePassword", JsonHelpers.asJson(dto));
+
+    response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
     assertResponseStatus(400, response);
-    
+
+    // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword".toCharArray();
-    
-    response = AuthedRestAccess.put(getServiceURL() + "/testChangePassword", JsonHelpers.asJson(dto));
+
+    response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
     assertResponseStatus(204, response);
   }
 

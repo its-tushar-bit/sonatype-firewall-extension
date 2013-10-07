@@ -39,7 +39,9 @@ import org.apache.shiro.subject.Subject;
 @Path(UserResource.SERVICE_PATH)
 public class UserResource
 {
-  public static final String SERVICE_PATH = "rest/user/";
+  public static final String SERVICE_PATH = "rest/user";
+
+  public static final String PASSWORD_PATH = "/{username}/password";
 
   static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
 
@@ -124,25 +126,25 @@ public class UserResource
   }
 
   @PUT
-  @Path("{userId}")
+  @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  public void changePassword(ChangePasswordDTO dto, @PathParam("userId") String userId) {
+  public void changePassword(@PathParam("username") String username, ChangePasswordDTO password) {
     //validate the old password first
     try {
-      SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(userId, dto.oldPassword));
+      SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(username, password.oldPassword));
     }
     catch (AuthenticationException e) {
       throw new BadRequestException("Invalid credentials supplied.");
     }
-    
+
     UserDAO dao = new UserDAO();
 
-    User user = dao.getByUsernameLowercase(userId.toLowerCase(Locale.ENGLISH));
-    user.setPassword(clmRealm.encryptPassword(dto.newPassword).toCharArray());
+    User user = dao.getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));
+    user.setPassword(clmRealm.encryptPassword(password.newPassword).toCharArray());
 
     dao.update(user);
-    
-    clearDTOPassword(dto);
+
+    password.clear();
     clearUserPassword(user);
   }
 
@@ -150,15 +152,15 @@ public class UserResource
     user.clearPassword();
     user.setPassword(FAKE_PASSWORD.toCharArray());
   }
-  
-  private void clearDTOPassword(ChangePasswordDTO dto) {
-    Arrays.fill(dto.newPassword, (char) 0);
-    Arrays.fill(dto.oldPassword, (char) 0);
-  }
 
   public static final class ChangePasswordDTO
   {
     public char[] oldPassword;
     public char[] newPassword;
+
+    public void clear() {
+      Arrays.fill(newPassword, (char) 0);
+      Arrays.fill(oldPassword, (char) 0);
+    }
   }
 }

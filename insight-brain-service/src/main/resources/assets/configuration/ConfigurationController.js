@@ -19,7 +19,7 @@
   }
 
   var module = angular.module('Configuration',
-      ['ListEditor', 'ui.compat', 'ManagementModule', 'ProductLicense', 'Hudson'], [
+      ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense', 'Hudson'], [
         '$stateProvider', function($stateProvider) {
           $stateProvider.state('management.configuration', {
             parent: 'management',

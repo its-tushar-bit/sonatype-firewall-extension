@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var reportModule = angular.module('Report', ['CLMLocation', 'ui.compat', 'AngularCommon', 'CommonServices'], [
+  var reportModule = angular.module('Report', ['CLMLocation', 'ui.router', 'AngularCommon', 'CommonServices'], [
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('report', {
         url: '/reports/{publicId}/{stageId}',

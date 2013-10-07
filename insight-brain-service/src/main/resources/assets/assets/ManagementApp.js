@@ -8,16 +8,17 @@
   var managementApp = angular.module('managementApp',
       ['DashboardModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration'],
       [
-        '$routeProvider', function($routeProvider) {
-        $routeProvider.when('', { redirectTo: '/management/application' });
-      }
+        '$urlRouterProvider',
+        function($urlRouterProvider) {
+          $urlRouterProvider.when('', '/management/application');
+        }
       ]);
 }());
 
 (function() {
   'use strict';
 
-  var managementModule = angular.module('ManagementModule', ['ui.compat'], ['$stateProvider', function($stateProvider) {
+  var managementModule = angular.module('ManagementModule', ['ui.router'], ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management', {
       url: '/management',
       templateUrl: '../assets/management.html?' + clmBuildTimestamp,

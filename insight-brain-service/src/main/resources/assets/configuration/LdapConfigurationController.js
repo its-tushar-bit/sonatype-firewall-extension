@@ -13,7 +13,7 @@
   };
 
   var module = angular.module('LdapConfiguration',
-  ['CLMLocation', 'Hudson', 'ResourceModule', 'ui.compat', 'AngularCommon', 'CommonServices', 'Configuration'],
+  ['CLMLocation', 'Hudson', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
   ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management.configuration.ldap', {
       parent: 'management.configuration',

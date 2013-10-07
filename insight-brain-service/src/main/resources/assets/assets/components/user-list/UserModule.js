@@ -6,7 +6,7 @@
 (function() {
   "use strict";
   // Temporary home
-  var module = angular.module('SecurityModule', ['ui.compat', 'ManagementModule'], ['$stateProvider', function($stateProvider) {
+  var module = angular.module('SecurityModule', ['ui.router', 'ManagementModule'], ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management.security', {
       parent: 'management',
       url: '/security',
@@ -23,7 +23,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserModule', ['ui.compat', 'SecurityModule', 'CLMLocation', 'ResourceModule'], ['$stateProvider', function($stateProvider) {
+  var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule'], ['$stateProvider', function($stateProvider) {
       $stateProvider.state('management.security.users', {
         parent: 'management.security',
         url: '/users',

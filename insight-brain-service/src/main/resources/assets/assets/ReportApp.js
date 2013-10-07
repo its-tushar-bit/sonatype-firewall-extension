@@ -5,18 +5,19 @@
  */
 (function() {
   "use strict";
-  var reportApp = angular.module('reportApp', ['DashboardModule', 'ReportList', 'Report'], ['$stateProvider',
-      '$routeProvider', '$urlRouterProvider', function($stateProvider, $routeProvider, $urlRouterProvider) {
-        $routeProvider.when('', {
-          redirectTo: '/reports'
-        });
-      }]);
+  var reportApp = angular.module('reportApp', ['DashboardModule', 'ReportList', 'Report'], 
+      [
+        '$urlRouterProvider',
+        function($urlRouterProvider) {
+          $urlRouterProvider.when('', '/reports');
+        }
+      ]);
 }());
 
 (function() {
   'use strict';
 
-  var reportModule = angular.module('ReportList', ['ui.compat', 'AngularCommon', 'DashboardModule', 'CLMLocation'],
+  var reportModule = angular.module('ReportList', ['ui.router', 'AngularCommon', 'DashboardModule', 'CLMLocation'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('reports', {
               url: '/reports',

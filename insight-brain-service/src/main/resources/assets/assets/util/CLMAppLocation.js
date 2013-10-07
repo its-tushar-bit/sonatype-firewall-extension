@@ -7,7 +7,7 @@
 (function() {
   "use strict";
 
-  var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.compat']);
+  var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.router']);
 
   locationModule.factory('CLMAppLocations', [
     'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function(appId, orgId, $state, baseUrl) {

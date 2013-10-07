@@ -9,7 +9,7 @@
   'use strict';
 
   var organizationModule = angular.module('OrganizationModule',
-      ['ui.compat', 'ManagementModule', 'Organization', 'CommonServices', 'CLMLocation'], [
+      ['ui.router', 'ManagementModule', 'Organization', 'CommonServices', 'CLMLocation'], [
         '$stateProvider', function($stateProvider) {
           $stateProvider.state('management.organization', {
             parent: 'management',
@@ -52,7 +52,7 @@
   'use strict';
 
   var organizationModule = angular.module('Organization',
-      ['AngularCommon', 'ui.compat', 'CLMAppLocation', 'ResourceModule', 'EditorTools']);
+      ['AngularCommon', 'ui.router', 'CLMAppLocation', 'ResourceModule', 'EditorTools']);
 
   organizationModule.controller('OrganizationController', [
     '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore',

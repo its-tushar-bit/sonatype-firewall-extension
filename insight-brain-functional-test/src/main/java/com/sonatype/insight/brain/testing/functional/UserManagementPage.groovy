@@ -21,10 +21,12 @@ class UserManagementPage extends Page {
     firstNameInput(required: false) { firstNameControl.find('input') }
     firstNameRequiredError(required: false) { firstNameControl.find('div', text: 'Field is required.') }
     firstNameAlphaNumericError(required: false) { firstNameControl.find('div', text: 'Must be alpha numeric.') }
+    firstNameSpacesError(required: false) { firstNameControl.find('div', text: startsWith('No leading') ) }
     lastNameControl(required: false) { userForm.find('div.controls', 1) }
     lastNameInput(required: false) { lastNameControl.find('input') }
     lastNameRequiredError(required: false) { lastNameControl.find('div', text: 'Field is required.') }
     lastNameAlphaNumericError(required: false) { lastNameControl.find('div', text: 'Must be alpha numeric.') }
+    lastNameSpacesError(required: false) { lastNameControl.find('div', text: startsWith('No leading') ) }
     emailControl(required: false) { userForm.find('div.controls', 2) }
     emailInput(required: false) { emailControl.find('input') }
     emailRequiredError(required: false) { emailControl.find('div', text: 'Field is required.') }
@@ -33,6 +35,7 @@ class UserManagementPage extends Page {
     usernameInput(required: false) { usernameControl.find('input') }
     usernameRequiredError(required: false) { usernameControl.find('div', text: 'Field is required.') }
     usernameAlphaNumericError(required: false) { usernameControl.find('div', text: 'Must be alpha numeric.') }
+    usernameSpacesError(required: false) { usernameControl.find('div', text: startsWith('No leading') ) }
     passwordControl(required: false) { userForm.find('div.controls', 4) }
     passwordInput(required: false) { passwordControl.find('input') }
     passwordRequiredError(required: false) { passwordControl.find('div', text: 'Field is required.') }

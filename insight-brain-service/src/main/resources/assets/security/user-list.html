@@ -60,17 +60,19 @@
 				<div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
 					<label class="control-label user-form-label">First Name:</label>
 					<div class="controls">
-						<input class="input-xlarge" name="firstName" type="text" ng-required="true" alpha-numeric placeholder="Enter First Name" ng-model="user.firstName" focus-input="user">
+						<input class="input-xlarge" name="firstName" type="text" ng-required="true" alpha-numeric placeholder="Enter First Name" ng-model="user.firstName" focus-input="user" has-whitespace="suggestedFirstName">
 						<div show-if="userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Must be alpha numeric.</div>
-						<div show-if="userForm.firstName.$error.required && !userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Field is required.</div>
+						<div show-if="userForm.firstName.$error.required && userForm.firstName.$dirty" class="text-error">Field is required.</div>
+						<div show-if="userForm.firstName.$error.spaces && !userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedFirstName}}</div>
 					</div>
 				</div>
 				<div class="control-group" ng-class="{ error : userForm.lastName.$invalid && userForm.lastName.$dirty }">
 					<label class="control-label user-form-label">Last Name:</label>
 					<div class="controls">
-						<input class="input-xlarge" name="lastName" type="text" ng-required="true" alpha-numeric placeholder="Enter Last Name" ng-model="user.lastName">
+						<input class="input-xlarge" name="lastName" type="text" ng-required="true" alpha-numeric placeholder="Enter Last Name" ng-model="user.lastName" has-whitespace="suggestedLastName">
 						<div show-if="userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Must be alpha numeric.</div>
 						<div show-if="userForm.lastName.$error.required && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Field is required.</div>
+						<div show-if="userForm.lastName.$error.spaces && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedLastName}}</div>
 					</div>
 				</div>
 				<div class="control-group" ng-class="{ error : userForm.email.$invalid && userForm.email.$dirty }">
@@ -85,10 +87,11 @@
 				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.username.$invalid && userForm.username.$dirty }">
 					<label class="control-label user-form-label">Username:</label>
 					<div class="controls">
-						<input class="input-xlarge" name="username" type="text" ng-required="!user.id" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
+						<input class="input-xlarge" name="username" type="text" ng-required="!user.id" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username" has-whitespace="suggestedUsername">
 						<div show-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
 						<div show-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error">Enter a unique username</div>
 						<div show-if="userForm.username.$error.required && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Field is required.</div>
+						<div show-if="userForm.username.$error.spaces && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedUsername}}</div>
 					</div>
 				</div>
 				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.password.$invalid && userForm.password.$dirty }">

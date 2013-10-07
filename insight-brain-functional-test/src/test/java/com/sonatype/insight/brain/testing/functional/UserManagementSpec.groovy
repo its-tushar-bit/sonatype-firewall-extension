@@ -74,8 +74,23 @@ class UserManagementSpec extends GebReportingSpec {
 
     then: "make sure alphanumeric validation error not shown"
       !firstNameAlphaNumericError.displayed
+      !firstNameSpacesError.displayed
+      
+    when: "adding extra spaces"
+      firstNameInput << '  a'
+      
+    then: "make sure spaces validation error is shown"
+      firstNameSpacesError.displayed
+      
+    when: "removing extra characters"
+      firstNameInput << Keys.BACK_SPACE
+      firstNameInput << Keys.BACK_SPACE
+      firstNameInput << Keys.BACK_SPACE
+      
+    then: "make sure spaces validation error is removed"
+      !firstNameSpacesError.displayed
       !lastNameRequiredError.displayed
-
+      
     when: "removing the last name"
       lastNameInput << "a"
       lastNameInput << Keys.BACK_SPACE
@@ -103,6 +118,21 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure alphanumeric validation error not shown"
       !lastNameAlphaNumericError.displayed
+      !lastNameSpacesError.displayed
+      
+    when: "adding extra spaces"
+      lastNameInput << '  a'
+      
+    then: "make sure spaces validation error is shown"
+      lastNameSpacesError.displayed
+      
+    when: "removing extra characters"
+      lastNameInput << Keys.BACK_SPACE
+      lastNameInput << Keys.BACK_SPACE
+      lastNameInput << Keys.BACK_SPACE
+      
+    then: "make sure spaces validation error is removed"
+      !lastNameSpacesError.displayed
       !emailRequiredError.displayed
 
     when: "removing the email value"
@@ -156,6 +186,21 @@ class UserManagementSpec extends GebReportingSpec {
 
     then: "make sure validation error not shown"
       !usernameAlphaNumericError.displayed
+      !usernameSpacesError.displayed
+      
+    when: "adding extra spaces"
+      usernameInput << '  a'
+      
+    then: "make sure spaces validation error is shown"
+      usernameSpacesError.displayed
+      
+    when: "removing extra characters"
+      usernameInput << Keys.BACK_SPACE
+      usernameInput << Keys.BACK_SPACE
+      usernameInput << Keys.BACK_SPACE
+      
+    then: "make sure spaces validation error is removed"
+      !usernameSpacesError.displayed
       !passwordRequiredError.displayed
       
     when: "check password required validation"

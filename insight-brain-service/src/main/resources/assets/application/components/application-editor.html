@@ -112,6 +112,9 @@
 				<li ng-class='{ active : isCurrentTab("licenses")}'>
 					<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/licenses'>LICENSES</a>
 				</li>
+				<li ng-class='{ active : isCurrentTab("security")}'>
+					<a ng-href='#/management/application/{{$state.params.applicationPublicId}}/security'>SECURITY</a>
+				</li>
 			</ul>
 			<div ui-view></div>
 		</div>

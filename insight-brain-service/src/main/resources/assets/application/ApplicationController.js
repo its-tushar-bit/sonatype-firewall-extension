@@ -8,43 +8,46 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon', 'CLMLocation'], [
-        '$stateProvider', function($stateProvider) {
-          $stateProvider.state('management.application', {
-            parent: 'management',
-            url: '/application',
-            controller: 'applicationController',
-            templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
-          }).state('management.application.view', {
-                parent: 'management.application',
-                url: '/{applicationPublicId}',
-                controller: 'applicationEditorController',
-                data: {
-                  passThroughAlerts: []
-                },
-                templateUrl: '../application-assets/components/application-editor.html?' + clmBuildTimestamp
-              }).state('management.application.view.policies', {
-                parent: 'management.application.view',
-                url: '/policies',
-                controller: 'PolicyController',
-                data: {
-                  passThroughAlerts: []
-                },
-                templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-              }).state('management.application.view.labels', {
-                parent: 'management.application.view',
-                url: '/labels',
-                controller: 'LabelController',
-                templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-              }).state('management.application.view.licenses', {
-                parent: 'management.application.view',
-                url: '/licenses',
-                controller: 'LicenseThreatGroupController',
-                templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
-                    clmBuildTimestamp
-              });
-        }
-      ]);
+      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'AngularCommon', 'CLMLocation'], [
+      ['$stateProvider', function($stateProvider) {
+        $stateProvider.state('management.application', {
+          parent: 'management',
+          url: '/application',
+          controller: 'applicationController',
+          templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
+        }).state('management.application.view', {
+          parent: 'management.application',
+          url: '/{applicationPublicId}',
+          controller: 'applicationEditorController',
+          data: {
+            passThroughAlerts: []
+          },
+          templateUrl: '../application-assets/components/application-editor.html?' + clmBuildTimestamp
+        }).state('management.application.view.policies', {
+          parent: 'management.application.view',
+          url: '/policies',
+          controller: 'PolicyController',
+          data: {
+            passThroughAlerts: []
+          },
+          templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+        }).state('management.application.view.labels', {
+          parent: 'management.application.view',
+          url: '/labels',
+          controller: 'LabelController',
+          templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+        }).state('management.application.view.licenses', {
+          parent: 'management.application.view',
+          url: '/licenses',
+          controller: 'LicenseThreatGroupController',
+          templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
+        }).state('management.application.view.security', {
+          parent: 'management.application.view',
+          url: '/security',
+          controller: 'AppSecurityController',
+          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
+        });
+      }]);
 
   applicationModule.controller('applicationController', [
     '$scope', '$state', '$timeout', '$location', 'applicationStore', 'CLMLocations',

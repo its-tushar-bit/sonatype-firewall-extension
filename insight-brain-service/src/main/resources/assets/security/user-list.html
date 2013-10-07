@@ -11,7 +11,7 @@
 	<script type='text/ng-template' id='change-password-dialog'>
 <div class="modal-header">Change Password</div>
 <div class="modal-body">
-	<form name="changePasswordForm">
+	<form name="changePasswordForm" ui-keypress="{13:'save()'}">
 		<div class="form-horizontal">
 			<div class="control-group" ng-class="{ error : changePasswordForm.currentPassword.$invalid && changePasswordForm.currentPassword.$dirty }">
 				<label class="control-label">Current Password</label>
@@ -55,7 +55,7 @@
 				<a style="text-transform:none;">Add New User</a>
 			</li>
 		</ul>
-		<form name="userForm">
+		<form name="userForm" ui-keypress="{13:'saveClick(user)'}">
 			<div class="form-horizontal">
 				<div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
 					<label class="control-label user-form-label">First Name:</label>

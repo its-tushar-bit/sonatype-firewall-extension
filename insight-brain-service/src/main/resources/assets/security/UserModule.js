@@ -23,7 +23,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserModule', ['ui.compat', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
+  var module = angular.module('UserModule', ['ui.compat', 'ui.keypress', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('management.security.users', {
               parent: 'management.security',
@@ -87,14 +87,17 @@
             controller: ['$scope', 'dialog', function($localScope, dialog) {
               $localScope.save = function() {
                 if ($localScope.changePasswordForm.$valid) {
+                  $localScope.saving = true;
                   $localScope.errorMsg = null;
                   $http.put(clmLocations.getUserUrl() + '/' + user.username + '/password', {
                     oldPassword: $localScope.currentPassword,
                     newPassword: $localScope.newPassword
                   }).success(function() {
                     dialog.close(true);
+                    $localScope.saving = false;
                   }).error(function(error) {
                     $localScope.errorMsg = error;
+                    $localScope.saving = false;
                   });
                 }
               };

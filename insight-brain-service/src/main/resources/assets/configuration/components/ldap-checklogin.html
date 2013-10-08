@@ -4,13 +4,13 @@
 <form name='ldapCheckLogin' style='margin-bottom: 0px; max-width: 510px;'>
   <div class="form-horizontal configuration">
     <div class="control-group" ng-class='{ error : ldapCheckLogin.username.$invalid && ldapCheckLogin.username.$dirty}'>
-      <label class="control-label label-required">Username:</label>
+      <label class="control-label glyphicons-sonatype required">Username:</label>
       <div class="controls">
         <input type='text' name='username' ng-model="ldapCredentials.username" required>
       </div>
     </div>
     <div class="control-group" ng-class='{ error : ldapCheckLogin.password.$invalid && ldapCheckLogin.password.$dirty }'>
-      <label class="control-label label-required">Password:</label>
+      <label class="control-label glyphicons-sonatype required">Password:</label>
       <div class="controls">
         <input type='password' name='password' ng-model="ldapCredentials.password" required>
       </div>

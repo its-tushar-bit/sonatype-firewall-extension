@@ -23,3 +23,16 @@
 .glyphicons-halflings-sonatype.collapse:before {
   content: "\e159";
 }
+
+.glyphicons-sonatype.required {
+  position: relative;
+  left: -10px;
+}
+
+.glyphicons-sonatype.required:before {
+  content: "\002A";
+  color: #BC0430;
+  font-size: 10px;
+  position: absolute;
+  left: 25px;
+}

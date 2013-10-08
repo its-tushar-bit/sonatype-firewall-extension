@@ -12,17 +12,16 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.naming.NamingException;
 
+import org.codehaus.plexus.util.StringUtils;
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Manages LDAP information.
@@ -107,6 +106,11 @@ public class LdapManager
     new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password);
   }
 
+  public List<LdapUser> findUsers(String query, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection();
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsers(query, maxResults);
+  }
+
   // local methods used by LdapRealm
 
   /**
@@ -114,7 +118,7 @@ public class LdapManager
    * 
    * @see LdapRealm#supports
    */
-  boolean isLdapEnabled() {
+  public boolean isLdapEnabled() {
     return !serverDao.getAll().isEmpty(); // we have at least one LDAP server
   }
 

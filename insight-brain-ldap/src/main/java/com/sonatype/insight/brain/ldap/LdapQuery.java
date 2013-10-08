@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.ldap;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.naming.AuthenticationException;
@@ -22,13 +26,13 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
-
 import org.apache.directory.api.ldap.model.password.PasswordUtil;
 import org.apache.directory.api.util.Strings;
 import org.apache.shiro.realm.ldap.LdapUtils;
 import org.codehaus.plexus.util.StringUtils;
+
+import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 
 /**
  * Provides various LDAP queries.
@@ -40,6 +44,8 @@ class LdapQuery
   private final LdapCtxFactory ctxFactory;
 
   private final LdapUserMapping umap;
+
+  private static final String OR = "|";
 
   public LdapQuery(LdapConnection conn, LdapUserMapping umap) {
     ctxFactory = new LdapCtxFactory();
@@ -145,7 +151,34 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsers(ctx, null, attributes, maxResults);
+      results = searchUsers(ctx, (String) null, attributes, maxResults);
+      List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+      while (results.hasMoreElements()) {
+        ldapUsers.add(createUser(ctx, results.nextElement()));
+      }
+      return ldapUsers;
+    }
+    finally {
+      LdapUtils.closeEnumeration(results);
+      LdapUtils.closeContext(ctx);
+    }
+  }
+
+  // TODO escape query?
+  public List<LdapUser> getUsers(String query, long maxResults) throws NamingException {
+    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
+        umap.getUserEmailAttribute());
+
+    LdapContext ctx = null;
+    NamingEnumeration<SearchResult> results = null;
+    try {
+      ctx = ctxFactory.getSystemLdapContext();
+      Map<String, String> queryMap = new HashMap<String, String>(3);
+      query = "*" + query + "*";
+      queryMap.put(umap.getUserIDAttribute(), query);
+      queryMap.put(umap.getUserRealNameAttribute(), query);
+      queryMap.put(umap.getUserEmailAttribute(), query);
+      results = searchUsers(ctx, queryMap, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement()));
@@ -216,6 +249,14 @@ class LdapQuery
   private NamingEnumeration<SearchResult> searchUsers(LdapContext ctx, String username, String[] attributes,
       long maxResults) throws NamingException
   {
+    // mandatory username
+    return searchUsers(ctx, Collections.singletonMap(umap.getUserIDAttribute(), username != null ? username : "*"),
+        attributes, maxResults);
+  }
+
+  private NamingEnumeration<SearchResult> searchUsers(LdapContext ctx, Map<String, String> query, String[] attributes,
+      long maxResults) throws NamingException
+  {
     SearchControls controls = new SearchControls();
 
     controls.setDerefLinkFlag(true);
@@ -227,15 +268,21 @@ class LdapQuery
     }
 
     String baseDN = StringUtils.defaultString(umap.getUserBaseDN());
-    String uid = StringUtils.isNotBlank(username) ? username : "*";
 
     StringBuilder ldapFilter = new StringBuilder("(&");
 
     // select user objects
     ldapFilter.append("(objectClass=").append(umap.getUserObjectClass()).append(')');
 
-    // select userid(s)
-    ldapFilter.append('(').append(umap.getUserIDAttribute()).append('=').append(uid).append(')');
+    if (query.size() > 1) {
+      ldapFilter.append('(').append(OR);
+    }
+    for (Entry<String, String> entry : query.entrySet()) {
+      ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
+    }
+    if (query.size() > 1) {
+      ldapFilter.append(')');
+    }
 
     // optional user filter
     if (StringUtils.isNotBlank(umap.getUserFilter())) {

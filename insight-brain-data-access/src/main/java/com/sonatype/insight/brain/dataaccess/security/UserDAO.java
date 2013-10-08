@@ -46,6 +46,15 @@ public class UserDAO
     }
   }
 
+  public List<User> findUsers(String query) {
+    query = '%' + query.trim().toLowerCase(Locale.ENGLISH) + '%';
+    String sQuery = "SELECT entity from User entity WHERE entity.usernameLowercase LIKE ?1"
+        + " OR lower(entity.firstName) LIKE ?2" //
+        + " OR lower(entity.lastName) LIKE ?3" //
+        + " OR lower(entity.email) LIKE ?4";
+    return getList(sQuery, query, query, query, query);
+  }
+
   @Override
   protected User getById(EntityManager em, String id) {
     String sQuery = "SELECT entity FROM User entity" + //

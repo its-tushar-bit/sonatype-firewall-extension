@@ -117,11 +117,20 @@
       }
 
       filterTimeout = $timeout(function () {
-        $http.get('/').success(function (data) {
-          $scope.queryResults = [{ firstName : 'Joey Joe Joe', lastName : 'Jabado'}];
+        $scope.requestActive = true;
+        $scope.lastQuery = newVal;
+
+        $http.get('../rest/user/query', {
+          params : {
+            q : newVal
+          }
+        }).success(function (data) {
+          $scope.requestActive = false;
+          $scope.queryResults = data;
         }).error(function () {
+          $scope.requestActive = false;
           $scope.queryResults = [];
-          $scope.filterError = messages.getHttpErrorMessage(arguments);
+          $scope.filterError = Messages.getHttpErrorMessage(arguments);
         });
       }, 500);
     });
@@ -131,6 +140,30 @@
     };
     $scope.removeUser = function ($index) {
       $scope.users.applied.splice($index, 1);
+    };
+
+    $scope.getRealname = function (user) {
+      if (!user) {
+        return;
+      }
+      var name = '';
+      if (user.firstName) {
+        name += user.firstName + ' ';
+      }
+      if (user.lastName) {
+        name += user.lastName;
+      }
+      return name;
+    };
+    $scope.getTooltip = function (user) {
+      var tip = $scope.getRealname(user);
+      if (tip && user.email) {
+        tip += ' ';
+      }
+      if (user.email) {
+        tip += '<' + user.email + '>';
+      }
+      return tip;
     };
   }]);
 

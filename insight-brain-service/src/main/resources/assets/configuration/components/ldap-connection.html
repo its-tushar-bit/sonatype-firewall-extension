@@ -40,20 +40,22 @@
         </div>
       </div>
       <div ng-show="ldapConn.authenticationMethod != 'NONE'">
-        <div class="control-group">
+        <div class="control-group" ng-show="ldapConn.authenticationMethod == 'DIGESTMD5'">
           <label class="control-label" for="saslRealm">SASL Realm:</label>
           <div class="controls">
             <input name='saslRealm' id='saslRealm' ng-model='ldapConn.saslRealm' type='text'>
           </div>
         </div>
-        <div class="control-group">
+        <div class="control-group"
+             ng-class='{ error : ldapConnectionEditor.systemUsername.$invalid && ldapConnectionEditor.systemUsername.$dirty }'>
           <label class="control-label label-required" for="systemUsername">Username:</label>
           <div class="controls">
             <input name='systemUsername' id='systemUsername' ng-model='ldapConn.systemUsername' type='text'
                     ng-required="ldapConn.authenticationMethod != 'NONE'">
           </div>
         </div>
-        <div class="control-group">
+        <div class="control-group"
+             ng-class='{ error : ldapConnectionEditor.systemPassword.$invalid && ldapConnectionEditor.systemPassword.$dirty }'>
           <label class="control-label label-required" for="systemPassword">Password:</label>
           <div class="controls">
             <input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'

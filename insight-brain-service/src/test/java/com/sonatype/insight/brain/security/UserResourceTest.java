@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationSta
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
+import org.junit.Assert;
+
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -271,8 +273,10 @@ public class UserResourceTest
     user.setPassword("testChangePasswordPassword".toCharArray());
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
 
-    String changePasswordUrl = getServiceURL() + "/testChangePassword" + "/password";
+    String changePasswordUrl = getServiceURL() + "/" + user.getId() + "/password";
 
     // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();

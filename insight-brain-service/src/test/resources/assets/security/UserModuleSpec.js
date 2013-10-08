@@ -102,7 +102,7 @@ describe('UserModuleSpec.js', function() {
     $httpBackend.flush();
 
     listScope.changePasswordClick({
-      username: 'test'
+      id: 'test-id'
     });
 
     dialogScope.changePasswordForm = {
@@ -118,7 +118,7 @@ describe('UserModuleSpec.js', function() {
     dialogScope.changePasswordForm.$valid = true;
     dialogScope.currentPassword = 'old';
     dialogScope.newPassword = 'new';
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test' + '/password', {
+    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id' + '/password', {
       oldPassword: 'old',
       newPassword: 'new'
     }).respond(401, 'Error');
@@ -128,7 +128,7 @@ describe('UserModuleSpec.js', function() {
     expect(dialogScope.errorMsg).toEqual('Error');
 
     // all good
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test' + '/password', {
+    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id' + '/password', {
       oldPassword: 'old',
       newPassword: 'new'
     }).respond(204);

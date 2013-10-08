@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,7 +40,7 @@ public class UserResource
 {
   public static final String SERVICE_PATH = "rest/user";
 
-  public static final String PASSWORD_PATH = "/{username}/password";
+  public static final String PASSWORD_PATH = "/{userId}/password";
 
   static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
 
@@ -128,18 +127,18 @@ public class UserResource
   @PUT
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  public void changePassword(@PathParam("username") String username, ChangePasswordDTO password) {
+  public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
+    UserDAO dao = new UserDAO();
+    User user = dao.getByIdNotNull(userId);
+    
     //validate the old password first
     try {
-      SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(username, password.oldPassword));
+      SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(user.getUsername(), password.oldPassword));
     }
     catch (AuthenticationException e) {
       throw new BadRequestException("Invalid credentials supplied.");
     }
 
-    UserDAO dao = new UserDAO();
-
-    User user = dao.getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));
     user.setPassword(clmRealm.encryptPassword(password.newPassword).toCharArray());
 
     dao.update(user);

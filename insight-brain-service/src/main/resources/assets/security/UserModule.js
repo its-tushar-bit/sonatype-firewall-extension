@@ -89,7 +89,7 @@
                 if ($localScope.changePasswordForm.$valid) {
                   $localScope.saving = true;
                   $localScope.errorMsg = null;
-                  $http.put(clmLocations.getUserUrl() + '/' + user.username + '/password', {
+                  $http.put(clmLocations.getUserUrl() + '/' + user.id + '/password', {
                     oldPassword: $localScope.currentPassword,
                     newPassword: $localScope.newPassword
                   }).success(function() {

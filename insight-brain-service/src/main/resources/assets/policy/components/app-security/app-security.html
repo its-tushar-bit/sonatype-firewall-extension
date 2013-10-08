@@ -1,4 +1,42 @@
 <div id="security" style='min-width: 955px'>
+	<script type='text/ng-template' id='appSecurityEditor'>
+	<div style='width:500px; margin:5px'>
+		<form name='userSearch'>
+			<div class="input-prepend">
+				<span class="add-on"><i class='icon-search'> </i></span><input placeholder='Find User' type='text' name='filter' ng-model='queryString'>
+			</div>
+		</form>
+		<div>
+			<div class='selectList'>
+				<h5>Applied</h5>
+				<div>
+					<div>
+						<div ng-repeat='user in users.applied' ng-click='removeUser($index)' class='licenseSelectListItem'>
+							<i class='icon-minus-sign'></i>&nbsp;<span title='{{user.firstName + " " + user.lastName}}'>{{user.firstName + " " + user.lastName}}</span>
+						</div>
+						<div ng-repeat='user in users.inherited' ng-click='removeUser($index)' class='licenseSelectListItem'>
+							<i class='emptyIconGlyph'></i>&nbsp;<span title='{{user.firstName + " " + user.lastName}}'>{{user.firstName + " " + user.lastName}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class='selectList'>
+				<h5>Available</h5>
+				<div>
+					<div>
+						<div ng-repeat='user in queryResults | userNotIn:users.applied | userNotIn:users.inherited' ng-click='addUser(user)' class='licenseSelectListItem'>
+							<i class='icon-plus-sign'></i>&nbsp;<span title='{{user.firstName + " " + user.lastName}}'>{{user.firstName + " " + user.lastName}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div style='text-align:right; padding: 10px 0px; '>
+			<button class='btn' ng-click='hide()'>Cancel</button>
+			<button class='btn btn-primary' ng-click='hide()'>Save</button>
+		</div>
+	</div>
+	</script>
 	<div class="content-section">
 		<script type='text/ng-template' id='role-item'>
 <div ng-show='context.roles' class="accordion">
@@ -52,15 +90,10 @@
 				</div>
 				<div id="collapse{{role.id}}" class="accordion-body collapse">
 					<div class="accordion-inner" style="padding: 0px 15px;" show-if="!context.roleEditMap[role.id]">
-						<table style="margin-bottom: 5px;">
-							<tr>
-								<td>Name:</td>
-								<td>{{role.name}}</td>
-							</tr>
-						</table>
+						<div role-item role='role' context='context'></div>
 					</div>
 					<div class="accordion-inner" style="padding: 0px;" show-if="context.roleEditMap[role.id]">
-						<div role-item role='role' context='context'></div>
+						<div app-security-editor hide='context.roleEditMap[role.id] = false'></div>
 					</div>
 				</div>
 			</div>

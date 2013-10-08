@@ -4,8 +4,7 @@
  */
 (function() {
   'use strict';
-  var appSecurityModule = angular.module('ApplicationSecurityModule', function() {
-  });
+  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices']);
 
   appSecurityModule.service('RoleStore', ['CLMLocations', 'CLMResource', function(clmLocations, clmResource) {
     var config = {
@@ -61,9 +60,6 @@
     $scope.doLoad();
   }]);
 
-  appSecurityModule.controller('AppSecurityEditorController', [function() {
-  }]);
-  
   appSecurityModule.directive('roleItem', function() {
     return {
       restrict: 'A',
@@ -92,4 +88,82 @@
       }
     };
   });
+
+  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', 'Messages', function ($scope, $http, $timeout, Messages) {
+    var filterTimeout = null;
+
+    $scope.$watch('queryString', function (newVal) {
+      if (!newVal) {
+        $scope.queryResults = []; // Empty query, empty results
+        return;
+      }
+
+      if (filterTimeout) {
+        $timeout.cancel(filterTimeout);
+      }
+
+      filterTimeout = $timeout(function () {
+        $http.get('/').success(function (data) {
+          $scope.queryResults = [{ firstName : 'Joey Joe Joe', lastName : 'Jabado'}];
+        }).error(function () {
+          $scope.queryResults = [];
+          $scope.filterError = messages.getHttpErrorMessage(arguments);
+        });
+      }, 500);
+    });
+
+    $scope.addUser = function (user) {
+      $scope.users.applied.push(user);
+    };
+    $scope.removeUser = function ($index) {
+      $scope.users.applied.splice($index, 1);
+    };
+  }]);
+
+  /**
+   * Filter which removes users present in a second array.
+   */
+  appSecurityModule.filter('userNotIn', function () {
+    return function (input, arg) {
+      if (angular.isArray(input) && angular.isArray(arg)) {
+        input = angular.copy(input);
+        for (var i=0; i<input.length; i++) {
+          for (var a=0; a<arg.length; a++) {
+            if (angular.equals(input[i], arg[a])) {
+              input.splice(i, 1);
+              i--;
+              break;
+            }
+          }
+        }
+      }
+      return input;
+    };
+  });
+
+  appSecurityModule.directive('appSecurityEditor', [function () {
+    return {
+      scope : {
+        appSecurityEditor : '=appSecurityEditor',
+        hide : '&'
+      },
+      controller : 'AppSecurityEditorController',
+      templateUrl : 'appSecurityEditor',
+      link : function (scope) {
+        scope.$watch('appSecurityEditor', function (newVal) {
+          // TODO uncomment
+//          scope.users = angular.copy(newVal);
+        });
+
+        // TODO Remove mock data
+        scope.users = {
+          applied : [],
+          inherited : [{
+            firstName : 'Old',
+            lastName : 'Man'
+          }]
+        };
+      }
+    };
+  }]);
 }());

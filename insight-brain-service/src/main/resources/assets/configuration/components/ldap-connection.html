@@ -56,7 +56,7 @@
         </div>
         <div class="control-group"
              ng-class='{ error : ldapConnectionEditor.systemPassword.$invalid && ldapConnectionEditor.systemPassword.$dirty }'>
-          <label class="control-label glyphicons-sonatype requiredlabel-required" for="systemPassword">Password:</label>
+          <label class="control-label glyphicons-sonatype required" for="systemPassword">Password:</label>
           <div class="controls">
             <input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'
                    ng-required="ldapConn.authenticationMethod != 'NONE'">

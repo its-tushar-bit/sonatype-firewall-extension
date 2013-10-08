@@ -20,7 +20,6 @@ import org.apache.directory.api.ldap.model.schema.SchemaManager;
 import org.apache.directory.api.ldap.schemamanager.impl.DefaultSchemaManager;
 import org.apache.directory.server.constants.ServerDNConstants;
 import org.apache.directory.server.core.DefaultDirectoryService;
-import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.core.api.InstanceLayout;
 import org.apache.directory.server.core.api.InterceptorEnum;
 import org.apache.directory.server.core.api.partition.Partition;
@@ -92,6 +91,8 @@ public class EmbeddedLdapServer
     SchemaManager schemaManager = new DefaultSchemaManager();
     directoryService.setSchemaManager(schemaManager);
 
+    schemaManager.enable("nis"); // required by group mapping tests
+
     initPartitions(directoryService);
 
     ldapServer = new LdapServer();
@@ -133,8 +134,12 @@ public class EmbeddedLdapServer
 
     directoryService.startup();
     ldapServer.start();
+  }
 
-    loadUsers(workingDirectory, directoryService);
+  public void loadData(String ldifResourceName) throws IOException {
+    File ldif = new File(workingDirectory, "data" + ldifResourceName);
+    FileUtils.copyURLToFile(EmbeddedLdapServer.class.getResource(ldifResourceName), ldif);
+    new LdifFileLoader(directoryService.getAdminSession(), ldif.getAbsolutePath()).execute();
   }
 
   private static void initPartitions(DefaultDirectoryService directoryService) throws Exception {
@@ -153,6 +158,12 @@ public class EmbeddedLdapServer
     partitionFactory.addIndex(systemPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.setSystemPartition(systemPartition);
 
+    Partition sonatypePartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "sonatype",
+        "o=sonatype", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "sonatype"));
+    sonatypePartition.setSchemaManager(directoryService.getSchemaManager());
+    partitionFactory.addIndex(sonatypePartition, SchemaConstants.OBJECT_CLASS_AT, 100);
+    directoryService.addPartition(sonatypePartition);
+
     Partition groupsPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "groups",
         "ou=groups,dc=company,dc=com", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(),
             "groups"));
@@ -166,12 +177,6 @@ public class EmbeddedLdapServer
     usersPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(usersPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.addPartition(usersPartition);
-  }
-
-  private static void loadUsers(File workingDirectory, DirectoryService directoryService) throws IOException {
-    File usersLdif = new File(workingDirectory, "ldap_users.ldif");
-    FileUtils.copyURLToFile(EmbeddedLdapServer.class.getResource("/ldap_users.ldif"), usersLdif);
-    new LdifFileLoader(directoryService.getAdminSession(), usersLdif.getAbsolutePath()).execute();
   }
 
   private static int getRandomPort() throws IOException {

@@ -32,14 +32,16 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -59,11 +61,11 @@ public class LdapRealmTest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  private LdapAuthenticationMethod authentication = LdapAuthenticationMethod.NONE;
+  private LdapAuthenticationMethod authentication;
 
   private boolean authenticateWithBind;
 
-  private LdapProtocol protocol = LdapProtocol.LDAP;
+  private LdapProtocol protocol;
 
   private EmbeddedLdapServer ldapServer;
 
@@ -80,6 +82,13 @@ public class LdapRealmTest
 
   @Inject
   private LdapRealm realm;
+
+  @Before
+  public void initialize() {
+    authentication = LdapAuthenticationMethod.NONE;
+    authenticateWithBind = false;
+    protocol = LdapProtocol.LDAP;
+  }
 
   @Test
   public void testAnonymousAuth() throws Exception {
@@ -291,6 +300,7 @@ public class LdapRealmTest
     }
 
     ldapServer.start();
+    ldapServer.loadData("/ldap_users.ldif");
 
     connectionDetails.setPort(ldapServer.getPort());
     manager.saveConnection(connectionDetails);
@@ -300,7 +310,7 @@ public class LdapRealmTest
 
   public File getTestResourceFile(String path) throws IOException {
     URL resource = getClass().getResource(path);
-    Assert.assertNotNull(resource); // sanity check
+    assertNotNull(resource); // sanity check
     File tempFile = temporaryFolder.newFile();
     FileUtils.copyURLToFile(resource, tempFile);
     return tempFile;
@@ -329,6 +339,6 @@ public class LdapRealmTest
       userMappingDetails = null;
     }
 
-    Assert.assertEquals(0, serverDao.getAll().size());
+    assertThat(serverDao.getAll(), is(empty()));
   }
 }

@@ -24,12 +24,12 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import org.sonatype.guice.bean.containers.InjectedTest;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -174,7 +174,7 @@ public class LdapManagerTest
     umap.setUserPasswordAttribute(null); // AUTH-via-BIND
 
     try {
-      manager.testUserLogin(umap, "test_user", "far2simply".toCharArray());
+      manager.testUserLogin(umap, "test_user", "badGuess".toCharArray());
       fail("Expected NamingException");
     }
     catch (NamingException expected) {
@@ -184,7 +184,7 @@ public class LdapManagerTest
     umap.setUserPasswordAttribute("userPassword"); // AUTH-via-ATTRIBUTE
 
     try {
-      manager.testUserLogin(umap, "test_user", "far2simply".toCharArray());
+      manager.testUserLogin(umap, "test_user", "badGuess".toCharArray());
       fail("Expected NamingException");
     }
     catch (NamingException expected) {
@@ -199,6 +199,7 @@ public class LdapManagerTest
 
     ldapServer = newEmbeddedLdapServer();
     ldapServer.start();
+    ldapServer.loadData("/ldap_users.ldif");
 
     return this;
   }
@@ -213,7 +214,7 @@ public class LdapManagerTest
     for (LdapServer s : serverDao.getAll()) {
       serverDao.delete(s);
     }
-    Assert.assertEquals(0, serverDao.getAll().size());
+    assertThat(serverDao.getAll(), is(empty()));
   }
 
   protected LdapConnection createLdapConnection() {

@@ -260,6 +260,7 @@ class UserManagementSpec extends GebReportingSpec {
   def "new user save"() {
     given: "user arrives at user page"
       waitFor { newUserButton.present }
+      int userCount = header.size()
       
     when: "click add new user"
       newUserButton.click()
@@ -285,5 +286,18 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "add form no longer visible"
       waitFor { newUserButton.present }
+      
+    then: "add form no longer visible and user is added to the list"
+      waitFor { newUserButton.present }
+      waitFor { userCount < header.size() }
+      
+    when: "user views user summary"
+      header.last().click()
+    
+    then: "user sees the read only fields from the object"
+      waitFor { summarySection.last().displayed }
+      summarySection.last().find('td', text: 'add').displayed
+      summarySection.last().find('td', text: 'user').displayed
+      summarySection.last().find('td', text: 'addusertest@email.com').displayed
   }
 }

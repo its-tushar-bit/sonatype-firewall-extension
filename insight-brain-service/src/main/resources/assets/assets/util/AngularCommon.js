@@ -145,10 +145,9 @@ var AngularUtils = {
 
             var passed = !(jQuery.grep(array,function(item) {
               if (!caseSensitive || caseSensitive === 'false') {
-                return idFieldParser(item) !== modelIdValue &&
-                    modelFieldParser(item).toLowerCase() === value.toLowerCase();
-              }
-              else {
+                return idFieldParser(item) !== modelIdValue && modelFieldParser(item)
+                        && modelFieldParser(item).toLowerCase() === value.toLowerCase();
+              } else {
                 return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;
               }
             }).length > 0);

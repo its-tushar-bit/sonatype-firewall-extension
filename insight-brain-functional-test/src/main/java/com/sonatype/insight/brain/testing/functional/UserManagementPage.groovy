@@ -43,7 +43,9 @@ class UserManagementPage extends Page {
     passwordValidateInput(required: false) { passwordValidateControl.find('input') }
     passwordValidateRequiredError(required: false) { passwordValidateControl.find('div', text: 'Field is required.') }
     passwordValidateMatchError(required: false) { passwordValidateControl.find('div', text: 'Passwords must match!') }
-    save(required: false) { $('button', 'ng-click': 'saveClick(user)')}
-    cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)')}
+    save(required: false) { $('button', 'ng-click': 'saveClick(user)') }
+    cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
+    header(required: false) { $('a.accordion-toggle') }
+    summarySection(required: false) { $('div.accordion-inner') }
   }
 }

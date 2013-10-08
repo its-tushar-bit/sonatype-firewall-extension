@@ -87,18 +87,20 @@
             controller: ['$scope', 'dialog', function($localScope, dialog) {
               $localScope.save = function() {
                 if ($localScope.changePasswordForm.$valid) {
-                  $localScope.saving = true;
-                  $localScope.errorMsg = null;
-                  $http.put(clmLocations.getUserUrl() + '/' + user.id + '/password', {
-                    oldPassword: $localScope.currentPassword,
-                    newPassword: $localScope.newPassword
-                  }).success(function() {
-                    dialog.close(true);
-                    $localScope.saving = false;
-                  }).error(function(error) {
-                    $localScope.errorMsg = error;
-                    $localScope.saving = false;
-                  });
+                  if (!$localScope.saving) {
+                    $localScope.saving = true;
+                    $localScope.errorMsg = null;
+                    $http.put(clmLocations.getUserUrl() + '/' + user.id + '/password', {
+                      oldPassword: $localScope.currentPassword,
+                      newPassword: $localScope.newPassword
+                    }).success(function() {
+                      dialog.close(true);
+                      $localScope.saving = false;
+                    }).error(function(error) {
+                      $localScope.errorMsg = error;
+                      $localScope.saving = false;
+                    });
+                  }
                 }
               };
               $localScope.cancel = function() {
@@ -137,18 +139,20 @@
       return $scope.user && $scope.user.isDirty();
     }
     $scope.saveClick = function(user) {
-      $scope.saving = true;
-      $scope.user.$save().then(function(data) {
-        if ($scope.context.userEditMap[user.id]) {
-          $scope.context.userEditMap[user.id] = null
-        } else {
-          $scope.user = null;
-        }
-        $scope.saving = false;
-      }, function(error) {
-        $scope.errorMsg = error.data;
-        $scope.saving = false;
-      });
+      if (!$scope.saving) {
+        $scope.saving = true;
+        $scope.user.$save().then(function(data) {
+          if ($scope.context.userEditMap[user.id]) {
+            $scope.context.userEditMap[user.id] = null
+          } else {
+            $scope.user = null;
+          }
+          $scope.saving = false;
+        }, function(error) {
+          $scope.errorMsg = error.data;
+          $scope.saving = false;
+        });
+      }
     };
     $scope.cancelClick = function(user) {
       if ($scope.context.userEditMap[user.id]) {
@@ -180,7 +184,7 @@
       link: function(scope, element, attrs) {
         // so data changes dont affect orig
         if (scope.user && scope.user.id) {
-          scope.user = scope.user.$clone();  
+          scope.user = scope.user.$clone();
         }
       }
     };

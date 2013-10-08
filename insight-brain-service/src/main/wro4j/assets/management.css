@@ -310,11 +310,12 @@ body {
 .content-header h4 {
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
-.policies, .licenseGroups {
+.policies, .licenseGroups, .roles {
 	margin-left: 25px;
 }
 .policies .accordion-heading .accordion-toggle,
-.licenseGroups .accordion-heading .accordion-toggle {
+.licenseGroups .accordion-heading .accordion-toggle,
+.roles .accordion-heading .accordion-toggle {
 	padding: 5px;
 }
 .accordion-inner {
@@ -715,3 +716,10 @@ ul.tri-pane {
   margin: 20px 0 10px 20px;
 }
 
+.roles > div.accordion-group:nth-child(odd) {
+	background-color: #f9f9f9;
+}
+
+.hover-button > i {
+	margin-top : 0px;
+}

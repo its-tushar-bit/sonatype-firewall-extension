@@ -72,28 +72,36 @@
 		<div class='fade' ng-class='{in : state}'>
 			<div clm-alerts='alerts'></div>
 			<div class="content-header">
-				<h4>
-					<span>Roles</span>
+				<h4 style="padding-left: 5px;">
+					<span>Roles</span> <span style="position: absolute; left: 350px;">People & Groups</span>
 				</h4>
 			</div>
-			<div class="accordion-group" ng-repeat='role in context.roles'>
-				<div class="accordion-heading">
-					<div class='btn-group floatRight'>
-						<button type='button' class="btn btn-mini hover-buttons" title="Edit Role" ng-disabled='context.roleEditMap[role.id]'
-							ng-click="editClick(role)">
-							<i class="icon-pencil"></i>
-						</button>
+			<div class="accordion roles">
+				<div class="accordion-group" ng-repeat='role in context.roles'>
+					<div class="accordion-heading role">
+						<div class='btn-group hover-buttons floatRight'>
+							<button type='button' class="btn btn-mini hover-button" title="Edit Role" ng-disabled='context.roleEditMap[role.id]' ng-click="editClick(role)">
+								<i class="icon-pencil"></i>
+							</button>
+						</div>
+						<a class="accordion-toggle collapsed" style="padding-bottom: 0px;" data-toggle="collapse" href="#collapse{{role.id}}">
+							<h4 style="margin-top: 0px; margin-bottom: 4px;">
+								<span>{{role.name}}</span> <span style="position: absolute; left: 350px;">{{getUserNames(role)}}</span>
+							</h4>
+						</a>
 					</div>
-					<a class="accordion-toggle collapsed" style="padding-bottom: 0px;" data-toggle="collapse" href="#collapse{{role.id}}">
-						<h4 style="margin-top: 0px; margin-bottom: 4px;">{{role.name}}</h4>
-					</a>
-				</div>
-				<div id="collapse{{role.id}}" class="accordion-body collapse">
-					<div class="accordion-inner" style="padding: 0px 15px;" show-if="!context.roleEditMap[role.id]">
-						<div role-item role='role' context='context'></div>
-					</div>
-					<div class="accordion-inner" style="padding: 0px;" show-if="context.roleEditMap[role.id]">
-						<div app-security-editor hide='context.roleEditMap[role.id] = false'></div>
+					<div id="collapse{{role.id}}" class="accordion-body collapse">
+						<div class="accordion-inner" style="padding: 0px 15px;" show-if="!context.roleEditMap[role.id]">
+							<table style="margin-bottom: 5px;">
+								<tr>
+									<td>Name:</td>
+									<td>{{role.name}}</td>
+								</tr>
+							</table>
+						</div>
+						<div class="accordion-inner" style="padding: 0px;" show-if="context.roleEditMap[role.id]">
+							<div app-security-editor hide='context.roleEditMap[role.id] = false'></div>
+						</div>
 					</div>
 				</div>
 			</div>

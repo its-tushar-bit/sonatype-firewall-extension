@@ -11,7 +11,8 @@
       id: 'id',
       template: {
         id: null,
-        name: ''
+        name: '',
+        users: []
       },
       url: clmLocations.getRoleListUrl(),
       params: {
@@ -29,33 +30,46 @@
     };
     $scope.doLoad = function() {
       $scope.error = null;
-      
-      var testItem = RoleStore.create();
-      testItem.id = '1';
-      testItem.name = 'Role 1';
-      
-      $scope.context.roles.push(testItem);
-      
-      testItem = RoleStore.create();
-      testItem.id = '2';
-      testItem.name = 'Role 2';
-      
-      $scope.context.roles.push(testItem);
 
-      //TODO: uncomment following code when server ready
-      /*RoleStore.refresh().then(function(data) {
-        $scope.context.roles = data;
-      }, function(error) {
-        $scope.error = error;
-      });*/
+      for ( var i = 0; i < 10; i++) {
+        var testItem = RoleStore.create();
+        testItem.id = '' + (i + 1);
+        testItem.name = 'Role ' + testItem.id;
+
+        for ( var j = 0; j < 10; j++) {
+          testItem.users.push({
+            name: 'user' + (j + 1),
+            id: '' + (j + 1)
+          });
+        }
+        $scope.context.roles.push(testItem);
+      }
+
+      // TODO: uncomment following code when server ready
+      /*
+       * RoleStore.refresh().then(function(data) { $scope.context.roles = data; }, function(error) { $scope.error =
+       * error; });
+       */
     };
-    
+
     $scope.editClick = function(role) {
       $scope.context.roleEditMap[role.id] = role;
       $scope.$broadcast('roleEditClick', {
         roleId: role.id
       });
     };
+    
+    $scope.getUserNames = function(role) {
+      var value = null;
+      angular.forEach(role.users, function(user){
+        if (!value) {
+          value = user.name;
+        } else {
+          value += ', ' + user.name;
+        }
+      });
+      return value;
+    }
 
     $scope.doLoad();
   }]);
@@ -72,7 +86,7 @@
       link: function(scope, element, attrs) {
         // so data changes dont affect orig
         if (scope.role) {
-          scope.role = scope.role.$clone();  
+          scope.role = scope.role.$clone();
         }
       }
     };

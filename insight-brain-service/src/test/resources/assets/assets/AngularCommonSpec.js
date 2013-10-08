@@ -268,4 +268,54 @@ describe('AngularCommon', function() {
       expect(chicletElement.scope().style.margin).toBe('5cm');
     });
   });
+
+  describe('labelDropdown', function() {
+    var element,
+        labels = [
+        {
+          "id": "applabelid",
+          "ownerId": "appownerid",
+          "label": "AppLabel",
+          "labelLowercase": "applabel",
+          "color": "red",
+          "description": "foo"
+        },
+        {
+          "id": "applabelid_01",
+          "ownerId": "appownerid",
+          "label": "AnotherAppLabel",
+          "labelLowercase": "anotherapplabel",
+          "color": "blue",
+          "description": "bar"
+        }
+      ];
+
+    beforeEach(function() {
+      scope.labels = labels;
+      scope.selectedLabel = labels[1].id;
+      element = angular.element('<span label-drop-down ng-model="selectedLabel" options="labels" required></span>');
+      compile(element)(scope);
+      scope.$digest();
+    });
+
+    it('should show the selected label', function() {
+      var selected = element.find('a:first');
+      expect(selected.length).toBe(1);
+      expect(selected.attr('class')).toBe('btn dropdown-toggle clmLabel-dropdown blueLabel');
+      expect(selected.text()).toBe(labels[1].label);
+    });
+
+    it('should render label options', function() {
+      var options = element.find('.dropdown-menu').find('a');
+      expect(options.length).toBe(scope.labels.length);
+      expect(options.first().attr('class')).toBe('clmLabel-dropdown ' + scope.labels[0].color + 'Label');
+      expect(options.first().text()).toBe(scope.labels[0].label);
+    });
+
+    it('should select a label', function() {
+      var firstOption = element.find('.dropdown-menu').find('a').first();
+      firstOption.click();
+      expect(scope.selectedLabel).toBe(scope.labels[0].id);
+    });
+  });
 });

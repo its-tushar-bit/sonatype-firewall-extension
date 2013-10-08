@@ -17,6 +17,9 @@
 	cursor: pointer;
 	white-space: nowrap;
 }
+.clmLabel-dropdown {
+	color: black !important;
+}
 .whiteLabel, .Label {
 	border-color: #c6c6c6;
 }
@@ -31,52 +34,49 @@ form[name="labelEditor"] .clmLabel {
 }
 .whiteLabel {
 	background-color: #FFFFFF;
+	color: black !important;
 }
 .greyLabel {
 	background-color: #C6C6C6;
+	color: black !important;
 }
 .greyLabel:hover {
 	border-color: #909090;
 }
-.blackLabel {
+.blackLabel, .blackLabel:hover {
 	border-color: #000;
 	background-color: #444444;
-	color: white;
+	color: white !important;
 }
-.blackLabel:hover {
-	border-color: #000;
-}
-.greenLabel {
+.greenLabel, .greenLabel:hover {
 	background-color: #0B9743;
-	color: white;
+	color: white !important;
 }
 .greenLabel:hover {
 	border-color: #04642A;
 }
-.yellowLabel {
+.yellowLabel, .yellowLabel:hover {
 	background-color: #F5C649;
+	color: black !important;
 }
 .yellowLabel:hover {
 	border-color: #D2A429;
 }
-.orangeLabel {
+.orangeLabel, .orangeLabel:hover {
 	background-color: #F2862F;
 	border-color: #C56213;
-	color: white;
+	color: white !important;
 }
-.orangeLabel:hover {
-	border-color: #C56213;
-}
-.redLabel {
+.redLabel, .redLabel:hover {
 	background-color: #880625;
-	color: white;
+	color: white !important;
 }
 .redLabel:hover {
 	border-color: #460011;
 }
-.blueLabel {
+.blueLabel, .blueLabel:hover {
 	background-color: #2476C3;
-	color: white;
+	color: white !important;
 }
 .blueLabel:hover {
 	border-color: #17558E;
@@ -115,4 +115,8 @@ form[name="labelEditor"] .clmLabel {
 .label-list {
 	margin-left: 25px;
 }
-.tooltip-inner {min-width:100px;}
+.tooltip-inner {
+	min-width:100px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

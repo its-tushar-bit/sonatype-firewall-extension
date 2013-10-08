@@ -28,7 +28,7 @@
 							</span>
 						</a>
 					</div>
-					<div id="collapse{{constraint.id}}" class="accordion-body collapse">
+					<div id="collapse{{constraint.id}}" class="accordion-body collapse" delayed-overflow='{{ isExpanded(constraint) }}'>
 						<div class="accordion-inner nested-accordion">
 							<div clm-include='"../assets/components/policy-editor/constraint-editor.html"'></div>
 						</div>

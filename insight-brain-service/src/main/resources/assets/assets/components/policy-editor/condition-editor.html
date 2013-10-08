@@ -18,8 +18,8 @@
 		</select>
 		<select ng-model="condition.value" ng-switch-when="SecurityVulnerabilityStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
 		</select>
-		<select ng-model="condition.value" ng-switch-when="LabelValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.label for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
-		</select>
+		<span label-drop-down ng-model="condition.value" ng-switch-when="LabelValueType" options="conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
+		</span>
 		<span ng-switch-when="AgeInDaysValueType" age-in-days ng-model="condition.value">
 		</span>
 		<input type="text" ng-model="condition.value" placeholder='{{condition.conditionType.valueHint}}' ng-switch-when="PercentageValueType" ng-pattern='/^((\d{1,2})|(100))$/' required>

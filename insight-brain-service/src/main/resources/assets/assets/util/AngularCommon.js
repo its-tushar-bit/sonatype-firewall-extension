@@ -548,6 +548,63 @@ var AngularUtils = {
     };
   });
 
+  angularCommon.directive('labelDropDown', function() {
+    return {
+      restrict: 'A',
+      scope: {
+        model: '=ngModel',
+        options: '=',
+        multiple: '='
+      },
+      require: 'ngModel',
+      template: '<span class="label-drop-down dropdown"><a class="btn dropdown-toggle clmLabel-dropdown {{ selectedLabel.color }}Label" data-toggle="dropdown" href="#">' +
+          '{{ selectedLabel.label }}<span class="caret pull-right"></span>' +
+          '</a>' +
+          '<ul class="dropdown-menu">' +
+          '<li ng-repeat="label in options">' +
+          '<a ng-click="selectLabel(label)" class="clmLabel-dropdown {{ label.color }}Label" tooltip="{{ label.description }}" tooltip-placement="right">{{ label.label }}</a>' +
+          '</li>' +
+          '</ul>' +
+          '</span>',
+      link: function(scope) {
+        for (var i = 0; i < scope.options.length; i++) {
+          var option = scope.options[i];
+          if (option.id === scope.model) {
+            scope.selectedLabel = option;
+            break;
+          }
+        }
+
+        scope.selectLabel = function(label) {
+          scope.selectedLabel = label;
+          scope.model = label.id;
+        };
+      }
+    };
+  });
+
+  /**
+   * Delay allowing overflow on accordion elements to preserve the expand/collapse animation effect
+   */
+  angularCommon.directive('delayedOverflow', ['$timeout', function($timeout) {
+    return {
+      restrict: 'A',
+      // Since accordion creates its own scope, an attribute needs to be used rather than scope. Because of this,
+      // attribute should take a rendered value {{ ... }} rather than a scope field name
+      link: function(scope, element, attrs) {
+        attrs.$observe('delayedOverflow', function() {
+          if (attrs.delayedOverflow === 'true') {
+            $timeout(function() {
+              element.css('overflow', 'visible');
+            }, 100);
+          } else {
+            element.css('overflow', 'hidden');
+          }
+        });
+      }
+    };
+  }]);
+
   /**
    * Conditionally show the element based on the expression
    */

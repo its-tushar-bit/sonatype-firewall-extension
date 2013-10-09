@@ -1,5 +1,5 @@
 <div style="margin-left:5px;">
-	<script type='text/ng-template' id='delete-user-dialog'>
+	<script type='text/ng-template' id='delete-user-modal'>
 <div class="modal-header">Delete User</div>
 <div class="modal-body">{{'Are you sure you want to delete user "' + username + '"?'}}</div>
 <div class="modal-footer">
@@ -8,7 +8,7 @@
 </div>
 <div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
 	</script>
-	<script type='text/ng-template' id='change-password-dialog'>
+	<script type='text/ng-template' id='change-password-modal'>
 <form name="changePasswordForm" ng-submit="save()" style="margin-bottom:0px;">
 	<div class="modal-header">Change Password</div>
 	<div class="modal-body">	

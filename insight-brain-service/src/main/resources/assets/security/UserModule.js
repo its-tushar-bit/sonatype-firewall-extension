@@ -5,7 +5,7 @@
  */
 (function() {
   "use strict";
-  var module = angular.module('SecurityModule', ['ui.compat', 'ManagementModule', 'AngularCommon'], ['$stateProvider',
+  var module = angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon'], ['$stateProvider',
       function($stateProvider) {
         $stateProvider.state('management.security', {
           parent: 'management',
@@ -23,7 +23,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserModule', ['ui.compat', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
+  var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('management.security.users', {
               parent: 'management.security',
@@ -54,7 +54,7 @@
   }]);
 
   module.controller('UserListController', ['$http', 'hudson', 'CLMLocations', 'UserStore', 'Messages', '$scope',
-      '$dialog', '$rootScope', function($http, hudson, clmLocations, UserStore, messages, $scope, $dialog, $rootScope) {
+      '$modal', '$rootScope', function($http, hudson, clmLocations, UserStore, messages, $scope, $modal, $rootScope) {
         $scope.context = {
           userEditMap: {},
           users: []
@@ -78,58 +78,54 @@
           return $rootScope.username === user.username;
         };
         $scope.changePasswordClick = function(user) {
-          $dialog.dialog({
-            backdrop: true,
-            backdropClick: false,
-            backdropFade: true,
-            dialogFade: true,
-            templateUrl: 'change-password-dialog',
-            controller: ['$scope', 'dialog', function($localScope, dialog) {
+          $modal.open({
+            backdrop: 'static',
+            templateUrl: 'change-password-modal',
+            scope: $scope,
+            controller: ['$scope', '$modalInstance', function($localScope, $modalInstance) {
               $localScope.save = function() {
-                if ($localScope.changePasswordForm.$valid) {
-                  if (!$localScope.saving) {
-                    $localScope.saving = true;
-                    $localScope.errorMsg = null;
+                var scope = this;
+                if (scope.changePasswordForm.$valid) {
+                  if (!scope.saving) {
+                    scope.saving = true;
+                    scope.errorMsg = null;
                     $http.put(clmLocations.getUserUrl() + '/' + user.id + '/password', {
-                      oldPassword: $localScope.currentPassword,
-                      newPassword: $localScope.newPassword
+                      oldPassword: scope.currentPassword,
+                      newPassword: scope.newPassword
                     }).success(function() {
-                      dialog.close(true);
-                      $localScope.saving = false;
+                      $modalInstance.close();
+                      scope.saving = false;
                     }).error(function(error) {
-                      $localScope.errorMsg = error;
-                      $localScope.saving = false;
+                      scope.errorMsg = error;
+                      scope.saving = false;
                     });
                   }
                 }
               };
               $localScope.cancel = function() {
-                dialog.close(true);
+                $modalInstance.close();
               };
             }]
-          }).open();
+          });
         };
         $scope.removeClick = function(user) {
-          $dialog.dialog({
-            backdrop: true,
-            backdropClick: false,
-            backdropFade: true,
-            dialogFade: true,
-            templateUrl: 'delete-user-dialog',
-            controller: ['$scope', 'dialog', function($localScope, dialog) {
+          $modal.open({
+            backdrop: 'static',
+            templateUrl: 'delete-user-modal',
+            controller: ['$scope', '$modalInstance', function($localScope, $modalInstance) {
               $localScope.username = user.username;
               $localScope.discard = function() {
                 user.$delete().then(function() {
-                  dialog.close(true);
+                  $modalInstance.close();
                 }, function(error) {
                   $localScope.errorMsg = error.data;
                 });
               };
               $localScope.cancel = function() {
-                dialog.close(true);
+                $modalInstance.close();
               };
             }]
-          }).open();
+          });
         };
         $scope.doLoad();
       }]);

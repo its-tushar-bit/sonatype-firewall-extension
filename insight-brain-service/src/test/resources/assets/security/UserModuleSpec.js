@@ -21,20 +21,24 @@ describe('UserModuleSpec.js', function() {
     $provide.factory('hudson', ['$http', function($http) {
       return $http;
     }]);
-    $provide.value('$dialog', {
-      dialog: function(config) {
+    $provide.value('$modalInstance', {
+      close: function() {}
+    });
+    $provide.value('$modal', {
+      open: function(config) {
         dialogScope = listScope.$new();
+        dialogScope.$close = function() {
+        };
+        inject(function($controller) {
+          $controller(config.controller, {
+            $scope: dialogScope
+          });
+        });
         return {
-          open: function() {
-            inject(function($controller) {
-              $controller(config.controller, {
-                $scope: dialogScope,
-                dialog: {
-                  close: function() {
-                  }
-                }
-              });
-            });
+          result: {
+            then: function(success, failure) {
+              success();
+            }
           }
         };
       }

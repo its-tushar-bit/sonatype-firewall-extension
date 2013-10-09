@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  function addAlert(alerts, alert){
+  function showAlert(alerts, alert){
     alerts.length = 0;
     alerts.push(alert);
   };
@@ -100,12 +100,12 @@
       $scope.testInProgress = false;
       $scope.alerts.length = 0; // clear old alerts
       if (result.status === 'OK') {
-        addAlert($scope.alerts, {
+        showAlert($scope.alerts, {
           type: 'success',
           msg: 'Success!'
         });
       } else {
-        addAlert($scope.alerts,{
+        showAlert($scope.alerts,{
           type: 'error',
           msg: result.message
         });
@@ -117,7 +117,7 @@
       if (status === 0) {
         msg = 'Unable to reach CLM server';
       }
-      addAlert($scope.alerts,{
+      showAlert($scope.alerts,{
         type: 'error',
         msg: msg
       });
@@ -244,7 +244,7 @@
           $scope.saving = false;
           origLdapConn = data;
           $scope.ldapConn = angular.copy(origLdapConn);
-          addAlert($scope.alerts, {type:'success', msg: 'Configuration saved.'});
+          showAlert($scope.alerts, {type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
           $scope.$broadcast('showServerError', arguments);
@@ -307,7 +307,7 @@
           $scope.saving = false;
           origLdapUserMapping = data;
           $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-          addAlert($scope.alerts,{type:'success', msg: 'Configuration saved.'});
+          showAlert($scope.alerts,{type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
           $scope.$broadcast('showServerError', arguments);
@@ -331,7 +331,7 @@
                     deferred.resolve(users);
                 }).error(function(data, status, headers, config) {
                     $scope.testInProgress = false;
-                    addAlert($scope.alerts, {type: 'error', msg: data});
+                    showAlert($scope.alerts, {type: 'error', msg: data});
                     deferred.reject({ data: data, status: status, headers: headers, config: config });
                   });
                 return deferred.promise;

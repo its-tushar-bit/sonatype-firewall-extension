@@ -43,6 +43,11 @@
           controller: 'LicenseThreatGroupController',
           templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
               clmBuildTimestamp
+        }).state('management.organization.view.security', {
+          parent: 'management.organization.view',
+          url: '/security',
+          controller: 'AppSecurityController',
+          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
         });
       }
     ]);

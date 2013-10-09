@@ -258,6 +258,14 @@
 
       $scope.ldapConn = angular.copy(origLdapConn); // make sure the scope is clean while we query backend
 
+      $scope.$watch('ldapConn.protocol', function(newProtocol) {
+        if (newProtocol === 'LDAP' && (!$scope.ldapConn.port || $scope.ldapConn.port === 636)) {
+          $scope.ldapConn.port = 389;
+        } else if (newProtocol === 'LDAPS' && (!$scope.ldapConn.port || $scope.ldapConn.port === 389)) {
+          $scope.ldapConn.port = 636;
+        }
+      });
+
       $http.get($scope.getConfigLdapUrl('connection'), weHeartIE()).success(function(data) {
         origLdapConn = data;
         $scope.ldapConn = angular.copy(origLdapConn);

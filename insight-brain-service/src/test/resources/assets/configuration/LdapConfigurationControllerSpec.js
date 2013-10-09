@@ -309,6 +309,38 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('Unable to reach CLM server');
 
     }));
+
+    it('set default protocol port', inject(function() {
+      // empty
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.port = undefined;
+      scope.$apply()
+      expect(scope.ldapConn.port).toBe(389);
+      scope.ldapConn.protocol = 'LDAPS';
+      scope.ldapConn.port = undefined;
+      scope.$apply()
+      expect(scope.ldapConn.port).toBe(636);
+
+      // default
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.port = 636; // old value
+      scope.$apply()
+      expect(scope.ldapConn.port).toBe(389);
+      scope.ldapConn.protocol = 'LDAPS';
+      scope.ldapConn.port = 389; // old value
+      scope.$apply()
+      expect(scope.ldapConn.port).toBe(636);
+
+      // non default non empty is preserved as is
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.port = 1; // old value
+      scope.$apply()
+      expect(scope.ldapConn.port).toBe(1);
+      scope.ldapConn.protocol = 'LDAPS';
+      scope.ldapConn.port = 1; // old value
+      scope.$apply()
+      expect(scope.ldapConn.port).toBe(1);
+    }));
   });
 
 

@@ -153,7 +153,7 @@
       if (user.lastName) {
         name += user.lastName;
       }
-      return name;
+      return name.trim();
     };
     $scope.getTooltip = function (user) {
       var tip = $scope.getRealname(user);

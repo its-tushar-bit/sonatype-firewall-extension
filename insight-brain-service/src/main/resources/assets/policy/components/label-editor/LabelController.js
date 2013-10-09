@@ -188,9 +188,7 @@
       link: function(scope, element, attrs, ctrl) {
         ctrl.$parsers.unshift(function(newValue) {
           var unique = true,
-              notEmpty = newValue.length !== 0,
               notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
-          ctrl.$setValidity('empty', notEmpty);
 
           angular.forEach(scope.labels, function(item, key) {
             if (item.id !== scope.selectedLabel.id) {
@@ -200,7 +198,7 @@
           ctrl.$setValidity('duplicate', unique);
           ctrl.$setValidity('invalid', notInvalid);
 
-          return (notEmpty && unique && notInvalid) ? newValue : undefined;
+          return (unique && notInvalid) ? newValue : undefined;
         });
       }
     };

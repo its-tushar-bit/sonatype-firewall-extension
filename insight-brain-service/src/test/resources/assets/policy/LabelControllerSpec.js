@@ -110,17 +110,6 @@ describe('LabelController.js', function() {
       expect(scope.form.label.$error.invalid).toEqual(true);
     });
 
-    it('Test Non Empty', function() {
-      compileInput("<input type='text' maxlength='50' name='label' ng-model='label'  item-label />");
-      setInput('foo');
-      expect(scope.form.$invalid).toEqual(false);
-      expect(scope.form.label.$error.empty).toEqual(false);
-
-      setInput('');
-      expect(scope.form.$invalid).toEqual(true);
-      expect(scope.form.label.$error.empty).toEqual(true);
-    });
-
     it('Test Duplicate', function() {
       scope.selectedLabel = {};
       compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label'  item-label />");

@@ -9,7 +9,7 @@
   'use strict';
 
   var organizationModule = angular.module('OrganizationModule',
-      ['ui.router', 'ManagementModule', 'ApplicationSecurityModule', 'Organization', 'CommonServices', 'CLMLocation'], [
+      ['ui.router', 'ManagementModule', 'ApplicationSecurityModule', 'Organization', 'CommonServices', 'CLMLocation'],
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.organization', {
           parent: 'management',

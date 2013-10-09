@@ -8,7 +8,7 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'AngularCommon', 'CLMLocation'], [
+      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'AngularCommon', 'CLMLocation'],
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.application', {
           parent: 'management',

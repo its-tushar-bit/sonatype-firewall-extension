@@ -723,3 +723,10 @@ ul.tri-pane {
 .hover-button > i {
 	margin-top : 0px;
 }
+
+.collapsed-cell {
+	overflow:hidden;
+	text-overflow:ellipsis;
+	max-width:400px;
+	white-space: nowrap;
+}

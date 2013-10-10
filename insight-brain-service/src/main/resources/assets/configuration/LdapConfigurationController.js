@@ -48,18 +48,21 @@
     }
   ]);
 
-  function resetDialog($modal, discardChanges) {
+  function resetDialog($modal, discardFn, discardLabel) {
+    if (!discardLabel) {
+      discardLabel = "Discard";
+    }
     return function() {
       $modal.open({
         backdrop: 'static',
         template: '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
             '<div class="modal-body">There are unsaved changes, continuing will discard them.</div>' +
             '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
-            '<button class="btn btn-danger" ng-click="discardChanges()">Discard</button></div>',
+            '<button class="btn btn-danger" ng-click="discardChanges()">' + discardLabel + '</button></div>',
         controller: [
           '$scope', function(modalScope) {
             modalScope.discardChanges = function() {
-              discardChanges();
+              discardFn();
               modalScope.$close(true);
             };
           }
@@ -145,7 +148,7 @@
           } else {
             resetDialog($modal, function () { 
               $state.transitionTo(targetState, {}, false); 
-            })();
+            }, 'Continue')();
           }
         }
       }

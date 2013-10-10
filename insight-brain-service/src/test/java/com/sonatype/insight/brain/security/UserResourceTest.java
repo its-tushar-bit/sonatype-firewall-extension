@@ -18,8 +18,6 @@ import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationSta
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
-import org.junit.Assert;
-
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;

@@ -66,20 +66,11 @@ final class Pdf
     final File pdfFile = getPdfFile(reportFile);
 
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
-      final ClassLoader tccl = Thread.currentThread().getContextClassLoader();
       final File templateDir = setupTemplateDir(reportFile, cacheDir, projectName, buildNumber);
       try {
-        /*
-         * At least Hudson 2.2.0 doesn't set the plugin class loader as TCCL automatically so we do or
-         * BIRT/Batik would fail to load its Xerces parser.
-         */
-        Thread.currentThread().setContextClassLoader(Pdf.class.getClassLoader());
-
         generate(pdfFile, templateDir, sample);
-
       }
       finally {
-        Thread.currentThread().setContextClassLoader(tccl);
         FileUtils.deleteDirectory(templateDir);
       }
     }

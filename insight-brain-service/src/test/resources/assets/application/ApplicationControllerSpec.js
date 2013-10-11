@@ -107,7 +107,7 @@ describe('ApplicationEditorController', function() {
     ]);
   }));
 
-  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations) {
+  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
     httpBackend = $httpBackend;
     rootScope = $rootScope;
 
@@ -130,23 +130,15 @@ describe('ApplicationEditorController', function() {
     scope = $rootScope.$new();
     state = $state;
 
-    mockApplication.$getOriginal = function() {
-      return originalMockApplication
-    };
-    mockApplication.$revert = function() {
-      return angular.extend(mockApplication, originalMockApplication)
-    };
-    mockApplication.$save = function() {
-      return { then: angular.noop }
-    };
-    getOriginalSpy = spyOn(mockApplication, '$getOriginal').andCallThrough();
-    revertSpy = spyOn(mockApplication, '$revert').andCallThrough();
-    saveSpy = spyOn(mockApplication, '$save').andCallThrough();
+    scope.selectedApplication = applicationStore.create();
+    scope.selectedApplication.$updateOriginal(mockApplication);
+    getOriginalSpy = spyOn(scope.selectedApplication, '$getOriginal').andCallThrough();
+    revertSpy = spyOn(scope.selectedApplication, '$revert').andCallThrough();
+    saveSpy = spyOn(scope.selectedApplication, '$save').andCallThrough();
 
-    originalMockApplication = angular.copy(mockApplication);
+    originalMockApplication = angular.copy(scope.selectedApplication);
 
-    scope.applications = [mockApplication];
-    scope.selectedApplication = mockApplication;
+    scope.applications = [scope.selectedApplication];
 
     $controller('applicationEditorController', { $scope: scope, $state: state });
 
@@ -237,7 +229,7 @@ describe('ApplicationEditorController', function() {
     expect(scope.iconChanged).not.toBeTruthy();
   }));
 
-  it('saves an application', inject(function() {
+  it('saves an application', inject(function(CLMAppLocations) {
     scope.applicationEditor = {};
     scope.applicationEditor.$valid = true;
 
@@ -245,15 +237,18 @@ describe('ApplicationEditorController', function() {
     scope.selectedApplication.name = "newName";
     scope.generateIcon();
 
-    var hasFormData = window.FormData;
     window.FormData = false;
 
+    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
+
     scope.save();
+
+    httpBackend.flush();
 
     expect(saveSpy).toHaveBeenCalled();
   }));
 
-  it('Can delete an application', inject(function(CLMAppLocations) {
+  it('Can delete an application', inject(function(CLMAppLocations, CLMLocations) {
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
     httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
@@ -264,6 +259,8 @@ describe('ApplicationEditorController', function() {
 
     expect(scope.deletedEnabled).toBeTruthy();
     expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
+    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(mockApplication);
 
     scope.deleteApplication();
 
@@ -309,7 +306,7 @@ describe('ApplicationEditorController', function() {
     expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
   }));
 
-  it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations) {
+  it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations) {
     var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
 
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
@@ -320,6 +317,8 @@ describe('ApplicationEditorController', function() {
 
     expect(scope.deletedEnabled).toBeTruthy();
     expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
+    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(mockApplication);
 
     scope.deleteApplication();
 

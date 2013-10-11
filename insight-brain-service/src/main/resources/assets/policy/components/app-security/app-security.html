@@ -14,11 +14,11 @@
 				<h5>Applied</h5>
 				<div>
 					<div>
-						<div ng-repeat='mapping in mappings'>
-							<div ng-repeat='member in mapping.members' ng-click='removeUser($parent.$index, $index)'
-									class='licenseSelectListItem'>
-								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
-							</div>
+						<div ng-repeat='member in getMembers()' ng-click='removeUser($index)' class='licenseSelectListItem'>
+							<i class="icon-minus-sign"></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
+						</div>
+						<div ng-repeat='member in getInheritedMembers()' class='licenseSelectListItem'>
+							<i class="emptyIconGlyph"></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
 						</div>
 					</div>
 				</div>
@@ -27,7 +27,7 @@
 				<h5>Available</h5>
 				<div>
 					<div>
-						<div ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='licenseSelectListItem'>
+						<div ng-repeat='user in queryResults | userNotIn:context.roles' ng-click='addUser(user)' class='licenseSelectListItem'>
 							<i class='icon-plus-sign'></i>&nbsp;<span title='{{getTooltip(user)}}'>{{getRealname(user)}}</span>
 						</div>
 						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && !queryResults.length && lastQuery == queryString'>
@@ -86,15 +86,19 @@
 				<div class="accordion-group" ng-repeat='role in context.roles'>
 					<div class="accordion-heading role">
 						<div class='btn-group hover-buttons floatRight'>
-							<button type='button' class="btn btn-mini hover-button" title="Edit Role" ng-disabled='context.roleEditMap[role.id]' ng-click="editClick(role)">
+							<button type='button' class="btn btn-mini hover-button" title="Edit Role" ng-disabled='context.roleEditMap[role.roleId]' ng-click="editClick(role)">
 								<i class="icon-pencil"></i>
 							</button>
 						</div>
 						<table class="accordion-toggle">
 							<tr>
-								<td style="vertical-align: top; width: 315px;" ng-click="expanded = !expanded;">{{role.name}}</td>
-								<td ng-show="!context.roleEditMap[role.id]" ng-class="{ 'collapsed-cell' : !expanded }" ng-click="expanded = !expanded;">{{getUserNames(role)}}</td>
-								<td ng-show="context.roleEditMap[role.id]"><div app-security-editor hide='context.roleEditMap[role.id] = false'></div></td>
+								<td style="vertical-align: top; width: 315px;" ng-click="expanded = !expanded;">{{role.roleName}}</td>
+								<td ng-show="!context.roleEditMap[role.roleId] && !expanded" class="collapsed-cell" ng-click="expanded = !expanded;">{{getUserNames(role)}}</td>
+								<td ng-show="!context.roleEditMap[role.roleId] && expanded" ng-class="{ 'collapsed-cell' : !expanded }" ng-click="expanded = !expanded;">
+									<div style="border-bottom: 1px solid #E8E8E8;margin-bottom:5px;padding-bottom:5px;">{{getUserNames(role)}}</div>
+									<div style="color:#909090;">{{getInheritedUserNames(role)}}</div>
+								</td>
+								<td show-if="context.roleEditMap[role.roleId]"><div app-security-editor hide='context.roleEditMap[role.roleId] = false' context='context' role='role'></div></td>
 							</tr>
 						</table>
 					</div>

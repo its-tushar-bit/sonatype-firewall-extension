@@ -35,46 +35,51 @@ class AppSecurityManagementSpec extends GebReportingSpec {
   }
   
   def "validate listed roles"() {
-    to OrganizationManagementPage
-    waitFor { at(OrganizationManagementPage) }
-    newOrganizationButton.click()
-    waitFor { at(OrganizationPage) }
-    organizationName.click()
-    waitFor { organizationNameField.displayed }
-    organizationNameField << "test organization"
-    organizationSaveButton.click()
-    waitFor { securityTabButton.displayed }
+    when: "create a new organization"
+      to OrganizationManagementPage
+      waitFor { at(OrganizationManagementPage) }
+      newOrganizationButton.click()
+      waitFor { at(OrganizationPage) }
+      organizationName.click()
+      waitFor { organizationNameField.displayed }
+      organizationNameField << "test organization"
+      organizationSaveButton.click()
+      
+    then: "see the security tab shown"
+      waitFor { securityTabButton.displayed }
       
     when: "user clicks on security tab"
       securityTabButton.click()
     
-    then: "security tab is shown"
+    then: "security tab content is shown"
       waitFor { securityTab.displayed }
     
     //TODO: when server actually sends list of roles back, add test to validate they are shown
+    when: "create a new application"
+      to ApplicationManagementPage
+      waitFor { at(ApplicationManagementPage) }
+      newApplicationButton.click()
+      waitFor { at(ApplicationPage) }
+      applicationName.click()
+      waitFor { applicationNameField.displayed }
+      applicationNameField << "test application"
+      applicationId.click()
+      waitFor { applicationIdField.displayed }
+      applicationIdField << "testapp"
+      applicationOrgField.click()
+      waitFor { $('a', text:'test organization').displayed }
+      $('a', text:'test organization').click()
+      applicationSaveButton.click()
       
-    to ApplicationManagementPage
-    waitFor { at(ApplicationManagementPage) }
-    newApplicationButton.click()
-    waitFor { at(ApplicationPage) }
-    applicationName.click()
-    waitFor { applicationNameField.displayed }
-    applicationNameField << "test application"
-    applicationId.click()
-    waitFor { applicationIdField.displayed }
-    applicationIdField << "testapp"
-    applicationOrgField.click()
-    waitFor { $('a', text:'test organization').displayed }
-    $('a', text:'test organization').click()
-    applicationSaveButton.click()
-    waitFor { securityTabButton.displayed }
+    then: "see the security tab shown"
+      waitFor { securityTabButton.displayed }
       
     when: "user clicks on security tab"
       securityTabButton.click()
     
     then: "security tab is shown"
       waitFor { securityTab.displayed }
-      
+ 
     //TODO: when server actually sends list of roles back, add test to validate they are shown  
   }
 }

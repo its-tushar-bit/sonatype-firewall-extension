@@ -10,9 +10,9 @@ import geb.Page
 class ApplicationManagementPage extends Page {
   static url = "assets/index.html#/management/application"
 
-  static at = {  newApplicationButton.displayed }
+  static at = { newApplicationButton.displayed }
 
   static content = {
-    newApplicationButton(required: false) { $('div.new-entity-button').find('a', 'href':contains('#/management/application/')) }
+    newApplicationButton(required: false) { $('a', 'href':'#/management/application/_new_') }
   }
 }

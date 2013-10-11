@@ -10,9 +10,9 @@ import geb.Page
 class OrganizationManagementPage extends Page {
   static url = "assets/index.html#/management/organization"
 
-  static at = {  newOrganizationButton.displayed }
+  static at = { newOrganizationButton.displayed }
 
   static content = {
-    newOrganizationButton(required: false) { $('div.new-entity-button').find('a', 'href':contains('#/management/organization/')) }
+    newOrganizationButton(required: false) { $('a', 'href':'#/management/organization/_new_') }
   }
 }

@@ -17,5 +17,7 @@ class OrganizationPage extends Page {
     organizationSaveButton(required: false) { $('button', text:'Save') }
     securityTabButton(required: false) { $('div', 'on': 'selectedOrganization.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
+    deleteButton(required: false) { $('a', 'title': 'Remove Organization') }
+    deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteOrganization();') }
   }
 }

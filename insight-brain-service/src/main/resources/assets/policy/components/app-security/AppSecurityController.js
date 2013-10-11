@@ -6,54 +6,72 @@
   'use strict';
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices']);
 
-  appSecurityModule.service('RoleStore', ['CLMLocations', 'CLMResource', function(clmLocations, clmResource) {
+  appSecurityModule.service('RoleMappingStore', ['CLMAppLocations', 'CLMResource', function(clmAppLocations, clmResource) {
     var config = {
       id: 'id',
       template: {
-        id: null,
-        name: '',
-        users: []
+        roleId: null,
+        roleName: '',
+        roleDescription: '',
+        membersByOwner: []
       },
-      url: clmLocations.getRoleListUrl(),
+      url: clmAppLocations.getRoleMappingUrl(),
       params: {
         timestamp: new Date().getTime()
       }
-    }, store = clmResource.getStore(config);
-
+    }, store = clmResource.getStore(config);    
+    
     return store;
   }]);
 
-  appSecurityModule.controller('AppSecurityController', ['$scope', 'RoleStore', function($scope, RoleStore) {
+  appSecurityModule.controller('AppSecurityController', ['$scope', 'RoleMappingStore', 'CLMAppLocations', function($scope, RoleMappingStore, clmAppLocations) {
     $scope.context = {
       roleEditMap: {},
       roles: []
     };
     $scope.doLoad = function() {
       $scope.error = null;
-
-      for ( var i = 0; i < 10; i++) {
-        var testItem = RoleStore.create();
-        testItem.id = '' + (i + 1);
-        testItem.name = 'Role ' + testItem.id;
-
-        for ( var j = 0; j < 10; j++) {
-          testItem.users.push({
-            name: 'user' + (j + 1),
-            id: '' + (j + 1)
-          });
+      
+      for ( var i = 0 ; i < 10 ; i++ ) {
+        var role = {
+          roleId: '' + (i + 1),
+          roleName: 'Role ' + (i + 1),
+          roleDescription: 'This is a role, really it is',
+          membersByOwner: [{
+            ownerId: clmAppLocations.getEntityId(),
+            ownerName: 'app or org name',
+            ownerType: clmAppLocations.isApplication() ? 'application' : 'organization',
+            members: []
+          },{
+            ownerId: 'id',
+            ownerName: 'app or org name',
+            ownerType: 'organization',
+            members: []
+          }]
+        };
+        
+        for ( var j = 0 ; j < 100 ; j++ ) {
+          var member = {
+            type: '',
+            internalName: 'Member ' + (j + 1) + '_' + (i + 1),
+            displayName: 'Member ' + (j + 1) + '_' + (i + 1)
+          };
+          role.membersByOwner[j%2].members.push(member);
         }
-        $scope.context.roles.push(testItem);
+        
+        $scope.context.roles.push(role);
       }
-
-      // TODO: uncomment following code when server ready
-      /*
-       * RoleStore.refresh().then(function(data) { $scope.context.roles = data; }, function(error) { $scope.error =
-       * error; });
-       */
+      /*      
+      RoleMappingStore.refresh().then(function(data) {
+        $scope.context.roles = data.membersByRole;
+      }, function(error) {
+        $scope.error = error;
+      });
+      */
     };
 
     $scope.editClick = function(role) {
-      $scope.context.roleEditMap[role.id] = role;
+      $scope.context.roleEditMap[role.roleId] = role;
       $scope.$broadcast('roleEditClick', {
         roleId: role.id
       });
@@ -61,15 +79,35 @@
     
     $scope.getUserNames = function(role) {
       var value = null;
-      angular.forEach(role.users, function(user){
-        if (!value) {
-          value = user.name;
-        } else {
-          value += ', ' + user.name;
+      angular.forEach(role.membersByOwner, function(owner){
+        if (owner.ownerId === clmAppLocations.getEntityId() ) {
+          angular.forEach(owner.members, function(member){
+            if (!value) {
+              value = member.displayName;
+            } else {
+              value += ', ' + member.displayName;
+            }
+          });
         }
       });
       return value;
-    }
+    };
+    
+    $scope.getInheritedUserNames = function(role) {
+      var value = null;
+      angular.forEach(role.membersByOwner, function(owner){
+        if (owner.ownerId !== clmAppLocations.getEntityId() ) {
+          angular.forEach(owner.members, function(member){
+            if (!value) {
+              value = member.displayName;
+            } else {
+              value += ', ' + member.displayName;
+            }
+          });
+        }
+      });
+      return value;
+    };
 
     $scope.doLoad();
   }]);
@@ -160,9 +198,8 @@
       });
     };
 
-    $scope.removeUser = function ($parentIndex, $index) {
-      if ($parentIndex === 0)
-        $scope.mappings[0].members.splice($index, 1);
+    $scope.removeUser = function ($index) {
+      $scope.mappings[0].members.splice($index, 1);
     };
 
     $scope.getRealname = function (user) {
@@ -278,18 +315,57 @@
     };
   }]);
 
+  //TODO: need to rework this editor for latest server side changes, and list controller changes
   appSecurityModule.directive('appSecurityEditor', [function () {
     return {
       scope : {
         appSecurityEditor : '=appSecurityEditor',
-        roleId : '=',
+        context : '=',
+        currentRole : '=role',
         hide : '&'
       },
       controller : 'AppSecurityEditorController',
       templateUrl : 'appSecurityEditor',
       link : function (scope) {
+        function filterMembers(filterFn) {
+          var members = [];
+          angular.forEach(scope.context.roles, function(role){
+            if (filterFn(role)) {
+              angular.forEach(role.membersByOwner, function(owner){
+                angular.forEach(owner.members, function(member){
+                  if (members.indexOf(member) < 0) {
+                    members.push(member);
+                  }
+                });
+              });
+            }
+          });
+          return members;
+        }
+        scope.getMembers = function () {
+          var members = filterMembers(function(role){
+            if (scope.currentRole.roleId === role.roleId) {
+              return true;
+            }            
+            return false;
+          });
+          
+          return members;
+        };
+        
+        scope.getInheritedMembers = function() {
+          var members = filterMembers(function(role){
+            if (scope.currentRole.roleId != role.roleId) {
+              return true;
+            }            
+            return false;
+          });
+    
+          return members;
+        }
+        
         scope.isDirty = function () {
-          return !angular.equals(scope.mappings, scope.appSecurityEditor);
+          return false;//!angular.equals(scope.mappings, scope.appSecurityEditor);
         };
 
         scope.$watch('appSecurityEditor', function (newVal) {
@@ -297,22 +373,6 @@
             // TODO uncomment
 //          scope.users = angular.copy(newVal);
           }
-          // TODO Remove mock data
-          scope.mappings = [{
-            ownerId : 'bom1-12345678',
-            ownerName : 'Hal 9000',
-            ownerType : 'application',
-            members : []
-          },{
-            ownerId : '862f7a486bff473b9205007595399ffe',
-            ownerName : 'Ye Ole Org',
-            ownerType : 'organization',
-            members : [{
-              group : false,
-              internalName : 'oldman',
-              displayName : 'Old Man'
-            }]
-          }];
         });
 
         scope.$on('pageChangeStarted', function (e) {

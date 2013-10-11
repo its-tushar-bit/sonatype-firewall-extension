@@ -88,8 +88,9 @@
           return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
         },
 
-        getRoleMappingUrl : function (roleId) {
-          return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() + '/role/' + roleId;
+        getRoleMappingUrl: function(roleId) {
+          return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId()
+                  + (roleId ? ('/role/' + roleId) : '');
         },
 
         isApplication: isApplication

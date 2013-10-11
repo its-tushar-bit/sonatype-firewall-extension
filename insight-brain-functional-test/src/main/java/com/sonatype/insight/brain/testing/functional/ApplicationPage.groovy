@@ -20,5 +20,7 @@ class ApplicationPage extends Page {
     applicationSaveButton(required: false) { $('button', text:'Save') }
     securityTabButton(required: false) { $('div', 'on': 'selectedApplication.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
+    deleteButton(required: false) { $('a', 'title': 'Remove Application') }
+    deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteApplication();') }
   }
 }

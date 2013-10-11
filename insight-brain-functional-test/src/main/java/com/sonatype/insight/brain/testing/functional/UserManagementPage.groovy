@@ -35,7 +35,7 @@ class UserManagementPage extends Page {
     usernameInput(required: false) { usernameControl.find('input') }
     usernameRequiredError(required: false) { usernameControl.find('div', text: 'Field is required.') }
     usernameAlphaNumericError(required: false) { usernameControl.find('div', text: 'Must be alpha numeric.') }
-    usernameSpacesError(required: false) { usernameControl.find('div', text: startsWith('No leading') ) }
+    usernamePatternError(required: false) { usernameControl.find('div', text: 'Must not contain spaces.' ) }
     passwordControl(required: false) { userForm.find('div.controls', 4) }
     passwordInput(required: false) { passwordControl.find('input') }
     passwordRequiredError(required: false) { passwordControl.find('div', text: 'Field is required.') }

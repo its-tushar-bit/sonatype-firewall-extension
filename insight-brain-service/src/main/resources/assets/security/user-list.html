@@ -87,11 +87,11 @@
 				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.username.$invalid && userForm.username.$dirty }">
 					<label class="control-label user-form-label">Username:</label>
 					<div class="controls">
-						<input class="input-xlarge" name="username" type="text" ng-required="!user.id" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username" has-whitespace="suggestedUsername">
+						<input class="input-xlarge" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
 						<div show-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
+						<div show-if="userForm.username.$error.pattern && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must not contain spaces.</div>
 						<div show-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error">Enter a unique username</div>
-						<div show-if="userForm.username.$error.required && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Field is required.</div>
-						<div show-if="userForm.username.$error.spaces && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedUsername}}</div>
+						<div show-if="userForm.username.$error.required && userForm.username.$dirty" class="text-error">Field is required.</div>
 					</div>
 				</div>
 				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.password.$invalid && userForm.password.$dirty }">

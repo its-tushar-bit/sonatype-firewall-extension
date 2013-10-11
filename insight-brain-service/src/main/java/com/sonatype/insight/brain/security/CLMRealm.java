@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.Locale;
 
 import javax.inject.Named;
@@ -76,10 +75,8 @@ public class CLMRealm
 
   /**
    * Encrypts the given password. The returned string can be saved as hashed password.
-   * <p>
-   * The input password char array is zeroed out.
    */
-  public String encryptPassword(char[] password) {
+  public String encryptPassword(String password) {
     if (password == null) {
       return null;
     }
@@ -87,9 +84,6 @@ public class CLMRealm
     long start = System.currentTimeMillis();
 
     String encryptedPassword = passwordService.encryptPassword(password);
-
-    // Wipe out the input password char array
-    Arrays.fill(password, (char) 0);
 
     log.debug("Encrypted password in {} ms", System.currentTimeMillis() - start);
 

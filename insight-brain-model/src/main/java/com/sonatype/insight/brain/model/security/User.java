@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.security;
 
-import java.util.Arrays;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -36,7 +34,7 @@ public class User
   private String usernameLowercase;
 
   @Column(name = "password")
-  private char[] password;
+  private String password;
 
   @Column(name = "first_name")
   private String firstName;
@@ -91,11 +89,11 @@ public class User
   private void setUsernameLowercase(String usernameLowercase) {
   }
 
-  public char[] getPassword() {
+  public String getPassword() {
     return password;
   }
 
-  public void setPassword(char[] password) {
+  public void setPassword(String password) {
     this.password = password;
   }
 
@@ -121,13 +119,5 @@ public class User
 
   public void setEmail(String email) {
     this.email = email;
-  }
-
-  public void clearPassword() {
-    if (password == null) {
-      return;
-    }
-    Arrays.fill(password, (char) 0);
-    password = null;
   }
 }

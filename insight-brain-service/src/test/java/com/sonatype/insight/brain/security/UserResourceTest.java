@@ -75,7 +75,7 @@ public class UserResourceTest
     assertThat(user.getPassword(), nullValue());
 
     // Update to not null password
-    user.setPassword("testNullPassword".toCharArray());
+    user.setPassword("testNullPassword");
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -118,7 +118,7 @@ public class UserResourceTest
     // Add
     User user = new User("testCRUD", "testCRUDFirstName", "testCRUDLastName");
     user.setEmail("testCRUD@sonatype.com");
-    user.setPassword("testCRUDPassword".toCharArray());
+    user.setPassword("testCRUDPassword");
     response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -169,7 +169,7 @@ public class UserResourceTest
     assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
 
     // Update, password change
-    user.setPassword("testCRUDPasswordUpdated".toCharArray());
+    user.setPassword("testCRUDPasswordUpdated");
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -211,7 +211,7 @@ public class UserResourceTest
     // create some user
     User user = new User("test-user", "testFirstName", "testLastName");
     user.setEmail("test@sonatype.com");
-    user.setPassword("test-password".toCharArray());
+    user.setPassword("test-password");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -245,7 +245,7 @@ public class UserResourceTest
     // create some user
     User user = new User("test-user", "testFirstName", "testLastName");
     user.setEmail("test@sonatype.com");
-    user.setPassword("test-password".toCharArray());
+    user.setPassword("test-password");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -268,7 +268,7 @@ public class UserResourceTest
     // Add user so we can change his password
     User user = new User("testChangePassword", "testChangePasswordFirstName", "testChangePasswordLastName");
     user.setEmail("testChangePassword@sonatype.com");
-    user.setPassword("testChangePasswordPassword".toCharArray());
+    user.setPassword("testChangePasswordPassword");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -278,14 +278,14 @@ public class UserResourceTest
 
     // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();
-    dto.oldPassword = "badPass".toCharArray();
-    dto.newPassword = "doesntmatter".toCharArray();
+    dto.oldPassword = "badPass";
+    dto.newPassword = "doesntmatter";
 
     response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
     assertResponseStatus(400, response);
 
     // Can change password with correct input
-    dto.oldPassword = "testChangePasswordPassword".toCharArray();
+    dto.oldPassword = "testChangePasswordPassword";
 
     response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
     assertResponseStatus(204, response);

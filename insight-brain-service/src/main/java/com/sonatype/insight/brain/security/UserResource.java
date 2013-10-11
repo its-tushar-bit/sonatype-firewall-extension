@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -70,7 +69,7 @@ public class UserResource
   public User addUser(User user) {
     user.setId(null);
     if (user.getPassword() != null) {
-      user.setPassword(clmRealm.encryptPassword(user.getPassword()).toCharArray());
+      user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     }
     new UserDAO().insert(user);
 
@@ -85,7 +84,7 @@ public class UserResource
   public User updateUser(User user) {
     UserDAO dao = new UserDAO();
 
-    if (Arrays.equals(FAKE_PASSWORD.toCharArray(), user.getPassword())) {
+    if (FAKE_PASSWORD.equals(user.getPassword())) {
       // We don't have a new password, so we need to retrieve the existing one and fill it in the user object to be
       // updated.
       User existingUser = dao.getByIdNotNull(user.getId());
@@ -93,7 +92,7 @@ public class UserResource
     }
     else if (user.getPassword() != null) {
       // We have a new password, encrypt it.
-      user.setPassword(clmRealm.encryptPassword(user.getPassword()).toCharArray());
+      user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     }
     dao.update(user);
 
@@ -139,27 +138,18 @@ public class UserResource
       throw new BadRequestException("Invalid credentials supplied.");
     }
 
-    user.setPassword(clmRealm.encryptPassword(password.newPassword).toCharArray());
+    user.setPassword(clmRealm.encryptPassword(password.newPassword));
 
     dao.update(user);
-
-    password.clear();
-    clearUserPassword(user);
   }
 
   private void clearUserPassword(User user) {
-    user.clearPassword();
-    user.setPassword(FAKE_PASSWORD.toCharArray());
+    user.setPassword(FAKE_PASSWORD);
   }
 
   public static final class ChangePasswordDTO
   {
-    public char[] oldPassword;
-    public char[] newPassword;
-
-    public void clear() {
-      Arrays.fill(newPassword, (char) 0);
-      Arrays.fill(oldPassword, (char) 0);
-    }
+    public String oldPassword;
+    public String newPassword;
   }
 }

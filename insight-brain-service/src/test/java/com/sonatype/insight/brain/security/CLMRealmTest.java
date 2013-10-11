@@ -13,9 +13,8 @@ import com.sonatype.insight.brain.model.security.User;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
-import org.apache.shiro.authc.AuthenticationInfo;
-
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
@@ -66,9 +65,8 @@ public class CLMRealmTest
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
-    assertThat(
-        (char[]) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=".toCharArray()));
+    assertThat((String) authenticationInfo.getCredentials(),
+        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M="));
   }
 
   /**
@@ -109,9 +107,8 @@ public class CLMRealmTest
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
     // The credentials must be the hashed password from the db, not the (wrong) password or its hash passed in as param.
-    assertThat(
-        (char[]) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=".toCharArray()));
+    assertThat((String) authenticationInfo.getCredentials(),
+        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M="));
   }
 
   /**
@@ -167,9 +164,8 @@ public class CLMRealmTest
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
-    assertThat(
-        (char[]) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M=".toCharArray()));
+    assertThat((String) authenticationInfo.getCredentials(),
+        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M="));
   }
 
   /**
@@ -191,14 +187,11 @@ public class CLMRealmTest
 
   @Test
   public void testEncryptPassword() {
-    char[] password = "admin123".toCharArray();
+    String password = "admin123";
     String encrypted = realm.encryptPassword(password);
     assertThat(encrypted, notNullValue());
     assertThat(encrypted, startsWith("$shiro1$"));
     assertThat(encrypted.length(), greaterThan(8));
-    for (char c : password) {
-      assertThat(c, is((char) 0));
-    }
   }
 
   @Test

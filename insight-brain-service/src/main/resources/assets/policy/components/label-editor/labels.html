@@ -40,6 +40,7 @@
             </div>
           </div>
           <em ng-show='labels.length == 0'>No labels available</em>
+          <div clm-alerts='alerts'></div>
         </div>
         <div show-if='applicableLabel.editable && selectedLabel' style='margin-left:25px'>
           <div class='fade in' style='width:830px' ng-controller='LabelEditorController'>
@@ -60,7 +61,7 @@
                     <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{selectedLabel.label}}</span>
                   </div>
                 </div>
-                <div clm-alerts='alerts'></div>
+                <div clm-alerts='editorAlerts'></div>
                 <div class="pull-right">
                   <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
                   <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>

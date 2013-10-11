@@ -47,9 +47,14 @@
     }
   ]);
 
+  function showAlert(alerts, alert){
+    alerts.length = 0;
+    alerts.push(alert);
+  };
+
   labelModule.controller('LabelController', [
-    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
-    function($scope, $http, $q, clmAppLocations, messages, clmResource, LabelStore) {
+    '$scope', '$http', '$q', '$modal', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
+    function($scope, $http, $q, $modal, clmAppLocations, messages, clmResource, LabelStore) {
       $scope.alerts = [];
 
       function deselect() {
@@ -61,8 +66,16 @@
         $scope.alerts.length = 0;
       }
 
-      function isDirty() {
-        return $scope.selectedLabel && $scope.selectedLabel.isDirty();
+      function executeIfClean(fn) {
+        if ($scope.selectedLabel && $scope.selectedLabel.isDirty()) {
+          showAlert($scope.alerts, {
+            type: 'error',
+            msg: 'Please finish editing before trying to modify another label.'
+          });
+        }
+        else {
+          fn();
+        }
       }
 
       $scope.deselect = deselect;
@@ -92,40 +105,53 @@
         if (!isEditable) {
           return;
         }
-        if (isDirty()) {
-          $scope.alerts.push({
-            type: 'error',
-            msg: 'Please finish editing before trying to modify another label.'
-          });
-        }
-        else {
+        executeIfClean(function() {
           deselect();
           $scope.selectedLabel = label.$clone();
-        }
+        });
       };
 
       $scope.createNew = function() {
-        if (isDirty()) {
-          $scope.alerts.push({
-            type: 'error',
-            msg: 'Please finish editing before trying to create a label.'
-          });
-        }
-        else {
+        executeIfClean(function() {
           $scope.label = LabelStore.create();
           $scope.selectedLabel = $scope.label;
-        }
+        });
       };
 
       $scope.deleteLabel = function(label) {
-        label.$delete().then(function() {
-          deselect();
-        }, function(error) {
-          deselect();
-          $scope.alerts.push({
-            type: 'error',
-            msg: 'An error occurred while deleting the label. (' +
-                messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
+        executeIfClean(function() {
+          $modal.open({
+            scope: $scope,
+            backdrop: 'static',
+            template: '<div class="modal-header"><h3>Delete Label</h3></div>' +
+                '<div class="modal-body">' +
+                  'Are you sure you want to delete the label <strong>{{label.label}}</strong>? ' + 
+                  'This will delete all associated component labels, if any.' + 
+                '</div>' +
+                '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
+                '<button class="btn btn-danger" ng-click="doDeleteLabel()">Confirm</button></div>',
+            controller: [
+              '$scope', function(modalScope) {
+                modalScope.label = label;
+                modalScope.cancel = function() {
+                  deselect();
+                  modalScope.$close();
+                };
+                modalScope.doDeleteLabel = function() {
+                  label.$delete().then(function() {
+                    deselect();
+                  }, function(error) {
+                    deselect();
+                    showAlert($scope.alerts, {
+                      type: 'error',
+                      msg: 'An error occurred while deleting the label ' + label.label + '. (' +
+                          messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
+                    });
+                  });
+                  modalScope.$close(true);
+                };
+              }
+            ]
           });
         });
       };
@@ -144,12 +170,14 @@
     function($scope, $http, clmAppLocations, messages, LabelStore) {
       function errorFn(error) {
         $scope.submitActive = false;
-        $scope.alerts.push({
+        showAlert($scope.editorAlerts, {
           type: 'error',
           msg: 'An error occurred while saving the label. (' +
               messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
         });
       }
+
+      $scope.editorAlerts = []; 
 
       $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 

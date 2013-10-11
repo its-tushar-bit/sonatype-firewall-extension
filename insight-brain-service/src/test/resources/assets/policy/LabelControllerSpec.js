@@ -1,5 +1,4 @@
 describe('LabelController.js', function() {
-
   var LabelMockData = {
     getLabels: function() {
       return LabelMockData.getApplicableLabels().labelsByOwner[0].labels;
@@ -47,7 +46,29 @@ describe('LabelController.js', function() {
     }
   };
 
+  var testScope, dialogScope;
+
   beforeEach(module('Labels', function($provide) {
+    $provide.value('$modal', {
+      open: function(config) {
+        dialogScope = testScope.$new();
+        dialogScope.$close = function() {
+        };
+        inject(function($controller) {
+          $controller(config.controller, {
+            $scope: dialogScope
+          });
+        });
+        return {
+          result: {
+            then: function(success, failure) {
+              success();
+            }
+          }
+        };
+      }
+    });
+
     $provide.factory('hudson', [
       '$http', function($http) {
         return $http;
@@ -163,6 +184,7 @@ describe('LabelController.js', function() {
       $httpBackend.expectDELETE(CLMAppLocations.getLabelsUrl() + '/' +
           testScope.applicableLabels[0].labels[0].id).respond(204);
       scope.deleteLabel(testScope.applicableLabels[0].labels[0]);
+      dialogScope.doDeleteLabel();
       $httpBackend.flush();
       expect(testScope.applicableLabels[0].labels.length).toEqual(1);
     }));

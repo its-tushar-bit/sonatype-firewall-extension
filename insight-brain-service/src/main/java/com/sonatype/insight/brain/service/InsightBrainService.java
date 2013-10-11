@@ -109,6 +109,9 @@ public class InsightBrainService
 
     config.getSonatypeWork().mkdirs();
 
+    config.getTempDir().mkdirs();
+    System.setProperty("java.io.tmpdir", config.getTempDir().getAbsolutePath());
+
     env.enableJerseyFeature(ResourceConfig.FEATURE_CANONICALIZE_URI_PATH);
     env.enableJerseyFeature(ResourceConfig.FEATURE_NORMALIZE_URI);
     

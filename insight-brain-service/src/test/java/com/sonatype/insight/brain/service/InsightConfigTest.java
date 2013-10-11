@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,5 +49,14 @@ public class InsightConfigTest
 
     config.setCdnUrl(null);
     Assert.assertEquals(false, config.isValidCdnUrl());
+  }
+
+  @Test
+  public void testTempDir() {
+    InsightConfig config = new InsightConfig();
+    Assert.assertEquals("sonatype-work/clm-server/temp".replaceAll("/", File.separator), config.getTempDir().getPath());
+
+    config.setTempDir("./temp");
+    Assert.assertEquals("./temp".replaceAll("/", File.separator), config.getTempDir().getPath());
   }
 }

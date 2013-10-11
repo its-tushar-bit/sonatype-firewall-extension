@@ -20,6 +20,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.sonatype.licensing.LicensingException;
@@ -38,9 +39,12 @@ public class ProductLicenseResource
 
   private final Logger log = LoggerFactory.getLogger(ProductLicenseResource.class);
 
+  private final InsightWork insightWork;
+
   @Inject
-  public ProductLicenseResource(CLMLicenseManager licenseManager) {
+  public ProductLicenseResource(CLMLicenseManager licenseManager, final InsightWork insightWork) {
     this.licenseManager = licenseManager;
+    this.insightWork = insightWork;
   }
 
   @POST
@@ -66,6 +70,17 @@ public class ProductLicenseResource
 
       // IE<10 will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
       // error page which then fails to load because of cross site scripting probs
+      if (forceSuccess) {
+        return msg;
+      }
+
+      throw new BadRequestException(msg, e);
+    } catch (IOException e) {
+      String msg = "The license file was unable to install. Please ensure server has access to "
+          + insightWork.getTempDir().getAbsolutePath() + ". If the problem persists, please contact our support team.";
+
+      log.error("Unable to install license", e);
+
       if (forceSuccess) {
         return msg;
       }

@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.validation.ValidationMethod;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +52,9 @@ public class InsightConfig
   @JsonProperty
   private String sonatypeWork = "sonatype-work/clm-server";
 
+  @JsonProperty
+  private String temporaryDirectory;
+
   @NotNull
   @JsonProperty
   private int releaseGraphCacheSize = 1000;
@@ -79,6 +83,14 @@ public class InsightConfig
     return new File(sonatypeWork, "config");
   }
 
+  public File getTempDir() {
+    if (StringUtils.isNotEmpty(temporaryDirectory)) {
+      return new File(temporaryDirectory);
+    } else {
+      return new File(sonatypeWork, "temp");
+    }
+  }
+
   public void setProxyConfig(ProxyConfig proxyConfig) {
     this.proxy = proxyConfig;
   }
@@ -97,6 +109,10 @@ public class InsightConfig
 
   public void setSonatypeWork(final String sonatypeWork) {
     this.sonatypeWork = sonatypeWork;
+  }
+
+  public void setTempDir(final String temporaryDirectory) {
+    this.temporaryDirectory = temporaryDirectory;
   }
 
   public String getBaseUrl() {

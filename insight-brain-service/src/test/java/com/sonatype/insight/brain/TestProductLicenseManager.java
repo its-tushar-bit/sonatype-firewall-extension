@@ -41,7 +41,9 @@ public class TestProductLicenseManager
 
   private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
-  private boolean forceInstallFailure = false;
+  private boolean forceInstallLicenseFailure = false;
+
+  private boolean forceInstallIOFailure = false;
 
   public TestProductLicenseManager() {
     this(false);
@@ -63,8 +65,12 @@ public class TestProductLicenseManager
 
   @Override
   public void installLicense(final InputStream licenseFile) throws IOException, LicensingException {
-    if (forceInstallFailure) {
+    if (forceInstallLicenseFailure) {
       throw new LicensingException("An error occurred");
+    }
+
+    if (forceInstallIOFailure) {
+      throw new IOException("An IO error occurred");
     }
 
     valid = true;
@@ -164,7 +170,11 @@ public class TestProductLicenseManager
     }
   }
 
-  public void forceInstallFailure(boolean forceInstallFailure) {
-    this.forceInstallFailure = forceInstallFailure;
+  public void forceInstallLicenseFailure(boolean forceInstallFailure) {
+    this.forceInstallLicenseFailure = forceInstallFailure;
+  }
+
+  public void setForceInstallIOFailure(boolean forceInstallIOFailure) {
+    this.forceInstallIOFailure = forceInstallIOFailure;
   }
 }

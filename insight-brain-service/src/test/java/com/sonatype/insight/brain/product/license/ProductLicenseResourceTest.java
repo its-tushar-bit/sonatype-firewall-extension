@@ -24,7 +24,7 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedWithNormalBrowser() throws Exception {
-    getLicenseManager().forceInstallFailure(true);
+    getLicenseManager().forceInstallLicenseFailure(true);
 
     Response response = installLicense(false);
     assertResponseStatus(400, response);
@@ -35,7 +35,7 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedWithIE() throws Exception {
-    getLicenseManager().forceInstallFailure(true);
+    getLicenseManager().forceInstallLicenseFailure(true);
 
     // IE is expecting a 200 response back, so we need to validate the error
     Response response = installLicense(true);
@@ -43,5 +43,16 @@ public class ProductLicenseResourceTest
 
     assertEquals("The provided license file is invalid. Please verify you selected the correct file."
         + " If the problem persists, please contact our support team.", response.getResponseBody());
+  }
+
+  @Test
+  public void testInstallFailedIOError() throws Exception {
+    getLicenseManager().setForceInstallIOFailure(true);
+
+    Response response = installLicense(false);
+    assertResponseStatus(400, response);
+
+    assertEquals("The license file was unable to install. Please ensure server has access to "
+        + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.", response.getResponseBody());
   }
 }

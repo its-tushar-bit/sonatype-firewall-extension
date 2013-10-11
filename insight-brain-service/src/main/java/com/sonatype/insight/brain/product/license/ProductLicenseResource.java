@@ -52,7 +52,6 @@ public class ProductLicenseResource
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
   public String installLicense(@FormDataParam("file") InputStream is, @QueryParam("forceSuccess") boolean forceSuccess)
-      throws IOException
   {
     try {
       licenseManager.installLicense(is);

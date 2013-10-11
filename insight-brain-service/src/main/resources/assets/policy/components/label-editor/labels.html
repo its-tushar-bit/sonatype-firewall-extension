@@ -45,7 +45,7 @@
           <div class='fade in' style='width:830px' ng-controller='LabelEditorController'>
             <form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
               <div class="modal-body" style="padding: 15px 0;">
-                <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.empty || labelEditor.label.$error.invalid }'>
+                <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.invalid }'>
                   <div class="controls" style="margin-left: 0;">
                     <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" focus-input="true" required item-label>
                     <span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>

@@ -33,8 +33,8 @@
 	<script type='text/ng-template' id='ltgeditor'>
 <div>
 	<div class='control-group halfSize'
-			ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.empty ||
-			licenseGroupEditor.name.$error.alphaNumeric || licenseGroupEditor.name.$error.spaces}'>
+			ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.alphaNumeric
+			|| licenseGroupEditor.name.$error.spaces}'>
 		<div class='controls'>
 			<input id='licenseGroupEditorName' name='name' type='text'
 				class='input' maxlength='60' ng-model='selectedGroup.name'

@@ -1,5 +1,9 @@
 describe('AppSecurityController', function() {
-  beforeEach(module('ApplicationSecurityModule'));
+  beforeEach(module('ApplicationSecurityModule', 'CLMAppLocation', function ($provide) {
+    $provide.value('$modal', {});
+    $provide.value('ApplicationId', 'bom1-12345678');
+    $provide.value('OrganizationId', '');
+  }));
 
   describe('AppSecurityEditorController', function () {
     var scope = null,
@@ -9,13 +13,25 @@ describe('AppSecurityController', function() {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
 
-      parentScope.users = {
-        applied : [],
-        inherited : [{
-          firstName : 'Old',
-          lastName : 'Man'
+      parentScope.mappings = [{
+        ownerId : 'bom1-12345678',
+        ownerName : 'Hal 9000',
+        ownerType : 'application',
+        members : [{
+          group : false,
+          internalName : 'oldlady',
+          displayName : 'Old Lady'
         }]
-      };
+      },{
+        ownerId : '862f7a486bff473b9205007595399ffe',
+        ownerName : 'Ye Ole Org',
+        ownerType : 'organization',
+        members : [{
+          group : false,
+          internalName : 'oldman',
+          displayName : 'Old Man'
+        }]
+      }];
 
       $controller('AppSecurityEditorController', {
         $scope : scope
@@ -28,17 +44,29 @@ describe('AppSecurityController', function() {
 
     it('Add User', function () {
       scope.$apply(function () {
-        scope.addUser({id : 'bar'});
+        scope.addUser({
+          username : 'testuser',
+          firstName : 'Fred',
+          lastName : 'Flintstone'
+        });
       });
-      expect(parentScope.users.applied).toEqual([{id : 'bar'}]);
+      expect(parentScope.mappings[0].members).toEqual([{
+        group : false,
+        internalName : 'oldlady',
+        displayName : 'Old Lady'
+      },{
+        group : false,
+        internalName : 'testuser',
+        displayName : 'Fred Flintstone'
+      }]);
       // TODO Persistence
     });
 
     it('Remove User', function () {
       scope.$apply(function () {
-        scope.removeUser({id : 'bar'});
+        scope.removeUser(0);
       });
-      expect(parentScope.users.applied).toEqual([{id : 'bar'}]);
+      expect(parentScope.mappings[0].members).toEqual([]);
       // TODO Persistence
     });
 
@@ -105,15 +133,55 @@ describe('AppSecurityController', function() {
     });
 
     it('Test', function () {
-      var x = [{ foo : 'bar' },{ foo : 'xxx' },{ foo : 'zzz' }];
+      var users = [{
+            username: 'fred',
+            firstName: 'Fred',
+            lastName : 'Flintstone'
+          }, {
+            username: 'barn',
+            firstName: 'Barney',
+            lastName : 'Rubble'
+          }, {
+            username: 'wilma',
+            firstName: 'Wilma',
+            lastName : 'Flintstone'
+          }],
+        mappings = [{
+          members: [{
+            group: false,
+            internalName: 'fred',
+            displayName: 'Fred Flintstone'
+          }, {
+            group: false,
+            internalName: 'barn',
+            displayName: 'Barney Rubble'
+          }, {
+            group: false,
+            internalName: 'wilma',
+            displayName: 'Wilma Flintstone'
+          }]
+        }];
 
-      expect(filter(x, [{ foo : 'bar' }])).toEqual([{ foo : 'xxx' },{ foo : 'zzz' }]);
+      expect(filter(users, [{
+        members: [{
+          internalName: 'fred',
+          displayName: 'Fred Flintstone'
+        }]
+      }])).toEqual([{
+        username: 'barn',
+        firstName: 'Barney',
+        lastName : 'Rubble'
+      }, {
+        username: 'wilma',
+        firstName: 'Wilma',
+        lastName : 'Flintstone'
+      }]);
       // Original array should not have been modified
-      expect(x.length).toEqual(3);
+      expect(users.length).toEqual(3);
 
-      expect(filter(x, x)).toEqual([]);
+      expect(filter(users, mappings)).toEqual([]);
 
-      expect(filter(x, [])).toEqual(x);
+      expect(filter(users, [{ members : [] }])).toEqual(users);
     });
   });
 });

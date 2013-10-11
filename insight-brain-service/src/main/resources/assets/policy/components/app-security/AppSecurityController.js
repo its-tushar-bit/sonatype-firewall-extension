@@ -103,8 +103,92 @@
     };
   });
 
-  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', 'Messages', function ($scope, $http, $timeout, Messages) {
+  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages) {
     var filterTimeout = null;
+
+    $scope.alerts = [];
+
+    $scope.buttons = [{
+      name : 'Cancel',
+      isDisabled : function () {
+        return false;
+      },
+      click : function () {
+        if ($scope.isDirty()) {
+          $modal.open({
+            backdrop : 'static',
+            template :  '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
+              '<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>' +
+              '<div class="modal-footer">' +
+              '<button type="button" class="btn" ng-click="$dismiss(false)">Cancel</button>' +
+              '<button type="button" class="btn btn-danger" ng-click="$close(true)">Continue</button>' +
+              '</div>'
+          }).result.then(function () {
+            $scope.hide();
+          });
+        } else {
+          $scope.hide();
+        }
+      }
+    }, {
+      name : 'Save',
+      type : 'primary',
+      isDisabled : function () {
+        return false;
+      },
+      click : function () {
+        if ($scope.isDirty()) {
+          return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
+            $scope.hide();
+          }).error(function () {
+            $scope.alerts.push({
+              type: 'error',
+              msg: Messages.getHttpErrorMessage(arguments)
+            });
+          });
+        } else {
+          $scope.hide();
+        }
+      }
+    }];
+
+    $scope.addUser = function (user) {
+      $scope.mappings[0].members.push({
+        group : false,
+        displayName : $scope.getRealname(user),
+        internalName : user.username
+      });
+    };
+
+    $scope.removeUser = function ($parentIndex, $index) {
+      if ($parentIndex === 0)
+        $scope.mappings[0].members.splice($index, 1);
+    };
+
+    $scope.getRealname = function (user) {
+      if (!user) {
+        return;
+      }
+      var name = '';
+      if (user.firstName) {
+        name += user.firstName + ' ';
+      }
+      if (user.lastName) {
+        name += user.lastName;
+      }
+      return name.trim();
+    };
+
+    $scope.getTooltip = function (user) {
+      var tip = $scope.getRealname(user);
+      if (tip && user.email) {
+        tip += ' ';
+      }
+      if (user.email) {
+        tip += '<' + user.email + '>';
+      }
+      return tip;
+    };
 
     $scope.$watch('queryString', function (newVal) {
       if (!newVal) {
@@ -134,82 +218,108 @@
         });
       }, 500);
     });
-
-    $scope.addUser = function (user) {
-      $scope.users.applied.push(user);
-    };
-    $scope.removeUser = function ($index) {
-      $scope.users.applied.splice($index, 1);
-    };
-
-    $scope.getRealname = function (user) {
-      if (!user) {
-        return;
-      }
-      var name = '';
-      if (user.firstName) {
-        name += user.firstName + ' ';
-      }
-      if (user.lastName) {
-        name += user.lastName;
-      }
-      return name.trim();
-    };
-    $scope.getTooltip = function (user) {
-      var tip = $scope.getRealname(user);
-      if (tip && user.email) {
-        tip += ' ';
-      }
-      if (user.email) {
-        tip += '<' + user.email + '>';
-      }
-      return tip;
-    };
   }]);
 
   /**
    * Filter which removes users present in a second array.
    */
   appSecurityModule.filter('userNotIn', function () {
-    return function (input, arg) {
-      if (angular.isArray(input) && angular.isArray(arg)) {
-        input = angular.copy(input);
-        for (var i=0; i<input.length; i++) {
-          for (var a=0; a<arg.length; a++) {
-            if (angular.equals(input[i], arg[a])) {
-              input.splice(i, 1);
-              i--;
-              break;
+    return function (input, mappings) {
+      var result = null,
+          modified = false;
+
+      if (angular.isArray(input) && angular.isArray(mappings)) {
+        result = angular.copy(input);
+
+        for (var i=0; i<result.length; i++) {
+          for (var m=0; m<mappings.length; m++) {
+            for (var x=0; x<mappings[m].members.length; x++) {
+              if (result[i].username === mappings[m].members[x].internalName) {
+                result.splice(i, 1);
+                i--;
+                m = mappings.length;
+                modified = true;
+                break;
+              }
             }
           }
         }
       }
-      return input;
+      return modified ? result : input;
     };
   });
+
+  appSecurityModule.directive('clmButtons', [function () {
+    return {
+      scope : {
+        buttons : '=clmButtons'
+      },
+      template : '<span ng-repeat="button in buttons"> <button type="button" class="btn" ng-disabled="isDisabled($index)"' +
+          ' ng-class="{\'btn-danger\' : button.type == \'danger\',\'btn-primary\' : button.type == \'primary\'}"' +
+          ' ng-click="buttonClick($index)">{{button.name}}</button></span>',
+      link: function(scope, element, attrs) {
+        var disabled = false;
+
+        scope.buttonClick = function ($index) {
+          function fn() {
+            disabled = false;
+          }
+
+          var promise = scope.buttons[$index].click.apply(scope, arguments);
+          if (promise) {
+            disabled = true;
+            promise.then(fn, fn);
+          }
+        };
+        scope.isDisabled = function ($index) {
+          return disabled || scope.buttons[$index].isDisabled();
+        };
+      }
+    };
+  }]);
 
   appSecurityModule.directive('appSecurityEditor', [function () {
     return {
       scope : {
         appSecurityEditor : '=appSecurityEditor',
+        roleId : '=',
         hide : '&'
       },
       controller : 'AppSecurityEditorController',
       templateUrl : 'appSecurityEditor',
       link : function (scope) {
+        scope.isDirty = function () {
+          return !angular.equals(scope.mappings, scope.appSecurityEditor);
+        };
+
         scope.$watch('appSecurityEditor', function (newVal) {
-          // TODO uncomment
+          if (newVal) {
+            // TODO uncomment
 //          scope.users = angular.copy(newVal);
+          }
+          // TODO Remove mock data
+          scope.mappings = [{
+            ownerId : 'bom1-12345678',
+            ownerName : 'Hal 9000',
+            ownerType : 'application',
+            members : []
+          },{
+            ownerId : '862f7a486bff473b9205007595399ffe',
+            ownerName : 'Ye Ole Org',
+            ownerType : 'organization',
+            members : [{
+              group : false,
+              internalName : 'oldman',
+              displayName : 'Old Man'
+            }]
+          }];
         });
 
-        // TODO Remove mock data
-        scope.users = {
-          applied : [],
-          inherited : [{
-            firstName : 'Old',
-            lastName : 'Man'
-          }]
-        };
+        scope.$on('pageChangeStarted', function (e) {
+          if (scope.isDirty()) {
+            e.preventDefault();
+          }
+        });
       }
     };
   }]);

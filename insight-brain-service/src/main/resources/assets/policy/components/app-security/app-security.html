@@ -14,11 +14,11 @@
 				<h5>Applied</h5>
 				<div>
 					<div>
-						<div ng-repeat='user in users.applied' ng-click='removeUser($index)' class='licenseSelectListItem'>
-							<i class='icon-minus-sign'></i>&nbsp;<span title='{{getTooltip(user)}}'>{{getRealname(user)}}</span>
-						</div>
-						<div ng-repeat='user in users.inherited' ng-click='removeUser($index)' class='licenseSelectListItem'>
-							<i class='emptyIconGlyph'></i>&nbsp;<span title='{{getTooltip(user)}}'>{{getRealname(user)}}</span>
+						<div ng-repeat='mapping in mappings'>
+							<div ng-repeat='member in mapping.members' ng-click='removeUser($parent.$index, $index)'
+									class='licenseSelectListItem'>
+								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -27,7 +27,7 @@
 				<h5>Available</h5>
 				<div>
 					<div>
-						<div ng-repeat='user in queryResults | userNotIn:users.applied | userNotIn:users.inherited' ng-click='addUser(user)' class='licenseSelectListItem'>
+						<div ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='licenseSelectListItem'>
 							<i class='icon-plus-sign'></i>&nbsp;<span title='{{getTooltip(user)}}'>{{getRealname(user)}}</span>
 						</div>
 						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && !queryResults.length && lastQuery == queryString'>
@@ -38,8 +38,8 @@
 			</div>
 		</div>
 		<div style='text-align:right; padding: 10px 0px; '>
-			<button class='btn' ng-click='hide()'>Cancel</button>
-			<button class='btn btn-primary' ng-click='hide()'>Save</button>
+			<div clm-alerts='alerts'></div>
+			<span clm-buttons='buttons'></span>
 		</div>
 	</div>
 	</script>

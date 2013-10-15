@@ -192,7 +192,7 @@
 
     $scope.addUser = function (user) {
       $scope.mappings[0].members.push({
-        group : false,
+        type : "USER",
         displayName : $scope.getRealname(user),
         internalName : user.username
       });

@@ -18,7 +18,7 @@ describe('AppSecurityController', function() {
         ownerName : 'Hal 9000',
         ownerType : 'application',
         members : [{
-          group : false,
+          type: "USER",
           internalName : 'oldlady',
           displayName : 'Old Lady'
         }]
@@ -27,7 +27,7 @@ describe('AppSecurityController', function() {
         ownerName : 'Ye Ole Org',
         ownerType : 'organization',
         members : [{
-          group : false,
+          type: "USER",
           internalName : 'oldman',
           displayName : 'Old Man'
         }]
@@ -51,11 +51,11 @@ describe('AppSecurityController', function() {
         });
       });
       expect(parentScope.mappings[0].members).toEqual([{
-        group : false,
+        type: "USER",
         internalName : 'oldlady',
         displayName : 'Old Lady'
       },{
-        group : false,
+        type: "USER",
         internalName : 'testuser',
         displayName : 'Fred Flintstone'
       }]);
@@ -148,15 +148,15 @@ describe('AppSecurityController', function() {
           }],
         mappings = [{
           members: [{
-            group: false,
+            type: "USER",
             internalName: 'fred',
             displayName: 'Fred Flintstone'
           }, {
-            group: false,
+            type: "USER",
             internalName: 'barn',
             displayName: 'Barney Rubble'
           }, {
-            group: false,
+            type: "USER",
             internalName: 'wilma',
             displayName: 'Wilma Flintstone'
           }]

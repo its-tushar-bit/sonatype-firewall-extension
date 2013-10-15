@@ -140,10 +140,19 @@
         $scope.saving = true;
         $scope.user.$save().then(function(data) {
           if ($scope.context.userEditMap[user.id]) {
-            $scope.context.userEditMap[user.id] = null
+            $scope.context.userEditMap[user.id] = null;
           } else {
             $scope.user = null;
           }
+          $scope.context.users.sort(function(a, b) {
+            if (a.usernameLowercase < b.usernameLowercase) {
+              return -1;
+            } else if (a.usernameLowercase > b.usernameLowercase) {
+              return 1;
+            } else {
+              return 0;
+            }
+          });
           $scope.saving = false;
         }, function(error) {
           $scope.errorMsg = error.data;

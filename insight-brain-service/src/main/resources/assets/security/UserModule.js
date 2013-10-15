@@ -136,6 +136,7 @@
     }
     $scope.saveClick = function(user) {
       if (!$scope.saving) {
+        $scope.errorMsg = null;
         $scope.saving = true;
         $scope.user.$save().then(function(data) {
           if ($scope.context.userEditMap[user.id]) {

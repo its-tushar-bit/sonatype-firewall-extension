@@ -186,13 +186,13 @@ class UserManagementSpec extends GebReportingSpec {
 
     then: "make sure validation error not shown"
       !usernameAlphaNumericError.displayed
-      !usernameSpacesError.displayed
+      !usernamePatternError.displayed
       
     when: "adding extra spaces"
       usernameInput << '  a'
       
     then: "make sure spaces validation error is shown"
-      usernameSpacesError.displayed
+      usernamePatternError.displayed
       
     when: "removing extra characters"
       usernameInput << Keys.BACK_SPACE
@@ -200,7 +200,7 @@ class UserManagementSpec extends GebReportingSpec {
       usernameInput << Keys.BACK_SPACE
       
     then: "make sure spaces validation error is removed"
-      !usernameSpacesError.displayed
+      !usernamePatternError.displayed
       !passwordRequiredError.displayed
       
     when: "check password required validation"

@@ -48,10 +48,12 @@ public class User
   public User() {
   }
 
-  public User(String username, String firstName, String lastName) {
+  public User(String username, String password, String firstName, String lastName, String email) {
     setUsername(username);
+    this.password = password;
     this.firstName = firstName;
     this.lastName = lastName;
+    this.email = email;
   }
 
   @Override

@@ -266,7 +266,7 @@ public class UserDAOTest
   @Test
   public void testValidateNullFirstName_Insert() {
     try {
-      createUser("username", null, "lastName", null);
+      createUser("username", "password", null /* firstName */, "lastName", "email@localhost");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
@@ -291,7 +291,7 @@ public class UserDAOTest
   @Test
   public void testValidateEmptyFirstName_Insert() {
     try {
-      createUser("username", "", "lastName", null);
+      createUser("username", "password", "", "lastName", "email@localhost");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
@@ -316,7 +316,7 @@ public class UserDAOTest
   public void testValidateFirstNameLength_Insert() {
     String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
     try {
-      createUser("username", firstName + "a", "lastName", null);
+      createUser("username", "password", firstName + "a", "lastName", "email@localhost");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
@@ -324,7 +324,7 @@ public class UserDAOTest
           + " characters or less."));
     }
 
-    createUser("username", firstName, "lastName", null);
+    createUser("username", "password", firstName, "lastName", "email@localhost");
   }
 
   @Test
@@ -349,7 +349,7 @@ public class UserDAOTest
   @Test
   public void testValidateNullLastName_Insert() {
     try {
-      createUser("username", "firstName", null, null);
+      createUser("username", "password", "firstName", null, "email@localhost");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
@@ -374,7 +374,7 @@ public class UserDAOTest
   @Test
   public void testValidateEmptyLastName_Insert() {
     try {
-      createUser("username", "firstName", "", null);
+      createUser("username", "password", "firstName", "", "email@localhost");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
@@ -399,7 +399,7 @@ public class UserDAOTest
   public void testValidateLastNameLength_Insert() {
     String lastName = StringUtils.repeat("a", UserDAO.MAX_LAST_NAME_SIZE);
     try {
-      createUser("username", "firstName", lastName + "a", null);
+      createUser("username", "password", "firstName", lastName + "a", "email@localhost");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
@@ -407,7 +407,7 @@ public class UserDAOTest
           + " characters or less."));
     }
 
-    createUser("username", "firstName", lastName, null);
+    createUser("username", "password", "firstName", lastName, "email@localhost");
   }
 
   @Test
@@ -433,14 +433,14 @@ public class UserDAOTest
   public void testValidateEmailLength_Insert() {
     String email = StringUtils.repeat("a", UserDAO.MAX_EMAIL_SIZE);
     try {
-      createUser("username", "firstName", "lastName", email + "a");
+      createUser("username", "password", "firstName", "lastName", email + "a");
       fail("Expected InvalidUserException");
     }
     catch (InvalidUserException expected) {
       assertThat(expected.getMessage(), is("The email must be " + UserDAO.MAX_EMAIL_SIZE + " characters or less."));
     }
 
-    createUser("username", "firstName", "lastName", email);
+    createUser("username", "password", "firstName", "lastName", email);
   }
 
   @Test
@@ -461,13 +461,113 @@ public class UserDAOTest
     new UserDAO().update(user);
   }
 
-  private User createUser(String username) {
-    return createUser(username, username + "First", username + "Last", null);
+  @Test
+  public void testValidateNullEmail_Insert() {
+    try {
+      createUser("username", "password", "firstname", "lastName", null /* email */);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The email is required."));
+    }
   }
 
-  private User createUser(String username, String firstName, String lastName, String email) {
-    User user = new User(username, firstName, lastName);
-    user.setEmail(email);
+  @Test
+  public void testValidateNullEmail_Update() {
+    User user = createUser("testValidateNullEmail");
+
+    user.setEmail(null);
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The email is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyEmail_Insert() {
+    try {
+      createUser("username", "password", "firstname", "lastName", " " /* email */);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The email is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyEmail_Update() {
+    User user = createUser("testValidateEmptyEmail");
+
+    user.setEmail(" ");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The email is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNullPassword_Insert() {
+    try {
+      createUser("username", null /* password */, "firstname", "lastName", "username@localhost");
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The password is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNullPassword_Update() {
+    User user = createUser("testValidateNullPassword");
+
+    user.setPassword(null);
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The password is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyPassword_Insert() {
+    try {
+      createUser("username", " " /* password */, "firstname", "lastName", "username@localhost");
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The password is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyPassword_Update() {
+    User user = createUser("testValidateEmptyPassword");
+
+    user.setPassword(" ");
+    try {
+      new UserDAO().update(user);
+      fail("Expected InvalidUserException");
+    }
+    catch (InvalidUserException expected) {
+      assertThat(expected.getMessage(), is("The password is required."));
+    }
+  }
+
+  private User createUser(String username) {
+    return createUser(username, username + "Password", username + "First", username + "Last", username
+        + "Email@localhost");
+  }
+
+  private User createUser(String username, String password, String firstName, String lastName, String email) {
+    User user = new User(username, password, firstName, lastName, email);
     new UserDAO().insert(user);
     usersToDelete.add(user);
     return user;

@@ -77,7 +77,7 @@ public class CLMRealm
    * Encrypts the given password. The returned string can be saved as hashed password.
    */
   public String encryptPassword(String password) {
-    if (password == null) {
+    if (password == null || password.trim().isEmpty()) {
       return null;
     }
 

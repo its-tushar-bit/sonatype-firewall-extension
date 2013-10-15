@@ -28,7 +28,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -56,53 +55,38 @@ public class UserResourceTest
   }
 
   @Test
-  public void testNullPassword() throws Exception {
+  public void testNullOrEmptyPassword() throws Exception {
     // Add a user with null password
-    User user = new User("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName");
-    user.setEmail("testNullPassword@sonatype.com");
+    User user = new User("testNullPassword", null /* password */, "testNullPasswordFirstName",
+        "testNullPasswordLastName", "testNullPassword@sonatype.com");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
-    assertResponseStatus(200, response);
-    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    usersToDelete.add(user);
-    assertThat(user.getId(), notNullValue());
-    assertUser("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
-    UserDAO dao = new UserDAO();
-    user = dao.getByIdNotNull(user.getId());
-    assertUser("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com", user);
-    assertThat(user.getPassword(), nullValue());
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The password is required."));
 
-    // Update to not null password
-    user.setPassword("testNullPassword");
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
+    // Add a user with empty password
+    user = new User("testNullPassword", " " /* password */, "testNullPasswordFirstName",
+        "testNullPasswordLastName", "testNullPassword@sonatype.com");
+    response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The password is required."));
+
+    // Create a valid user
+    user = new User("testNullPassword", "testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
+        "testNullPassword@sonatype.com");
+    response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
-    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    assertThat(user.getId(), notNullValue());
-    assertUser("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
-    user = dao.getByIdNotNull(user.getId());
-    assertUser("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
-    assertThat(String.valueOf(user.getPassword()), is(not("testNullPassword")));
+    usersToDelete.add(user);
 
     // Update to null password
     user.setPassword(null);
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(user));
-    assertResponseStatus(200, response);
-    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    assertThat(user.getId(), notNullValue());
-    assertUser("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
-    user = dao.getByIdNotNull(user.getId());
-    assertUser("testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com", user);
-    assertThat(user.getPassword(), nullValue());
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The password is required."));
+
+    // Update to empty password
+    user.setPassword(" ");
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The password is required."));
   }
 
   @Test
@@ -116,9 +100,8 @@ public class UserResourceTest
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
 
     // Add
-    User user = new User("testCRUD", "testCRUDFirstName", "testCRUDLastName");
-    user.setEmail("testCRUD@sonatype.com");
-    user.setPassword("testCRUDPassword");
+    User user = new User("testCRUD", "testCRUDPassword", "testCRUDFirstName", "testCRUDLastName",
+        "testCRUD@sonatype.com");
     response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -209,9 +192,7 @@ public class UserResourceTest
   @Test
   public void testDelete_ImmediatelyInvalidateSessionsOfDeletedUser() throws Exception {
     // create some user
-    User user = new User("test-user", "testFirstName", "testLastName");
-    user.setEmail("test@sonatype.com");
-    user.setPassword("test-password");
+    User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -243,9 +224,7 @@ public class UserResourceTest
   @Test
   public void testDelete_Self() throws Exception {
     // create some user
-    User user = new User("test-user", "testFirstName", "testLastName");
-    user.setEmail("test@sonatype.com");
-    user.setPassword("test-password");
+    User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
@@ -266,9 +245,8 @@ public class UserResourceTest
   @Test
   public void testChangePassword() throws Exception {
     // Add user so we can change his password
-    User user = new User("testChangePassword", "testChangePasswordFirstName", "testChangePasswordLastName");
-    user.setEmail("testChangePassword@sonatype.com");
-    user.setPassword("testChangePasswordPassword");
+    User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
+        "testChangePasswordLastName", "testChangePassword@sonatype.com");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);

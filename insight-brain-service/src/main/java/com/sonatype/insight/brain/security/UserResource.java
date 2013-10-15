@@ -68,9 +68,7 @@ public class UserResource
   @Produces(MediaType.APPLICATION_JSON)
   public User addUser(User user) {
     user.setId(null);
-    if (user.getPassword() != null) {
-      user.setPassword(clmRealm.encryptPassword(user.getPassword()));
-    }
+    user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     new UserDAO().insert(user);
 
     clearUserPassword(user);
@@ -90,7 +88,7 @@ public class UserResource
       User existingUser = dao.getByIdNotNull(user.getId());
       user.setPassword(existingUser.getPassword());
     }
-    else if (user.getPassword() != null) {
+    else {
       // We have a new password, encrypt it.
       user.setPassword(clmRealm.encryptPassword(user.getPassword()));
     }

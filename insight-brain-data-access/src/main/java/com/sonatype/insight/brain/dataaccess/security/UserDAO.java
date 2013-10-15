@@ -94,8 +94,15 @@ public class UserDAO
       throw new InvalidUserException("The last name must be " + MAX_LAST_NAME_SIZE + " characters or less.");
     }
 
+    if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+      throw new InvalidUserException("The email is required.");
+    }
     if (user.getEmail() != null && user.getEmail().length() > MAX_EMAIL_SIZE) {
       throw new InvalidUserException("The email must be " + MAX_EMAIL_SIZE + " characters or less.");
+    }
+
+    if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+      throw new InvalidUserException("The password is required.");
     }
   }
 

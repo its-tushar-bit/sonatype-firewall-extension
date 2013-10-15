@@ -292,12 +292,12 @@ class UserManagementSpec extends GebReportingSpec {
       waitFor { userCount < header.size() }
       
     when: "user views user summary"
-      header.last().click()
+      header.first().click()
     
     then: "user sees the read only fields from the object"
-      waitFor { summarySection.last().displayed }
-      summarySection.last().find('td', text: 'add').displayed
-      summarySection.last().find('td', text: 'user').displayed
-      summarySection.last().find('td', text: 'addusertest@email.com').displayed
+      waitFor { summarySection.first().displayed }
+      summarySection.first().find('td', text: 'add').displayed
+      summarySection.first().find('td', text: 'user').displayed
+      summarySection.first().find('td', text: 'addusertest@email.com').displayed
   }
 }

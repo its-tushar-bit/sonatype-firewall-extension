@@ -90,11 +90,11 @@
 								<i class="icon-pencil"></i>
 							</button>
 						</div>
-						<table class="accordion-toggle">
+						<table style="width:100%" class="accordion-toggle" ng-click="expanded = !expanded">
 							<tr>
 								<td style="vertical-align: top; width: 315px;" ng-click="expanded = !expanded;">{{role.roleName}}</td>
-								<td ng-show="!context.roleEditMap[role.roleId] && !expanded" class="collapsed-cell" ng-click="expanded = !expanded;">{{getUserNames(role)}}</td>
-								<td ng-show="!context.roleEditMap[role.roleId] && expanded" ng-class="{ 'collapsed-cell' : !expanded }" ng-click="expanded = !expanded;">
+								<td ng-show="!context.roleEditMap[role.roleId] && !expanded" class="collapsed-cell">{{getUserNames(role)}}</td>
+								<td ng-show="!context.roleEditMap[role.roleId] && expanded">
 									<div style="border-bottom: 1px solid #E8E8E8;margin-bottom:5px;padding-bottom:5px;">{{getUserNames(role)}}</div>
 									<div style="color:#909090;">{{getInheritedUserNames(role)}}</div>
 								</td>

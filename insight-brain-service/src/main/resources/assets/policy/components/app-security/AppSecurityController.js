@@ -198,8 +198,9 @@
       });
     };
 
-    $scope.removeUser = function ($index) {
-      $scope.mappings[0].members.splice($index, 1);
+    $scope.removeUser = function ($parentIndex, $index) {
+      if ($parentIndex === 0)
+        $scope.mappings[0].members.splice($index, 1);
     };
 
     $scope.getRealname = function (user) {
@@ -320,58 +321,19 @@
     return {
       scope : {
         appSecurityEditor : '=appSecurityEditor',
-        context : '=',
-        currentRole : '=role',
+        roleId : '=',
         hide : '&'
       },
       controller : 'AppSecurityEditorController',
       templateUrl : 'appSecurityEditor',
       link : function (scope) {
-        function filterMembers(filterFn) {
-          var members = [];
-          angular.forEach(scope.context.roles, function(role){
-            if (filterFn(role)) {
-              angular.forEach(role.membersByOwner, function(owner){
-                angular.forEach(owner.members, function(member){
-                  if (members.indexOf(member) < 0) {
-                    members.push(member);
-                  }
-                });
-              });
-            }
-          });
-          return members;
-        }
-        scope.getMembers = function () {
-          var members = filterMembers(function(role){
-            if (scope.currentRole.roleId === role.roleId) {
-              return true;
-            }            
-            return false;
-          });
-          
-          return members;
-        };
-        
-        scope.getInheritedMembers = function() {
-          var members = filterMembers(function(role){
-            if (scope.currentRole.roleId != role.roleId) {
-              return true;
-            }            
-            return false;
-          });
-    
-          return members;
-        }
-        
         scope.isDirty = function () {
           return false;//!angular.equals(scope.mappings, scope.appSecurityEditor);
         };
 
         scope.$watch('appSecurityEditor', function (newVal) {
           if (newVal) {
-            // TODO uncomment
-//          scope.users = angular.copy(newVal);
+            scope.mappings = angular.copy(newVal);
           }
         });
 

@@ -354,6 +354,46 @@ var AngularUtils = {
     };
   });
 
+  angularCommon.directive('clmButtons', [function () {
+    return {
+      scope : {
+        acceptFn : '&',
+        acceptDisabled : '&',
+        cancelFn : '&',
+        cancelDisabled : '&'
+      },
+      template : '<button class="btn" type="button" ng-click="decline()" ng-disabled="disabled || cancelDisabled()">{{cancelText}}</button> ' +
+                 '<button class="btn btn-primary" type="button" ng-click="accept()" ng-disabled="disabled || acceptDisabled()">{{acceptText}}</button>',
+      link: function(scope, element, attrs) {
+        function buttonClick(clickFn) {
+          return function () {
+            function fn() {
+              scope.disabled = false;
+            }
+
+            var promise = clickFn.apply(scope, []);
+            if (promise) {
+              scope.disabled = true;
+              promise.then(fn, fn);
+            }
+          };
+        }
+
+        scope.disabled = false;
+        attrs.$observe('cancelText', function (newVal) {
+          scope.cancelText = newVal || 'Cancel';
+        });
+
+        attrs.$observe('acceptText', function (newVal) {
+          scope.acceptText = newVal || 'Save';
+        });
+
+        scope.accept = buttonClick(scope.acceptFn);
+        scope.decline = buttonClick(scope.cancelFn);
+      }
+    };
+  }]);
+
   /**
    * Provides a half width error box for an HTTP error with a reload button.  This is intended for errors loading data.
    */

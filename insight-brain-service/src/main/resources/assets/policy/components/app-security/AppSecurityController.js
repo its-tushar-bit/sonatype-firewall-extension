@@ -146,49 +146,37 @@
 
     $scope.alerts = [];
 
-    $scope.buttons = [{
-      name : 'Cancel',
-      isDisabled : function () {
-        return false;
-      },
-      click : function () {
-        if ($scope.isDirty()) {
-          $modal.open({
-            backdrop : 'static',
-            template :  '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
-              '<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>' +
-              '<div class="modal-footer">' +
-              '<button type="button" class="btn" ng-click="$dismiss(false)">Cancel</button>' +
-              '<button type="button" class="btn btn-danger" ng-click="$close(true)">Continue</button>' +
-              '</div>'
-          }).result.then(function () {
-            $scope.hide();
-          });
-        } else {
+    $scope.cancel = function () {
+      if ($scope.isDirty()) {
+        $modal.open({
+          backdrop : 'static',
+          template :  '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
+            '<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>' +
+            '<div class="modal-footer">' +
+            '<button type="button" class="btn" ng-click="$dismiss(false)">Cancel</button>' +
+            '<button type="button" class="btn btn-danger" ng-click="$close(true)">Continue</button>' +
+            '</div>'
+        }).result.then(function () {
           $scope.hide();
-        }
+        });
+      } else {
+        $scope.hide();
       }
-    }, {
-      name : 'Save',
-      type : 'primary',
-      isDisabled : function () {
-        return false;
-      },
-      click : function () {
-        if ($scope.isDirty()) {
-          return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
-            $scope.hide();
-          }).error(function () {
-            $scope.alerts.push({
-              type: 'error',
-              msg: Messages.getHttpErrorMessage(arguments)
-            });
-          });
-        } else {
+    };
+    $scope.save = function () {
+      if ($scope.isDirty()) {
+        return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
           $scope.hide();
-        }
+        }).error(function () {
+          $scope.alerts.push({
+            type: 'error',
+            msg: Messages.getHttpErrorMessage(arguments)
+          });
+        });
+      } else {
+        $scope.hide();
       }
-    }];
+    };
 
     $scope.addUser = function (user) {
       $scope.mappings[0].members.push({
@@ -286,35 +274,6 @@
       return modified ? result : input;
     };
   });
-
-  appSecurityModule.directive('clmButtons', [function () {
-    return {
-      scope : {
-        buttons : '=clmButtons'
-      },
-      template : '<span ng-repeat="button in buttons"> <button type="button" class="btn" ng-disabled="isDisabled($index)"' +
-          ' ng-class="{\'btn-danger\' : button.type == \'danger\',\'btn-primary\' : button.type == \'primary\'}"' +
-          ' ng-click="buttonClick($index)">{{button.name}}</button></span>',
-      link: function(scope, element, attrs) {
-        var disabled = false;
-
-        scope.buttonClick = function ($index) {
-          function fn() {
-            disabled = false;
-          }
-
-          var promise = scope.buttons[$index].click.apply(scope, arguments);
-          if (promise) {
-            disabled = true;
-            promise.then(fn, fn);
-          }
-        };
-        scope.isDisabled = function ($index) {
-          return disabled || scope.buttons[$index].isDisabled();
-        };
-      }
-    };
-  }]);
 
   appSecurityModule.directive('appSecurityEditor', [function () {
     return {

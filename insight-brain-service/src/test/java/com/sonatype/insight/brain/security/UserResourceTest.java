@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
@@ -219,6 +220,50 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
     assertThat(status.isAuthenticated(), is(true));
+  }
+  
+  @Test
+  public void testDelete_NoNPEWhenUserDeleted() throws Exception {
+    // create some user
+    User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
+    assertThat(user.getId(), is(notNullValue()));
+    
+    // create another user
+    User user2 = new User("test-user-two", "test-password-two", "testFirstNameTwo", "testLastNameTwo", "test2@sonatype.com");
+    response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user2));
+    assertResponseStatus(200, response);
+    user2 = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user2);
+    assertThat(user2.getId(), is(notNullValue()));
+    
+    // log the first user in to create a session
+    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
+        "test-password");
+    assertResponseStatus(204, response);
+    
+    // log the second user in to create another session then log them out
+    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user2.getUsername(),
+        "test-password-two");
+    assertResponseStatus(204, response);
+    Cookie userCookie = extractSessionCookie(response);
+    response = RestAccess.delete(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, null, null, null, userCookie);
+    assertResponseStatus(204, response);
+    
+    // access an anonymous resource to create a third session
+    response = RestAccess.get(getRestBaseUrl() + FeaturesResource.SERVICE_PATH);
+    assertResponseStatus(200, response);
+    
+    // now delete the first user
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    assertResponseStatus(204, response);
+    
+    // now delete the second user, if this passes, we are all set, this is where the NPE was occuring prior to fix
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + user2.getId());
+    assertResponseStatus(204, response);
   }
 
   @Test

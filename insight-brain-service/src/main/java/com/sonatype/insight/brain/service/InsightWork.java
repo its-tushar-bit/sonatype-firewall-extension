@@ -61,8 +61,4 @@ public class InsightWork
   public File getDataDir() {
     return new File(insightConfig.getSonatypeWork(), "data");
   }
-
-  public File getTempDir() {
-    return insightConfig.getTempDir();
-  }
 }

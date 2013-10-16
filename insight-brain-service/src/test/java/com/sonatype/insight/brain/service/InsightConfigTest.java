@@ -54,9 +54,9 @@ public class InsightConfigTest
   @Test
   public void testTempDir() {
     InsightConfig config = new InsightConfig();
-    Assert.assertEquals("sonatype-work/clm-server/temp".replaceAll("/", File.separator), config.getTempDir().getPath());
+    Assert.assertEquals("sonatype-work/clm-server/temp".replace("/", File.separator), config.getTempDir().getPath());
 
     config.setTempDir("./temp");
-    Assert.assertEquals("./temp".replaceAll("/", File.separator), config.getTempDir().getPath());
+    Assert.assertEquals("./temp".replace("/", File.separator), config.getTempDir().getPath());
   }
 }

@@ -316,7 +316,6 @@
     };
   }]);
 
-  //TODO: need to rework this editor for latest server side changes, and list controller changes
   appSecurityModule.directive('appSecurityEditor', [function () {
     return {
       scope : {
@@ -328,7 +327,7 @@
       templateUrl : 'appSecurityEditor',
       link : function (scope) {
         scope.isDirty = function () {
-          return false;//!angular.equals(scope.mappings, scope.appSecurityEditor);
+          return !angular.equals(scope.mappings, scope.appSecurityEditor);
         };
 
         scope.$watch('appSecurityEditor', function (newVal) {

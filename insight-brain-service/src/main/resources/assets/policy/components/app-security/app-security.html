@@ -98,7 +98,7 @@
 									<div style="border-bottom: 1px solid #E8E8E8;margin-bottom:5px;padding-bottom:5px;">{{getUserNames(role)}}</div>
 									<div style="color:#909090;">{{getInheritedUserNames(role)}}</div>
 								</td>
-								<td ng-show="context.roleEditMap[role.roleId]"><div app-security-editor='role.membersByOwner' roleId='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div></td>
+								<td show-if="context.roleEditMap[role.roleId]"><div app-security-editor='role.membersByOwner' roleId='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div></td>
 							</tr>
 						</table>
 					</div>

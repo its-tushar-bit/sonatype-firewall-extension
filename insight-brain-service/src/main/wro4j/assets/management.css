@@ -196,11 +196,19 @@ body {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	height: 100%;
-	overflow: auto;
+	top: 87px;
+	bottom : 0px;
+	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
 	-moz-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
 	box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+}
+.subnavigation ul:nth-child(3) {
+	overflow:auto;
+	position:fixed;
+	top:160px;
+	bottom:0px;
+	width:116px;
 }
 .subnavigation .nav-list>.active>a, .subnavigation .nav-list>.active>a:hover, .subnavigation .nav-list>.active>a:focus, .subnavigation .nav>li>a:hover, .subnavigation .nav>li>a:focus, .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
 	color: #36424e;

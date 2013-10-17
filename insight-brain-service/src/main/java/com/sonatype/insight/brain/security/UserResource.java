@@ -115,7 +115,9 @@ public class UserResource
     for (Session session : sessionDAO.getActiveSessions()) {
       Subject subject = new Subject.Builder().session(session).buildSubject();
       Object principal = subject.getPrincipal();
-      if (user.getUsername().equalsIgnoreCase(principal.toString())) {
+      //if the principal is null, then session either has an anonymous Subject, 
+      //or the subject has already been invalidated by shiro
+      if (principal != null && user.getUsername().equalsIgnoreCase(principal.toString())) {
         subject.logout();
       }
     }

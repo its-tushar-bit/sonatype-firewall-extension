@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-
 import org.junit.Assert;
 import org.junit.Test;
 

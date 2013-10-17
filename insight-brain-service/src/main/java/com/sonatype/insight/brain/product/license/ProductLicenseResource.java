@@ -20,7 +20,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.sonatype.licensing.LicensingException;
@@ -39,12 +38,9 @@ public class ProductLicenseResource
 
   private final Logger log = LoggerFactory.getLogger(ProductLicenseResource.class);
 
-  private final InsightWork insightWork;
-
   @Inject
-  public ProductLicenseResource(CLMLicenseManager licenseManager, final InsightWork insightWork) {
+  public ProductLicenseResource(CLMLicenseManager licenseManager) {
     this.licenseManager = licenseManager;
-    this.insightWork = insightWork;
   }
 
   @POST

@@ -196,7 +196,6 @@ public class TestInsightBrainService
     config.setSonatypeWork(getWorkDir().getPath());
     config.setSaasAddress(testSaasAddress);
     config.setBaseUrl(testBaseUrl);
-    config.setTempDir(System.getProperty("java.io.tmpdir"));
 
     if (testProxyConfig != null) {
       config.setProxyConfig(testProxyConfig);

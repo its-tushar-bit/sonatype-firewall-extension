@@ -76,7 +76,7 @@ public class ProductLicenseResource
       throw new BadRequestException(msg, e);
     } catch (IOException e) {
       String msg = "The license file was unable to install. Please ensure server has access to "
-          + insightWork.getTempDir().getAbsolutePath() + ". If the problem persists, please contact our support team.";
+          + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.";
 
       log.error("Unable to install license", e);
 

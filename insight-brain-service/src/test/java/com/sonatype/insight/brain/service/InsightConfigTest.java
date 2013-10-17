@@ -50,13 +50,4 @@ public class InsightConfigTest
     config.setCdnUrl(null);
     Assert.assertEquals(false, config.isValidCdnUrl());
   }
-
-  @Test
-  public void testTempDir() {
-    InsightConfig config = new InsightConfig();
-    Assert.assertEquals("sonatype-work/clm-server/temp".replace("/", File.separator), config.getTempDir().getPath());
-
-    config.setTempDir("./temp");
-    Assert.assertEquals("./temp".replace("/", File.separator), config.getTempDir().getPath());
-  }
 }

@@ -138,6 +138,10 @@ final class Pdf
           }
         }
       }
+      File policyAlerts = new File(cacheDir, "policyalerts.json");
+      if(policyAlerts.exists()){
+        FileUtils.copyFile(policyAlerts, new File(templateDir, policyAlerts.getName()));
+      }
     }
     finally {
       archive.close();

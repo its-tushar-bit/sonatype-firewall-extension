@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 @Path(MembershipMappingResource.SERVICE_PATH)
 public class MembershipMappingResource
 {
-  public static final String SERVICE_PATH = "rest/membershipMapping/{ownerType: application|organization}/{ownerId}";
+  public static final String SERVICE_PATH = "rest/membershipMapping/{ownerType: global|application|organization}/{ownerId}";
 
   public static final String ROLE_PATH = "role/{roleId}";
 
@@ -80,7 +80,14 @@ public class MembershipMappingResource
     Map<String, MembersByRole> membersByRoleByRoleId = new LinkedHashMap<String, MembersByRole>();
 
     // Initialize membersByRoleByRoleId with container for all roles to associate members to (MembersByRole) 
-    for (Role role : roleDAO.getApplicationRoles()) {
+    List<Role> roles;
+    if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+      roles = roleDAO.getGlobalRoles();
+    }
+    else {
+      roles = roleDAO.getApplicationRoles();
+    }
+    for (Role role : roles) {
       MembersByRole byRole = new MembersByRole();
       byRole.roleId = role.getId();
       byRole.roleName = role.getName();
@@ -89,7 +96,7 @@ public class MembershipMappingResource
     }
     DisplayNames displayNames = new DisplayNames();
 
-    String organizationId;
+    String organizationId = null;
     // Add app members
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application app = appDAO.getByIdNotNull(internalOwnerId);
@@ -99,6 +106,12 @@ public class MembershipMappingResource
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
       organizationId = app.getOrganizationId();
+    }
+    else if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+      for (Map.Entry<String, MembersByOwner> entry : loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
+          MembershipMapping.GLOBAL_CONTEXT_NAME, IdUtils.TYPE_GLOBAL, displayNames).entrySet()) {
+        membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
+      }
     }
     else {
       organizationId = internalOwnerId;
@@ -251,8 +264,11 @@ public class MembershipMappingResource
 
   private void validateRole(String ownerType, String roleId) {
     Role role = roleDAO.getByIdNotNull(roleId);
-    if (role.isGlobal()) {
+    if (!IdUtils.TYPE_GLOBAL.equals(ownerType) && role.isGlobal()) {
       throw new BadRequestException("Cannot map members to global role in context of " + ownerType);
+    }
+    if (IdUtils.TYPE_GLOBAL.equals(ownerType) && !role.isGlobal()) {
+      throw new BadRequestException("Cannot map members to application role in global context");
     }
   }
 
@@ -263,7 +279,7 @@ public class MembershipMappingResource
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       appDAO.getByIdNotNull(internalOwnerId);
     }
-    else {
+    else if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
       orgDAO.getByIdNotNull(internalOwnerId);
     }
   }

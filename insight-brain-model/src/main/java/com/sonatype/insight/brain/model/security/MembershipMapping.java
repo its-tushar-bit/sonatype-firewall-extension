@@ -27,6 +27,8 @@ public class MembershipMapping
 {
   public static final String GLOBAL_CONTEXT_ID = "global";
 
+  public static final String GLOBAL_CONTEXT_NAME = "Global";
+
   @Id
   @Column(name = "membership_mapping_id")
   private String id;

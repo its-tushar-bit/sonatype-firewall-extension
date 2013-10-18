@@ -12,9 +12,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 
 public class IdUtils
 {
+  public static final String TYPE_GLOBAL = "global";
 
   public static final String TYPE_ORGANIZATION = "organization";
 
@@ -26,6 +28,9 @@ public class IdUtils
     }
     else if (TYPE_ORGANIZATION.equals(ownerType)) {
       return new OrganizationDAO().getByIdNotNull(ownerId).getId();
+    }
+    else if (TYPE_GLOBAL.equals(ownerType)) {
+      return MembershipMapping.GLOBAL_CONTEXT_ID;
     }
 
     throw new IllegalStateException("Unknown owner type: " + ownerType);
@@ -48,6 +53,9 @@ public class IdUtils
     else if (TYPE_ORGANIZATION.equals(ownerType)) {
       Organization org = new OrganizationDAO().getByIdNotNull(ownerId);
       ids.add(org.getId());
+    }
+    else if (TYPE_GLOBAL.equals(ownerType)) {
+      ids.add(MembershipMapping.GLOBAL_CONTEXT_ID);
     }
     else {
       throw new IllegalStateException("Unknown owner type: " + ownerType);

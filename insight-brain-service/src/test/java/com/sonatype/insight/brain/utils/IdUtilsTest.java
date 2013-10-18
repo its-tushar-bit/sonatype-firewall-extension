@@ -10,11 +10,13 @@ import java.util.List;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class IdUtilsTest
@@ -42,5 +44,17 @@ public class IdUtilsTest
     Organization org = tempEntity.newOrganization();
     List<String> ids = IdUtils.getInternalOwnerIds(IdUtils.TYPE_ORGANIZATION, org.getId());
     assertThat(ids, contains(org.getId()));
+  }
+
+  @Test
+  public void testGetInternalOwnerIds_Global() {
+    List<String> ids = IdUtils.getInternalOwnerIds(IdUtils.TYPE_GLOBAL, null /* ownerId */);
+    assertThat(ids, contains(MembershipMapping.GLOBAL_CONTEXT_ID));
+  }
+
+  @Test
+  public void testGetInternalOwnerId_Global() {
+    String id = IdUtils.getInternalOwnerId(IdUtils.TYPE_GLOBAL, null /* ownerId */);
+    assertThat(id, is(MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 }

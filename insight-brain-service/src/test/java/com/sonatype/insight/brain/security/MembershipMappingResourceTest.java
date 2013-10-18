@@ -30,7 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -102,7 +101,10 @@ public class MembershipMappingResourceTest
       assertThat(membersByRole.roleName, is(role.getName()));
       assertThat(membersByRole.roleDescription, is(role.getDescription()));
       assertThat(membersByRole.membersByOwner, is(notNullValue()));
-      assertThat(membersByRole.membersByOwner, is(empty()));
+      assertThat(membersByRole.membersByOwner.size(), is(2));
+      assertThat(membersByRole.membersByOwner.get(0).ownerId, is(app.getPublicId()));
+      assertThat(membersByRole.membersByOwner.get(0).members, is(notNullValue()));
+      assertThat(membersByRole.membersByOwner.get(1).ownerId, is(org.getId()));
     }
 
     // Create
@@ -177,7 +179,7 @@ public class MembershipMappingResourceTest
     membersByRole = applicable.membersByRole.get(1);
     assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
     assertThat(membersByRole.membersByOwner, is(notNullValue()));
-    assertThat(membersByRole.membersByOwner, hasSize(1));
+    assertThat(membersByRole.membersByOwner, hasSize(2));
     membersByOwner = membersByRole.membersByOwner.get(0);
     assertThat(membersByOwner.ownerId, is(app.getPublicId()));
     assertThat(membersByOwner.ownerName, is(app.getName()));
@@ -187,5 +189,11 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
     assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+    membersByOwner = membersByRole.membersByOwner.get(1);
+    assertThat(membersByOwner.ownerId, is(org.getId()));
+    assertThat(membersByOwner.ownerName, is(org.getName()));
+    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
+    assertThat(membersByOwner.members, is(notNullValue()));
+    assertThat(membersByOwner.members, hasSize(0));
   }
 }

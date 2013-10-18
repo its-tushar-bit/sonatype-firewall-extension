@@ -16,6 +16,20 @@ var AngularUtils = {
       //otherwise wrap the function in apply
       scope.$apply(fn);
     }
+  },
+  alphaSort: function(array, descending, sortProperty) {
+    if (array) {
+      array.sort(function(a, b) {
+        var aProp = sortProperty ? a[sortProperty] : a, bProp = sortProperty ? b[sortProperty] : b;
+        if (aProp < bProp) {
+          return descending ? 1 : -1;
+        } else if (aProp > bProp) {
+          return descending ? -1 : 1;
+        } else {
+          return 0;
+        }
+      });
+    }
   }
 };
 (function() {

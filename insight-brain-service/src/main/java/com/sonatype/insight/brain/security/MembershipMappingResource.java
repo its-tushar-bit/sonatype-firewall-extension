@@ -130,6 +130,16 @@ public class MembershipMappingResource
       }
       byOwner.members.add(member);
     }
+    
+    //go through and make sure each role contains the owner, even if its empty list
+    for ( Role role : roleDAO.getApplicationRoles() ) {
+      MembersByOwner byOwner = byRole.get(role.getId());
+      if (byOwner == null) {
+        byOwner = new MembersByOwner(ownerId, ownerName, ownerType);
+        byRole.put(role.getId(), byOwner);
+      }
+    }
+    
     return byRole;
   }
 

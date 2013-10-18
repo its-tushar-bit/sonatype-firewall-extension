@@ -51,6 +51,11 @@
         $http.get(config.url, { params: config.params }).success(function(data) {
           if (localDeferred === storeDeferred) {
             var result = [];
+            
+            if (config.dataProperty) {
+              data = data[config.dataProperty];
+            }
+            
             var relationsToLoad = data.length * Object.keys(config.relationalConfigs).length;
 
             angular.forEach(data, function(obj, i) {

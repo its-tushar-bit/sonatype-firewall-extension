@@ -725,8 +725,10 @@ ul.tri-pane {
 }
 
 .collapsed-cell {
-	overflow:hidden;
 	text-overflow:ellipsis;
-	max-width:400px;
-	white-space: nowrap;
+    overflow:hidden;
+    white-space:nowrap;
+    width: 100%;
+    margin: 5px;
+    margin-left: 4px;
 }

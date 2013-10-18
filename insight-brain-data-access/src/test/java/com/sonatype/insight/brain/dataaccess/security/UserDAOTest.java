@@ -6,12 +6,15 @@
 package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,6 +22,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -559,6 +563,19 @@ public class UserDAOTest
     catch (InvalidUserException expected) {
       assertThat(expected.getMessage(), is("The password is required."));
     }
+  }
+
+  @Test
+  public void testDeleteCascadesToMembershipMappings() {
+    User user = createUser("testValidateEmailLength");
+    String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    membershipMappingDAO.setMembershipMappingsForContextAndRole("app", roleId,
+        Arrays.asList(new MembershipMapping(user.getUsername(), MemberType.USER)));
+
+    new UserDAO().delete(user);
+
+    assertThat(membershipMappingDAO.getByUser(user.getUsername()), is(empty()));
   }
 
   private User createUser(String username) {

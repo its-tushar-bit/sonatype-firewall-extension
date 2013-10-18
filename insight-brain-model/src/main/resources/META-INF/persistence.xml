@@ -18,6 +18,9 @@
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyWaiver</class>
+    <class>com.sonatype.insight.brain.model.security.MembershipMapping</class>
+    <class>com.sonatype.insight.brain.model.security.Role</class>
+    <class>com.sonatype.insight.brain.model.security.RolePermission</class>
     <class>com.sonatype.insight.brain.model.security.User</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapServer</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapConnection</class>

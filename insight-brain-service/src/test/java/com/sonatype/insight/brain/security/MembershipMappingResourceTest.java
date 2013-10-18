@@ -1,0 +1,191 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.MembershipMappingResource.ApplicableMembershipMappings;
+import com.sonatype.insight.brain.security.MembershipMappingResource.Member;
+import com.sonatype.insight.brain.security.MembershipMappingResource.MembersByOwner;
+import com.sonatype.insight.brain.security.MembershipMappingResource.MembersByRole;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.IdUtils;
+
+import com.ning.http.client.Response;
+import com.yammer.dropwizard.testing.JsonHelpers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
+public class MembershipMappingResourceTest
+    extends AbstractResourceTest
+{
+  private Application app;
+
+  private Organization org;
+
+  private User userA;
+
+  private User userB;
+
+  private RoleDAO roleDAO = new RoleDAO();
+
+  private UserDAO userDAO = new UserDAO();
+
+  private String getServiceUrl(final String ownerType, final String ownerId) {
+    return getRestBaseUrl() + expandRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId);
+  }
+
+  private String getServiceUrl(String ownerType, String ownerId, String roleId) {
+    return getRestBaseUrl() + expandRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId) + "/"
+        + expandRestUrl(MembershipMappingResource.ROLE_PATH, roleId);
+  }
+
+  private Member newMember(String name) {
+    return new Member(MemberType.USER, name, null);
+  }
+
+  @Before
+  public void init() throws Exception {
+    org = createOrganization("test-org");
+    app = createApplication("test-app", "test-app", org);
+    userA = new User("user-a", "secret", "John", "Doe", "void@void.com");
+    userDAO.insert(userA);
+    userB = new User("user-b", "secret", "Jane", "Doe", "void@void.com");
+    userDAO.insert(userB);
+  }
+
+  @After
+  public void exit() throws Exception {
+    if (userA != null) {
+      userDAO.delete(userA);
+    }
+    if (userB != null) {
+      userDAO.delete(userB);
+    }
+  }
+
+  @Test
+  public void testCRUD() throws Exception {
+    // Initial state
+    Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicableMembershipMappings.class);
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+
+    List<Role> appRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole, hasSize(appRoles.size()));
+    for (int i = 0; i < appRoles.size(); i++) {
+      MembersByRole membersByRole = applicable.membersByRole.get(i);
+      Role role = appRoles.get(i);
+      assertThat(membersByRole.roleId, is(role.getId()));
+      assertThat(membersByRole.roleName, is(role.getName()));
+      assertThat(membersByRole.roleDescription, is(role.getDescription()));
+      assertThat(membersByRole.membersByOwner, is(notNullValue()));
+      assertThat(membersByRole.membersByOwner, is(empty()));
+    }
+
+    // Create
+    response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), appRoles.get(0).getId()),
+        JsonHelpers.asJson(Arrays.asList(newMember(userB.getUsername()))));
+    assertResponseStatus(204, response);
+
+    // Read for created data
+    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId()));
+    assertResponseStatus(200, response);
+    applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+    assertThat(applicable.membersByRole, hasSize(appRoles.size()));
+
+    MembersByRole membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId, is(appRoles.get(0).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(1));
+    MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
+    assertThat(membersByOwner.ownerId, is(org.getId()));
+    assertThat(membersByOwner.ownerName, is(org.getName()));
+    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
+    assertThat(membersByOwner.members, is(notNullValue()));
+    assertThat(membersByOwner.members, hasSize(1));
+    assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
+    assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+
+    // Update
+    response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(0).getId()),
+        JsonHelpers.asJson(Arrays.asList(newMember(userA.getUsername()))));
+    assertResponseStatus(204, response);
+    response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(1).getId()),
+        JsonHelpers.asJson(Arrays.asList(newMember(userB.getUsername()))));
+    assertResponseStatus(204, response);
+
+    // Read for updated data
+    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    assertResponseStatus(200, response);
+    applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+    assertThat(applicable.membersByRole, hasSize(appRoles.size()));
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId, is(appRoles.get(0).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(2));
+    membersByOwner = membersByRole.membersByOwner.get(0);
+    assertThat(membersByOwner.ownerId, is(app.getPublicId()));
+    assertThat(membersByOwner.ownerName, is(app.getName()));
+    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_APPLICATION));
+    assertThat(membersByOwner.members, is(notNullValue()));
+    assertThat(membersByOwner.members, hasSize(1));
+    assertThat(membersByOwner.members.get(0).internalName, is(userA.getUsername()));
+    assertThat(membersByOwner.members.get(0).displayName, is(userA.getFirstName() + " " + userA.getLastName()));
+    assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+    membersByOwner = membersByRole.membersByOwner.get(1);
+    assertThat(membersByOwner.ownerId, is(org.getId()));
+    assertThat(membersByOwner.ownerName, is(org.getName()));
+    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
+    assertThat(membersByOwner.members, is(notNullValue()));
+    assertThat(membersByOwner.members, hasSize(1));
+    assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
+    assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+    membersByRole = applicable.membersByRole.get(1);
+    assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(1));
+    membersByOwner = membersByRole.membersByOwner.get(0);
+    assertThat(membersByOwner.ownerId, is(app.getPublicId()));
+    assertThat(membersByOwner.ownerName, is(app.getName()));
+    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_APPLICATION));
+    assertThat(membersByOwner.members, is(notNullValue()));
+    assertThat(membersByOwner.members, hasSize(1));
+    assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
+    assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+  }
+}

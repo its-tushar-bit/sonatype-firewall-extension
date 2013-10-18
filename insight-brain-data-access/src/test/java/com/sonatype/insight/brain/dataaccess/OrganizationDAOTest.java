@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -17,6 +18,8 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -26,6 +29,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -346,5 +351,20 @@ public class OrganizationDAOTest
     dao.delete(organization);
     policyWaivers = policyWaiverDAO.getByOwnerId(organization.getId());
     assertEquals(0, policyWaivers.size());
+  }
+
+  @Test
+  public void testCascadeDeleteToMembershipMappings() {
+    Organization organization = new Organization("testCascadeDeleteToMembershipMappings");
+    dao.insert(organization);
+
+    String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    membershipMappingDAO.setMembershipMappingsForContextAndRole(organization.getId(), roleId,
+        Arrays.asList(new MembershipMapping("admin", MemberType.USER)));
+
+    dao.delete(organization);
+
+    assertEquals(Arrays.asList(), membershipMappingDAO.getByContextId(organization.getId()));
   }
 }

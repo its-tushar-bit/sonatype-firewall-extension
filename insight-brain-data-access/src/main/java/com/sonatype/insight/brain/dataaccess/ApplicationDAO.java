@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -274,6 +276,12 @@ public class ApplicationDAO
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(em, application.getId());
     for (LicenseOverride licenseOverride : licenseOverrides) {
       licenseOverrideDAO.delete(em, licenseOverride);
+    }
+
+    // Cascade to membership mappings
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(em, application.getId())) {
+      membershipMappingDAO.delete(em, membershipMapping);
     }
 
     super.delete(em, application);

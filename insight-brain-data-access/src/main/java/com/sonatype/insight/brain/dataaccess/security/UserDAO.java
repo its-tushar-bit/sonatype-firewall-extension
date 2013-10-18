@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -127,6 +128,17 @@ public class UserDAO
     }
 
     super.update(em, user);
+  }
+
+  @Override
+  public void delete(EntityManager em, User entity) {
+    // Cascade to membership mappings
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByUser(em, entity.getUsername())) {
+      membershipMappingDAO.delete(em, membershipMapping);
+    }
+
+    super.delete(em, entity);
   }
 
   public List<User> getAll() {

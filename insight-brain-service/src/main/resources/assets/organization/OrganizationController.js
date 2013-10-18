@@ -17,33 +17,53 @@
             controller: 'OrganizationController',
             templateUrl: '../organization-assets/components/organization-navigator.html?' + clmBuildTimestamp
           }).state('management.organization.view', {
-                parent: 'management.organization',
-                url: '/{organizationId}',
-                controller: 'OrganizationEditorController',
-                data: {
-                  passThroughAlerts: []
-                },
-                templateUrl: '../organization-assets/components/organization-editor.html?' + clmBuildTimestamp
-              }).state('management.organization.view.policies', {
-                parent: 'management.organization.view',
-                url: '/policies',
-                controller: 'PolicyController',
-                data: {
-                  passThroughAlerts: []
-                },
-                templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-              }).state('management.organization.view.labels', {
-                parent: 'management.organization.view',
-                url: '/labels',
-                controller: 'LabelController',
-                templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-              }).state('management.organization.view.licenses', {
-                parent: 'management.organization.view',
-                url: '/licenses',
-                controller: 'LicenseThreatGroupController',
-                templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
-                    clmBuildTimestamp
-              });
+            parent: 'management.organization',
+            url: '/{organizationId}',
+            controller: 'OrganizationEditorController',
+            data: {
+              passThroughAlerts: []
+            },
+            templateUrl: '../organization-assets/components/organization-editor.html?' + clmBuildTimestamp,
+            resolve : {
+              selectedOrganization : function ($q, $stateParams, OrganizationStore) {
+                if ($stateParams.organizationId === '_new_')
+                  return OrganizationStore.create();
+
+                var deferred = $q.defer();
+                OrganizationStore.get().then(function (data) {
+                  for (var i=0; i<data.length; i++) {
+                    if (data[i].id === $stateParams.organizationId) {
+                      deferred.resolve(data[i].$clone());
+                      break;
+                    }
+                  }
+                  deferred.reject("Failed to locate organization");
+                }, function () {
+                  deferred.reject("Failed to locate organization");
+                });
+                return deferred.promise;
+              }
+            }
+          }).state('management.organization.view.policies', {
+            parent: 'management.organization.view',
+            url: '/policies',
+            controller: 'PolicyController',
+            data: {
+              passThroughAlerts: []
+            },
+            templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+          }).state('management.organization.view.labels', {
+            parent: 'management.organization.view',
+            url: '/labels',
+            controller: 'LabelController',
+            templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+          }).state('management.organization.view.licenses', {
+            parent: 'management.organization.view',
+            url: '/licenses',
+            controller: 'LicenseThreatGroupController',
+            templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
+                clmBuildTimestamp
+          });
         }
       ]);
 }());
@@ -57,29 +77,6 @@
   organizationModule.controller('OrganizationController', [
     '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore',
     function($scope, $state, $http, $location, $timeout, hudson, CLMLocations, OrganizationStore) {
-      function switchOrganization() {
-        $scope.selectedOrganization = null;
-        $scope.userIconSource = null;
-        if ('_new_' == $scope.$state.params.organizationId) {
-          $timeout(function() {
-            $scope.selectedOrganization = OrganizationStore.create();
-            $scope.origUserIconSource = $scope.userIconSource = '../assets/img/defaulticon_organization.png';
-          }, 100);
-        }
-        if ($scope.$state.params.organizationId !== null && $scope.organizations) {
-          for (var i = 0; i < $scope.organizations.length; i++) {
-            if ($scope.$state.params.organizationId === $scope.organizations[i].id) {
-              $timeout(function() {
-                // don't want to infect the original data
-                $scope.selectedOrganization = $scope.organizations[i].$clone();
-                $scope.$broadcast('setOrganizationIcon');
-              }, 100);
-              return;
-            }
-          }
-        }
-      }
-
       $scope.isCurrentTab = function(tabName) {
         return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
       };
@@ -101,8 +98,6 @@
         $scope.error = null;
         OrganizationStore.get().then(function(results) {
           $scope.organizations = results;
-          $scope.$watch('$state.params.organizationId', switchOrganization);
-          switchOrganization();
         }, function(error) {
           $scope.error = error;
         });
@@ -114,9 +109,9 @@
 
   organizationModule.controller('OrganizationEditorController', [
     '$scope', '$state', '$location', '$http', '$rootScope', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools',
-    'CLMAppLocations', 'Messages', 'CLMAppLocations',
+    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization',
     function($scope, $state, $location, $http, $rootScope, regexFactory, CLMLocations, hudson, editorTools,
-             clmAppLocations, messages, CLMAppLocations)
+             clmAppLocations, messages, CLMAppLocations, selectedOrganization)
     {
       var me = this;
       angular.extend(me,
@@ -125,8 +120,11 @@
 
       // Organization Editor controller will take care of managing its own icons
       function setOrganizationIcon() {
+        if ($scope.selectedOrganization.id === null) {
+          $scope.origUserIconSource = $scope.userIconSource = '../assets/img/defaulticon_organization.png';
+        }
         // Reset icon cache on initial load and when icon is changed
-        if (!$scope.organizationIconTimestamp[$scope.selectedOrganization.id]) {
+        else if (!$scope.organizationIconTimestamp[$scope.selectedOrganization.id]) {
           resetIconCache();
         }
         else {
@@ -146,8 +144,9 @@
             $scope.organizationIconTimestamp[$scope.selectedOrganization.id];
       }
 
+      $scope.selectedOrganization = selectedOrganization;
+      setOrganizationIcon();
       $scope.addOrganizationSync = clmAppLocations.addIconSync();
-      $scope.$on('setOrganizationIcon', setOrganizationIcon);
       $scope.$on('resetIconCache', resetIconCache);
 
       $scope.$state = $state;

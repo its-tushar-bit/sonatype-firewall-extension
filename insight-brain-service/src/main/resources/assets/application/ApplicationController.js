@@ -8,70 +8,65 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon', 'CLMLocation'], [
-        '$stateProvider', function($stateProvider) {
-          $stateProvider.state('management.application', {
-            parent: 'management',
-            url: '/application',
-            controller: 'applicationController',
-            templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
-          }).state('management.application.view', {
-                parent: 'management.application',
-                url: '/{applicationPublicId}',
-                controller: 'applicationEditorController',
-                data: {
-                  passThroughAlerts: []
-                },
-                templateUrl: '../application-assets/components/application-editor.html?' + clmBuildTimestamp
-              }).state('management.application.view.policies', {
-                parent: 'management.application.view',
-                url: '/policies',
-                controller: 'PolicyController',
-                data: {
-                  passThroughAlerts: []
-                },
-                templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-              }).state('management.application.view.labels', {
-                parent: 'management.application.view',
-                url: '/labels',
-                controller: 'LabelController',
-                templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-              }).state('management.application.view.licenses', {
-                parent: 'management.application.view',
-                url: '/licenses',
-                controller: 'LicenseThreatGroupController',
-                templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
-                    clmBuildTimestamp
+      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon', 'CLMLocation'],
+      ['$stateProvider', function($stateProvider) {
+        $stateProvider.state('management.application', {
+          parent: 'management',
+          url: '/application',
+          controller: 'applicationController',
+          templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
+        }).state('management.application.view', {
+          parent: 'management.application',
+          url: '/{applicationPublicId}',
+          controller: 'applicationEditorController',
+          data: {
+            passThroughAlerts: []
+          },
+          templateUrl: '../application-assets/components/application-editor.html?' + clmBuildTimestamp,
+          resolve : {
+            selectedApplication : function ($q, $stateParams, applicationStore) {
+              if ($stateParams.applicationPublicId === '_new_')
+                return applicationStore.create();
+
+              var deferred = $q.defer();
+              applicationStore.get().then(function (data) {
+                for (var i=0; i<data.length; i++) {
+                  if (data[i].publicId === $stateParams.applicationPublicId) {
+                    deferred.resolve(data[i].$clone());
+                    break;
+                  }
+                }
+                deferred.reject("Failed to locate application");
+              }, function () {
+                deferred.reject("Failed to locate application");
               });
-        }
-      ]);
+              return deferred.promise;
+            }
+          }
+        }).state('management.application.view.policies', {
+          parent: 'management.application.view',
+          url: '/policies',
+          controller: 'PolicyController',
+          data: {
+            passThroughAlerts: []
+          },
+          templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+        }).state('management.application.view.labels', {
+          parent: 'management.application.view',
+          url: '/labels',
+          controller: 'LabelController',
+          templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+        }).state('management.application.view.licenses', {
+          parent: 'management.application.view',
+          url: '/licenses',
+          controller: 'LicenseThreatGroupController',
+          templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
+        });
+      }]);
 
   applicationModule.controller('applicationController', [
     '$scope', '$state', '$timeout', '$location', 'applicationStore', 'CLMLocations',
     function($scope, $state, $timeout, $location, applicationStore, CLMLocations) {
-      function switchApplication() {
-        $scope.selectedApplication = null;
-        $scope.userIconSource = null;
-        if ('_new_' === $scope.$state.params.applicationPublicId) {
-          $timeout(function() {
-            $scope.selectedApplication = applicationStore.create();
-            $scope.origUserIconSource = $scope.userIconSource = '../assets/img/defaulticon_application.png';
-          }, 100);
-        }
-        else if ($scope.$state.params.applicationPublicId !== null && $scope.applications) {
-          for (var i = 0; i < $scope.applications.length; i++) {
-            if ($scope.$state.params.applicationPublicId === $scope.applications[i].publicId) {
-              $timeout(function() {
-                $scope.selectedApplication = $scope.applications[i].$clone();
-                $scope.$broadcast('setApplicationIcon');
-              }, 100);
-              return;
-            }
-          }
-          // TODO We might want to consider reloading the store at this point?
-        }
-      }
-
       $scope.location = $location;
 
       // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
@@ -93,8 +88,6 @@
         $scope.error = null;
         applicationStore.get().then(function(applications) {
           $scope.applications = applications;
-          switchApplication();
-          $scope.$watch('$state.params.applicationPublicId', switchApplication);
         }, function(error) {
           $scope.error = error;
         });
@@ -105,7 +98,7 @@
 
   applicationModule.controller('applicationEditorController',
       function($scope, $state, $q, applicationStore, OrganizationStore, CLMLocations, CLMAppLocations, Messages, $http,
-               hudson, editorTools, ActionStore, policyEvaluator)
+               hudson, editorTools, ActionStore, policyEvaluator, selectedApplication)
       {
         var me = this;
         angular.extend(me,
@@ -114,8 +107,11 @@
 
         // Application Editor controller will take care of managing its own icons
         function setApplicationIcon() {
-          // Reset icon cache on initial load and when icon is changed
-          if (!$scope.applicationIconTimestamp[$scope.selectedApplication.publicId]) {
+          if ($scope.selectedApplication.publicId === null) {
+            $scope.origUserIconSource = $scope.userIconSource = '../assets/img/defaulticon_application.png';
+          }
+          else if (!$scope.applicationIconTimestamp[$scope.selectedApplication.publicId]) {
+            // Reset icon cache on initial load and when icon is changed
             resetIconCache();
           }
           else {
@@ -136,38 +132,47 @@
         }
 
         $scope.addApplicationSync = CLMAppLocations.addIconSync();
-        $scope.$on('setApplicationIcon', setApplicationIcon);
         $scope.$on('resetIconCache', resetIconCache);
 
         $scope.$state = $state;
         $scope.submitActive = false;
 
-        var promises = [OrganizationStore.get(), ActionStore.get()];
-        $q.all(promises).then(function(results) {
-          $scope.organizations = results[0];
-          $scope.state = {
-            actionStageList: results[1][1]
-          };
-        });
+        $scope.doLoad = function () {
+          $scope.error = null;
 
-        $scope.$watch('selectedApplication', function() {
-          if ($scope.selectedApplication && $scope.selectedApplication.publicId) {
-            $http.get(CLMLocations.getApplicationSummaryUrl($scope.selectedApplication.publicId), {
-              params: { timestamp: new Date().getTime() }
-            }).then(function(summary) {
-                  $scope.applicationSummary = summary.data;
-                  $scope.applicationSummary.stageCount = 0;
-                  angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation, stage) {
-                    policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId,
-                        policyEvaluation.scanId);
-                    $scope.applicationSummary.stageCount++;
-                  });
-                }, function(error) {
-                  $scope.pushAlert({ type: 'error', msg: 'An error occurred while loading the report summary. (' +
-                      Messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')' });
-                });
+          var promises = [OrganizationStore.get(), ActionStore.get()];
+          if (selectedApplication.publicId) {
+            promises.push($http.get(CLMLocations.getApplicationSummaryUrl(selectedApplication.publicId), {
+              params: {
+                timestamp: new Date().getTime()
+              }
+            }));
           }
-        });
+
+          $q.all(promises).then(function(results) {
+            $scope.selectedApplication = selectedApplication;
+            setApplicationIcon();
+
+            $scope.organizations = results[0];
+            $scope.state = {
+              actionStageList: results[1][1]
+            };
+
+            if (results.length > 2) {
+              $scope.applicationSummary = results[2].data;
+              $scope.applicationSummary.stageCount = 0;
+              angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation, stage) {
+                policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId,
+                        policyEvaluation.scanId);
+                $scope.applicationSummary.stageCount++;
+              });
+            }
+          }, function (error) {
+            $scope.error = error;
+          });
+        };
+        $scope.doLoad();
+
 
         $scope.getOrganizationName = function(organizationId) {
           if (!organizationId) {
@@ -283,7 +288,6 @@
         };
 
         $scope.confirmDeleteApplication = function(application) {
-          $scope.selectedApplication = application;
           $scope.deletedEnabled = true;
           $('#deleteApplicationModal').modal('show');
         };

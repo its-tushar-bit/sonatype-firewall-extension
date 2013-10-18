@@ -1,7 +1,7 @@
 var clmTimestamp = '';
 
 describe('ApplicationController', function() {
-  var scope, httpBackend, rootScope, state, mockApplication, _provide;
+  var parentScope, scope, httpBackend, rootScope, state, mockApplication, _provide;
 
   beforeEach(module('ApplicationModule', function($provide) {
     $provide.value('ApplicationId', {
@@ -42,6 +42,7 @@ describe('ApplicationController', function() {
   afterEach(function() {
     httpBackend.verifyNoOutstandingExpectation();
     httpBackend.verifyNoOutstandingRequest();
+    scope.$destroy();
   });
 
   it('loads applications.', function() {
@@ -50,32 +51,14 @@ describe('ApplicationController', function() {
     expect(scope.applications[0].publicId).toEqual('bom1-12345678');
   });
 
-  it('switches applications.', inject(function($timeout) {
-    expect(scope.selectedApplication).toEqual(null);
-    scope.$apply(function() {
-      state.params.applicationPublicId = 'bom1-12345678';
-    });
-    $timeout.flush();
-    expect(scope.selectedApplication).not.toBeUndefined();
-    expect(scope.selectedApplication.publicId).toEqual('bom1-12345678');
-  }));
-
-  it('switch to new application', inject(function($timeout) {
-    expect(scope.selectedApplication).toEqual(null);
-    scope.$apply(function() {
-      state.params.applicationPublicId = '_new_';
-    });
-    $timeout.flush();
-    expect(scope.selectedApplication).not.toBeUndefined();
-    expect(scope.selectedApplication.publicId).toEqual(null);
-  }));
-
   it('passes through alerts', inject(function($state, $httpBackend) {
     $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
     $httpBackend.expectGET('../application-assets/components/application-editor.html?').respond('<div></div>');
 
-    $state.transitionTo('management.application.view');
+    $state.transitionTo('management.application.view', {
+      applicationPublicId : '_new_'
+    });
 
     $httpBackend.flush();
 
@@ -97,7 +80,7 @@ describe('ApplicationController', function() {
 });
 
 describe('ApplicationEditorController', function() {
-  var scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
+  var parentScope, scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
 
   beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
     $provide.factory('hudson', [
@@ -127,20 +110,21 @@ describe('ApplicationEditorController', function() {
     var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
     httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
 
-    scope = $rootScope.$new();
+    parentScope = $rootScope.$new();
+    scope = parentScope.$new();
     state = $state;
 
-    scope.selectedApplication = applicationStore.create();
-    scope.selectedApplication.$updateOriginal(mockApplication);
-    originalMockApplication = angular.copy(scope.selectedApplication);
+    var selectedApplication = applicationStore.create();
+    selectedApplication.$updateOriginal(mockApplication);
+    originalMockApplication = angular.copy(selectedApplication);
 
-    getOriginalSpy = spyOn(scope.selectedApplication, '$getOriginal').andReturn(originalMockApplication);
-    revertSpy = spyOn(scope.selectedApplication, '$revert').andCallThrough();
-    saveSpy = spyOn(scope.selectedApplication, '$save').andCallThrough();
+    getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
+    revertSpy = spyOn(selectedApplication, '$revert').andCallThrough();
+    saveSpy = spyOn(selectedApplication, '$save').andCallThrough();
 
-    scope.applications = [scope.selectedApplication];
-
-    $controller('applicationEditorController', { $scope: scope, $state: state });
+    parentScope.applications = [selectedApplication];
+    parentScope.applicationIconTimestamp = {}
+    $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
 
     httpBackend.flush();
   }));
@@ -148,6 +132,7 @@ describe('ApplicationEditorController', function() {
   afterEach(function() {
     httpBackend.verifyNoOutstandingExpectation();
     httpBackend.verifyNoOutstandingRequest();
+    parentScope.$destroy();
   });
 
   it('generates an icon', function() {
@@ -250,8 +235,6 @@ describe('ApplicationEditorController', function() {
 
   it('Can delete an application', inject(function(CLMAppLocations, CLMLocations) {
     httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
-    httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-    httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
     expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
 
@@ -260,14 +243,12 @@ describe('ApplicationEditorController', function() {
     expect(scope.deletedEnabled).toBeTruthy();
     expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
 
-    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(mockApplication);
-
     scope.deleteApplication();
 
     httpBackend.flush();
 
     expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-    expect(scope.applications.length).toEqual(0);
+    expect(parentScope.applications.length).toEqual(0);
     expect(scope.deletedEnabled).toBeFalsy();
   }));
 
@@ -317,8 +298,6 @@ describe('ApplicationEditorController', function() {
 
     expect(scope.deletedEnabled).toBeTruthy();
     expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
-
-    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(mockApplication);
 
     scope.deleteApplication();
 

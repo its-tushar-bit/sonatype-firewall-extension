@@ -59,32 +59,14 @@ describe('Tests for the OrganizationController', function() {
       expect(scope.organizations[2].name).toEqual('org3');
     });
 
-    it('switches organizations.', inject(function($timeout) {
-      expect(scope.selectedOrganization).toEqual(null);
-      scope.$apply(function() {
-        state.params.organizationId = '2';
-      });
-      $timeout.flush();
-      expect(scope.selectedOrganization).not.toBeUndefined();
-      expect(scope.selectedOrganization.name).toEqual('org2');
-    }));
-
-    it('switch to new organization', inject(function($timeout) {
-      expect(scope.selectedOrganization).toEqual(null);
-      scope.$apply(function() {
-        state.params.organizationId = '_new_';
-      });
-      $timeout.flush();
-      expect(scope.selectedOrganization).not.toBeUndefined();
-      expect(scope.selectedOrganization.name).toEqual(null);
-    }));
-
     it('passes through alerts', inject(function($state, $httpBackend) {
       $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
       $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
       $httpBackend.expectGET('../organization-assets/components/organization-editor.html?').respond('<div></div>');
 
-      $state.transitionTo('management.organization.view');
+      $state.transitionTo('management.organization.view', {
+        organizationId : '_new_'
+      });
 
       $httpBackend.flush();
 
@@ -106,7 +88,7 @@ describe('Tests for the OrganizationController', function() {
   });
 
   describe('OrganizationEditorController', function() {
-    var scope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization;
+    var scope, parentScope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization;
 
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations,
                                OrganizationStore)
@@ -120,24 +102,27 @@ describe('Tests for the OrganizationController', function() {
       httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationsData);
       originalMockOrganization = organizationsData[0];
 
-      scope = $rootScope.$new();
+      parentScope = $rootScope.$new();
+      scope = parentScope.$new();
       state = $state;
 
-      scope.selectedOrganization = OrganizationStore.create();
-      scope.selectedOrganization.$updateOriginal(originalMockOrganization);
+      var selectedOrganization = OrganizationStore.create();
+      selectedOrganization.$updateOriginal(originalMockOrganization);
 
-      scope.organizations = [originalMockOrganization];
+      parentScope.organizations = [originalMockOrganization];
+      parentScope.organizationIconTimestamp = {}
 
       $controller('OrganizationEditorController', {
         $scope: scope,
-        $state: state
+        $state: state,
+        selectedOrganization : selectedOrganization
       });
     }));
 
     afterEach(function() {
       httpBackend.verifyNoOutstandingExpectation();
       httpBackend.verifyNoOutstandingRequest();
-      scope.$destroy();
+      parentScope.$destroy();
     });
 
     it('generates an icon', function() {

@@ -13,8 +13,8 @@
 
   policyModule.controller('PolicyController', [
     '$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
-    'CLMAppLocations', 'Dialog',
-    function($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog) {
+    'CLMAppLocations', 'Dialog', 'ownerChange',
+    function($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange) {
 
       $scope.alerts = [];
       $scope.location = $location;
@@ -58,6 +58,8 @@
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
         });
       };
+
+      $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicablePolicies'));
 
       $scope.toggleAll = function(applicablePolicy) {
         var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';

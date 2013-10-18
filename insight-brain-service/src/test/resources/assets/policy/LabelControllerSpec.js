@@ -291,6 +291,22 @@ describe('LabelController.js', function() {
         expect(scope.alerts.length).toEqual(0);
         expect(scope.selectedLabel.id).toEqual(testScope.applicableLabels[0].labels[0].id);
       });
+
+      it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabels());
+        testScope.$broadcast('ownerChanged', {
+          ownerId : LabelMockData.getApplicableLabels().labelsByOwner[0].ownerId,
+          changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
+        });
+
+        $httpBackend.flush();
+
+        testScope.$broadcast('ownerChanged', {
+          ownerId : LabelMockData.getApplicableLabels().labelsByOwner[0].ownerId,
+          changes : [ { field : 'name', newValue : 'NEW NAME' } ]
+        });
+        expect(testScope.applicableLabels[0].ownerName).toBe("NEW NAME");
+      }));
     });
   });
 });

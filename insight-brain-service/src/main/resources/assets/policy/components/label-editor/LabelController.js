@@ -53,8 +53,8 @@
   };
 
   labelModule.controller('LabelController', [
-    '$scope', '$http', '$q', '$modal', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore',
-    function($scope, $http, $q, $modal, clmAppLocations, messages, clmResource, LabelStore) {
+    '$scope', '$http', '$q', '$modal', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange',
+    function($scope, $http, $q, $modal, clmAppLocations, messages, clmResource, LabelStore, ownerChange) {
       $scope.alerts = [];
 
       function deselect() {
@@ -100,6 +100,8 @@
           $scope.error = error;
         });
       };
+
+      $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicableLabels'));
 
       $scope.editLabel = function(isEditable, label) {
         if (!isEditable) {

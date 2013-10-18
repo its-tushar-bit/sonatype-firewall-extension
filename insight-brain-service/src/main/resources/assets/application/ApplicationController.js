@@ -329,11 +329,25 @@
 
           $scope.submitActive = true;
 
+          var oldApplication = $scope.selectedApplication.$getOriginal();
           $scope.selectedApplication.$save().then(function() {
             me.saveIcon().then(function() {
               if ($state.params.applicationPublicId === '_new_') {
                 $state.transitionTo('management.application.view.policies',
                     { applicationPublicId: $scope.selectedApplication.publicId });
+              }
+              var changes = [];
+              if (oldApplication.organizationId !== $scope.selectedApplication.organizationId) {
+                changes.push({ field: 'organizationId', newValue: $scope.selectedApplication.organizationId });
+              }
+              if (oldApplication.name !== $scope.selectedApplication.name) {
+                changes.push({ field: 'name', newValue: $scope.selectedApplication.name });
+              }
+              if (changes.length > 0) {
+                $scope.$broadcast('ownerChanged', {
+                  ownerId: $scope.selectedApplication.id,
+                  changes: changes
+                });
               }
             }, function(error) {
               if ($state.params.applicationPublicId === '_new_') {

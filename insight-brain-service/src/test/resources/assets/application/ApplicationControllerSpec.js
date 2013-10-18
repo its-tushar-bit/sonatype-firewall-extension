@@ -132,11 +132,11 @@ describe('ApplicationEditorController', function() {
 
     scope.selectedApplication = applicationStore.create();
     scope.selectedApplication.$updateOriginal(mockApplication);
-    getOriginalSpy = spyOn(scope.selectedApplication, '$getOriginal').andCallThrough();
+    originalMockApplication = angular.copy(scope.selectedApplication);
+
+    getOriginalSpy = spyOn(scope.selectedApplication, '$getOriginal').andReturn(originalMockApplication);
     revertSpy = spyOn(scope.selectedApplication, '$revert').andCallThrough();
     saveSpy = spyOn(scope.selectedApplication, '$save').andCallThrough();
-
-    originalMockApplication = angular.copy(scope.selectedApplication);
 
     scope.applications = [scope.selectedApplication];
 
@@ -367,4 +367,32 @@ describe('ApplicationEditorController', function() {
     e = scope.$broadcast('pageChangeAccepted', 'organization/');
     expect(scope.selectedApplication.name).toEqual(originalMockApplication.name);
   });
+
+  it('broadcasts changes to owner data', inject(function(CLMAppLocations) {
+    var broadcastSpy = spyOn(scope, '$broadcast');
+    scope.applicationEditor = {};
+    scope.applicationEditor.$valid = true;
+
+    scope.selectedApplication.organizationId = 'new_org_id';
+
+    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
+
+    scope.save();
+
+    httpBackend.flush();
+
+    expect(broadcastSpy).toHaveBeenCalledWith('ownerChanged', { ownerId : '78c1d44c07584e57945f04890c672e82', changes : [ { field : 'organizationId', newValue : 'new_org_id' } ] });
+    broadcastSpy.reset();
+
+    scope.selectedApplication.organizationId = originalMockApplication.organizationId;
+    scope.selectedApplication.name = 'new_name';
+
+    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
+
+    scope.save();
+
+    httpBackend.flush();
+
+    expect(broadcastSpy).toHaveBeenCalledWith('ownerChanged', { ownerId : '78c1d44c07584e57945f04890c672e82', changes : [ { field : 'name', newValue : 'new_name' } ] });
+  }));
 });

@@ -873,4 +873,27 @@ var AngularUtils = {
       };
     }
   ]);
+
+  services.service('ownerChange', ['$parse', function ($parse) {
+    return {
+      getEventHandler: function(scope, applicableCollection) {
+        return function(eventArgs, changeEvent) {
+          jQuery.each(changeEvent.changes, function(index, change) {
+            switch (change.field) {
+              case 'name':
+                angular.forEach($parse(applicableCollection)(scope), function(item) {
+                  if (item.ownerId === changeEvent.ownerId) {
+                    item.ownerName = change.newValue;
+                  }
+                });
+                break;
+              case 'organizationId':
+                scope.doLoad();
+                return false;
+            }
+          });
+        };
+      }
+    };
+  }]);
 }());

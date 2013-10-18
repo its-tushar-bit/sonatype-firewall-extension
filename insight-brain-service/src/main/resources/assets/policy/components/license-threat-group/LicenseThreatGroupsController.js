@@ -93,8 +93,8 @@
   ]);
 
   licenseGroupModule.controller('LicenseThreatGroupController', [
-    '$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'Messages',
-    function($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, Messages) {
+    '$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'ownerChange',
+    function($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, ownerChange) {
       function sortLicense(a, b) {
         if (a.id < b.id) {
           return -1;
@@ -168,6 +168,8 @@
       };
 
       $scope.doLoad();
+
+      $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicableLicenseGroups'));
 
       $scope.getDisplayName = function(license) {
         var licenseId = license.licenseId;

@@ -104,6 +104,22 @@ describe('LicenseThreatGroup', function() {
 
       $httpBackend.flush();
     }));
+
+    it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLicenseGroupsUrl())).respond(LicenseGroupMockData.getApplicableLicenseGroupData());
+      scope.$broadcast('ownerChanged', {
+        ownerId : LicenseGroupMockData.getApplicableLicenseGroupData().licenseThreatGroupsByOwner[0].ownerId,
+        changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
+      });
+
+      $httpBackend.flush();
+
+      scope.$broadcast('ownerChanged', {
+        ownerId : LicenseGroupMockData.getApplicableLicenseGroupData().licenseThreatGroupsByOwner[0].ownerId,
+        changes : [ { field : 'name', newValue : 'NEW NAME' } ]
+      });
+      expect(scope.applicableLicenseGroups[0].ownerName).toBe("NEW NAME");
+    }));
   });
 
   describe('LicenseThreatGroupEditorController', function() {

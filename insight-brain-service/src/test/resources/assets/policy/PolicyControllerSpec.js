@@ -95,4 +95,20 @@ describe('PolicyController tests', function() {
     expect(scope.applicablePolicies[0].editable).toEqual(true);
     expect(scope.applicablePolicies[1].editable).toEqual(false);
   });
+
+  it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    scope.$broadcast('ownerChanged', {
+      ownerId : ApplicationMockData.getApplicablePolicies().policiesByOwner[0].ownerId,
+      changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
+    });
+
+    $httpBackend.flush();
+
+    scope.$broadcast('ownerChanged', {
+      ownerId : ApplicationMockData.getApplicablePolicies().policiesByOwner[0].ownerId,
+      changes : [ { field : 'name', newValue : 'NEW NAME' } ]
+    });
+    expect(scope.applicablePolicies[0].ownerName).toBe("NEW NAME");
+  }));
 });

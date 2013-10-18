@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,10 @@ public class InsightBrainService
   public static final String CIP_ASSET_PATH = "/cip/";
 
   public static void main(final String[] args) throws Exception {
+    if (!isTempDirSane()) {
+      return;
+    }
+
     new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
   }
 
@@ -75,6 +80,39 @@ public class InsightBrainService
 
     LicenseOverrideMigrator LicenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
     LicenseOverrideMigrator.migrate();
+  }
+
+  protected static boolean isTempDirSane() {
+    // Ensure that temp directory can be written to. If not, exit and log reason.
+    String tmp = System.getProperty("java.io.tmpdir");
+    try {
+      File dir = new File(tmp).getCanonicalFile();
+
+      if (!dir.exists()) {
+        if (dir.mkdirs()) {
+          log.debug("Created tmp dir: {}", dir);
+        }
+      }
+      else if (!dir.isDirectory()) {
+        log.error("It appears that the system temporary location is not a folder. Please ensure that {} is a folder " +
+            "or specify another folder by adding -Djava.io.tmpdir=<writeable-dir> to the command line used for launching " +
+            "the server.", dir);
+        return false;
+      }
+
+      // Ensure we can actually create a new temp file
+      File file = File.createTempFile("clm-server-launcher", "tmp");
+      file.createNewFile();
+      file.delete();
+
+      System.setProperty("java.io.tmpdir", dir.getAbsolutePath());
+    } catch (IOException ex) {
+      log.error("The server is not able to write to the system temporary folder. Please ensure server has access to {} " +
+          "or specify another folder by adding -Djava.io.tmpdir=<writeable-dir> to the command line used for launching " +
+          "the server.", tmp);
+      return false;
+    }
+    return true;
   }
 
   @Override

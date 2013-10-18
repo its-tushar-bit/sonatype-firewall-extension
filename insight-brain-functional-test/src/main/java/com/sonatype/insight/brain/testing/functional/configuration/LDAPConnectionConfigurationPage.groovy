@@ -15,7 +15,6 @@ class LDAPConnectionConfigurationPage
 
   static content = {
     // connection details editor
-    ldapConnectionEditor { $('#ldapConnectionEditor') }
     hostname { $('#hostname') }
     protocol { $('#protocol') }
     port { $('#port') }
@@ -29,7 +28,7 @@ class LDAPConnectionConfigurationPage
 
     requiredFields { [hostname, searchBase] }
     //controls
-
+    testConnection { $('.ldap-button-group button', text: 'Test Connection') }
     reset { $('.ldap-button-group button', text: 'Reset') }
     save { $('.ldap-button-group button', text: 'Save') }
   }

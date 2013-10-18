@@ -41,5 +41,16 @@ class LDAPUserAndGroupMappingConfigurationPage
     checkUserLogin { $('button', text: 'Check Login') }
     reset { $('.ldap-button-group button', text: 'Reset') }
     save { $('.ldap-button-group button', text: 'Save') }
+
+    //test user mapping dialog
+    userMappingDialog(required: false) { $('div.modal-ldap') }
+    userMappingDialogClose(required: false){ userMappingDialog.find('button')}
+
+    //test user login dialog
+    userLoginDialog(required: false) { $('div.modal h3', text: 'LDAP Login Credentials to Test')?.parent().parent() }
+    userLoginUsername(required: false) { userLoginDialog.find('input', name: 'username')}
+    userLoginPassword(required: false) { userLoginDialog.find('input', name: 'password')}
+    userLoginDialogTest(required: false){ userLoginDialog.find('button', 'ng-click':'testLogin()')}
+    userLoginDialogClose(required: false){ userLoginDialog.find('button', text:'Close')}
   }
 }

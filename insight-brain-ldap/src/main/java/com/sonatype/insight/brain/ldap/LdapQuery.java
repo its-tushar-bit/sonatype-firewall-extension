@@ -49,6 +49,7 @@ class LdapQuery
     ctxFactory.setSystemUsername(conn.getSystemUsername());
     ctxFactory.setSystemPassword(conn.getSystemPassword());
     ctxFactory.setSaslRealm(conn.getSaslRealm());
+    ctxFactory.setConnectionTimeout(conn.getConnectionTimeout());
 
     this.umap = umap;
   }

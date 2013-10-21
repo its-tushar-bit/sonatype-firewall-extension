@@ -34,6 +34,8 @@ class LdapCtxFactory
 
   private String saslRealm;
 
+  private int connectionTimeout;
+
   @Override
   public LdapContext getSystemLdapContext() throws NamingException {
     systemContext.set(TRUE);
@@ -53,6 +55,20 @@ class LdapCtxFactory
     return saslRealm;
   }
 
+  /**
+   * @param connectionTimeout timeout in seconds
+   */
+  public void setConnectionTimeout(int connectionTimeout) {
+    this.connectionTimeout = connectionTimeout;
+  }
+
+  /**
+   * @return timeout in seconds
+   */
+  public int getConnectionTimeout() {
+    return connectionTimeout;
+  }
+
   @Override
   protected boolean isPoolingConnections(Object principal) {
     // replace original system name check with safer thread-context check;
@@ -69,6 +85,11 @@ class LdapCtxFactory
     }
     if (StringUtils.isNotBlank(saslRealm)) {
       env.put("java.naming.security.sasl.realm", saslRealm);
+    }
+    if (connectionTimeout > 0) {
+      // According to JDK docs these should be Strings representing the timeout in milliseconds
+      env.put("com.sun.jndi.ldap.connect.timeout", Integer.toString(connectionTimeout * 1000));
+      env.put("com.sun.jndi.ldap.read.timeout", Integer.toString(connectionTimeout * 1000));
     }
     return super.createLdapContext(env);
   }

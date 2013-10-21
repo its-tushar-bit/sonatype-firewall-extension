@@ -10,7 +10,10 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.naming.CommunicationException;
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
+import javax.naming.NamingSecurityException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
@@ -45,6 +48,10 @@ public class LdapManager
 
   private final PlexusCipher cipher;
 
+  private long lastFailureMillis = 0;
+
+  private int connectionFailures = 0;
+
   @Inject
   public LdapManager(PlexusCipher cipher) {
     this.cipher = cipher;
@@ -75,6 +82,7 @@ public class LdapManager
     else {
       connDao.insert(encrypted);
     }
+    resetConnectionFailures();
     return fakeOutPassword(encrypted);
   }
 
@@ -107,14 +115,14 @@ public class LdapManager
     new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password);
   }
 
-  // local methods used by LdapRealm
+  // User authentication
 
   /**
    * Preliminary check used by Shiro to decide whether to start querying the LDAP realm.
    * 
    * @see LdapRealm#supports
    */
-  boolean isLdapEnabled() {
+  public boolean isLdapEnabled() {
     return !serverDao.getAll().isEmpty(); // we have at least one LDAP server
   }
 
@@ -123,16 +131,30 @@ public class LdapManager
    * 
    * @see LdapRealm#queryForAuthenticationInfo
    */
-  void authenticateUser(String username, char[] password) throws NamingException {
+  public void authenticateUser(String username, char[] password) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
     LdapUserMapping umap = userDao.getByServerId(conn.getServerId());
     if (umap == null) {
       throw new IllegalStateException("LDAP user mapping is not configured");
     }
-    new LdapQuery(conn, umap).authenticateUser(username, password);
+    checkValidConnection(conn);
+    try {
+      new LdapQuery(conn, umap).authenticateUser(username, password);
+      resetConnectionFailures();
+    }
+    catch (NameNotFoundException e) {
+      throw e; // unknown user
+    }
+    catch (NamingSecurityException e) {
+      throw e; // bad password
+    }
+    catch (NamingException e) {
+      recordConnectionFailure();
+      throw e;
+    }
   }
 
-  // password encryption
+  // Password encryption
 
   /**
    * Returns the current stored connection details with the password decrypted.
@@ -207,5 +229,37 @@ public class LdapManager
       }
     }
     return conn;
+  }
+
+  // Retry delay support
+
+  /**
+   * Checks failure rate of LDAP connection; throws exception while retry delay is in effect.
+   */
+  private void checkValidConnection(LdapConnection conn) throws NamingException {
+    if (lastFailureMillis > 0) {
+      if (lastFailureMillis + (conn.getRetryDelay() * 1000) < System.currentTimeMillis()) {
+        resetConnectionFailures(); // retry delay has elapsed
+      }
+      else if (connectionFailures >= 3) {
+        throw new CommunicationException("Delaying retry of failing LDAP connection.");
+      }
+    }
+  }
+
+  /**
+   * If we want absolute precision we should ideally use AtomicInteger or add synchronized to these methods.
+   * However we don't need such precision as this is more about stopping requests for a grace period when we
+   * detect a problem with the LDAP connection. Without AtomicInteger/synchronized we may miscount by one or
+   * two requests when dealing with heavily concurrent requests, but will eventually apply the grace period.
+   */
+  private void recordConnectionFailure() {
+    lastFailureMillis = System.currentTimeMillis();
+    connectionFailures++;
+  }
+
+  private void resetConnectionFailures() {
+    lastFailureMillis = 0;
+    connectionFailures = 0;
   }
 }

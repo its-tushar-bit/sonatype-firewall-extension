@@ -2,7 +2,7 @@
 <div class="navigation">
 	<ul class="nav nav-list">
 		<li ng-repeat='pane in panes' ng-class="{'active': $state.current.name.indexOf(pane.state.replace('/', '.')) !== -1, 'disabled': !pane.isEnabled}">
-			<a href='#/{{pane.state}}' ng-click='$state.selectedPane = pane'>{{managementPane.name}}</a>
+			<a href='#/{{pane.state}}' ng-click='$state.selectedPane = pane'>{{pane.name}}</a>
 		</li>
 	</ul>
 </div>

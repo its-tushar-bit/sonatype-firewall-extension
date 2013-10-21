@@ -3,33 +3,35 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+(function() {
+  "use strict";
+  var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation']);
 
-var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation']);
+  reportListModule.controller('ReportViolationsController', [
+    '$scope',
+    '$http',
+    '$q',
+    'CLMLocations',
+    function($scope, $http, $q, clmLocations) {
+      $scope.doLoad = function() {
+        var promises = [$http.get(clmLocations.getActionStageUrl()),
+                        $http.get(clmLocations.getApplicationSummariesUrl(), {
+                          params: {
+                            timestamp: new Date().getTime()
+                          }
+                        })];
+        $scope.error = null;
 
-reportListModule.controller('ReportViolationsController', [
-  '$scope',
-  '$http',
-  '$q',
-  'CLMLocations',
-  function($scope, $http, $q, clmLocations) {
-    $scope.doLoad = function() {
-      var promises = [$http.get(clmLocations.getActionStageUrl()),
-                      $http.get(clmLocations.getApplicationSummariesUrl(), {
-                        params: {
-                          timestamp: new Date().getTime()
-                        }
-                      })];
-      $scope.error = null;
-
-      $q.all(promises).then(function(results) {
-        $scope.stages = results[0].data;
-        $scope.applications = results[1].data;
-      }, function() {
-        $scope.error = arguments[0];
-      });
-    };
-    $scope.orderColumn = 'name';
-    $scope.orderDirection = false;
-    $scope.encodeURIComponent = window.encodeURIComponent;
-    $scope.doLoad();
-  }]);
+        $q.all(promises).then(function(results) {
+          $scope.stages = results[0].data;
+          $scope.applications = results[1].data;
+        }, function() {
+          $scope.error = arguments[0];
+        });
+      };
+      $scope.orderColumn = 'name';
+      $scope.orderDirection = false;
+      $scope.encodeURIComponent = window.encodeURIComponent;
+      $scope.doLoad();
+    }]);
+}());

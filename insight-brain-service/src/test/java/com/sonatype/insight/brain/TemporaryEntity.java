@@ -11,9 +11,26 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.junit.rules.ExternalResource;
@@ -24,11 +41,29 @@ import org.junit.rules.ExternalResource;
 public class TemporaryEntity
     extends ExternalResource
 {
+  private static final String USER_PASSWORD_CLEAR = "secret";
+
+  private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$500000$2lOqZIkAH5mPy0kRQA35Qw==$ZohUABDXBElT1fuey7V/+QfMR+VLx1kWDR5TQpnAQcI=";
+
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
   private final OrganizationDAO orgDAO = new OrganizationDAO();
 
   private final UserDAO userDAO = new UserDAO();
+
+  private final RoleDAO roleDAO = new RoleDAO();
+
+  private final RolePermissionDAO rolePermDAO = new RolePermissionDAO();
+
+  private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+
+  private final LabelDAO labelDAO = new LabelDAO();
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+  private final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
+  private final PolicyWaiverDAO waiverDAO = new PolicyWaiverDAO();
 
   private Collection<Application> apps;
 
@@ -36,27 +71,73 @@ public class TemporaryEntity
 
   private Collection<User> users;
 
+  private Collection<Role> roles;
+
+  private Collection<Label> labels;
+
+  private Collection<LicenseThreatGroup> licenseThreatGroups;
+
+  private Collection<LicenseOverride> licenseOverrides;
+
+  private Collection<PolicyWaiver> waivers;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
     orgs = new ArrayList<Organization>();
     users = new ArrayList<User>();
+    roles = new ArrayList<Role>();
+    labels = new ArrayList<Label>();
+    licenseThreatGroups = new ArrayList<LicenseThreatGroup>();
+    licenseOverrides = new ArrayList<LicenseOverride>();
+    waivers = new ArrayList<PolicyWaiver>();
   }
 
   @Override
   protected void after() {
     for (Application app : apps) {
-      appDAO.delete(app);
+      if (appDAO.getById(app.getId()) != null) {
+        appDAO.delete(app);
+      }
     }
     for (Organization org : orgs) {
-      orgDAO.delete(org);
+      if (orgDAO.getById(org.getId()) != null) {
+        orgDAO.delete(org);
+      }
     }
     for (User user : users) {
-      userDAO.delete(user);
+      if (userDAO.getById(user.getId()) != null) {
+        userDAO.delete(user);
+      }
+    }
+    for (Role role : roles) {
+      if (roleDAO.getById(role.getId()) != null) {
+        roleDAO.delete(role);
+      }
+    }
+    for (Label label : labels) {
+      if (labelDAO.getById(label.getId()) != null) {
+        labelDAO.delete(label);
+      }
+    }
+    for (LicenseThreatGroup ltg : licenseThreatGroups) {
+      if (licenseThreatGroupDAO.getById(ltg.getId()) != null) {
+        licenseThreatGroupDAO.delete(ltg);
+      }
+    }
+    for (LicenseOverride override : licenseOverrides) {
+      if (licenseOverrideDAO.getById(override.getId()) != null) {
+        licenseOverrideDAO.delete(override);
+      }
+    }
+    for (PolicyWaiver waiver : waivers) {
+      if (waiverDAO.getById(waiver.getId()) != null) {
+        waiverDAO.delete(waiver);
+      }
     }
   }
 
-  private static String uuid() {
+  public String uuid() {
     return UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -91,9 +172,62 @@ public class TemporaryEntity
   }
 
   public User newUser(String username) {
-    User user = new User(username, "pwd-" + username, "John", "Doe", username + "@void.com");
+    User user = new User(username, USER_PASSWORD_HASH, "John", "Doe", username + "@void.com");
     userDAO.insert(user);
     users.add(user);
+    user.setPassword(USER_PASSWORD_CLEAR);
     return user;
+  }
+
+  public Role newRole(boolean global, Permission... permissions) {
+    return newRole("Role " + uuid(), global, permissions);
+  }
+
+  public Role newRole(String name, boolean global, Permission... permissions) {
+    Role role = new Role();
+    role.setName(name);
+    role.setGlobal(global);
+    roleDAO.insert(role);
+    roles.add(role);
+    for (Permission permission : permissions) {
+      rolePermDAO.insert(new RolePermission(role.getId(), permission));
+    }
+    return role;
+  }
+
+  public MembershipMapping newMembershipMapping(String contextId, String roleId, String username) {
+    MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, username, MemberType.USER);
+    membershipMappingDAO.insert(membershipMapping);
+    return membershipMapping;
+  }
+
+  public Label newLabel(String ownerId) {
+    Label label = new Label(ownerId, uuid(), null);
+    labelDAO.insert(label);
+    labels.add(label);
+    return label;
+  }
+
+  public LicenseThreatGroup newLicenseThreatGroup(String ownerId) {
+    LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, "LTG " + uuid(), 5);
+    licenseThreatGroupDAO.insert(ltg);
+    licenseThreatGroups.add(ltg);
+    return ltg;
+  }
+
+  public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,
+      LicenseOverrideStatus status, String licenseId)
+  {
+    LicenseOverride override = new LicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, "testing");
+    licenseOverrideDAO.insert(override);
+    licenseOverrides.add(override);
+    return override;
+  }
+
+  public PolicyWaiver newWaiver(String hash, String policyId, String ownerId) {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, "testing");
+    waiverDAO.insert(waiver);
+    waivers.add(waiver);
+    return waiver;
   }
 }

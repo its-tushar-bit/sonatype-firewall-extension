@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.license;
+
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.test.RestAccess;
+
+import com.ning.http.client.Response;
+import org.junit.Test;
+
+public class LicenseOverrideResourceAuthzTest
+    extends AbstractResourceAuthzTest
+{
+  @Test
+  public void testAddLicenseOverride() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.WRITE);
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    LicenseOverride override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
+
+    String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
+    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(override));
+    assertResponseStatus(403, response);
+
+    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(override));
+    assertResponseStatus(200, response);
+    override = fromJson(response, LicenseOverride.class);
+    new LicenseOverrideDAO().delete(override);
+
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
+
+    url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
+    response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(override));
+    assertResponseStatus(403, response);
+
+    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(override));
+    assertResponseStatus(200, response);
+    override = fromJson(response, LicenseOverride.class);
+    new LicenseOverrideDAO().delete(override);
+  }
+
+  @Test
+  public void testDeleteLicenseOverride() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.WRITE);
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), "g", "a", "1",
+        LicenseOverrideStatus.CONFIRMED, null);
+
+    String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_APPLICATION,
+        app.getPublicId(), override.getId());
+    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(204, response);
+
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    override = tempEntity.newLicenseOverride(org.getId(), "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null);
+
+    url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
+        override.getId());
+    response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverrides() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+
+    String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_APPLICATION,
+        app.getPublicId(), "g", "a", "1");
+    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(200, response);
+
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+
+    url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_ORGANIZATION,
+        org.getId(), "g", "a", "1");
+    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(200, response);
+  }
+}

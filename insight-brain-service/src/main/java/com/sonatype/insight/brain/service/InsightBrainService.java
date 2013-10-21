@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +67,10 @@ public class InsightBrainService
   public static final String CIP_ASSET_PATH = "/cip/";
 
   public static void main(final String[] args) throws Exception {
+    if (!validateTempDir()) {
+      System.exit(1);
+    }
+
     new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
   }
 
@@ -77,6 +82,42 @@ public class InsightBrainService
 
     LicenseOverrideMigrator LicenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
     LicenseOverrideMigrator.migrate();
+  }
+
+  private static boolean validateTempDir() {
+    // Ensure that temp directory can be written to. If not, exit and log reason.
+    String tmp = System.getProperty("java.io.tmpdir");
+    try {
+      File dir = new File(tmp);
+
+      if (!dir.exists()) {
+        if (dir.mkdirs()) {
+          log.info("Created temporary folder: {}", dir.getAbsolutePath());
+        }
+      }
+      else if (!dir.isDirectory()) {
+        log.error("It appears that the temporary location is not a folder. Please ensure that {} is a folder " +
+            "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
+            "the server.", dir.getAbsolutePath());
+        return false;
+      }
+
+      // Ensure we can actually create and delete a new temp file
+      File file = File.createTempFile("clm-server-launcher", ".tmp");
+      if (!file.delete()) {
+        log.error("The server is not able to delete from the temporary folder. Please ensure server has access to {} " +
+            "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
+            "the server.", dir.getAbsolutePath());
+        return false;
+      }
+    } catch (IOException ex) {
+      log.error("The server is not able to write to the temporary folder. Please ensure server has access to {} " +
+          "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
+          "the server.", tmp);
+      log.debug("Unable to validate temporary folder", ex);
+      return false;
+    }
+    return true;
   }
 
   @Override

@@ -36,7 +36,7 @@
       $http.get(clmAppLocations.getRoleMappingUrl()).success(function (data) {
         $scope.context.roles = data.membersByRole;
       }).error(function (error) {
-        $scope.error = error;
+        $scope.error = arguments;
       });
     };
 

@@ -18,21 +18,6 @@ describe('TrendingController tests', function() {
     }));
   });
 
-  describe('Directive: header', function () {
-    var element,
-        scope;
-
-    beforeEach(inject(function ($rootScope) {
-      scope = $rootScope.$new();
-    }));
-
-    it('should make hidden element visible', inject(function ($compile) {
-      element = angular.element('<div header for="test"></div>');
-      element = $compile(element)(scope);
-      expect(element.text()).toContain('Value Tracking Report')
-    }));
-  });
-
   describe('Directive: sparkline', function () {
     var element,
         scope;

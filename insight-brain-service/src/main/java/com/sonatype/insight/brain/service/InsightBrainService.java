@@ -84,6 +84,7 @@ public class InsightBrainService
 
   protected static boolean isTempDirSane() {
     // Ensure that temp directory can be written to. If not, exit and log reason.
+    File file;
     String tmp = System.getProperty("java.io.tmpdir");
     try {
       File dir = new File(tmp).getCanonicalFile();
@@ -94,24 +95,21 @@ public class InsightBrainService
         }
       }
       else if (!dir.isDirectory()) {
-        log.error("It appears that the system temporary location is not a folder. Please ensure that {} is a folder " +
+        log.error("It appears that the temporary location is not a folder. Please ensure that {} is a folder " +
             "or specify another folder by adding -Djava.io.tmpdir=<writeable-dir> to the command line used for launching " +
             "the server.", dir.getAbsolutePath());
         return false;
       }
 
       // Ensure we can actually create a new temp file
-      File file = File.createTempFile("clm-server-launcher", ".tmp");
-      file.createNewFile();
-      file.delete();
-
-      System.setProperty("java.io.tmpdir", dir.getAbsolutePath());
+      file = File.createTempFile("clm-server-launcher", ".tmp");
     } catch (IOException ex) {
-      log.error("The server is not able to write to the system temporary folder. Please ensure server has access to {} " +
+      log.error("The server is not able to write to the temporary folder. Please ensure server has access to {} " +
           "or specify another folder by adding -Djava.io.tmpdir=<writeable-dir> to the command line used for launching " +
           "the server.", tmp);
       return false;
     }
+    file.delete();
     return true;
   }
 

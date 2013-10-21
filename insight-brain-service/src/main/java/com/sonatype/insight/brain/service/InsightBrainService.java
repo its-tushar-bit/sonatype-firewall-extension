@@ -112,6 +112,7 @@ public class InsightBrainService
       log.error("The server is not able to write to the temporary folder. Please ensure server has access to {} " +
           "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
           "the server.", tmp);
+      log.debug("Unable to validate temporary folder", ex);
       return false;
     }
     return true;

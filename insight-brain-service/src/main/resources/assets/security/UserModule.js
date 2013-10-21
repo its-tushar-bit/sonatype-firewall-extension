@@ -5,13 +5,18 @@
  */
 (function() {
   "use strict";
-  var module = angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon'], ['$stateProvider',
+  var module = angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule'], ['$stateProvider',
       function($stateProvider) {
         $stateProvider.state('management.security', {
           parent: 'management',
           url: '/security',
           templateUrl: '../security-assets/security-navigation.html?' + clmBuildTimestamp,
           controller: 'SecurityMenuController'
+        }).state('management.security.global', {
+          parent: 'management.security',
+          url: '/global',
+          controller: 'AppSecurityController',
+          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
         });
       }]);
 

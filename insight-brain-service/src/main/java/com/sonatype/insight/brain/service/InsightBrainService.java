@@ -90,18 +90,18 @@ public class InsightBrainService
 
       if (!dir.exists()) {
         if (dir.mkdirs()) {
-          log.debug("Created tmp dir: {}", dir);
+          log.info("Created tmp dir: {}", dir.getAbsolutePath());
         }
       }
       else if (!dir.isDirectory()) {
         log.error("It appears that the system temporary location is not a folder. Please ensure that {} is a folder " +
             "or specify another folder by adding -Djava.io.tmpdir=<writeable-dir> to the command line used for launching " +
-            "the server.", dir);
+            "the server.", dir.getAbsolutePath());
         return false;
       }
 
       // Ensure we can actually create a new temp file
-      File file = File.createTempFile("clm-server-launcher", "tmp");
+      File file = File.createTempFile("clm-server-launcher", ".tmp");
       file.createNewFile();
       file.delete();
 

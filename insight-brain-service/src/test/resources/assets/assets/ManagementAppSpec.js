@@ -16,11 +16,11 @@ describe('ManagementModule', function() {
   });
 
   it('Lists Org before App', function() {
-    expect(scope.managementPanes).not.toBeUndefined();
-    expect(scope.managementPanes.length).toEqual(4);
-    expect(scope.managementPanes[0].name).toEqual('Organizations');
-    expect(scope.managementPanes[1].name).toEqual('Applications');
-    expect(scope.managementPanes[2].name).toEqual('Security');
-    expect(scope.managementPanes[3].name).toEqual('Configuration');
+    expect(scope.panes).not.toBeUndefined();
+    expect(scope.panes.length).toEqual(4);
+    expect(scope.panes[0].name).toEqual('Organizations');
+    expect(scope.panes[1].name).toEqual('Applications');
+    expect(scope.panes[2].name).toEqual('Security');
+    expect(scope.panes[3].name).toEqual('Configuration');
   });
 });
